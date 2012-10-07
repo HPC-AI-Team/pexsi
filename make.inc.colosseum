@@ -1,0 +1,68 @@
+#/usr/bin/bash
+
+PEXSI_DIR     = /Users/linlin/Projects/pexsi
+
+
+# inclues
+
+PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
+INCLUDES         = ${PEXSI_INCLUDE}
+
+# Libraries
+GFORTRAN_LIB     =/opt/local/lib/gcc44/libgfortran.dylib
+SCALAPACK_LIB    =/Users/linlin/Software/scalapack-2.0/libscalapack.a
+METIS_LIB        = ${PEXSI_DIR}/external/METIS/libmetis.a
+SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
+LAPACK_LIB       = -llapack
+BLAS_LIB         = -lblas
+
+PEXSI_LIB    = ${PEXSI_DIR}/src/libpexsi.a
+LIBS         = ${PEXSI_LIB} ${SELINV_LIB} ${METIS_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
+
+CC           = openmpicc 
+CXX          = openmpicxx
+FC           = openmpif90
+LOADER       = openmpicxx
+
+AR           = ar 
+ARFLAGS      = rvcu
+# For System V based machine without ranlib, like Cray and SGI,
+# use touch instead.
+#RANLIB      = touch
+RANLIB       = ranlib
+
+RM           = rm
+RMFLAGS      = -f
+
+# Different compiling and linking options.
+#
+MODE	         = debug
+
+ifeq ($(MODE), debug)
+	COMMONDEFS   = 
+  CFLAGS       = -O2 -g ${INCLUDES}
+  FFLAGS       = -O2 -g ${INCLUDES}
+  CXXFLAGS     = -O2 -g ${INCLUDES}
+	CCDEFS       = ${COMMONDEFS}
+	CPPDEFS      = ${COMMONDEFS}
+  LOADOPTS     = ${LIBS}
+endif
+
+
+# Compilation replacement rules
+
+%.o: %.c
+	${CC} -c ${CFLAGS} ${CCDEFS} $< 
+%.o: %.cpp
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
+%.o: %.f
+	${FC} -c ${FFLAGS} $<
+%.o: %.F
+	${FC} -c ${FFLAGS} $<
+
+# Generate auto-dependencies (for cpp files now)
+%.d: %.cpp
+	@set -e; rm -f $@; \
+	$(CXX) -M $(CXXFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
+	rm -f $@.$$$$
