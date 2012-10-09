@@ -164,27 +164,42 @@ void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat )
 #ifndef _RELEASE_
 	PushCallStack("ReadSparseMatrix");
 #endif
-	ifstream fin(filename);
-
-	fin >> spmat.size >> spmat.nnz;
-
-	spmat.colptr.Resize( spmat.size+1 );
-	spmat.rowind.Resize( spmat.nnz );
-	spmat.nzval.Resize ( spmat.nnz );
-
-	for( Int i = 0; i < spmat.size + 1; i++ ){
-		fin >> spmat.colptr(i);
+	
+	// FIXME
+	// Binary format
+	if( 1 ){
+		std::istringstream iss;
+		SharedRead( filename, iss );
+		deserialize( spmat.size, iss, NO_MASK );
+		deserialize( spmat.nnz,  iss, NO_MASK );
+		deserialize( spmat.colptr, iss, NO_MASK );
+		deserialize( spmat.rowind, iss, NO_MASK );
+		deserialize( spmat.nzval, iss, NO_MASK );
 	}
 	
-	for( Int i = 0; i < spmat.nnz; i++ ){
-		fin >> spmat.rowind(i);
+	// Ascii format
+  if( 0 ) {	
+		ifstream fin(filename);
+		fin >> spmat.size >> spmat.nnz;
+
+		spmat.colptr.Resize( spmat.size+1 );
+		spmat.rowind.Resize( spmat.nnz );
+		spmat.nzval.Resize ( spmat.nnz );
+
+		for( Int i = 0; i < spmat.size + 1; i++ ){
+			fin >> spmat.colptr(i);
+		}
+
+		for( Int i = 0; i < spmat.nnz; i++ ){
+			fin >> spmat.rowind(i);
+		}
+
+		for( Int i = 0; i < spmat.nnz; i++ ){
+			fin >> spmat.nzval(i);
+		}
+
+		fin.close();
 	}
-	
-	for( Int i = 0; i < spmat.nnz; i++ ){
-		fin >> spmat.nzval(i);
-	}
-	
-	fin.close();
 #ifndef _RELEASE_
 	PopCallStack();
 #endif

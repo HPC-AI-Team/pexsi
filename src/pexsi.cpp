@@ -50,13 +50,6 @@ void PEXSIData::Solve( )
 
 	int *perm;                             // Permutation vector
 
-	/* -order     :   Reordering strategy:
-		 order = -1 (default) : Multiple Minimum Degree Reordering.
-		 If METIS is supported, then the following choices
-		 are also available:
-		 order = 2 : Node Nested Dissection
-		 order = 3 : Edge Nested Dissection  */
-
 	// Since all the poles share the same algebraic structure, the
 	// preprocess can be considered as a once-for-all process,The
 	// preprocessing procedure is a once-for-all calculation 
@@ -70,77 +63,140 @@ void PEXSIData::Solve( )
 	Print( statusOFS, "number of nonzeros in H = ", HMat.nnz );
 	Print( statusOFS, "number of nonzeros in L = ", Lnnz );
 
-
 	SparseMatrix<Complex>     AMat;               // A = H - z S
 	SparseMatrix<Complex>     invAMat;            // inverse(A)
-	//	FIXME
-//	AMat.Resize( HMat.nnz, HMat.size );
-//	invAMat.Resize( HMat.nnz, Lnnz );
+
+	AMat.size = HMat.size;
+	AMat.nnz  = HMat.nnz;
+	// Save some memory
+	AMat.colptr = IntNumVec( HMat.colptr.m(), false, HMat.colptr.Data() );
+	AMat.rowind = IntNumVec( HMat.rowind.m(), false, HMat.rowind.Data() );
+	AMat.nzval.Resize( HMat.nnz );
+
+	invAMat.size = HMat.size;
+	invAMat.nnz  = Lnnz;
+	invAMat.colptr.Resize( invAMat.size + 1 );
+	invAMat.rowind.Resize( Lnnz );
+	invAMat.nzval.Resize( Lnnz );
 
 	double muNow = mu0;
-//
-//	for(int iter = 0; iter < muMaxIter; iter++){
-//		// Reinitialize the variables
-//		SetValue( rhoMat.nzval, 0.0 );
-//
-//		//Initialize the pole expansion
-//		getpole_rho(reinterpret_cast<doublecomplex*>(zshift.Data()),
-//				reinterpret_cast<doublecomplex*>(zweightRho.Data()),
-//				&numPole, &temperature, &gap, &deltaE, &muNow); 
-//
-//		// for each pole, perform LDLT factoriation and selected inversion
-//
-//		for(int l = 0; l < numPole; l++){
-//			cerr << _zshift_rho[l] << endl;
-//			for(int i = 0; i < _Hnnz; i++){
-//				nzval_A[i] = _nzval_H[i] - _zshift_rho[l] * _nzval_S[i];
-//			}
-//
-//			SelInvInterface::ldlt_fact__(&token, _colptr_H.data(),
-//					_rowind_H.data(), 
-//					reinterpret_cast<doublecomplex*>(nzval_A.data()));
-//
-//			cerr << "Factorization done" << endl;
-//
-//			SelInvInterface::ldlt_blkselinv__(&token, colptr_invA.data(),
-//					rowind_invA.data(),
-//					reinterpret_cast<doublecomplex*>(nzval_invA.data()),
-//					&dumpL);
-//
-//			cerr << "Selected inversion done" << endl;
-//
-//
-//			// Evaluate the electron density
-//			for(int j = 1; j < _Ndof+1; j++){
-//				for(int ii = _colptr_H[j-1]; ii < _colptr_H[j]; ii++){
-//					int k;
-//					for(k = colptr_invA[j-1]; k < colptr_invA[j]; k++){
-//						if( _rowind_H[ii-1] == rowind_invA[k-1] ){
-//							_nzval_rho[ii-1] += _zweight_rho[l].real() * nzval_invA[k-1].imag() + 
-//								_zweight_rho[l].imag() * nzval_invA[k-1].real();
-//							break;
-//						}
-//					}
-//					iA( k != colptr_invA[j] );
-//				}
-//			}
-//
-//		} // for(l)
-//
-//		// Reduce Ne
+
+	for(int iter = 0; iter < muMaxIter; iter++){
+		{
+			std::ostringstream msg;
+			msg << "Iteration " << iter << ", mu = " << muNow;
+			PrintBlock( statusOFS, msg.str() );
+		}
+		// Reinitialize the variables
+		SetValue( rhoMat.nzval, 0.0 );
+
+		//Initialize the pole expansion
+		getpole_rho(reinterpret_cast<doublecomplex*>(zshift.Data()),
+				reinterpret_cast<doublecomplex*>(zweightRho.Data()),
+				&numPole, &temperature, &gap, &deltaE, &muNow); 
+
+		Print( statusOFS, "zshift" );
+		statusOFS << zshift << std::endl;
+		Print( statusOFS, "zweightRho " );
+		statusOFS << zweightRho << std::endl;
+
+		// for each pole, perform LDLT factoriation and selected inversion
+
+		Real timeSta, timeEnd;
+
+		for(Int l = 0; l < numPole; l++){
+			statusOFS << "Pole " << l << std::endl;
+			statusOFS << "zshift = " << zshift(l) << ", " 
+				<< "zweightRho = " << zweightRho(l) << std::endl;
+
+			for(Int i = 0; i < HMat.nnz; i++){
+				AMat.nzval(i) = HMat.nzval(i) - zshift(l) * SMat.nzval(i);
+			}
+
+
+			GetTime( timeSta );
+
+			SelInvInterface::ldlt_fact__(&token, HMat.colptr.Data(),
+					HMat.rowind.Data(), 
+					reinterpret_cast<doublecomplex*>(AMat.nzval.Data()));
+
+			GetTime( timeEnd );
+
+			Print( statusOFS, "Factorization done" );
+			Print( statusOFS, "Factorization time = ", timeEnd - timeSta, "[s]" );
+			
+			GetTime( timeSta );
+
+			SelInvInterface::ldlt_blkselinv__(&token, invAMat.colptr.Data(),
+					invAMat.rowind.Data(), 
+					reinterpret_cast<doublecomplex*>(invAMat.nzval.Data()), &dumpL);
+			
+			GetTime( timeEnd );
+
+			Print( statusOFS, "Selected inversion done" );
+			Print( statusOFS, "Selected inversion time = ", timeEnd - timeSta, "[s]" );
+
+			// Evaluate the electron density
+			GetTime( timeSta );
+			
+			{
+				Int* colptrHPtr = HMat.colptr.Data();
+				Int* rowindHPtr = HMat.rowind.Data();
+				Int* colptrInvAPtr = invAMat.colptr.Data();
+				Int* rowindInvAPtr = invAMat.rowind.Data();
+				Real* nzvalRhoPtr  = rhoMat.nzval.Data();
+				Complex* nzvalInvAPtr = invAMat.nzval.Data();
+				Complex  ztmp = zweightRho(l);
+
+				for(Int j = 1; j < HMat.size+1; j++){
+					statusOFS << j << std::endl;
+					for(Int ii = colptrHPtr[j-1]; ii < colptrHPtr[j]; ii++){
+//					for(Int ii = HMat.colptr(j-1); ii < HMat.colptr(j); ii++){
+						Int kk;
+						for(kk = colptrInvAPtr[j-1]; kk < colptrInvAPtr[j]; kk++){
+//						for(kk = invAMat.colptr(j-1); kk < invAMat.colptr(j); kk++){
+//							if( HMat.rowind(ii-1) == invAMat.rowind(kk-1) ){
+							if( rowindHPtr[ii-1] == rowindInvAPtr[kk-1] ){
+								nzvalRhoPtr[ii-1] += 
+									ztmp.real() * nzvalInvAPtr[kk-1].imag() +
+									ztmp.imag() * nzvalInvAPtr[kk-1].real();
+//								rhoMat.nzval(ii-1) += 
+//									zweightRho(l).real() * invAMat.nzval(kk-1).imag() +
+//									zweightRho(l).imag() * invAMat.nzval(kk-1).real();
+								break;
+							}
+						}
+						if( kk == colptrInvAPtr[j] ){
+//						if( kk == invAMat.colptr(j) ){
+							std::ostringstream msg;
+							msg << "H(" << HMat.rowind(ii-1) << ", " << j << ") cannot be found in invA" << std::endl;
+							throw std::logic_error( msg.str().c_str() );
+						}
+					}
+				} // for (j)
+			} 
+			
+			GetTime( timeEnd );
+
+			Print( statusOFS, "Evaluating density done" );
+			Print( statusOFS, "Evaluating density time = ", timeEnd - timeSta, "[s]" );
+
+		} // for(l)
+
+		// Reduce Ne
 //		_Ne[iter] = this->traceprod(_Ndof, _colptr_H, _rowind_H, _nzval_S, _nzval_rho);
 //		cerr << "Ne["<< iter << "] = " << _Ne[iter] << endl;
-//
-//
-//		// Reduce band energy
-//		// Reduce Helmholtz free energy
-//		// Reduce force
-//		//    _Ne[iter] = 0.0;
-//		//
-//		//    if( abs(_Ne[iter] - _Neexact) < _tol_Ne ) break;
-//
-//		// update_mu(iter, _maxit_mu, mu, Ne);
-//	}
+
+
+		// Reduce band energy
+		// Reduce Helmholtz free energy
+		// Reduce force
+		//    _Ne[iter] = 0.0;
+		//
+		//    if( abs(_Ne[iter] - _Neexact) < _tol_Ne ) break;
+
+		// update_mu(iter, _maxit_mu, mu, Ne);
+	}
 
 	// FIXME
 	if ( permOrder == 0) free(perm);

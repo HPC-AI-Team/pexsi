@@ -28,6 +28,13 @@ public:
 	Int  muMaxIter;              // Maximum iteration number for mu
 	Int  permOrder;              // Order of the permutation
 
+	/* -order     :   Reordering strategy:
+		 order = -1 (default) : Multiple Minimum Degree Reordering.
+		 If METIS is supported, then the following choices
+		 are also available:
+		 order = 2 : Node Nested Dissection
+		 order = 3 : Edge Nested Dissection  */
+
 	bool isHelmholtz;                           // Whether to compute the Helmholtz free energy
 	bool isForce;                               // Whether to compute the force
 
