@@ -1,5 +1,7 @@
 #ifndef __GETPOLE
 #define __GETPOLE
+
+
 typedef struct { double r, i; } doublecomplex;
 
 #ifdef __cplusplus

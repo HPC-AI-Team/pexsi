@@ -1,62 +1,89 @@
 #include "pexsi.hpp"
 
 using namespace PEXSI;
+using namespace std;
 
 int main(int argc, char **argv) 
 {
-  PEXSI pexsi;
+	try{
+		stringstream  ss;
+		ss << "logPEXSI";
+		statusOFS.open( ss.str().c_str() );
 
-//  pepsi._order = -1;
-//  pepsi._Hnnz = 0;
-//  pepsi._Npole = 2;
-//  pepsi._temp = 300;
-//  pepsi._gap = 0.0;
-//  pepsi._DeltaE = 1.0;
-//  pepsi._mu0 = -1.0;
-//  pepsi._Neexact = 1;
-//  pepsi._tol_Ne = 1e-6;
-//  pepsi._hmzflg = 0;
-//  pepsi._frcflg = 0;
-//  pepsi._maxit_mu = 1;
+		PEXSIData pexsiData;
+
+
+		// *********************************************************************
+		// Input parameter
+		// *********************************************************************
+		pexsiData.gap              = 0.0;
+		pexsiData.temperature      = 300;
+		pexsiData.deltaE           = 1.0;
+		pexsiData.numPole          = 10;
+		pexsiData.permOrder        = -1;
+		pexsiData.mu0              = -1.0;
+		pexsiData.numElectronExact = 6;
+		pexsiData.numElectronTolerance = 1e-4;
+		pexsiData.muMaxIter        = 10;
+		pexsiData.permOrder        = -1;
+
+
+		// *********************************************************************
+		// Read input matrix
+		// *********************************************************************
+		ReadSparseMatrix( "H.ccs", pexsiData.HMat );
+    cout << pexsiData.HMat.size << endl;
+    cout << pexsiData.HMat.nnz  << endl;
+ 
+
+//		{
+//			ReadSparseMatrix( "H.matrix", pexsiData.HMat );
 //
-//  {
-//    char* filename = "Hc.ccf";
-//    int Ndof, Hnnz;
-//    readmatrixheader_(filename, &Ndof, &Hnnz);
+//			ReadSparseMatrix( "S.matrix", pexsiData.SMat );
 //
-//    IntNumVec colptr_H(Ndof+1);
-//    IntNumVec rowind_H(Hnnz);
-//    CpxNumVec tmp(Hnnz);
-//    readcmatrix_(filename, colptr_H.data(), 
-//		 rowind_H.data(), 
-//		 reinterpret_cast<doublecomplex*>(tmp.data()));
-//    pepsi._Hnnz = Hnnz;
-//    pepsi._Ndof = Ndof;
-//    pepsi._colptr_H = colptr_H;
-//    pepsi._rowind_H = rowind_H;
-//    pepsi._nzval_H.resize(Hnnz);
-//    pepsi._nzval_S.resize(Hnnz);
-//    cerr << colptr_H << endl;
-//    for(int i = 0; i < Hnnz; i++){
-//      pepsi._nzval_H[i] = tmp[i].real();
-//    }
+//			// Make sure that the sparsity of H and S matches.
+//			if( pexsiData.HMat.size != pexsiData.SMat.size ||
+//					pexsiData.HMat.nnz  != pexsiData.SMat.nnz ){
+//					std::ostringstream msg;
+//					msg 
+//						<< "The dimensions colptr for H and S do not match" << std::endl
+//						<< "H.colptr.size = " pexsiData.HMat.size << std::endl
+//						<< "H.colptr.nnz  = " pexsiData.HMat.nnz  << std::endl
+//						<< "S.colptr.size = " pexsiData.SMat.size << std::endl
+//						<< "S.colptr.nnz  = " pexsiData.SMat.nnz  << std::endl;
+//				throw std::logic_error( msg.str().c_str() );
+//			}
 //
-//    // Orthogonal overlap matrix. Note that CCS format here uses one-based
-//    // notation.
-//    for(int i = 1; i < Ndof+1; i++){
-//      for(int j = colptr_H[i-1]; j < colptr_H[i]; j++){
-//	if(i == rowind_H[j-1]){
-//	  pepsi._nzval_S[j-1] = 1.0;
-//	}
-//	else{
-//	  pepsi._nzval_S[j-1] = 0.0;
-//	}
-//      }
-//    }
-//  }
+//      for( int j = 0; j < pexsiData.HMat.colptr.m(); j++ ){
+//				if( pexsiData.HMat.colptr(j) != pexsiData.SMat.colptr(j) ){
+//					std::ostringstream msg;
+//					msg 
+//						<< "Colptr of H and S do not match:" << std::endl
+//						<< "H.colptr(" << j << ") = " << pexsiData.HMat.colptr(j) << std::endl
+//						<< "S.colptr(" << j << ") = " << pexsiData.SMat.colptr(j) << std::endl;
+//					throw std::logic_error( msg.str().c_str() );	
+//				}
+//			}
+//		}
+
+
+		// *********************************************************************
+		// Solve
+		// *********************************************************************
+//		pexsiData.Setup( );
+//		Print( statusOFS, "PEXSI setup finished." );
 //
-//  iC(pepsi.setup());
-//  iC(pepsi.solve());
-  
-  return 0;
+//		pexsiData.Solve( );
+//		Print( statusOFS, "PEXSI solve finished." );
+
+		statusOFS.close();
+	}
+	catch( std::exception& e )
+	{
+		std::cerr << " caught exception with message: "
+			<< e.what() << std::endl;
+		DumpCallStack();
+	}
+
+	return 0;
 }

@@ -1,6 +1,7 @@
 include ../make.inc.${HOSTID}
 
-SRCS = getpolef.o selinv_interf.o pepsi.o 
+SRCS = pexsi.cpp getpolef.cpp selinv_interf.cpp utility.cpp global.cpp
+#SRCS =   pexsi.cpp 
 
 OBJS = ${SRCS:.cpp=.o}
 DEPS = ${SRCS:.cpp=.d}

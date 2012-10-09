@@ -70,7 +70,7 @@ extern "C"
 }; 
 
 
-namespace SELINV_Interface
+namespace SelInvInterface
 {
   // -----------------------
   //   Function prototypes

@@ -7,6 +7,7 @@
 #include  "numvec_impl.hpp"
 #include  "nummat_impl.hpp"
 #include  "numtns_impl.hpp"
+#include  "sparse_matrix.hpp"
 
 namespace PEXSI{
 
@@ -1200,26 +1201,6 @@ Int inline combine(NumTns<T>& val, NumTns<T>& ext)
   return 0;
 }
 
-Int inline serialize(const Domain& dm, std::ostream& os, const std::vector<Int>& mask){
-	serialize( dm.length, os, mask );
-	serialize( dm.posStart, os, mask );
-	serialize( dm.numGrid, os, mask );
-	// Do not serialize the communicatior
-	return 0;
-}
-
-Int inline deserialize(Domain& dm, std::istream& is, const std::vector<Int>& mask){
-	deserialize( dm.length, is, mask );
-	deserialize( dm.posStart, is, mask );
-	deserialize( dm.numGrid, is, mask );
-	// Do not deserialize the communicatior 
-	return 0;
-}
-
-Int inline combine(Domain& dm1, Domain& dm2){
-	throw  std::logic_error( "Combine operation not implemented." );
-  return 0;
-}
 
 
 // *********************************************************************
@@ -1295,6 +1276,13 @@ inline void UniformRandom( NumTns<Complex>& T )
 inline void GetTime(Real&  t){
 	t = MPI_Wtime();
 }
+
+// *********************************************************************
+// Sparse Matrix
+// *********************************************************************
+
+void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat );
+
 
 } // namespace PEXSI
 #endif // _UTILITY_HPP_
