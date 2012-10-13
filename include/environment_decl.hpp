@@ -109,7 +109,7 @@ struct NullStream : std::ostream
 Int iround( Real a );
 
 // Read the options from command line
-Int OptionsCreate(Int argc, char** argv, 
+void OptionsCreate(Int argc, char** argv, 
 		std::map<std::string,std::string>& options);
 
 } // namespace PEXSI

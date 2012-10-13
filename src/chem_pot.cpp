@@ -29,9 +29,9 @@ void Chemical_Potential::update_mu(const int &iter, const int &niter, double *mu
 		// mu: y
 		// nu: x
 		// new_y = y0 + (y1-y0)/(x1-x0) * (new_x-x0)
-        if(ne[iter]==ne[iter-1])
+		if(ne[iter]==ne[iter-1])
 		{
-            mu0[iter+1]=mu0[iter];
+			mu0[iter+1]=mu0[iter];
 			cout << " same ne ! " << endl;
 			if( ucell.nelec > ne[iter]   ) 
 			{

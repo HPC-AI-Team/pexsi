@@ -16,13 +16,12 @@ inline Int
 		return b; 
 	}
 
-inline Int OptionsCreate(Int argc, char** argv, std::map<std::string,std::string>& options)
+inline void OptionsCreate(Int argc, char** argv, std::map<std::string,std::string>& options)
 {
 	options.clear();
 	for(Int k=1; k<argc; k=k+2) {
 		options[ std::string(argv[k]) ] = std::string(argv[k+1]);
 	}
-	return 0;
 }
 
 } // namespace PEXSI

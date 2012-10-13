@@ -21,6 +21,7 @@ public:
 	Real temperature;            // Temperature (in the unit of K)
 	Real deltaE;                 // an upperbound of the spectrum width
 	Int  numPole;                // Number of poles for the pole expansion
+	Real poleTolerance;          // Truncation tolerance for the absolute value of the weight
 	Real mu0;                    // initial guess of chemical potential (in the unit of au)
 	Real numElectronExact;       // Exact number of electrons
 
@@ -59,22 +60,25 @@ public:
 	// Computational variables
 	// *********************************************************************
 
-	CpxNumVec  zshift;      // Complex shift for the pole expansion
-	CpxNumVec  zweightRho;  // Complex weight for the pole expansion for density
-	CpxNumVec  zweightFreeEnergy;  // Complex shift for the pole expansion for Helmholtz free energy
-	CpxNumVec  zweightForce;  // Complex weight for the pole expansion for force
+	std::vector<Complex>  zshift;      // Complex shift for the pole expansion
+	std::vector<Complex>  zweightRho;  // Complex weight for the pole expansion for density
+	std::vector<Complex>  zweightFreeEnergy;  // Complex shift for the pole expansion for Helmholtz free energy
+	std::vector<Complex>  zweightForce;  // Complex weight for the pole expansion for force
+	Int        numPoleUsed;            // Number of poles after truncation
 
 public:
 	PEXSIData(){}
 	~PEXSIData() {}
 
   void Setup();
+	
 	void Solve();
-	void UpdateMu();
+
+	Real ProductTrace	( const DblNumVec& nzval1, const DblNumVec& nzval2 );
+
+	Real UpdateChemicalPotential( const Int iter );
 };
 
-////	Real traceprod(Int Ndof, IntNumVec& colptr_H, IntNumVec& rowind_H, 
-////			DblNumVec& nzval1, DblNumVec& nzval2);
 
 
 } // namespace PEXSI

@@ -1278,6 +1278,20 @@ inline void GetTime(Real&  t){
 }
 
 // *********************************************************************
+// Comparator
+// *********************************************************************
+inline bool PairLtComparator( const std::pair<Real, Int>& l, 
+		const std::pair<Real, Int>& r ){
+	return l.first < r.first;
+}
+
+inline bool PairGtComparator( const std::pair<Real, Int>& l, 
+		const std::pair<Real, Int>& r ){
+	return l.first > r.first;
+}
+
+
+// *********************************************************************
 // Sparse Matrix
 // *********************************************************************
 

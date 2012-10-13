@@ -11,6 +11,9 @@ OBJS = ${SRCS:.cpp=.o}
 DEPS = ${SRCS:.cpp=.d}
 EXES = ${SRCS:.cpp=}	
 
+ex2: ex2.o ${PEXSI_LIB} 
+	($(LOADER) -o $@ ex2.o $(LOADOPTS) )
+
 ex1: ex1.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ ex1.o $(LOADOPTS) )
 

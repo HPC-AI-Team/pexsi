@@ -23,15 +23,21 @@ int main(int argc, char **argv)
 		// *********************************************************************
 		pexsiData.gap              = 0.0;
 		pexsiData.temperature      = 300;
-		pexsiData.deltaE           = 1.0;
-		pexsiData.numPole          = 8;
+		pexsiData.deltaE           = 15.0;
+		pexsiData.numPole          = 80;
 		pexsiData.permOrder        = -1;
-		pexsiData.mu0              = -1.0;
-		pexsiData.numElectronExact = 6;
 		pexsiData.numElectronTolerance = 1e-4;
-		pexsiData.muMaxIter        = 1;
+		pexsiData.muMaxIter        = 30;
 		pexsiData.permOrder        = -1;
+		pexsiData.poleTolerance    = 1e-4;
 
+		// WaterPT
+//		pexsiData.mu0              = -0.5;
+//		pexsiData.numElectronExact = 1600.0;
+
+		// DNA
+		pexsiData.mu0                = 0.00;
+		pexsiData.numElectronExact   = 2442.0;
 
 		// *********************************************************************
 		// Read input matrix

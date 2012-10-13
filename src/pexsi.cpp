@@ -25,11 +25,6 @@ PEXSIData::Setup	(  )
 	totalEnergy = 0.0;
 	totalFreeEnergy = 0.0;
 
-	zshift.Resize( numPole );
-	SetValue( zshift, Z_ZERO );
-	zweightRho.Resize( numPole );
-	SetValue( zweightRho, Z_ZERO );
-
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
@@ -79,9 +74,15 @@ void PEXSIData::Solve( )
 	invAMat.rowind.Resize( Lnnz );
 	invAMat.nzval.Resize( Lnnz );
 
-	double muNow = mu0;
+	muList.clear();
+	numElectronList.clear();
+	Real muNow = mu0;
+	Real numElectronNow;
 
-	for(int iter = 0; iter < muMaxIter; iter++){
+	Real timeMuSta, timeMuEnd;
+
+	for(Int iter = 0; iter < muMaxIter; iter++){
+		GetTime( timeMuSta );
 		{
 			std::ostringstream msg;
 			msg << "Iteration " << iter << ", mu = " << muNow;
@@ -90,11 +91,42 @@ void PEXSIData::Solve( )
 		// Reinitialize the variables
 		SetValue( rhoMat.nzval, 0.0 );
 
+		// Initialize the number of electrons
+		numElectronNow  = 0.0;
+
 		//Initialize the pole expansion
-		getpole_rho(reinterpret_cast<doublecomplex*>(zshift.Data()),
-				reinterpret_cast<doublecomplex*>(zweightRho.Data()),
+
+		std::vector<Complex> zshiftRaw( numPole );
+		std::vector<Complex> zweightRhoRaw( numPole );
+
+		getpole_rho(reinterpret_cast<doublecomplex*>(&zshiftRaw[0]),
+				reinterpret_cast<doublecomplex*>(&zweightRhoRaw[0]),
 				&numPole, &temperature, &gap, &deltaE, &muNow); 
 
+		// Sort and truncate the poles according to the weights
+		{
+			std::vector<std::pair<Real,Int> >  weightAbs( numPole );
+			for( Int i = 0; i < numPole; i++ ){
+				weightAbs[i] = std::pair<Real,Int>(abs( zweightRhoRaw[i] ), i);
+			}
+			std::sort( weightAbs.begin(), weightAbs.end(), PairGtComparator );
+
+			zshift.clear();
+			zweightRho.clear();
+
+			numPoleUsed = 0;
+			for( Int i = 0; i < numPole; i++ ){
+				if( weightAbs[i].first > poleTolerance ){
+					zshift.push_back( zshiftRaw[weightAbs[i].second] );
+					zweightRho.push_back( zweightRhoRaw[weightAbs[i].second] );
+					numPoleUsed++;
+				}
+			}
+
+		}
+
+		
+		Print( statusOFS, "Number of poles used = ", numPoleUsed );
 		Print( statusOFS, "zshift" );
 		statusOFS << zshift << std::endl;
 		Print( statusOFS, "zweightRho " );
@@ -104,13 +136,13 @@ void PEXSIData::Solve( )
 
 		Real timeSta, timeEnd;
 
-		for(Int l = 0; l < numPole; l++){
+		for(Int l = 0; l < numPoleUsed; l++){
 			statusOFS << "Pole " << l << std::endl;
-			statusOFS << "zshift = " << zshift(l) << ", " 
-				<< "zweightRho = " << zweightRho(l) << std::endl;
+			statusOFS << "zshift = " << zshift[l] << ", " 
+				<< "zweightRho = " << zweightRho[l] << std::endl;
 
 			for(Int i = 0; i < HMat.nnz; i++){
-				AMat.nzval(i) = HMat.nzval(i) - zshift(l) * SMat.nzval(i);
+				AMat.nzval(i) = HMat.nzval(i) - zshift[l] * SMat.nzval(i);
 			}
 
 
@@ -140,34 +172,27 @@ void PEXSIData::Solve( )
 			GetTime( timeSta );
 			
 			{
+				// Otherwise the speed is too slow.
 				Int* colptrHPtr = HMat.colptr.Data();
 				Int* rowindHPtr = HMat.rowind.Data();
 				Int* colptrInvAPtr = invAMat.colptr.Data();
 				Int* rowindInvAPtr = invAMat.rowind.Data();
 				Real* nzvalRhoPtr  = rhoMat.nzval.Data();
 				Complex* nzvalInvAPtr = invAMat.nzval.Data();
-				Complex  ztmp = zweightRho(l);
+				Complex  zweightl = zweightRho[l];
 
 				for(Int j = 1; j < HMat.size+1; j++){
-					statusOFS << j << std::endl;
 					for(Int ii = colptrHPtr[j-1]; ii < colptrHPtr[j]; ii++){
-//					for(Int ii = HMat.colptr(j-1); ii < HMat.colptr(j); ii++){
 						Int kk;
 						for(kk = colptrInvAPtr[j-1]; kk < colptrInvAPtr[j]; kk++){
-//						for(kk = invAMat.colptr(j-1); kk < invAMat.colptr(j); kk++){
-//							if( HMat.rowind(ii-1) == invAMat.rowind(kk-1) ){
 							if( rowindHPtr[ii-1] == rowindInvAPtr[kk-1] ){
 								nzvalRhoPtr[ii-1] += 
-									ztmp.real() * nzvalInvAPtr[kk-1].imag() +
-									ztmp.imag() * nzvalInvAPtr[kk-1].real();
-//								rhoMat.nzval(ii-1) += 
-//									zweightRho(l).real() * invAMat.nzval(kk-1).imag() +
-//									zweightRho(l).imag() * invAMat.nzval(kk-1).real();
+									zweightl.real() * nzvalInvAPtr[kk-1].imag() +
+									zweightl.imag() * nzvalInvAPtr[kk-1].real();
 								break;
 							}
 						}
 						if( kk == colptrInvAPtr[j] ){
-//						if( kk == invAMat.colptr(j) ){
 							std::ostringstream msg;
 							msg << "H(" << HMat.rowind(ii-1) << ", " << j << ") cannot be found in invA" << std::endl;
 							throw std::logic_error( msg.str().c_str() );
@@ -181,21 +206,42 @@ void PEXSIData::Solve( )
 			Print( statusOFS, "Evaluating density done" );
 			Print( statusOFS, "Evaluating density time = ", timeEnd - timeSta, "[s]" );
 
+
+			// Accumulate the number of electrons
+			GetTime( timeSta );
+			numElectronNow = ProductTrace( SMat.nzval, rhoMat.nzval );
+			GetTime( timeEnd );
+
+			Print( statusOFS, "Accumulated number of electron = ", numElectronNow );
+			Print( statusOFS, "Evaluating number of electrons done" );
+			Print( statusOFS, "Evaluating number of electrons time = ", timeEnd - timeSta, "[s]" );
+
+
 		} // for(l)
 
 		// Reduce Ne
-//		_Ne[iter] = this->traceprod(_Ndof, _colptr_H, _rowind_H, _nzval_S, _nzval_rho);
-//		cerr << "Ne["<< iter << "] = " << _Ne[iter] << endl;
+		
+		muList.push_back(muNow);
+		numElectronList.push_back( numElectronNow );
+		
+		Print( statusOFS, "Computed number of electron = ", numElectronNow );
+		Print( statusOFS, "Exact number of electron    = ", numElectronExact );
 
 
 		// Reduce band energy
 		// Reduce Helmholtz free energy
 		// Reduce force
-		//    _Ne[iter] = 0.0;
-		//
-		//    if( abs(_Ne[iter] - _Neexact) < _tol_Ne ) break;
+		if( std::abs( numElectronExact - numElectronList[iter] ) <
+				numElectronTolerance ){
+			break;
+		}
 
-		// update_mu(iter, _maxit_mu, mu, Ne);
+		muNow = UpdateChemicalPotential( iter );
+
+		GetTime( timeMuEnd );
+
+		Print( statusOFS, "Total wall clock time for this iteration = ", 
+				timeMuEnd - timeMuSta, "[s]" );
 	}
 
 	// FIXME
@@ -213,20 +259,83 @@ void PEXSIData::Solve( )
   
 // Use symmetry, compute the trace of the product of two matrices
 // sharing the same structure as H
-//double PEXSI::traceprod(int Ndof, IntNumVec& colptr_H, IntNumVec& rowind_H, 
-//		DblNumVec& nzval1, DblNumVec& nzval2){
-//	double val = 0.0;
-//	for(int j = 0; j < Ndof; j++){
-//		for(int i = colptr_H[j]-1; i < colptr_H[j+1]-1; i++){
-//			if( j+1 == rowind_H[i] ){ // diagonal
-//				val += nzval1[i]*nzval2[i];  
-//			}
-//			else{
-//				val += 2.0 * nzval1[i]*nzval2[i];
-//			}
-//		}
-//	}
-//	return val;
-//}
+
+Real PEXSIData::ProductTrace	( 
+		const DblNumVec& nzval1, const DblNumVec& nzval2 )
+{
+#ifndef _RELEASE_
+	PushCallStack("PEXSIData::ProductTrace");
+#endif
+	Real val = 0.0;
+	for(Int j = 0; j < HMat.size; j++){
+		for(Int i = HMat.colptr(j) - 1; i < HMat.colptr(j+1) - 1; i++){
+			if( j+1 == HMat.rowind(i) ){ // diagonal
+				val += nzval1(i)*nzval2(i);  
+			}
+			else{
+				val += 2.0 * nzval1(i)*nzval2(i);
+			}
+		}
+	}
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return val;
+} 		// -----  end of method PEXSIData::ProductTrace  ----- 
+
+
+Real PEXSIData::UpdateChemicalPotential	( const Int iter )
+{
+#ifndef _RELEASE_
+	PushCallStack("PEXSIData::UpdateChemicalPotential");
+#endif
+  // FIXME Magic number here
+	Real  muMin = -5.0, muMax = 5.0, muMinStep = 0.01;;
+	Real  muNew;
+
+	if( iter == 0 ){
+		if( numElectronExact > numElectronList[iter] ){
+			muNew = muList[iter] + muMinStep;
+		}
+		else{
+			muNew = muList[iter] - muMinStep;
+		}
+	}
+	else{
+		if( std::abs(numElectronList[iter] -  numElectronList[iter-1])
+		    < numElectronTolerance ){
+			statusOFS << "The number of electrons did not change." << std::endl;
+			if( numElectronExact > numElectronList[iter] ){
+				muNew = muList[iter] + muMinStep;
+			}
+			else{
+				muNew = muList[iter] - muMinStep;
+			}
+		}
+		else {
+			muNew = muList[iter] + (muList[iter] - muList[iter-1]) / 
+				( numElectronList[iter] - numElectronList[iter-1] ) *
+				( numElectronExact - numElectronList[iter] );
+			if( muNew < muMin || muNew > muMax ){
+				statusOFS << "muNew = " << muNew << " is out of bound ["
+					<< muMin << ", " << muMax << "]" << std::endl;
+				if( numElectronExact > numElectronList[iter] ){
+					muNew = muList[iter] + muMinStep;
+				}
+				else{
+					muNew = muList[iter] - muMinStep;
+				}
+			}
+		} // if ( numElectron changed )
+	} // if (iter == 0)
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return muNew;
+} 		// -----  end of method PEXSIData::UpdateChemicalPotential  ----- 
 
 } //  namespace PEXSI
