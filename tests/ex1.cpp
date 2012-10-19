@@ -3,12 +3,29 @@
 using namespace PEXSI;
 using namespace std;
 
+void Usage(){
+  std::cout 
+		<< "ex1 -mu0 [mu0] -numel [numel] -deltaE [deltaE]" << std::endl
+		<< "mu0:    Initial guess for chemical potential" << std::endl
+		<< "numel:  Exact number of electrons (spin-restricted)" << std::endl
+		<< "deltaE: guess for the width of the spectrum of H-mu S" << std::endl;
+}
+
 int main(int argc, char **argv) 
 {
 	MPI_Init(&argc, &argv);
 	int mpirank, mpisize;
 	MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
+
+
+	if( argc < 8 ) {
+		Usage();
+		MPI_Finalize();
+		return 0;
+	}
+			
+
 	
 	try{
 		stringstream  ss;
@@ -21,23 +38,49 @@ int main(int argc, char **argv)
 		// *********************************************************************
 		// Input parameter
 		// *********************************************************************
+		std::map<std::string,std::string> options;
+		OptionsCreate(argc, argv, options);
+		
 		pexsiData.gap              = 0.0;
 		pexsiData.temperature      = 300;
-		pexsiData.deltaE           = 15.0;
 		pexsiData.numPole          = 80;
 		pexsiData.permOrder        = -1;
 		pexsiData.numElectronTolerance = 1e-4;
 		pexsiData.muMaxIter        = 30;
 		pexsiData.permOrder        = -1;
 		pexsiData.poleTolerance    = 1e-4;
-
 		// WaterPT
 //		pexsiData.mu0              = -0.5;
 //		pexsiData.numElectronExact = 1600.0;
+//		pexsiData.deltaE           = 15.0;
 
 		// DNA
-		pexsiData.mu0                = 0.00;
-		pexsiData.numElectronExact   = 2442.0;
+//		pexsiData.mu0                = 0.00;
+//		pexsiData.numElectronExact   = 2442.0;
+//		pexsiData.deltaE           = 20.0;
+
+
+		if( options.find("-mu0") != options.end() ){
+			pexsiData.mu0 = std::atof(options["-mu0"].c_str());
+		}
+		else{
+      throw std::logic_error("mu0 must be provided.");
+		}
+
+    if( options.find("-numel") != options.end() ){
+			pexsiData.numElectronExact = std::atof(options["-numel"].c_str());
+		}
+		else{
+      throw std::logic_error("numel must be provided.");
+		}
+
+    if( options.find("-deltaE") != options.end() ){
+			pexsiData.deltaE = std::atof(options["-deltaE"].c_str());
+		}
+		else{
+      throw std::logic_error("deltaE must be provided.");
+		}
+
 
 		// *********************************************************************
 		// Read input matrix
