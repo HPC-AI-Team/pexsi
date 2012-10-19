@@ -135,8 +135,10 @@ void PEXSIData::Solve( )
 		// for each pole, perform LDLT factoriation and selected inversion
 
 		Real timeSta, timeEnd;
+		Real timePoleSta, timePoleEnd;
 
 		for(Int l = 0; l < numPoleUsed; l++){
+			GetTime( timePoleSta );
 			statusOFS << "Pole " << l << std::endl;
 			statusOFS << "zshift = " << zshift[l] << ", " 
 				<< "zweightRho = " << zweightRho[l] << std::endl;
@@ -211,11 +213,14 @@ void PEXSIData::Solve( )
 			GetTime( timeSta );
 			numElectronNow = ProductTrace( SMat.nzval, rhoMat.nzval );
 			GetTime( timeEnd );
+			
+			GetTime( timePoleEnd );
 
 			Print( statusOFS, "Accumulated number of electron = ", numElectronNow );
 			Print( statusOFS, "Evaluating number of electrons done" );
 			Print( statusOFS, "Evaluating number of electrons time = ", timeEnd - timeSta, "[s]" );
 
+			Print( statusOFS, "\nTime for this pole = ", timePoleEnd - timePoleSta, "[s]" );
 
 		} // for(l)
 

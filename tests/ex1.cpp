@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
 
-	if( argc < 8 ) {
+	if( argc != 7 ) {
 		Usage();
 		MPI_Finalize();
 		return 0;
@@ -47,7 +47,6 @@ int main(int argc, char **argv)
 		pexsiData.permOrder        = -1;
 		pexsiData.numElectronTolerance = 1e-4;
 		pexsiData.muMaxIter        = 30;
-		pexsiData.permOrder        = -1;
 		pexsiData.poleTolerance    = 1e-4;
 		// WaterPT
 //		pexsiData.mu0              = -0.5;
@@ -128,6 +127,21 @@ int main(int argc, char **argv)
 				}
 			}
 		}
+
+
+		Print(statusOFS, "mu0                    = ", pexsiData.mu0);
+		Print(statusOFS, "numElectronExact       = ", pexsiData.numElectronExact);
+		Print(statusOFS, "deltaE                 = ", pexsiData.deltaE);
+		Print(statusOFS, "gap                    = ", pexsiData.gap);
+		Print(statusOFS, "temperature            = ", pexsiData.temperature);
+		Print(statusOFS, "numPole                = ", pexsiData.numPole);
+		Print(statusOFS, "numElectronTolerance   = ", pexsiData.numElectronTolerance);
+		Print(statusOFS, "poleTolerance          = ", pexsiData.poleTolerance);
+		Print(statusOFS, "muMaxIter              = ", pexsiData.muMaxIter);
+		Print(statusOFS, "permOrder              = ", pexsiData.permOrder);
+
+
+
 
 
 		// *********************************************************************
