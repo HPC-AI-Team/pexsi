@@ -1,0 +1,3467 @@
+/*! @file 
+ * \bri
+ *
+ * <
+ ppre>
+ * -- Distributed SuperLU routine (version 2.5) --re>
+ * -- Distributed SuperLU routine (version 2.5) --* Lawrence Berkeley National Lab, Univ. of California Berkeley.
+ * November, 2010
+ *
+ */
+
+#include "superlu_ddefs.h"
+#include "Cnames.h"
+
+/* kind of integer to hold a pointer.  Use int.
+   This might need to be changed on systems with large memory.
+   If changed, be sure to change it in superlupara.f90 too */
+
+#if 0
+typedef int fptr;  /* 32-bit */
+#else
+typedef long long int fptr;  /* 64-bit */
+#endif
+
+#include "pluselinv.hpp"
+
+//LLIN: FIXME
+double timettl1, timettl2, timettl3, timettl4;
+
+/**********************************************************************
+ * Convert SuperLU data structure to Lstruct and Ustruct required
+ * by parallel selected inversion
+ **********************************************************************/
+int SuperLU2SelInv(int n, LUstruct_t *LUstruct, gridinfo_t *grid, 
+                   PMatrix& PMloc)
+{
+  int i, j, k, lb, ub, row, ib, ipnl, nrows, blkidx;
+  int nsupers, iam, Pc, Pr, myrow, mycol, nbc, nbr, supsize,lda;
+  int nbl, ldlnz, cnt, cntval, bnum, nnzval, nindex;
+  int nb, c, jb, nsupc, npnl, flg, ncoltot, icol, r, fstrow;
+  int *index;
+  double *pval;
+  int tsize;
+  char All = 'A';
+
+
+  Glu_persist_t *glu_persist = LUstruct -> Glu_persist;
+  LocalLU_t* Llu = LUstruct-> Llu;
+
+  iam = grid->iam;
+  Pc = grid->npcol;
+  Pr = grid->nprow;
+  myrow = MYROW( iam, grid );
+  mycol = MYCOL( iam, grid );
+  
+  
+  PMloc._supno   = IntNumVec(n, true, glu_persist->supno);
+  PMloc._nsupers = glu_persist->supno[n-1] + 1;
+  PMloc._xsup = IntNumVec(PMloc.nsupers()+1,true,glu_persist->xsup);
+  //LLIN: The size of _xsup is nsupers + 1
+  
+  PMloc._ndof = n;
+  PMloc._nbc = CEILING(PMloc.nsupers(), grid->npcol);
+  PMloc._nbr = CEILING(PMloc.nsupers(), grid->nprow);
+  PMloc._nblkl.resize(PMloc.nbc());   setvalue(PMloc._nblkl, 0);
+  PMloc._nblku.resize(PMloc.nbr());   setvalue(PMloc._nblku, 0); 
+  PMloc.L().resize(PMloc.nbc());    
+  PMloc.U().resize(PMloc.nbr());
+
+  /* L part */
+
+  for( ib = 0; ib < PMloc.nbc(); ib++ ){
+    bnum = ( (ib) * grid->npcol ) + mycol;
+    if( bnum >= PMloc.nsupers() ) continue;
+    
+    cnt = 0;
+    cntval = 0;
+    index = Llu->Lrowind_bc_ptr[ib];
+    if( index ){ 
+      // Not an empty column, start a new column then.
+      vector<LBlock>& Lcol = PMloc.L(ib);
+      
+      PMloc._nblkl[ib] = index[cnt++];
+      Lcol.resize(PMloc.nblkl(ib));
+      lda = index[cnt++];
+
+      for( int iblk= 0; iblk < PMloc.nblkl(ib); iblk++ ){
+        LBlock& LB = Lcol[iblk];
+	LB._blkind = index[cnt++];
+	LB._nrows = index[cnt++];
+	LB._ncols = PMloc.supsize(bnum);
+	LB._rows = IntNumVec(LB.nrows(), true, &index[cnt]);
+	LB._nzval.resize(LB.nrows(), LB.ncols());   
+	setvalue(LB._nzval, 0.0); 
+	cnt += LB.nrows();
+
+#if ( __DEBUGlevel >= 2 )
+	if(iam == 0){
+	  fprintf(stderr,"colib = %d, nblock = %d, nrows = %d, ncols = %d\n",
+		  ib, LB.blkind(), LB.nrows(), LB.ncols());
+	  cerr << LB.rows() << endl;
+	}
+#endif 
+
+	dlacpy_(&All, &LB._nrows, &LB._ncols, 
+		Llu->Lnzval_bc_ptr[ib]+cntval, 
+		&lda, LB.nzval().data(), &LB._nrows);
+	cntval += LB.nrows();
+
+#if ( __DEBUGlevel >= 2 )
+	if(iam == 0){
+	  cerr << "LB nzval follows" << endl;
+	  cerr << LB.nzval() << endl;
+	}
+#endif 
+
+      } // for(iblk)
+      
+
+    }  // if(index)
+  } // for(ib)
+
+
+  /* U part */
+  for( ib = 0; ib < PMloc.nbr(); ib++ ){
+    bnum = ( (ib) * grid->nprow ) + myrow;
+    if( bnum >= PMloc.nsupers() ) continue;
+
+    index = Llu->Ufstnz_br_ptr[ib];
+    pval = Llu->Unzval_br_ptr[ib];
+    if( index ){ 
+      // Not an empty row
+      // Compute the number of nonzero columns 
+      vector<UBlock>& Urow = PMloc.U(ib);
+
+      cnt = 0;
+      cntval = 0;
+
+      PMloc._nblku[ib] = index[cnt++];
+      Urow.resize(PMloc.nblku(ib));
+      cnt = BR_HEADER;
+      
+      vector<int> cols;  // save the nonzero columns in the current block
+      for(int iblk = 0; iblk < PMloc.nblku(ib); iblk++){
+	cols.clear();
+	UBlock& UB = Urow[iblk];
+	UB._blkind = index[cnt];
+	UB._nrows = PMloc.supsize(bnum);
+	cnt += UB_DESCRIPTOR;
+	for( j = PMloc.xsup(UB.blkind()); j < PMloc.xsup(UB.blkind()+1); j++ ){
+	  fstrow = index[cnt++];
+	  if( fstrow != PMloc.xsup(bnum+1) )
+	    cols.push_back(j);
+	}
+	cnt -= PMloc.supsize(UB.blkind());  // rewind the index
+
+	UB._ncols = cols.size();
+	UB._cols = IntNumVec(cols.size(), true, &cols[0]);
+	UB._nzval.resize(UB.nrows(), UB.ncols());  
+	setvalue(UB._nzval, 0.0); // LLIN: IMPORTANT
+
+#if ( __DEBUGlevel >= 2 )
+	if(iam == 0){
+	  fprintf(stderr,"rowib = %d, nblock = %d, nrows = %d, ncols = %d\n",
+		  ib, UB.blkind(), UB.nrows(), UB.ncols());
+	  cerr << UB.cols() << endl;
+	}
+#endif 
+
+
+	int tnrow, tncol;
+	int cntcol = 0;
+	for( j = 0; j < PMloc.supsize(UB.blkind()); j++ ){
+	  fstrow = index[cnt++];
+	  if( fstrow != PMloc.xsup(bnum+1) ){
+	    tnrow = (PMloc.xsup(bnum+1)-fstrow);
+	    tncol = 1;
+	    dlacpy_(&All, &tnrow, &tncol, &pval[cntval], &tnrow, 
+		    &UB._nzval(fstrow-PMloc.xsup(bnum),cntcol),
+		    &UB._nrows);
+	    cntcol ++;
+	    cntval += tnrow;
+	  }
+	}
+
+#if ( __DEBUGlevel >= 2 )
+	if(iam == 0){
+	  cerr << "UB nzval follows" << endl;
+	  cerr << UB.nzval() << endl;
+	}
+#endif 
+
+      } // for(iblk) 
+    } // if(index)
+  } // for (ib)
+
+
+  return 0;
+}
+
+
+/**********************************************************************
+ * Construct the local elimination tree for the communication in
+ * PLUSELINV 
+ **********************************************************************/
+int ConstructLocalEtree(int n, gridinfo_t *grid, PMatrix& PMloc, 
+			vector<vector<int> >& localEtree)
+{
+  int mpirank;  mpirank = grid->iam; 
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  int nprow = grid->nprow,   npcol = grid->npcol;
+  int nsupers = PMloc.nsupers();
+  MPI_Comm comm = grid->comm;
+  MPI_Comm colcomm = grid->cscp.comm, rowcomm = grid->rscp.comm;
+  const int TWO = 2;
+  
+  // information of localEtree to be sent to each other, each pair takes
+  // the form (isup, ksup) where isup >= ksup, assuming a structurally
+  // symmetric matrix. 
+  vector<vector<int> > blockInfoToSend(mpisize);
+
+  // Loop over all the supernodes ksup, and the column group processor
+  // locally communicate. The block info to be sent to other processors
+  // are then updated in blockInfoToSend.
+  for(int ksup = 0; ksup < nsupers; ksup++){
+    int pkrow = PROW( ksup, grid ), pkcol = PCOL(ksup, grid);
+    if( mycol == pkcol ){ 
+      vector<int> localBlockInfo;
+      vector<int> clmBlockInfo;
+      
+      // Get local block information
+      int kb = LBj(ksup, grid);
+      for(int ib = 0; ib < PMloc.nblkl(kb); ib++){
+	LBlock& LB = PMloc.L(kb)[ib];
+	int isup = LB.blkind();
+	localBlockInfo.push_back(isup);
+      }
+      // All processors communicate within local column group for
+      // block information
+      int localSize = localBlockInfo.size();
+      vector<int> localSizeVec(nprow);
+      vector<int> localSizeDispls(nprow);
+      MPI_Allgather(&localSize, 1, MPI_INT, 
+		    &localSizeVec[0], 1, MPI_INT, colcomm);
+      localSizeDispls[0] = 0;
+      for(int ip = 1; ip < nprow; ip++){
+	localSizeDispls[ip] = localSizeDispls[ip-1] + localSizeVec[ip-1];
+      }
+      int totalSize = localSizeDispls[nprow-1] + localSizeVec[nprow-1];
+      clmBlockInfo.resize(totalSize);
+      MPI_Allgatherv(&localBlockInfo[0], localSize, MPI_INT,
+		     &clmBlockInfo[0], &localSizeVec[0], 
+		     &localSizeDispls[0], MPI_INT, colcomm);
+
+#if (__DEBUGlevel >= 2)
+      if( mpirank == 0 ){
+	fprintf(stderr, "Proc = %3d, ksup = %5d, localSize = %5d, totalSize = %5d\n ", 
+		mpirank, ksup, localSize, totalSize);
+	cerr << "localSizeVec    = " << IntNumVec(nprow, false, &localSizeVec[0]) << endl;
+	cerr << "localSizeDispls = " << IntNumVec(nprow, false, &localSizeDispls[0]) << endl;
+	cerr << "clmBlockInfo    = " << IntNumVec(totalSize, false, &clmBlockInfo[0]) << endl;
+      }
+#endif
+      // Each processor owning (isup, ksup) send the all the pairs
+      // (jsup, ksup) to processors in the same row occupying (isup,
+      // jsup) 
+      for(int i = 0; i < localSize; i++){
+	int isup = localBlockInfo[i];
+	int pirow = PROW(isup, grid);
+	for(int j = 0; j < totalSize; j++){
+	  int jsup = clmBlockInfo[j];
+	  int pjcol = PCOL(jsup, grid);
+	  int procID = PNUM(pirow, pjcol, grid);
+	  for(int l = 0; l < totalSize; l++){
+	    blockInfoToSend[procID].push_back(clmBlockInfo[l]); // The first element  is isup
+	    blockInfoToSend[procID].push_back(ksup);            // The second element is ksup
+	  }
+	} // for(j)
+      } // for(i)
+    } // if(mycol == pkcol)
+  } // for(ksup)
+  
+  // Pack the sending data.
+  vector<int> sendBuf;
+  sendBuf.clear();
+  for(int ip = 0; ip < mpisize; ip++){
+    sendBuf.insert(sendBuf.end(), blockInfoToSend[ip].begin(), 
+		   blockInfoToSend[ip].end());
+  }
+   
+  // All processors perform All-to-All communication and receive the
+  // blockInfo outside this column group.
+  // All processors communicate with the size.
+  vector<int> sendSize(mpisize);
+  vector<int> recvSize(mpisize);
+  for(int ip = 0; ip < mpisize; ip++){
+    sendSize[ip] = blockInfoToSend[ip].size();
+  }
+  MPI_Alltoall(&sendSize[0], 1, MPI_INT,
+	       &recvSize[0], 1, MPI_INT, comm);
+  
+  blockInfoToSend.clear(); // save memory
+
+#if (__DEBUGlevel >= 2)
+  if( mpirank == 0 ){
+    fprintf(stderr, "Proc = %3d\n", mpirank);
+    cerr << "sendSize : " << IntNumVec(mpisize, false, &sendSize[0]) << endl;
+    cerr << "recvSize : " << IntNumVec(mpisize, false, &recvSize[0]) << endl;
+  }
+
+
+#endif
+
+
+  vector<int>  sendSizeDispls(mpisize);
+  vector<int>  recvSizeDispls(mpisize);
+  int totalSendSize, totalRecvSize;
+  sendSizeDispls[0] = 0;
+  recvSizeDispls[0] = 0;
+  for(int ip = 1; ip < mpisize; ip++){
+    sendSizeDispls[ip] = sendSizeDispls[ip-1] + sendSize[ip-1];
+    recvSizeDispls[ip] = recvSizeDispls[ip-1] + recvSize[ip-1];
+  }
+  totalSendSize = sendSizeDispls[mpisize-1] + sendSize[mpisize-1];
+  totalRecvSize = recvSizeDispls[mpisize-1] + recvSize[mpisize-1];
+
+  vector<int> recvBuf(totalRecvSize);
+  
+  // Alltoall communication of the information of the elimination tree.
+  MPI_Alltoallv(&sendBuf[0], &sendSize[0], &sendSizeDispls[0], MPI_INT,
+		&recvBuf[0], &recvSize[0], &recvSizeDispls[0], MPI_INT,
+		comm);
+
+  // After receiving the information, each processor fill its own
+  // localEtree.
+  vector<set<int> > localEtreePrep;
+
+  localEtreePrep.clear();
+  localEtreePrep.resize(nsupers);
+  int isup, ksup;
+  for(int i = 0; i < totalRecvSize; i+=TWO){ // 2 comes from pair
+    isup = recvBuf[i];
+    ksup = recvBuf[i+1];
+    localEtreePrep[ksup].insert(isup); 
+  }
+
+  localEtree.clear();
+  localEtree.resize(nsupers);
+  for(int ksup = 0; ksup < nsupers; ksup++){
+    localEtree[ksup].clear();
+    localEtree[ksup].insert(localEtree[ksup].end(), 
+			    localEtreePrep[ksup].begin(),
+			    localEtreePrep[ksup].end());
+  }
+  return 0;
+}
+
+
+/**********************************************************************
+ * Dump the L matrices in MATLAB format.  All processors dump to 
+ * filename_mpirank_mpisize.  
+ *
+ * NOTE: The output is 1-based to be the same as the MATLAB format 
+ **********************************************************************/
+int PMatrix::DumpL(string filename, gridinfo_t *grid){
+  MPI_Comm comm = grid->comm;
+
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  iC( MPI_Barrier(comm) );
+  char sepfile[100];
+  sprintf(sepfile, "%s_%d_%d", filename.c_str(), mpirank, mpisize);
+
+
+
+  ofstream fid;
+  fid.open(sepfile, ios::out | ios::trunc);
+  fid.precision(15);
+
+  for(int ib = 0; ib < this->nbc(); ib++){
+    int bnum = ( (ib) * grid->npcol ) + mycol;
+    if( bnum >= this->nsupers() ) continue;
+    if( this->nblkl(ib) ){ // Not an empty column
+      for(int iblk = 0; iblk < this->nblkl(ib); iblk++){
+	LBlock& LB = this->L(ib)[iblk];
+	if(bnum == LB.blkind()){
+	  // Diagonal block print the lower off diagonal
+	  for(int j = 0; j < LB.ncols(); j++){
+	    for(int i = 0; i < LB.nrows(); i++){
+	      // NOTE: all-one diagonal is NOT outputed
+	      if( i > j ){ 
+		fid << setw(12) << LB.rows(i) + 1 << setw(12) << 
+		  j + this->xsup(bnum) + 1 << setw(25) << scientific << 
+		  LB.nzval(i,j) << endl;
+	      }
+	    }
+	  } // for (j)
+	} 
+	else{
+	  // Off-diagonal blocks
+	  for(int j = 0; j < LB.ncols(); j++){
+	    for(int i = 0; i < LB.nrows(); i++){
+	      fid << setw(12) << LB.rows(i) + 1 << setw(12) << 
+		j + this->xsup(bnum) + 1 << setw(25) << scientific << 
+		LB.nzval(i,j) << endl;
+	    }
+	  } // for (j)
+	} // if(bnum == LB.blkind())	
+      } // for(iblk) 
+    }  
+  } 
+  // for(ib)
+  fid.close();
+  MPI_Barrier(comm);
+  return 0;
+}
+
+
+
+/**********************************************************************
+ * Dump the U matrices in MATLAB format.  All processors dump to 
+ * filename_mpirank_mpisize.  
+ *
+ * NOTE: The output is 1-based to be the same as the MATLAB format 
+ **********************************************************************/
+int PMatrix::DumpU(string filename, gridinfo_t *grid){
+  MPI_Comm comm = grid->comm;
+
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  iC( MPI_Barrier(comm) );
+  char sepfile[100];
+  sprintf(sepfile, "%s_%d_%d", filename.c_str(), mpirank, mpisize);
+
+  ofstream fid;
+  fid.open(sepfile, ios::out | ios::trunc);
+  fid.precision(15);
+
+  // First output the diagonal blocks saved in L
+  for(int ib = 0; ib < this->nbc(); ib++){
+    int bnum = ( (ib) * grid->npcol ) + mycol;
+    if( bnum >= this->nsupers() ) continue;
+    if( this->nblkl(ib) ){ // Not an empty column
+      for(int iblk = 0; iblk < this->nblkl(ib); iblk++){
+	LBlock& LB = this->L(ib)[iblk];
+	// Only output for the upper-diagonal blocks for the diagonal blocks
+	if(bnum == LB.blkind()){
+	  for(int j = 0; j < LB.ncols(); j++){
+	    for(int i = 0; i < LB.nrows(); i++){
+	      if( i <= j ){ 
+		fid << setw(12) << LB.rows(i) + 1 << setw(12) << 
+		  j + this->xsup(bnum) + 1 << setw(25) << scientific << 
+		  LB.nzval(i,j) << endl;
+	      }
+	    }
+	  } // for (j)
+	} 
+      } // for(iblk) 
+    }  
+  } // for(ib)
+
+  // Then output the off diagonal blocks saved in U
+  for(int ib = 0; ib < this->nbr(); ib++){
+    int bnum = ( (ib) * grid->nprow ) + myrow;
+    if( bnum >= this->nsupers() ) continue;
+    if( this->nblku(ib) ){ // Not an empty row
+      for(int iblk = 0; iblk < this->nblku(ib); iblk++){
+	UBlock& UB = this->U(ib)[iblk];
+	for(int j = 0; j < UB.ncols(); j++){
+	  for(int i = 0; i < UB.nrows(); i++){
+	    fid << setw(12) << i + this->xsup(bnum) + 1 << setw(12) << 
+	       UB.cols(j) + 1 << setw(25) << scientific << 
+	      UB.nzval(i,j) << endl;
+	  }
+	} // for (j)
+      } // for(iblk) 
+    }  
+  } 
+  // for(ib)
+  fid.close();
+  MPI_Barrier(comm);
+  return 0;
+}
+
+/**********************************************************************
+ * Dump one block of L in matlab format
+ *
+ * NOTE: 
+ *
+ * o The diagonal block should be dumped by this subroutine
+ *
+ * o The index is the local index of this block rather than global index
+ **********************************************************************/
+int PMatrix::DumpLBlock(int isup, int jsup, string filename, gridinfo_t *grid){
+  MPI_Comm comm = grid->comm;
+
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  iC( MPI_Barrier(comm) );
+
+  iA(isup >= 0 && isup < this->nsupers());
+  iA(jsup >= 0 && jsup < this->nsupers());
+
+
+  for(int ib = 0; ib < this->nbc(); ib++){
+    int bnum = ( (ib) * grid->npcol ) + mycol;
+    if( bnum >= this->nsupers() ) continue;
+    if( bnum != jsup ) continue;
+
+    if( this->nblkl(ib) ){ // Not an empty column
+      int iblk;
+      for(iblk = 0; iblk < this->nblkl(ib); iblk++){
+	LBlock& LB = this->L(ib)[iblk];
+	if( LB.blkind() != isup ) continue;
+	
+	// Output the (isup, jsup) block
+	ofstream fid;
+	fid.open(filename.c_str(), ios::out | ios::trunc);
+	fid.precision(15);
+
+	cerr << "processor (" << Index2(myrow,mycol) << 
+	  ") outputs block (" << Index2(isup,jsup) << ") in MATLAB format" << endl;
+	cerr << "Row Range: " << this->xsup(LB.blkind()) + 1 << " -- " <<
+	  this->xsup(LB.blkind()+1) << " , size = " << this->supsize(LB.blkind()) << endl;
+	cerr << "Col Range: " << this->xsup(bnum) + 1<< " -- " <<
+	  this->xsup(bnum+1) << " , size = " << this->supsize(bnum) << endl;
+	int rowshift = this->xsup(LB.blkind());
+	for(int j = 0; j < LB.ncols(); j++){
+	  for(int i = 0; i < LB.nrows(); i++){
+	    fid << setw(12) << LB.rows(i)-rowshift+1 
+	      << setw(12) << j+1  << setw(25) << scientific << 
+	      LB.nzval(i,j) << endl;
+	  }
+	} // for (j)
+	fid.close();
+      } // for(iblk) 
+    }
+  } // for(ib)
+  MPI_Barrier(comm);
+  return 0;
+}
+
+/**********************************************************************
+ * Dump one block of U in matlab format
+ *
+ * NOTE: 
+ *
+ * o The diagonal block is NOT dumped by this subroutine
+ *
+ * o The index is the local index of this block rather than global index
+ **********************************************************************/
+int PMatrix::DumpUBlock(int isup, int jsup, string filename, gridinfo_t *grid){
+  MPI_Comm comm = grid->comm;
+
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  iC( MPI_Barrier(comm) );
+
+  iA(isup >= 0 && isup < this->nsupers());
+  iA(jsup >= 0 && jsup < this->nsupers());
+
+  int prow = PROW(isup, grid), pcol = PCOL(jsup, grid);
+
+  if( myrow == prow && mycol == pcol ){
+    int ib = LBi(isup, grid);
+    if(this->nblku(ib)){ // Not an empty row
+      for(int jb = 0; jb < this->nblku(ib); jb++){
+	UBlock& UB = this->U(ib)[jb];
+	if( UB.blkind() != jsup ) continue;
+	// Output the (isup, jsup) block
+	ofstream fid;
+	fid.open(filename.c_str(), ios::out | ios::trunc);
+	fid.precision(15);
+
+	cerr << "processor (" << Index2(myrow,mycol) << 
+	  ") outputs block (" << Index2(isup,jsup) << ") in MATLAB format" << endl;
+	cerr << "Row Range: " << this->xsup(isup) + 1<< " -- " <<
+	  this->xsup(isup+1) << " , size = " << this->supsize(isup) << endl;
+	cerr << "Col Range: " << this->xsup(jsup) + 1 << " -- " <<
+	  this->xsup(jsup+1) << " , size = " << this->supsize(jsup) << endl;
+	int colshift = this->xsup(jsup);
+	for(int j = 0; j < UB.ncols(); j++){
+	  for(int i = 0; i < UB.nrows(); i++){
+	    fid << setw(12) << i+1  << setw(12) << UB.cols(j)-colshift+1  
+	      << setw(25) << scientific << 
+	      UB.nzval(i,j) << endl;
+	  }
+	} // for (j)
+	fid.close();
+      } // for (jb)
+    }
+  } // if( myrow == prow && mycol == pcol )
+
+  MPI_Barrier(comm);
+  return 0;
+}
+
+
+
+/**********************************************************************
+ * Main function for carrying out parallel selected inversion 
+ **********************************************************************/
+int PLUSelInv(gridinfo_t *grid, PMatrix& PMloc, vector<vector<int> >& localEtree)
+{
+  //FIXME
+  timettl1 = 0;  timettl2 = 0;  timettl3 = 0; timettl4 = 0; 
+  
+  int n = PMloc.ndof();
+  int nsupers = PMloc.nsupers();
+  double t0, t1;
+
+  //FIXME
+  for(int ksup = nsupers-1; ksup >= 0; ksup--){
+    t0 = MPI_Wtime();
+
+#if (__PRNTlevel >= 2 )
+    if(grid->iam == 0){
+      cout << "ksup = " << ksup << endl;
+    }
+#endif
+    /***********************************
+     * Only Inversion of the L and U factors in the diagonal block
+     ************************************/
+    if( ksup == nsupers-1 ){
+      iC(DiagTri(PMloc, ksup, grid));
+
+#if (__PRNTlevel >= 2 )
+      MPI_Barrier(grid->comm);
+      if(grid->iam == 0){
+	cout << "All processors passed DiagTri" << endl;
+      }
+#endif
+      continue;
+    }
+
+
+    /***********************************
+     * Scale PM(i,k), i>k by -L^{-1}_{k,k}
+     * Scale PM(k,j), j>k by -U^{-1}_{k,k}
+     ************************************/
+    iC(ScaleLinv(PMloc, ksup, grid));
+
+#if (__PRNTlevel >= 2 )
+    MPI_Barrier(grid->comm);
+    if(grid->iam == 0){
+      cout << "All processors passed ScaleLinv" << endl;
+    }
+#endif
+
+    iC(ScaleUinv(PMloc, ksup, grid));
+
+#if (__PRNTlevel >= 2 )
+    MPI_Barrier(grid->comm);
+    if(grid->iam == 0){
+      cout << "All processors passed ScaleUinv" << endl;
+    }
+#endif
+
+
+#if ( __DEBUGlevel >= 2 )
+    iC(PMloc.DumpLBlock(ksup+1, ksup, "L", grid));
+#endif
+
+#if ( __DEBUGlevel >= 2 )
+      iC(PMloc.DumpUBlock(ksup, ksup+1, "U", grid));
+#endif
+
+
+    /***********************************
+     * PL(j) = -L(i,k) L^-1_kk
+     * PLT(i) = S^-1(i,j) PL(j)
+     ************************************/
+
+    iC(SinvPL(PMloc, localEtree, ksup, grid));
+
+#if (__PRNTlevel >= 2 )
+    MPI_Barrier(grid->comm);
+    if(grid->iam == 0){
+      cout << "All processors passed SinvPL" << endl;
+    }
+#endif
+
+
+#if ( __DEBUGlevel >= 2 )
+    iC(PMloc.DumpLBlock(ksup+1, ksup, "L", grid));
+#endif
+
+    /***********************************
+     * Invert diagonal block
+     ************************************/
+    iC(DiagTri(PMloc, ksup, grid));
+
+#if (__PRNTlevel >= 2 )
+    MPI_Barrier(grid->comm);
+    if(grid->iam == 0){
+      cout << "All processors passed DiagTri" << endl;
+    }
+#endif
+
+
+
+    /***********************************
+     * Update the diagonal block by
+     *   U_kk^-1 U_ik S^-1_ij L_jk L^-1_kk
+     ************************************/
+
+    iC(DiagInnerProd(PMloc, localEtree, ksup, grid));
+
+#if (__PRNTlevel >= 2 )
+    MPI_Barrier(grid->comm);
+    if(grid->iam == 0){
+      cout << "All processors passed DiagInnerProd" << endl;
+    }
+#endif
+
+
+#if ( __DEBUGlevel >= 1 )
+    if(ksup == 0 ) iC(PMloc.DumpLBlock(ksup, ksup, "L", grid));
+#endif
+
+
+
+    /***********************************
+     * PU(i) = -U^-1(k,k) U(i,k) 
+     * PLU(j) = sum_i PU(i) S^-1(i,j) 
+     ************************************/
+    iC(SinvPU(PMloc, localEtree, ksup, grid));
+
+#if (__PRNTlevel >= 2 )
+    MPI_Barrier(grid->comm);
+    if(grid->iam == 0){
+      cout << "All processors passed SinvPU" << endl;
+    }
+#endif
+
+
+#if ( __DEBUGlevel >= 2 )
+    iC(PMloc.DumpUBlock(ksup, ksup+1, "U", grid));
+#endif
+
+
+    t1 = MPI_Wtime();
+    // LL: Not timing this first
+#if (__PRNTlevel >= 2)
+    if(grid->iam == 0) {
+      fprintf(stderr, "Time for solving ksup [%6d] is %10.3f s\n", ksup,
+	        t1-t0);
+    }
+#endif
+
+  } // for (ksup)
+
+
+  //FIXME
+//  std::cout << "timettl1 = " << timettl1 << endl;
+//  std::cout << "timettl2 = " << timettl2 << endl;
+//  std::cout << "timettl3 = " << timettl3 << endl;
+//  std::cout << "timettl4 = " << timettl4 << endl;
+  return 0;
+}
+
+/**********************************************************************
+ * Triangular inversion of the diagonal blocks (ksup, ksup)
+ **********************************************************************/
+int DiagTri(PMatrix& PMloc, int ksup, gridinfo_t *grid){
+  MPI_Comm comm = grid->comm;
+
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  int pkrow = PROW( ksup, grid ), pkcol = PCOL(ksup, grid);
+
+  iC( MPI_Barrier(comm) );
+
+  iA(ksup >= 0 && ksup < PMloc.nsupers());
+  
+  if( myrow == pkrow && mycol == pkcol ){
+    int kb = LBj(ksup,grid);
+    iA( PMloc.nblkl(kb) ); // Not an empty column
+    LBlock& LB = PMloc.L(kb)[0]; // Diagonal block
+    
+    {
+      int info;
+      int tnrow = PMloc.supsize(LB.blkind());
+      int lwork = 100*tnrow;
+      DblNumVec work(lwork);  
+      IntNumVec ipiv(tnrow);
+
+      for(int i = 0; i < tnrow; i++) ipiv[i] = i+1; //LLIN: IMPORTANT
+
+      dgetri_(&tnrow, LB.nzval().data(), &tnrow, ipiv.data(),
+	      work.data(), &lwork, &info);
+      iC(info);
+
+    } 
+  }
+
+  iC(MPI_Barrier(comm));
+
+  return 0;
+}
+
+
+/**********************************************************************
+ * Scale PM(i,k), i>k by -L^{-1}_{k,k}
+ **********************************************************************/
+int ScaleLinv(PMatrix& PMloc, int ksup, gridinfo_t *grid)
+{
+
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  iC( MPI_Barrier(grid->comm) );
+
+  iA(ksup >= 0 && ksup < PMloc.nsupers()-1);
+ 
+  MPI_Comm colcomm = grid->cscp.comm, rowcomm = grid->rscp.comm;
+  int prow = PROW( ksup, grid ), pcol = PCOL(ksup, grid);
+ 
+  if( mycol == pcol ){
+    // Each processor in the column of pcol receive L(ksup,ksup) block
+    // from (prow,pcol)
+    
+    LBlock LBbuf; 
+    int kb = LBj(ksup, grid);
+
+    if( myrow == prow ){
+      LBbuf = PMloc._L[kb][0];
+    }
+    iC(BcastLBlock(LBbuf, myrow, prow, colcomm));
+
+    // Triangular solve
+    char All = 'A', notrans = 'N', fromright='R', lower='L', udiag = 'U';
+    int nrows, ncols;
+    double  done = 1.0, dzero = 0.0, dmone = -1.0;
+    for(int ib = 0; ib < PMloc.nblkl(kb); ib++){
+      LBlock& LB = PMloc.L(kb)[ib];
+      int isup = LB.blkind();
+      if( isup > ksup ){
+	nrows = LB.nrows();
+	ncols = LB.ncols();
+	dtrsm_(&fromright,&lower,&notrans,&udiag,&nrows, &ncols,
+	       &dmone, LBbuf.nzval().data(), &ncols, LB.nzval().data(), 
+	       &nrows);
+      }
+    }
+  } // if( mycol == pcol )
+  
+  iC( MPI_Barrier(grid->comm) );
+  
+  return 0;
+}
+
+/**********************************************************************
+ * Scale PM(k,j), j>k by -U^{-1}_{k,k}
+ **********************************************************************/
+int ScaleUinv(PMatrix& PMloc, int ksup, gridinfo_t *grid)
+{
+
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  iC( MPI_Barrier(grid->comm) );
+
+  iA(ksup >= 0 && ksup < PMloc.nsupers()-1);
+ 
+  MPI_Comm colcomm = grid->cscp.comm, rowcomm = grid->rscp.comm;
+  int pkrow = PROW( ksup, grid ), pkcol = PCOL(ksup, grid);
+ 
+  if( myrow == pkrow ){
+    // Each processor in the row of pkrow receive U(ksup,ksup) block
+    // from (pkrow,pkcol)
+    LBlock Diagbuf; 
+
+    if( mycol == pkcol ){
+      int kb = LBj(ksup, grid);
+      Diagbuf = PMloc.L(kb)[0]; // Diagonal block saved in L
+    }
+    iC(BcastLBlock(Diagbuf, mycol, pkcol, rowcomm));
+
+    // Triangular solve
+    char All = 'A', notrans = 'N', fromleft='L', upper='U', noudiag = 'N';
+    int nrows, ncols;
+    double  done = 1.0, dzero = 0.0, dmone = -1.0;
+
+    int kb = LBi(ksup,grid); // LLIN: IMPORTANT, different from L
+    for(int jb = 0; jb < PMloc.nblku(kb); jb++){
+      UBlock& UB = PMloc.U(kb)[jb];
+      int jsup = UB.blkind();
+      if( jsup > ksup ){
+	nrows = UB.nrows();
+	ncols = UB.ncols();
+	dtrsm_(&fromleft,&upper,&notrans,&noudiag,&nrows, &ncols,
+	       &dmone, Diagbuf.nzval().data(), &nrows, UB.nzval().data(), 
+	       &nrows);
+      }
+    }
+  } // if( myrow == pkrow)
+  
+  iC( MPI_Barrier(grid->comm) );
+  
+  return 0;
+}
+
+
+/**********************************************************************
+ * Broadcast an LBlock to a row or column sub communicator
+ *
+ **********************************************************************/
+int BcastLBlock(LBlock& LB, int mykey, int srckey, MPI_Comm comm){ // new version
+  vector<char> str;
+  int sz = 0;
+  stringstream sstm;
+
+  if( mykey == srckey ){
+    vector<int> all(LBlock_Number,1);
+    serialize(LB, sstm, all);
+    const string& sstr = sstm.str();
+    sz = sstr.length();
+    MPI_Bcast(&sz, 1, MPI_INT, srckey, comm);
+    MPI_Bcast((void*)sstr.c_str(), sz, MPI_BYTE, srckey, comm);
+  }
+  else{
+    MPI_Bcast(&sz, 1, MPI_INT, srckey, comm);
+    str.resize(sz);
+    MPI_Bcast(&str[0], sz, MPI_CHAR, srckey, comm);
+    
+    // Deseralize
+    vector<int> all(LBlock_Number,1);
+    sstm.write(&str[0], sz);
+    deserialize(LB, sstm, all);
+  }
+
+
+#if ( __DEBUGlevel >= 2 )
+  cerr << LB._nzval << endl;
+#endif
+
+  return 0;
+} 
+
+
+/**********************************************************************
+ * Broadcast an UBlock to a row or column sub communicator
+ **********************************************************************/
+int BcastUBlock(UBlock& UB, int mykey, int srckey, MPI_Comm comm){ // new version
+  vector<char> str;
+  int sz = 0;
+  stringstream sstm;
+
+  if( mykey == srckey ){
+    vector<int> all(UBlock_Number,1);
+    serialize(UB, sstm, all);
+    const string& sstr = sstm.str();
+    sz = sstr.length();
+    MPI_Bcast(&sz, 1, MPI_INT, srckey, comm);
+    MPI_Bcast((void*)sstr.c_str(), sz, MPI_BYTE, srckey, comm);
+  }
+  else{
+    MPI_Bcast(&sz, 1, MPI_INT, srckey, comm);
+    str.resize(sz);
+    MPI_Bcast((void*)&str[0], sz, MPI_BYTE, srckey, comm);
+    
+    // Deseralize
+    vector<int> all(UBlock_Number,1);
+    sstm.write(&str[0], sz);
+    deserialize(UB, sstm, all);
+#if ( __DEBUGlevel >= 2 )
+    cerr << sz << endl;
+    cerr << UB._nzval << endl;
+#endif
+  }
+
+  return 0;
+} 
+
+
+/**********************************************************************
+ * PLT(i) = S^-1(i,j) PL(j)
+ *
+ * Build PLT in each processor from
+ * (ksup+1:nsupers,ksup+1:nsupers)
+ *
+ * Build PL(i) = -L(i,k) L^-1(k,k) in each processor from
+ * (ksup+1:nsupers,ksup+1:nsupers)
+ *
+ * Local matrix-matrix multiplication
+ *
+ * Reduce the PLT to processors (ksup+1:nsupers, ksup)
+ **********************************************************************/
+int SinvPL(PMatrix& PMloc, vector<vector<int> >& localEtree, int ksup, gridinfo_t* grid){
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  int nprow = grid->nprow,   npcol = grid->npcol;
+  int nsupers = PMloc.nsupers();
+  const int NULLID = -1;
+  const int NDATA = 1;
+  enum {SUPID};
+
+  double t0, t1;
+
+  map<int, LBlock> PL;
+  map<int, LBlock> PLT;
+
+  PL.clear();
+  PLT.clear();
+  
+  iA(ksup >= 0 && ksup < nsupers-1);
+  int pkrow = PROW(ksup, grid), pkcol = PCOL(ksup, grid);
+  int kb = LBj(ksup, grid);
+ 
+  MPI_Comm comm = grid->comm;
+  MPI_Comm colcomm = grid->cscp.comm, rowcomm = grid->rscp.comm;
+
+  // Use localEtree for communication
+  if(1)
+  {
+    vector<int>& nodesksup = localEtree[ksup];
+    int sizeksup = nodesksup.size();
+
+    // Only processors with nonvanishing setksup participates SinvPL.
+    if(sizeksup == 0) return 0;
+
+
+    // Each processor knows the row and column processor id arrays that
+    // is restricted SinvPL.
+    vector<int> prowRestricted;  
+    vector<int> pcolRestricted;  
+    {
+      set<int> prowtmp;
+      set<int> pcoltmp;
+
+      int isup, pirow, picol;
+      for(int i = 0; i < sizeksup; i++){
+	isup  = nodesksup[i];
+	pirow = PROW(isup, grid);
+	picol = PCOL(isup, grid);
+	prowtmp.insert(pirow);
+	pcoltmp.insert(picol);
+      }
+     
+      prowRestricted.clear();
+      prowRestricted.insert(prowRestricted.end(), prowtmp.begin(),
+			    prowtmp.end());
+      pcolRestricted.clear();
+      pcolRestricted.insert(pcolRestricted.end(), pcoltmp.begin(),
+			    pcoltmp.end());
+    }
+    int nprowRestricted = prowRestricted.size();
+    int npcolRestricted = pcolRestricted.size();
+#if (__DEBUGlevel >= 2 )
+    if(mpirank == 0){
+      cerr << "ksup = " << ksup << endl;
+      cerr << "prowRestricted = " << 
+	IntNumVec(nprowRestricted, false, &prowRestricted[0]);
+      cerr << "pcolRestricted = " << 
+	IntNumVec(npcolRestricted, false, &pcolRestricted[0]);
+    }
+#endif
+
+#if (__PRNTlevel >= 3 )
+    if(grid->iam == 0){
+      cout << "SinvPL: initiation passed" << endl;
+    }
+#endif
+
+    // Setup PLT, in preparation for PLT = PM * PL
+    {
+      MPI_Request*    reqs   = new MPI_Request[npcolRestricted];   iA( reqs != NULL ); 
+      MPI_Status *    stats  = new MPI_Status [npcolRestricted];   iA( stats != NULL );
+      vector<int> mask(LBlock_Number,1); // Communication for all
+
+      for(int inode = 0; inode < sizeksup; inode++){
+	int isup  = nodesksup[inode];
+	int pirow = PROW(isup, grid);
+	if( isup > ksup && myrow == pirow ){
+
+	  // Sender/Receiver only has at most one copy of the data
+	  stringstream   sstm;
+	  int            sizeMsg;
+	  vector<char>   strchr;
+
+	  for(int ip = 0; ip < npcolRestricted; ip++){
+	    reqs[ip]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  // Sender
+	  if( mycol == pkcol ){
+	    LBlock *ptrLB = NULL;
+	    for(int ib = 0; ib < PMloc.nblkl(kb); ib++){
+	      if( PMloc.L(kb)[ib].blkind() == isup ){
+		ptrLB = &PMloc.L(kb)[ib];
+	      }
+	    }
+	    iA( ptrLB != NULL );
+	    PLT[isup] = *ptrLB; // setup local PLT
+	    serialize(*ptrLB, sstm, mask);
+	    sizeMsg = (sstm.str()).length();
+
+	  } 
+
+	  // Size information
+	  int sendID = PNUM(pirow, pkcol, grid);
+	  for(int jp = 0; jp < npcolRestricted; jp++){
+	    int pjcol  = pcolRestricted[jp];
+	    int recvID = PNUM(pirow, pjcol, grid);
+	    if( sendID != recvID ){
+	      if( mpirank == sendID ){
+		MPI_Isend(&sizeMsg, 1, MPI_INT, pjcol, pjcol, rowcomm, &(reqs[jp]));
+	      }
+	      if( mpirank == recvID ){
+		MPI_Irecv(&sizeMsg, 1, MPI_INT, pkcol, pjcol, rowcomm, &(reqs[jp])); 
+	      }
+	    }
+	  }
+	  MPI_Waitall(npcolRestricted, &(reqs[0]), &(stats[0]));
+
+
+	  for(int ip = 0; ip < npcolRestricted; ip++){
+	    reqs[ip]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  for(int jp = 0; jp < npcolRestricted; jp++){
+	    int pjcol  = pcolRestricted[jp];
+	    int recvID = PNUM(pirow, pjcol, grid);
+	    if( sendID != recvID ){
+	      if( mpirank == sendID ){
+		const string& sstr = sstm.str();
+		MPI_Isend((void*)sstr.c_str(), sizeMsg, MPI_BYTE, 
+			  pjcol, pjcol, rowcomm, &(reqs[jp]));
+	      }
+	      if( mpirank == recvID ){
+		strchr.clear();
+		strchr.resize(sizeMsg);
+		MPI_Irecv((void*)(&strchr[0]), sizeMsg, MPI_BYTE, 
+			  pkcol, pjcol, rowcomm, &(reqs[jp])); 
+	      }
+	    }
+	  }
+	  MPI_Waitall(npcolRestricted, &(reqs[0]), &(stats[0]));
+
+	  // Deserialize into PLT
+	  if( mpirank != sendID ){
+	    sstm.write(&strchr[0], sizeMsg);
+	    iA(PLT.count(isup) == 0);  // PLT should be empty
+	    deserialize(PLT[isup], sstm, mask);
+#if (__DEBUGlevel >= 2 )
+	    LBlock& LB = PLT[isup];
+	    fprintf(stderr, "mpirank = %5d\n", mpirank);
+	    fprintf(stderr, "LB(%5d,%5d) \n",  LB.blkind(), ksup);
+	    fprintf(stderr, "nrows = %5d, ncols = %5d\n",
+		    LB.nrows(), LB.ncols());
+#endif
+	  }
+	} 
+
+      }// for (inode)
+      delete[] reqs;    reqs = NULL;
+      delete[] stats;   stats = NULL;
+    }
+   
+#if (__DEBUGlevel >= 2 )
+    if(mpirank == 0){
+      for(map<int,LBlock>::iterator mi = PLT.begin();
+	  mi != PLT.end(); mi++){
+	cerr << (*mi).second.blkind() << endl;
+      }
+    }
+#endif
+
+#if (__PRNTlevel >= 3 )
+    if(grid->iam == 0){
+      cout << "SinvPL: PLT distribution passed" << endl;
+    }
+#endif
+
+
+    // For all processors in the column processor group of ksup, if
+    // LBlock(isup, ksup) is nonempty, setup PL locally. Then send the
+    // information of PL (all information) to all processors owning
+    // (jsup, isup), if (jsup, ksup) is in the localEtree. (Do not send
+    // to itself)
+
+    // For all processors owning (isup, jsup) with isup > ksup, jsup >
+    // ksup, receive from (jsup, ksup) if (jsup, ksup) is in the
+    // localEtree, and setup the local PL. Can overlap communication
+    // with computation. (Do not receive from itself)
+    {
+      MPI_Request*    reqs   = new MPI_Request[nprowRestricted];   iA( reqs  != NULL ); 
+      MPI_Status *    stats  = new MPI_Status [nprowRestricted];   iA( stats != NULL );
+      vector<int> mask(LBlock_Number,1);  // all data is needed for PL.
+
+      for(int inode = 0; inode < sizeksup; inode++){
+	int isup  = nodesksup[inode];
+	int pirow = PROW(isup, grid);
+	int pjcol = PCOL(isup, grid);
+	// Sender
+	// The diagonal processor sends PL to column processors
+	int sendID = PNUM(pirow, pjcol, grid); 
+	if( isup > ksup && mpirank == sendID){
+
+	  stringstream   sstm;
+	  int            sizeMsg;
+
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    reqs[ip]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  PL[isup] = PLT[isup]; // Should have received from PM(isup,ksup)
+	  serialize(PL[isup], sstm, mask);
+	  sizeMsg = (sstm.str()).length();
+
+	  // Size information
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    int pirowRecv  = prowRestricted[ip];
+	    int recvID = PNUM(pirowRecv, pjcol, grid);
+	    if( sendID != recvID ){
+	      MPI_Isend(&sizeMsg, 1, MPI_INT, pirowRecv, pirowRecv, colcomm, &(reqs[ip]));
+	    }
+	  }
+	  MPI_Waitall(nprowRestricted, &(reqs[0]), &(stats[0]));
+
+	  // Actual data
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    reqs[ip]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    int pirowRecv  = prowRestricted[ip];
+	    int recvID = PNUM(pirowRecv, pjcol, grid);
+	    if( sendID != recvID ){
+	      const string& sstr = sstm.str();
+	      MPI_Isend((void*)sstr.c_str(), sizeMsg, MPI_BYTE, 
+			pirowRecv, pirowRecv, colcomm, &(reqs[ip]));
+	    }
+	  }
+	  MPI_Waitall(nprowRestricted, &(reqs[0]), &(stats[0]));
+	}  // if( mpirank == sendID )
+
+	// Receiver
+	if( isup > ksup && mycol == pjcol ){
+	  stringstream   sstm;
+	  int            sizeMsg;
+	  vector<char>   strchr;
+
+	  // Size information
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    reqs[ip]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    int pirowRecv  = prowRestricted[ip];
+	    int recvID = PNUM(pirowRecv, pjcol, grid);
+	    if( sendID != recvID && mpirank == recvID ){
+	      MPI_Irecv(&sizeMsg, 1, MPI_INT, pirow, pirowRecv, colcomm, &(reqs[ip]));
+	    }
+	  }
+	  MPI_Waitall(nprowRestricted, &(reqs[0]), &(stats[0]));
+
+	  // Actual data
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    reqs[ip]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    int pirowRecv  = prowRestricted[ip];
+	    int recvID     = PNUM(pirowRecv, pjcol, grid);
+	    if( sendID != recvID && mpirank == recvID ){
+	      strchr.clear();
+	      strchr.resize(sizeMsg);
+	      MPI_Irecv((void*)(&strchr[0]), sizeMsg, MPI_BYTE,
+			pirow, pirowRecv, colcomm, &(reqs[ip]));
+	    }
+	  }
+	  MPI_Waitall(nprowRestricted, &(reqs[0]), &(stats[0]));
+
+	  // Deserialize into PL
+	  if( mpirank != sendID ){
+	    sstm.write(&strchr[0], sizeMsg);
+	    iA(PL.count(isup) == 0);  // PL should be empty
+	    deserialize(PL[isup], sstm, mask);
+#if (__DEBUGlevel >= 2 )
+	    LBlock& LB = PL[isup];
+	    fprintf(stderr, "mpirank = %5d\n", mpirank);
+	    fprintf(stderr, "LB(%5d,%5d) \n",  LB.blkind(), ksup);
+	    fprintf(stderr, "nrows = %5d, ncols = %5d\n",
+		    LB.nrows(), LB.ncols());
+#endif
+	  } 
+	  
+	}
+      }// for (inode)
+      delete[] reqs;    reqs = NULL;
+      delete[] stats;   stats = NULL;
+    }
+
+#if (__DEBUGlevel >= 2 )
+    if(mpirank == 0){
+      cerr << "PL distribution passed" << endl;
+      for(map<int,LBlock>::iterator mi = PL.begin();
+	  mi != PL.end(); mi++){
+	cerr << (*mi).second.blkind() << endl;
+      }
+    }
+#endif
+
+#if (__PRNTlevel >= 3 )
+    if(grid->iam == 0){
+      cout << "SinvPL: PL distribution passed" << endl;
+    }
+#endif
+
+
+    // Perform matrix vector multiplication 
+    {
+      // For each processor, clean the PLT for safety. 
+      for(map<int,LBlock>::iterator mi = PLT.begin();
+	  mi != PLT.end(); mi++){
+	setvalue((*mi).second._nzval,0.0); 
+      }
+
+      // DGEMM for PLT(i) += Sinv(i,j) * PL(j), L part
+      for( map<int,LBlock>::iterator mj = PL.begin(); mj != PL.end(); mj++ ){
+	int jsup     = (*mj).first;
+	LBlock& PLj  = (*mj).second;
+        int pjcol    = PCOL(jsup, grid);
+	
+	if( mycol != pjcol || jsup <= ksup ) continue;  // LLIN: IMPORTANT
+	
+	int jb = LBj(jsup, grid);
+
+	for(int ib = 0; ib < PMloc.nblkl(jb); ib++){
+	  LBlock& LB = PMloc.L(jb)[ib];
+	  int isup = LB.blkind();
+	  map<int,LBlock>::iterator mi= PLT.find(isup);
+	  if( mi == PLT.end() ) continue; // LLIN: IMPORTANT
+
+	  LBlock& PLTi = (*mi).second;
+	  // PMloc(isup, jsup) * PL(jsup)
+
+	  // Find the subset of row and column indices
+	  IntNumVec& LBrows = LB.rows();
+	  IntNumVec rowidx(PLTi.nrows()), colidx(PLj.nrows());
+	  for(int i = 0; i < PLTi.nrows(); i++){
+	    for(int j = 0; j < LB.nrows(); j++){
+	      if(PLTi.rows(i) == LBrows(j)){
+		rowidx[i] = j;
+		break;
+	      }
+	    }
+	  }
+
+
+	  int colsta = PMloc.xsup(jsup);
+	  for(int i = 0; i < PLj.nrows(); i++){
+	    colidx[i] = PLj.rows(i) - colsta;
+	  }
+
+
+	  // Setup the buffer matrix first
+	  DblNumMat BufMat(PLTi.nrows(),PLj.nrows());
+	  setvalue(BufMat,0.0);
+	  DblNumMat& LBMat = LB.nzval();
+
+	  for(int j = 0; j < BufMat.n(); j++){
+	    for(int i = 0; i < BufMat.m(); i++){
+	      BufMat(i,j) = LBMat(rowidx[i],colidx[j]);
+	    }
+	  }
+
+	  // DGEMM 
+	  {
+	    int ONE = 1; 
+	    double DONE = 1.0;
+	    int m = BufMat.m(), k = BufMat.n(), n = PLj.ncols();
+	    dgemm_("N", "N", &m, &n, &k, &DONE, BufMat.data(),
+		   &m, PLj.nzval().data(), &k, &DONE, 
+		   PLTi.nzval().data(), &m);  
+	  }
+
+
+#if (__DEBUGlevel >= 2 )
+	  cerr << "Rows: " << PMloc.xsup(isup) + 1 << " -- " <<
+	    PMloc.xsup(isup+1) << endl; 
+	  cerr << "Cols: " << PMloc.xsup(ksup) + 1 << " -- " <<
+	    PMloc.xsup(ksup+1) << endl;
+	  cerr << PLTi << endl;
+#endif
+
+	} // for (ib)
+      } // jsup
+
+      // DGEMM for PLT(i) += Sinv(i,j) * PL(j), U part
+      for( map<int,LBlock>::iterator mi = PLT.begin(); mi != PLT.end(); mi++){
+	int isup  = (*mi).first;
+	int pirow = PROW(isup, grid);
+	if( myrow != pirow || isup <= ksup ) continue;
+	int ib = LBi(isup, grid);
+	LBlock& PLTi = (*mi).second;
+
+	for(int jb = 0; jb < PMloc.nblku(ib); jb++){
+	  UBlock& UB = PMloc.U(ib)[jb];
+	  int jsup = UB.blkind();
+	  if( PL.count(jsup) == 0 ) continue;
+	  map<int,LBlock>::iterator mj = PL.find(jsup);
+
+	  LBlock& PLj  = (*mj).second;
+	  // Mult(PMloc(isup,jsup),PL(isup),rowindices, column
+	  // indices) to PLT; 
+
+	  //	  cerr << "mpirank = " << mpirank << endl;
+	  //	  cerr << (*mi).first << endl << (*mi).second << endl;
+
+	  // Find the subset of row indices
+	  IntNumVec& UBcols = UB.cols();
+	  IntNumVec rowidx(PLTi.nrows()), colidx(PLj.nrows());
+	  int rowsta = PMloc.xsup(isup);
+	  for(int i = 0; i < PLTi.nrows(); i++){
+	    rowidx[i] = PLTi.rows(i) - rowsta;
+	  }
+
+	  for(int i = 0; i < PLj.nrows(); i++){
+	    for(int j = 0; j < UB.ncols(); j++){
+	      if(PLj.rows(i) == UBcols(j)){
+		colidx[i] = j;
+		break;
+	      }
+	    }
+	  }
+
+	  // Setup the buffer matrix 
+	  DblNumMat BufMat(PLTi.nrows(),PLj.nrows());
+	  setvalue(BufMat,0.0);
+	  DblNumMat& UBMat = UB.nzval();
+	  for(int j = 0; j < BufMat.n(); j++){
+	    for(int i = 0; i < BufMat.m(); i++){
+	      BufMat(i,j) = UBMat(rowidx[i],colidx[j]);
+	    }
+	  }
+
+	  // DGEMM 
+	  {
+	    int ONE = 1; 
+	    double DONE = 1.0;
+	    int m = BufMat.m(), k = BufMat.n(), n = PLj.ncols();
+	    dgemm_("N", "N", &m, &n, &k, &DONE, BufMat.data(),
+		   &m, PLj.nzval().data(), &k, &DONE, 
+		   PLTi.nzval().data(), &m);  
+	  }
+#if (__DEBUGlevel >= 2 )
+	  cerr << "Rows: " << PMloc.xsup(isup) + 1 << " -- " <<
+	    PMloc.xsup(isup+1) << endl; 
+	  cerr << "Cols: " << PMloc.xsup(ksup) + 1 << " -- " <<
+	    PMloc.xsup(ksup+1) << endl;
+	  cerr << PLTi << endl;
+#endif
+
+	} // for (ib)
+      } // jsup
+
+    }
+
+#if (__DEBUGlevel >= 2 )
+    if(mpirank == 0){
+      cerr << "Matvec passed" << endl;
+    }
+#endif
+
+#if (__PRNTlevel >= 3 )
+    if(grid->iam == 0){
+      cout << "SinvPL: matvec passed" << endl;
+    }
+#endif
+
+
+
+    // After the computation of each block, send it to
+    // (isup, ksup).
+    // (isup, ksup) receive from all processors, and perform local
+    // reduce. Can overlap communication with computation.
+    {
+      vector<int> mask(LBlock_Number,0);  
+      mask[LBlock_nzval] = 1; // Only need to communicate nzval
+
+      MPI_Request*    reqs   = new MPI_Request[npcolRestricted];   iA( reqs != NULL ); 
+      MPI_Status *    stats  = new MPI_Status [npcolRestricted];   iA( stats != NULL );
+      
+      for(int inode = 0; inode < sizeksup; inode++){
+	int isup = nodesksup[inode];
+	int pirow = PROW(isup, grid);
+
+	if( isup > ksup && myrow == pirow ){
+	  // Sender/Receiver only has at most one copy of the data
+	  // Receiver overlaps communication with computation
+	  stringstream   sstm;
+	  int            sizeMsg;
+	  vector<char>   strchr;
+
+	  // Everyone does serialization, including the receiver in
+	  // order to know the size of message. The size of messages
+	  // should be the same for everyone
+	  serialize(PLT[isup], sstm, mask);
+	  sizeMsg = (sstm.str()).length();
+
+	  int recvID = PNUM(pirow, pkcol, grid);
+
+	  // Receiver ID put contribution back to PMloc
+	  LBlock* ptrLB = NULL;
+	  if( mpirank == recvID ){
+	    for(int ib = 0; ib < PMloc.nblkl(kb); ib++){
+	      if(PMloc.L(kb)[ib].blkind() == isup) {
+		ptrLB = &PMloc.L(kb)[ib];
+		// PMloc(isup,ksup) is set to be the local PLT(isup) and
+		// to be updated below 
+		{
+		  double *ptr0 = (*ptrLB)._nzval.data();
+		  double *ptr1 = PLT[isup]._nzval.data();
+		  int sz = ptrLB->nrows() * ptrLB->ncols();
+		  for(int i = 0; i < sz; i++){
+		    *(ptr0++) = *(ptr1++);
+		  }
+		}
+		break;
+	      }
+	    }
+	    iA( ptrLB != NULL );
+	  } // if( mpirank == recvID )
+
+
+#if (__DEBUGlevel >= 2 )
+	  if(mpirank == 0){
+	    cerr << "isup = " << isup << endl;
+	    cerr << PLT[isup]._rows << endl;
+	    cerr << PLT[isup]._nzval << endl;
+	  }
+#endif
+
+	    
+	   
+
+
+	  // Use synchronous Send/Recv to perform reduce operation to
+	  // avoid a large buffer.  Rowcomm is necessary here to improve
+	  // efficiency
+	  for(int jp = 0; jp < npcolRestricted; jp++){
+	    int pjcol = pcolRestricted[jp];
+	    int sendID = PNUM(pirow, pjcol, grid);
+	    if( sendID != recvID ){
+	      if( mpirank == sendID ){
+		const string& sstr = sstm.str();
+		MPI_Send((void*)sstr.c_str(), sizeMsg, MPI_BYTE,
+			 pkcol, pjcol, rowcomm);
+	      }
+	      if( mpirank == recvID ){
+		strchr.clear();
+		strchr.resize(sizeMsg);
+		MPI_Recv((void*)(&strchr[0]), sizeMsg, MPI_BYTE,
+			 pjcol, pjcol, rowcomm, &(stats[jp]));
+
+		// Clear its own stringstream. IMPORTANT
+		sstm.str("");
+		sstm.write(&strchr[0], sizeMsg);
+		LBlock LBtmp;
+		deserialize(LBtmp, sstm, mask);
+		// Add the contribution to PMloc from other processors
+		{
+		  double *ptr0 = ptrLB->_nzval.data();
+		  double *ptr1 = LBtmp._nzval.data();
+		  int sz = ptrLB->nrows() * ptrLB->ncols();
+		  for(int i = 0; i < sz; i++){
+		    *(ptr0++) += *(ptr1++);
+		  }
+		}
+	      }
+	    } // if( sendID != recvID )
+	  } // for( jp )
+	}
+      } // for( inode )
+      delete[] reqs;    reqs = NULL;
+      delete[] stats;   stats = NULL;
+    }
+
+
+#if (__DEBUGlevel >= 2 )
+    if(mpirank == 0){
+      cerr << "Reduce distribution passed" << endl;
+    }
+#endif
+
+#if (__PRNTlevel >= 3 )
+    if(grid->iam == 0){
+      cout << "SinvPL: Reduce distribution passed" << endl;
+    }
+#endif
+
+  }
+  return 0;
+}
+
+
+//int SinvPL(PMatrix& PMloc, vector<vector<int> >& localEtree, int ksup, gridinfo_t* grid){
+//  int mpirank;  mpirank = grid->iam;
+//  int mpisize;  mpisize = grid->nprow * grid->npcol;
+//  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+//  int nprow = grid->nprow,   npcol = grid->npcol;
+//  int nsupers = PMloc.nsupers();
+//  const int NULLID = -1;
+//  const int NDATA = 1;
+//  enum {SUPID};
+//
+//  double t0, t1;
+//
+//  map<int, LBlock> PL;
+//  map<int, LBlock> PLT;
+//
+//
+//  iA(ksup >= 0 && ksup < nsupers-1);
+//  int pkrow = PROW(ksup, grid), pkcol = PCOL(ksup, grid);
+//
+//  MPI_Comm comm = grid->comm;
+//  MPI_Comm colcomm = grid->cscp.comm, rowcomm = grid->rscp.comm;
+//
+//  // Not used
+//  if(1){
+//    IntNumVec      numBlocks(nprow), cumNumBlocks(nprow+1);
+//    int            numBlocksTotal;
+//    setvalue(numBlocks, 0);
+//    setvalue(cumNumBlocks, 0);
+//    if( mycol == pkcol ){ 
+//      int kb = LBj(ksup, grid);
+//      for(int ib = 0; ib < PMloc.nblkl(kb); ib++){
+//	LBlock& LB = PMloc.L(kb)[ib];
+//	int isup = LB.blkind();
+//	if(isup > ksup){
+//	  numBlocks(myrow)++;
+//	}
+//      } // for(ib)
+//
+//      IntNumVec     tnumBlocks = numBlocks; 
+//      MPI_Allreduce(tnumBlocks.data(), numBlocks.data(),
+//		    nprow, MPI_INT, MPI_MAX, colcomm);
+//      cumNumBlocks(0) = 0;
+//      for(int ip = 1; ip <= nprow; ip++){
+//	cumNumBlocks(ip) = cumNumBlocks(ip-1) + numBlocks(ip-1);
+//      }
+//      numBlocksTotal = cumNumBlocks(nprow);
+//    } // if( mycol == pkcol ) 
+//
+//    MPI_Bcast(&numBlocksTotal, 1, MPI_INT, PNUM(pkrow, pkcol, grid), comm);
+//
+//    IntNumMat             datainfo(numBlocksTotal, NDATA);
+//    setvalue(datainfo, NULLID); 
+//
+//    // Sender
+//    if( mycol == pkcol ){
+//      int kb = LBj(ksup, grid);
+//      int cnt = 0;
+//      for(int ib = 0; ib < PMloc.nblkl(kb); ib++){
+//	int shift = cumNumBlocks(myrow);
+//	LBlock& LB = PMloc.L(kb)[ib];
+//	int isup = LB.blkind();
+//	if(isup > ksup){ //LLIN: It is important to follow exactly the same criterion as above
+//	  datainfo(shift+cnt, SUPID) = isup;
+//	  PLT[isup] = LB;
+//	  cnt++;
+//	}
+//      } // for(ib)
+//
+//      IntNumMat tdatainfo = datainfo;
+//      MPI_Allreduce(tdatainfo.data(), datainfo.data(),
+//		    NDATA*numBlocksTotal, MPI_INT, MPI_MAX, colcomm);
+//
+//    } // if( mycol == pkcol ) 
+//
+//    MPI_Bcast(datainfo.data(), NDATA*numBlocksTotal, MPI_INT,
+//	      PNUM(pkrow,pkcol,grid), comm);
+//
+//    for(int ib = 0; ib < numBlocksTotal; ib++){
+//      int isup  = datainfo(ib, SUPID);
+//      int pirow = PROW(isup,grid);
+//      if( myrow == pirow ){
+//	iC(BcastLBlock(PLT[isup], mycol, pkcol, rowcomm));
+//      }
+//    }
+//
+//    for(int ib = 0; ib < numBlocksTotal; ib++){
+//      int isup  = datainfo(ib, SUPID);
+//      int pirow = PROW(isup,grid);
+//      int picol = PCOL(isup,grid);
+//      if( myrow == pirow && mycol == picol ){
+//	PL[isup] = PLT[isup];
+//      }
+//      if( mycol == picol ){
+//	iC(BcastLBlock(PL[isup], myrow, pirow, colcomm));
+//      }
+//    }
+//
+//    // For each processor, clean the PLT.  LLIN: IMPORTANT
+//    for(map<int,LBlock>::iterator mi = PLT.begin();
+//	mi != PLT.end(); mi++){
+//      setvalue((*mi).second._nzval,0.0); 
+//    }
+//
+//    // DGEMM for PLT(i) += Sinv(i,j) * PL(j), L part
+//    for( map<int,LBlock>::iterator mj = PL.begin(); mj != PL.end(); mj++ ){
+//      int jsup     = (*mj).first;
+//      LBlock& PLj  = (*mj).second;
+//
+//      if( jsup <= ksup ) continue;  // LLIN: IMPORTANT
+//      int jb = LBj(jsup, grid);
+//
+//      for(int ib = 0; ib < PMloc.nblkl(jb); ib++){
+//	LBlock& LB = PMloc.L(jb)[ib];
+//	int isup = LB.blkind();
+//	map<int,LBlock>::iterator mi= PLT.find(isup);
+//	if( mi == PLT.end() ) continue; // LLIN: IMPORTANT
+//
+//	LBlock& PLTi = (*mi).second;
+//	// PMloc(isup, jsup) * PL(jsup)
+//
+//	// Find the subset of row and column indices
+//	IntNumVec& LBrows = LB.rows();
+//	IntNumVec rowidx(PLTi.nrows()), colidx(PLj.nrows());
+//	for(int i = 0; i < PLTi.nrows(); i++){
+//	  for(int j = 0; j < LB.nrows(); j++){
+//	    if(PLTi.rows(i) == LBrows(j)){
+//	      rowidx[i] = j;
+//	      break;
+//	    }
+//	  }
+//	}
+//
+//
+//	int colsta = PMloc.xsup(jsup);
+//	for(int i = 0; i < PLj.nrows(); i++){
+//	  colidx[i] = PLj.rows(i) - colsta;
+//	}
+//
+//
+//	// Setup the buffer matrix first
+//	DblNumMat BufMat(PLTi.nrows(),PLj.nrows());
+//	setvalue(BufMat,0.0);
+//	DblNumMat& LBMat = LB.nzval();
+//	for(int j = 0; j < BufMat.n(); j++){
+//	  for(int i = 0; i < BufMat.m(); i++){
+//	    BufMat(i,j) = LBMat(rowidx[i],colidx[j]);
+//	  }
+//	}
+//
+//	// DGEMM 
+//	{
+//	  int ONE = 1; 
+//	  double DONE = 1.0;
+//	  int m = BufMat.m(), k = BufMat.n(), n = PLj.ncols();
+//	  dgemm_("N", "N", &m, &n, &k, &DONE, BufMat.data(),
+//		 &m, PLj.nzval().data(), &k, &DONE, 
+//		 PLTi.nzval().data(), &m);  
+//	}
+//
+//
+//#if (__DEBUGlevel >= 2 )
+//	cerr << "Rows: " << PMloc.xsup(isup) + 1 << " -- " <<
+//	  PMloc.xsup(isup+1) << endl; 
+//	cerr << "Cols: " << PMloc.xsup(ksup) + 1 << " -- " <<
+//	  PMloc.xsup(ksup+1) << endl;
+//	cerr << PLTi << endl;
+//#endif
+//
+//      } // for (ib)
+//    } // jsup
+//
+//    // DGEMM for PLT(i) += Sinv(i,j) * PL(j), U part
+//    for( map<int,LBlock>::iterator mi = PLT.begin(); mi != PLT.end(); mi++){
+//      int isup = (*mi).first;
+//      if( isup <= ksup ) continue;
+//      int ib = LBi(isup, grid);
+//      LBlock& PLTi = (*mi).second;
+//
+//      for(int jb = 0; jb < PMloc.nblku(ib); jb++){
+//	UBlock& UB = PMloc.U(ib)[jb];
+//	int jsup = UB.blkind();
+//	if( PL.count(jsup) == 0 ) continue;
+//	map<int,LBlock>::iterator mj = PL.find(jsup);
+//
+//	LBlock& PLj  = (*mj).second;
+//	// Mult(PMloc(isup,jsup),PL(isup),rowindices, column
+//	// indices) to PLT; 
+//
+//	//	  cerr << "mpirank = " << mpirank << endl;
+//	//	  cerr << (*mi).first << endl << (*mi).second << endl;
+//
+//	// Find the subset of row indices
+//	IntNumVec& UBcols = UB.cols();
+//	IntNumVec rowidx(PLTi.nrows()), colidx(PLj.nrows());
+//	int rowsta = PMloc.xsup(isup);
+//	for(int i = 0; i < PLTi.nrows(); i++){
+//	  rowidx[i] = PLTi.rows(i) - rowsta;
+//	}
+//
+//	for(int i = 0; i < PLj.nrows(); i++){
+//	  for(int j = 0; j < UB.ncols(); j++){
+//	    if(PLj.rows(i) == UBcols(j)){
+//	      colidx[i] = j;
+//	      break;
+//	    }
+//	  }
+//	}
+//
+//	// Setup the buffer matrix 
+//	DblNumMat BufMat(PLTi.nrows(),PLj.nrows());
+//	setvalue(BufMat,0.0);
+//	DblNumMat& UBMat = UB.nzval();
+//	for(int j = 0; j < BufMat.n(); j++){
+//	  for(int i = 0; i < BufMat.m(); i++){
+//	    //	  fprintf(stderr,"[%d,%d] and [%d,%d]\n", rowidx[i],colidx[j],
+//	    //		  UBMat.m(), UBMat.n()); 
+//	    BufMat(i,j) = UBMat(rowidx[i],colidx[j]);
+//	  }
+//	}
+//
+//	// DGEMM 
+//	{
+//	  int ONE = 1; 
+//	  double DONE = 1.0;
+//	  int m = BufMat.m(), k = BufMat.n(), n = PLj.ncols();
+//	  dgemm_("N", "N", &m, &n, &k, &DONE, BufMat.data(),
+//		 &m, PLj.nzval().data(), &k, &DONE, 
+//		 PLTi.nzval().data(), &m);  
+//	}
+//#if (__DEBUGlevel >= 2 )
+//	cerr << "Rows: " << PMloc.xsup(isup) + 1 << " -- " <<
+//	  PMloc.xsup(isup+1) << endl; 
+//	cerr << "Cols: " << PMloc.xsup(ksup) + 1 << " -- " <<
+//	  PMloc.xsup(ksup+1) << endl;
+//	cerr << PLTi << endl;
+//#endif
+//
+//      } // for (ib)
+//    } // jsup
+//
+//
+//    // Put PLT into PMloc
+//    for(map<int,LBlock>::iterator mi = PLT.begin(); mi != PLT.end();
+//	mi++){
+//      int isup = (*mi).first;
+//      if( isup <= ksup ) continue; // LLIN: IMPORTANT
+//
+//      if( myrow == PROW(isup, grid)) {
+//	int pkcol = PCOL(ksup, grid);
+//	int kb = LBj(ksup, grid);
+//	// if one block is non empty, then all the block rows are non
+//	// empty
+//	int sz = 0;
+//	DblNumMat LBMat;
+//	if( mycol == pkcol ){
+//	  for(int ib = 0; ib < pmloc.nblkl(kb); ib++){
+//	    lblock& lb = pmloc.l(kb)[ib];
+//	    int tisup = lb.blkind();
+//	    if(tisup == isup) {
+//	      sz = lb.nrows()*lb.ncols();
+//	      lbmat = dblnummat(lb.nrows(), lb.ncols(), false, lb.nzval().data());
+//	      break;
+//	    }
+//	  }
+//	} // if( mycol == pkcol )
+//	LBlock& PLTi = (*mi).second;
+//	MPI_Bcast(&sz, 1, MPI_INT, pkcol, rowcomm);
+//
+//	MPI_Reduce(PLTi.nzval().data(), LBMat.data(), sz, MPI_DOUBLE,
+//		   MPI_SUM, pkcol, rowcomm);
+//      }
+//    } // for(isup)
+//
+//
+//  }
+//
+//  // Use localEtree for communication
+//
+//  return 0;
+//}
+
+
+/**********************************************************************
+ * Update the diagonal block by
+ *   U_kk^-1 U_ik S^-1_ij L_jk L^-1_kk
+ *
+ * Blocks owning L(i,k) sending L(i,k) to processors owning block (k,i)
+ *
+ * Processors owning block (k,i) perform inner product 
+ *
+ * All processors in the row group of k reduce the sum of the inner
+ * products to the processor owning the diagonal block (k,k)
+ **********************************************************************/
+int DiagInnerProd(PMatrix& PMloc, vector<vector<int> >& localEtree, int ksup, gridinfo_t* grid){
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int nprow = grid->nprow,   npcol = grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  int nsupers = PMloc.nsupers();
+  int NULLID = -1; // EMPTY means the block is not owned by any processor
+  const int NDATA = 4; 
+  enum {SUPID, SNDID, RCVID, SIZE};
+  
+  iA(ksup >= 0 && ksup < nsupers-1);
+ 
+  MPI_Comm comm = grid->comm, colcomm = grid->cscp.comm, rowcomm = grid->rscp.comm;
+  
+  int pkrow = PROW(ksup, grid), pkcol = PCOL(ksup, grid);
+
+  if(1){
+    map<int, LBlock> PL;
+
+    vector<int>& nodesksup = localEtree[ksup];
+    int sizeksup = nodesksup.size();
+
+    // Only processors with nonvanishing setksup participates SinvPL.
+    if(sizeksup == 0) return 0;
+    if( myrow != pkrow && mycol != pkcol ) return 0;
+
+    // Each processor knows the row and column processor id arrays
+    // related to supernode ksup
+    vector<int> prowRestricted;  
+    vector<int> pcolRestricted;  
+    {
+      set<int> prowtmp;
+      set<int> pcoltmp;
+
+      int isup, pirow, picol;
+      for(int i = 0; i < sizeksup; i++){
+	isup  = nodesksup[i];
+	pirow = PROW(isup, grid);
+	picol = PCOL(isup, grid);
+	prowtmp.insert(pirow);
+	pcoltmp.insert(picol);
+      }
+     
+      prowRestricted.clear();
+      prowRestricted.insert(prowRestricted.end(), prowtmp.begin(),
+			    prowtmp.end());
+      pcolRestricted.clear();
+      pcolRestricted.insert(pcolRestricted.end(), pcoltmp.begin(),
+			    pcoltmp.end());
+    }
+    int nprowRestricted = prowRestricted.size();
+    int npcolRestricted = pcolRestricted.size();
+
+
+#if (__PRNTlevel >= 3)
+    if(grid->iam == 1){
+      cerr << "DiagInnerProd: initiated" << endl;
+    }
+#endif
+
+
+    vector<int> mask(LBlock_Number,1);  
+
+
+    // Communication based on nodesksup. If inode does not need to be
+    // communicated, everything is set to be NULL
+    {
+      MPI_Request*    reqs   = new MPI_Request[sizeksup];   iA( reqs != NULL ); 
+      MPI_Status *    stats  = new MPI_Status [sizeksup];   iA( stats != NULL );
+      vector<stringstream*>  sstm(sizeksup);
+      vector<int>            sizeMsg(sizeksup);
+      vector<vector<char> >  strchr(sizeksup);          
+
+      for(int inode = 0; inode < sizeksup; inode++){
+	reqs[inode]  = MPI_REQUEST_NULL;
+	sstm[inode] = NULL;
+	sizeMsg[inode] = 0;
+	strchr[inode].clear();
+      }
+
+      // Sender
+      if( mycol == pkcol ){
+	int kb = LBj(ksup, grid);
+
+	for(int inode = 0; inode < sizeksup; inode++){
+	  int isup = nodesksup[inode];
+	  int pirow = PROW(isup, grid);
+	  int picol = PCOL(isup, grid);
+	  if( isup > ksup ){
+
+	    // Pack the data to be sent, and send size information
+	    int sendID = PNUM(pirow, pkcol, grid);
+	    int recvID = PNUM(pkrow, picol, grid);
+
+	    // Do not send to itself
+	    if( mpirank == sendID ){
+	      LBlock *ptrLB = NULL;
+	      for(int ib = 0; ib < PMloc.nblkl(kb); ib++){
+		if( PMloc.L(kb)[ib].blkind() == isup ){
+		  ptrLB = &PMloc.L(kb)[ib];
+		}
+	      }
+	      iA( ptrLB != NULL );
+
+	      if( sendID == recvID ){
+		PL[isup] = *ptrLB;
+	      }
+	      else{
+		sstm[inode] = new stringstream();
+		serialize(*ptrLB, *(sstm[inode]), mask);
+		sizeMsg[inode] = (sstm[inode]->str()).length();
+		MPI_Isend(&sizeMsg[inode], 1, MPI_INT, recvID, inode, comm, &(reqs[inode]));
+	      }
+	    }
+
+	  }
+	} // for (inode)
+	MPI_Waitall(sizeksup, &(reqs[0]), &(stats[0]));
+
+	for(int inode = 0; inode < sizeksup; inode++){
+	  reqs[inode]  = MPI_REQUEST_NULL;
+	}
+
+	for(int inode = 0; inode < sizeksup; inode++){
+	  int isup = nodesksup[inode];
+	  int pirow = PROW(isup, grid);
+	  int picol = PCOL(isup, grid);
+	  if( isup > ksup ){
+	    int sendID = PNUM(pirow, pkcol, grid);
+	    int recvID = PNUM(pkrow, picol, grid);
+	    if( sendID != recvID && mpirank == sendID){
+	      const string& sstr = sstm[inode]->str();
+	      MPI_Isend((void*)sstr.c_str(), sizeMsg[inode], MPI_BYTE,
+			recvID, inode, comm, &(reqs[inode]));
+	    }
+	  }
+	} // for(inode)
+	MPI_Waitall(sizeksup, &(reqs[0]), &(stats[0]));
+      } // if (mycol == pkcol)
+
+      //Receiver
+      if( myrow == pkrow){
+	for(int inode = 0; inode < sizeksup; inode++){
+	  int isup = nodesksup[inode];
+	  int pirow = PROW(isup, grid);
+	  int picol = PCOL(isup, grid);
+	  if( isup > ksup ){
+	    int sendID = PNUM(pirow, pkcol, grid);
+	    int recvID = PNUM(pkrow, picol, grid);
+	    if( sendID != recvID && mpirank == recvID ){
+	      MPI_Irecv(&sizeMsg[inode], 1, MPI_INT, sendID, 
+			inode, comm, &(reqs[inode]));
+	    }
+	  }
+	} // for(inode)
+	MPI_Waitall(sizeksup, &(reqs[0]), &(stats[0]));
+
+	for(int inode = 0; inode < sizeksup; inode++){
+	  reqs[inode]  = MPI_REQUEST_NULL;
+	}
+
+	for(int inode = 0; inode < sizeksup; inode++){
+	  int isup = nodesksup[inode];
+	  int pirow = PROW(isup, grid);
+	  int picol = PCOL(isup, grid);
+	  if( isup > ksup ){
+	    int sendID = PNUM(pirow, pkcol, grid);
+	    int recvID = PNUM(pkrow, picol, grid);
+	    if( sendID != recvID && mpirank == recvID ){
+	      strchr[inode].clear();
+	      strchr[inode].resize(sizeMsg[inode]);
+	      MPI_Irecv((void*)(&(strchr[inode][0])), sizeMsg[inode], MPI_BYTE, 
+			sendID, inode, comm, &(reqs[inode]));
+	    }
+	  }
+	} // for(inode)
+	MPI_Waitall(sizeksup, &(reqs[0]), &(stats[0]));
+
+	// Deserialize into PL
+	for(int inode = 0; inode < sizeksup; inode++){
+	  int isup = nodesksup[inode];
+	  if(strchr[inode].size() > 0 ){
+	    sstm[inode] = new stringstream();
+	    sstm[inode]->write(&(strchr[inode][0]), sizeMsg[inode]);
+	    iA(PL.count(isup) == 0); // PL should be empty
+	    deserialize(PL[isup], *(sstm[inode]), mask);
+	  }
+	}
+      }
+
+      for(int inode = 0; inode < sizeksup; inode++){
+	strchr[inode].clear();
+	if( sstm[inode] != NULL )   delete sstm[inode];
+	delete[] reqs;    reqs = NULL;
+	delete[] stats;   stats = NULL;
+      }	
+    }
+
+#if (__PRNTlevel >= 3)
+    if(grid->iam == 1){
+      cerr << "DiagInnerProd: Communication of PL passed" << endl;
+    }
+#endif
+
+    // Inner product: NOTE: The rows and columns of the diagonal blocks 
+    // are ordered
+
+    if( myrow == pkrow ){
+      DblNumMat tDiagMat;
+      tDiagMat.resize(PMloc.supsize(ksup), PMloc.supsize(ksup)); 
+      setvalue(tDiagMat, 0.0);
+
+      int kb = LBi(ksup, grid);
+
+
+      for(map<int, LBlock>::iterator mi = PL.begin(); 
+	  mi != PL.end(); mi++){
+	LBlock& LB = (*mi).second;
+	int jsup = LB.blkind();
+	for(int jb = 0; jb < PMloc.nblku(kb); jb++){
+	  UBlock& UB = PMloc.U(kb)[jb];
+	  int tjsup = UB.blkind();
+	  if( jsup == tjsup ){
+	    // DGEMM
+	    int tm = UB.nrows(), tn = LB.ncols(), tk = LB.nrows();
+	    iA(tm == PMloc.supsize(ksup) && 
+	       tn == PMloc.supsize(ksup) );
+	    // Match the indices of U
+	    // Set the column of UBMat to be 0 if no columns is matching
+	    // the rows of LB
+	    DblNumMat UBMat(tm, tk);  setvalue(UBMat, 0.0);
+	    for(int ti = 0; ti < LB.nrows(); ti++){
+	      for(int tj = 0; tj < UB.ncols(); tj++){
+		if( LB.rows(ti) == UB.cols(tj) ){
+		  int ONE = 1;
+		  dlacpy_("A", &tm, &ONE, UB.nzval().clmdata(tj), &tm, 
+			  UBMat.clmdata(ti), &tm);
+		  break;
+		}
+	      }
+	    }
+
+	    // DGEMM
+	    double DONE = 1.0;
+	    dgemm_("N", "N", &tm, &tn, &tk, &DONE, UBMat.data(), &tm,
+		   LB.nzval().data(), &tk, &DONE, tDiagMat.data(),
+		   &tm);  
+	  }
+
+	} // for(jb)
+      } // for (mi)
+
+
+
+      // Reduce tDiagMat to the diagonal block
+      {
+	// Update the diagonal block
+	LBlock *ptrLB;
+	MPI_Status stat;
+
+	if(myrow == pkrow && mycol == pkcol){
+	  int kb = LBj(ksup, grid);
+	  ptrLB = &(PMloc.L(kb)[0]); // Diagonal block
+	  // IMPORTANT: DO NOT clear this block to 0
+	  {
+	    double *ptr0 = ptrLB->_nzval.data();
+	    double *ptr1 = tDiagMat.data();
+	    int sz = ptrLB->nrows() * ptrLB->ncols();
+	    for(int i = 0; i < sz; i++){
+	      *(ptr0++) += *(ptr1++);
+	    }
+	  }
+	}
+
+        for(int jp = 0; jp < npcolRestricted; jp++){
+	  int pjcol = pcolRestricted[jp];
+	  int sendID = PNUM(pkrow, pjcol, grid);
+	  int recvID = PNUM(pkrow, pkcol, grid);
+	  if( sendID != recvID ){
+	    if(mpirank == sendID ){
+	      int sz = tDiagMat.m() * tDiagMat.n();
+	      MPI_Send(tDiagMat.data(), sz, MPI_DOUBLE,
+		       recvID, 1, comm);
+	    }
+	    if(mpirank == recvID){
+	      // Set tDiagMat to be 0 to receive from other processors.
+	      setvalue(tDiagMat, 0.0);
+	      int sz = tDiagMat.m() * tDiagMat.n();
+	      MPI_Recv(tDiagMat.data(), sz, MPI_DOUBLE,
+		       sendID, 1, comm, &stat);
+	      {
+		double *ptr0 = ptrLB->_nzval.data();
+		double *ptr1 = tDiagMat.data();
+		int sz = ptrLB->nrows() * ptrLB->ncols();
+		for(int i = 0; i < sz; i++){
+		  *(ptr0++) += *(ptr1++);
+		}
+	      }
+	    }
+	  } // if (sendID != recvID)
+	} // for(jp) 
+      }
+
+
+#if (__PRNTlevel >= 3)
+    if(grid->iam == 1){
+      cerr << "DiagInnerProd: Diagonal updated" << endl;
+    }
+#endif
+
+
+    } // if( myrow == pkrow )
+  
+  }
+  return 0;
+}
+
+
+//int DiagInnerProd(PMatrix& PMloc, vector<vector<int> >& localEtree, int ksup, gridinfo_t* grid){
+//  int mpirank;  mpirank = grid->iam;
+//  int mpisize;  mpisize = grid->nprow * grid->npcol;
+//  int nprow = grid->nprow,   npcol = grid->npcol;
+//  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+//  int nsupers = PMloc.nsupers();
+//  int NULLID = -1; // EMPTY means the block is not owned by any processor
+//  const int NDATA = 4; 
+//  enum {SUPID, SNDID, RCVID, SIZE};
+//  
+//  iA(ksup >= 0 && ksup < nsupers-1);
+// 
+//  MPI_Comm comm = grid->comm, colcomm = grid->cscp.comm, rowcomm = grid->rscp.comm;
+//  
+//  int pkrow = PROW(ksup, grid), pkcol = PCOL(ksup, grid);
+//
+//  if(1){
+//    // Every processor with proc id pkcol computes the total number of
+//    // L blocks to be communicated. 
+//    map<int, LBlock> PL;
+//  
+//    IntNumVec      numBlocks(nprow), cumNumBlocks(nprow+1);
+//    int            numBlocksTotal;
+//    setvalue(numBlocks, 0);
+//    setvalue(cumNumBlocks, 0);
+//    if( mycol == pkcol ){ 
+//      int kb = LBj(ksup, grid);
+//      for(int ib = 0; ib < PMloc.nblkl(kb); ib++){
+//	LBlock& LB = PMloc.L(kb)[ib];
+//	int isup = LB.blkind();
+//	if(isup > ksup){
+//	  numBlocks(myrow)++;
+//	}
+//      } // for(ib)
+//
+//      IntNumVec     tnumBlocks = numBlocks; 
+//      MPI_Allreduce(tnumBlocks.data(), numBlocks.data(),
+//		    nprow, MPI_INT, MPI_MAX, colcomm);
+//      cumNumBlocks(0) = 0;
+//      for(int ip = 1; ip <= nprow; ip++){
+//	cumNumBlocks(ip) = cumNumBlocks(ip-1) + numBlocks(ip-1);
+//      }
+//      numBlocksTotal = cumNumBlocks(nprow);
+//    } // if( mycol == pkcol ) 
+//    
+//    MPI_Bcast(&numBlocksTotal, 1, MPI_INT, PNUM(pkrow, pkcol, grid), comm);
+//   
+//    // Data communication is only within the column group of ksup and
+//    // the row group of ksup
+//    if( myrow == pkrow || mycol == pkcol ){
+//
+//      // Index the total datainfo array according to the global
+//      // information in the column group of pkcol
+//      IntNumMat             datainfo(numBlocksTotal, NDATA);
+//      vector<stringstream*> sstm(numBlocksTotal);  //LLIN: vector<stringstream> does not work
+//      MPI_Request*          reqs;
+//      MPI_Status *          stats;
+//      vector<char* >        strchr(numBlocksTotal);
+//
+//      setvalue(datainfo, NULLID); 
+//
+//      for(int ib = 0; ib < numBlocksTotal; ib++){
+//	sstm[ib] = NULL;
+//	strchr[ib] = NULL;
+//      }
+//
+//      // Sender
+//      if( mycol == pkcol ){
+//	int kb = LBj(ksup, grid);
+//	int cnt = 0;
+//	for(int ib = 0; ib < PMloc.nblkl(kb); ib++){
+//	  int shift = cumNumBlocks(myrow);
+//	  LBlock& LB = PMloc.L(kb)[ib];
+//	  int isup = LB.blkind();
+//	  if(isup > ksup){ //LLIN: It is important to follow exactly the same criterion as above
+//	    int picol = PCOL(isup, grid);
+//	    datainfo(shift+cnt, SUPID) = isup;
+//	    datainfo(shift+cnt, SNDID) = mpirank;
+//	    datainfo(shift+cnt, RCVID) = PNUM(pkrow,picol,grid);
+//
+//	    vector<int> all(LBlock_Number,1);
+//	    sstm[shift+cnt] = new stringstream();
+//	    serialize(LB, *(sstm[shift+cnt]), all);
+//	    datainfo(shift+cnt, SIZE)  = (sstm[shift+cnt]->str()).length();
+//	    cnt++;
+//	  }
+//	} // for(ib)
+//
+//	IntNumMat tdatainfo = datainfo;
+//	MPI_Allreduce(tdatainfo.data(), datainfo.data(),
+//		      NDATA*numBlocksTotal, MPI_INT, MPI_MAX, colcomm);
+//
+//      } // if( mycol == pkcol ) 
+//
+//      // Broadcast the total datainfo into all columns in pkrow 
+//      if( myrow == pkrow ){
+//	MPI_Bcast(datainfo.data(), NDATA*numBlocksTotal, MPI_INT, pkcol, rowcomm);
+//      }
+//
+//      // According to the block table, send/recv the data;
+//      reqs  = (MPI_Request *)malloc(numBlocksTotal * sizeof(MPI_Request));  iA(reqs != NULL);
+//      stats = (MPI_Status *) malloc(numBlocksTotal * sizeof(MPI_Status));   iA(stats != NULL);
+//
+//      for(int ib = 0; ib < numBlocksTotal; ib++){
+//	reqs[ib] = MPI_REQUEST_NULL; // LLIN: IMPORTANT
+//      }
+//
+//      for(int ib = 0; ib < numBlocksTotal; ib++){
+//	// Send
+//	if( mpirank == datainfo(ib, SNDID) &&
+//	    datainfo(ib, SNDID) != datainfo(ib, RCVID) ){
+//	  const string& sstr = sstm[ib]->str();
+//	  MPI_Isend((void*)sstr.c_str(), datainfo(ib, SIZE), MPI_BYTE,
+//		    datainfo(ib, RCVID), datainfo(ib, SUPID), comm, 
+//		    &reqs[ib]);
+//	}
+//	
+//	// Recv
+//	if( mpirank == datainfo(ib, RCVID) &&
+//	    datainfo(ib, SNDID) != datainfo(ib, RCVID) ){
+//	  strchr[ib] = new char[datainfo(ib, SIZE)];
+//	  MPI_Irecv((void*)strchr[ib], datainfo(ib, SIZE), MPI_BYTE,
+//		    datainfo(ib, SNDID), datainfo(ib, SUPID), comm,
+//		    &reqs[ib]);
+//	}
+//      } // for(ib)
+//
+//      iC( MPI_Waitall(numBlocksTotal, &(reqs[0]), &(stats[0])));
+//
+//      free(reqs);  reqs = NULL;
+//      free(stats);   stats = NULL;
+//
+//      // Deserialize L(i,k) blocks
+//      vector<int> all(LBlock_Number,1);
+//      for(int ib = 0; ib < numBlocksTotal; ib++){
+//	if( mpirank == datainfo(ib, RCVID) ){
+//	  if( datainfo(ib, SNDID) != datainfo(ib, RCVID) ){
+//	    iA(sstm[ib] == NULL);  // sstm should not have been allocated
+//	    sstm[ib] = new stringstream();
+//	    sstm[ib]->write(strchr[ib], datainfo(ib, SIZE));
+//	  }
+//	  deserialize(PL[datainfo(ib,SUPID)], *(sstm[ib]), all);
+//	}
+//      }
+//
+//      // Release memory for data communication
+//      for(int ib = 0; ib < numBlocksTotal; ib++){
+//	if( sstm[ib] != NULL ){
+//	  delete sstm[ib];
+//	}
+//	if( strchr[ib] != NULL ){
+//	  delete[] strchr[ib];
+//	}
+//      }
+//
+//    }
+// 
+//    MPI_Barrier(comm);
+//
+//    // Inner product: NOTE: The rows and columns of the diagonal blocks 
+//    // are ordered
+//
+//    if( myrow == pkrow ){
+//      DblNumMat tDiagMat;
+//      tDiagMat.resize(PMloc.supsize(ksup), PMloc.supsize(ksup)); 
+//      setvalue(tDiagMat, 0.0);
+//
+//      int kb = LBi(ksup, grid);
+//
+//      DblNumMat DiagMat(PMloc.supsize(ksup), PMloc.supsize(ksup)); 
+//      setvalue(DiagMat, 0.0);
+//
+//      for(map<int, LBlock>::iterator mi = PL.begin(); 
+//	  mi != PL.end(); mi++){
+//	LBlock& LB = (*mi).second;
+//	int jsup = LB.blkind();
+//	for(int jb = 0; jb < PMloc.nblku(kb); jb++){
+//	  UBlock& UB = PMloc.U(kb)[jb];
+//	  int tjsup = UB.blkind();
+//	  if( jsup == tjsup ){
+//	    // DGEMM
+//	    int tm = UB.nrows(), tn = LB.ncols(), tk = LB.nrows();
+//	    iA(tm == PMloc.supsize(ksup) && 
+//	       tn == PMloc.supsize(ksup) );
+//	    // Match the indices of U
+//	    // Set the column of UBMat to be 0 if no columns is matching
+//	    // the rows of LB
+//	    DblNumMat UBMat(tm, tk);  setvalue(UBMat, 0.0);
+//	    for(int ti = 0; ti < LB.nrows(); ti++){
+//	      for(int tj = 0; tj < UB.ncols(); tj++){
+//		if( LB.rows(ti) == UB.cols(tj) ){
+//		  int ONE = 1;
+//		  dlacpy_("A", &tm, &ONE, UB.nzval().clmdata(tj), &tm, 
+//			  UBMat.clmdata(ti), &tm);
+//		  break;
+//		}
+//	      }
+//	    }
+//
+//	    // DGEMM
+//	    double DONE = 1.0;
+//	    dgemm_("N", "N", &tm, &tn, &tk, &DONE, UBMat.data(), &tm,
+//		   LB.nzval().data(), &tk, &DONE, tDiagMat.data(),
+//		   &tm);  
+//#if (__DEBUGlevel >= 2 )
+//	    cerr << "mpirank = " << mpirank << endl;
+//	    cerr << tDiagMat << endl;
+//#endif
+//	  }
+//
+//	} // for(jb)
+//      } // for (mi)
+//
+//      // Reduce tDiagMat to the diagonal block
+//      MPI_Reduce(tDiagMat.data(), DiagMat.data(), 
+//		 PMloc.supsize(ksup) * PMloc.supsize(ksup), MPI_DOUBLE,
+//		 MPI_SUM, pkcol, rowcomm);
+//
+//      // Update the diagonal block
+//      if(myrow == pkrow && mycol == pkcol){
+//	int kb = LBj(ksup, grid);
+//	LBlock& LB = PMloc.L(kb)[0]; // Diagonal block
+//	double *p1 = LB.nzval().data(), *p2 = DiagMat.data();
+//	for(int i = 0; i < DiagMat.m() * DiagMat.n(); i++){
+//	  *(p1++) += *(p2++);
+//	}
+//      }
+//
+//#if (__DEBUGlevel >= 2 )
+//      if(myrow == pkrow && mycol == pkcol){
+//	cerr << "mpirank = " << mpirank << endl;
+//	cerr << DiagMat << endl;
+//      }
+//#endif
+//
+//    } // if( myrow == pkrow )
+//  
+//    MPI_Barrier(comm);
+//  }
+//
+//
+//
+//  return 0;
+//}
+
+
+/**********************************************************************
+ * PUT(i) = PU(i) S^-1(i,j)
+ *
+ * Build PUT in each processor from
+ * (ksup+1:nsupers,ksup+1:nsupers)
+ *
+ * Build PU(i) = -U^-1(k,k) U(i,k) in each processor from
+ * (ksup+1:nsupers,ksup+1:nsupers)
+ *
+ * Local matrix-matrix multiplication
+ *
+ * Reduce the PUT to processors (ksup, ksup+1:nsupers)
+ **********************************************************************/
+int SinvPU(PMatrix& PMloc, vector<vector<int> >& localEtree, int ksup, gridinfo_t* grid){
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  int nprow = grid->nprow,   npcol = grid->npcol;
+  int nsupers = PMloc.nsupers();
+  const int NULLID = -1;
+  const int NDATA = 1;
+  enum {SUPID};
+
+  double t0, t1;
+
+  map<int, UBlock> PU;
+  map<int, UBlock> PUT;
+
+  PU.clear();
+  PUT.clear();
+  
+  iA(ksup >= 0 && ksup < nsupers-1);
+  int pkrow = PROW(ksup, grid), pkcol = PCOL(ksup, grid);
+  int kb = LBi(ksup, grid);
+ 
+  MPI_Comm comm = grid->comm;
+  MPI_Comm colcomm = grid->cscp.comm, rowcomm = grid->rscp.comm;
+
+  // Use localEtree for communication
+  if(1)
+  {
+    vector<int>& nodesksup = localEtree[ksup];
+    int sizeksup = nodesksup.size();
+
+    // Only processors with nonvanishing setksup participates SinvPU.
+    if(sizeksup == 0) return 0;
+
+
+    // Each processor knows the row and column processor id arrays that
+    // is restricted SinvPL.
+    vector<int> prowRestricted;  
+    vector<int> pcolRestricted;  
+    {
+      set<int> prowtmp;
+      set<int> pcoltmp;
+
+      int isup, pirow, picol;
+      for(int i = 0; i < sizeksup; i++){
+	isup  = nodesksup[i];
+	pirow = PROW(isup, grid);
+	picol = PCOL(isup, grid);
+	prowtmp.insert(pirow);
+	pcoltmp.insert(picol);
+      }
+     
+      prowRestricted.clear();
+      prowRestricted.insert(prowRestricted.end(), prowtmp.begin(),
+			    prowtmp.end());
+      pcolRestricted.clear();
+      pcolRestricted.insert(pcolRestricted.end(), pcoltmp.begin(),
+			    pcoltmp.end());
+    }
+    int nprowRestricted = prowRestricted.size();
+    int npcolRestricted = pcolRestricted.size();
+
+#if (__PRNTlevel >= 3 )
+    if(grid->iam == 0){
+      cout << "SinvPU: initiation passed" << endl;
+    }
+#endif
+
+    // Setup PLT, in preparation for PLT = PM * PL
+    {
+      MPI_Request*    reqs   = new MPI_Request[nprowRestricted];   iA( reqs != NULL ); 
+      MPI_Status *    stats  = new MPI_Status [nprowRestricted];   iA( stats != NULL );
+      vector<int> mask(UBlock_Number,1); // Communication for all
+
+      for(int jnode = 0; jnode < sizeksup; jnode++){
+	int jsup  = nodesksup[jnode];
+	int pjcol = PCOL(jsup, grid);
+	if( jsup > ksup && mycol == pjcol ){
+
+	  // Sender/Receiver only has at most one copy of the data
+	  stringstream   sstm;
+	  int            sizeMsg;
+	  vector<char>   strchr;
+
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    reqs[ip]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  // Sender
+	  if( myrow == pkrow ){
+	    UBlock *ptrUB = NULL;
+	    for(int jb = 0; jb < PMloc.nblku(kb); jb++){
+	      if( PMloc.U(kb)[jb].blkind() == jsup ){
+		ptrUB = &PMloc.U(kb)[jb];
+	      }
+	    }
+	    iA( ptrUB != NULL );
+	    PUT[jsup] = *ptrUB; // setup local PUT
+	    serialize(*ptrUB, sstm, mask);
+	    sizeMsg = (sstm.str()).length();
+
+	  } 
+
+	  // Size information
+	  int sendID = PNUM(pkrow, pjcol, grid);
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    int pirow  = prowRestricted[ip];
+	    int recvID = PNUM(pirow, pjcol, grid);
+	    if( sendID != recvID ){
+	      if( mpirank == sendID ){
+		MPI_Isend(&sizeMsg, 1, MPI_INT, pirow, pirow, colcomm, &(reqs[ip]));
+	      }
+	      if( mpirank == recvID ){
+		MPI_Irecv(&sizeMsg, 1, MPI_INT, pkrow, pirow, colcomm, &(reqs[ip])); 
+	      }
+	    }
+	  }
+	  MPI_Waitall(nprowRestricted, &(reqs[0]), &(stats[0]));
+
+
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    reqs[ip]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    int pirow  = prowRestricted[ip];
+	    int recvID = PNUM(pirow, pjcol, grid);
+	    if( sendID != recvID ){
+	      if( mpirank == sendID ){
+		const string& sstr = sstm.str();
+		MPI_Isend((void*)sstr.c_str(), sizeMsg, MPI_BYTE, 
+			  pirow, pirow, colcomm, &(reqs[ip]));
+	      }
+	      if( mpirank == recvID ){
+		strchr.clear();
+		strchr.resize(sizeMsg);
+		MPI_Irecv((void*)(&strchr[0]), sizeMsg, MPI_BYTE, 
+			  pkrow, pirow, colcomm, &(reqs[ip])); 
+	      }
+	    }
+	  }
+	  MPI_Waitall(nprowRestricted, &(reqs[0]), &(stats[0]));
+
+	  // Deserialize into PUT
+	  if( mpirank != sendID ){
+	    sstm.write(&strchr[0], sizeMsg);
+	    iA(PUT.count(jsup) == 0);  // PLT should be empty
+	    deserialize(PUT[jsup], sstm, mask);
+	  }
+	} 
+
+      }// for (jnode)
+      delete[] reqs;    reqs = NULL;
+      delete[] stats;   stats = NULL;
+    }
+   
+#if (__PRNTlevel >= 3 )
+    if(grid->iam == 0){
+      cout << "SinvPU: PUT distribution passed" << endl;
+    }
+#endif
+
+    // Setup PU
+    {
+      MPI_Request*    reqs   = new MPI_Request[npcolRestricted];   iA( reqs  != NULL ); 
+      MPI_Status *    stats  = new MPI_Status [npcolRestricted];   iA( stats != NULL );
+      vector<int> mask(UBlock_Number,1);  // all data is needed for PL.
+
+      for(int jnode = 0; jnode < sizeksup; jnode++){
+	int jsup  = nodesksup[jnode];
+	int pirow = PROW(jsup, grid);
+	int pjcol = PCOL(jsup, grid);
+	// Sender
+	// The diagonal processor sends PU to column processors
+	int sendID = PNUM(pirow, pjcol, grid); 
+	if( jsup > ksup && mpirank == sendID){
+
+	  stringstream   sstm;
+	  int            sizeMsg;
+
+	  for(int ip = 0; ip < npcolRestricted; ip++){
+	    reqs[ip]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  PU[jsup] = PUT[jsup]; // Should have received from PM(ksup,jsup)
+	  serialize(PU[jsup], sstm, mask);
+	  sizeMsg = (sstm.str()).length();
+
+	  // Size information
+	  for(int jp = 0; jp < npcolRestricted; jp++){
+	    int pjcolRecv  = pcolRestricted[jp];
+	    int recvID = PNUM(pirow, pjcolRecv, grid);
+	    if( sendID != recvID ){
+	      MPI_Isend(&sizeMsg, 1, MPI_INT, pjcolRecv, pjcolRecv, rowcomm, &(reqs[jp]));
+	    }
+	  }
+	  MPI_Waitall(npcolRestricted, &(reqs[0]), &(stats[0]));
+
+	  // Actual data
+	  for(int jp = 0; jp < npcolRestricted; jp++){
+	    reqs[jp]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  for(int jp = 0; jp < npcolRestricted; jp++){
+	    int pjcolRecv  = pcolRestricted[jp];
+	    int recvID = PNUM(pirow, pjcolRecv, grid);
+	    if( sendID != recvID ){
+	      const string& sstr = sstm.str();
+	      MPI_Isend((void*)sstr.c_str(), sizeMsg, MPI_BYTE, 
+			pjcolRecv, pjcolRecv, rowcomm, &(reqs[jp]));
+	    }
+	  }
+	  MPI_Waitall(npcolRestricted, &(reqs[0]), &(stats[0]));
+	}  // if( mpirank == sendID )
+
+	// Receiver
+	if( jsup > ksup && myrow == pirow ){
+	  stringstream   sstm;
+	  int            sizeMsg;
+	  vector<char>   strchr;
+
+	  // Size information
+	  for(int jp = 0; jp < npcolRestricted; jp++){
+	    reqs[jp]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  for(int jp = 0; jp < npcolRestricted; jp++){
+	    int pjcolRecv  = pcolRestricted[jp];
+	    int recvID = PNUM(pirow, pjcolRecv, grid);
+	    if( sendID != recvID && mpirank == recvID ){
+	      MPI_Irecv(&sizeMsg, 1, MPI_INT, pjcol, pjcolRecv, rowcomm, &(reqs[jp]));
+	    }
+	  }
+	  MPI_Waitall(npcolRestricted, &(reqs[0]), &(stats[0]));
+
+	  // Actual data
+	  for(int jp = 0; jp < npcolRestricted; jp++){
+	    reqs[jp]   = MPI_REQUEST_NULL;  // LLIN: IMPORTANT
+	  }
+
+	  for(int jp = 0; jp < npcolRestricted; jp++){
+	    int pjcolRecv  = pcolRestricted[jp];
+	    int recvID     = PNUM(pirow, pjcolRecv, grid);
+	    if( sendID != recvID && mpirank == recvID ){
+	      strchr.clear();
+	      strchr.resize(sizeMsg);
+	      MPI_Irecv((void*)(&strchr[0]), sizeMsg, MPI_BYTE,
+			pjcol, pjcolRecv, rowcomm, &(reqs[jp]));
+	    }
+	  }
+	  MPI_Waitall(npcolRestricted, &(reqs[0]), &(stats[0]));
+
+	  // Deserialize into PL
+	  if( mpirank != sendID ){
+	    sstm.write(&strchr[0], sizeMsg);
+	    iA(PU.count(jsup) == 0);  // PU should be empty
+	    deserialize(PU[jsup], sstm, mask);
+	  } 
+	  
+	}
+      }// for (jnode)
+      delete[] reqs;    reqs = NULL;
+      delete[] stats;   stats = NULL;
+    }
+
+#if (__PRNTlevel >= 3 )
+    if(grid->iam == 0){
+      cout << "SinvPU: PU distribution passed" << endl;
+    }
+#endif
+
+    {
+      // For each processor, clean the PUT.  LLIN: IMPORTANT
+      for(map<int,UBlock>::iterator mi = PUT.begin();
+	  mi != PUT.end(); mi++){
+	setvalue((*mi).second._nzval,0.0); 
+      }
+
+      // DGEMM for PUT(j) += PU(i) * Sinv(i,j), L part
+      for( map<int,UBlock>::iterator mj = PUT.begin(); mj != PUT.end();
+	   mj++ ){
+	int jsup     = (*mj).first;
+	UBlock& PUTj = (*mj).second;
+	int pjcol    = PCOL(jsup, grid);
+
+
+	if( mycol != pjcol || jsup <= ksup ) continue;  // LLIN: IMPORTANT
+	int jb = LBj(jsup, grid);
+
+	for(int ib = 0; ib < PMloc.nblkl(jb); ib++){
+	  LBlock& LB = PMloc.L(jb)[ib];
+	  int isup = LB.blkind();
+	  if( PU.count(isup) == 0 ) continue; // LLIN: IMPORTANT
+	  map<int,UBlock>::iterator mi = PU.find(isup);
+
+	  UBlock& PUi  = (*mi).second;
+	  // PU(isup) * PMloc(isup, jsup)
+
+	  // Find the subset of row and column indices
+	  IntNumVec& LBrows = LB.rows();
+	  IntNumVec rowidx(PUi.ncols()), colidx(PUTj.ncols());
+	  setvalue(rowidx, 0);  setvalue(colidx, 0);
+	  for(int i = 0; i < PUi.ncols(); i++){
+	    for(int j = 0; j < LB.nrows(); j++){
+	      if(PUi.cols(i) == LBrows(j)){
+		rowidx[i] = j;
+		break;
+	      }
+	    }
+	  }
+
+	  int colsta = PMloc.xsup(jsup);
+	  for(int i = 0; i < PUTj.ncols(); i++){
+	    colidx[i] = PUTj.cols(i) - colsta;
+	  }
+
+
+	  // Setup the buffer matrix first
+	  DblNumMat BufMat(PUi.ncols(),PUTj.ncols());
+	  setvalue(BufMat,0.0);
+	  DblNumMat& LBMat = LB.nzval();
+	  for(int j = 0; j < BufMat.n(); j++){
+	    for(int i = 0; i < BufMat.m(); i++){
+	      BufMat(i,j) = LBMat(rowidx[i],colidx[j]);
+	    }
+	  }
+
+	  // DGEMM 
+	  {
+	    int ONE = 1; double DONE = 1.0;
+	    int m = PUi.nrows(), n = PUTj.ncols(), k = PUi.ncols();
+	    dgemm_("N", "N", &m, &n, &k, &DONE, 
+		   PUi.nzval().data(), &m, 
+		   BufMat.data(), &k, 
+		   &DONE, PUTj.nzval().data(), &m);
+	  }
+#if (__DEBUGlevel >= 2 )
+	  cerr << "Rows: " << PMloc.xsup(ksup) + 1 << " -- " <<
+	    PMloc.xsup(ksup+1) << endl; 
+	  cerr << "Cols: " << PMloc.xsup(jsup) + 1 << " -- " <<
+	    PMloc.xsup(jsup+1) << endl;
+	  cerr << PUTj << endl;
+#endif
+
+	} // for (ib)
+      } // jsup
+
+      // DGEMM for PUT(j) += PU(i) * Sinv(i,j), U part
+      for( map<int,UBlock>::iterator mi = PU.begin(); mi != PU.end();
+	   mi++ ){
+	int isup     = (*mi).first;
+	UBlock& PUi  = (*mi).second;
+	int pirow    = PROW(isup, grid);
+
+	if( myrow != pirow || isup <= ksup ) continue;
+	int ib = LBi(isup, grid);
+
+	for(int jb = 0; jb < PMloc.nblku(ib); jb++){
+	  UBlock& UB = PMloc.U(ib)[jb];
+	  int jsup = UB.blkind();
+	  if( PUT.count(jsup) == 0 ) continue; // LLIN: IMPORTANT
+	  map<int,UBlock>::iterator mj = PUT.find(jsup);
+
+	  UBlock& PUTj = (*mj).second;
+	  // PU(isup) * PMloc(isup, jsup)
+
+	  // Find the subset of row indices
+	  IntNumVec& UBcols = UB.cols();
+	  IntNumVec rowidx(PUi.ncols()), colidx(PUTj.ncols());
+	  setvalue(rowidx, 0);  setvalue(colidx, 0);
+
+	  for(int i = 0; i < PUTj.ncols(); i++){
+	    for(int j = 0; j < UB.ncols(); j++){
+	      if(PUTj.cols(i) == UBcols(j)){
+		colidx[i] = j;
+		break;
+	      }
+	    }
+	  }
+
+	  int rowsta = PMloc.xsup(isup);
+	  for(int i = 0; i < PUi.ncols(); i++){
+	    rowidx[i] = PUi.cols(i) - rowsta;
+	  }
+
+	  // Setup the buffer matrix 
+	  DblNumMat BufMat(PUi.ncols(),PUTj.ncols());
+	  setvalue(BufMat,0.0);
+	  DblNumMat& UBMat = UB.nzval();
+	  for(int j = 0; j < BufMat.n(); j++){
+	    for(int i = 0; i < BufMat.m(); i++){
+	      BufMat(i,j) = UBMat(rowidx[i],colidx[j]);
+	    }
+	  }
+
+	  // DGEMM 
+	  {
+	    int ONE = 1; double DONE = 1.0;
+	    int m = PUi.nrows(), n = PUTj.ncols(), k = PUi.ncols();
+	    dgemm_("N", "N", &m, &n, &k, &DONE, 
+		   PUi.nzval().data(), &m, 
+		   BufMat.data(), &k, 
+		   &DONE, PUTj.nzval().data(), &m);
+	  }
+
+#if (__DEBUGlevel >= 2 )
+	  cerr << "Rows: " << PMloc.xsup(ksup) + 1 << " -- " <<
+	    PMloc.xsup(ksup+1) << endl; 
+	  cerr << "Cols: " << PMloc.xsup(jsup) + 1 << " -- " <<
+	    PMloc.xsup(jsup+1) << endl;
+	  cerr << PUTj << endl;
+#endif
+
+	} // for (jb)
+      } // 
+    }
+
+#if (__PRNTlevel >= 3 )
+    if(grid->iam == 0){
+      cout << "SinvPU: matvec passed" << endl;
+    }
+#endif
+
+
+
+    // After the computation of each block, send it to
+    // (isup, ksup).
+    // (isup, ksup) receive from all processors, and perform local
+    // reduce. Can overlap communication with computation.
+    {
+      vector<int> mask(UBlock_Number,0);  
+      mask[UBlock_nzval] = 1; // Only need to communicate nzval
+
+      MPI_Request*    reqs   = new MPI_Request[nprowRestricted];   iA( reqs != NULL ); 
+      MPI_Status *    stats  = new MPI_Status [nprowRestricted];   iA( stats != NULL );
+      
+      for(int jnode = 0; jnode < sizeksup; jnode++){
+	int jsup = nodesksup[jnode];
+	int pjcol = PCOL(jsup, grid);
+
+	if( jsup > ksup && mycol == pjcol ){
+	  // Sender/Receiver only has at most one copy of the data
+	  // Receiver overlaps communication with computation
+	  stringstream   sstm;
+	  int            sizeMsg;
+	  vector<char>   strchr;
+
+	  // Everyone does serialization, including the receiver in
+	  // order to know the size of message. The size of messages
+	  // should be the same for everyone
+	  serialize(PUT[jsup], sstm, mask);
+	  sizeMsg = (sstm.str()).length();
+
+	  int recvID = PNUM(pkrow, pjcol, grid);
+
+	  // Receiver ID put contribution back to PMloc
+	  UBlock* ptrUB = NULL;
+	  if( mpirank == recvID ){
+	    for(int jb = 0; jb < PMloc.nblku(kb); jb++){
+	      if(PMloc.U(kb)[jb].blkind() == jsup) {
+		ptrUB = &PMloc.U(kb)[jb];
+		// PMloc(ksup,jsup) is set to be the local PUT(jsup) and
+		// to be updated below 
+		{
+		  double *ptr0 = (*ptrUB)._nzval.data();
+		  double *ptr1 = PUT[jsup]._nzval.data();
+		  int sz = ptrUB->nrows() * ptrUB->ncols();
+		  for(int i = 0; i < sz; i++){
+		    *(ptr0++) = *(ptr1++);
+		  }
+		}
+		break;
+	      }
+	    }
+	    iA( ptrUB != NULL );
+	  } // if( mpirank == recvID )
+
+	  // Use synchronous Send/Recv to perform reduce operation to
+	  // avoid a large buffer.  Rowcomm is necessary here to improve
+	  // efficiency
+	  for(int ip = 0; ip < nprowRestricted; ip++){
+	    int pirow = prowRestricted[ip];
+	    int sendID = PNUM(pirow, pjcol, grid);
+	    if( sendID != recvID ){
+	      if( mpirank == sendID ){
+		const string& sstr = sstm.str();
+		MPI_Send((void*)sstr.c_str(), sizeMsg, MPI_BYTE,
+			 pkrow, pirow, colcomm);
+	      }
+	      if( mpirank == recvID ){
+		strchr.clear();
+		strchr.resize(sizeMsg);
+		MPI_Recv((void*)(&strchr[0]), sizeMsg, MPI_BYTE,
+			 pirow, pirow, colcomm, &(stats[ip]));
+
+		// Clear its own stringstream. IMPORTANT
+		sstm.str("");
+		sstm.write(&strchr[0], sizeMsg);
+		UBlock UBtmp;
+		deserialize(UBtmp, sstm, mask);
+		// Add the contribution to PMloc from other processors
+		{
+		  double *ptr0 = ptrUB->_nzval.data();
+		  double *ptr1 = UBtmp._nzval.data();
+		  int sz = ptrUB->nrows() * ptrUB->ncols();
+		  for(int i = 0; i < sz; i++){
+		    *(ptr0++) += *(ptr1++);
+		  }
+		}
+	      }
+	    } // if( sendID != recvID )
+	  } // for( ip )
+	}
+      } // for( jnode )
+      delete[] reqs;    reqs = NULL;
+      delete[] stats;   stats = NULL;
+    }
+
+#if (__PRNTlevel >= 3 )
+    if(grid->iam == 0){
+      cout << "SinvPU: Reduce distribution passed" << endl;
+    }
+#endif
+
+  }
+  return 0;
+}
+
+
+
+//int SinvPU(PMatrix& PMloc, int ksup, gridinfo_t* grid){
+//  map<int, UBlock> PU;
+//  map<int, UBlock> PUT;
+//
+//  int mpirank;  mpirank = grid->iam;
+//  int mpisize;  mpisize = grid->nprow * grid->npcol;
+//  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+//  int nprow = grid->nprow,   npcol = grid->npcol;
+//  int nsupers = PMloc.nsupers();
+//  const int NULLID = -1;
+//  const int NDATA = 1;
+//  enum {SUPID};
+//
+//  iA(ksup >= 0 && ksup < nsupers-1);
+//  int pkcol = PCOL(ksup, grid), pkrow = PROW(ksup, grid);
+//
+//  MPI_Comm comm = grid->comm;
+//  MPI_Comm colcomm = grid->cscp.comm, rowcomm = grid->rscp.comm;
+//
+//  if(1){
+//    IntNumVec      numBlocks(npcol), cumNumBlocks(npcol+1);
+//    int            numBlocksTotal;
+//    setvalue(numBlocks,0);
+//    setvalue(cumNumBlocks,0);
+//    if( myrow == pkrow ){
+//      int kb = LBi(ksup, grid);
+//      for(int jb = 0; jb < PMloc.nblku(kb); jb++){
+//	UBlock& UB = PMloc.U(kb)[jb];
+//	int jsup = UB.blkind();
+//	if( jsup > ksup ) {
+//	  numBlocks(mycol)++;
+//	}
+//      }
+//
+//      IntNumVec     tnumBlocks = numBlocks;
+//      MPI_Allreduce(tnumBlocks.data(), numBlocks.data(),
+//		    npcol, MPI_INT, MPI_MAX, rowcomm);
+//      cumNumBlocks(0) = 0;
+//      for(int ip = 1; ip <= npcol; ip++){
+//	cumNumBlocks(ip) = cumNumBlocks(ip-1) + numBlocks(ip-1);
+//      }
+//      numBlocksTotal = cumNumBlocks(npcol);
+//    } // if(myrow == pkrow)
+//  
+//    MPI_Bcast(&numBlocksTotal, 1, MPI_INT, PNUM(pkrow, pkcol, grid), comm);
+//
+//    IntNumMat             datainfo(numBlocksTotal, NDATA);
+//    setvalue(datainfo, NULLID); 
+//
+//    // Sender
+//    if( myrow == pkrow ){
+//      int kb = LBi(ksup, grid);
+//      int cnt = 0;
+//      for(int jb = 0; jb < PMloc.nblku(kb); jb++){
+//	int shift = cumNumBlocks(mycol);
+//	UBlock& UB = PMloc.U(kb)[jb];
+//	int jsup = UB.blkind();
+//	if(jsup > ksup){ //LLIN: It is important to follow exactly the same criterion as above
+//	  datainfo(shift+cnt, SUPID) = jsup;
+//	  PUT[jsup] = UB;
+//	  cnt++;
+//	}
+//      } // for(jb)
+//
+//      IntNumMat tdatainfo = datainfo;
+//      MPI_Allreduce(tdatainfo.data(), datainfo.data(),
+//		    NDATA*numBlocksTotal, MPI_INT, MPI_MAX, rowcomm);
+//
+//    } // if( myrow == pkrow ) 
+//
+//    MPI_Bcast(datainfo.data(), NDATA*numBlocksTotal, MPI_INT,
+//	      PNUM(pkrow,pkcol,grid), comm);
+//
+//    for(int jb = 0; jb < numBlocksTotal; jb++){
+//      int jsup = datainfo(jb, SUPID);
+//      int pjcol = PCOL(jsup,grid);
+//      if( mycol == pjcol ){
+//	iC(BcastUBlock(PUT[jsup], myrow, pkrow, colcomm));
+//      }
+//    } // for(jb)
+//
+//    for(int jb = 0; jb < numBlocksTotal; jb++){
+//      int jsup = datainfo(jb, SUPID);
+//      int pjrow = PROW(jsup,grid);
+//      int pjcol = PCOL(jsup,grid);
+//      if( myrow == pjrow && mycol == pjcol ){
+//	PU[jsup] = PUT[jsup];
+//      }
+//      if( myrow == pjrow ){
+//	iC(BcastUBlock(PU[jsup], mycol, pjcol, rowcomm));
+//      }
+//    } // for(jb)
+//    
+//  }
+//
+//
+//  
+//  // LLIN: Not efficienct enough
+//  if(0){
+//    // Collect local U blocks to PUT
+//    IntNumVec owner(nsupers), ownerloc(nsupers);
+//    setvalue(owner, 0); setvalue(ownerloc, 0);
+//    {
+//      if(myrow == pkrow){
+//	int kb = LBi(ksup, grid);
+//	for(int jb = 0; jb < PMloc.nblku(kb); jb++){
+//	  UBlock& UB = PMloc.U(kb)[jb];
+//	  int jsup = UB.blkind();
+//	  if( jsup > ksup ) {
+//	    ownerloc(jsup) = 1;
+//	    PUT[jsup] = UB;  
+//	  }
+//	}
+//      } // if(myrow == pkrow)
+//    }
+//    // All processors have the owner information
+//    MPI_Allreduce(ownerloc.data(), owner.data(), nsupers, 
+//		  MPI_INT, MPI_MAX, comm);
+//
+//    // Broadcast the information of PUT to the block column
+//    for(int jsup = ksup+1; jsup < nsupers; jsup++){
+//      int pjcol = PCOL(jsup, grid);
+//      if( owner[jsup] && mycol == pjcol){ // someone owns this block and is not empty
+//	iC(BcastUBlock(PUT[jsup], myrow, pkrow, colcomm));
+//#if ( __DEBUGlevel >= 2 )
+//	if( ownerloc[jsup] == 0 && mycol == PCOL(jsup,grid)){
+//	  cerr << "mpirank = " << mpirank  << endl;
+//	  cerr << PUT[jsup];
+//	}
+//#endif
+//      }
+//    } // for(jsup)
+//
+//    // Go over each row. If the processor owns the diagonal block
+//    // (isup, isup) and PUT(isup) on this processor is not empty, then
+//    // on this processor, 
+//    //   PU(isup) = PUT(isup), and
+//    // broadcast PUT(isup) to all column processors, saved in PU(isup)
+//    //
+//    for( int isup = ksup+1; isup < PMloc.nsupers(); isup++ ){
+//      int pirow = PROW(isup, grid);
+//      if( myrow == pirow && owner[isup]){ // The diagonal block should own the block PUT(isup)
+//	int picol = PCOL(isup, grid);
+//	if( mycol == picol ){
+//	  PU[isup] = PUT[isup];
+//	}
+//	iC(BcastUBlock(PU[isup], mycol, picol, rowcomm));
+//#if ( __DEBUGlevel >= 2 )
+//	if( mycol != picol ){
+//	  cerr << "mpirank = " << mpirank  << endl;
+//	  cerr << PU[isup];
+//	}
+//#endif
+//      } // if(myrow == pirow && owner[isup])
+//
+//    } // for ( isup )
+//  }
+//
+//  // For each processor, clean the PUT.  LLIN: IMPORTANT
+//  for(map<int,UBlock>::iterator mi = PUT.begin();
+//      mi != PUT.end(); mi++){
+//    setvalue((*mi).second._nzval,0.0); 
+//  }
+//
+//  // DGEMM for PUT(j) += PU(i) * Sinv(i,j), L part
+//  for( map<int,UBlock>::iterator mj = PUT.begin(); mj != PUT.end();
+//       mj++ ){
+//    int jsup = (*mj).first;
+//    UBlock& PUTj = (*mj).second;
+//    if( jsup <= ksup ) continue;  // LLIN: IMPORTANT
+//    int jb = LBj(jsup, grid);
+//
+//    for(int ib = 0; ib < PMloc.nblkl(jb); ib++){
+//      LBlock& LB = PMloc.L(jb)[ib];
+//      int isup = LB.blkind();
+//      if( PU.count(isup) == 0 ) continue; // LLIN: IMPORTANT
+//      map<int,UBlock>::iterator mi = PU.find(isup);
+//
+//      UBlock& PUi  = (*mi).second;
+//      // PU(isup) * PMloc(isup, jsup)
+//
+//      // Find the subset of row and column indices
+//      IntNumVec& LBrows = LB.rows();
+//      IntNumVec rowidx(PUi.ncols()), colidx(PUTj.ncols());
+//      setvalue(rowidx, 0);  setvalue(colidx, 0);
+//      for(int i = 0; i < PUi.ncols(); i++){
+//	for(int j = 0; j < LB.nrows(); j++){
+//	  if(PUi.cols(i) == LBrows(j)){
+//	    rowidx[i] = j;
+//	    break;
+//	  }
+//	}
+//      }
+//
+//      int colsta = PMloc.xsup(jsup);
+//      for(int i = 0; i < PUTj.ncols(); i++){
+//	colidx[i] = PUTj.cols(i) - colsta;
+//      }
+//
+//
+//      // Setup the buffer matrix first
+//      DblNumMat BufMat(PUi.ncols(),PUTj.ncols());
+//      setvalue(BufMat,0.0);
+//      DblNumMat& LBMat = LB.nzval();
+//      for(int j = 0; j < BufMat.n(); j++){
+//	for(int i = 0; i < BufMat.m(); i++){
+//	  BufMat(i,j) = LBMat(rowidx[i],colidx[j]);
+//	}
+//      }
+//
+//      // DGEMM 
+//      {
+//	int ONE = 1; double DONE = 1.0;
+//	int m = PUi.nrows(), n = PUTj.ncols(), k = PUi.ncols();
+//	dgemm_("N", "N", &m, &n, &k, &DONE, 
+//	       PUi.nzval().data(), &m, 
+//	       BufMat.data(), &k, 
+//	       &DONE, PUTj.nzval().data(), &m);
+//      }
+//#if (__DEBUGlevel >= 2 )
+//      cerr << "Rows: " << PMloc.xsup(ksup) + 1 << " -- " <<
+//	PMloc.xsup(ksup+1) << endl; 
+//      cerr << "Cols: " << PMloc.xsup(jsup) + 1 << " -- " <<
+//	PMloc.xsup(jsup+1) << endl;
+//      cerr << PUTj << endl;
+//#endif
+//
+//    } // for (ib)
+//  } // jsup
+//
+//  // DGEMM for PUT(j) += PU(i) * Sinv(i,j), U part
+//  for( map<int,UBlock>::iterator mi = PU.begin(); mi != PU.end();
+//       mi++ ){
+//    int isup = (*mi).first;
+//    UBlock& PUi  = (*mi).second;
+//    if( isup <= ksup ) continue;
+//    int ib = LBi(isup, grid);
+//
+//    for(int jb = 0; jb < PMloc.nblku(ib); jb++){
+//      UBlock& UB = PMloc.U(ib)[jb];
+//      int jsup = UB.blkind();
+//      if( PUT.count(jsup) == 0 ) continue; // LLIN: IMPORTANT
+//      map<int,UBlock>::iterator mj = PUT.find(jsup);
+//
+//      UBlock& PUTj = (*mj).second;
+//      // PU(isup) * PMloc(isup, jsup)
+//
+//      // Find the subset of row indices
+//      IntNumVec& UBcols = UB.cols();
+//      IntNumVec rowidx(PUi.ncols()), colidx(PUTj.ncols());
+//      setvalue(rowidx, 0);  setvalue(colidx, 0);
+//
+//      for(int i = 0; i < PUTj.ncols(); i++){
+//	for(int j = 0; j < UB.ncols(); j++){
+//	  if(PUTj.cols(i) == UBcols(j)){
+//	    colidx[i] = j;
+//	    break;
+//	  }
+//	}
+//      }
+//
+//      int rowsta = PMloc.xsup(isup);
+//      for(int i = 0; i < PUi.ncols(); i++){
+//	rowidx[i] = PUi.cols(i) - rowsta;
+//      }
+//
+//      // Setup the buffer matrix 
+//      DblNumMat BufMat(PUi.ncols(),PUTj.ncols());
+//      setvalue(BufMat,0.0);
+//      DblNumMat& UBMat = UB.nzval();
+//      for(int j = 0; j < BufMat.n(); j++){
+//	for(int i = 0; i < BufMat.m(); i++){
+//	  BufMat(i,j) = UBMat(rowidx[i],colidx[j]);
+//	}
+//      }
+//
+//      // DGEMM 
+//      {
+//	int ONE = 1; double DONE = 1.0;
+//	int m = PUi.nrows(), n = PUTj.ncols(), k = PUi.ncols();
+//	dgemm_("N", "N", &m, &n, &k, &DONE, 
+//	       PUi.nzval().data(), &m, 
+//	       BufMat.data(), &k, 
+//	       &DONE, PUTj.nzval().data(), &m);
+//      }
+//
+//#if (__DEBUGlevel >= 2 )
+//      cerr << "Rows: " << PMloc.xsup(ksup) + 1 << " -- " <<
+//	PMloc.xsup(ksup+1) << endl; 
+//      cerr << "Cols: " << PMloc.xsup(jsup) + 1 << " -- " <<
+//	PMloc.xsup(jsup+1) << endl;
+//      cerr << PUTj << endl;
+//#endif
+//
+//    } // for (jb)
+//  } // isup
+//
+//
+//  // Put PUT into PMloc
+//  for(map<int,UBlock>::iterator mj = PUT.begin(); mj != PUT.end();
+//      mj++){
+//    int jsup = (*mj).first;
+//    if(jsup <= ksup) continue; // LLIN: IMPORTANT
+//
+//    if( mycol == PCOL(jsup, grid) ){
+//      int pkrow = PROW(ksup, grid);
+//      int kb = LBi(ksup, grid);
+//      // if one block is non empty, then all the block columns are non
+//      // empty
+//      int sz = 0;
+//      DblNumMat UBMat;
+//      if( myrow == pkrow ){
+//	for(int jb = 0; jb < PMloc.nblku(kb); jb++){
+//	  UBlock& UB = PMloc.U(kb)[jb];
+//	  int tjsup = UB.blkind();
+//	  if(tjsup == jsup) {
+//	    sz = UB.nrows()*UB.ncols();
+//	    UBMat = DblNumMat(UB.nrows(), UB.ncols(), false, UB.nzval().data());
+//	    break;
+//	  }
+//	}
+//      } // if( myrow == pkrow )
+//      UBlock& PUTj = (*mj).second;
+//      MPI_Bcast(&sz, 1, MPI_INT, pkrow, colcomm);
+//
+//      MPI_Reduce(PUTj.nzval().data(), UBMat.data(), sz, MPI_DOUBLE,
+//		 MPI_SUM, pkrow, colcomm);
+//
+//    }
+//  } // for(jsup)
+//  return 0;
+//}
+
+
+/**********************************************************************
+ * Output the localEtree
+ **********************************************************************/
+int DumpLocalEtree(vector<vector<int> >& localEtree, gridinfo_t* grid){
+  int mpirank;  mpirank = grid->iam; 
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int nsupers = localEtree.size();
+
+  // FIXME
+  if(mpirank == 0){
+    for(int ksup = 0; ksup < nsupers; ksup++){
+      for(int i = 0; i < localEtree[ksup].size(); i++){
+	fprintf(stderr, "(%5d,%5d)  ", localEtree[ksup][i], ksup);
+      }
+      fprintf(stderr, "\n");
+    } 
+  }
+  return 0;
+}
+
+
+/**********************************************************************
+ * Estimate the condition number for the diagonal blocks
+ **********************************************************************/
+int PMatrix::CondDiagBlock(gridinfo_t* grid){
+  MPI_Comm comm = grid->comm;
+
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  iC( MPI_Barrier(comm) );
+  
+  int globalIndexMaxCond, localIndexMaxCond;
+  double globalValueMaxCond, localValueMaxCond;
+
+  localIndexMaxCond = -1;
+  localValueMaxCond = -1.0;
+
+  for(int ib = 0; ib < this->nbc(); ib++){
+    int bnum = ( (ib) * grid->npcol ) + mycol;
+    if( bnum >= this->nsupers() ) continue;
+    if( this->nblkl(ib) ){ // Not an empty column
+      for(int iblk = 0; iblk < this->nblkl(ib); iblk++){
+	LBlock LB = this->L(ib)[iblk]; // IMPORTANT: Make a copy here rather than reference
+	if(bnum == LB.blkind()){
+	  // Diagonal block computes the condition number
+	  char norm = '1';
+	  int N = LB.nrows();
+	  int info;
+	  double anorm = 1.0; // FIXME
+	  double rcond;
+	  DblNumVec work(4*N);
+	  IntNumVec iwork(N);
+	  iA( LB.nrows() == LB.ncols() );
+	  dgecon_(&norm, &N, LB.nzval().data(), &N, &anorm, &rcond, 
+		  work.data(), iwork.data(), &info);
+	  double CondLB = 1.0 / rcond;
+	  if( localValueMaxCond < 1.0 / rcond ){
+	    localValueMaxCond = 1.0 / rcond;
+	    localIndexMaxCond = bnum;
+	  }
+	} 
+      } // for(iblk) 
+    }  
+  } 
+  // for(ib)
+  MPI_Barrier(comm);
+  MPI_Reduce(&localValueMaxCond, &globalValueMaxCond, 1, MPI_DOUBLE,
+	     MPI_MAX, 0, comm);
+  std::cerr.precision(15);
+  if( mpirank == 0 ){
+    std::cerr << "Maximum condition number " << 
+      globalValueMaxCond << std::endl;
+  }
+  return 0;
+}
+
+/**********************************************************************
+ * Dump the diagonal elements in MATLAB format.  
+ *
+ * NOTE: The output is 1-based to be the same as the MATLAB format 
+ **********************************************************************/
+int PMatrix::DumpDiagVec(string filename, gridinfo_t *grid){
+  MPI_Comm comm = grid->comm;
+
+  int mpirank;  mpirank = grid->iam;
+  int mpisize;  mpisize = grid->nprow * grid->npcol;
+  int myrow = MYROW( grid->iam, grid ), mycol = MYCOL( grid->iam, grid );
+  iC( MPI_Barrier(comm) );
+
+
+  DblNumVec localDiagVec(this->ndof());
+  DblNumVec globalDiagVec(this->ndof());
+  setvalue(localDiagVec, 0.0);
+  setvalue(globalDiagVec, 0.0);
+
+  for(int ib = 0; ib < this->nbc(); ib++){
+    int bnum = ( (ib) * grid->npcol ) + mycol;
+    if( bnum >= this->nsupers() ) continue;
+    if( this->nblkl(ib) ){ // Not an empty column
+      for(int iblk = 0; iblk < this->nblkl(ib); iblk++){
+	LBlock& LB = this->L(ib)[iblk];
+	if(bnum == LB.blkind()){
+	  // Diagonal block 
+	  for(int i = 0; i < LB.nrows(); i++){
+	    localDiagVec[LB.rows(i)] = LB.nzval(i,i);
+	  } // for (i)
+	} 
+      } // for(iblk) 
+    }  
+  } 
+  // for(ib)
+  
+  MPI_Reduce(localDiagVec.data(), globalDiagVec.data(), 
+	     this->ndof(), MPI_DOUBLE, MPI_SUM, 0, comm);
+  
+  if( mpirank == 0 ){
+    ofstream fid;
+    fid.open(filename.c_str(), ios::out | ios::trunc);
+    for(int i = 0; i < this->ndof(); i++){
+      fid << setw(25) << scientific << globalDiagVec[i] << std::endl;
+    }
+    fid.close();
+  }
+  MPI_Barrier(comm);
+  return 0;
+}
