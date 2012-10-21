@@ -816,7 +816,8 @@ void zgbsv_(lint *n, lint *kl, lint *ku, lint *nrhs, cpx16 *ab, lint *ldab, lint
   void zupmtr_(char *side, char *uplo, char *trans, lint *m, lint *n, cpx16 *ap, cpx16 *tau, cpx16 *c, lint *ldc, cpx16 *work, lint *info);
 
   //LLIN: Utilities
-  void dlacpy_(char *uplo, lint * m, lint *n, double* A, lint* lda, double* B, lint* ldb);
+  void dlacpy_(const char *uplo, lint * m, lint *n, double* A, lint* lda, double* B, lint* ldb);
+  void zlacpy_(const char *uplo, lint * m, lint *n, cpx16* A, lint* lda, cpx16* B, lint* ldb);
 }
 
 #endif

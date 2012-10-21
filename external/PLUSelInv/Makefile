@@ -1,8 +1,8 @@
 include Makefile.in
 include ${MAKEINCFILE}
 
-SRCS_C   = dcreate_matrix.c sp_ienv.c dreadhb.c dreadtriple.c
-SRCS_CPP = pluselinv.cpp read_and_dist_rua.cpp
+SRCS_C   = zcreate_matrix.c dcreate_matrix.c sp_ienv.c dreadhb.c dreadtriple.c
+SRCS_CPP = runselinv.cpp pluselinv.cpp read_and_dist_rua.cpp
 OBJS     = ${SRCS_C:.c=.o} ${SRCS_CPP:.cpp=.o} 
 DEPS     = ${SRCS_C:.c=.d} ${SRCS_CPP:.cpp=.d} 
 
@@ -15,6 +15,8 @@ libpluselinv.a: ${OBJS}
 	$(AR) $(ARFLAGS) $@ ${OBJS}
 	$(RANLIB) $@
 
+runselinv: runselinv.o libpluselinv.a
+	$(LOADER) $(LOADOPTS) runselinv.o -o $@ 
 
 
 #DEXM	= pddrive.o dcreate_matrix.o sp_ienv.o dreadhb.o dreadtriple.o 
@@ -24,8 +26,6 @@ libpluselinv.a: ${OBJS}
 #lusolve: lusolve.o $(SELINV) $(DSUPERLULIB)
 #	$(LOADER) $(LOADOPTS) lusolve.o $(SELINV) $(LIBS) $(IPM)  -lm  -o $@ 
 
-runselinv: runselinv.o 
-	$(LOADER) $(LOADOPTS) runselinv.o -o $@ 
 
 #c5by5: c5by5.o $(DSUPERLULIB)
 #	$(LOADER) $(LOADOPTS) c5by5.o $(LIBS) -lm -o $@
@@ -38,4 +38,4 @@ runselinv: runselinv.o
 
 
 cleanall:	
-	${RM} -f ${OBJS} ${DEPS} libpluselinv.a *.d.*
+	${RM} -f ${OBJS} ${DEPS} libpluselinv.a *.d.* runselinv.o

@@ -182,12 +182,12 @@ typedef int lint;
 //  void ctrmm_(char *side,char *uplo,char *transa,char *diag,lint *m,lint *n,cpx8 *alpha,cpx8 *a,lint *lda,cpx8 *b,lint *ldb); 
 //  void ctrsm_(char *side,char *uplo,char *transa,char *diag,lint *m,lint *n,cpx8 *alpha,cpx8 *a,lint *lda,cpx8 *b,lint *ldb); 
 //  
-//  void dgemm_(char *transa,char *transb,lint *m,lint *n,lint *k,double *alpha,double *a,lint *lda,double *b,lint *ldb,double *beta,double *c,lint *ldc);
+ // void dgemm_(const char *transa,const char *transb,lint *m,lint *n,lint *k,double *alpha,double *a,lint *lda,double *b,lint *ldb,double *beta,double *c,lint *ldc);
 //  void dsymm_(char *side,char *uplo,lint *m,lint *n,double *alpha,double *a,lint *lda,double *b,lint *ldb,double *beta,double *c,lint *ldc);
 //  void dsyr2k_(char *uplo,char *trans,lint *n,lint *k,double *alpha,double *a,lint *lda,double *b,lint *ldb,double *beta,double *c,lint *ldc);
 //  void dsyrk_(char *uplo,char *trans,lint *n,lint *k,double *alpha,double *a,lint *lda,double *beta,double *c,lint *ldc);
 //  void dtrmm_(char *side,char *uplo,char *transa,char *diag,lint *m,lint *n,double *alpha,double *a,lint *lda,double *b,lint *ldb);
-  void dtrsm_(char *side,char *uplo,char *transa,char *diag,lint *m,lint *n,double *alpha,double *a,lint *lda,double *b,lint *ldb);
+  void dtrsm_(const char *side,const char *uplo,const char *transa,const char *diag,lint *m,lint *n,double *alpha,double *a,lint *lda,double *b,lint *ldb);
 //  
 //  void zgemm_(char *transa,char *transb,lint *m,lint *n,lint *k,cpx16 *alpha,cpx16 *a,lint *lda,cpx16 *b,lint *ldb,cpx16 *beta,cpx16 *c,lint *ldc); 
 //  void zgemm_(char *transa,char *transb,lint *m,lint *n,lint *k,cpx16 *alpha,cpx16 *a,lint *lda,cpx16 *b,lint *ldb,cpx16 *beta,cpx16 *c,lint *ldc); 
@@ -198,7 +198,7 @@ typedef int lint;
 //  void zsyr2k_(char *uplo,char *trans,lint *n,lint *k,cpx16 *alpha,cpx16 *a,lint *lda,cpx16 *b,lint *ldb,cpx16 *beta,cpx16 *c,lint *ldc); 
 //  void zsyrk_(char *uplo,char *trans,lint *n,lint *k,cpx16 *alpha,cpx16 *a,lint *lda,cpx16 *beta,cpx16 *c,lint *ldc); 
 //  void ztrmm_(char *side,char *uplo,char *transa,char *diag,lint *m,lint *n,cpx16 *alpha,cpx16 *a,lint *lda,cpx16 *b,lint *ldb); 
-//  void ztrsm_(char *side,char *uplo,char *transa,char *diag,lint *m,lint *n,cpx16 *alpha,cpx16 *a,lint *lda,cpx16 *b,lint *ldb); 
+  void ztrsm_(const char *side,const char *uplo,const char *transa,const char *diag,lint *m,lint *n,cpx16 *alpha,cpx16 *a,lint *lda,cpx16 *b,lint *ldb); 
 }
 
 #endif

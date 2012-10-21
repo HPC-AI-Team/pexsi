@@ -1,22 +1,16 @@
-/*! @file 
- * \brief Driver program for PDGSSVX example
- *
- * <pre>
- * -- Distributed SuperLU routine (version 2.1) --
- * Lawrence Berkeley National Lab, Univ. of California Berkeley.
- * November 1, 2007
- *
- */
-
 #include <math.h>
+#ifdef _USE_COMPLEX_
+#include "superlu_zdefs.h"
+#else
 #include "superlu_ddefs.h"
+#endif
 #include "Cnames.h"
 
 /*chao add */
 #include "pluselinv.hpp"
 int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
-                      int *ldb, double **x, int *ldx,
-                      FILE *fp, gridinfo_t *grid);
+		int *ldb, double **x, int *ldx,
+		FILE *fp, gridinfo_t *grid);
 
 /*! \brief
  *
@@ -43,301 +37,318 @@ int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
 
 int main(int argc, char *argv[])
 {
-  superlu_options_t options;
-  SuperLUStat_t stat;
-  SuperMatrix A;
-  ScalePermstruct_t ScalePermstruct;
-  LUstruct_t LUstruct;
-  SOLVEstruct_t SOLVEstruct;
-  gridinfo_t grid;
-  double   *berr;
-  double   *b, *xtrue;
-  int_t    m, n;
-  int_t    nprow, npcol;
-  int      iam, info, ldb, ldx, nrhs;
-  char     **cpp, c;
-  FILE *fp;
-  extern int cpp_defs();
-  PMatrix PMloc;
-  double t0, t1;
+	superlu_options_t options;
+	SuperLUStat_t stat;
+	SuperMatrix A;
+	ScalePermstruct_t ScalePermstruct;
+	LUstruct_t LUstruct;
+	SOLVEstruct_t SOLVEstruct;
+	gridinfo_t grid;
+	double   *berr;
+	Scalar   *b, *xtrue;
+	int_t    m, n;
+	int_t    nprow, npcol;
+	int      iam, info, ldb, ldx, nrhs;
+	char     **cpp, c;
+	FILE *fp;
+	extern int cpp_defs();
+	PMatrix PMloc;
+	double t0, t1;
 
-  /* chao add */
+	/* chao add */
 
-  nprow = 1;  /* Default process rows.      */
-  npcol = 1;  /* Default process columns.   */
-  nrhs = 1;   /* Number of right-hand side. */
+	nprow = 1;  /* Default process rows.      */
+	npcol = 1;  /* Default process columns.   */
+	nrhs = 1;   /* Number of right-hand side. */
 
-  /* ------------------------------------------------------------
-     INITIALIZE MPI ENVIRONMENT. 
-     ------------------------------------------------------------*/
-  MPI_Init( &argc, &argv );
+	/* ------------------------------------------------------------
+		 INITIALIZE MPI ENVIRONMENT. 
+		 ------------------------------------------------------------*/
+	MPI_Init( &argc, &argv );
 
-  
-    int mpirank; MPI_Comm_rank(MPI_COMM_WORLD, &mpirank);
-    if(mpirank == 1 && 0)
-    {
-      int i = 0;
-      char hostname[256];
-      gethostname(hostname, sizeof(hostname));
-      printf("PID %d on %s ready for attach\n", getpid(), hostname);
-      fflush(stdout);
-      while (0 == i)
-	sleep(5);
-      printf("mpirank = %5d is active\n", mpirank);
-    }
 
-  /* Parse command line argv[]. */
-  for (cpp = argv+1; *cpp; ++cpp) {
-    if ( **cpp == '-' ) {
-      c = *(*cpp+1);
-      ++cpp;
-      switch (c) {
-	case 'h':
-	  printf("Options:\n");
-	  printf("\t-r <int>: process rows    (default %d)\n", nprow);
-	  printf("\t-c <int>: process columns (default %d)\n", npcol);
-	  exit(0);
-	  break;
-	case 'r': nprow = atoi(*cpp);
-		  break;
-	case 'c': npcol = atoi(*cpp);
-		  break;
-      }
-    } else { /* Last arg is considered a filename */
-      if ( !(fp = fopen(*cpp, "r")) ) {
-	ABORT("File does not exist");
-      }
-      break;
-    }
-  }
+	int mpirank; MPI_Comm_rank(MPI_COMM_WORLD, &mpirank);
+	if(mpirank == 1 && 0)
+	{
+		int i = 0;
+		char hostname[256];
+		gethostname(hostname, sizeof(hostname));
+		printf("PID %d on %s ready for attach\n", getpid(), hostname);
+		fflush(stdout);
+		while (0 == i)
+			sleep(5);
+		printf("mpirank = %5d is active\n", mpirank);
+	}
 
-  /* ------------------------------------------------------------
-     INITIALIZE THE SUPERLU PROCESS GRID. 
-     ------------------------------------------------------------*/
-  superlu_gridinit(MPI_COMM_WORLD, nprow, npcol, &grid);
+	/* Parse command line argv[]. */
+	for (cpp = argv+1; *cpp; ++cpp) {
+		if ( **cpp == '-' ) {
+			c = *(*cpp+1);
+			++cpp;
+			switch (c) {
+				case 'h':
+					printf("Options:\n");
+					printf("\t-r <int>: process rows    (default %d)\n", nprow);
+					printf("\t-c <int>: process columns (default %d)\n", npcol);
+					exit(0);
+					break;
+				case 'r': nprow = atoi(*cpp);
+									break;
+				case 'c': npcol = atoi(*cpp);
+									break;
+			}
+		} else { /* Last arg is considered a filename */
+			if ( !(fp = fopen(*cpp, "r")) ) {
+				ABORT("File does not exist");
+			}
+			break;
+		}
+	}
 
-  /* Bail out if I do not belong in the grid. */
-  iam = grid.iam;
-  if ( iam >= nprow * npcol ){
-    superlu_gridexit(&grid);
-    MPI_Finalize();
-    return 0;
-  }
+	/* ------------------------------------------------------------
+		 INITIALIZE THE SUPERLU PROCESS GRID. 
+		 ------------------------------------------------------------*/
+	superlu_gridinit(MPI_COMM_WORLD, nprow, npcol, &grid);
 
-  if ( !iam ) printf("\tProcess grid\t%d X %d\n", grid.nprow, grid.npcol);
+	/* Bail out if I do not belong in the grid. */
+	iam = grid.iam;
+	if ( iam >= nprow * npcol ){
+		superlu_gridexit(&grid);
+		MPI_Finalize();
+		return 0;
+	}
+
+	if ( !iam ) printf("\tProcess grid\t%d X %d\n", grid.nprow, grid.npcol);
 
 #if ( VAMPIR>=1 )
-  VT_traceoff();
+	VT_traceoff();
 #endif
 
 #if ( DEBUGlevel>=1 )
-  CHECK_MALLOC(iam, "Enter main()");
+	CHECK_MALLOC(iam, "Enter main()");
 #endif
 
-  /* ------------------------------------------------------------
-     GET THE MATRIX FROM FILE AND SETUP THE RIGHT HAND SIDE. 
-     ------------------------------------------------------------*/
-  dcreate_matrix(&A, nrhs, &b, &ldb, &xtrue, &ldx, fp, &grid);
-//  read_and_dist_rua(&A, nrhs, &b, &ldb, &xtrue, &ldx, fp, &grid);
+	/* ------------------------------------------------------------
+		 GET THE MATRIX FROM FILE AND SETUP THE RIGHT HAND SIDE. 
+		 ------------------------------------------------------------*/
+#ifdef _USE_COMPLEX_
+	zcreate_matrix(&A, nrhs, (doublecomplex**)&b, &ldb, 
+			(doublecomplex**)&xtrue, &ldx, fp, &grid);
+#else
+	dcreate_matrix(&A, nrhs, &b, &ldb, &xtrue, &ldx, fp, &grid);
+#endif
+	//  read_and_dist_rua(&A, nrhs, &b, &ldb, &xtrue, &ldx, fp, &grid);
 
-  if ( !(berr = doubleMalloc_dist(nrhs)) )
-    ABORT("Malloc fails for berr[].");
 
-  /* ------------------------------------------------------------
-     NOW WE SOLVE THE LINEAR SYSTEM.
-     ------------------------------------------------------------*/
 
-  /* Set the default input options:
-     options.Fact              = DOFACT;
-     options.Equil             = YES;
-     options.ParSymbFact       = NO;
-     options.ColPerm           = METIS_AT_PLUS_A;
-     options.RowPerm           = LargeDiag;
-     options.ReplaceTinyPivot  = YES;
-     options.IterRefine        = DOUBLE;
-     options.Trans             = NOTRANS;
-     options.SolveInitialized  = NO;
-     options.RefineInitialized = NO;
-     options.PrintStat         = YES;
-     */
+	if ( !(berr = doubleMalloc_dist(nrhs)) )
+		ABORT("Malloc fails for berr[].");
 
-  set_default_options_dist(&options);
+	/* ------------------------------------------------------------
+		 NOW WE SOLVE THE LINEAR SYSTEM.
+		 ------------------------------------------------------------*/
+
+	/* Set the default input options:
+		 options.Fact              = DOFACT;
+		 options.Equil             = YES;
+		 options.ParSymbFact       = NO;
+		 options.ColPerm           = METIS_AT_PLUS_A;
+		 options.RowPerm           = LargeDiag;
+		 options.ReplaceTinyPivot  = YES;
+		 options.IterRefine        = DOUBLE;
+		 options.Trans             = NOTRANS;
+		 options.SolveInitialized  = NO;
+		 options.RefineInitialized = NO;
+		 options.PrintStat         = YES;
+		 */
+
+	set_default_options_dist(&options);
 
 #if 1
-  options.Fact = DOFACT;
-  options.RowPerm = NOROWPERM;
-  options.IterRefine = NOREFINE;
-  options.ParSymbFact       = NO;
-  options.Equil = NO; 
-  options.ReplaceTinyPivot = NO;
-  options.ColPerm = MMD_AT_PLUS_A;
-  options.PrintStat         = YES;
-//  options.ColPerm = MMD_AT_PLUS_A;
+	options.Fact = DOFACT;
+	options.RowPerm = NOROWPERM;
+	options.IterRefine = NOREFINE;
+	options.ParSymbFact       = NO;
+	options.Equil = NO; 
+	options.ReplaceTinyPivot = NO;
+	options.ColPerm = MMD_AT_PLUS_A;
+	options.PrintStat         = YES;
+	//  options.ColPerm = MMD_AT_PLUS_A;
 #endif
 
 #if 0
-  options.Fact = DOFACT;
-  options.RowPerm = NOROWPERM;
-  options.IterRefine = NOREFINE;
-  options.ColPerm = NATURAL;
-  options.Equil = NO; 
-  options.ReplaceTinyPivot = NO;
+	options.Fact = DOFACT;
+	options.RowPerm = NOROWPERM;
+	options.IterRefine = NOREFINE;
+	options.ColPerm = NATURAL;
+	options.Equil = NO; 
+	options.ReplaceTinyPivot = NO;
 #endif
 
 
-  m = A.nrow;
-  n = A.ncol;
+	m = A.nrow;
+	n = A.ncol;
 
-  /* Initialize ScalePermstruct and LUstruct. */
-  ScalePermstructInit(m, n, &ScalePermstruct);
-  LUstructInit(m, n, &LUstruct);
+	/* Initialize ScalePermstruct and LUstruct. */
+	ScalePermstructInit(m, n, &ScalePermstruct);
+	LUstructInit(m, n, &LUstruct);
 
-  /* Initialize the statistics variables. */
-  PStatInit(&stat);
+	/* Initialize the statistics variables. */
+	PStatInit(&stat);
 
-  /* Call the linear equation solver. */
-  t0 = MPI_Wtime();
-  pdgssvx(&options, &A, &ScalePermstruct, b, ldb, nrhs, &grid,
-	  &LUstruct, &SOLVEstruct, berr, &stat, &info);
-  t1 = MPI_Wtime();
-  if(iam == 0) {
-    fprintf(stderr, "Time for sparse factorization is %10.3f s\n", 
-	    t1-t0);
-  }
+	/* Call the linear equation solver. */
+	t0 = MPI_Wtime();
+#ifdef _USE_COMPLEX_
+	pzgssvx(&options, &A, &ScalePermstruct, (doublecomplex*)b, 
+			ldb, nrhs, &grid,
+			&LUstruct, &SOLVEstruct, berr, &stat, &info);
+#else
+	pdgssvx(&options, &A, &ScalePermstruct, b, ldb, nrhs, &grid,
+			&LUstruct, &SOLVEstruct, berr, &stat, &info);
+#endif
+	t1 = MPI_Wtime();
+	if(iam == 0) {
+		fprintf(stderr, "Time for sparse factorization is %10.3f s\n", 
+				t1-t0);
+	}
 
 
-  t0 = MPI_Wtime();
-  iC(SuperLU2SelInv(n, &LUstruct, &grid, PMloc));
-  t1 = MPI_Wtime();
-  if(iam == 0) {
-    fprintf(stderr, "Time for converting L and U matrices is %10.3f s\n", 
-	    t1-t0);
-  }
+	t0 = MPI_Wtime();
+	iC(SuperLU2SelInv(n, &LUstruct, &grid, PMloc));
+	t1 = MPI_Wtime();
+	if(iam == 0) {
+		fprintf(stderr, "Time for converting L and U matrices is %10.3f s\n", 
+				t1-t0);
+	}
 
-  // Estimate the condition number of the diagonal blocks
-  if(1){
-    PMloc.CondDiagBlock(&grid);
-  }
+	// Estimate the condition number of the diagonal blocks
+	//  if(1){
+	//    PMloc.CondDiagBlock(&grid);
+	//  }
 
-  t0 = MPI_Wtime();
-  vector<vector<int> > localEtree;
-  iC(ConstructLocalEtree(n, &grid, PMloc, localEtree));
-  t1 = MPI_Wtime();
-  if(iam == 0) {
-    fprintf(stderr, "Time for generating local Etree is %10.3f s\n", 
-	    t1-t0);
-  }
+	t0 = MPI_Wtime();
+	vector<vector<int> > localEtree;
+	iC(ConstructLocalEtree(n, &grid, PMloc, localEtree));
+	t1 = MPI_Wtime();
+	if(iam == 0) {
+		fprintf(stderr, "Time for generating local Etree is %10.3f s\n", 
+				t1-t0);
+	}
 
 
 #if (__DEBUGlevel >= 2 )
-  iC(DumpLocalEtree(localEtree, &grid));
+	iC(DumpLocalEtree(localEtree, &grid));
 #endif
 
 #if (__DEBUGlevel >= 3 )
-  iC(PMloc.DumpL("LF", &grid));
-  iC(PMloc.DumpU("UF", &grid));
+	iC(PMloc.DumpL("LF", &grid));
+	iC(PMloc.DumpU("UF", &grid));
 #endif
 
-  t0 = MPI_Wtime();
-  iC(PLUSelInv(&grid, PMloc, localEtree));
-  t1 = MPI_Wtime();
-  if(iam == 0) {
-    fprintf(stderr, "Time for PLUSelInv is %10.3f s\n", 
-	    t1-t0);
-  }
+	t0 = MPI_Wtime();
+	iC(PLUSelInv(&grid, PMloc, localEtree));
+	t1 = MPI_Wtime();
+	if(iam == 0) {
+		fprintf(stderr, "Time for PLUSelInv is %10.3f s\n", 
+				t1-t0);
+	}
 
 #if (__DEBUGlevel >= 2 )
-  // Output the supernode, row permutation and column permutation
-  if( grid.iam == 0 ){
-    ofstream fid;
-    fid.open("SUPER", ios::out | ios::trunc);
-    fid << PMloc._xsup << endl;
-    fid.close();
+	// Output the supernode, row permutation and column permutation
+	if( grid.iam == 0 ){
+		ofstream fid;
+		fid.open("SUPER", ios::out | ios::trunc);
+		fid << PMloc._xsup << endl;
+		fid.close();
 
-    fid.open("ROWPERM", ios::out | ios::trunc);
-    fid << IntNumVec(PMloc._ndof, false, ScalePermstruct.perm_r) << endl;
-    fid.close();
-    
-    fid.open("COLPERM", ios::out | ios::trunc);
-    fid << IntNumVec(PMloc._ndof, false, ScalePermstruct.perm_c) << endl;
-    fid.close();
-    
-  }
-  
-  
-  iC(PMloc.DumpL("L", &grid));
-  iC(PMloc.DumpU("U", &grid));
+		fid.open("ROWPERM", ios::out | ios::trunc);
+		fid << IntNumVec(PMloc._ndof, false, ScalePermstruct.perm_r) << endl;
+		fid.close();
+
+		fid.open("COLPERM", ios::out | ios::trunc);
+		fid << IntNumVec(PMloc._ndof, false, ScalePermstruct.perm_c) << endl;
+		fid.close();
+
+	}
+
+
+	iC(PMloc.DumpL("L", &grid));
+	iC(PMloc.DumpU("U", &grid));
 #endif
 
-  if(1){
-    if( grid.iam == 0 ){
-      ofstream fid;
-      fid.open("SUPER", ios::out | ios::trunc);
-      fid << PMloc._xsup << endl;
-      fid.close();
-      fid.open("COLPERM", ios::out | ios::trunc);
-      fid << IntNumVec(PMloc._ndof, false, ScalePermstruct.perm_c) << endl;
-      fid.close();
-    }
-    PMloc.DumpDiagVec("diaglu", &grid);
-  }
+	if(1){
+		if( grid.iam == 0 ){
+			ofstream fid;
+			fid.open("SUPER", ios::out | ios::trunc);
+			fid << PMloc._xsup << endl;
+			fid.close();
+			fid.open("COLPERM", ios::out | ios::trunc);
+			fid << IntNumVec(PMloc._ndof, false, ScalePermstruct.perm_c) << endl;
+			fid.close();
+		}
+		PMloc.DumpDiagVec("diaglu", &grid);
+	}
 
 
-  /* Check the accuracy of the solution. */
-  // pdinf_norm_error(iam, ((NRformat_loc *)A.Store)->m_loc,
-  // nrhs, b, ldb, xtrue, ldx, &grid);
+	/* Check the accuracy of the solution. */
+	// pdinf_norm_error(iam, ((NRformat_loc *)A.Store)->m_loc,
+	// nrhs, b, ldb, xtrue, ldx, &grid);
 
-  PStatPrint(&options, &stat, &grid);        /* Print the statistics. */
+	PStatPrint(&options, &stat, &grid);        /* Print the statistics. */
 
-  /* ------------------------------------------------------------
-     DEALLOCATE STORAGE.
-     ------------------------------------------------------------*/
+	/* ------------------------------------------------------------
+		 DEALLOCATE STORAGE.
+		 ------------------------------------------------------------*/
 
-  PStatFree(&stat);
-  Destroy_CompRowLoc_Matrix_dist(&A);
-  ScalePermstructFree(&ScalePermstruct);
-  Destroy_LU(n, &grid, &LUstruct);
-  LUstructFree(&LUstruct);
-  if ( options.SolveInitialized ) {
-    dSolveFinalize(&options, &SOLVEstruct);
-  }
-  SUPERLU_FREE(b);
-  SUPERLU_FREE(xtrue);
-  SUPERLU_FREE(berr);
+	PStatFree(&stat);
+	Destroy_CompRowLoc_Matrix_dist(&A);
+	ScalePermstructFree(&ScalePermstruct);
+	Destroy_LU(n, &grid, &LUstruct);
+	LUstructFree(&LUstruct);
+	if ( options.SolveInitialized ) {
+#ifdef _USE_COMPLEX_
+		zSolveFinalize(&options, &SOLVEstruct);
+#else
+		dSolveFinalize(&options, &SOLVEstruct);
+#endif
+	}
+	SUPERLU_FREE(b);
+	SUPERLU_FREE(xtrue);
+	SUPERLU_FREE(berr);
 
-  /* ------------------------------------------------------------
-     RELEASE THE SUPERLU PROCESS GRID.
-     ------------------------------------------------------------*/
-  superlu_gridexit(&grid);
+	/* ------------------------------------------------------------
+		 RELEASE THE SUPERLU PROCESS GRID.
+		 ------------------------------------------------------------*/
+	superlu_gridexit(&grid);
 
-  /* ------------------------------------------------------------
-     TERMINATES THE MPI EXECUTION ENVIRONMENT.
-     ------------------------------------------------------------*/
-  MPI_Finalize();
+	/* ------------------------------------------------------------
+		 TERMINATES THE MPI EXECUTION ENVIRONMENT.
+		 ------------------------------------------------------------*/
+	MPI_Finalize();
 
 #if ( DEBUGlevel>=1 )
-  CHECK_MALLOC(iam, "Exit main()");
+	CHECK_MALLOC(iam, "Exit main()");
 #endif
 
-  return 0;
+	return 0;
 }
 
 
 int cpp_defs()
 {
-  printf(".. CPP definitions:\n");
+	printf(".. CPP definitions:\n");
 #if ( PRNTlevel>=1 )
-  printf("\tPRNTlevel = %d\n", PRNTlevel);
+	printf("\tPRNTlevel = %d\n", PRNTlevel);
 #endif
 #if ( DEBUGlevel>=1 )
-  printf("\tDEBUGlevel = %d\n", DEBUGlevel);
+	printf("\tDEBUGlevel = %d\n", DEBUGlevel);
 #endif
 #if ( PROFlevel>=1 )
-  printf("\tPROFlevel = %d\n", PROFlevel);
+	printf("\tPROFlevel = %d\n", PROFlevel);
 #endif
 #if ( StaticPivot>=1 )
-  printf("\tStaticPivot = %d\n", StaticPivot);
+	printf("\tStaticPivot = %d\n", StaticPivot);
 #endif
-  printf("....\n");
-  return 0;
+	printf("....\n");
+	return 0;
 }

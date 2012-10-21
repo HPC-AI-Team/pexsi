@@ -1,9 +1,9 @@
-#ifndef _PLUSELINV_HPP
-#define _PLUSELINV_HPP
+#ifndef _PLUSELINV_HPP_
+#define _PLUSELINV_HPP_
 
 /**********************************************************************
- * LLIN: Common utilities
-/**********************************************************************/
+ * Common utilities
+ **********************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +12,19 @@
 #include "vec3t.hpp"
 #include "numtns.hpp"
 #include "serialize.hpp"
+
+#ifdef _USE_COMPLEX_
+#include "superlu_zdefs.h"
+#else
+#include "superlu_ddefs.h"
+#endif
+#include "Cnames.h"
+/* kind of integer to hold a pointer.  Use int.
+	 This might need to be changed on systems with large memory.
+	 If changed, be sure to change it in superlupara.f90 too */
+// typedef int fptr;  /* 32-bit */
+typedef long long int fptr;  /* 64-bit */
+
 
 using std::vector;
 using std::pair;
@@ -29,9 +42,37 @@ using std::ofstream;
 using std::setw;
 using std::scientific;
 
+typedef    int                   Int;
+typedef    double                Real;
+typedef    std::complex<double>  Complex; 
+#ifdef _USE_COMPLEX_
+typedef    std::complex<double>  Scalar;  
+#else
+typedef    double                Scalar;
+#endif
+
+// Commonly used
+const Int I_ZERO = 0;
+const Int I_ONE = 1;
+const Real D_ZERO = 0.0;
+const Real D_ONE  = 1.0;
+const Complex Z_ZERO = Complex(0.0, 0.0);
+const Complex Z_ONE  = Complex(1.0, 0.0);
+const Scalar SCALAR_ZERO    = static_cast<Scalar>(0.0);
+const Scalar SCALAR_ONE     = static_cast<Scalar>(1.0);
+const char UPPER = 'U';
+const char LOWER = 'L';
+const char FROMRIGHT = 'R';
+const char FROMLEFT  = 'L';
+const char TRAN = 'T';
+const char NOTRAN = 'N';
+const char ALL   = 'A';
+const char UDIAG = 'U';
+const char NOUDIAG = 'N';
+
 /**********************************************************************
- * LLIN: Output LU structure
-/**********************************************************************/
+ * Output LU structure
+ **********************************************************************/
 
 
 class LBlock{
@@ -40,15 +81,15 @@ class LBlock{
     int _nrows;
     int _ncols;
     IntNumVec _rows;
-    DblNumMat _nzval;
+    NumMat<Scalar> _nzval;
   public:
     int blkind() {return _blkind;}
     int nrows()  {return _nrows;}
     int ncols()  { return _ncols;}
     IntNumVec& rows() {return _rows;}
-    DblNumMat& nzval() {return _nzval;}
+    NumMat<Scalar>& nzval() {return _nzval;}
     int rows(int i) {return _rows[i];}
-    double nzval(int i, int j) {return _nzval(i,j);}
+    Scalar& nzval(int i, int j) {return _nzval(i,j);}
 
     LBlock() {_blkind=-1;_nrows=0;_ncols=0;}
     ~LBlock() {}
@@ -60,7 +101,6 @@ class LBlock{
       _nzval  = LB._nzval;
       return *this;
     }
-
 };
 
 class UBlock{
@@ -69,15 +109,15 @@ class UBlock{
     int _nrows;
     int _ncols;
     IntNumVec _cols;
-    DblNumMat _nzval;
+    NumMat<Scalar> _nzval;
   public:
     int blkind() {return _blkind;}
     int nrows()  {return _nrows;}
     int ncols()  { return _ncols;}
     IntNumVec& cols() {return _cols;}
-    DblNumMat& nzval() {return _nzval;}
+    NumMat<Scalar>& nzval() {return _nzval;}
     int cols(int i) {return _cols[i];}
-    double nzval(int i, int j) {return _nzval(i,j);}
+    Scalar& nzval(int i, int j) {return _nzval(i,j);}
 
     UBlock() {_blkind=-1;_nrows=0;_ncols=0;}
     ~UBlock() {}
@@ -102,8 +142,8 @@ class PMatrix{
     IntNumVec _supno;
     IntNumVec _nblkl;
     IntNumVec _nblku;
-    vector<vector<LBlock> > _L;
-    vector<vector<UBlock> > _U;
+		std::vector<std::vector<LBlock> > _L;
+		std::vector<std::vector<UBlock> > _U;
   public:
     PMatrix(){;}
     ~PMatrix(){;}
@@ -116,10 +156,10 @@ class PMatrix{
     int superno(int i){return _supno[i];}
     int nblkl(int i){return _nblkl[i];}
     int nblku(int i){return _nblku[i];}
-    vector<vector<LBlock> >& L(){return _L;}
-    vector<LBlock>& L(int i){return _L[i];}
-    vector<vector<UBlock> >& U(){return _U;}
-    vector<UBlock>& U(int i){return _U[i];}
+    std::vector<std::vector<LBlock> >& L(){return _L;}
+    std::vector<LBlock>& L(int i){return _L[i];}
+    std::vector<std::vector<UBlock> >& U(){return _U;}
+    std::vector<UBlock>& U(int i){return _U[i];}
 
     int DumpL(string filename, gridinfo_t* grid);
     int DumpU(string filename, gridinfo_t* grid);
@@ -127,7 +167,7 @@ class PMatrix{
     int DumpLBlock(int isup, int jsup, string filename, gridinfo_t* grid);
     int DumpUBlock(int isup, int jsup, string filename, gridinfo_t* grid);
 
-    int CondDiagBlock(gridinfo_t* grid);
+//    int CondDiagBlock(gridinfo_t* grid);
     int DumpDiagVec(string filename, gridinfo_t *grid);
 
 };
@@ -145,6 +185,9 @@ public:
   }
 };
 
+// *********************************************************************
+// Main functions for PLUSelInv
+// *********************************************************************
 
 #define KITEMS  5
 #define ISOURCE 0
@@ -159,18 +202,18 @@ int SuperLU2SelInv(int n, LUstruct_t *LUstruct, gridinfo_t *grid,
 int DiagTri(PMatrix& PMloc, int ksup, gridinfo_t *grid);
 int ScaleLinv(PMatrix& PMloc, int ksup, gridinfo_t *grid);
 int ScaleUinv(PMatrix& PMloc, int ksup, gridinfo_t *grid);
-int DiagInnerProd(PMatrix& PMloc, vector<vector<int> >& localEtree, int ksup, gridinfo_t *grid);
-int SinvPL(PMatrix& PMloc, vector<vector<int> >& localEtree, int ksup, gridinfo_t* grid);
-int SinvPU(PMatrix& PMloc, vector<vector<int> >& localEtree, int ksup, gridinfo_t* grid);
+int DiagInnerProd(PMatrix& PMloc, std::vector<std::vector<int> >& localEtree, int ksup, gridinfo_t *grid);
+int SinvPL(PMatrix& PMloc, std::vector<std::vector<int> >& localEtree, int ksup, gridinfo_t* grid);
+int SinvPU(PMatrix& PMloc, std::vector<std::vector<int> >& localEtree, int ksup, gridinfo_t* grid);
 
-int PLUSelInv(gridinfo_t *grid, PMatrix& PMloc, vector<vector<int> >& localEtree);
+int PLUSelInv(gridinfo_t *grid, PMatrix& PMloc, std::vector<std::vector<int> >& localEtree);
 int ConstructLocalEtree(int n, gridinfo_t *grid, PMatrix& PMloc, 
-			vector<vector<int> >& localEtree);
+			std::vector<std::vector<int> >& localEtree);
 
 int BcastLBlock(LBlock& LB, int mykey, int srckey, MPI_Comm comm);
 int BcastUBlock(UBlock& UB, int mykey, int srckey, MPI_Comm comm);
 
-int DumpLocalEtree(vector<vector<int> >& localEtree, gridinfo_t* grid);
+int DumpLocalEtree(std::vector<std::vector<int> >& localEtree, gridinfo_t* grid);
 
 //void blockinvert(Lstruct *PMlocL, LUstruct_t *LUstruct, gridinfo_t *grid,
 //                 int jsup, int n);
@@ -187,7 +230,7 @@ enum {
   LBlock_nzval    = 4,
 };
 
-int inline serialize(LBlock& val, ostream& os, const vector<int>& mask){
+int inline serialize(LBlock& val, ostream& os, const std::vector<int>& mask){
   int i = 0;
   if(mask[i]==1) serialize(val._blkind, os, mask); i++;
   if(mask[i]==1) serialize(val._nrows,  os, mask); i++;
@@ -198,7 +241,7 @@ int inline serialize(LBlock& val, ostream& os, const vector<int>& mask){
   return 0;
 }
 
-int inline deserialize(LBlock& val, istream& is, const vector<int>& mask){
+int inline deserialize(LBlock& val, istream& is, const std::vector<int>& mask){
   int i = 0;
   if(mask[i]==1) deserialize(val._blkind, is, mask); i++;
   if(mask[i]==1) deserialize(val._nrows,  is, mask); i++;
@@ -220,7 +263,7 @@ enum {
 
 
 
-int inline serialize(UBlock& val, ostream& os, const vector<int>& mask){
+int inline serialize(UBlock& val, ostream& os, const std::vector<int>& mask){
   int i = 0;
   if(mask[i]==1) serialize(val._blkind, os, mask); i++;
   if(mask[i]==1) serialize(val._nrows,  os, mask); i++;
@@ -231,7 +274,7 @@ int inline serialize(UBlock& val, ostream& os, const vector<int>& mask){
   return 0;
 }
 
-int inline deserialize(UBlock& val, istream& is, const vector<int>& mask){
+int inline deserialize(UBlock& val, istream& is, const std::vector<int>& mask){
   int i = 0;
   if(mask[i]==1) deserialize(val._blkind, is, mask); i++;
   if(mask[i]==1) deserialize(val._nrows,  is, mask); i++;
