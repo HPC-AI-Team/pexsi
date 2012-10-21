@@ -44,7 +44,7 @@ RMFLAGS      = -f
 MODE	         = debug
 
 ifeq ($(MODE), debug)
-	COMMONDEFS   = -D__DEBUGlevel=0 -D__PRNTlevel=0 -DAdd_ -D_USE_COMPLEX_
+	COMMONDEFS   = -D__DEBUGlevel=0 -D__PRNTlevel=0 -DAdd_ #-D_USE_COMPLEX_
   CFLAGS       = -O2 -g ${INCLUDES}
   FFLAGS       = -O2 -g ${INCLUDES}
   CXXFLAGS     = -O2 -g ${INCLUDES}

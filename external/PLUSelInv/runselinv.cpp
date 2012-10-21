@@ -8,9 +8,9 @@
 
 /*chao add */
 #include "pluselinv.hpp"
-int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
-		int *ldb, double **x, int *ldx,
-		FILE *fp, gridinfo_t *grid);
+//int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
+//		int *ldb, double **x, int *ldx,
+//		FILE *fp, gridinfo_t *grid);
 
 /*! \brief
  *
@@ -275,6 +275,7 @@ int main(int argc, char *argv[])
 	iC(PMloc.DumpL("L", &grid));
 	iC(PMloc.DumpU("U", &grid));
 #endif
+	NumVec<Scalar> diagVec;
 
 	if(1){
 		if( grid.iam == 0 ){
@@ -286,8 +287,45 @@ int main(int argc, char *argv[])
 			fid << IntNumVec(PMloc._ndof, false, ScalePermstruct.perm_c) << endl;
 			fid.close();
 		}
-		PMloc.DumpDiagVec("diaglu", &grid);
+		PMloc.DumpDiagVec(diagVec, "diaglu", &grid);
 	}
+
+	cerr << "Slow method for computing the diagonal of inverse" << endl;
+
+	if(1){
+		NumVec<Scalar> diagVecExact(n);
+		NumMat<Scalar> bGlobal(n, n);
+    setvalue(bGlobal, SCALAR_ZERO);
+	  for(int i = 0; i < n; i++){
+			bGlobal(i,i) = SCALAR_ONE;
+		}	
+
+#ifdef _USE_COMPLEX_
+		pzgstrs_Bglobal(n, &LUstruct, &grid, (doublecomplex*)bGlobal.data(), 
+				n, n, &stat, &info);
+#else
+		pdgstrs_Bglobal(n, &LUstruct, &grid, bGlobal.data(), n, n,
+				&stat, &info);
+#endif
+		for(int i = 0; i < n;i++){
+			diagVecExact[i] = bGlobal(i,i);
+		}
+
+		if( grid.iam == 0 ){
+			cerr << "Diag[i]                DiagExact[i]" << endl;
+			for(int i = 0; i < n;i++){
+				cerr << diagVec[i] << ",   " << diagVecExact[i] << endl;
+			}
+		}
+
+		NumVec<Scalar> diagErr(n);
+		for(int i = 0; i < n; i++){
+			diagErr[i] = diagVec[i] - diagVecExact[i];
+		}
+		cerr << "Error of the diagonals = " << energy(diagErr) << endl;
+	}
+
+
 
 
 	/* Check the accuracy of the solution. */

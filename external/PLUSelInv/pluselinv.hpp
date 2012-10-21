@@ -168,7 +168,8 @@ class PMatrix{
     int DumpUBlock(int isup, int jsup, string filename, gridinfo_t* grid);
 
 //    int CondDiagBlock(gridinfo_t* grid);
-    int DumpDiagVec(string filename, gridinfo_t *grid);
+    int DumpDiagVec(NumVec<Scalar>& globalDiagVec, 
+				string filename, gridinfo_t *grid);
 
 };
 

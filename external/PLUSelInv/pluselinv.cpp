@@ -2627,7 +2627,8 @@ int DumpLocalEtree(vector<vector<int> >& localEtree, gridinfo_t* grid){
  *
  * NOTE: The output is 1-based to be the same as the MATLAB format 
  **********************************************************************/
-int PMatrix::DumpDiagVec(string filename, gridinfo_t *grid){
+int PMatrix::DumpDiagVec(NumVec<Scalar>& globalDiagVec, 
+		string filename, gridinfo_t *grid){
 	MPI_Comm comm = grid->comm;
 
 	int mpirank;  mpirank = grid->iam;
@@ -2637,7 +2638,8 @@ int PMatrix::DumpDiagVec(string filename, gridinfo_t *grid){
 
 
 	NumVec<Scalar> localDiagVec(this->ndof());
-	NumVec<Scalar> globalDiagVec(this->ndof());
+	if( globalDiagVec.m() != this->ndof() )
+		globalDiagVec.resize(this->ndof());
 	setvalue(localDiagVec, SCALAR_ZERO);
 	setvalue(globalDiagVec, SCALAR_ZERO);
 
@@ -2658,9 +2660,16 @@ int PMatrix::DumpDiagVec(string filename, gridinfo_t *grid){
 	} 
 	// for(ib)
 
-	MPI_Reduce((void*)localDiagVec.data(), 
-			(void*)globalDiagVec.data(), 
-			this->ndof()*sizeof(Scalar), MPI_BYTE, MPI_SUM, 0, comm);
+#ifdef _USE_COMPLEX_
+	MPI_Reduce((double*)localDiagVec.data(), (double*)globalDiagVec.data(), 
+			this->ndof()*2, MPI_DOUBLE, MPI_SUM, 0, comm);
+#else
+	MPI_Reduce(localDiagVec.data(), globalDiagVec.data(), 
+			this->ndof(), MPI_DOUBLE, MPI_SUM, 0, comm);
+#endif
+//	MPI_Reduce((void*)localDiagVec.data(), 
+//			(void*)globalDiagVec.data(), 
+//			this->ndof()*sizeof(Scalar), MPI_BYTE, MPI_SUM, 0, comm);
 //	MPI_Reduce(localDiagVec.data(), globalDiagVec.data(), 
 //			this->ndof(), MPI_DOUBLE, MPI_SUM, 0, comm);
 
