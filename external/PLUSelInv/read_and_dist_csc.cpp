@@ -1,7 +1,13 @@
 #include <math.h>
 #include "superlu_ddefs.h"
+#include "commoninc.hpp"
 
-int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
+// Read and distribute a CSC format (binary) written by
+// WriteSparseMatrix.m
+//
+// This subroutine only supports real arithmetic and symmetric matrix.
+
+int read_and_dist_csc(SuperMatrix *A, int nrhs, double **rhs,
 		int *ldb, double **x, int *ldx,
 		FILE *fp, gridinfo_t *grid)
 {
@@ -14,6 +20,7 @@ int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
 												 when mod(m, p) is not zero. */ 
 	int_t    iam, row, col, i, j, relpos;
 	int_t    *indbuf, *m_loc_vec;
+	int_t    size;
 	double   *valbuf;
 	char     trans[1];
 	MPI_Status mpistatus;
@@ -36,6 +43,8 @@ int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
 	// read row pointers
 	rowptr = (int_t*)malloc((n+1)*sizeof(int_t));
 	if ( !iam ) {
+		fread(&size, sizeof(int_t), 1, fp);
+		iA( size = n+1 );
 		fread(rowptr, sizeof(int_t), n+1, fp);
 	}
 	MPI_Bcast( rowptr, n+1, mpi_int_t,  0, grid->comm );
@@ -72,6 +81,7 @@ int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
 
 	// read and distribute column indices (has to be read by iam==0)
 	if ( !iam ) {
+		fread(&size, sizeof(int_t), 1, fp); iA( size = nnz );
 		indbuf = (int_t*) calloc(maxnnzloc,sizeof(int_t));
 		for (int ip = 0; ip < grid->nprow * grid->npcol; ip++) {
 			nnz_loc_save = 0;
@@ -97,6 +107,7 @@ int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
 
 	// read and distribute nzvals
 	if ( !iam ) {
+		fread(&size, sizeof(int_t), 1, fp); iA( size = nnz );
 		valbuf = (double*) malloc(maxnnzloc*sizeof(double));
 		for (int ip = 0; ip < grid->nprow * grid->npcol; ip++) {
 			nnz_loc_save = 0;
@@ -119,19 +130,6 @@ int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
 		MPI_Recv(&nnz_loc_save, 1, mpi_int_t, 0, 0, grid->comm, &mpistatus);
 		MPI_Recv(nzval_loc, nnz_loc_save, MPI_DOUBLE, 0, 1, grid->comm, &mpistatus);
 	}
-	/*
-		 if (!iam) {
-		 printf("nnz_loc = %d\n", nnz_loc);
-		 printf("rowptr_loc:\n");
-		 for (i = 0; i < m_loc+1; i++)  printf("%d\n", rowptr_loc[i]);
-		 printf("colind_loc:\n");
-		 for (i = 0; i < nnz_loc; i++)  printf("%d\n", colind_loc[i]);
-		 printf("nzval_loc:\n");
-		 for (i = 0; i < nnz_loc; i++)  printf("%11.3e\n", nzval_loc[i]);
-		 }
-		 MPI_Finalize();
-		 exit(0);
-		 */
 
 	/* Set up the local A in NR_loc format */
 	fst_row = iam*m_loc_fst;

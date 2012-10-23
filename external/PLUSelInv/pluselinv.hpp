@@ -10,6 +10,7 @@
 #include "comobject.hpp"
 #include "vec2t.hpp"
 #include "vec3t.hpp"
+#include "numvec.hpp"
 #include "numtns.hpp"
 #include "serialize.hpp"
 
@@ -199,6 +200,18 @@ public:
 
 int SuperLU2SelInv(int n, LUstruct_t *LUstruct, gridinfo_t *grid,
                    PMatrix& PMloc);
+
+// Convert a CSC Matrix to PMatrix structure in order to perform trace
+// operations. 
+//void CSCMatrixToPMatrix();
+
+// Convert PMatrix structure to a CSC matrix in order to perform trace
+// operations. 
+void PMatrixToCSCMatrix(int n, gridinfo_t *grid, PMatrix& PMloc);
+
+
+
+
 
 int DiagTri(PMatrix& PMloc, int ksup, gridinfo_t *grid);
 int ScaleLinv(PMatrix& PMloc, int ksup, gridinfo_t *grid);

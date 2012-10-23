@@ -2684,3 +2684,20 @@ int PMatrix::DumpDiagVec(NumVec<Scalar>& globalDiagVec,
 	MPI_Barrier(comm);
 	return 0;
 }
+
+// *********************************************************************
+// Convert PMatrix structure to a CSC matrix in order to perform trace
+// operations. 
+// *********************************************************************
+void PMatrixToCSCMatrix(int n, gridinfo_t *grid, PMatrix& PMloc){
+	// Each processor constructs the data structure for saving the local
+	// CSC format 
+	
+	// Each processor goes through the the L and U structure in the
+	// PMatrix it owns 
+	//
+	//
+	
+	// All column processors
+
+}

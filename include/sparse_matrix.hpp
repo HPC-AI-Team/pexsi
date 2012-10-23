@@ -7,7 +7,7 @@
 namespace  PEXSI{
 
 // *********************************************************************
-// Sparse matrix in the compressed column storage (CCS)
+// Sparse matrix in the compressed sparse column format (CSC)
 // *********************************************************************
 
 template <class F> struct SparseMatrix{
