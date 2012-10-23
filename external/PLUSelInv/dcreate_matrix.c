@@ -100,6 +100,10 @@ int dcreate_matrix(SuperMatrix *A, int nrhs, double **rhs,
 		MPI_Bcast( colptr,  n+1, mpi_int_t,  0, grid->comm );
 	}
 
+	printf("colptr[0] = %d\n", colptr[0]);
+	printf("rowind[0] = %d\n", rowind[0]);
+	printf("rowind[1] = %d\n", rowind[1]);
+
 #if 0
 	nzval[0]=0.1;
 #endif

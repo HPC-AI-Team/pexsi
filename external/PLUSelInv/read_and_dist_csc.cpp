@@ -11,7 +11,6 @@ int read_and_dist_csc(SuperMatrix *A, int nrhs, double **rhs,
 		int *ldb, double **x, int *ldx,
 		FILE *fp, gridinfo_t *grid)
 {
-	SuperMatrix GA;              /* global A */
 	double   *nzval_loc;         /* local */
 	int_t    *colind_loc, *rowptr_loc, *rowptr;	 /* local */
 	int_t    m, n, nnz, tmp, ncols;
@@ -35,6 +34,7 @@ int read_and_dist_csc(SuperMatrix *A, int nrhs, double **rhs,
 		fread(&n, sizeof(int_t), 1, fp);
 		fread(&nnz, sizeof(int_t), 1, fp);
 	}
+
 
 	MPI_Bcast( &n, 1, mpi_int_t, 0, grid->comm );
 	m = n;

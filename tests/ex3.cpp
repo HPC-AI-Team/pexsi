@@ -6,13 +6,74 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "ex3" << std::endl;
+		<< "ex3 -r [nprow] -c [npcol]" << std::endl;
 // 	"-mu0 [mu0] -numel [numel] -deltaE [deltaE]" << std::endl
 //		<< "mu0:    Initial guess for chemical potential" << std::endl
 //		<< "numel:  Exact number of electrons (spin-restricted)" << std::endl
 //		<< "deltaE: guess for the width of the spectrum of H-mu S" << std::endl;
 }
 
+// FIXME: IntNumVec convention.  Assumes a symmetric matrix
+void SparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, SparseMatrix<Real>& A, gridinfo_t* grid){
+	PushCallStack( "SparseMatrixToSuperMatrixNRloc" );
+	int      m, n;
+	double   *nzval_loc;         /* local */
+	int_t    *colind_loc, *rowptr_loc;	 /* local */
+	int_t    m_loc, fst_row, nnz_loc;
+	int_t    m_loc_fst; /* Record m_loc of the first p-1 processors,
+												 when mod(m, p) is not zero. */ 
+	int_t    iam;
+	int_t    *m_loc_vec;
+
+	iam = grid->iam;
+	n = A.size;
+	m = n;
+
+	m_loc_vec = (int_t*)malloc(grid->nprow * grid->npcol*sizeof(int_t));
+	m_loc_fst = m / (grid->nprow * grid->npcol);
+	for (int i = 0; i < grid->nprow * grid->npcol; i++) {
+		if (i < grid->nprow * grid->npcol-1 ) {
+			m_loc_vec[i] = m_loc_fst;
+		}
+		else { 
+			m_loc_vec[i] = m - m_loc_fst*(grid->nprow * grid->npcol-1);
+		} 
+	}
+	m_loc = m_loc_vec[iam];
+	
+	
+	rowptr_loc = (int_t*)intMalloc_dist((m_loc+1)); 
+
+	/* construct local row pointer. ASSUMING symmetric matrix */
+	// Note that -1 cancels
+	for (int i = 0; i < m_loc+1; i++)
+		rowptr_loc[i] = A.colptr[iam*m_loc_fst+i] - A.colptr[iam*m_loc_fst]; 
+
+
+	/* calculate nnz_loc on each processor */
+	nnz_loc = rowptr_loc[m_loc]-rowptr_loc[0];
+	colind_loc = (int_t*)intMalloc_dist(nnz_loc); 
+	nzval_loc  = (double*)doubleMalloc_dist(nnz_loc);
+
+	cout << "nnz_loc = " << nnz_loc << endl;
+
+	// -1 is VERY IMPORTANT
+	int disp = A.colptr[iam*m_loc_fst] - 1;
+	for(int i = 0; i < nnz_loc; i++){
+		colind_loc[i] = A.rowind[disp+i] - 1 ;
+		nzval_loc[i]  = A.nzval[disp+i];
+	}
+
+
+	fst_row = iam*m_loc_fst;
+	dCreate_CompRowLoc_Matrix_dist(ANRloc, m, n, nnz_loc, m_loc, fst_row,
+			nzval_loc, colind_loc, rowptr_loc,
+			SLU_NR_loc, SLU_D, SLU_GE);
+
+	free(m_loc_vec);
+	PopCallStack();
+	return;
+}
 
 int read_and_dist_csc(SuperMatrix *A, int nrhs, double **rhs,
 		int *ldb, double **x, int *ldx,
@@ -27,11 +88,11 @@ int main(int argc, char **argv)
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
 
-//	if( argc != 7 ) {
-//		Usage();
-//		MPI_Finalize();
-//		return 0;
-//	}
+	if( argc != 5 ) {
+		Usage();
+		MPI_Finalize();
+		return 0;
+	}
 			
 	try{
 		stringstream  ss;
@@ -86,78 +147,145 @@ int main(int argc, char **argv)
 //      throw std::logic_error("deltaE must be provided.");
 //		}
 
-
 		// *********************************************************************
 		// Read input matrix
 		// *********************************************************************
 
+		superlu_options_t superlu_options;
+		SuperLUStat_t stat;
+		SuperMatrix A;
+		ScalePermstruct_t ScalePermstruct;
+		LUstruct_t LUstruct;
+		SOLVEstruct_t SOLVEstruct;
+		gridinfo_t grid;
+		double   *berr;
+		double   *b, *xtrue;
+		int_t    m, n;
+		int_t    nprow, npcol;
+		int      iam, info, ldb, ldx, nrhs;
+		char     **cpp, c;
+		FILE *fp;
+		extern int cpp_defs();
+
+		if( options.find("-r") != options.end() ){ 
+			nprow = std::atoi(options["-r"].c_str());
+		}
+		else{
+      throw std::logic_error("nprow must be provided.");
+		}
+
+		if( options.find("-c") != options.end() ){ 
+			npcol = std::atoi(options["-c"].c_str());
+		}
+		else{
+      throw std::logic_error("npcol must be provided.");
+		}
+		
 		// Test code
 		if(1){
 			Real timeSta, timeEnd;
 			GetTime( timeSta );
+			nrhs = 0;
+			superlu_gridinit(MPI_COMM_WORLD, nprow, npcol, &grid);
+			if( !(fp = fopen("H_LU.csc", "r")) ){
+				throw std::logic_error( "H file not exist." );
+			}
 			ReadSparseMatrix( "H_LU.csc", pexsiData.HMat );
+			ReadSparseMatrix( "S_LU.csc", pexsiData.SMat );
 			GetTime( timeEnd );
-			cout << pexsiData.HMat.size << endl;
-			cout << pexsiData.HMat.nnz  << endl;
-			cout << pexsiData.HMat.colptr.m() << endl;
-			cout << "Time for reading H is " << timeEnd - timeSta << endl;
+			cout << "Time for reading H and S is " << timeEnd - timeSta << endl;
 		}
+
+		// Generate the distributed SuperMatrix
+		if(1){
+			// TODO COMPLEX
+			
+			Real timeSta, timeEnd;
+			GetTime( timeSta );
+
+			SparseMatrix<Real>  AMat;
+			AMat.size   = pexsiData.HMat.size;
+			AMat.nnz    = pexsiData.HMat.nnz;
+			AMat.colptr = PEXSI::IntNumVec( pexsiData.HMat.colptr.m(), false, pexsiData.HMat.colptr.Data() );
+			AMat.rowind = PEXSI::IntNumVec( pexsiData.HMat.rowind.m(), false, pexsiData.HMat.rowind.Data() );
+			AMat.nzval.Resize( pexsiData.HMat.nnz );
+//			cerr << pexsiData.HMat.nzval << endl;
+//			cerr << pexsiData.SMat.nzval << endl;
+
+			for(Int i = 0; i < pexsiData.HMat.nnz; i++){
+				// TODO
+				AMat.nzval(i) = pexsiData.HMat.nzval(i) -  pexsiData.SMat.nzval(i);
+			}
+
+			SparseMatrixToSuperMatrixNRloc(&A, AMat, &grid);
+			GetTime( timeEnd );
+			cout << "Time for converting the matrix A is " << timeEnd - timeSta << endl;
+		}
+
  
+		// Factorization without solve
+		if(1){
+			set_default_options_dist(&superlu_options);
 
-//		if(0)
-//		{
-//			ReadSparseMatrix( "H.ccs", pexsiData.HMat );
-//			ReadSparseMatrix( "S.ccs", pexsiData.SMat );
-//
-//			// Make sure that the sparsity of H and S matches.
-//			if( pexsiData.HMat.size != pexsiData.SMat.size ||
-//					pexsiData.HMat.nnz  != pexsiData.SMat.nnz ){
-//					std::ostringstream msg;
-//					msg 
-//						<< "The dimensions colptr for H and S do not match" << std::endl
-//						<< "H.colptr.size = " << pexsiData.HMat.size << std::endl
-//						<< "H.colptr.nnz  = " << pexsiData.HMat.nnz  << std::endl
-//						<< "S.colptr.size = " << pexsiData.SMat.size << std::endl
-//						<< "S.colptr.nnz  = " << pexsiData.SMat.nnz  << std::endl;
-//				throw std::logic_error( msg.str().c_str() );
-//			}
-//
-//      for( int j = 0; j < pexsiData.HMat.colptr.m(); j++ ){
-//				if( pexsiData.HMat.colptr(j) != pexsiData.SMat.colptr(j) ){
-//					std::ostringstream msg;
-//					msg 
-//						<< "Colptr of H and S do not match:" << std::endl
-//						<< "H.colptr(" << j << ") = " << pexsiData.HMat.colptr(j) << std::endl
-//						<< "S.colptr(" << j << ") = " << pexsiData.SMat.colptr(j) << std::endl;
-//					throw std::logic_error( msg.str().c_str() );	
-//				}
-//			}
-//		}
+			superlu_options.Fact = DOFACT;
+			superlu_options.RowPerm = NOROWPERM;
+			superlu_options.IterRefine = NOREFINE;
+			superlu_options.ParSymbFact       = NO;
+			superlu_options.Equil = NO; 
+			superlu_options.ReplaceTinyPivot = NO;
+			superlu_options.ColPerm = MMD_AT_PLUS_A;
+//			superlu_options.ColPerm = NATURAL;
+			superlu_options.PrintStat         = YES;
+			superlu_options.SolveInitialized  = NO;
+
+			m = A.nrow;
+			n = A.ncol;
 
 
-//		Print(statusOFS, "mu0                    = ", pexsiData.mu0);
-//		Print(statusOFS, "numElectronExact       = ", pexsiData.numElectronExact);
-//		Print(statusOFS, "deltaE                 = ", pexsiData.deltaE);
-//		Print(statusOFS, "gap                    = ", pexsiData.gap);
-//		Print(statusOFS, "temperature            = ", pexsiData.temperature);
-//		Print(statusOFS, "numPole                = ", pexsiData.numPole);
-//		Print(statusOFS, "numElectronTolerance   = ", pexsiData.numElectronTolerance);
-//		Print(statusOFS, "poleTolerance          = ", pexsiData.poleTolerance);
-//		Print(statusOFS, "muMaxIter              = ", pexsiData.muMaxIter);
-//		Print(statusOFS, "permOrder              = ", pexsiData.permOrder);
+			/* Initialize ScalePermstruct and LUstruct. */
+			ScalePermstructInit(m, n, &ScalePermstruct);
+			LUstructInit(m, n, &LUstruct);
 
+			/* Initialize the statistics variables. */
+			PStatInit(&stat);
 
+			/* Call the linear equation solver. */
+			//#ifdef _USE_COMPLEX_
+			//		pzgssvx(&superlu_options, &A, &ScalePermstruct, (doublecomplex*)b, 
+			//				ldb, nrhs, &grid,
+			//				&LUstruct, &SOLVEstruct, berr, &stat, &info);
+			//#else
+			ldb = n;
+			ldx = n;
+			nrhs = 0;
+
+			Real timeFactorSta, timeFactorEnd;
+			GetTime( timeFactorSta );
+			pdgssvx(&superlu_options, &A, &ScalePermstruct, b, ldb, nrhs, &grid,
+					&LUstruct, &SOLVEstruct, berr, &stat, &info);
+			GetTime( timeFactorEnd );
+
+			cout << "Time for factorization is " << timeFactorEnd - timeFactorSta << endl;
+			//#endif
+
+			//		PStatPrint(&superlu_options, &stat, &grid);        /* Print the statistics. */
+		
+//			SUPERLU_FREE(b);
+//			SUPERLU_FREE(xtrue);
+//			SUPERLU_FREE(berr);
+		}
 
 
 
 		// *********************************************************************
-		// Solve
+		// Deallocate the storage
 		// *********************************************************************
-//		pexsiData.Setup( );
-//		Print( statusOFS, "PEXSI setup finished." );
-//
-//		pexsiData.Solve( );
-//		Print( statusOFS, "PEXSI solve finished." );
+		PStatFree(&stat);
+		Destroy_CompRowLoc_Matrix_dist(&A);
+		ScalePermstructFree(&ScalePermstruct);
+		Destroy_LU(n, &grid, &LUstruct);
+		LUstructFree(&LUstruct);
+		superlu_gridexit(&grid);
 
 		statusOFS.close();
 	}
