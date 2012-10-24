@@ -29,7 +29,11 @@ void SparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, SparseMatrix<Real>& A, 
 	n = A.size;
 	m = n;
 
+	cout << "OK1" << endl;
+	cout << grid->nprow << "," << grid->npcol << "," << sizeof(int_t) << endl;
+
 	m_loc_vec = (int_t*)malloc(grid->nprow * grid->npcol*sizeof(int_t));
+	cout << "OK2" << endl;
 	m_loc_fst = m / (grid->nprow * grid->npcol);
 	for (int i = 0; i < grid->nprow * grid->npcol; i++) {
 		if (i < grid->nprow * grid->npcol-1 ) {
@@ -187,6 +191,8 @@ int main(int argc, char **argv)
 			GetTime( timeSta );
 			nrhs = 0;
 			superlu_gridinit(MPI_COMM_WORLD, nprow, npcol, &grid);
+			cout << nprow << "," << npcol << endl;
+			cout << grid.nprow << "," << grid.npcol << endl;
 			if( !(fp = fopen("H_LU.csc", "r")) ){
 				throw std::logic_error( "H file not exist." );
 			}

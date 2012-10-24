@@ -1,4 +1,4 @@
-#include	"PEXSI.hpp"
+#include	"pexsi.hpp"
 
 namespace PEXSI{
 

@@ -1,6 +1,7 @@
 #/usr/bin/bash
 
 PEXSI_DIR     = /global/homes/l/linlin/project/pexsi
+# DSUPERLU_DIR  = /usr/common/acts/SuperLU/SuperLU_DIST/2.5
 DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_3.1
 PLUSELINV_DIR = ${PEXSI_DIR}/external/PLUSelInv
 
@@ -15,7 +16,8 @@ INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} ${PLUSELINV_INCLUDE}
 METIS_LIB        = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libmetis.a 
 PARMETISLIB	     = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libparmetis.a 
 SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
-DSUPERLU_LIB     = $(DSUPERLU_DIR)/lib/libsuperlu_dist_3.1.a
+# DSUPERLU_LIB     = $(DSUPERLU_DIR)/craypgi-xe6_O/lib/libsuperlu_dist_2.5.a
+DSUPERLU_LIB     = $(DSUPERLU_DIR)/build/lib/libsuperlu_dist_3.1.a
 PLUSELINV_LIB    = ${PLUSELINV_DIR}/libpluselinv.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi.a
 
