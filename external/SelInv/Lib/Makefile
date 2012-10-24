@@ -1,6 +1,17 @@
 include ../Makefile.in
 include ../${MAKEINCFILE}
 
+# Compilation replacement rules
+
+%.o: %.c
+	${CC} -c ${CFLAGS} ${CCDEFS} $< 
+%.o: %.cpp
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
+%.o: %.f
+	${FC} -c ${FFLAGS} $<
+%.o: %.F
+	${FC} -c ${FFLAGS} $<
+
 # LLIN: Add -D__DEBUG for verbose information
 
 OBJS =assmb.o \

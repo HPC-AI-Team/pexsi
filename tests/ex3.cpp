@@ -165,8 +165,8 @@ int main(int argc, char **argv)
 		LUstruct_t LUstruct;
 		SOLVEstruct_t SOLVEstruct;
 		gridinfo_t grid;
-//		double   *berr;
-//		double   *b, *xtrue;
+		double   *berr;
+		double   *b;
 		int_t    m, n;
 		int_t    nprow, npcol;
 		int      iam, info, ldb, ldx, nrhs;

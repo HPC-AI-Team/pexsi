@@ -4,7 +4,8 @@
 
 // Avoid conflict with doublecomplex defined elsewhere (such as in
 // SuperLU)
-#ifndef _DOUBLECOMPLEX_
+// FIXME: Change this to CPP format and avoid this conflict
+#ifndef _HAS_DOUBLECOMPLEX_
 typedef struct { double r, i; } doublecomplex;
 #endif
 

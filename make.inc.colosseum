@@ -1,8 +1,7 @@
 #/usr/bin/bash
 
 PEXSI_DIR     = /Users/linlin/Projects/pexsi
-DSUPERLU_DIR  = /usr/common/acts/SuperLU/SuperLU_DIST/2.5
-#DSUPERLU_DIR  = $(HOME)/Documents/Software/SuperLU_DIST_3.1
+DSUPERLU_DIR  = $(HOME)/Documents/Software/SuperLU_DIST_3.1
 PLUSELINV_DIR = ${PEXSI_DIR}/external/PLUSelInv
 
 # inclues
@@ -55,16 +54,6 @@ ifeq ($(MODE), debug)
 endif
 
 
-# Compilation replacement rules
-
-%.o: %.c
-	${CC} -c ${CFLAGS} ${CCDEFS} $< 
-%.o: %.cpp
-	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
-%.o: %.f
-	${FC} -c ${FFLAGS} $<
-%.o: %.F
-	${FC} -c ${FFLAGS} $<
 
 # Generate auto-dependencies (for cpp files now)
 %.d: %.cpp

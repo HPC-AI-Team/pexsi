@@ -3,9 +3,7 @@
 
 include ../make.inc.${HOSTID}
 
-SRCS = ex1.cpp ex2.cpp ex3.cpp ex4.cpp ex5.cpp ex6.cpp ex7.cpp ex8.cpp\
-			 ex9.cpp ex10.cpp ex11.cpp ex12.cpp ex13.cpp ex14.cpp ex15.cpp\
-			 ex16.cpp
+SRCS = ex1.cpp ex2.cpp ex3.cpp 
 
 OBJS = ${SRCS:.cpp=.o}
 DEPS = ${SRCS:.cpp=.d}
@@ -23,8 +21,12 @@ EXES = ${SRCS:.cpp=}
 	${FC} -c ${FFLAGS} $<
 
 
+
 ex4: ex4.o ${PEXSI_LIB} ${PLUSELINV_LIB}
 	($(LOADER) -o $@ ex4.o $(LOADOPTS) )
+
+ex4.o: ex4.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} -D_HAS_DOUBLECOMPLEX_ $< 
 
 ex3: ex3.o ${PEXSI_LIB} ${PLUSELINV_LIB}
 	($(LOADER) -o $@ ex3.o $(LOADOPTS) )

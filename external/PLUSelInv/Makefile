@@ -6,6 +6,18 @@ SRCS_CPP = runselinv.cpp pluselinv.cpp read_and_dist_csc.cpp
 OBJS     = ${SRCS_C:.c=.o} ${SRCS_CPP:.cpp=.o} 
 DEPS     = ${SRCS_C:.c=.d} ${SRCS_CPP:.cpp=.d} 
 
+# Compilation replacement rules
+# NOTE: Focus on complex matrices
+
+%.o: %.c
+	${CC} -c ${CFLAGS} ${CCDEFS} -D_USE_COMPLEX_ $< 
+%.o: %.cpp
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} -D_USE_COMPLEX_ $< 
+%.o: %.f
+	${FC} -c ${FFLAGS} $<
+%.o: %.F
+	${FC} -c ${FFLAGS} $<
+
 
 all: libpluselinv.a
 
