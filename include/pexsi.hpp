@@ -5,7 +5,7 @@
 #include  "numvec_impl.hpp"
 #include  "utility.hpp"
 #include  "getpolef.h"
-#include  "selinv_interf.h"
+#include  "selinv_interf.hpp"
 
 // *********************************************************************
 // Main class for performing the pole expansion and selected inversion

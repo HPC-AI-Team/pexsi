@@ -2,6 +2,8 @@
 #define SELINV_INTERF_H
 #include "getpolef.h"
 
+namespace PEXSI{
+
 extern "C"
 {
   int readmatrixheader_(char *, int *, int *);
@@ -93,6 +95,8 @@ namespace SelInvInterface
 			doublecomplex *inva, int *dumpL);
 
   void ldlt_free__(int *token);
+
+}
 
 }
 

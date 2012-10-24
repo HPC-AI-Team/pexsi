@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "selinv_interf.h"
 #include "getpolef.h"
+#include "selinv_interf.hpp"
 
+namespace PEXSI{
 
 // -------------------------
 //   Global Data structure
@@ -712,3 +713,4 @@ void SelInvInterface::ldlt_free__(int *token)
 	mat[*token].newrhs=NULL;
 }
 
+}
