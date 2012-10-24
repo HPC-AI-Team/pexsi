@@ -53,16 +53,6 @@ ifeq ($(MODE), debug)
 endif
 
 
-# Compilation replacement rules
-
-%.o: %.c
-	${CC} -c ${CFLAGS} ${CCDEFS} $< 
-%.o: %.cpp
-	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
-%.o: %.f
-	${FC} -c ${FFLAGS} $<
-%.o: %.F
-	${FC} -c ${FFLAGS} $<
 
 # Generate auto-dependencies (for cpp files now)
 %.d: %.cpp

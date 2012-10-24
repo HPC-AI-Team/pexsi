@@ -2,7 +2,11 @@
 #define __GETPOLE
 
 
+// Avoid conflict with doublecomplex defined elsewhere (such as in
+// SuperLU)
+#ifndef _DOUBLECOMPLEX_
 typedef struct { double r, i; } doublecomplex;
+#endif
 
 #ifdef __cplusplus
 extern "C"{

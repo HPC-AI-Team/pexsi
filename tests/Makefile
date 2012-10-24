@@ -11,6 +11,21 @@ OBJS = ${SRCS:.cpp=.o}
 DEPS = ${SRCS:.cpp=.d}
 EXES = ${SRCS:.cpp=}	
 
+# Compilation replacement rules
+
+%.o: %.c
+	${CC} -c ${CFLAGS} ${CCDEFS} $< 
+%.o: %.cpp
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
+%.o: %.f
+	${FC} -c ${FFLAGS} $<
+%.o: %.F
+	${FC} -c ${FFLAGS} $<
+
+
+ex4: ex4.o ${PEXSI_LIB} ${PLUSELINV_LIB}
+	($(LOADER) -o $@ ex4.o $(LOADOPTS) )
+
 ex3: ex3.o ${PEXSI_LIB} ${PLUSELINV_LIB}
 	($(LOADER) -o $@ ex3.o $(LOADOPTS) )
 

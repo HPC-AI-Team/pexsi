@@ -1,6 +1,6 @@
 #include "pexsi.hpp"
 //#include "pluselinv.hpp"
-#include "superlu_ddefs.h"
+#include "superlu_zdefs.h"
 #include "Cnames.h"
 
 using namespace PEXSI;
@@ -8,19 +8,15 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "Test for factorization using SuperLU for real arithmetic" << std::endl
-		<< "ex3 -r [nprow] -c [npcol]" << std::endl;
-// 	"-mu0 [mu0] -numel [numel] -deltaE [deltaE]" << std::endl
-//		<< "mu0:    Initial guess for chemical potential" << std::endl
-//		<< "numel:  Exact number of electrons (spin-restricted)" << std::endl
-//		<< "deltaE: guess for the width of the spectrum of H-mu S" << std::endl;
+		<< "Test for factorization using SuperLU for complex arithmetic" << std::endl
+		<< "ex4 -r [nprow] -c [npcol]" << std::endl;
 }
 
 // FIXME: IntNumVec convention.  Assumes a symmetric matrix
-void SparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, SparseMatrix<Real>& A, gridinfo_t* grid){
+void SparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, SparseMatrix<Complex>& A, gridinfo_t* grid){
 	PushCallStack( "SparseMatrixToSuperMatrixNRloc" );
 	int      m, n;
-	double   *nzval_loc;         /* local */
+	doublecomplex  *nzval_loc;         /* local */
 	int_t    *colind_loc, *rowptr_loc;	 /* local */
 	int_t    m_loc, fst_row, nnz_loc;
 	int_t    m_loc_fst; /* Record m_loc of the first p-1 processors,
@@ -60,7 +56,7 @@ void SparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, SparseMatrix<Real>& A, 
 	/* calculate nnz_loc on each processor */
 	nnz_loc = rowptr_loc[m_loc]-rowptr_loc[0];
 	colind_loc = (int_t*)intMalloc_dist(nnz_loc); 
-	nzval_loc  = (double*)doubleMalloc_dist(nnz_loc);
+	nzval_loc  = (doublecomplex*)doublecomplexMalloc_dist(nnz_loc);
 
 	cout << "nnz_loc = " << nnz_loc << endl;
 
@@ -68,23 +64,20 @@ void SparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, SparseMatrix<Real>& A, 
 	int disp = A.colptr[iam*m_loc_fst] - 1;
 	for(int i = 0; i < nnz_loc; i++){
 		colind_loc[i] = A.rowind[disp+i] - 1 ;
-		nzval_loc[i]  = A.nzval[disp+i];
+		nzval_loc[i].r  = A.nzval[disp+i].real();
+		nzval_loc[i].i  = A.nzval[disp+i].imag();
 	}
 
 
 	fst_row = iam*m_loc_fst;
-	dCreate_CompRowLoc_Matrix_dist(ANRloc, m, n, nnz_loc, m_loc, fst_row,
+	zCreate_CompRowLoc_Matrix_dist(ANRloc, m, n, nnz_loc, m_loc, fst_row,
 			nzval_loc, colind_loc, rowptr_loc,
-			SLU_NR_loc, SLU_D, SLU_GE);
+			SLU_NR_loc, SLU_Z, SLU_GE);
 
 	free(m_loc_vec);
 	PopCallStack();
 	return;
 }
-
-int read_and_dist_csc(SuperMatrix *A, int nrhs, double **rhs,
-		int *ldb, double **x, int *ldx,
-		FILE *fp, gridinfo_t *grid);
 
 
 int main(int argc, char **argv) 
@@ -165,11 +158,11 @@ int main(int argc, char **argv)
 		LUstruct_t LUstruct;
 		SOLVEstruct_t SOLVEstruct;
 		gridinfo_t grid;
-//		double   *berr;
-//		double   *b, *xtrue;
 		int_t    m, n;
 		int_t    nprow, npcol;
 		int      iam, info, ldb, ldx, nrhs;
+		doublecomplex *b = NULL;
+		double *berr = NULL;
 //		char     **cpp, c;
 		FILE *fp;
 //		extern int cpp_defs();
@@ -207,23 +200,18 @@ int main(int argc, char **argv)
 
 		// Generate the distributed SuperMatrix
 		if(1){
-			// TODO COMPLEX
-			
 			Real timeSta, timeEnd;
 			GetTime( timeSta );
 
-			SparseMatrix<Real>  AMat;
+			SparseMatrix<Complex>  AMat;
 			AMat.size   = pexsiData.HMat.size;
 			AMat.nnz    = pexsiData.HMat.nnz;
 			AMat.colptr = PEXSI::IntNumVec( pexsiData.HMat.colptr.m(), false, pexsiData.HMat.colptr.Data() );
 			AMat.rowind = PEXSI::IntNumVec( pexsiData.HMat.rowind.m(), false, pexsiData.HMat.rowind.Data() );
 			AMat.nzval.Resize( pexsiData.HMat.nnz );
-//			cerr << pexsiData.HMat.nzval << endl;
-//			cerr << pexsiData.SMat.nzval << endl;
   
 			for(Int i = 0; i < pexsiData.HMat.nnz; i++){
-				// TODO
-				AMat.nzval(i) = pexsiData.HMat.nzval(i) -  pexsiData.SMat.nzval(i);
+				AMat.nzval(i) = pexsiData.HMat.nzval(i) - Complex(0.0,1.0)*pexsiData.SMat.nzval(i);
 			}
 
 			SparseMatrixToSuperMatrixNRloc(&A, AMat, &grid);
@@ -270,19 +258,13 @@ int main(int argc, char **argv)
 			/* Initialize the statistics variables. */
 			PStatInit(&stat);
 
-			/* Call the linear equation solver. */
-			//#ifdef _USE_COMPLEX_
-			//		pzgssvx(&superlu_options, &A, &ScalePermstruct, (doublecomplex*)b, 
-			//				ldb, nrhs, &grid,
-			//				&LUstruct, &SOLVEstruct, berr, &stat, &info);
-			//#else
 			ldb = n;
 			ldx = n;
 			nrhs = 0;
 
 			Real timeFactorSta, timeFactorEnd;
 			GetTime( timeFactorSta );
-			pdgssvx(&superlu_options, &A, &ScalePermstruct, b, ldb, nrhs, &grid,
+			pzgssvx(&superlu_options, &A, &ScalePermstruct, b, ldb, nrhs, &grid,
 					&LUstruct, &SOLVEstruct, berr, &stat, &info);
 			GetTime( timeFactorEnd );
 
