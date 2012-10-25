@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "getpolef.h"
 #include "selinv_interf.hpp"
 
 namespace PEXSI{

@@ -43,4 +43,4 @@ ${PEXSI_LIB}:
 	(cd ${PEXSI_DIR}/src; make all)
 
 cleanall:
-	rm -f ${EXES} ${OBJS} ${DEPS} *.d.o
+	rm -f ${EXES} ${OBJS} ${DEPS} *.d.o *.o

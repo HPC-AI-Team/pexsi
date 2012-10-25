@@ -1,6 +1,6 @@
 include ../make.inc.${HOSTID}
 
-SRCS = pexsi.cpp getpolef.cpp selinv_interf.cpp \
+SRCS = pexsi.cpp pole.cpp selinv_interf.cpp \
 			 lapack.cpp blas.cpp utility.cpp global.cpp
 #SRCS =   pexsi.cpp 
 

@@ -99,9 +99,8 @@ void PEXSIData::Solve( )
 		std::vector<Complex> zshiftRaw( numPole );
 		std::vector<Complex> zweightRhoRaw( numPole );
 
-		getpole_rho(reinterpret_cast<doublecomplex*>(&zshiftRaw[0]),
-				reinterpret_cast<doublecomplex*>(&zweightRhoRaw[0]),
-				&numPole, &temperature, &gap, &deltaE, &muNow); 
+		GetPoleDensity(&zshiftRaw[0], &zweightRhoRaw[0],
+				numPole, temperature, gap, deltaE, muNow); 
 
 		// Sort and truncate the poles according to the weights
 		{

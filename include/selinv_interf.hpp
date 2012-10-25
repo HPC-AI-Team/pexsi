@@ -1,11 +1,16 @@
 #ifndef SELINV_INTERF_H
 #define SELINV_INTERF_H
-#include "getpolef.h"
 
 namespace PEXSI{
 
+// Make sure that this does not conflict with other things.
+#ifndef _HAS_DOUBLE_COMPLEX_
+typedef struct { double r, i; } doublecomplex;
+#endif
+
 extern "C"
 {
+
   int readmatrixheader_(char *, int *, int *);
  
   int readcmatrix_(char *, int *, int *, doublecomplex *);

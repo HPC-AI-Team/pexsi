@@ -4,7 +4,7 @@
 #include  "sparse_matrix.hpp"
 #include  "numvec_impl.hpp"
 #include  "utility.hpp"
-#include  "getpolef.h"
+#include  "pole.hpp"
 #include  "selinv_interf.hpp"
 
 // *********************************************************************

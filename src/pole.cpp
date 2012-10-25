@@ -1,61 +1,56 @@
-#include <math.h>
-#include <stdio.h>
-#include <complex.h>
-#include "getpolef.h"
+#include "pole.hpp"
 
-double complex fd(double complex z, double beta, double mu);
-double complex egy(double complex z, double beta, double mu);
-double complex hmz(double complex z, double beta, double mu);
-void ellipkkp(double* K, double* Kp, double *pL);
-void ellipjc(double complex* psn, double complex* pcn,
-	     double complex* pdn, double complex* pu, 
-	     double *pL, int *flag) ;
-int getpolef(double complex (*func)(double complex, double, double),
-	      double complex* zshift, double complex* zweight, int* Npole,
-	      double* temp, double* gap, double* deltaE, double* mu);
+namespace PEXSI{
+
+using std::sqrt;
+using std::exp;
+using std::log;
+using std::sin;
+using std::cos;
+
 
 
 // Fermi-Dirac distribution fd(z) = 2/(1+exp(beta*z))
-double complex fd(double complex z, double beta, double mu){
-  double complex val, ez;
+Complex fd(Complex z, double beta, double mu){
+  Complex val, ez;
   /* LL: VERY IMPORTANT TO AVOID OVERFLOW/UNDERFLOW! */
-  if( creal(z) >= 0 ){
-    ez = cexp(-beta*z);
+  if( z.real() >= 0 ){
+    ez = exp(-beta*z);
     val = 2.0 * ez / (1.0 + ez);
   }
   else{
-    ez = cexp(beta* z);
+    ez = exp(beta* z);
     val = 2.0 / (1.0 + ez);
   }
   return val;
 }
 
 // Energy function egy(z) = (z+mu) * fd(z) 
-double complex egy(double complex z, double beta, double mu){
-  double complex val, ez;
+Complex egy(Complex z, double beta, double mu){
+  Complex val, ez;
   /* LL: VERY IMPORTANT TO AVOID OVERFLOW/UNDERFLOW! */
-  if( creal(z) >= 0 ){
-    ez = cexp(-beta*z);
+  if( z.real() >= 0 ){
+    ez = exp(-beta*z);
     val = (z + mu) * 2.0 * ez / (1.0 + ez);
   }
   else{
-    ez = cexp(beta* z);
+    ez = exp(beta* z);
     val = (z + mu) * 2.0 / (1.0 + ez);
   }
   return val;
 }
 
 // Helmholtz free energy function hmz(z) = -2/beta*log(1+exp(-beta*z))
-double complex hmz(double complex z, double beta, double mu){
-  double complex val, ez;
+Complex hmz(Complex z, double beta, double mu){
+  Complex val, ez;
   /* LL: VERY IMPORTANT TO AVOID OVERFLOW/UNDERFLOW! */
-  if( creal(z) >= 0 ){
-    ez = cexp(-beta*z);
-    val = -2.0/beta*clog(1.0+ez);
+  if( z.real() >= 0 ){
+    ez = exp(-beta*z);
+    val = -2.0/beta*log(1.0+ez);
   }
   else{
-    ez = cexp(beta* z);
-    val = 2.0*z - 2.0/beta*clog(1+ez);
+    ez = exp(beta* z);
+    val = 2.0*z - 2.0/beta*log(1.0+ez);
   }
   return val;
 }
@@ -89,10 +84,10 @@ double complex hmz(double complex z, double beta, double mu){
 
    Originally written by Toby Driscoll in 1999.
 
-   Rewritten in C by 
+   Rewritten in C++ by 
    Lin Lin
    Computer Research Division, Lawrence Berkeley National Lab
-   Last modified:  09-15-2011
+   Last modified:  10-24-2012
 *********************************************************************/
 void ellipkkp(double* K, double* Kp, double *pL){
   double pi, m, a0, b0, s0, a1, b1, c1, w1;
@@ -184,13 +179,13 @@ void ellipkkp(double* K, double* Kp, double *pL){
 
   Originally written by Toby Driscoll in 1999.
 
-  Rewritten in C by 
+  Rewritten in C++ by 
   Lin Lin
   Computer Research Division, Lawrence Berkeley National Lab
-  Last modified:  10-28-2011
+  Last modified:  10-24-2012
 *********************************************************************/
-void ellipjc(double complex* psn, double complex* pcn,
-	     double complex* pdn, double complex* pu, 
+void ellipjc(Complex* psn, Complex* pcn,
+	     Complex* pdn, Complex* pu, 
 	     double *pL, int *flag) {
 
   double K, Kp; 
@@ -203,10 +198,10 @@ void ellipjc(double complex* psn, double complex* pcn,
   int ione = 1;
  
   /* C complex numbers */
-  double complex sinu, cosu;
-  double complex u;
-  double complex snh, cnh, dnh, v;
-  double complex sn1, cn1, dn1, denom;
+  Complex sinu, cosu;
+  Complex u;
+  Complex snh, cnh, dnh, v;
+  Complex sn1, cn1, dn1, denom;
 
   u = (*pu);
 
@@ -214,7 +209,7 @@ void ellipjc(double complex* psn, double complex* pcn,
   high = 0;
   if( *flag == 0 ){
     ellipkkp(&K, &Kp, &L);
-    if( cimag(u) > Kp * 0.5 ){
+    if( u.imag() > Kp * 0.5 ){
       high = 1;
       u = Kp - u;
     }
@@ -227,8 +222,8 @@ void ellipjc(double complex* psn, double complex* pcn,
   
   /* Case 1 : m is already small */
   if( m < 4.0 * eps ){
-    sinu = csin(u);
-    cosu = ccos(u);
+    sinu = sin(u);
+    cosu = cos(u);
 
     *psn = sinu + m/4.0 * (sinu * cosu - u) * cosu;
 
@@ -263,8 +258,8 @@ void ellipjc(double complex* psn, double complex* pcn,
     dnh = (*pdn);
 
     (*psn)  = -1.0/ (sqrt(m) * snh);
-    (*pcn) = I * dnh / (sqrt(m)*snh);
-    (*pdn) = I * cnh / snh;
+    (*pcn) = Z_I * dnh / (sqrt(m)*snh);
+    (*pdn) = Z_I * cnh / snh;
   }
   return;
 }
@@ -311,17 +306,20 @@ void ellipjc(double complex* psn, double complex* pcn,
     L. Lin, J. Lu, L. Ying and W. E, Pole-based approximation of the
     Fermi-Dirac function, Chin. Ann. Math.  30B, 729, 2009 
 
- Author: 
- Lin Lin
- Computer Research Division, Lawrence Berkeley National Lab
- Last modified:  10-28-2011
+  Author: 
+  Lin Lin
+  Computer Research Division, Lawrence Berkeley National Lab
+  Last modified:  10-25-2012
 *********************************************************************/
-int getpolef(double complex (*func)(double complex, double, double),
-	      double complex* zshift, double complex* zweight, int* Npole,
+int GetPoleFunc(Complex (*func)(Complex, double, double),
+	      Complex* zshift, Complex* zweight, int* Npole,
 	      double* temp, double* gap, double* deltaE, double* mu){
+#ifndef _RELEASE_
+	PushCallStack("GetPoleFunc");
+#endif
   double K2au = 3.166815e-6, beta;
   double M, mshift, m2, M2, kr, L, K, Kp, coef;
-  double complex t, sn, cn, dn, z, dzdt, zsq, funczsq;
+  Complex t, sn, cn, dn, z, dzdt, zsq, funczsq;
   double pi = atan(1.0)*4.0;
   int i, j, Npolehalf, flag=0;
   beta = 1.0 / ((*temp) * K2au);
@@ -341,7 +339,7 @@ int getpolef(double complex (*func)(double complex, double, double),
   ellipkkp(&K, &Kp, &L);
 
   for( j = 0; j < Npolehalf; j++){
-    t   = (-K + (0.5 + j) / Npolehalf * 2.0 * K) + I * 0.5 * Kp;
+    t   = (-K + (0.5 + j) / Npolehalf * 2.0 * K) + Z_I * 0.5 * Kp;
     ellipjc(&sn, &cn, &dn, &t, &L, &flag);
    
     z    = sqrt(m2*M2) * (1.0/kr + sn) / (1.0/kr-sn) - mshift;
@@ -359,7 +357,7 @@ int getpolef(double complex (*func)(double complex, double, double),
     
     
     /* The first Npolehalf poles */
-    zsq     = csqrt(z);
+    zsq     = sqrt(z);
     
     funczsq = (*func)(zsq, beta, *mu);
     
@@ -367,7 +365,7 @@ int getpolef(double complex (*func)(double complex, double, double),
     zweight[j] = funczsq * dzdt / zsq * coef;
 
     /* The second Npolehalf poles */
-    zsq  = -csqrt(z);
+    zsq  = -sqrt(z);
     
     funczsq = (*func)(zsq, beta, *mu);
     
@@ -376,31 +374,36 @@ int getpolef(double complex (*func)(double complex, double, double),
 
   }
 
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
   return 0;
 }
 
 
-/* Wrapper function */
+// Wrapper function
 
-int getpole_rho(doublecomplex* zshift, doublecomplex* zweight, 
-	     int* Npole, double* temp, double* gap, double* deltaE,
-	     double* mu){
-  return getpolef(&fd, (double complex*)zshift, (double complex*) zweight,
-	   Npole, temp, gap, deltaE, mu);
+int GetPoleDensity(Complex* zshift, Complex* zweight, 
+	     int Npole, double temp, double gap, double deltaE,
+	     double mu){
+	return GetPoleFunc(&fd, zshift,  zweight,
+			&Npole, &temp, &gap, &deltaE, &mu);
 }
 
-int getpole_hmz(doublecomplex* zshift, doublecomplex* zweight, 
-	     int* Npole, double* temp, double* gap, double* deltaE,
-	     double* mu){
-  return getpolef(&hmz, (double complex*)zshift, (double complex*) zweight,
-	   Npole, temp, gap, deltaE, mu);
+int GetPoleHelmholtz(Complex* zshift, Complex* zweight, 
+	     int Npole, double temp, double gap, double deltaE,
+	     double mu){
+	return GetPoleFunc(&hmz, zshift,  zweight,
+			&Npole, &temp, &gap, &deltaE, &mu);
 }
 
-int getpole_egy(doublecomplex* zshift, doublecomplex* zweight, 
-	     int* Npole, double* temp, double* gap, double* deltaE,
-	     double* mu){
-  return getpolef(&egy, (double complex*)zshift, (double complex*) zweight,
-	   Npole, temp, gap, deltaE, mu);
+int GetPoleForce(Complex* zshift, Complex* zweight, 
+	     int Npole, double temp, double gap, double deltaE,
+	     double mu){
+	return GetPoleFunc(&egy, zshift,  zweight,
+			&Npole, &temp, &gap, &deltaE, &mu);
 }
 
+
+}
 
