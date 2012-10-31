@@ -67,9 +67,6 @@ public:
       m_ = m; n_ = n;
       if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
     }
-		else {
-			std::cerr << "NumMat<F>::Resize is doing nothing" << std::endl;
-		}
   }
   const F& operator()(Int i, Int j) const  { 
 		if( i < 0 || i >= m_ ||

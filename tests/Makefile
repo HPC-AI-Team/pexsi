@@ -21,6 +21,8 @@ EXES = ${SRCS:.cpp=}
 	${FC} -c ${FFLAGS} $<
 
 
+ex5: ex5.o ${PEXSI_LIB} ${PLUSELINV_LIB}
+	($(LOADER) -o $@ ex5.o $(LOADOPTS) )
 
 ex4: ex4.o ${PEXSI_LIB} ${PLUSELINV_LIB}
 	($(LOADER) -o $@ ex4.o $(LOADOPTS) )

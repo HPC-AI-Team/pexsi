@@ -68,9 +68,6 @@ public:
       m_ = m; n_ = n; p_=p;
       if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
     }
-		else {
-			std::cerr << "NumTns<F>::Resize is doing nothing" << std::endl;
-		}
   }
   const F& operator()(Int i, Int j, Int k) const  {
 		if( i < 0 || i >= m_ ||

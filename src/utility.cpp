@@ -25,7 +25,7 @@ Int SeparateRead(std::string name, std::istringstream& is)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);  //cerr<<filename<<endl;
   ifstream fin(filename);
 	if( !fin.good() ){
-		throw std::logic_error( "File cannot be open!" );
+		throw std::logic_error( "File cannot be openeded!" );
 	}
  
  	is.str( std::string(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>()) );
@@ -52,7 +52,7 @@ Int SeparateWrite(std::string name, std::ostringstream& os)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);
   ofstream fout(filename);
 	if( !fout.good() ){
-		throw std::logic_error( "File cannot be open!" );
+		throw std::logic_error( "File cannot be openeded!" );
 	}
   fout<<os.str();
   fout.close();
@@ -78,7 +78,7 @@ Int SharedRead(std::string name, std::istringstream& is)
   if(mpirank==0) {
     ifstream fin(name.c_str());
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be open!" );
+			throw std::logic_error( "File cannot be openeded!" );
 		}
     //std::string str(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>());
     //tmpstr.insert(tmpstr.end(), str.begin(), str.end());
@@ -115,7 +115,7 @@ Int SharedWrite(std::string name, std::ostringstream& os)
   if(mpirank==0) {
     ofstream fout(name.c_str());
 		if( !fout.good() ){
-			throw std::logic_error( "File cannot be open!" );
+			throw std::logic_error( "File cannot be openeded!" );
 		}
     fout<<os.str();
     fout.close();
@@ -142,7 +142,7 @@ Int SeparateWriteAscii(std::string name, std::ostringstream& os)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);
   ofstream fout(filename, ios::trunc);
 	if( !fout.good() ){
-		throw std::logic_error( "File cannot be open!" );
+		throw std::logic_error( "File cannot be opened!" );
 	}
   fout<<os;
   fout.close();
@@ -159,6 +159,7 @@ Int SeparateWriteAscii(std::string name, std::ostringstream& os)
 // Sparse Matrix
 // *********************************************************************
 
+//---------------------------------------------------------
 void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat )
 {
 #ifndef _RELEASE_
@@ -206,5 +207,75 @@ void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat )
 
 	return ;
 }		// -----  end of function ReadSparseMatrix  ----- 
+
+
+//---------------------------------------------------------
+void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("ReadDistSparseMatrix");
+#endif
+	// Get the processor information within the current communicator
+  MPI_Barrier( comm );
+  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+	std::ifstream fin;
+
+  // Read basic information
+	if( mpirank == 0 ){
+		fin.open(filename);
+		if( !fin.good() ){
+			throw std::logic_error( "File cannot be openeded!" );
+		}
+		fin.read((char*)&pspmat.size, sizeof(Int));
+		fin.read((char*)&pspmat.nnz,  sizeof(Int));
+	}
+	
+	MPI_Bcast(&pspmat.size, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&pspmat.nnz,  1, MPI_INT, 0, comm);
+
+	// Read colptr
+
+	IntNumVec  colptr(pspmat.size+1);
+	if( mpirank == 0 ){
+		Int tmp;
+		fin.read((char*)&tmp, sizeof(Int));  
+		if( tmp != pspmat.size+1 ){
+			throw std::logic_error( "colptr is not of the right size." );
+		}
+		fin.read((char*)colptr.Data(), sizeof(Int)*tmp);
+	}
+
+	MPI_Bcast(colptr.Data(), pspmat.size+1, MPI_INT, 0, comm);
+	std::cout << "Proc " << mpirank << " outputs colptr[end]" << colptr[pspmat.size] << endl;
+
+	// Compute the number of columns on each processor
+	IntNumVec numColLocalVec(mpisize);
+	Int numColLocal, numColFirst;
+	numColFirst = pspmat.size / mpisize;
+  SetValue( numColLocalVec, numColFirst );
+  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry	
+	numColLocal = numColLocalVec[mpirank];
+
+	pspmat.colptrLocal.Resize( numColLocal + 1 );
+	for( Int i = 0; i < numColLocal + 1; i++ ){
+		pspmat.colptrLocal[i] = colptr[mpirank * numColFirst+i] - colptr[mpirank * numColFirst];
+	}
+
+	pspmat.colptrLocal[-1] = 1;
+		
+
+	if( mpirank == 0 ){
+    fin.close();
+	}
+
+  MPI_Barrier( comm );
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function ReadDistSparseMatrix  ----- 
 
 }  // namespace PEXSI

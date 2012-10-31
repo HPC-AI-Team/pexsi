@@ -1295,8 +1295,10 @@ inline bool PairGtComparator( const std::pair<Real, Int>& l,
 // Sparse Matrix
 // *********************************************************************
 
+// TODO Complex format
 void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat );
 
+void ReadDistSparseMatrix( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
 
 } // namespace PEXSI
 #endif // _UTILITY_HPP_
