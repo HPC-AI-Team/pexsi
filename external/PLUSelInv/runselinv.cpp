@@ -6,7 +6,6 @@
 #endif
 #include "Cnames.h"
 
-/*chao add */
 #include "pluselinv.hpp"
 //int read_and_dist_rua(SuperMatrix *A, int nrhs, double **rhs,
 //		int *ldb, double **x, int *ldx,

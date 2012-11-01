@@ -1,7 +1,7 @@
 include Makefile.in
 include ${MAKEINCFILE}
 
-SRCS_C   = zcreate_matrix.c dcreate_matrix.c sp_ienv.c dreadhb.c dreadtriple.c
+SRCS_C   = pzsymbfact.c zcreate_matrix.c dcreate_matrix.c sp_ienv.c dreadhb.c dreadtriple.c
 SRCS_CPP = runselinv.cpp pluselinv.cpp read_and_dist_csc.cpp
 OBJS     = ${SRCS_C:.c=.o} ${SRCS_CPP:.cpp=.o} 
 DEPS     = ${SRCS_C:.c=.d} ${SRCS_CPP:.cpp=.d} 

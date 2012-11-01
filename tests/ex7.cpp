@@ -10,7 +10,7 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "Test for both the factorization using SuperLU for complex arithmetic with parallel input matrices, but with the permutation and the factorization phase separated." << std::endl
+		<< "Test for both the factorization using SuperLU for complex arithmetic with parallel input matrices and factorize twice using the previous information." << std::endl
 		<< "ex7 -r [nprow] -c [npcol]" << std::endl;
 }
 
