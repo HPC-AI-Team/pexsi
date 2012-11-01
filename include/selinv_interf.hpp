@@ -4,7 +4,7 @@
 namespace PEXSI{
 
 // Make sure that this does not conflict with other things.
-#ifndef _HAS_DOUBLE_COMPLEX_
+#ifndef _HAS_DOUBLECOMPLEX_
 typedef struct { double r, i; } doublecomplex;
 #endif
 
