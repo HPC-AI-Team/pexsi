@@ -158,12 +158,13 @@ int main(int argc, char **argv)
 			set_default_options_dist(&superlu_options);
 			superlu_options.Fact              = DOFACT;
 			superlu_options.RowPerm           = NOROWPERM;
+//			superlu_options.RowPerm           = LargeDiag;
 			superlu_options.IterRefine        = NOREFINE;
-			superlu_options.ParSymbFact       = YES;
+			superlu_options.ParSymbFact       = NO;
 //			superlu_options.ParSymbFact       = NO;
 			superlu_options.Equil             = NO; 
 			superlu_options.ReplaceTinyPivot  = NO;
-			superlu_options.ColPerm           = PARMETIS;
+			superlu_options.ColPerm           = METIS_AT_PLUS_A;
 //			superlu_options.ColPerm           = MMD_AT_PLUS_A;
 //			superlu_options.ColPerm = NATURAL;
 			superlu_options.PrintStat         = YES;
@@ -201,12 +202,14 @@ int main(int argc, char **argv)
 			// Free the variables
 			PStatFree(&stat);
 			Destroy_CompRowLoc_Matrix_dist(&A);
-			Destroy_LU(n, &grid, &LUstruct);
+			//			Destroy_LU should be here is Fact = SamePattern
+//			Destroy_LU(n, &grid, &LUstruct);
 
 			// Factorization again
-			superlu_options.Fact              = SamePattern;
-			superlu_options.ParSymbFact       = NO;
-			superlu_options.ColPerm           = MY_PERMC;
+//			superlu_options.Fact              = SamePattern;
+			superlu_options.Fact              = SamePattern_SameRowPerm;
+//			superlu_options.RowPerm           = MY_PERMR;
+
 
 			GetTime( timeSta );
 			DistSparseMatrixToSuperMatrixNRloc(&A, AMat, &grid);
@@ -218,15 +221,15 @@ int main(int argc, char **argv)
 			PStatInit(&stat);
 			pzgssvx(&superlu_options, &A, &ScalePermstruct, b, n, nrhs, &grid,
 					&LUstruct, &SOLVEstruct, berr, &stat, &info);
-			Destroy_CompRowLoc_Matrix_dist(&A);
-			Destroy_LU(n, &grid, &LUstruct);
 			GetTime( timeFactorEnd );
 
 			if( mpirank == 0 )
 				cout << "Time for factorization is " << timeFactorEnd - timeFactorSta << endl;
 			
-
 			PStatPrint(&superlu_options, &stat, &grid);        /* Print the statistics. */
+			PStatFree(&stat);
+			Destroy_CompRowLoc_Matrix_dist(&A);
+			Destroy_LU(n, &grid, &LUstruct);
 
 		}
 

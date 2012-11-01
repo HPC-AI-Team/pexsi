@@ -1,7 +1,7 @@
 //#include "pluselinv.hpp"
 #include "superlu_zdefs.h"
 #include "Cnames.h"
-#include "pexsi.hpp" 
+//#include "pexsi.hpp" 
 
 using namespace PEXSI;
 using namespace std;
