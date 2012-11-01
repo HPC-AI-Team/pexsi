@@ -22,9 +22,14 @@
 
 #include <cassert>
 #include <stdexcept>
+#include <execinfo.h>
+//#include <signal.h>
+#include <exception>
 
 // MPI
 #include "mpi.h"
+
+
 
 /***********************************************************************
  *  Data types and constants
@@ -101,6 +106,26 @@ struct NullStream : std::ostream
 		: std::ios(&nullStreamBuffer_), std::ostream(&nullStreamBuffer_)
 		{ }
 };  
+
+/////////////////////////////////////////////
+
+class ExceptionTracer
+{
+public:
+	ExceptionTracer()
+	{
+		void * array[25];
+		int nSize = backtrace(array, 25);
+		char ** symbols = backtrace_symbols(array, nSize);
+
+		for (int i = 0; i < nSize; i++)
+		{
+			std::cout << symbols[i] << std::endl;
+		}
+
+		free(symbols);
+	}
+};
 
 // *********************************************************************
 // Global utility functions 
