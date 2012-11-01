@@ -2,17 +2,16 @@
 #include  "sparse_matrix.hpp"
 #include  "numvec_impl.hpp"
 #include  "utility.hpp"
-//#include "pluselinv.hpp"
-#include "superlu_zdefs.h"
-#include "Cnames.h"
+#include  "superlu_zdefs.h"
+#include  "Cnames.h"
 
 using namespace PEXSI;
 using namespace std;
 
 void Usage(){
   std::cout 
-		<< "Test for factorization using SuperLU for complex arithmetic with parallel input matrices" << std::endl
-		<< "ex6 -r [nprow] -c [npcol]" << std::endl;
+		<< "Test for both the factorization using SuperLU for complex arithmetic with parallel input matrices, but with the permutation and the factorization phase separated." << std::endl
+		<< "ex7 -r [nprow] -c [npcol]" << std::endl;
 }
 
 // FIXME: IntNumVec convention.  Assumes a symmetric matrix
@@ -90,6 +89,7 @@ int main(int argc, char **argv)
 		gridinfo_t grid;
 		int      nprow, npcol;
 		int      m, n;
+		DistSparseMatrix<Complex>  AMat;
 
 		// *********************************************************************
 		// Input parameter
@@ -119,7 +119,6 @@ int main(int argc, char **argv)
 			// Test code
 			DistSparseMatrix<Real> HMat;
 			DistSparseMatrix<Real> SMat;
-			DistSparseMatrix<Complex>  AMat;
 			Real timeSta, timeEnd;
 			GetTime( timeSta );
 			superlu_gridinit(MPI_COMM_WORLD, nprow, npcol, &grid);
@@ -147,11 +146,10 @@ int main(int argc, char **argv)
 			for(Int i = 0; i < HMat.nnzLocal; i++){
 				*(ptr0++) = *(ptr1++) - Z_I * *(ptr2++);
 			}
-
-			DistSparseMatrixToSuperMatrixNRloc(&A, AMat, &grid);
 			GetTime( timeEnd );
 			if( mpirank == 0 )
-				cout << "Time for converting the matrix A is " << timeEnd - timeSta << endl;
+				cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;
+
 		}
 
  
@@ -162,51 +160,87 @@ int main(int argc, char **argv)
 			superlu_options.RowPerm           = NOROWPERM;
 			superlu_options.IterRefine        = NOREFINE;
 			superlu_options.ParSymbFact       = YES;
+//			superlu_options.ParSymbFact       = NO;
 			superlu_options.Equil             = NO; 
 			superlu_options.ReplaceTinyPivot  = NO;
-			superlu_options.ColPerm           = PARMETIS; //			superlu_options.ColPerm           = MMD_AT_PLUS_A;
+			superlu_options.ColPerm           = PARMETIS;
+//			superlu_options.ColPerm           = MMD_AT_PLUS_A;
 //			superlu_options.ColPerm = NATURAL;
 			superlu_options.PrintStat         = YES;
 			superlu_options.SolveInitialized  = NO;
 
-			m = A.nrow;
-			n = A.ncol;
+			m = AMat.size;
+			n = AMat.size;
+			doublecomplex *b=NULL; 
+			double *berr=NULL;
+			int     nrhs = 0;
+			int     info;
+			Real timeSta, timeEnd; 
+			Real timeFactorSta, timeFactorEnd;
 
-			// Initialize ScalePermstruct and LUstruct.
 			ScalePermstructInit(m, n, &ScalePermstruct);
 			LUstructInit(m, n, &LUstruct);
 
-			// Initialize the statistics variables.
+			GetTime( timeSta );
+			DistSparseMatrixToSuperMatrixNRloc(&A, AMat, &grid);
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for converting to SuperLU format is " << timeEnd - timeSta << endl;
+
+			GetTime( timeFactorSta ); 
 			PStatInit(&stat);
-
-			// Call the linear equation solver. 
-			doublecomplex *b=NULL; 
-			double *berr=NULL;
-			int nrhs = 0;
-			int      info;
-
-			Real timeFactorSta, timeFactorEnd;
-			GetTime( timeFactorSta );
 			pzgssvx(&superlu_options, &A, &ScalePermstruct, b, n, nrhs, &grid,
 					&LUstruct, &SOLVEstruct, berr, &stat, &info);
 			GetTime( timeFactorEnd );
 
-			if(mpirank == 0)
+			if( mpirank == 0 )
 				cout << "Time for factorization is " << timeFactorEnd - timeFactorSta << endl;
 
 			PStatPrint(&superlu_options, &stat, &grid);        /* Print the statistics. */
+			
+			// Free the variables
+			PStatFree(&stat);
+			Destroy_CompRowLoc_Matrix_dist(&A);
+			Destroy_LU(n, &grid, &LUstruct);
+
+			// Factorization again
+			superlu_options.Fact              = SamePattern;
+			superlu_options.ParSymbFact       = NO;
+			superlu_options.ColPerm           = MY_PERMC;
+
+			GetTime( timeSta );
+			DistSparseMatrixToSuperMatrixNRloc(&A, AMat, &grid);
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for converting to SuperLU format is " << timeEnd - timeSta << endl;
+
+			GetTime( timeFactorSta );
+			PStatInit(&stat);
+			pzgssvx(&superlu_options, &A, &ScalePermstruct, b, n, nrhs, &grid,
+					&LUstruct, &SOLVEstruct, berr, &stat, &info);
+			Destroy_CompRowLoc_Matrix_dist(&A);
+			Destroy_LU(n, &grid, &LUstruct);
+			GetTime( timeFactorEnd );
+
+			if( mpirank == 0 )
+				cout << "Time for factorization is " << timeFactorEnd - timeFactorSta << endl;
+			
+
+			PStatPrint(&superlu_options, &stat, &grid);        /* Print the statistics. */
+
 		}
 
+
+		// *********************************************************************
+		// 
+		// *********************************************************************
 
 
 		// *********************************************************************
 		// Deallocate the storage
 		// *********************************************************************
 		if(1){
-			PStatFree(&stat);
-			Destroy_CompRowLoc_Matrix_dist(&A);
 			ScalePermstructFree(&ScalePermstruct);
-			Destroy_LU(n, &grid, &LUstruct);
 			LUstructFree(&LUstruct);
 			superlu_gridexit(&grid);
 		}
