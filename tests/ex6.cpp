@@ -29,7 +29,7 @@ void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Co
 	doublecomplex *nzvalLocal;
 	rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 	colindLocal = (int_t*)intMalloc_dist(A.nnzLocal); 
-	nzvalLocal  = (doublecomplex*)doubleMalloc_dist(A.nnzLocal);
+	nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(A.nnzLocal);
   
 	std::copy( A.colptrLocal.Data(), A.colptrLocal.Data() + A.colptrLocal.m(),
 			rowptrLocal );
