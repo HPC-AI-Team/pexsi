@@ -161,10 +161,11 @@ int main(int argc, char **argv)
 			superlu_options.Fact              = DOFACT;
 			superlu_options.RowPerm           = NOROWPERM;
 			superlu_options.IterRefine        = NOREFINE;
-			superlu_options.ParSymbFact       = NO;
+			superlu_options.ParSymbFact       = YES;
 			superlu_options.Equil             = NO; 
 			superlu_options.ReplaceTinyPivot  = NO;
-			superlu_options.ColPerm           = MMD_AT_PLUS_A;
+			superlu_options.ColPerm           = PARMETIS;
+//			superlu_options.ColPerm           = MMD_AT_PLUS_A;
 //			superlu_options.ColPerm = NATURAL;
 			superlu_options.PrintStat         = YES;
 			superlu_options.SolveInitialized  = NO;
@@ -185,13 +186,14 @@ int main(int argc, char **argv)
 			int nrhs = 0;
 			int      info;
 
-//			Real timeFactorSta, timeFactorEnd;
-//			GetTime( timeFactorSta );
+			Real timeFactorSta, timeFactorEnd;
+			GetTime( timeFactorSta );
 			pzgssvx(&superlu_options, &A, &ScalePermstruct, b, n, nrhs, &grid,
 					&LUstruct, &SOLVEstruct, berr, &stat, &info);
-//			GetTime( timeFactorEnd );
+			GetTime( timeFactorEnd );
 
-//			cout << "Time for factorization is " << timeFactorEnd - timeFactorSta << endl;
+			if(mpirank == 0)
+				cout << "Time for factorization is " << timeFactorEnd - timeFactorSta << endl;
 
 			PStatPrint(&superlu_options, &stat, &grid);        /* Print the statistics. */
 		}

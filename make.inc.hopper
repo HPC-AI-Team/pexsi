@@ -13,8 +13,10 @@ PLUSELINV_INCLUDE= -I${PLUSELINV_DIR}
 INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} ${PLUSELINV_INCLUDE}
 
 # Libraries
-METIS_LIB        = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libmetis.a 
-PARMETISLIB	     = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libparmetis.a 
+#METIS_LIB        = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libmetis.a 
+#PARMETISLIB	     = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libparmetis.a 
+METIS_LIB        = -L/global/homes/l/linlin/software/parmetis-4.0.2/build/Linux-x86_64/libmetis -lmetis
+PARMETISLIB	     = -L/global/homes/l/linlin/software/parmetis-4.0.2/build/Linux-x86_64/libparmetis -lparmetis
 SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
 # DSUPERLU_LIB     = $(DSUPERLU_DIR)/craypgi-xe6_O/lib/libsuperlu_dist_2.5.a
 DSUPERLU_LIB     = $(DSUPERLU_DIR)/build/lib/libsuperlu_dist_3.1.a
