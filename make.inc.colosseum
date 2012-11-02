@@ -14,6 +14,7 @@ INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} ${PLUSELINV_INCLUDE}
 # Libraries
 GFORTRAN_LIB     =/opt/local/lib/gcc44/libgfortran.dylib
 LAPACK_LIB       = -llapack
+#BLAS_LIB         = ${DSUPERLU_DIR}/lib/libblas.a
 BLAS_LIB         = -lblas
 #METIS_LIB        = /usr/local/lib/libmetis.a
 #PARMETISLIB	     = /usr/local/lib/libparmetis.a
