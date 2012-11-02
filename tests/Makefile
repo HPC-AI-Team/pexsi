@@ -20,6 +20,12 @@ EXES = ${SRCS:.cpp=}
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
 
+ex11: ex11.o ${PEXSI_LIB} ${PLUSELINV_LIB}
+	($(LOADER) -o $@ ex11.o  $(LOADOPTS) )
+
+ex11.o: ex11.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} -D_HAS_DOUBLECOMPLEX_ $< 
+
 ex10: ex10.o ${PEXSI_LIB} ${PLUSELINV_LIB}
 	($(LOADER) -o $@ ex10.o  $(LOADOPTS) )
 
