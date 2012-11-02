@@ -20,6 +20,12 @@ EXES = ${SRCS:.cpp=}
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
 
+ex10: ex10.o ${PEXSI_LIB} ${PLUSELINV_LIB}
+	($(LOADER) -o $@ ex10.o  $(LOADOPTS) )
+
+ex10.o: ex10.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS}  $< 
+
 ex9: ex9.o ${PEXSI_LIB} ${PLUSELINV_LIB}
 	($(LOADER) -o $@ ex9.o  $(LOADOPTS) )
 

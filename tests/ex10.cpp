@@ -3,7 +3,7 @@
 #include  "numvec_impl.hpp"
 #include  "utility.hpp"
 //#include "pluselinv.hpp"
-#include "superlu_zdefs.h"
+#include "superlu_ddefs.h"
 #include "Cnames.h"
 
 using namespace PEXSI;
@@ -11,12 +11,12 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "Test for factorization using SuperLU for complex arithmetic with parallel input matrices and solve" << std::endl
+		<< "Test for factorization using SuperLU for real arithmetic with parallel input matrices and solve" << std::endl
 		<< "ex9 -r [nprow] -c [npcol]" << std::endl;
 }
 
 // FIXME: IntNumVec convention.  Assumes a symmetric matrix
-void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Complex>& A, gridinfo_t* grid){
+void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Real>& A, gridinfo_t* grid){
 	PushCallStack( "DistSparseMatrixToSuperMatrixNRloc" );
 	Int mpirank = grid->iam;
 	Int mpisize = grid->nprow * grid->npcol;
@@ -26,21 +26,21 @@ void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Co
 	Int firstRow = mpirank * numRowLocalFirst;
 
   int_t *colindLocal, *rowptrLocal;
-	doublecomplex *nzvalLocal;
+	double *nzvalLocal;
 	rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 	colindLocal = (int_t*)intMalloc_dist(A.nnzLocal); 
-	nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(A.nnzLocal);
+	nzvalLocal  = (double*)doubleMalloc_dist(A.nnzLocal);
   
 	std::copy( A.colptrLocal.Data(), A.colptrLocal.Data() + A.colptrLocal.m(),
 			rowptrLocal );
 	std::copy( A.rowindLocal.Data(), A.rowindLocal.Data() + A.rowindLocal.m(),
 			colindLocal );
 	std::copy( A.nzvalLocal.Data(), A.nzvalLocal.Data() + A.nzvalLocal.m(),
-			(Complex*)nzvalLocal );
+			nzvalLocal );
 
 	std::cout << "Processor " << mpirank << " colindLocal[end] = " 
 		<< colindLocal[A.nnzLocal-1] << " nzvalLocal[end] = " 
-		<< *((Complex*)&nzvalLocal[A.nnzLocal-1]) << std::endl;
+		<< nzvalLocal[A.nnzLocal-1] << std::endl;
 
 
 	// Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
@@ -54,10 +54,10 @@ void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Co
 
 
 	// Construct the distributed matrix according to the SuperLU_DIST format
-	zCreate_CompRowLoc_Matrix_dist(ANRloc, A.size, A.size, A.nnzLocal, 
+	dCreate_CompRowLoc_Matrix_dist(ANRloc, A.size, A.size, A.nnzLocal, 
 			numRowLocal, firstRow,
 			nzvalLocal, colindLocal, rowptrLocal,
-			SLU_NR_loc, SLU_Z, SLU_GE);
+			SLU_NR_loc, SLU_D, SLU_GE);
 
 	PopCallStack();
 	return;
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 	int mpirank, mpisize;
 	MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
-	SetRandomSeed(2);
+	SetRandomSeed(1);
 
 	if( argc < 5 ) {
 		Usage();
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 		superlu_options_t superlu_options;
 		SuperLUStat_t stat;
 		SuperMatrix A;
-		DistSparseMatrix<Complex>  AMat;
+		DistSparseMatrix<Real>  AMat;
 		ScalePermstruct_t ScalePermstruct;
 		LUstruct_t LUstruct;
 		SOLVEstruct_t SOLVEstruct;
@@ -165,11 +165,12 @@ int main(int argc, char **argv)
 			AMat.rowindLocal = HMat.rowindLocal;
 			AMat.nzvalLocal.Resize( HMat.nnzLocal );
   
-			Complex *ptr0 = AMat.nzvalLocal.Data();
+			Real *ptr0 = AMat.nzvalLocal.Data();
 			Real *ptr1 = HMat.nzvalLocal.Data();
 			Real *ptr2 = SMat.nzvalLocal.Data();
 			for(Int i = 0; i < HMat.nnzLocal; i++){
-				*(ptr0++) = *(ptr1++) - Z_I * *(ptr2++);
+				*(ptr0++) = *(ptr1++);
+//				*(ptr0++) = *(ptr1++) - Z_I * *(ptr2++);
 			}
 
 			DistSparseMatrixToSuperMatrixNRloc(&A, AMat, &grid);
@@ -183,13 +184,13 @@ int main(int argc, char **argv)
 		if(1){
 			set_default_options_dist(&superlu_options);
 //			superlu_options.Fact              = DOFACT;
-//			superlu_options.RowPerm           = NOROWPERM;
+			superlu_options.RowPerm           = NOROWPERM;
 //			superlu_options.IterRefine        = NOREFINE;
 //			superlu_options.ParSymbFact       = NO;
 //			superlu_options.Equil             = NO; 
 //			superlu_options.ReplaceTinyPivot  = NO;
-			superlu_options.ColPerm           = NATURAL; 
-//			superlu_options.ColPerm           = METIS_AT_PLUS_A; 
+//			superlu_options.ColPerm           = NATURAL; 
+			superlu_options.ColPerm           = METIS_AT_PLUS_A; 
 //			superlu_options.ColPerm           = MMD_AT_PLUS_A;
 //			superlu_options.ColPerm = NATURAL;
 //			superlu_options.PrintStat         = YES;
@@ -208,18 +209,18 @@ int main(int argc, char **argv)
 			// Get the right hand side and the true solution
 			
 			int nrhs = 1;
-			CpxNumVec  xTrueGlobal(n), bGlobal(n);
+			DblNumVec  xTrueGlobal(n), bGlobal(n);
 			{
 				SuperMatrix GA, A1;
 				int needValue = 1;
 				DistSparseMatrixToSuperMatrixNRloc(&A1, AMat, &grid);
-				pzCompRow_loc_to_CompCol_global(needValue, &A1, &grid, &GA);
-				UniformRandom( xTrueGlobal );
-//				zGenXtrue_dist(n, 1, (doublecomplex*)xTrueGlobal.Data(), n);
+				pdCompRow_loc_to_CompCol_global(needValue, &A1, &grid, &GA);
+//				UniformRandom( xTrueGlobal );
+				dGenXtrue_dist(n, 1, xTrueGlobal.Data(), n);
 				char trans[1]; *trans='N';
 
-				zFillRHS_dist(trans, 1, (doublecomplex*)xTrueGlobal.Data(), n, &GA,
-						(doublecomplex*)bGlobal.Data(), n);
+				dFillRHS_dist(trans, 1, xTrueGlobal.Data(), n, &GA,
+						bGlobal.Data(), n);
 				Destroy_CompCol_Matrix_dist(&GA);
 				Destroy_CompRowLoc_Matrix_dist(&A1);
 			
@@ -230,19 +231,19 @@ int main(int argc, char **argv)
 			}
 
 			// Get the local solution
-			doublecomplex *bLocal, *xTrueLocal;
+			double *bLocal, *xTrueLocal;
 			Int numRowLocal = AMat.colptrLocal.m() - 1;
 			Int numRowLocalFirst = AMat.size / mpisize;
 			Int firstRow = mpirank * numRowLocalFirst;
-			bLocal = doublecomplexMalloc_dist( numRowLocal ); 
+			bLocal = doubleMalloc_dist( numRowLocal ); 
 			cout << "Proc " << mpirank << " outputs numRowLocal = " <<
 				numRowLocal << " firstRow = " << firstRow << endl;
 			std::copy( bGlobal.Data()+firstRow, bGlobal.Data()+firstRow+numRowLocal,
-					(Complex*)bLocal );
-			xTrueLocal = doublecomplexMalloc_dist( numRowLocal ); 
+					bLocal );
+			xTrueLocal = doubleMalloc_dist( numRowLocal ); 
 			std::copy( xTrueGlobal.Data()+firstRow, xTrueGlobal.Data()+firstRow+numRowLocal,
-					(Complex*)xTrueLocal );
-			cout << "Energy(bLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal)) << endl;
+					xTrueLocal );
+			cout << "Energy(bLocal) = " << Energy(PEXSI::DblNumVec(numRowLocal,false,bLocal)) << endl;
 			
 			// Call the linear equation solver. 
 			double *berr=doubleMalloc_dist(nrhs);
@@ -250,20 +251,20 @@ int main(int argc, char **argv)
 
 			Real timeFactorSta, timeFactorEnd;
 			GetTime( timeFactorSta );
-			pzgssvx(&superlu_options, &A, &ScalePermstruct, bLocal, numRowLocal, nrhs, &grid,
+			pdgssvx(&superlu_options, &A, &ScalePermstruct, bLocal, numRowLocal, nrhs, &grid,
 					&LUstruct, &SOLVEstruct, berr, &stat, &info);
 			GetTime( timeFactorEnd );
 
 			if(mpirank == 0)
 				cout << "Time for factorization is " << timeFactorEnd - timeFactorSta << endl;
 
-			cout << "Energy(bLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal)) << endl;
-			cout << "Energy(xLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)xTrueLocal)) << endl;
+			cout << "Energy(bLocal) = " << Energy(PEXSI::DblNumVec(numRowLocal,false,bLocal)) << endl;
+			cout << "Energy(xLocal) = " << Energy(PEXSI::DblNumVec(numRowLocal,false,xTrueLocal)) << endl;
 
 			if(mpirank == 0)
-				cerr << PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal) << endl;
+				cerr << PEXSI::DblNumVec(numRowLocal,false,bLocal) << endl;
 
-			pzinf_norm_error(mpirank, ((NRformat_loc *)A.Store)->m_loc, nrhs, 
+			pdinf_norm_error(mpirank, ((NRformat_loc *)A.Store)->m_loc, nrhs, 
 					bLocal, numRowLocal, xTrueLocal, numRowLocal, &grid);
 
 			PStatPrint(&superlu_options, &stat, &grid);        /* Print the statistics. */
