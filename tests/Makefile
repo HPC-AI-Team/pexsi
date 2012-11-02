@@ -21,13 +21,13 @@ EXES = ${SRCS:.cpp=}
 	${FC} -c ${FFLAGS} $<
 
 ex9: ex9.o ${PEXSI_LIB} ${PLUSELINV_LIB}
-	($(LOADER) -o $@ ex9.o ../external/PLUSelinv/pzsymbfact.o $(LOADOPTS) )
+	($(LOADER) -o $@ ex9.o  $(LOADOPTS) )
 
 ex9.o: ex9.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} -D_HAS_DOUBLECOMPLEX_ $< 
 
 ex8: ex8.o ${PEXSI_LIB} ${PLUSELINV_LIB}
-	($(LOADER) -o $@ ex8.o ../external/PLUSelinv/pzsymbfact.o $(LOADOPTS) )
+	($(LOADER) -o $@ ex8.o  $(LOADOPTS) )
 
 ex8.o: ex8.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} -D_HAS_DOUBLECOMPLEX_ $< 

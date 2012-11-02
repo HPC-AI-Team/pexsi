@@ -139,7 +139,6 @@ int main(int argc, char *argv[])
 	//  read_and_dist_rua(&A, nrhs, &b, &ldb, &xtrue, &ldx, fp, &grid);
 
 
-
 	if ( !(berr = doubleMalloc_dist(nrhs)) )
 		ABORT("Malloc fails for berr[].");
 
@@ -171,8 +170,8 @@ int main(int argc, char *argv[])
 	options.Equil = NO; 
 	options.ReplaceTinyPivot = NO;
 	options.ColPerm = MMD_AT_PLUS_A;
+//	options.ColPerm = METIS_AT_PLUS_A;
 	options.PrintStat         = YES;
-	//  options.ColPerm = MMD_AT_PLUS_A;
 #endif
 
 #if 0
@@ -201,6 +200,8 @@ int main(int argc, char *argv[])
 	pzgssvx(&options, &A, &ScalePermstruct, (doublecomplex*)b, 
 			ldb, nrhs, &grid,
 			&LUstruct, &SOLVEstruct, berr, &stat, &info);
+	pzinf_norm_error(mpirank, ((NRformat_loc *)A.Store)->m_loc, nrhs, 
+			(doublecomplex*)b, ldb, (doublecomplex*)xtrue, ldx, &grid);
 #else
 	pdgssvx(&options, &A, &ScalePermstruct, b, ldb, nrhs, &grid,
 			&LUstruct, &SOLVEstruct, berr, &stat, &info);

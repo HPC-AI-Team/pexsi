@@ -11,8 +11,8 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "Test for factorization using SuperLU for complex arithmetic with parallel input matrices" << std::endl
-		<< "ex6 -r [nprow] -c [npcol]" << std::endl;
+		<< "Test for factorization using SuperLU for complex arithmetic with parallel input matrices and solve" << std::endl
+		<< "ex9 -r [nprow] -c [npcol]" << std::endl;
 }
 
 // FIXME: IntNumVec convention.  Assumes a symmetric matrix
@@ -38,8 +38,9 @@ void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Co
 	std::copy( A.nzvalLocal.Data(), A.nzvalLocal.Data() + A.nzvalLocal.m(),
 			(Complex*)nzvalLocal );
 
-//	std::cout << "Processor " << mpirank << " rowptrLocal[end] = " << 
-//		rowptrLocal[numRowLocal] << std::endl;
+	std::cout << "Processor " << mpirank << " colindLocal[end] = " 
+		<< colindLocal[A.nnzLocal-1] << " nzvalLocal[end] = " 
+		<< *((Complex*)&nzvalLocal[A.nnzLocal-1]) << std::endl;
 
 
 	// Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
@@ -69,8 +70,9 @@ int main(int argc, char **argv)
 	int mpirank, mpisize;
 	MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
+	SetRandomSeed(2);
 
-	if( argc != 5 ) {
+	if( argc < 5 ) {
 		Usage();
 		MPI_Finalize();
 		return 0;
@@ -89,6 +91,7 @@ int main(int argc, char **argv)
 		LUstruct_t LUstruct;
 		SOLVEstruct_t SOLVEstruct;
 		gridinfo_t grid;
+		std::string Hfile, Sfile;
 		int      nprow, npcol;
 		int      m, n;
 
@@ -111,6 +114,19 @@ int main(int argc, char **argv)
       throw std::logic_error("npcol must be provided.");
 		}
 		
+		if( options.find("-H") != options.end() ){ 
+			Hfile = options["-H"];
+		}
+		else{
+			Hfile = "H_LU.csc";
+		}
+
+		if( options.find("-S") != options.end() ){ 
+			Sfile = options["-S"];
+		}
+		else{
+			Sfile = "S_LU.csc";
+		}
 
 		// *********************************************************************
 		// Read input matrix
@@ -123,14 +139,22 @@ int main(int argc, char **argv)
 			Real timeSta, timeEnd;
 			GetTime( timeSta );
 			superlu_gridinit(MPI_COMM_WORLD, nprow, npcol, &grid);
-			ReadDistSparseMatrix( "H_LU.csc", HMat, MPI_COMM_WORLD ); 
-			ReadDistSparseMatrix( "S_LU.csc", SMat, MPI_COMM_WORLD ); 
+			ReadDistSparseMatrix( Hfile.c_str(), HMat, MPI_COMM_WORLD ); 
+			ReadDistSparseMatrix( Sfile.c_str(), SMat, MPI_COMM_WORLD ); 
 			GetTime( timeEnd );
 			if( mpirank == 0 ){
 				cout << "Time for reading H and S is " << timeEnd - timeSta << endl;
 				cout << "H.size = " << HMat.size << endl;
 				cout << "H.nnz  = " << HMat.nnz  << endl;
 			}
+			cout << "Processor " << mpirank << " outputs H.rowindLocal[end] = " 
+				<< HMat.rowindLocal[HMat.nnzLocal-1] 
+				<< " H.nzvalLocal[end] = " << HMat.nzvalLocal[HMat.nnzLocal-1]
+				<< endl;
+			cout << "Processor " << mpirank << " outputs S.rowindLocal[end] = " 
+				<< SMat.rowindLocal[SMat.nnzLocal-1] 
+				<< " S.nzvalLocal[end] = " << SMat.nzvalLocal[HMat.nnzLocal-1]
+				<< endl;
 			
 			GetTime( timeSta );
 
@@ -164,7 +188,7 @@ int main(int argc, char **argv)
 			superlu_options.ParSymbFact       = NO;
 			superlu_options.Equil             = NO; 
 			superlu_options.ReplaceTinyPivot  = NO;
-//			superlu_options.ColPerm           = PARMETIS; 
+//			superlu_options.ColPerm           = METIS_AT_PLUS_A; 
 			superlu_options.ColPerm           = MMD_AT_PLUS_A;
 //			superlu_options.ColPerm = NATURAL;
 			superlu_options.PrintStat         = YES;
@@ -180,92 +204,74 @@ int main(int argc, char **argv)
 			// Initialize the statistics variables.
 			PStatInit(&stat);
 
+			// Get the right hand side and the true solution
+			
+			int nrhs = 1;
+			CpxNumVec  xTrueGlobal(n), bGlobal(n);
+			{
+				SuperMatrix GA, A1;
+				int needValue = 1;
+				DistSparseMatrixToSuperMatrixNRloc(&A1, AMat, &grid);
+				pzCompRow_loc_to_CompCol_global(needValue, &A1, &grid, &GA);
+				UniformRandom( xTrueGlobal );
+//				zGenXtrue_dist(n, 1, (doublecomplex*)xTrueGlobal.Data(), n);
+				char trans[1]; *trans='N';
+
+				zFillRHS_dist(trans, 1, (doublecomplex*)xTrueGlobal.Data(), n, &GA,
+						(doublecomplex*)bGlobal.Data(), n);
+				Destroy_CompCol_Matrix_dist(&GA);
+				Destroy_CompRowLoc_Matrix_dist(&A1);
+			
+//				if(mpirank == 0){
+//					cerr << " x = " << xTrueGlobal << endl;;
+//					cerr << " b = " << bGlobal << endl;
+//				}
+			}
+
+			// Get the local solution
+			doublecomplex *bLocal, *xTrueLocal;
+			Int numRowLocal = AMat.colptrLocal.m() - 1;
+			Int numRowLocalFirst = AMat.size / mpisize;
+			Int firstRow = mpirank * numRowLocalFirst;
+			bLocal = doublecomplexMalloc_dist( numRowLocal ); 
+			cout << "Proc " << mpirank << " outputs numRowLocal = " <<
+				numRowLocal << " firstRow = " << firstRow << endl;
+			std::copy( bGlobal.Data()+firstRow, bGlobal.Data()+firstRow+numRowLocal,
+					(Complex*)bLocal );
+			xTrueLocal = doublecomplexMalloc_dist( numRowLocal ); 
+			std::copy( xTrueGlobal.Data()+firstRow, xTrueGlobal.Data()+firstRow+numRowLocal,
+					(Complex*)xTrueLocal );
+			cout << "Energy(bLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal)) << endl;
+			
 			// Call the linear equation solver. 
-			doublecomplex *b=NULL; 
-			double *berr=NULL;
-			int nrhs = 0;
-			int      info;
+			double *berr=doubleMalloc_dist(nrhs);
+			int     info;
 
 			Real timeFactorSta, timeFactorEnd;
 			GetTime( timeFactorSta );
-			pzgssvx(&superlu_options, &A, &ScalePermstruct, b, n, nrhs, &grid,
+			pzgssvx(&superlu_options, &A, &ScalePermstruct, bLocal, numRowLocal, nrhs, &grid,
 					&LUstruct, &SOLVEstruct, berr, &stat, &info);
 			GetTime( timeFactorEnd );
 
 			if(mpirank == 0)
 				cout << "Time for factorization is " << timeFactorEnd - timeFactorSta << endl;
 
+			cout << "Energy(bLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal)) << endl;
+			cout << "Energy(xLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)xTrueLocal)) << endl;
+
+			if(mpirank == 0)
+				cerr << PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal) << endl;
+
+			pzinf_norm_error(mpirank, ((NRformat_loc *)A.Store)->m_loc, nrhs, 
+					bLocal, numRowLocal, xTrueLocal, numRowLocal, &grid);
+
 			PStatPrint(&superlu_options, &stat, &grid);        /* Print the statistics. */
 			PStatFree(&stat);
+			SUPERLU_FREE( bLocal );
+			SUPERLU_FREE( xTrueLocal );
+			SUPERLU_FREE( berr );
 		}
 
-		// *********************************************************************
-		// Test the accuracy of factorization by solve
-		// *********************************************************************
-
-		if(1){
-			Real timeSta, timeEnd;
-			// Construct the global matrix A from the distributed matrix A
-			SuperMatrix GA;
-			SuperMatrix A1;
-			GetTime( timeSta );
-			DistSparseMatrixToSuperMatrixNRloc(&A1, AMat, &grid);
-			if(mpirank == 0) 
-				cout << "Sparse matrix generated" << endl;
-			int needValue = 1;
-			pzCompRow_loc_to_CompCol_global(needValue, &A1, &grid, &GA);
-			if(mpirank == 0) 
-				cout << "Sparse matrix converted" << endl;
-			
-			// Generate the true solution and the right hand side
-			CpxNumVec  xTrueGlobal(n), bGlobal(n);
-			zGenXtrue_dist(n, 1, (doublecomplex*)xTrueGlobal.Data(), n);
-			char trans[1]; *trans='N';
-
-			zFillRHS_dist(trans, 1, (doublecomplex*)xTrueGlobal.Data(), n, &GA,
-					(doublecomplex*)bGlobal.Data(), n);
-			if(mpirank == 0){
-				cout << "||xTrue|| = " << Energy(xTrueGlobal) << endl;
-				cout << "||b    || = " << Energy(bGlobal) << endl;
-//				statusOFS << xTrueGlobal << endl << bGlobal << endl;
-			}
-		
-      // Initialize the solve
-	    zSolveInit(&superlu_options, &A, (ScalePermstruct.perm_r), (ScalePermstruct.perm_c), 
-					1, &LUstruct, &grid, &SOLVEstruct);
-
-			GetTime( timeEnd );
-			if( mpirank == 0 )
-				cout << "Time for preparing solve is " << timeEnd - timeSta << endl;
-
-			// Solve
-			GetTime( timeSta );
-			PStatInit(&stat);
-			int info;
-			pzgstrs_Bglobal(n, &LUstruct, &grid, (doublecomplex*)bGlobal.Data(), 
-					n, 1, &stat, &info);
-			PStatFree(&stat);
-			GetTime( timeEnd );
-			if( mpirank == 0 )
-				cout << "Time for solve is " << timeEnd - timeSta << endl;
-			
-			if(mpirank == 0){
-				cout << "||xTrue|| = " << Energy(xTrueGlobal) << endl;
-				cout << "||b    || = " << Energy(bGlobal) << endl;
-//				statusOFS << bGlobal << endl;
-			}
-
-			pzinf_norm_error(mpirank, ((NRformat_loc *)A.Store)->m_loc, 1, 
-					(doublecomplex*)bGlobal.Data(), n, 
-					(doublecomplex*)xTrueGlobal.Data(), n, &grid);
-
-
-			// Destroy A and GA
-			Destroy_CompRowLoc_Matrix_dist(&A1);
-			Destroy_CompCol_Matrix_dist(&GA);
-			// Free the solve
-			zSolveFinalize(&superlu_options, &SOLVEstruct);
-		}
 
 
 		// *********************************************************************

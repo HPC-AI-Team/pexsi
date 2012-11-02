@@ -229,12 +229,60 @@ int main(int argc, char **argv)
 		PStatPrint(&superlu_options, &stat, &grid);        /* Print the statistics. */
 		PStatFree(&stat);
 		Destroy_CompRowLoc_Matrix_dist(&A);
-		Destroy_LU(n, &grid, &LUstruct);
 
+
+		// *********************************************************************
+		// Test the accuracy of factorization by solve
+		// *********************************************************************
+
+		if(1){
+			// Construct the global matrix A from the distributed matrix A
+			SuperMatrix GA;
+			GetTime( timeSta );
+			DistSparseMatrixToSuperMatrixNRloc(&A, AMat, &grid);
+			cout << "Sparse matrix generated" << endl;
+			int needValue = 1;
+			pzCompRow_loc_to_CompCol_global(needValue, &A, &grid, &GA);
+			cout << "Sparse matrix converted" << endl;
+			
+			// Generate the true solution and the right hand side
+			CpxNumVec  xTrueGlobal(n), bGlobal(n);
+			zGenXtrue_dist(n, 1, (doublecomplex*)xTrueGlobal.Data(), n);
+			cout << "xtrue generated" << endl;
+			char trans[1]; *trans='N';
+
+			zFillRHS_dist(trans, 1, (doublecomplex*)xTrueGlobal.Data(), n, &GA,
+					(doublecomplex*)bGlobal.Data(), n);
+			cout << "b generated" << endl;
+			
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for preparing solve is " << timeEnd - timeSta << endl;
+
+			// Solve
+			GetTime( timeSta );
+			PStatInit(&stat);
+			pzgstrs_Bglobal(n, &LUstruct, &grid, (doublecomplex*)bGlobal.Data(), 
+					n, 1, &stat, &info);
+			PStatFree(&stat);
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for solve is " << timeEnd - timeSta << endl;
+
+			pzinf_norm_error(mpirank, ((NRformat_loc *)A.Store)->m_loc, 1, 
+					(doublecomplex*)bGlobal.Data(), n, 
+					(doublecomplex*)xTrueGlobal.Data(), n, &grid);
+
+			// Destroy A and GA
+			Destroy_CompRowLoc_Matrix_dist(&A);
+			Destroy_CompCol_Matrix_dist(&GA);
+		}
+		
 
 		// *********************************************************************
 		// Deallocate the storage
 		// *********************************************************************
+		Destroy_LU(n, &grid, &LUstruct);
 		ScalePermstructFree(&ScalePermstruct);
 		LUstructFree(&LUstruct);
 		superlu_gridexit(&grid);
