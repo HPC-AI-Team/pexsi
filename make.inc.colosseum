@@ -48,9 +48,9 @@ MODE	         = debug
 
 ifeq ($(MODE), debug)
 	COMMONDEFS   = -D__DEBUGlevel=0 -D__PRNTlevel=0 -DAdd_ #-D_USE_COMPLEX_
-  CFLAGS       = -O2 -g ${INCLUDES}
-  FFLAGS       = -O2 -g ${INCLUDES}
-  CXXFLAGS     = -O2 -g ${INCLUDES}
+  CFLAGS       = -g ${INCLUDES}
+  FFLAGS       = -g ${INCLUDES}
+  CXXFLAGS     = -g ${INCLUDES}
 	CCDEFS       = ${COMMONDEFS}
 	CPPDEFS      = ${COMMONDEFS}
   LOADOPTS     = ${LIBS}
