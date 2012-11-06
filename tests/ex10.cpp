@@ -12,7 +12,7 @@ using namespace std;
 void Usage(){
   std::cout 
 		<< "Test for factorization using SuperLU for real arithmetic with parallel input matrices and solve" << std::endl
-		<< "ex9 -r [nprow] -c [npcol]" << std::endl;
+		<< "ex10 -r [nprow] -c [npcol]" << std::endl;
 }
 
 // FIXME: IntNumVec convention.  Assumes a symmetric matrix
@@ -169,7 +169,8 @@ int main(int argc, char **argv)
 			Real *ptr1 = HMat.nzvalLocal.Data();
 			Real *ptr2 = SMat.nzvalLocal.Data();
 			for(Int i = 0; i < HMat.nnzLocal; i++){
-				*(ptr0++) = *(ptr1++);
+				*(ptr0++) = *(ptr1++) - 3.5 * *(ptr2++);
+//				*(ptr0++) = *(ptr1++);
 //				*(ptr0++) = *(ptr1++) - Z_I * *(ptr2++);
 			}
 
@@ -190,8 +191,8 @@ int main(int argc, char **argv)
 //			superlu_options.Equil             = NO; 
 //			superlu_options.ReplaceTinyPivot  = NO;
 //			superlu_options.ColPerm           = NATURAL; 
-			superlu_options.ColPerm           = METIS_AT_PLUS_A; 
-//			superlu_options.ColPerm           = MMD_AT_PLUS_A;
+//			superlu_options.ColPerm           = METIS_AT_PLUS_A; 
+			superlu_options.ColPerm           = MMD_AT_PLUS_A;
 //			superlu_options.ColPerm = NATURAL;
 //			superlu_options.PrintStat         = YES;
 //			superlu_options.SolveInitialized  = NO;

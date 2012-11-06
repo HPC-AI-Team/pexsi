@@ -188,8 +188,8 @@ int main(int argc, char **argv)
 //			superlu_options.ParSymbFact       = NO;
 //			superlu_options.Equil             = NO; 
 //			superlu_options.ReplaceTinyPivot  = NO;
-			superlu_options.ColPerm           = NATURAL; 
-//			superlu_options.ColPerm           = METIS_AT_PLUS_A; 
+//			superlu_options.ColPerm           = NATURAL; 
+			superlu_options.ColPerm           = METIS_AT_PLUS_A; 
 //			superlu_options.ColPerm           = MMD_AT_PLUS_A;
 //			superlu_options.ColPerm = NATURAL;
 //			superlu_options.PrintStat         = YES;
