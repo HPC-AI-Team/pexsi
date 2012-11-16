@@ -9,6 +9,7 @@
 #include  "numvec_impl.hpp"
 #include  "utility.hpp"
 #include  "superlu_dist_interf.hpp"
+#include  "superlu_zdefs.h"
 
 using namespace PEXSI;
 using namespace std;
@@ -172,71 +173,26 @@ int main(int argc, char **argv)
 		// *********************************************************************
 
 		if( 1 ) {
-			SuperLUMatrix A1( g );
+			SuperLUMatrix A1( g ), GA( g );
+			A1.DistSparseMatrixToSuperMatrixNRloc( AMat );
+			A1.ConvertNRlocToNC( GA );
+
+			int n = A1.n();
+			int nrhs = 5;
+			CpxNumMat xTrueGlobal(n, nrhs), bGlobal(n, nrhs);
+			CpxNumMat xTrueLocal, bLocal;
+			DblNumVec berr;
+			UniformRandom( xTrueGlobal );
+			GA.MultiplyGlobalMultiVector( xTrueGlobal, bGlobal );
+			A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
+			A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
+
+			luMat.SolveDistMultiVector( bLocal, berr );
+			luMat.CheckErrorDistMultiVector( bLocal, xTrueLocal );
 		}
 
-//		if(0){
-//			PStatInit(&stat);
-//			superlu_options.Fact              = FACTORED;
-//
-//			int nrhs = 1;
-//			PEXSI::CpxNumVec  xTrueGlobal(n), bGlobal(n);
-//			{
-//				SuperMatrix GA, A1;
-//				int needValue = 1;
-//				DistSparseMatrixToSuperMatrixNRloc(&A1, AMat, &grid);
-//				pzCompRow_loc_to_CompCol_global(needValue, &A1, &grid, &GA);
-//				UniformRandom( xTrueGlobal );
-//				//				zGenXtrue_dist(n, 1, (doublecomplex*)xTrueGlobal.Data(), n);
-//				char trans[1]; *trans='N';
-//
-//				zFillRHS_dist(trans, 1, (doublecomplex*)xTrueGlobal.Data(), n, &GA,
-//						(doublecomplex*)bGlobal.Data(), n);
-//				Destroy_CompCol_Matrix_dist(&GA);
-//				Destroy_CompRowLoc_Matrix_dist(&A1);
-//
-//				//				if(mpirank == 0){
-//				//					cerr << " x = " << xTrueGlobal << endl;;
-//				//					cerr << " b = " << bGlobal << endl;
-//				//				}
-//			}
-//
-//			// Get the local solution
-//			doublecomplex *bLocal, *xTrueLocal;
-//			Int numRowLocal = AMat.colptrLocal.m() - 1;
-//			Int numRowLocalFirst = AMat.size / mpisize;
-//			Int firstRow = mpirank * numRowLocalFirst;
-//			bLocal = doublecomplexMalloc_dist( numRowLocal ); 
-//			cout << "Proc " << mpirank << " outputs numRowLocal = " <<
-//				numRowLocal << " firstRow = " << firstRow << endl;
-//			std::copy( bGlobal.Data()+firstRow, bGlobal.Data()+firstRow+numRowLocal,
-//					(Complex*)bLocal );
-//			xTrueLocal = doublecomplexMalloc_dist( numRowLocal ); 
-//			std::copy( xTrueGlobal.Data()+firstRow, xTrueGlobal.Data()+firstRow+numRowLocal,
-//					(Complex*)xTrueLocal );
-////			cout << "Energy(bLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal)) << endl;
-//
-//			// Call the linear equation solver. 
-//			double *berr=doubleMalloc_dist(nrhs);
-//
-//			GetTime( timeFactorSta );
-//			pzgssvx(&superlu_options, &A, &ScalePermstruct, bLocal, numRowLocal, nrhs, &grid,
-//					&LUstruct, &SOLVEstruct, berr, &stat, &info);
-//			GetTime( timeFactorEnd );
-//
-////			cout << "Energy(bLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal)) << endl;
-////			cout << "Energy(xLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)xTrueLocal)) << endl;
-//
-//
-//			pzinf_norm_error(mpirank, ((NRformat_loc *)A.Store)->m_loc, nrhs, 
-//					bLocal, numRowLocal, xTrueLocal, numRowLocal, &grid);
-//
-//			PStatPrint(&superlu_options, &stat, &grid);        /* Print the statistics. */
-//			PStatFree(&stat);
-//			SUPERLU_FREE( bLocal );
-//			SUPERLU_FREE( xTrueLocal );
-//			SUPERLU_FREE( berr );
-//		}
+
+
 
 //
 //		// *********************************************************************

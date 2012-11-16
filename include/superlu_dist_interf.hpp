@@ -6,7 +6,7 @@
 
 // Interface with sparse matrix (CSC format)
 #include "sparse_matrix.hpp"
-
+#include "nummat_impl.hpp"
 
 namespace PEXSI{
 
@@ -44,6 +44,10 @@ public:
 
 	~SuperLUMatrix();
 
+	int m() const;
+
+	int n() const;
+
 	/// @brief DistSparseMatrixToSuperMatrixNRloc converts a distributed
 	/// sparse matrix in compressed sparse column format into the SuperLU
 	/// compressed row format. 
@@ -70,9 +74,45 @@ public:
 	/// TODO Real arithmetic. 
 	void NumericalFactorize();
 
-//	void DistMultiplyGlobalVector( Scalar*);
+	/// @brief ConvertNRlocToNC converts a distributed compressed sparse
+	/// row matrix to a global compressed sparse column matrix.
+	///
+	/// @param[out] AGlobal
+	void ConvertNRlocToNC( SuperLUMatrix& AGlobal );
 
+	/// @brief MultiplyGlobalMultiVector computes b = A * x.
+	///
+	/// Both xGlobal and bGlobal are saved globally.
+	///
+	/// @param[in] xGlobal
+	/// @param[out] bGlobal
+	void MultiplyGlobalMultiVector( NumMat<Scalar>& xGlobal, NumMat<Scalar>& bGlobal );
+
+	/// @brief DistributeGlobalMultiVector distributes a global multivector into a
+	/// local multivector according to the compressed row format of A.
+	///
+	/// @param[in] xGlobal
+	/// @param[out] xLocal
+	void DistributeGlobalMultiVector( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal );
+
+	/// @brief SolveDistMultiVector A x = b with b overwritten by x for
+	/// distributed multivector.
+	///
+	/// @param[in,out] bLocal Right hand side savd in the distributed format.
+	/// @param[out] berr The componentwise relative backward error of each solution vector.
+	void SolveDistMultiVector( NumMat<Scalar>& bLocal, DblNumVec& berr );
+
+
+	/// @brief CheckErrorDistMultiVector prints out the error by direct
+	/// comparison with the true solution in distributed format.
+	///
+	/// @param[in] xLocal The computed solution.
+	/// @param[in] xTrueLocal The true solution.
+	void CheckErrorDistMultiVector( NumMat<Scalar>& xLocal, NumMat<Scalar>& xTrueLocal );
 };
+
+
+
 
 
 //void LUstructToPMatrix( const SuperLUData& luData, Grid &grid, PMatrix& PMloc );
@@ -80,12 +120,6 @@ public:
 //void ConstructCommunicationPattern( CommunicationPattern& commPattern, 
 //		const Grid& grid, const PMatrix& PMloc);
 //
-//void SuperLUSymbolicFactorization( SuperLUData& luData );
-//
-//void SuperLURedistribute(
-//
-//
-//void DistSparseMatrixToSuperMatrixNRloc( SuperLUData& luData, DistSparseMatrix<Complex>& A );
 
 
 
