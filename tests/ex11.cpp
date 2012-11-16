@@ -277,7 +277,7 @@ int main(int argc, char **argv)
 		// *********************************************************************
 
 		// Initialize the statistics variables.
-		if(0){
+		if(1){
 			PStatInit(&stat);
 			superlu_options.Fact              = FACTORED;
 
@@ -309,14 +309,14 @@ int main(int argc, char **argv)
 			Int numRowLocalFirst = AMat.size / mpisize;
 			Int firstRow = mpirank * numRowLocalFirst;
 			bLocal = doublecomplexMalloc_dist( numRowLocal ); 
-			cout << "Proc " << mpirank << " outputs numRowLocal = " <<
-				numRowLocal << " firstRow = " << firstRow << endl;
+//			cout << "Proc " << mpirank << " outputs numRowLocal = " <<
+//				numRowLocal << " firstRow = " << firstRow << endl;
 			std::copy( bGlobal.Data()+firstRow, bGlobal.Data()+firstRow+numRowLocal,
 					(Complex*)bLocal );
 			xTrueLocal = doublecomplexMalloc_dist( numRowLocal ); 
 			std::copy( xTrueGlobal.Data()+firstRow, xTrueGlobal.Data()+firstRow+numRowLocal,
 					(Complex*)xTrueLocal );
-			cout << "Energy(bLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal)) << endl;
+//			cout << "Energy(bLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal)) << endl;
 
 			// Call the linear equation solver. 
 			double *berr=doubleMalloc_dist(nrhs);
@@ -326,8 +326,8 @@ int main(int argc, char **argv)
 					&LUstruct, &SOLVEstruct, berr, &stat, &info);
 			GetTime( timeFactorEnd );
 
-			cout << "Energy(bLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal)) << endl;
-			cout << "Energy(xLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)xTrueLocal)) << endl;
+//			cout << "Energy(bLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)bLocal)) << endl;
+//			cout << "Energy(xLocal) = " << Energy(PEXSI::CpxNumVec(numRowLocal,false,(Complex*)xTrueLocal)) << endl;
 
 
 			pzinf_norm_error(mpirank, ((NRformat_loc *)A.Store)->m_loc, nrhs, 

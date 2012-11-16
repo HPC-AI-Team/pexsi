@@ -12,7 +12,7 @@ DEPS     = ${SRCS_C:.c=.d} ${SRCS_CPP:.cpp=.d}
 %.o: %.c
 	${CC} -c ${CFLAGS} ${CCDEFS} $< 
 %.o: %.cpp
-	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
+	${CXX} -c $< ${CXXFLAGS} ${CPPDEFS} 
 %.o: %.f
 	${FC} -c ${FFLAGS} $<
 %.o: %.F

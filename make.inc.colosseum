@@ -65,8 +65,14 @@ endif
 
 
 # Generate auto-dependencies (for cpp files now)
+%.d: %.c
+	@set -e; rm -f $@; \
+	$(CC) -M $(CCDEFS) $(CFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
+	rm -f $@.$$$$
+
 %.d: %.cpp
 	@set -e; rm -f $@; \
-	$(CXX) -M $(CXXFLAGS) $< > $@.$$$$; \
+	$(CXX) -M $(CPPDEFS) $(CXXFLAGS) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
 	rm -f $@.$$$$

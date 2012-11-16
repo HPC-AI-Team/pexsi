@@ -10,9 +10,9 @@ DEPS     = ${SRCS_C:.c=.d} ${SRCS_CPP:.cpp=.d}
 # NOTE: Focus on complex matrices
 
 %.o: %.c
-	${CC} -c ${CFLAGS} ${CCDEFS} -D_USE_COMPLEX_ $< 
+	${CC} -c ${CFLAGS} ${CCDEFS} -D_USE_COMPLEX_  $< 
 %.o: %.cpp
-	${CXX} -c ${CXXFLAGS} ${CPPDEFS} -D_USE_COMPLEX_ $< 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} -D_USE_COMPLEX_ -D__PRNTlevel=0 $< 
 %.o: %.f
 	${FC} -c ${FFLAGS} $<
 %.o: %.F
