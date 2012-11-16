@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 		Real *ptr1 = HMat.nzvalLocal.Data();
 		Real *ptr2 = SMat.nzvalLocal.Data();
 		for(Int i = 0; i < HMat.nnzLocal; i++){
-			*(ptr0++) = *(ptr1++) - Z_I * *(ptr2++);
+			*(ptr0++) = *(ptr1++);// - Z_I * *(ptr2++);
 		}
 		GetTime( timeEnd );
 		if( mpirank == 0 )
@@ -183,7 +183,9 @@ int main(int argc, char **argv)
 			CpxNumMat xTrueLocal, bLocal;
 			DblNumVec berr;
 			UniformRandom( xTrueGlobal );
+			
 			GA.MultiplyGlobalMultiVector( xTrueGlobal, bGlobal );
+
 			A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
 			A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
 

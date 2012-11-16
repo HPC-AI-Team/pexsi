@@ -110,7 +110,7 @@ SuperLUMatrix::SuperLUMatrix	( SuperLUGrid& g )
 	options.ParSymbFact       = NO;
 	options.Equil             = NO; 
 	options.ReplaceTinyPivot  = NO;
-	// options.ColPerm           = MMD_AT_PLUS_A;
+//	options.ColPerm           = MMD_AT_PLUS_A;
 	options.ColPerm           = METIS_AT_PLUS_A;
 	options.PrintStat         = YES;
 	options.SolveInitialized  = NO;
@@ -438,10 +438,14 @@ SuperLUMatrix::DistributeGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sca
 	
 	Int numRowLocal = Astore->m_loc;
 	Int firstRow    = Astore->fst_row;
+	Int nrhs = xGlobal.n();
 	
-	xLocal.Resize( numRowLocal, xGlobal.n() );
-	std::copy( xGlobal.Data()+firstRow, xGlobal.Data()+firstRow+numRowLocal,
-			xLocal.Data() );
+	xLocal.Resize( numRowLocal, nrhs );
+	SetValue( xLocal, SCALAR_ZERO );
+	for( Int j = 0; j < nrhs; j++ ){
+		std::copy( xGlobal.VecData(j)+firstRow, xGlobal.VecData(j)+firstRow+numRowLocal,
+				xLocal.VecData(j) );
+	}
 
 #ifndef _RELEASE_
 	PopCallStack();
