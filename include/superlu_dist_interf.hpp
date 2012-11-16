@@ -10,8 +10,10 @@
 
 namespace PEXSI{
 
+/// @class SuperLUGrid
 /// @brief A thin interface for the gridinfo_t strucutre in SuperLU.
 class SuperLUGrid{
+	/// @brief SuperLUMatrix can have access to the grid information.
 	friend class SuperLUMatrix;
 private:
 	struct           GridData;
@@ -22,6 +24,7 @@ public:
 	~SuperLUGrid();
 };
 
+/// @class SuperLUMatrix
 /// @brief An thin interface to keep the main code insulated from
 /// the source code of SuperLU. 
 class SuperLUMatrix{
@@ -37,13 +40,9 @@ private:
 	SuperLUData   *ptrData;
 public:
 
-	SuperLUMatrix();
+	SuperLUMatrix( SuperLUGrid& g );
 
 	~SuperLUMatrix();
-
-	void Initialize( MPI_Comm comm, int nprow, int npcol  );
-
-	void Finalize();
 
 	/// @brief DistSparseMatrixToSuperMatrixNRloc converts a distributed
 	/// sparse matrix in compressed sparse column format into the SuperLU

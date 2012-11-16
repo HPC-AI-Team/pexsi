@@ -119,19 +119,21 @@ int main(int argc, char **argv)
 		if( mpirank == 0 )
 			cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;
 
-		GetTime( timeSta );
-		SuperLUMatrix luMat;
-		luMat.Initialize( MPI_COMM_WORLD, nprow, npcol );
-		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
-		GetTime( timeEnd );
-		if( mpirank == 0 )
-			cout << "Time for converting to SuperLU format is " << timeEnd - timeSta << endl;
 		
 		// *********************************************************************
 		// Symbolic factorization 
 		// *********************************************************************
 
- 
+		// Setup grid.
+		SuperLUGrid g( MPI_COMM_WORLD, nprow, npcol );
+
+		GetTime( timeSta );
+		SuperLUMatrix luMat( g );
+		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+		GetTime( timeEnd );
+		if( mpirank == 0 )
+			cout << "Time for converting to SuperLU format is " << timeEnd - timeSta << endl;
+
 		GetTime( timeSta );
 		luMat.SymbolicFactorize();
 		luMat.DestroyAOnly();
@@ -164,11 +166,14 @@ int main(int argc, char **argv)
 		if( mpirank == 0 )
 			cout << "Time for factorization is " << timeEnd - timeSta << " sec" << endl; 
 
-		SuperLUGrid g( MPI_COMM_WORLD, nprow, npcol );
 
 		// *********************************************************************
 		// Test the accuracy of factorization by solve
 		// *********************************************************************
+
+		if( 1 ) {
+			SuperLUMatrix A1( g );
+		}
 
 //		if(0){
 //			PStatInit(&stat);
@@ -270,7 +275,6 @@ int main(int argc, char **argv)
 //		LUstructFree(&LUstruct);
 //		superlu_gridexit(&grid);
 
-		luMat.Finalize();
 		statusOFS.close();
 	}
 	catch( std::exception& e )

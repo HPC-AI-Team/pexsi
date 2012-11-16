@@ -75,7 +75,7 @@ struct SuperLUMatrix::SuperLUData{
 	SuperMatrix         A;                        ///< SuperLU matrix. 
 	superlu_options_t   options;                  ///< SuperLU options.
 	ScalePermstruct_t   ScalePermstruct;          ///< Permutation vectors. 
-	gridinfo_t          grid;
+	gridinfo_t          *grid;
 	LUstruct_t          LUstruct;
 	SuperLUStat_t       stat;
 	int                 info;
@@ -86,7 +86,7 @@ struct SuperLUMatrix::SuperLUData{
 	bool                isLUstructAllocated;
 };
 
-SuperLUMatrix::SuperLUMatrix	(  )
+SuperLUMatrix::SuperLUMatrix	( SuperLUGrid& g )
 {
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix::SuperLUMatrix");
@@ -99,34 +99,7 @@ SuperLUMatrix::SuperLUMatrix	(  )
 	ptrData->isScalePermstructAllocated = false;
 	ptrData->isLUstructAllocated        = false;
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-} 		// -----  end of method SuperLUMatrix::SuperLUMatrix  ----- 
-
-SuperLUMatrix::~SuperLUMatrix	(  )
-{
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::~SuperLUMatrix");
-#endif
-	delete ptrData;
-
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-} 		// -----  end of method SuperLUMatrix::~SuperLUMatrix  ----- 
-
-void
-SuperLUMatrix::Initialize	( MPI_Comm comm, int nprow, int npcol  )
-{
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::Initialize");
-#endif
-
-	// TODO Remove superlu_gridinit and replace by my own grid.
-	superlu_gridinit(comm, nprow, npcol, &ptrData->grid);
-
-	// TODO allow options to be set outside in a reasonable way
+	// Options
 	superlu_options_t& options = ptrData->options;
 	
 	set_default_options_dist(&options);
@@ -140,22 +113,22 @@ SuperLUMatrix::Initialize	( MPI_Comm comm, int nprow, int npcol  )
 	options.PrintStat         = YES;
 	options.SolveInitialized  = NO;
 
+	// Setup grids
+  ptrData->grid = &(g.ptrData->grid);
+
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
+} 		// -----  end of method SuperLUMatrix::SuperLUMatrix  ----- 
 
-	return ;
-} 		// -----  end of method SuperLUMatrix::Initialize  ----- 
-
-void
-SuperLUMatrix::Finalize	(  )
+SuperLUMatrix::~SuperLUMatrix	(  )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::Finalize");
+	PushCallStack("SuperLUMatrix::~SuperLUMatrix");
 #endif
 	SuperMatrix& A = ptrData->A;
 	if( ptrData->isLUstructAllocated ){
-		Destroy_LU(A.ncol, &ptrData->grid, &ptrData->LUstruct);
+		Destroy_LU(A.ncol, ptrData->grid, &ptrData->LUstruct);
 		LUstructFree(&ptrData->LUstruct); 
 	}
 	if( ptrData->isScalePermstructAllocated ){
@@ -164,14 +137,13 @@ SuperLUMatrix::Finalize	(  )
 	if( ptrData->isSuperMatrixAllocated ){
 	  Destroy_CompRowLoc_Matrix_dist(&A);
 	}
-	// TODO Remove this
-	superlu_gridexit(&ptrData->grid);
+	
+	delete ptrData;
+
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
-
-	return ;
-} 		// -----  end of method SuperLUMatrix::Finalize  ----- 
+} 		// -----  end of method SuperLUMatrix::~SuperLUMatrix  ----- 
 
 
 void SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>& sparseA ){
@@ -181,7 +153,7 @@ void SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>
 	if( ptrData->isSuperMatrixAllocated == true ){
 		throw std::logic_error( "SuperMatrix is already allocated." );
 	}
-	gridinfo_t* grid = &(ptrData->grid);
+	gridinfo_t* grid = ptrData->grid;
 
 	Int mpirank = grid->iam;
 	Int mpisize = grid->nprow * grid->npcol;
@@ -276,7 +248,7 @@ SuperLUMatrix::SymbolicFactorize	(  )
 	LUstructInit(A.nrow, A.ncol, &ptrData->LUstruct);
 
 	PStatInit(&ptrData->stat);
-	pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, &ptrData->grid, 
+	pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
 			&ptrData->LUstruct, &ptrData->stat, &ptrData->info);
 	PStatFree(&ptrData->stat);
 
@@ -318,7 +290,7 @@ SuperLUMatrix::Distribute	(  )
   // NOTE: the row permutation Pc*Pr is applied internally in the
   // distribution routine. 
 	float dist_mem_use = pzdistribute(SamePattern_SameRowPerm, ptrData->A.nrow, 
-			&ptrData->A, &ptrData->ScalePermstruct, NULL, &ptrData->LUstruct, &ptrData->grid);
+			&ptrData->A, &ptrData->ScalePermstruct, NULL, &ptrData->LUstruct, ptrData->grid);
 
 #ifndef _RELEASE_
 	PopCallStack();
@@ -336,11 +308,11 @@ SuperLUMatrix::NumericalFactorize	(  )
 #endif
 	// Estimate the 1-norm
 	char *normStr = "1";
-	double anorm = pzlangs( normStr, &ptrData->A, &ptrData->grid );
+	double anorm = pzlangs( normStr, &ptrData->A, ptrData->grid );
   
 	PStatInit(&ptrData->stat);
 	pzgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol, 
-			anorm, &ptrData->LUstruct, &ptrData->grid, &ptrData->stat, &ptrData->info); 
+			anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info); 
 	PStatFree(&ptrData->stat);
 	if( ptrData->info ){
 		std::ostringstream msg;
