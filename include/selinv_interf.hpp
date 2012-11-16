@@ -1,9 +1,10 @@
-#ifndef SELINV_INTERF_H
-#define SELINV_INTERF_H
+#ifndef SELINV_INTERF_HPP
+#define SELINV_INTERF_HPP
 
 namespace PEXSI{
 
 // Make sure that this does not conflict with other things.
+// TODO Remove doublecomplex and insulate SelInv as is done for the SuperLU.
 #ifndef _HAS_DOUBLECOMPLEX_
 typedef struct { double r, i; } doublecomplex;
 #endif

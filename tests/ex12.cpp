@@ -28,54 +28,6 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 }
 
 
-// FIXME: IntNumVec convention.  Assumes a symmetric matrix
-void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Complex>& A, gridinfo_t* grid){
-	PushCallStack( "DistSparseMatrixToSuperMatrixNRloc" );
-	Int mpirank = grid->iam;
-	Int mpisize = grid->nprow * grid->npcol;
-
-	Int numRowLocal = A.colptrLocal.m() - 1;
-	Int numRowLocalFirst = A.size / mpisize;
-	Int firstRow = mpirank * numRowLocalFirst;
-
-  int_t *colindLocal, *rowptrLocal;
-	doublecomplex *nzvalLocal;
-	rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
-	colindLocal = (int_t*)intMalloc_dist(A.nnzLocal); 
-	nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(A.nnzLocal);
-  
-	std::copy( A.colptrLocal.Data(), A.colptrLocal.Data() + A.colptrLocal.m(),
-			rowptrLocal );
-	std::copy( A.rowindLocal.Data(), A.rowindLocal.Data() + A.rowindLocal.m(),
-			colindLocal );
-	std::copy( A.nzvalLocal.Data(), A.nzvalLocal.Data() + A.nzvalLocal.m(),
-			(Complex*)nzvalLocal );
-
-//	std::cout << "Processor " << mpirank << " rowptrLocal[end] = " << 
-//		rowptrLocal[numRowLocal] << std::endl;
-
-
-	// Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
-	for(Int i = 0; i < A.rowindLocal.m(); i++){
-		colindLocal[i]--;
-	}
-
-	for(Int i = 0; i < A.colptrLocal.m(); i++){
-		rowptrLocal[i]--;
-	}
-
-//	std::cout << "Processor " << mpirank << " colindLocal[end] = " << 
-//		colindLocal[A.nnzLocal-1] << std::endl;
-
-	// Construct the distributed matrix according to the SuperLU_DIST format
-	zCreate_CompRowLoc_Matrix_dist(ANRloc, A.size, A.size, A.nnzLocal, 
-			numRowLocal, firstRow,
-			nzvalLocal, colindLocal, rowptrLocal,
-			SLU_NR_loc, SLU_Z, SLU_GE);
-
-	PopCallStack();
-	return;
-}
 
 
 int main(int argc, char **argv) 

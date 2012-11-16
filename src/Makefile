@@ -1,11 +1,11 @@
 include ../make.inc.${HOSTID}
 
-SRCS = pexsi.cpp pole.cpp selinv_interf.cpp \
-			 lapack.cpp blas.cpp utility.cpp global.cpp
-#SRCS =   pexsi.cpp 
+SRCS_C   = pzsymbfact.c sp_ienv.c
+SRCS_CPP = pexsi.cpp pole.cpp superlu_dist_interf.cpp selinv_interf.cpp \
+			     lapack.cpp blas.cpp utility.cpp global.cpp 
 
-OBJS = ${SRCS:.cpp=.o}
-DEPS = ${SRCS:.cpp=.d}
+OBJS     = ${SRCS_C:.c=.o} ${SRCS_CPP:.cpp=.o} 
+DEPS     = ${SRCS_C:.c=.d} ${SRCS_CPP:.cpp=.d} 
 
 # Compilation replacement rules
 

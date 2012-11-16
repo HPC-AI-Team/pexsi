@@ -1,5 +1,5 @@
-#ifndef _PLUSELINV_HPP_
-#define _PLUSELINV_HPP_
+#ifndef _PSELINV_HPP_
+#define _PSELINV_HPP_
 
 /**********************************************************************
  * Common utilities
@@ -14,17 +14,11 @@
 #include "numtns.hpp"
 #include "serialize.hpp"
 
-#ifdef _USE_COMPLEX_
-#include "superlu_zdefs.h"
-#else
-#include "superlu_ddefs.h"
-#endif
-#include "Cnames.h"
 /* kind of integer to hold a pointer.  Use int.
 	 This might need to be changed on systems with large memory.
 	 If changed, be sure to change it in superlupara.f90 too */
-typedef int fptr;  /* 32-bit */
-//typedef long long int fptr;  /* 64-bit */
+// typedef int fptr;  /* 32-bit */
+typedef long long int fptr;  /* 64-bit */
 
 
 using std::vector;

@@ -9,7 +9,8 @@ PLUSELINV_DIR = ${PEXSI_DIR}/external/PLUSelInv
 PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
 DSUPERLU_INCLUDE = -I${DSUPERLU_DIR}/SRC
 PLUSELINV_INCLUDE= -I${PLUSELINV_DIR}
-INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} ${PLUSELINV_INCLUDE}
+#INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} ${PLUSELINV_INCLUDE}
+INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} 
 
 # Libraries
 GFORTRAN_LIB     =/opt/local/lib/gcc44/libgfortran.dylib
@@ -25,16 +26,17 @@ DSUPERLU_LIB     = $(DSUPERLU_DIR)/lib/libsuperlu_dist_3.1.a
 PLUSELINV_LIB    = ${PLUSELINV_DIR}/libpluselinv.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi.a
 
-LIBS             = ${PEXSI_LIB} ${PLUSELINV_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
+#LIBS             = ${PEXSI_LIB} ${PLUSELINV_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
+LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
 
-#CC           = openmpicc 
-#CXX          = openmpicxx
-#FC           = openmpif90
-#LOADER       = openmpicxx
-CC           = mpicc 
-CXX          = mpicxx
-FC           = mpif90
-LOADER       = mpicxx
+CC           = openmpicc 
+CXX          = openmpicxx
+FC           = openmpif90
+LOADER       = openmpicxx
+#CC           = mpicc 
+#CXX          = mpicxx
+#FC           = mpif90
+#LOADER       = mpicxx
 
 AR           = ar 
 ARFLAGS      = rvcu
@@ -52,9 +54,9 @@ MODE	         = debug
 
 ifeq ($(MODE), debug)
 	COMMONDEFS   = -D__DEBUGlevel=0 -D__PRNTlevel=0 -DAdd_ -D_USE_COMPLEX_
-  CFLAGS       = -O2 -g ${INCLUDES}
-  FFLAGS       = -O2 -g ${INCLUDES}
-  CXXFLAGS     = -O2 -g ${INCLUDES}
+  CFLAGS       = -O2 -w -g ${INCLUDES}
+  FFLAGS       = -O2 -w -g ${INCLUDES}
+  CXXFLAGS     = -O2 -w -g ${INCLUDES}
 	CCDEFS       = ${COMMONDEFS}
 	CPPDEFS      = ${COMMONDEFS}
   LOADOPTS     = ${LIBS}

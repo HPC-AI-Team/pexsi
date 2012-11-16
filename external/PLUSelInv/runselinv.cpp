@@ -254,6 +254,7 @@ int main(int argc, char *argv[])
 	}
 
 #if (__DEBUGlevel >= 2 )
+//#if 0
 	// Output the supernode, row permutation and column permutation
 	if( grid.iam == 0 ){
 		ofstream fid;

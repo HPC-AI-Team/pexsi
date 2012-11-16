@@ -7,6 +7,12 @@
 #include  "pole.hpp"
 #include  "selinv_interf.hpp"
 
+/// @namespace PEXSI
+/// @brief Main namespace for the PEXSI project. 
+///
+/// Everything used in PEXSI is under the PEXSI namespace so that PEXSI
+/// can be safely included as a subproject.
+
 // *********************************************************************
 // Main class for performing the pole expansion and selected inversion
 // *********************************************************************
