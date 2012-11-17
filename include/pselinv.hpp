@@ -1,319 +1,275 @@
 #ifndef _PSELINV_HPP_
 #define _PSELINV_HPP_
 
-/**********************************************************************
- * Common utilities
- **********************************************************************/
+// *********************************************************************
+//  Common utilities
+// *********************************************************************
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "comobject.hpp"
-#include "vec2t.hpp"
-#include "vec3t.hpp"
-#include "numvec.hpp"
-#include "numtns.hpp"
-#include "serialize.hpp"
+#include  "environment_impl.hpp"
+#include	"numvec_impl.hpp"
+#include	"nummat_impl.hpp" 
 
-/* kind of integer to hold a pointer.  Use int.
-	 This might need to be changed on systems with large memory.
-	 If changed, be sure to change it in superlupara.f90 too */
-// typedef int fptr;  /* 32-bit */
-typedef long long int fptr;  /* 64-bit */
+namespace PEXSI{
 
-
-using std::vector;
-using std::pair;
-using std::map;
-using std::set;
-using std::cerr;
-using std::cout;
-using std::ostream;
-using std::istream;
-using std::istringstream;
-using std::ostringstream;
-using std::stringstream;
-using std::ifstream;
-using std::ofstream;
-using std::setw;
-using std::scientific;
-
-typedef    int                   Int;
-typedef    double                Real;
-typedef    std::complex<double>  Complex; 
-#ifdef _USE_COMPLEX_
-typedef    std::complex<double>  Scalar;  
-#else
-typedef    double                Scalar;
-#endif
-
-// Commonly used
-const Int I_ZERO = 0;
-const Int I_ONE = 1;
-const Real D_ZERO = 0.0;
-const Real D_ONE  = 1.0;
-const Complex Z_ZERO = Complex(0.0, 0.0);
-const Complex Z_ONE  = Complex(1.0, 0.0);
-const Scalar SCALAR_ZERO    = static_cast<Scalar>(0.0);
-const Scalar SCALAR_ONE     = static_cast<Scalar>(1.0);
-const char UPPER = 'U';
-const char LOWER = 'L';
-const char FROMRIGHT = 'R';
-const char FROMLEFT  = 'L';
-const char TRAN = 'T';
-const char NOTRAN = 'N';
-const char ALL   = 'A';
-const char UDIAG = 'U';
-const char NOUDIAG = 'N';
+//const char UPPER = 'U';
+//const char LOWER = 'L';
+//const char FROMRIGHT = 'R';
+//const char FROMLEFT  = 'L';
+//const char TRAN = 'T';
+//const char NOTRAN = 'N';
+//const char ALL   = 'A';
+//const char UDIAG = 'U';
+//const char NOUDIAG = 'N';
 
 /**********************************************************************
  * Output LU structure
  **********************************************************************/
 
+/// @struct Grid 
+///
+/// @brief Grid is the PSelInv way of defining the grid.  
+///
+/// Grid should be consistent with the grid used by SuperLU.
+struct Grid{
+	// Data
+  MPI_Comm    comm;
+  MPI_Comm    rowComm;
+	MPI_Comm    colComm;
+  Int         mpisize; 
+	Int         numProcRow;
+	Int         numProcCol;
 
-class LBlock{
-  public:
-    int _blkind;
-    int _nrows;
-    int _ncols;
-    IntNumVec _rows;
-    NumMat<Scalar> _nzval;
-  public:
-    int blkind() {return _blkind;}
-    int nrows()  {return _nrows;}
-    int ncols()  { return _ncols;}
-    IntNumVec& rows() {return _rows;}
-    NumMat<Scalar>& nzval() {return _nzval;}
-    int rows(int i) {return _rows[i];}
-    Scalar& nzval(int i, int j) {return _nzval(i,j);}
-
-    LBlock() {_blkind=-1;_nrows=0;_ncols=0;}
-    ~LBlock() {}
-    LBlock& operator= (const LBlock& LB) {
-      _blkind = LB._blkind;
-      _nrows  = LB._nrows;
-      _ncols  = LB._ncols;
-      _rows   = LB._rows;
-      _nzval  = LB._nzval;
-      return *this;
-    }
+	// Member function
+	Grid( MPI_Comm Bcomm, int nprow, int npcol );
+	~Grid();
 };
 
-class UBlock{
-  public:
-    int _blkind;
-    int _nrows;
-    int _ncols;
-    IntNumVec _cols;
-    NumMat<Scalar> _nzval;
-  public:
-    int blkind() {return _blkind;}
-    int nrows()  {return _nrows;}
-    int ncols()  { return _ncols;}
-    IntNumVec& cols() {return _cols;}
-    NumMat<Scalar>& nzval() {return _nzval;}
-    int cols(int i) {return _cols[i];}
-    Scalar& nzval(int i, int j) {return _nzval(i,j);}
+/// @struct SuperNode
+///
+/// @brief SuperNode describes mapping between supernode and column.
+/// 
+/// superIdx[i] is the supernode index to which column i belongs. 
+/// This is the same as supno[i] in SuperLU.
+///
+/// superPtr[s] is the leading column of the s-th supernode (as in
+/// colptr).  This is the same as xsup[s] in SuperLU.
+///
+///	e.g.   superIdx  0 1 2 2 3 3 3 4 4 4 4 4   (n=12)
+///	       superPtr  0 1 2 4 7 12
+///
+/// This is allocated during symbolic factorization SYMBFACT.
+struct SuperNode{
+	IntNumVec   superPtr;
+	IntNumVec   superIdx;
+};
 
-    UBlock() {_blkind=-1;_nrows=0;_ncols=0;}
-    ~UBlock() {}
-    
-    UBlock& operator= (const UBlock& UB) {
-      _blkind = UB._blkind;
-      _nrows  = UB._nrows;
-      _ncols  = UB._ncols;
-      _cols   = UB._cols;
-      _nzval  = UB._nzval;
-      return *this;
-    }
+/// @struct LBlock
+///
+/// @brief LBlock stores a lower triangular block, including the
+/// diagonal block in PSelInv.
+struct LBlock{
+	// Variables
+	Int               blockIdx;
+	Int               numRow;
+	Int               numCol;
+	IntNumVec         rows;
+	NumMat<Scalar>    nzval;
+
+	// Member functions;
+	LBlock() {blockIdx = -1; numRow = 0; numCol =0;}
+	~LBlock() {}
+	LBlock& operator = (const LBlock& LB) {
+		blockIdx    = LB.blockIdx;
+		numRow      = LB.numRow;
+		numCol      = LB.numCol;
+		rows        = LB.rows;
+		nzval       = LB.nzval;
+		return *this;
+	}
+};
+
+/// @struct UBlock
+///
+/// @brief UBlock stores a upper triangular block, excluding the
+/// diagonal block in PSelInv.
+struct UBlock{
+	// Variables
+	Int               blockIdx;
+	Int               numRow;
+	Int               numCol;
+	IntNumVec         cols;
+	NumMat<Scalar>    nzval;
+
+	// Member functions;
+	UBlock() {blockIdx = -1; numRow = 0; numCol =0;}
+	~UBlock() {}
+	UBlock& operator = (const UBlock& UB) {
+		blockIdx    = UB.blockIdx;
+		numRow      = UB.numRow;
+		numCol      = UB.numCol;
+		cols        = UB.cols;
+		nzval       = UB.nzval;
+		return *this;
+	}
 };
 
 class PMatrix{
-  public:
-    int _ndof;
-    int _nsupers;
-    int _nbc;
-    int _nbr;
-    IntNumVec _xsup;
-    IntNumVec _supno;
-    IntNumVec _nblkl;
-    IntNumVec _nblku;
-		std::vector<std::vector<LBlock> > _L;
-		std::vector<std::vector<UBlock> > _U;
-  public:
-    PMatrix(){;}
-    ~PMatrix(){;}
-    int ndof(){return _ndof;}
-    int nsupers(){return _nsupers;}
-    int nbc(){return _nbc;}
-    int nbr(){return _nbr;}
-    int xsup(int i){return _xsup[i];}
-    int supsize(int i){return _xsup[i+1]-_xsup[i];}
-    int superno(int i){return _supno[i];}
-    int nblkl(int i){return _nblkl[i];}
-    int nblku(int i){return _nblku[i];}
-    std::vector<std::vector<LBlock> >& L(){return _L;}
-    std::vector<LBlock>& L(int i){return _L[i];}
-    std::vector<std::vector<UBlock> >& U(){return _U;}
-    std::vector<UBlock>& U(int i){return _U[i];}
-
-    int DumpL(string filename, gridinfo_t* grid);
-    int DumpU(string filename, gridinfo_t* grid);
-    
-    int DumpLBlock(int isup, int jsup, string filename, gridinfo_t* grid);
-    int DumpUBlock(int isup, int jsup, string filename, gridinfo_t* grid);
-
-//    int CondDiagBlock(gridinfo_t* grid);
-    int DumpDiagVec(NumVec<Scalar>& globalDiagVec, 
-				string filename, gridinfo_t *grid);
-
+private:
+	Grid*           grid;
+//private:
+//
+//	Int _ndof;
+//	Int _nsupers;
+//	Int _nbc;
+//	Int _nbr;
+//	IntNumVec _xsup;
+//	IntNumVec _supno;
+//	IntNumVec _nblkl;
+//	IntNumVec _nblku;
+//	std::vector<std::vector<LBlock> > _L;
+//	std::vector<std::vector<UBlock> > _U;
+//
+//public:
+//	Int _ndof;
+//	Int _nsupers;
+//	Int _nbc;
+//	Int _nbr;
+//	IntNumVec _xsup;
+//	IntNumVec _supno;
+//	IntNumVec _nblkl;
+//	IntNumVec _nblku;
+//	std::vector<std::vector<LBlock> > _L;
+//	std::vector<std::vector<UBlock> > _U;
+public:
+	PMatrix(){;}
+	~PMatrix(){;}
+//	Int ndof(){return _ndof;}
+//	Int nsupers(){return _nsupers;}
+//	Int nbc(){return _nbc;}
+//	Int nbr(){return _nbr;}
+//	Int xsup(Int i){return _xsup[i];}
+//	Int supsize(Int i){return _xsup[i+1]-_xsup[i];}
+//	Int superno(Int i){return _supno[i];}
+//	Int nblkl(Int i){return _nblkl[i];}
+//	Int nblku(Int i){return _nblku[i];}
+//	std::vector<std::vector<LBlock> >& L(){return _L;}
+//	std::vector<LBlock>& L(Int i){return _L[i];}
+//	std::vector<std::vector<UBlock> >& U(){return _U;}
+//	std::vector<UBlock>& U(Int i){return _U[i];}
+//
+//	Int DumpL(string filename, gridinfo_t* grid);
+//	Int DumpU(string filename, gridinfo_t* grid);
+//
+//	Int DumpLBlock(Int isup, Int jsup, string filename, gridinfo_t* grid);
+//	Int DumpUBlock(Int isup, Int jsup, string filename, gridinfo_t* grid);
+//
+//	//    Int CondDiagBlock(gridinfo_t* grid);
+//	Int DumpDiagVec(NumVec<Scalar>& globalDiagVec, 
+//			string filename, gridinfo_t *grid);
+//
 };
 
-class BlockPtn
-{
-public:
-  IntNumVec _ownerinfo;
-public:
-  BlockPtn() {;}
-  ~BlockPtn() {;}
-  IntNumVec& ownerinfo() { return _ownerinfo; }
-  int owner(int key) {
-    return _ownerinfo(key);
-  }
-};
+//class BlockPtn
+//{
+//public:
+//	IntNumVec _ownerinfo;
+//public:
+//	BlockPtn() {;}
+//	~BlockPtn() {;}
+//	IntNumVec& ownerinfo() { return _ownerinfo; }
+//	Int owner(Int key) {
+//		return _ownerinfo(key);
+//	}
+//};
 
 // *********************************************************************
 // Main functions for PLUSelInv
 // *********************************************************************
 
-#define KITEMS  5
-#define ISOURCE 0
-#define ITARGET 1
-#define ISUPER  2
-#define IROWIND 3
-#define NROWS   4
+//#define KITEMS  5
+//#define ISOURCE 0
+//#define ITARGET 1
+//#define ISUPER  2
+//#define IROWIND 3
+//#define NROWS   4
 
-int SuperLU2SelInv(int n, LUstruct_t *LUstruct, gridinfo_t *grid,
-                   PMatrix& PMloc);
-
-// Convert a CSC Matrix to PMatrix structure in order to perform trace
-// operations. 
-//void CSCMatrixToPMatrix();
-
-// Convert PMatrix structure to a CSC matrix in order to perform trace
-// operations. 
-void PMatrixToCSCMatrix(int n, gridinfo_t *grid, PMatrix& PMloc);
-
-
-
-
-
-int DiagTri(PMatrix& PMloc, int ksup, gridinfo_t *grid);
-int ScaleLinv(PMatrix& PMloc, int ksup, gridinfo_t *grid);
-int ScaleUinv(PMatrix& PMloc, int ksup, gridinfo_t *grid);
-int DiagInnerProd(PMatrix& PMloc, std::vector<std::vector<int> >& localEtree, int ksup, gridinfo_t *grid);
-int SinvPL(PMatrix& PMloc, std::vector<std::vector<int> >& localEtree, int ksup, gridinfo_t* grid);
-int SinvPU(PMatrix& PMloc, std::vector<std::vector<int> >& localEtree, int ksup, gridinfo_t* grid);
-
-int PLUSelInv(gridinfo_t *grid, PMatrix& PMloc, std::vector<std::vector<int> >& localEtree);
-int ConstructLocalEtree(int n, gridinfo_t *grid, PMatrix& PMloc, 
-			std::vector<std::vector<int> >& localEtree);
-
-int BcastLBlock(LBlock& LB, int mykey, int srckey, MPI_Comm comm);
-int BcastUBlock(UBlock& UB, int mykey, int srckey, MPI_Comm comm);
-
-int DumpLocalEtree(std::vector<std::vector<int> >& localEtree, gridinfo_t* grid);
+//Int SuperLU2SelInv(Int n, LUstruct_t *LUstruct, gridinfo_t *grid,
+//		PMatrix& PMloc);
+//
+//// Convert a CSC Matrix to PMatrix structure in order to perform trace
+//// operations. 
+////void CSCMatrixToPMatrix();
+//
+//// Convert PMatrix structure to a CSC matrix in order to perform trace
+//// operations. 
+//void PMatrixToCSCMatrix(Int n, gridinfo_t *grid, PMatrix& PMloc);
+//
+//
+//
+//
+//
+//Int DiagTri(PMatrix& PMloc, Int ksup, gridinfo_t *grid);
+//Int ScaleLinv(PMatrix& PMloc, Int ksup, gridinfo_t *grid);
+//Int ScaleUinv(PMatrix& PMloc, Int ksup, gridinfo_t *grid);
+//Int DiagInnerProd(PMatrix& PMloc, std::vector<std::vector<Int> >& localEtree, Int ksup, gridinfo_t *grid);
+//Int SinvPL(PMatrix& PMloc, std::vector<std::vector<Int> >& localEtree, Int ksup, gridinfo_t* grid);
+//Int SinvPU(PMatrix& PMloc, std::vector<std::vector<Int> >& localEtree, Int ksup, gridinfo_t* grid);
+//
+//Int PLUSelInv(gridinfo_t *grid, PMatrix& PMloc, std::vector<std::vector<Int> >& localEtree);
+//Int ConstructLocalEtree(Int n, gridinfo_t *grid, PMatrix& PMloc, 
+//		std::vector<std::vector<Int> >& localEtree);
+//
+//Int BcastLBlock(LBlock& LB, Int mykey, Int srckey, MPI_Comm comm);
+//Int BcastUBlock(UBlock& UB, Int mykey, Int srckey, MPI_Comm comm);
+//
+//Int DumpLocalEtree(std::vector<std::vector<Int> >& localEtree, gridinfo_t* grid);
 
 //void blockinvert(Lstruct *PMlocL, LUstruct_t *LUstruct, gridinfo_t *grid,
-//                 int jsup, int n);
-//void ScalePMbyL(Lstruct *PMlocL, gridinfo_t *grid, int ksup, int nsupers);
+//                 Int jsup, Int n);
+//void ScalePMbyL(Lstruct *PMlocL, gridinfo_t *grid, Int ksup, Int nsupers);
 //void SetPL(Lstruct *PMlocL, gridinfo_t *grid, PLstruct *PL, 
-//           int ksup, int nsupers);
-
-#define LBlock_Number 5
-enum {
-  LBlock_blkind   = 0,
-  LBlock_nrows    = 1,
-  LBlock_ncols    = 2,
-  LBlock_rows     = 3,
-  LBlock_nzval    = 4,
-};
-
-int inline serialize(LBlock& val, ostream& os, const std::vector<int>& mask){
-  int i = 0;
-  if(mask[i]==1) serialize(val._blkind, os, mask); i++;
-  if(mask[i]==1) serialize(val._nrows,  os, mask); i++;
-  if(mask[i]==1) serialize(val._ncols,  os, mask); i++;
-  if(mask[i]==1) serialize(val._rows, os, mask);   i++;
-  if(mask[i]==1) serialize(val._nzval, os, mask);  i++;
-  iA( i == LBlock_Number );
-  return 0;
-}
-
-int inline deserialize(LBlock& val, istream& is, const std::vector<int>& mask){
-  int i = 0;
-  if(mask[i]==1) deserialize(val._blkind, is, mask); i++;
-  if(mask[i]==1) deserialize(val._nrows,  is, mask); i++;
-  if(mask[i]==1) deserialize(val._ncols,  is, mask); i++;
-  if(mask[i]==1) deserialize(val._rows,   is, mask); i++;
-  if(mask[i]==1) deserialize(val._nzval,  is, mask); i++; 
-  iA( i == LBlock_Number );
-  return 0;
-}
-
-#define UBlock_Number 5
-enum {
-  UBlock_blkind   = 0,
-  UBlock_nrows    = 1,
-  UBlock_ncols    = 2,
-  UBlock_cols     = 3,
-  UBlock_nzval    = 4,
-};
+//           Int ksup, Int nsupers);
 
 
+// *********************************************************************
+// SuperLU style utility functions
+// 
+// The define MACROS are removed so that the code is more portable.
+// *********************************************************************
 
-int inline serialize(UBlock& val, ostream& os, const std::vector<int>& mask){
-  int i = 0;
-  if(mask[i]==1) serialize(val._blkind, os, mask); i++;
-  if(mask[i]==1) serialize(val._nrows,  os, mask); i++;
-  if(mask[i]==1) serialize(val._ncols,  os, mask); i++;
-  if(mask[i]==1) serialize(val._cols, os, mask);   i++;
-  if(mask[i]==1) serialize(val._nzval, os, mask);  i++;
-  iA( i == UBlock_Number );
-  return 0;
-}
+inline Int MYROW( const Int mpirank, const Grid* g )
+{ return mpirank / g->numProcCol; }
 
-int inline deserialize(UBlock& val, istream& is, const std::vector<int>& mask){
-  int i = 0;
-  if(mask[i]==1) deserialize(val._blkind, is, mask); i++;
-  if(mask[i]==1) deserialize(val._nrows,  is, mask); i++;
-  if(mask[i]==1) deserialize(val._ncols,  is, mask); i++;
-  if(mask[i]==1) deserialize(val._cols,   is, mask); i++;
-  if(mask[i]==1) deserialize(val._nzval,  is, mask); i++; 
-  iA( i == UBlock_Number );
-  return 0;
-}
+inline Int MYCOL( const Int mpirank, const Grid* g )
+{ return mpirank % g->numProcCol; }
 
-inline ostream& operator<<( ostream& os, LBlock& LB)
-{
-  os<<"LBlock"<< endl;
-  os<<"blkind = "<< LB.blkind() << endl;
-  os<<"nrows = "<< LB.nrows() << endl;
-  os<<"ncols = "<< LB.ncols() << endl;
-  os<<"rows = "<< LB.rows() << endl;
-  os<<"nzval = "<< LB.nzval() << endl;
-  return os;
-}
+inline Int PROW( const Int bnum, const Grid* g ) 
+{ return bnum % g->numProcRow; }
 
-inline ostream& operator<<( ostream& os, UBlock& UB)
-{
-  os<<"UBlock"<< endl;
-  os<<"blkind = "<< UB.blkind() << endl;
-  os<<"nrows = "<< UB.nrows() << endl;
-  os<<"ncols = "<< UB.ncols() << endl;
-  os<<"colss = "<< UB.cols() << endl;
-  os<<"nzval = "<< UB.nzval() << endl;
-  return os;
-}
+inline Int PCOL( const Int bnum, const Grid* g ) 
+{ return bnum % g->numProcCol; }
 
+inline Int PNUM( const Int i, const Int j, const Grid* g )
+{ return i * g->numProcCol + j; }
 
-#endif
+inline Int LBi( const Int bnum, const Grid* g)
+{ return bnum / g->numProcRow; }
+
+inline Int LBj( const Int bnum, const Grid* g)
+{ return bnum / g->numProcCol; }
+
+inline Int CEILING( const Int a, const Int b )
+{ return (a%b) ? ( a/b + 1 ) : ( a/b ); }
+
+inline Int BlockIdx( const Int i, const SuperNode *s )
+{ return s->superIdx[i]; }
+
+inline Int FirstBlockCol( const Int bnum, const SuperNode *s )
+{ return s->superPtr[bnum]; }	
+
+inline Int SuperSize( const Int bnum, const SuperNode *s )
+{ return s->superPtr[bnum+1] - s->superPtr[bnum]; } 
+
+} // namespace PEXSI
+
+#endif // _PSELINV_HPP_

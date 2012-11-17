@@ -1,14 +1,15 @@
-/// @file ex13.cpp
-/// @brief Test for the new input interface for SuperLU with complex
-/// arithmetic.
+/// @file ex14.cpp
+/// @brief Test for the new input interface for SuperLU together with
+/// the new selected inversion (tree information only).
 /// @author Lin Lin
 /// @version 0.1
-/// @date 2012-11-15
+/// @date 2012-11-16
 #include  "environment_impl.hpp"
 #include  "sparse_matrix.hpp"
 #include  "numvec_impl.hpp"
 #include  "utility.hpp"
 #include  "superlu_dist_interf.hpp"
+#include	"pselinv.hpp"
 
 using namespace PEXSI;
 using namespace std;
@@ -36,7 +37,7 @@ int main(int argc, char **argv)
 		stringstream  ss;
 		ss << "logTest";
 		statusOFS.open( ss.str().c_str() );
-		
+
 		// *********************************************************************
 		// Input parameter
 		// *********************************************************************
@@ -165,8 +166,7 @@ int main(int argc, char **argv)
 		// Test the accuracy of factorization by solve
 		// *********************************************************************
 
-		if(1)
-		{
+		if( 1 ) {
 			SuperLUMatrix A1( g ), GA( g );
 			A1.DistSparseMatrixToSuperMatrixNRloc( AMat );
 			A1.ConvertNRlocToNC( GA );
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
 			CpxNumMat xTrueLocal, bLocal;
 			DblNumVec berr;
 			UniformRandom( xTrueGlobal );
-
+			
 			GA.MultiplyGlobalMultiVector( xTrueGlobal, bGlobal );
 
 			A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
@@ -186,6 +186,42 @@ int main(int argc, char **argv)
 			luMat.SolveDistMultiVector( bLocal, berr );
 			luMat.CheckErrorDistMultiVector( bLocal, xTrueLocal );
 		}
+
+
+
+
+
+		// *********************************************************************
+		// Selected inversion
+		// *********************************************************************
+
+		{
+			Grid g1( MPI_COMM_WORLD, nprow, npcol );
+		}
+		
+//		{
+//			GetTime(timeSta);
+//			SuperLU2SelInv(n, &LUstruct, &grid, PMloc);
+//			GetTime(timeEnd);
+//			if( mpirank == 0 )
+//				cout << "Time for converting the SuperLU to SelInv format is " 
+//					<< timeEnd - timeSta << " sec" << endl; 
+//
+//			GetTime(timeSta);
+//			ConstructLocalEtree(n, &grid, PMloc, localEtree);
+//			GetTime(timeEnd);
+//			if( mpirank == 0 )
+//				cout << "Time for converting the SelInv elimination tree is " 
+//					<< timeEnd - timeSta << " sec" << endl; 
+//			
+//			GetTime(timeSta);
+//			PLUSelInv(&grid, PMloc, localEtree);
+//			GetTime(timeEnd);
+//			if( mpirank == 0 )
+//				cout << "Time for the selected inversion is " 
+//					<< timeEnd - timeSta << " sec" << endl; 
+//		}
+
 
 		statusOFS.close();
 	}

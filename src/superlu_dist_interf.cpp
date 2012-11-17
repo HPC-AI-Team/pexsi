@@ -75,7 +75,7 @@ struct SuperLUMatrix::SuperLUData{
 	SuperMatrix         A;                        ///< SuperLU matrix. 
 	superlu_options_t   options;                  ///< SuperLU options.
 	ScalePermstruct_t   ScalePermstruct;          ///< Permutation vectors. 
-	gridinfo_t          *grid;
+	gridinfo_t*         grid;
 	LUstruct_t          LUstruct;
 	SOLVEstruct_t       SOLVEstruct;
 	SuperLUStat_t       stat;
@@ -110,8 +110,8 @@ SuperLUMatrix::SuperLUMatrix	( SuperLUGrid& g )
 	options.ParSymbFact       = NO;
 	options.Equil             = NO; 
 	options.ReplaceTinyPivot  = NO;
-//	options.ColPerm           = MMD_AT_PLUS_A;
-	options.ColPerm           = METIS_AT_PLUS_A;
+	options.ColPerm           = MMD_AT_PLUS_A;
+//	options.ColPerm           = METIS_AT_PLUS_A;
 	options.PrintStat         = YES;
 	options.SolveInitialized  = NO;
 
@@ -152,15 +152,13 @@ SuperLUMatrix::~SuperLUMatrix	(  )
 } 		// -----  end of method SuperLUMatrix::~SuperLUMatrix  ----- 
 
 
-Int
-SuperLUMatrix::m (  ) const	
+Int SuperLUMatrix::m (  ) const	
 {
 	return ptrData->A.nrow;
 } 		// -----  end of method SuperLUMatrix::m  ----- 
 
 
-Int
-SuperLUMatrix::n (  ) const	
+Int SuperLUMatrix::n (  ) const	
 {
 	return ptrData->A.ncol;
 } 		// -----  end of method SuperLUMatrix::n  ----- 

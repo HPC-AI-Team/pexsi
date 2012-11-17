@@ -2,11 +2,10 @@
 #define _SUPERLU_DIST_INTERF_HPP_
 
 // Interface with PSelInv
-//#include "pselinv.hpp"
+#include "pselinv.hpp"
 
 // Interface with sparse matrix (CSC format)
-#include "sparse_matrix.hpp"
-#include "nummat_impl.hpp"
+#include  "sparse_matrix.hpp"
 
 namespace PEXSI{
 
@@ -17,7 +16,7 @@ class SuperLUGrid{
 	friend class SuperLUMatrix;
 private:
 	struct           GridData;
-	GridData         *ptrData;
+	GridData*        ptrData;
 public:
 	SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
 
@@ -37,7 +36,7 @@ private:
 	/// SuperLUMatrix.
 	struct        SuperLUData;
 	/// @brief Actual pointer to save the data related to SuperLU.
-	SuperLUData   *ptrData;
+	SuperLUData*  ptrData;
 public:
 
 	SuperLUMatrix( SuperLUGrid& g );
@@ -109,6 +108,8 @@ public:
 	/// @param[in] xLocal The computed solution.
 	/// @param[in] xTrueLocal The true solution.
 	void CheckErrorDistMultiVector( NumMat<Scalar>& xLocal, NumMat<Scalar>& xTrueLocal );
+
+	void SuperLUMatrixToPMatrix( PMatrix& PMloc );
 };
 
 
