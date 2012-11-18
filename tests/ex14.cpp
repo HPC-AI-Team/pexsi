@@ -17,7 +17,7 @@ using namespace std;
 void Usage(){
   std::cout 
 		<< "Usage" << std::endl
-		<< "ex13 -r [nprow] -c [npcol]" << std::endl;
+		<< "ex14 -r [nprow] -c [npcol]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 			
 	try{
 		stringstream  ss;
-		ss << "logTest";
+		ss << "logTest" << mpirank;
 		statusOFS.open( ss.str().c_str() );
 
 		// *********************************************************************
@@ -195,8 +195,21 @@ int main(int argc, char **argv)
 		// Selected inversion
 		// *********************************************************************
 
+		if( 1 )
 		{
 			Grid g1( MPI_COMM_WORLD, nprow, npcol );
+			SuperNode super;
+			luMat.SymbolicToSuperNode( super );
+			
+			statusOFS << "perm: " << endl << super.perm << endl;
+			statusOFS << "superIdx:" << endl << super.superIdx << endl;
+			statusOFS << "superPtr:" << endl << super.superPtr << endl; 
+
+			PMatrix PMloc( &g1, &super );
+			luMat.LUstructToPMatrix( PMloc );
+
+			PMloc.ConstructCommunicationPattern();
+
 		}
 		
 //		{

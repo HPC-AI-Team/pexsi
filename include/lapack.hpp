@@ -61,6 +61,8 @@ double SafeNorm( double alpha, double beta );
 float SafeNorm( float alpha, float beta, float gamma );
 double SafeNorm( double alpha, double beta, double gamma );
 
+
+//
 //
 // Given phi and gamma, compute a Givens rotation such that
 //
@@ -195,10 +197,9 @@ void BidiagQRAlg
 ( char uplo, Int n, Int numColsVAdj, Int numRowsU, 
   double* d, double* e, dcomplex* VAdj, Int ldVAdj, dcomplex* U, Int ldU );
 
-//
+// *********************************************************************
 // Compute the linear least square problem using SVD
-//
-
+// *********************************************************************
 void SVDLeastSquare( Int m, Int n, Int nrhs, float * A, Int lda,
 		float * B, Int ldb, float * S, float rcond,
 		Int* rank );
@@ -211,6 +212,14 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, scomplex * A, Int lda,
 void SVDLeastSquare( Int m, Int n, Int nrhs, dcomplex * A, Int lda,
 		dcomplex * B, Int ldb, double * S, double rcond,
 		Int* rank );
+
+// *********************************************************************
+// Copy
+// *********************************************************************
+
+void Copy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
+	dcomplex* B, Int ldb	);
+
 
 
 } // namespace lapack

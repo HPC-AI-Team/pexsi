@@ -7,7 +7,7 @@ Grid::Grid	( MPI_Comm Bcomm, int nprow, int npcol )
 #ifndef _RELEASE_
 	PushCallStack("Grid::Grid");
 #endif
-	Int info, mpirank;
+	Int info;
 	MPI_Initialized( &info );
 	if( !info ){
 		throw std::logic_error( "MPI has not been initialized." );
@@ -59,11 +59,189 @@ Grid::~Grid	(  )
 
 namespace PEXSI{
 
+
+PMatrix::PMatrix ( const PEXSI::Grid* g, const PEXSI::SuperNode* s ):grid_(g), super_(s)
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::PMatrix");
+#endif
+  L_.resize( this->NumLocalBlockCol() );
+	U_.resize( this->NumLocalBlockRow() );
+
+//#if ( _DEBUGlevel_ >= 1 )
+//	statusOFS << "mpirank = " << MYPROC(grid_) << std::endl;
+//	statusOFS << "myrow   = " << MYROW(grid_) << std::endl; 
+//	statusOFS << "mycol   = " << MYCOL(grid_) << std::endl; 
+//#endif
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return ;
+} 		// -----  end of method PMatrix::PMatrix  ----- 
+
+PMatrix::~PMatrix() {}	
+
+
+void
+PMatrix::ConstructCommunicationPattern	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::ConstructCommunicationPattern");
+#endif
+  Int numSuper = this->NumSuper();
+
+#ifndef _RELEASE_
+	PushCallStack( "Local column communication" );
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "Local column communication" << std::endl;
+#endif
+	// localColBlockRowIdx stores the nonzero block indices for each local block column.
+	// The nonzero block indices including contribution from both L and U.
+	// Dimension: numLocalBlockCol x numNonzeroBlock
+	std::vector<std::set<Int> >   localColBlockRowIdx;
+
+	localColBlockRowIdx.resize( this->NumLocalBlockCol() );
+
+	for( Int ksup = 0; ksup < numSuper; ksup++ ){
+		// All block columns perform independently
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+			std::vector<Int>  tBlockRowIdx;
+			tBlockRowIdx.clear();
+
+			// L part
+			std::vector<LBlock>& Lcol = this->L( LBj(ksup, grid_) );
+			for( Int ib = 0; ib < Lcol.size(); ib++ ){
+				tBlockRowIdx.push_back( Lcol[ib].blockIdx );
+			}
+
+			// U part
+			for( Int ib = 0; ib < this->NumLocalBlockRow(); ib++ ){
+				std::vector<UBlock>& Urow = this->U(ib);
+				for( Int jb = 0; jb < Urow.size(); jb++ ){
+					if( Urow[jb].blockIdx == ksup ){
+						tBlockRowIdx.push_back( GBi( ib, grid_ ) );
+					}
+				}
+			}
+
+			// Communication
+      std::vector<Int> tAllBlockRowIdx;
+			mpi::Allgatherv( tBlockRowIdx, tAllBlockRowIdx, grid_->colComm );
+
+			localColBlockRowIdx[LBj( ksup, grid_ )].insert(
+					tAllBlockRowIdx.begin(), tAllBlockRowIdx.end() );
+			
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS 
+				<< " Column block " << ksup 
+				<< " has the following nonzero block rows" << std::endl;
+			for( std::set<Int>::iterator si = localColBlockRowIdx[LBj( ksup, grid_ )].begin();
+					si != localColBlockRowIdx[LBj( ksup, grid_ )].end();
+					si++ ){
+				statusOFS << *si << "  ";
+			}
+			statusOFS << std::endl; 
+#endif
+
+		} // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
+	} // for(ksup)
+
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+
+#ifndef _RELEASE_
+	PushCallStack( "Local row communication" );
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "Local row communication" << std::endl;
+#endif
+	// localRowBlockColIdx stores the nonzero block indices for each local block row.
+	// The nonzero block indices including contribution from both L and U.
+	// Dimension: numLocalBlockRow x numNonzeroBlock
+	std::vector<std::set<Int> >   localRowBlockColIdx;
+
+	localRowBlockColIdx.resize( this->NumLocalBlockRow() );
+
+	for( Int ksup = 0; ksup < numSuper; ksup++ ){
+		// All block columns perform independently
+		if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+			std::vector<Int>  tBlockColIdx;
+			tBlockColIdx.clear();
+
+			// U part
+			std::vector<UBlock>& Urow = this->U( LBi(ksup, grid_) );
+			for( Int jb = 0; jb < Urow.size(); jb++ ){
+				tBlockColIdx.push_back( Urow[jb].blockIdx );
+			}
+
+			// L part
+			for( Int jb = 0; jb < this->NumLocalBlockCol(); jb++ ){
+				std::vector<LBlock>& Lcol = this->L(jb);
+				for( Int ib = 0; ib < Lcol.size(); ib++ ){
+					if( Lcol[ib].blockIdx == ksup ){
+						tBlockColIdx.push_back( GBj( jb, grid_ ) );
+					}
+				}
+			}
+
+			// Communication
+      std::vector<Int> tAllBlockColIdx;
+			mpi::Allgatherv( tBlockColIdx, tAllBlockColIdx, grid_->rowComm );
+
+			localRowBlockColIdx[LBi( ksup, grid_ )].insert(
+					tAllBlockColIdx.begin(), tAllBlockColIdx.end() );
+			
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS 
+				<< " Row block " << ksup 
+				<< " has the following nonzero block columns" << std::endl;
+			for( std::set<Int>::iterator si = localRowBlockColIdx[LBi( ksup, grid_ )].begin();
+					si != localRowBlockColIdx[LBi( ksup, grid_ )].end();
+					si++ ){
+				statusOFS << *si << "  ";
+			}
+			statusOFS << std::endl; 
+#endif
+
+		} // if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+	} // for(ksup)
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+
+#ifndef _RELEASE_
+	PushCallStack("SendToDown / RecvFromUp");
+#endif
+	for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+		for( Int jsup = ksup + 1; jsup < numSuper - 1; jsup++ ){
+			Int jsupLocalBlockCol = LBj( jsup, grid_ );
+			Int jsupProcCol = PCOL( jsup, grid_ );
+					
+		} // for(jsup)
+	} // for(ksup)
+  
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+  
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PMatrix::ConstructCommunicationPattern  ----- 
+
 } // namespace PEXSI
 
 
-//// FIXME
-//double timettl1, timettl2, timettl3, timettl4;
 //
 ///**********************************************************************
 // * Convert SuperLU data structure to Lstruct and Ustruct required

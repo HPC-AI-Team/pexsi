@@ -511,4 +511,176 @@ SuperLUMatrix::CheckErrorDistMultiVector	( NumMat<Scalar>& xLocal, NumMat<Scalar
 	return ;
 } 		// -----  end of method SuperLUMatrix::CheckErrorDistMultiVector  ----- 
 
+
+void
+SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUMatrix::LUstructToPMatrix");
+#endif
+	const LocalLU_t* Llu   = ptrData->LUstruct.Llu;
+	const Grid* grid       = PMloc.Grid();
+	const SuperNode* super = PMloc.SuperNode();
+	Int numSuper = PMloc.NumSuper();
+
+  // L part   
+#ifndef _RELEASE_
+	PushCallStack("L part");
+#endif
+	for( Int jb = 0; jb < PMloc.NumLocalBlockCol(); jb++ ){
+		Int bnum = GBj( jb, grid );
+		if( bnum >= numSuper ) continue;
+
+		Int cnt = 0;                                // Count for the index in LUstruct
+		Int cntval = 0;                             // Count for the nonzero values
+		const Int* index = Llu->Lrowind_bc_ptr[jb];
+		if( index ){ 
+			// Not an empty column, start a new column then.
+			std::vector<LBlock>& Lcol = PMloc.L(jb);
+			Lcol.resize( index[cnt++] );
+			Int lda = index[cnt++];
+
+			for( Int iblk= 0; iblk < Lcol.size(); iblk++ ){
+				LBlock& LB     = Lcol[iblk];
+				LB.blockIdx    = index[cnt++];
+				LB.numRow      = index[cnt++];
+				LB.numCol      = super->superPtr[bnum+1] - super->superPtr[bnum];
+				LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
+				LB.nzval.Resize( LB.numRow, LB.numCol );   
+				SetValue( LB.nzval, SCALAR_ZERO ); 
+				cnt += LB.numRow;
+				
+				lapack::Copy( 'A', LB.numRow, LB.numCol, 
+						(Scalar*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
+						LB.nzval.Data(), LB.numRow );
+
+				cntval += LB.numRow;
+
+
+#if ( _DEBUGlevel_ >= 1 )
+				statusOFS 
+					<< "L part: bnum = " << bnum << ", numBlock = " << Lcol.size()
+					<< ", blockIdx = " << LB.blockIdx
+					<< ", numRow = " << LB.numRow 
+					<< ", numCol = " << LB.numCol << std::endl;
+#endif 
+
+			} // for(iblk)
+		}  // if(index)
+	} // for(jb)
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	// U part
+#ifndef _RELEASE_
+	PushCallStack("U part");
+#endif
+	for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
+		Int bnum = GBi( ib, grid );
+		if( bnum >= numSuper ) continue;
+
+		Int cnt = 0;                                // Count for the index in LUstruct
+		Int cntval = 0;                             // Count for the nonzero values
+		const Int*    index = Llu->Ufstnz_br_ptr[ib]; 
+		const Scalar* pval  = reinterpret_cast<const Scalar*>(Llu->Unzval_br_ptr[ib]);
+		if( index ){ 
+			// Not an empty row
+			// Compute the number of nonzero columns 
+			std::vector<UBlock>& Urow = PMloc.U(ib);
+			Urow.resize( index[cnt++] );
+			cnt = BR_HEADER;
+
+			std::vector<Int> cols;                    //Save the nonzero columns in the current block
+			for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
+				cols.clear();
+				UBlock& UB = Urow[jblk];
+				UB.blockIdx = index[cnt];
+				UB.numRow = super->superPtr[bnum+1] - super->superPtr[bnum];
+				cnt += UB_DESCRIPTOR;
+				for( Int j = FirstBlockCol( UB.blockIdx, super ); 
+						 j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
+					Int firstRow = index[cnt++];
+					if( firstRow != FirstBlockCol( bnum+1, super ) )
+						cols.push_back(j);
+				}
+				// Rewind the index
+				cnt -= super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx];
+
+				UB.numCol = cols.size();
+				UB.cols   = IntNumVec( cols.size(), true, &cols[0] );
+				UB.nzval.Resize( UB.numRow, UB.numCol );
+				SetValue( UB.nzval, SCALAR_ZERO );
+
+				Int cntcol = 0;
+				for( Int j = 0; 
+					   j < super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx]; j++ ){
+					Int firstRow = index[cnt++];
+					if( firstRow != FirstBlockCol( bnum+1, super ) ){
+						Int tnrow = FirstBlockCol( bnum+1, super ) - firstRow;
+						lapack::Copy( 'A', tnrow, 1, &pval[cntval], tnrow,
+								&UB.nzval(firstRow - FirstBlockCol(bnum, super), cntcol),
+								UB.numRow );
+						cntcol ++;
+						cntval += tnrow;
+					}
+				} // for( j )
+
+#if ( _DEBUGlevel_ >= 1 )
+				statusOFS 
+					<< "U part: bnum = " << bnum << ", numBlock = " << Urow.size()
+					<< ", blockIdx = " << UB.blockIdx
+					<< ", numRow = " << UB.numRow 
+					<< ", numCol = " << UB.numCol << std::endl;
+#endif 
+
+			} // for (jblk)
+
+
+
+		} // if( index )
+
+	} // for(ib)
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method SuperLUMatrix::LUstructToPMatrix  ----- 
+
+
+
+void
+SuperLUMatrix::SymbolicToSuperNode	( SuperNode& super )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUMatrix::SymbolicToSuperNode");
+#endif
+	Int n = ptrData->A.ncol;
+	// Permutation vector
+	Int *perm_c = ptrData->ScalePermstruct.perm_c;
+	super.perm.Resize( n );
+	std::copy( perm_c, perm_c + n, super.perm.Data() );
+
+  // Supernodal information
+
+	Int *xsup    = ptrData -> LUstruct.Glu_persist -> xsup;
+	Int *superno = ptrData -> LUstruct.Glu_persist -> supno;
+	Int numSuper = superno[ n-1 ] + 1;
+  super.superPtr.Resize( numSuper + 1 );
+	std::copy( xsup, xsup + numSuper + 1, super.superPtr.Data() );
+	super.superIdx.Resize( n );
+	std::copy( superno, superno + n, super.superIdx.Data() );
+  
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method SuperLUMatrix::SymbolicToSuperNode  ----- 
+
 } // namespace PEXSI

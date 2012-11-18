@@ -176,6 +176,13 @@ void LAPACK(zgelss)
   dcomplex *B, const Int *ldb, double *S, const double *rcond, Int *rank,
   dcomplex *work, const Int *lwork, double *rwork, Int *info );	
 
+// Copy
+
+void LAPACK(zlacpy)
+	( const char* uplo, const Int* m, const Int* n, 
+		const dcomplex* A, const Int *lda, 
+		dcomplex* B, const Int *ldb );
+
 } // extern "C"
 
 //
@@ -1375,10 +1382,10 @@ void SingularValues( Int m, Int n, dcomplex* A, Int lda, double* s )
 #endif
 }
 
-//
-// Compute the linear least square problem using SVD
-//
 
+// *********************************************************************
+// Compute the linear least square problem using SVD
+// *********************************************************************
 void SVDLeastSquare( Int m, Int n, Int nrhs, float * A, Int lda,
 		float * B, Int ldb, float * S, float rcond,
 		Int* rank )
@@ -1559,6 +1566,20 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, dcomplex * A, Int lda,
 #endif
 }
 
+// *********************************************************************
+// Copy
+// *********************************************************************
+
+void Copy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
+	dcomplex* B, Int ldb	){
+#ifndef _RELEASE_
+    PushCallStack("lapack::Copy");
+#endif
+  LAPACK(zlacpy)( &uplo, &m, &n, A, &lda, B, &ldb );
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
+}
 
 } // namespace lapack
 } // namespace PEXSI

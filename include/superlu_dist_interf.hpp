@@ -7,6 +7,9 @@
 // Interface with sparse matrix (CSC format)
 #include  "sparse_matrix.hpp"
 
+// Interface with LAPACK
+#include  "lapack.hpp"
+
 namespace PEXSI{
 
 /// @class SuperLUGrid
@@ -21,6 +24,7 @@ public:
 	SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
 
 	~SuperLUGrid();
+
 };
 
 /// @class SuperLUMatrix
@@ -109,7 +113,16 @@ public:
 	/// @param[in] xTrueLocal The true solution.
 	void CheckErrorDistMultiVector( NumMat<Scalar>& xLocal, NumMat<Scalar>& xTrueLocal );
 
-	void SuperLUMatrixToPMatrix( PMatrix& PMloc );
+	/// @brief LUstructToPMatrix converts the data in LUstruct to PMatrix.
+	///
+	/// @paramp[out] PMloc
+	void LUstructToPMatrix( PMatrix& PMloc );
+
+	/// @brief SymbolicToSuperNode converts the symbolic information to
+	/// SuperNode structure in SelInv.
+	///
+	/// @param[out] super
+	void SymbolicToSuperNode( SuperNode& super );
 };
 
 
