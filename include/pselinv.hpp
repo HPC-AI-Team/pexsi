@@ -1,5 +1,9 @@
+/// @file pselinv.hpp
+/// @brief Header file for PSelInv
+/// @author Lin Lin
+/// @version 0.1
+/// @date 2012-11-14
 #ifndef _PSELINV_HPP_
-
 #define _PSELINV_HPP_
 
 // *********************************************************************
@@ -11,6 +15,7 @@
 #include	"nummat_impl.hpp" 
 #include  "sparse_matrix.hpp"
 #include  "mpi_interf.hpp"
+#include	"utility.hpp"
 
 namespace PEXSI{
 
@@ -195,6 +200,8 @@ inline Int NumCol( const SuperNode *s )
 /// This assumption is only used when sending the information to
 /// cross-diagonals, i.e. from L_{ik} to U_{ki}.  This assumption can be
 /// relaxed later.
+/// 
+
 class PMatrix{
 
 private:
@@ -208,13 +215,13 @@ private:
 	std::vector<std::vector<UBlock> > U_;
 
 	// Communication variables
-	std::vector<std::vector<bool> >    isSendToDown;
-	std::vector<std::vector<bool> >    isSendToRight;
-	std::vector<std::vector<bool> >    isSendToCrossDiagonal;
+	NumMat<bool>                       isSendToDown;
+	NumMat<bool>                       isSendToRight;
+	NumVec<bool>                       isSendToCrossDiagonal;
 
-	std::vector<bool>                  isRecvFromUp;
-	std::vector<bool>                  isRecvFromLeft;
-	std::vector<bool>                  isRecvFromCrossDiagonal;
+	NumVec<bool>                       isRecvFromUp;
+	NumVec<bool>                       isRecvFromLeft;
+	NumVec<bool>                       isRecvFromCrossDiagonal;
 
 private:
 	// *********************************************************************
@@ -278,7 +285,134 @@ public:
 	void ConstructCommunicationPattern( );
 
 	/// @brief SelInv is the main function for the selected inversion.
-  void SelInv( );
+	///
+	/// Algorithm description for PSelInv
+	/// ---------------------------------
+	///
+	/// PSelInv is a right-looking based parallel selected inversion
+	/// subroutine for sparse symmetric matrices.  Static pivoting is
+	/// used in this version.
+	///
+	/// Although the matrix is symmetric, the key idea of the current
+	/// implementation of PSelInv is that the upper-triangular matrix is
+	/// saved (in the form of UBlock).  Such redundant information is
+	/// effective for reducing the complexity of the communication
+	/// pattern.  
+	///
+	/// At each supernode ksup, three subroutines are executed:
+	///
+	/// - UpdateL.
+	/// 
+	/// The blocks in the processor row of ksup first sends the nonzero
+	/// blocks in U(ksup, jsup) to the Schur complements Ainv(isup, jsup).
+	/// At the same time the blocks in the processor column of ksup sends
+	/// the nonzero blocks (only row indices) to the Schur complement
+	/// Ainv(isup, jsup).  Then 
+	///
+	/// \sum_{jsup} A^{-1}(isup, jsup) U^{T}(ksup, jsup)
+	///
+	/// is performed.  The result is reduced to the processor column ksup
+	/// within the same processor row. 
+	///
+	/// - UpdateD.
+	///
+	/// The diagonal block (ksup, ksup) is simply updated by a reduce
+	/// procedure within the column processor group of ksup.
+	///
+	/// - UpdateU.
+	///
+	/// The Ainv(ksup, isup) blocks can be simply updated via
+	/// the update from the cross diagonal processors.
+	///
+	/// The cross diagonal processor is only well defined for square
+	/// grids.  For a P x P square grid, (ip, jp) is the cross diagonal
+	/// processor of (jp, ip) if ip != jp.  The current version of SelInv
+	/// only works for square processor grids.
+	///
+	///
+	/// Communication pattern
+	/// ---------------------
+	///
+	/// The communication is controlled by 3 sending varaibles and 3
+	/// receiving variables. The first dimension of all the sending and
+	/// receiving variables are numSuper.  There is redundant information
+	/// saved, but this increases the readability of the output by only
+	/// increasing a small amount of memory cost for indexing.  This set of
+	/// sending / receiving mechanism avoids the double indexing of the
+	/// supernodes and can scale to matrices of large size.
+	///
+	/// - isSendToDown:  
+	///
+	///   Dimension: numSuper x numProcRow
+	///
+	///   Role     : At supernode ksup, if isSendToDown(ksup, ip) == true, send
+	///   all local blocks {(ksup, jsup) | jsup > ksup} to the processor row ip.
+	///
+	/// - isRecvFromUp:
+	///
+	///   Dimension: numSuper
+	///
+	///   Role     : At supernode ksup, if isRecvFromUp(ksup) == true and
+	///   isRecvFromLeft(ksup) == true, receive blocks from the processor
+	///   owning the block row of ksup within the same column processor
+	///   group.
+	///
+	/// - isSendToRight:
+	///
+	///   Dimension: numSuper x numProcCol
+	///
+	///   Role     : At supernode ksup, if isSendToRight(jp, ksup) == true, send
+	///   all local blocks {(isup, ksup) | isup > ksup} to the processor
+	///   column jp.
+	///
+	/// - isRecvFromLeft:
+	///   
+	///   Dimension: numSuper
+	///
+	///   Role     : At supernode ksup, if isRecvFromUp(ksup) == true and
+	///   isRecvFromLeft(ksup) == true, receive blocks from the processor
+	///   owning the block column of ksup within the same row processor
+	///   group.
+	///
+	/// - isSendToCrossDiagonal:
+	///
+	///   Dimension: numSuper
+	///
+	///   Role     : At supernode ksup, if isSendToCrossDiagonal(ksup) ==
+	///   true, send all local blocks {(isup, ksup) | isup > ksup} to the
+	///   cross-diagonal processor.  NOTE: This requires a square processor
+	///   grid.
+	///
+	/// - isRecvCrossDiagonal:
+	///
+	///   Dimension: numSuper
+	///
+	///   Role     : At supernode ksup, if isRecvFromCrossDiagonal(ksup) ==
+	///   true, receive from the cross-diagonal processor.  NOTE: This
+	///   requires a square processor grid.
+	///   
+	///
+	/// Future work
+	/// -----------
+	///
+	/// - Pipelining:
+	///
+	///   Approximately 50% of speedup.
+	///   
+	///   Reference: S. Li and J. Demmel, SuperLU_DIST : A Scalable
+	///   Distributed-Memory Sparse Direct Solver for Unsymmetric Linear
+	///   Systems, ACM TOMS, 2003
+	///
+	/// - Look-ahead and static scheduling:
+	///
+	///   Approximately 2.5~3.5 times speedup.
+	///
+	///   Reference: I. Yamazaki and S. Li, New Scheduling Strategies and Hybrid Programming for
+	///   a Parallel Right-looking Sparse LU Factorization Algorithm on
+	///   Multicore Cluster Systems, IPDPS 2012
+	///
+	///
+	void SelInv( );
 
 	/// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
 	/// distributed compressed sparse column matrix format, according

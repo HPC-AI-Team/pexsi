@@ -1,7 +1,7 @@
 #/usr/bin/bash
 
 PEXSI_DIR     = /Users/linlin/Projects/pexsi
-DSUPERLU_DIR  = $(HOME)/Documents/Software/SuperLU_DIST_3.1
+DSUPERLU_DIR  = $(HOME)/Documents/Software/SuperLU_DIST_3.2
 PLUSELINV_DIR = ${PEXSI_DIR}/external/PLUSelInv
 
 # inclues
@@ -22,7 +22,7 @@ BLAS_LIB         = -lblas
 METIS_LIB        = /Users/linlin/Software/parmetis-4.0.2/build/Darwin-x86_64/libmetis/libmetis.a
 PARMETISLIB	     = /Users/linlin/Software/parmetis-4.0.2/build/Darwin-x86_64/libparmetis/libparmetis.a
 SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
-DSUPERLU_LIB     = $(DSUPERLU_DIR)/lib/libsuperlu_dist_3.1.a
+DSUPERLU_LIB     = $(DSUPERLU_DIR)/lib/libsuperlu_dist_3.2.a
 PLUSELINV_LIB    = ${PLUSELINV_DIR}/libpluselinv.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi.a
 

@@ -18,6 +18,8 @@ Grid::Grid	( MPI_Comm Bcomm, int nprow, int npcol )
 	if( mpisize != nprow * npcol ){
 		throw std::logic_error( "mpisize != nprow * npcol." ); 
 	}
+	if( nprow != npcol ){
+		throw std::runtime_error( "The current version of SelInv only works for square processor grids." ); }
 
   numProcRow = nprow;
   numProcCol = npcol;
@@ -90,6 +92,27 @@ PMatrix::ConstructCommunicationPattern	(  )
 	PushCallStack("PMatrix::ConstructCommunicationPattern");
 #endif
   Int numSuper = this->NumSuper();
+#ifndef _RELEASE_
+	PushCallStack( "Initialize the communicatino pattern" );
+#endif
+	isSendToDown.Resize( numSuper, grid_->numProcRow );
+	isSendToRight.Resize( numSuper, grid_->numProcCol );
+	isSendToCrossDiagonal.Resize( numSuper );
+	SetValue( isSendToDown, false );
+	SetValue( isSendToRight, false );
+	SetValue( isSendToCrossDiagonal, false );
+
+	isRecvFromUp.Resize( numSuper );
+	isRecvFromLeft.Resize( numSuper );
+	isRecvFromCrossDiagonal.Resize( numSuper );
+  SetValue( isRecvFromUp, false );
+	SetValue( isRecvFromLeft, false );
+	SetValue( isRecvFromCrossDiagonal, false );
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
 
 #ifndef _RELEASE_
 	PushCallStack( "Local column communication" );
@@ -220,18 +243,116 @@ PMatrix::ConstructCommunicationPattern	(  )
 	PushCallStack("SendToDown / RecvFromUp");
 #endif
 	for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+		// Loop over all the supernodes to the right of ksup
 		for( Int jsup = ksup + 1; jsup < numSuper - 1; jsup++ ){
 			Int jsupLocalBlockCol = LBj( jsup, grid_ );
 			Int jsupProcCol = PCOL( jsup, grid_ );
+			if( MYCOL( grid_ ) == jsupProcCol ){
+				// SendToDown / RecvFromUp only if (ksup, jsup) is nonzero.
+				if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 ){
+          for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
+						   si != localColBlockRowIdx[jsupLocalBlockCol].end(); si++	 ){
+            Int isup = *si;
+						Int isupProcRow = PROW( isup, grid_ );
+						if( isup > ksup ){
+							if( MYROW( grid_ ) == isupProcRow ){
+								isRecvFromUp(ksup) = true;
+							}
+							if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+								isSendToDown( ksup, isupProcRow ) = true;
+							}
+						} // if( isup > ksup )
+					} // for (si)
+				} // if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 )
+			} // if( MYCOL( grid_ ) == PCOL( jsup, grid_ ) )
 					
 		} // for(jsup)
 	} // for(ksup)
-  
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "isSendToDown:" << isSendToDown << std::endl;
+	statusOFS << std::endl << "isRecvFromUp:" << isRecvFromUp << std::endl;
+#endif
+ 
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
 
+
+#ifndef _RELEASE_
+	PushCallStack("SendToRight / RecvFromLeft");
+#endif
+  for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+		// Loop over all the supernodes below ksup
+		for( Int isup = ksup + 1; isup < numSuper - 1; isup++ ){
+			Int isupLocalBlockRow = LBi( isup, grid_ );
+			Int isupProcRow       = PROW( isup, grid_ );
+			if( MYROW( grid_ ) == isupProcRow ){
+				// SendToRight / RecvFromLeft only if (isup, ksup) is nonzero.
+				if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
+					for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
+							 si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
+						Int jsup = *si;
+						Int jsupProcCol = PCOL( jsup, grid_ );
+						if( jsup > ksup ){
+							if( MYCOL( grid_ ) == jsupProcCol ){
+								isRecvFromLeft(ksup) = true;
+							}
+              if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+								isSendToRight( ksup, jsupProcCol ) = true;
+							}
+						}
+					} // for (si)
+				} // if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 )
+			} // if( MYROW( grid_ ) == isupProcRow )
+		} // for (isup)
+  }	 // for (ksup)
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "isSendToRight:" << isSendToRight << std::endl;
+	statusOFS << std::endl << "isRecvFromLeft:" << isRecvFromLeft << std::endl;
+#endif
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+#ifndef _RELEASE_
+	PushCallStack("SendToCrossDiagonal / RecvFromCrossDiagonal");
+#endif
+	for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+			for( std::set<Int>::iterator si = localColBlockRowIdx[LBj( ksup, grid_ )].begin();
+					 si != localColBlockRowIdx[LBj( ksup, grid_ )].end(); si++ ){
+				Int isup = *si;
+				Int isupProcRow = PROW( isup, grid_ );
+				if( isup > ksup && MYROW( grid_ ) == isupProcRow ){
+					isSendToCrossDiagonal( ksup ) = true;
+				}
+			} // for (si)
+		} // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
+	} // for (ksup)
   
+	for( Int ksup = 0; ksup < numSuper-1; ksup++ ){
+		if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+			for( std::set<Int>::iterator si = localRowBlockColIdx[ LBi(ksup, grid_) ].begin();
+					 si != localRowBlockColIdx[ LBi(ksup, grid_) ].end(); si++ ){
+				Int jsup = *si;
+				Int jsupProcCol = PCOL( jsup, grid_ );
+				if( jsup > ksup && MYCOL(grid_) == jsupProcCol ){
+					isRecvFromCrossDiagonal[ksup] = true;
+				}
+			} // for (si)
+		} // if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+	} // for (ksup)
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "isSendToCrossDiagonal:" << isSendToCrossDiagonal << std::endl;
+	statusOFS << std::endl << "isRecvFromCrossDiagonal:" << isRecvFromCrossDiagonal<< std::endl;
+#endif
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+
 #ifndef _RELEASE_
 	PopCallStack();
 #endif

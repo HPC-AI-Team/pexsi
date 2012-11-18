@@ -192,8 +192,6 @@ void SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>
 	std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
 			(Complex*)nzvalLocal );
 
-//	std::cout << "Processor " << mpirank << " rowptrLocal[end] = " << 
-//		rowptrLocal[numRowLocal] << std::endl;
 
 
 	// Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
@@ -204,9 +202,6 @@ void SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>
 	for(Int i = 0; i < sparseA.colptrLocal.m(); i++){
 		rowptrLocal[i]--;
 	}
-
-//	std::cout << "Processor " << mpirank << " colindLocal[end] = " << 
-//		colindLocal[A.nnzLocal-1] << std::endl;
 
 	// Construct the distributed matrix according to the SuperLU_DIST format
 	zCreate_CompRowLoc_Matrix_dist(&ptrData->A, sparseA.size, sparseA.size, sparseA.nnzLocal, 
@@ -527,6 +522,9 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 #ifndef _RELEASE_
 	PushCallStack("L part");
 #endif
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "LUstructToPMatrix::L part" << std::endl;
+#endif
 	for( Int jb = 0; jb < PMloc.NumLocalBlockCol(); jb++ ){
 		Int bnum = GBj( jb, grid );
 		if( bnum >= numSuper ) continue;
@@ -575,6 +573,9 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 	// U part
 #ifndef _RELEASE_
 	PushCallStack("U part");
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "LUstructToPMatrix::U part" << std::endl;
 #endif
 	for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
 		Int bnum = GBi( ib, grid );
