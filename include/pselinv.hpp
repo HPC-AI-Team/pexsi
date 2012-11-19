@@ -194,6 +194,8 @@ inline Int NumCol( const SuperNode *s )
 // Serialize / Deserialize
 // *********************************************************************
 
+// L part
+
 namespace LBlockMask{
 enum {
 	BLOCKIDX,
@@ -221,6 +223,38 @@ Int inline deserialize(LBlock& val, std::istream& is, const std::vector<Int>& ma
   if(mask[i]==1) deserialize(val.numRow,  is, mask); i++;
   if(mask[i]==1) deserialize(val.numCol,  is, mask); i++;
   if(mask[i]==1) deserialize(val.rows,   is, mask); i++;
+  if(mask[i]==1) deserialize(val.nzval,  is, mask); i++; 
+  return 0;
+}
+
+// U part
+namespace UBlockMask{
+enum {
+	BLOCKIDX,
+	NUMROW,
+	NUMCOL,
+	COLS,
+	NZVAL,
+	TOTAL_NUMBER
+};
+}
+
+Int inline serialize(UBlock& val, std::ostream& os, const std::vector<Int>& mask){
+  Int i = 0;
+  if(mask[i]==1) serialize(val.blockIdx, os, mask); i++;
+  if(mask[i]==1) serialize(val.numRow,  os, mask); i++;
+  if(mask[i]==1) serialize(val.numCol,  os, mask); i++;
+  if(mask[i]==1) serialize(val.cols, os, mask);   i++;
+  if(mask[i]==1) serialize(val.nzval, os, mask);  i++;
+  return 0;
+}
+
+Int inline deserialize(UBlock& val, std::istream& is, const std::vector<Int>& mask){
+  Int i = 0;
+  if(mask[i]==1) deserialize(val.blockIdx, is, mask); i++;
+  if(mask[i]==1) deserialize(val.numRow,  is, mask); i++;
+  if(mask[i]==1) deserialize(val.numCol,  is, mask); i++;
+  if(mask[i]==1) deserialize(val.cols,   is, mask); i++;
   if(mask[i]==1) deserialize(val.nzval,  is, mask); i++; 
   return 0;
 }
@@ -275,12 +309,6 @@ private:
 	/// executed.
 	void PreSelInv( );
 
-	void UpdateL( Int ksup );
-
-	void UpdateD( Int ksup );
-
-	void UpdateU( Int ksup );
-
 public:
 	// *********************************************************************
 	// Public member functions 
@@ -317,7 +345,6 @@ public:
 	/// @brief U returns the vector of nonzero U blocks for the local
 	/// block row iLocal.
 	std::vector<UBlock>& U( Int iLocal ) { return U_[iLocal]; }
-
 
 	/// @brief ConstructCommunicationPattern constructs the communication
 	/// pattern to be used later in the selected inversion stage.

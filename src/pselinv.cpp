@@ -373,11 +373,73 @@ PMatrix::SelInv	(  )
 	this->PreSelInv();
 
 	for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
-		this->UpdateL( ksup );
+#ifndef _RELEASE_
+		PushCallStack("Update lower triangluar part");
+#endif
+		// Communication for the U part.
+		std::vector<MPI_Request> mpireqsUSend( grid_->numProcRow ); 
+		std::vector<MPI_Request> mpireqsURecv( grid_->numProcRow ); 
+		std::vector<MPI_Status>  mpistatUSend( grid_->numProcRow ); 
+		std::vector<MPI_Status>  mpistatURecv( grid_->numProcRow ); 
 
-		this->UpdateD( ksup );
+		// Initialize the MPI_Request and MPI_Status
+		for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+			mpireqsUSend[iProcRow]  = MPI_REQUEST_NULL;
+			mpireqsURecv[iProcRow]  = MPI_REQUEST_NULL;
+		}
 
-		this->UpdateU( ksup );
+		// Senders
+		if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+			// Pack the data in U
+			std::stringstream sstm;
+			std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+			std::vector<UBlock>&  Urow = this->U( LBi(ksup, grid_) );
+			serialize( (Int)Urow.size(), sstm, NO_MASK );
+			for( Int jb = 0; jb < Urow.size(); jb++ ){
+				if( Urow[jb].blockIdx > ksup ){
+					serialize( Urow[jb], sstm, mask );
+				}
+				else{
+					throw std::logic_error( "U contains more than the upper triangular matrix." );
+				}
+			}
+			for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+				if( MYROW( grid_ ) != iProcRow &&
+						isSendToDown_( ksup, iProcRow ) == true ){
+					// Use Isend to send to multiple targets
+//					mpi::Isend( sstm, iProcRow, , , grid_->colComm, reqs );
+
+				} // Send 
+			} // for (iProcRow)
+		} // if I am the sender
+
+		if( 1 ){
+		} // if I am a receiver
+
+		// Wait
+		mpi::Waitall( mpireqsUSend, mpistatUSend );
+		mpi::Waitall( mpireqsURecv, mpistatURecv );
+
+#ifndef _RELEASE_
+		PopCallStack();
+#endif
+
+#ifndef _RELEASE_
+		PushCallStack("Update the diagonal part");
+#endif
+
+#ifndef _RELEASE_
+		PopCallStack();
+#endif
+
+#ifndef _RELEASE_
+		PushCallStack("Update the upper triangular part");
+#endif
+
+#ifndef _RELEASE_
+		PopCallStack();
+#endif
+
 	}
 
 #ifndef _RELEASE_
@@ -639,49 +701,6 @@ PMatrix::PreSelInv	(  )
 } 		// -----  end of method PMatrix::PreSelInv  ----- 
 
 
-void
-PMatrix::UpdateL	( Int ksup )
-{
-#ifndef _RELEASE_
-	PushCallStack("PMatrix::UpdateL");
-#endif
-
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-
-	return ;
-} 		// -----  end of method PMatrix::UpdateL  ----- 
-
-
-void
-PMatrix::UpdateD	( Int ksup )
-{
-#ifndef _RELEASE_
-	PushCallStack("PMatrix::UpdateD");
-#endif
-
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-
-	return ;
-} 		// -----  end of method PMatrix::UpdateD  ----- 
-
-
-void
-PMatrix::UpdateU	( Int ksup  )
-{
-#ifndef _RELEASE_
-	PushCallStack("PMatrix::UpdateU");
-#endif
-
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-
-	return ;
-} 		// -----  end of method PMatrix::UpdateU  ----- 
 
 } // namespace PEXSI
 

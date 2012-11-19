@@ -85,6 +85,70 @@ Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
 	return ;
 }		// -----  end of function Recv  ----- 
 
+
+void
+Isend ( const std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
+		MPI_Comm comm, MPI_Request& reqSize, MPI_Request& reqContent )
+{
+#ifndef _RELEASE_
+	PushCallStack("Isend");
+#endif
+	const std::string sstr = sstm.str();
+	Int sizeStm = sstr.length();
+	MPI_Isend( &sizeStm, 1, MPI_INT,  dest, tagSize, comm, &reqSize );
+	MPI_Isend( (void*)sstr.c_str(), sizeStm, MPI_BYTE, dest, tagContent, comm, &reqContent );
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Isend  ----- 
+
+
+void
+Irecv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
+		MPI_Comm comm, MPI_Request& reqSize, MPI_Request& reqContent )
+{
+#ifndef _RELEASE_
+	PushCallStack("Irecv");
+#endif
+	std::vector<char> str;
+	Int sizeStm;
+	MPI_Irecv( &sizeStm, 1, MPI_INT, src, tagSize, comm, &reqSize );
+	str.resize( sizeStm );
+	MPI_Irecv( (void*) &str[0], sizeStm, MPI_BYTE, src, tagContent, comm, &reqContent );
+	sstm.write( &str[0], sizeStm );
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Irecv  ----- 
+
+
+// *********************************************************************
+// Waitall
+// *********************************************************************
+
+void
+Waitall ( std::vector<MPI_Request>& reqs, std::vector<MPI_Status>& stats )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Waitall");
+#endif
+  if( reqs.size() != stats.size() ){
+    throw std::runtime_error( "MPI_Request does not have the same as as MPI_Status." );
+	}
+	for( Int i = 0; i < reqs.size(); i++ ){
+		MPI_Wait( &reqs[i], &stats[i] );
+	}
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Waitall  ----- 
 } // namespace mpi
 
 } // namespace PEXSI
