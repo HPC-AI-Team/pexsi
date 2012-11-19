@@ -16,6 +16,8 @@
 #include  "sparse_matrix.hpp"
 #include  "mpi_interf.hpp"
 #include	"utility.hpp"
+#include	"blas.hpp"
+#include	"lapack.hpp"
 
 namespace PEXSI{
 
@@ -157,7 +159,7 @@ inline Int PCOL( Int bnum, const Grid* g )
 inline Int PNUM( Int i, Int j, const Grid* g )
 { return i * g->numProcCol + j; }
 
-inline Int LBi( Int bnum, const Grid* g)
+inline Int LBi( Int bnum, const Grid* g )
 { return bnum / g->numProcRow; }
 
 inline Int LBj( Int bnum, const Grid* g)
@@ -187,6 +189,43 @@ inline Int NumSuper( const SuperNode *s )
 inline Int NumCol( const SuperNode *s )
 { return s->superIdx.m(); }
 
+
+// *********************************************************************
+// Serialize / Deserialize
+// *********************************************************************
+
+namespace LBlockMask{
+enum {
+	BLOCKIDX,
+	NUMROW,
+	NUMCOL,
+	ROWS,
+	NZVAL,
+	TOTAL_NUMBER
+};
+}
+
+Int inline serialize(LBlock& val, std::ostream& os, const std::vector<Int>& mask){
+  Int i = 0;
+  if(mask[i]==1) serialize(val.blockIdx, os, mask); i++;
+  if(mask[i]==1) serialize(val.numRow,  os, mask); i++;
+  if(mask[i]==1) serialize(val.numCol,  os, mask); i++;
+  if(mask[i]==1) serialize(val.rows, os, mask);   i++;
+  if(mask[i]==1) serialize(val.nzval, os, mask);  i++;
+  return 0;
+}
+
+Int inline deserialize(LBlock& val, std::istream& is, const std::vector<Int>& mask){
+  Int i = 0;
+  if(mask[i]==1) deserialize(val.blockIdx, is, mask); i++;
+  if(mask[i]==1) deserialize(val.numRow,  is, mask); i++;
+  if(mask[i]==1) deserialize(val.numCol,  is, mask); i++;
+  if(mask[i]==1) deserialize(val.rows,   is, mask); i++;
+  if(mask[i]==1) deserialize(val.nzval,  is, mask); i++; 
+  return 0;
+}
+
+
 /**********************************************************************
  * Main data structure in PSelInv: PMatrix
  **********************************************************************/
@@ -215,13 +254,13 @@ private:
 	std::vector<std::vector<UBlock> > U_;
 
 	// Communication variables
-	NumMat<bool>                       isSendToDown;
-	NumMat<bool>                       isSendToRight;
-	NumVec<bool>                       isSendToCrossDiagonal;
+	NumMat<bool>                       isSendToDown_;
+	NumMat<bool>                       isSendToRight_;
+	NumVec<bool>                       isSendToCrossDiagonal_;
 
-	NumVec<bool>                       isRecvFromUp;
-	NumVec<bool>                       isRecvFromLeft;
-	NumVec<bool>                       isRecvFromCrossDiagonal;
+	NumVec<bool>                       isRecvFromUp_;
+	NumVec<bool>                       isRecvFromLeft_;
+	NumVec<bool>                       isRecvFromCrossDiagonal_;
 
 private:
 	// *********************************************************************
@@ -437,37 +476,6 @@ public:
 //			string filename, gridinfo_t *grid);
 //
 };
-
-//
-//// Convert PMatrix structure to a CSC matrix in order to perform trace
-//// operations. 
-//void PMatrixToCSCMatrix(Int n, gridinfo_t *grid, PMatrix& PMloc);
-//
-//
-//
-//
-//
-//Int DiagTri(PMatrix& PMloc, Int ksup, gridinfo_t *grid);
-//Int ScaleLinv(PMatrix& PMloc, Int ksup, gridinfo_t *grid);
-//Int ScaleUinv(PMatrix& PMloc, Int ksup, gridinfo_t *grid);
-//Int DiagInnerProd(PMatrix& PMloc, std::vector<std::vector<Int> >& localEtree, Int ksup, gridinfo_t *grid);
-//Int SinvPL(PMatrix& PMloc, std::vector<std::vector<Int> >& localEtree, Int ksup, gridinfo_t* grid);
-//Int SinvPU(PMatrix& PMloc, std::vector<std::vector<Int> >& localEtree, Int ksup, gridinfo_t* grid);
-//
-//Int PLUSelInv(gridinfo_t *grid, PMatrix& PMloc, std::vector<std::vector<Int> >& localEtree);
-//Int ConstructLocalEtree(Int n, gridinfo_t *grid, PMatrix& PMloc, 
-//		std::vector<std::vector<Int> >& localEtree);
-//
-//Int BcastLBlock(LBlock& LB, Int mykey, Int srckey, MPI_Comm comm);
-//Int BcastUBlock(UBlock& UB, Int mykey, Int srckey, MPI_Comm comm);
-//
-//Int DumpLocalEtree(std::vector<std::vector<Int> >& localEtree, gridinfo_t* grid);
-
-//void blockinvert(Lstruct *PMlocL, LUstruct_t *LUstruct, gridinfo_t *grid,
-//                 Int jsup, Int n);
-//void ScalePMbyL(Lstruct *PMlocL, gridinfo_t *grid, Int ksup, Int nsupers);
-//void SetPL(Lstruct *PMlocL, gridinfo_t *grid, PLstruct *PL, 
-//           Int ksup, Int nsupers);
 
 
 

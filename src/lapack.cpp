@@ -5,20 +5,6 @@ namespace lapack {
 
 extern "C" {
 
-// Machine constants
-float LAPACK(slamch)( const char* cmach );
-double LAPACK(dlamch)( const char* cmach );
-
-// Safe norms
-float LAPACK(slapy2)
-( const float* alpha, const float* beta );
-double LAPACK(dlapy2)
-( const double* alpha, const double* beta );
-float LAPACK(slapy3)
-( const float* alpha, const float* beta, const float* gamma );
-double LAPACK(dlapy3)
-( const double* alpha, const double* beta, const double* gamma );
-
 // Safely compute a Givens rotation
 void LAPACK(slartg)
 ( const float* phi, const float* gamma,
@@ -183,172 +169,28 @@ void LAPACK(zlacpy)
 		const dcomplex* A, const Int *lda, 
 		dcomplex* B, const Int *ldb );
 
+// Triangular solve : Trsm
+//void LAPACK(ztrsm)
+//	( const char* side, const char* uplo, const char* transa, const char * diag,
+//		const Int* m, const Int* n, const dcomplex* alpha, const dcomplex* A, const Int* lda,
+//		dcomplex* B, const Int* ldb );
+
+// Inverting a factorized matrix: Getri
+void LAPACK(zgetri)
+	( const Int* n, dcomplex* A, const Int* lda, const Int* ipiv, dcomplex* work,
+		const Int* lwork, Int* info );
+
 } // extern "C"
 
-//
-// Machine constants
-//
 
-template<>
-float MachineEpsilon<float>()
-{
-    const char cmach = 'E';
-    return LAPACK(slamch)( &cmach );
-}
-
-template<> 
-double MachineEpsilon<double>()
-{
-    const char cmach = 'E';
-    return LAPACK(dlamch)( &cmach );
-}
-
-template<> 
-float MachineSafeMin<float>()
-{
-    const char cmach = 'S';
-    return LAPACK(slamch)( &cmach );
-}
-
-template<> 
-double MachineSafeMin<double>()
-{
-    const char cmach = 'S';
-    return LAPACK(dlamch)( &cmach );
-}
-
-template<> 
-float MachineBase<float>()
-{
-    const char cmach = 'B';
-    return LAPACK(slamch)( &cmach );
-}
-
-template<> 
-double MachineBase<double>()
-{
-    const char cmach = 'B';
-    return LAPACK(dlamch)( &cmach );
-}
-
-template<>
-float MachinePrecision<float>()
-{
-    const char cmach = 'P';
-    return LAPACK(slamch)( &cmach );
-}
-
-template<> 
-double MachinePrecision<double>()
-{
-    const char cmach = 'P';
-    return LAPACK(dlamch)( &cmach );
-}
-
-template<> 
-float MachineUnderflowExponent<float>()
-{
-    const char cmach = 'M';
-    return LAPACK(slamch)( &cmach );
-}
-
-template<> 
-double MachineUnderflowExponent<double>()
-{
-    const char cmach = 'M';
-    return LAPACK(dlamch)( &cmach );
-}
-
-template<>
-float MachineUnderflowThreshold<float>()
-{
-    const char cmach = 'U';
-    return LAPACK(slamch)( &cmach );
-}
-
-template<> 
-double MachineUnderflowThreshold<double>()
-{
-    const char cmach = 'U';
-    return LAPACK(dlamch)( &cmach );
-}
-
-template<> 
-float MachineOverflowExponent<float>()
-{
-    const char cmach = 'L';
-    return LAPACK(slamch)( &cmach );
-}
-
-template<> 
-double MachineOverflowExponent<double>()
-{
-    const char cmach = 'L';
-    return LAPACK(dlamch)( &cmach );
-}
-
-template<> 
-float MachineOverflowThreshold<float>()
-{
-    const char cmach = 'O';
-    return LAPACK(slamch)( &cmach );
-}
-
-template<> 
-double MachineOverflowThreshold<double>()
-{
-    const char cmach = 'O';
-    return LAPACK(dlamch)( &cmach );
-}
-
-//
-// Safely compute norms
-//
-
-float SafeNorm( float alpha, float beta )
-{ return LAPACK(slapy2)( &alpha, &beta ); }
-
-double SafeNorm( double alpha, double beta )
-{ return LAPACK(dlapy2)( &alpha, &beta ); }
-
-float SafeNorm( float alpha, float beta, float gamma )
-{ return LAPACK(slapy3)( &alpha, &beta, &gamma ); }
-
-double SafeNorm( double alpha, double beta, double gamma )
-{ return LAPACK(dlapy3)( &alpha, &beta, &gamma ); }
-
-//
-// Safely compute Givens rotations (using Demmel and Kahan's algorithm)
-//
-
-void ComputeGivens
-( float phi, float gamma,
-  float* c, float* s, float* rho )
-{ LAPACK(slartg)( &phi, &gamma, c, s, rho ); }
-
-void ComputeGivens
-( double phi, double gamma,
-  double* c, double* s, double* rho )
-{ LAPACK(dlartg)( &phi, &gamma, c, s, rho ); }
-
-void ComputeGivens
-( scomplex phi, scomplex gamma,
-  float* c, scomplex* s, scomplex* rho )
-{ LAPACK(clartg)( &phi, &gamma, c, s, rho ); }
-
-void ComputeGivens
-( dcomplex phi, dcomplex gamma,
-  double* c, dcomplex* s, dcomplex* rho )
-{ LAPACK(zlartg)( &phi, &gamma, c, s, rho ); }
-
-//
+// *********************************************************************
 // Cholesky factorization
-//
+// *********************************************************************
 
-void Cholesky( char uplo, Int n, const float* A, Int lda )
+void Potrf( char uplo, Int n, const float* A, Int lda )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::Cholesky");
+    PushCallStack("lapack::Potrf");
 #endif
     Int info;
     LAPACK(spotrf)( &uplo, &n, A, &lda, &info );
@@ -365,10 +207,10 @@ void Cholesky( char uplo, Int n, const float* A, Int lda )
 #endif
 }
 
-void Cholesky( char uplo, Int n, const double* A, Int lda )
+void Potrf( char uplo, Int n, const double* A, Int lda )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::Cholesky");
+    PushCallStack("lapack::Potrf");
 #endif
     Int info;
     LAPACK(dpotrf)( &uplo, &n, A, &lda, &info );
@@ -385,10 +227,10 @@ void Cholesky( char uplo, Int n, const double* A, Int lda )
 #endif
 }
 
-void Cholesky( char uplo, Int n, const scomplex* A, Int lda )
+void Potrf( char uplo, Int n, const scomplex* A, Int lda )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::Cholesky");
+    PushCallStack("lapack::Potrf");
 #endif
     Int info;
     LAPACK(cpotrf)( &uplo, &n, A, &lda, &info );
@@ -405,10 +247,10 @@ void Cholesky( char uplo, Int n, const scomplex* A, Int lda )
 #endif
 }
 
-void Cholesky( char uplo, Int n, const dcomplex* A, Int lda )
+void Potrf( char uplo, Int n, const dcomplex* A, Int lda )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::Cholesky");
+    PushCallStack("lapack::Potrf");
 #endif
     Int info;
     LAPACK(zpotrf)( &uplo, &n, A, &lda, &info );
@@ -425,14 +267,14 @@ void Cholesky( char uplo, Int n, const dcomplex* A, Int lda )
 #endif
 }
 
-//
-// LU factorization
-//
+// *********************************************************************
+// LU factorization (with partial pivoting)
+// *********************************************************************
 
-void LU( Int m, Int n, float* A, Int lda, Int* p )
+void Getrf( Int m, Int n, float* A, Int lda, Int* p )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::LU");
+    PushCallStack("lapack::Getrf");
 #endif
     Int info;
     LAPACK(sgetrf)( &m, &n, A, &lda, p, &info );
@@ -449,10 +291,10 @@ void LU( Int m, Int n, float* A, Int lda, Int* p )
 #endif
 }
 
-void LU( Int m, Int n, double* A, Int lda, Int* p )
+void Getrf( Int m, Int n, double* A, Int lda, Int* p )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::LU");
+    PushCallStack("lapack::Getrf");
 #endif
     Int info;
     LAPACK(dgetrf)( &m, &n, A, &lda, p, &info );
@@ -469,10 +311,10 @@ void LU( Int m, Int n, double* A, Int lda, Int* p )
 #endif
 }
 
-void LU( Int m, Int n, scomplex* A, Int lda, Int* p )
+void Getrf( Int m, Int n, scomplex* A, Int lda, Int* p )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::LU");
+    PushCallStack("lapack::Getrf");
 #endif
     Int info;
     LAPACK(cgetrf)( &m, &n, A, &lda, p, &info );
@@ -489,10 +331,10 @@ void LU( Int m, Int n, scomplex* A, Int lda, Int* p )
 #endif
 }
 
-void LU( Int m, Int n, dcomplex* A, Int lda, Int* p )
+void Getrf( Int m, Int n, dcomplex* A, Int lda, Int* p )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::LU");
+    PushCallStack("lapack::Getrf");
 #endif
     Int info;
     LAPACK(zgetrf)( &m, &n, A, &lda, p, &info );
@@ -594,14 +436,14 @@ void Hegst
 #endif
 }
 
-//
-// Triangular inversion
-//
+// *********************************************************************
+// For computing the inverse of a triangular matrix
+// *********************************************************************
 
-void TriangularInverse( char uplo, char diag, Int n, const float* A, Int lda )
+void Trtri( char uplo, char diag, Int n, const float* A, Int lda )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::TriangularInverse");
+    PushCallStack("lapack::Trtri");
 #endif
     Int info;
     LAPACK(strtri)( &uplo, &diag, &n, A, &lda, &info );
@@ -618,10 +460,10 @@ void TriangularInverse( char uplo, char diag, Int n, const float* A, Int lda )
 #endif
 }
 
-void TriangularInverse( char uplo, char diag, Int n, const double* A, Int lda )
+void Trtri( char uplo, char diag, Int n, const double* A, Int lda )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::TriangularInverse");
+    PushCallStack("lapack::Trtri");
 #endif
     Int info;
     LAPACK(dtrtri)( &uplo, &diag, &n, A, &lda, &info );
@@ -638,11 +480,11 @@ void TriangularInverse( char uplo, char diag, Int n, const double* A, Int lda )
 #endif
 }
 
-void TriangularInverse
+void Trtri
 ( char uplo, char diag, Int n, const scomplex* A, Int lda )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::TriangularInverse");
+    PushCallStack("lapack::Trtri");
 #endif
     Int info;
     LAPACK(ctrtri)( &uplo, &diag, &n, A, &lda, &info );
@@ -659,11 +501,11 @@ void TriangularInverse
 #endif
 }
 
-void TriangularInverse
+void Trtri
 ( char uplo, char diag, Int n, const dcomplex* A, Int lda )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::TriangularInverse");
+    PushCallStack("lapack::Trtri");
 #endif
     Int info;
     LAPACK(ztrtri)( &uplo, &diag, &n, A, &lda, &info );
@@ -840,9 +682,9 @@ void BidiagQRAlg
 #endif
 }
 
-//
-// Divide and Conquer SVD
-//
+// *********************************************************************
+// Compute the SVD of a general matrix using a divide and conquer algorithm
+// *********************************************************************
 
 void DivideAndConquerSVD
 ( Int m, Int n, float* A, Int lda, 
@@ -1391,42 +1233,42 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, float * A, Int lda,
 		Int* rank )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::SVDLeastSquare");
+	PushCallStack("lapack::SVDLeastSquare");
 #endif
-    if( m==0 || n==0 )
-    {
+	if( m==0 || n==0 )
+	{
 #ifndef _RELEASE_
-        PopCallStack();
+		PopCallStack();
 #endif
-        return;
-    }
+		return;
+	}
 
-		Int  lwork=-1, info;
-		float dummyWork;
+	Int  lwork=-1, info;
+	float dummyWork;
 
-		LAPACK(sgelss)
-			( &m, &n, &nrhs, A, &lda, B, &ldb, S,
-				&rcond, rank, &dummyWork, &lwork, &info );
+	LAPACK(sgelss)
+		( &m, &n, &nrhs, A, &lda, B, &ldb, S,
+			&rcond, rank, &dummyWork, &lwork, &info );
 
-		lwork = dummyWork;
-    
-		std::vector<float> work(lwork);
-		LAPACK(sgelss)
-			( &m, &n, &nrhs, A, &lda, B, &ldb, S,
-				&rcond, rank, &work[0], &lwork, &info );
-    
-		if( info < 0 )
-    {
-        std::ostringstream msg;
-        msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
-    }
-    else if( info > 0 )
-    {
-        throw std::runtime_error("sgelss's svd failed to converge.");
-    }
+	lwork = dummyWork;
+
+	std::vector<float> work(lwork);
+	LAPACK(sgelss)
+		( &m, &n, &nrhs, A, &lda, B, &ldb, S,
+			&rcond, rank, &work[0], &lwork, &info );
+
+	if( info < 0 )
+	{
+		std::ostringstream msg;
+		msg << "Argument " << -info << " had illegal value";
+		throw std::logic_error( msg.str().c_str() );
+	}
+	else if( info > 0 )
+	{
+		throw std::runtime_error("sgelss's svd failed to converge.");
+	}
 #ifndef _RELEASE_
-    PopCallStack();
+	PopCallStack();
 #endif
 }
 
@@ -1435,42 +1277,42 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, double * A, Int lda,
 		Int* rank )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::SVDLeastSquare");
+	PushCallStack("lapack::SVDLeastSquare");
 #endif
-    if( m==0 || n==0 )
-    {
+	if( m==0 || n==0 )
+	{
 #ifndef _RELEASE_
-        PopCallStack();
+		PopCallStack();
 #endif
-        return;
-    }
+		return;
+	}
 
-		Int  lwork=-1, info;
-		double dummyWork;
+	Int  lwork=-1, info;
+	double dummyWork;
 
-		LAPACK(dgelss)
-			( &m, &n, &nrhs, A, &lda, B, &ldb, S,
-				&rcond, rank, &dummyWork, &lwork, &info );
+	LAPACK(dgelss)
+		( &m, &n, &nrhs, A, &lda, B, &ldb, S,
+			&rcond, rank, &dummyWork, &lwork, &info );
 
-		lwork = dummyWork;
-    
-		std::vector<double> work(lwork);
-		LAPACK(dgelss)
-			( &m, &n, &nrhs, A, &lda, B, &ldb, S,
-				&rcond, rank, &work[0], &lwork, &info );
-    
-		if( info < 0 )
-    {
-        std::ostringstream msg;
-        msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
-    }
-    else if( info > 0 )
-    {
-        throw std::runtime_error("dgelss's svd failed to converge.");
-    }
+	lwork = dummyWork;
+
+	std::vector<double> work(lwork);
+	LAPACK(dgelss)
+		( &m, &n, &nrhs, A, &lda, B, &ldb, S,
+			&rcond, rank, &work[0], &lwork, &info );
+
+	if( info < 0 )
+	{
+		std::ostringstream msg;
+		msg << "Argument " << -info << " had illegal value";
+		throw std::logic_error( msg.str().c_str() );
+	}
+	else if( info > 0 )
+	{
+		throw std::runtime_error("dgelss's svd failed to converge.");
+	}
 #ifndef _RELEASE_
-    PopCallStack();
+	PopCallStack();
 #endif
 }
 
@@ -1479,44 +1321,44 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, scomplex * A, Int lda,
 		Int* rank )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::SVDLeastSquare");
+	PushCallStack("lapack::SVDLeastSquare");
 #endif
-    if( m==0 || n==0 )
-    {
+	if( m==0 || n==0 )
+	{
 #ifndef _RELEASE_
-        PopCallStack();
+		PopCallStack();
 #endif
-        return;
-    }
+		return;
+	}
 
-		Int  lwork=-1, info;
-		Int  lrwork = 5*m;
-		std::vector<float> rwork(lrwork);
-		scomplex dummyWork;
+	Int  lwork=-1, info;
+	Int  lrwork = 5*m;
+	std::vector<float> rwork(lrwork);
+	scomplex dummyWork;
 
-		LAPACK(cgelss)
-			( &m, &n, &nrhs, A, &lda, B, &ldb, S,
-				&rcond, rank, &dummyWork, &lwork, &rwork[0], &info );
+	LAPACK(cgelss)
+		( &m, &n, &nrhs, A, &lda, B, &ldb, S,
+			&rcond, rank, &dummyWork, &lwork, &rwork[0], &info );
 
-		lwork = dummyWork.real();
-    
-		std::vector<scomplex> work(lwork);
-		LAPACK(cgelss)
-			( &m, &n, &nrhs, A, &lda, B, &ldb, S,
-				&rcond, rank, &work[0], &lwork, &rwork[0], &info );
-    
-		if( info < 0 )
-    {
-        std::ostringstream msg;
-        msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
-    }
-    else if( info > 0 )
-    {
-        throw std::runtime_error("cgelss's svd failed to converge.");
-    }
+	lwork = dummyWork.real();
+
+	std::vector<scomplex> work(lwork);
+	LAPACK(cgelss)
+		( &m, &n, &nrhs, A, &lda, B, &ldb, S,
+			&rcond, rank, &work[0], &lwork, &rwork[0], &info );
+
+	if( info < 0 )
+	{
+		std::ostringstream msg;
+		msg << "Argument " << -info << " had illegal value";
+		throw std::logic_error( msg.str().c_str() );
+	}
+	else if( info > 0 )
+	{
+		throw std::runtime_error("cgelss's svd failed to converge.");
+	}
 #ifndef _RELEASE_
-    PopCallStack();
+	PopCallStack();
 #endif
 }
 
@@ -1525,44 +1367,44 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, dcomplex * A, Int lda,
 		Int* rank )
 {
 #ifndef _RELEASE_
-    PushCallStack("lapack::SVDLeastSquare");
+	PushCallStack("lapack::SVDLeastSquare");
 #endif
-    if( m==0 || n==0 )
-    {
+	if( m==0 || n==0 )
+	{
 #ifndef _RELEASE_
-        PopCallStack();
+		PopCallStack();
 #endif
-        return;
-    }
+		return;
+	}
 
-		Int  lwork=-1, info;
-		Int  lrwork = 5*m;
-		std::vector<double> rwork(lrwork);
-		dcomplex dummyWork;
+	Int  lwork=-1, info;
+	Int  lrwork = 5*m;
+	std::vector<double> rwork(lrwork);
+	dcomplex dummyWork;
 
-		LAPACK(zgelss)
-			( &m, &n, &nrhs, A, &lda, B, &ldb, S,
-				&rcond, rank, &dummyWork, &lwork, &rwork[0], &info );
+	LAPACK(zgelss)
+		( &m, &n, &nrhs, A, &lda, B, &ldb, S,
+			&rcond, rank, &dummyWork, &lwork, &rwork[0], &info );
 
-		lwork = dummyWork.real();
-    
-		std::vector<dcomplex> work(lwork);
-		LAPACK(zgelss)
-			( &m, &n, &nrhs, A, &lda, B, &ldb, S,
-				&rcond, rank, &work[0], &lwork, &rwork[0], &info );
-    
-		if( info < 0 )
-    {
-        std::ostringstream msg;
-        msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
-    }
-    else if( info > 0 )
-    {
-        throw std::runtime_error("zgelss's svd failed to converge.");
-    }
+	lwork = dummyWork.real();
+
+	std::vector<dcomplex> work(lwork);
+	LAPACK(zgelss)
+		( &m, &n, &nrhs, A, &lda, B, &ldb, S,
+			&rcond, rank, &work[0], &lwork, &rwork[0], &info );
+
+	if( info < 0 )
+	{
+		std::ostringstream msg;
+		msg << "Argument " << -info << " had illegal value";
+		throw std::logic_error( msg.str().c_str() );
+	}
+	else if( info > 0 )
+	{
+		throw std::runtime_error("zgelss's svd failed to converge.");
+	}
 #ifndef _RELEASE_
-    PopCallStack();
+	PopCallStack();
 #endif
 }
 
@@ -1570,16 +1412,81 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, dcomplex * A, Int lda,
 // Copy
 // *********************************************************************
 
-void Copy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
+// TODO Real arithmetic
+
+void Lacpy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
 	dcomplex* B, Int ldb	){
 #ifndef _RELEASE_
-    PushCallStack("lapack::Copy");
+    PushCallStack("lapack::Lacpy");
 #endif
   LAPACK(zlacpy)( &uplo, &m, &n, A, &lda, B, &ldb );
 #ifndef _RELEASE_
     PopCallStack();
 #endif
 }
+
+
+// *********************************************************************
+// Triangular solve : Trsm
+// *********************************************************************
+
+// TODO Real arithmetic
+
+//void
+//Trsm ( char side, char uplo, char transa, char diag, 
+//		Int m, Int n, dcomplex alpha, 
+//		const dcomplex* A, Int lda, dcomplex* B, Int ldb )
+//{
+//#ifndef _RELEASE_
+//	PushCallStack("lapack::Trsm");
+//#endif
+//  LAPACK(ztrsm)( &side, &uplo, &transa, &diag, &m, &n, &alpha,
+//			A, &lda, B, &ldb );
+//#ifndef _RELEASE_
+//	PopCallStack();
+//#endif
+//
+//	return ;
+//}		// -----  end of function Trsm  ----- 
+
+// *********************************************************************
+// Inverting a factorized matrix: Getri
+// *********************************************************************
+void
+Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv )
+{
+#ifndef _RELEASE_
+	PushCallStack("lapack::Getri");
+#endif
+	Int lwork = -1, info;
+	dcomplex dummyWork;
+
+	LAPACK(zgetri)( &n, A, &lda, ipiv, &dummyWork, &lwork, &info );
+
+	lwork = dummyWork.real();
+	std::vector<dcomplex> work(lwork);
+
+	LAPACK(zgetri)( &n, A, &lda, ipiv, &work[0], &lwork, &info );
+
+	if( info < 0 )
+	{
+		std::ostringstream msg;
+		msg << "Argument " << -info << " had illegal value";
+		throw std::logic_error( msg.str().c_str() );
+	}
+	else if( info > 0 )
+	{
+		std::ostringstream msg;
+		msg << "U(" << info << ", " << info << ") = 0. The matrix is singular and cannot be inverted.";
+		throw std::runtime_error( msg.str().c_str() );
+	}
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Getri  ----- 
 
 } // namespace lapack
 } // namespace PEXSI

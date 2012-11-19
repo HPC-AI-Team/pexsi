@@ -15,7 +15,7 @@ Allgatherv (
 		MPI_Comm          comm )
 {
 #ifndef _RELEASE_
-	PushCallStack("Allgatherv");
+	PushCallStack("mpi::Allgatherv");
 #endif
 	Int mpirank, mpisize;
 	MPI_Comm_rank( comm, &mpirank );
@@ -43,6 +43,47 @@ Allgatherv (
 
 	return ;
 }		// -----  end of function Allgatherv  ----- 
+
+
+// *********************************************************************
+// Send / Recv
+// *********************************************************************
+void 
+Send( const std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
+		MPI_Comm comm ){
+#ifndef _RELEASE_
+	PushCallStack("mpi::Send");
+#endif
+	const std::string sstr = sstm.str();
+	Int sizeStm = sstr.length();
+	MPI_Send( &sizeStm, 1, MPI_INT,  dest, tagSize, comm );
+	MPI_Send( (void*)sstr.c_str(), sizeStm, MPI_BYTE, dest, tagContent, comm );
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return; 
+} // -----  end of function Send ----- 
+
+
+void
+Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
+		MPI_Comm comm, MPI_Status& statSize, MPI_Status& statContent )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Recv");
+#endif
+	std::vector<char> str;
+	Int sizeStm;
+	MPI_Recv( &sizeStm, 1, MPI_INT, src, tagSize, comm, &statSize );
+	str.resize( sizeStm );
+	MPI_Recv( (void*) &str[0], sizeStm, MPI_BYTE, src, tagContent, comm, &statContent );
+	sstm.write( &str[0], sizeStm );
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Recv  ----- 
 
 } // namespace mpi
 

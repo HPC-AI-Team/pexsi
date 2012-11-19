@@ -210,6 +210,8 @@ int main(int argc, char **argv)
 
 			PMloc.ConstructCommunicationPattern();
 
+			PMloc.SelInv();
+
 		}
 		
 //		{

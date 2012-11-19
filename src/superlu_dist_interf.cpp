@@ -548,7 +548,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 				SetValue( LB.nzval, SCALAR_ZERO ); 
 				cnt += LB.numRow;
 				
-				lapack::Copy( 'A', LB.numRow, LB.numCol, 
+				lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
 						(Scalar*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
 						LB.nzval.Data(), LB.numRow );
 
@@ -619,7 +619,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 					Int firstRow = index[cnt++];
 					if( firstRow != FirstBlockCol( bnum+1, super ) ){
 						Int tnrow = FirstBlockCol( bnum+1, super ) - firstRow;
-						lapack::Copy( 'A', tnrow, 1, &pval[cntval], tnrow,
+						lapack::Lacpy( 'A', tnrow, 1, &pval[cntval], tnrow,
 								&UB.nzval(firstRow - FirstBlockCol(bnum, super), cntcol),
 								UB.numRow );
 						cntcol ++;

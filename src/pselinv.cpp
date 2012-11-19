@@ -95,19 +95,19 @@ PMatrix::ConstructCommunicationPattern	(  )
 #ifndef _RELEASE_
 	PushCallStack( "Initialize the communicatino pattern" );
 #endif
-	isSendToDown.Resize( numSuper, grid_->numProcRow );
-	isSendToRight.Resize( numSuper, grid_->numProcCol );
-	isSendToCrossDiagonal.Resize( numSuper );
-	SetValue( isSendToDown, false );
-	SetValue( isSendToRight, false );
-	SetValue( isSendToCrossDiagonal, false );
+	isSendToDown_.Resize( numSuper, grid_->numProcRow );
+	isSendToRight_.Resize( numSuper, grid_->numProcCol );
+	isSendToCrossDiagonal_.Resize( numSuper );
+	SetValue( isSendToDown_, false );
+	SetValue( isSendToRight_, false );
+	SetValue( isSendToCrossDiagonal_, false );
 
-	isRecvFromUp.Resize( numSuper );
-	isRecvFromLeft.Resize( numSuper );
-	isRecvFromCrossDiagonal.Resize( numSuper );
-  SetValue( isRecvFromUp, false );
-	SetValue( isRecvFromLeft, false );
-	SetValue( isRecvFromCrossDiagonal, false );
+	isRecvFromUp_.Resize( numSuper );
+	isRecvFromLeft_.Resize( numSuper );
+	isRecvFromCrossDiagonal_.Resize( numSuper );
+  SetValue( isRecvFromUp_, false );
+	SetValue( isRecvFromLeft_, false );
+	SetValue( isRecvFromCrossDiagonal_, false );
 
 #ifndef _RELEASE_
 	PopCallStack();
@@ -256,10 +256,10 @@ PMatrix::ConstructCommunicationPattern	(  )
 						Int isupProcRow = PROW( isup, grid_ );
 						if( isup > ksup ){
 							if( MYROW( grid_ ) == isupProcRow ){
-								isRecvFromUp(ksup) = true;
+								isRecvFromUp_(ksup) = true;
 							}
 							if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
-								isSendToDown( ksup, isupProcRow ) = true;
+								isSendToDown_( ksup, isupProcRow ) = true;
 							}
 						} // if( isup > ksup )
 					} // for (si)
@@ -269,8 +269,8 @@ PMatrix::ConstructCommunicationPattern	(  )
 		} // for(jsup)
 	} // for(ksup)
 #if ( _DEBUGlevel_ >= 1 )
-	statusOFS << std::endl << "isSendToDown:" << isSendToDown << std::endl;
-	statusOFS << std::endl << "isRecvFromUp:" << isRecvFromUp << std::endl;
+	statusOFS << std::endl << "isSendToDown:" << isSendToDown_ << std::endl;
+	statusOFS << std::endl << "isRecvFromUp:" << isRecvFromUp_ << std::endl;
 #endif
  
 #ifndef _RELEASE_
@@ -295,10 +295,10 @@ PMatrix::ConstructCommunicationPattern	(  )
 						Int jsupProcCol = PCOL( jsup, grid_ );
 						if( jsup > ksup ){
 							if( MYCOL( grid_ ) == jsupProcCol ){
-								isRecvFromLeft(ksup) = true;
+								isRecvFromLeft_(ksup) = true;
 							}
               if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-								isSendToRight( ksup, jsupProcCol ) = true;
+								isSendToRight_( ksup, jsupProcCol ) = true;
 							}
 						}
 					} // for (si)
@@ -307,8 +307,8 @@ PMatrix::ConstructCommunicationPattern	(  )
 		} // for (isup)
   }	 // for (ksup)
 #if ( _DEBUGlevel_ >= 1 )
-	statusOFS << std::endl << "isSendToRight:" << isSendToRight << std::endl;
-	statusOFS << std::endl << "isRecvFromLeft:" << isRecvFromLeft << std::endl;
+	statusOFS << std::endl << "isSendToRight:" << isSendToRight_ << std::endl;
+	statusOFS << std::endl << "isRecvFromLeft:" << isRecvFromLeft_ << std::endl;
 #endif
 
 #ifndef _RELEASE_
@@ -325,7 +325,7 @@ PMatrix::ConstructCommunicationPattern	(  )
 				Int isup = *si;
 				Int isupProcRow = PROW( isup, grid_ );
 				if( isup > ksup && MYROW( grid_ ) == isupProcRow ){
-					isSendToCrossDiagonal( ksup ) = true;
+					isSendToCrossDiagonal_( ksup ) = true;
 				}
 			} // for (si)
 		} // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
@@ -338,14 +338,14 @@ PMatrix::ConstructCommunicationPattern	(  )
 				Int jsup = *si;
 				Int jsupProcCol = PCOL( jsup, grid_ );
 				if( jsup > ksup && MYCOL(grid_) == jsupProcCol ){
-					isRecvFromCrossDiagonal[ksup] = true;
+					isRecvFromCrossDiagonal_[ksup] = true;
 				}
 			} // for (si)
 		} // if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
 	} // for (ksup)
 #if ( _DEBUGlevel_ >= 1 )
-	statusOFS << std::endl << "isSendToCrossDiagonal:" << isSendToCrossDiagonal << std::endl;
-	statusOFS << std::endl << "isRecvFromCrossDiagonal:" << isRecvFromCrossDiagonal<< std::endl;
+	statusOFS << std::endl << "isSendToCrossDiagonal:" << isSendToCrossDiagonal_ << std::endl;
+	statusOFS << std::endl << "isRecvFromCrossDiagonal:" << isRecvFromCrossDiagonal_ << std::endl;
 #endif
 
 #ifndef _RELEASE_
@@ -359,6 +359,329 @@ PMatrix::ConstructCommunicationPattern	(  )
 
 	return ;
 } 		// -----  end of method PMatrix::ConstructCommunicationPattern  ----- 
+
+
+
+void
+PMatrix::SelInv	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::PSelInv");
+#endif
+  Int numSuper = this->NumSuper(); 
+
+	this->PreSelInv();
+
+	for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
+		this->UpdateL( ksup );
+
+		this->UpdateD( ksup );
+
+		this->UpdateU( ksup );
+	}
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PMatrix::PSelInv  ----- 
+
+
+void
+PMatrix::PreSelInv	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::PreSelInv");
+#endif
+  
+  Int numSuper = this->NumSuper(); 
+  	
+#ifndef _RELEASE_
+	PushCallStack("L(i,k) <- L(i,k) * L(k,k)^{-1}");
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "L(i,k) <- L(i,k) * L(k,k)^{-1}" << std::endl << std::endl; 
+#endif
+	for( Int ksup = 0; ksup < numSuper; ksup++ ){
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+			// Broadcast the diagonal L block
+			NumMat<Scalar> nzvalLDiag;
+			std::vector<LBlock>& Lcol = this->L( LBj( ksup, grid_ ) );
+			if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+				nzvalLDiag = Lcol[0].nzval;
+				if( nzvalLDiag.m() != SuperSize(ksup, super_) ||
+						nzvalLDiag.n() != SuperSize(ksup, super_) ){
+					throw std::runtime_error( "The size of the diagonal block of L is wrong." );
+				}
+			} // Owns the diagonal block
+			else
+			{
+				nzvalLDiag.Resize( SuperSize(ksup, super_), SuperSize(ksup, super_) );
+			}
+			MPI_Bcast( (void*)nzvalLDiag.Data(), 
+					sizeof(Scalar) * SuperSize(ksup, super_) * SuperSize(ksup, super_),
+					MPI_BYTE, PROW( ksup, grid_ ), grid_->colComm );
+
+			// Triangular solve
+			for( Int ib = 0; ib < Lcol.size(); ib++ ){
+				LBlock& LB = Lcol[ib];
+				if( LB.blockIdx > ksup ){
+#if ( _DEBUGlevel_ >= 1 )
+					// Check the correctness of the triangular solve for the first local column
+					if( LBj( ksup, grid_ ) == 0 ){
+						statusOFS << "Diag   L(" << ksup << ", " << ksup << "): " << nzvalLDiag << std::endl;
+						statusOFS << "Before solve L(" << LB.blockIdx << ", " << ksup << "): " << LB.nzval << std::endl;
+					}
+#endif
+					blas::Trsm( 'R', 'L', 'N', 'U', LB.numRow, LB.numCol, SCALAR_ONE,
+							nzvalLDiag.Data(), LB.numCol, LB.nzval.Data(), LB.numRow );
+#if ( _DEBUGlevel_ >= 1 )
+					// Check the correctness of the triangular solve for the first local column
+					if( LBj( ksup, grid_ ) == 0 ){
+						statusOFS << "After solve  L(" << LB.blockIdx << ", " << ksup << "): " << LB.nzval << std::endl;
+					}
+#endif
+				}
+			}
+		} // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
+	} // for (ksup)
+  
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+
+#ifndef _RELEASE_
+	PushCallStack("U(k,i) <- L(i,k)");
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "U(k,i) <- L(i,k)" << std::endl << std::endl; 
+#endif
+
+	for( Int ksup = 0; ksup < numSuper; ksup++ ){
+		Int ksupProcRow = PROW( ksup, grid_ );
+		Int ksupProcCol = PCOL( ksup, grid_ );
+		MPI_Status mpistatSize, mpistatContent;
+
+		// Sender
+		if( isSendToCrossDiagonal_[ksup]  &&
+			  MYPROC( grid_ ) !=  PNUM( ksupProcRow, MYROW( grid_ ), grid_ ) ){
+      // Pack L data
+			std::stringstream sstm;
+			std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+			std::vector<LBlock>&  Lcol = this->L( LBj(ksup, grid_) );
+			serialize( (Int)Lcol.size(), sstm, NO_MASK );
+			for( Int ib = 0; ib < Lcol.size(); ib++ ){
+				if( Lcol[ib].blockIdx > ksup ){
+					serialize( Lcol[ib], sstm, mask );
+				}
+			}
+			// Send/Recv is possible here due to the one to one correspondence
+			// in the case of square processor grid
+			mpi::Send( sstm, PNUM( ksupProcRow, MYROW( grid_ ), grid_ ), 
+					ksup + numSuper, ksup, grid_->comm );
+		} // if I am a sender
+
+		// Receiver
+		if( isRecvFromCrossDiagonal_[ksup] ){
+			if( PNUM( MYCOL( grid_ ), ksupProcCol, grid_ ) != MYPROC( grid_ ) ){
+				std::stringstream sstm;
+				mpi::Recv( sstm, PNUM( MYCOL( grid_ ), ksupProcCol, grid_ ), 
+						ksup + numSuper, ksup, grid_->comm, mpistatSize, mpistatContent );
+				
+				// Unpack L data.  
+				Int numLBlock;
+				std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+				deserialize( numLBlock, sstm, NO_MASK );
+				std::vector<LBlock>  Lcol(numLBlock);
+				for( Int ib = 0; ib < numLBlock; ib++ ){
+					deserialize( Lcol[ib], sstm, mask );
+				}
+				
+				// Update U
+				// Make sure that the size of L and the corresponding U blocks match.
+				std::vector<UBlock>& Urow = this->U( LBi( ksup, grid_ ) );
+				for( Int ib = 0; ib < Lcol.size(); ib++ ){
+					LBlock& LB = Lcol[ib];
+					if( LB.blockIdx > ksup ){
+						bool isUBFound = false;
+						for( Int jb = 0; jb < Urow.size(); jb++ ){
+							UBlock&  UB = Urow[jb];
+							if( LB.blockIdx == UB.blockIdx ){
+								// Compare size
+								if( LB.numRow != UB.numCol || LB.numCol != UB.numRow ){
+									std::ostringstream msg;
+									msg << "LB(" << LB.blockIdx << ", " << ksup << ") and UB(" 
+										<< ksup << ", " << UB.blockIdx << ")	do not share the same size." << std::endl
+										<< "LB: " << LB.numRow << " x " << LB.numCol << std::endl
+										<< "UB: " << UB.numRow << " x " << UB.numCol << std::endl;
+									throw std::runtime_error( msg.str().c_str() );
+								}
+
+								// Note that the order of the column indices of the U
+								// block may not follow the order of the row indices,
+								// overwrite the information in U.
+								UB.cols = LB.rows;
+								Transpose( LB.nzval, UB.nzval );
+							
+								isUBFound = true;
+								break;
+							} // if( LB.blockIdx == UB.blockIdx )
+						} // for (jb)
+						// Did not find a matching block
+						if( !isUBFound ){
+							std::ostringstream msg;
+							msg << "LB(" << LB.blockIdx << ", " << ksup << ") did not find a matching block in U." << std::endl;
+							throw std::runtime_error( msg.str().c_str() );
+						}
+					} // if( LB.blockIdx > ksup )
+				} // for (ib)
+			} // sender is not the same as receiver
+			else{
+				// L is obtained locally.
+				std::vector<LBlock>& Lcol = this->L( LBj( ksup, grid_ ) );
+				
+				// Update U
+				// Make sure that the size of L and the corresponding U blocks match.
+				std::vector<UBlock>& Urow = this->U( LBi( ksup, grid_ ) );
+				for( Int ib = 0; ib < Lcol.size(); ib++ ){
+					LBlock& LB = Lcol[ib];
+					if( LB.blockIdx > ksup ){
+						bool isUBFound = false;
+						for( Int jb = 0; jb < Urow.size(); jb++ ){
+							UBlock&  UB = Urow[jb];
+							if( LB.blockIdx == UB.blockIdx ){
+								// Compare size
+								if( LB.numRow != UB.numCol || LB.numCol != UB.numRow ){
+									std::ostringstream msg;
+									msg << "LB(" << LB.blockIdx << ", " << ksup << ") and UB(" 
+										<< ksup << ", " << UB.blockIdx << ")	do not share the same size." << std::endl
+										<< "LB: " << LB.numRow << " x " << LB.numCol << std::endl
+										<< "UB: " << UB.numRow << " x " << UB.numCol << std::endl;
+									throw std::runtime_error( msg.str().c_str() );
+								}
+
+								// Note that the order of the column indices of the U
+								// block may not follow the order of the row indices,
+								// overwrite the information in U.
+								UB.cols = LB.rows;
+								Transpose( LB.nzval, UB.nzval );
+							
+								isUBFound = true;
+								break;
+							} // if( LB.blockIdx == UB.blockIdx )
+						} // for (jb)
+						// Did not find a matching block
+						if( !isUBFound ){
+							std::ostringstream msg;
+							msg << "LB(" << LB.blockIdx << ", " << ksup << ") did not find a matching block in U." << std::endl;
+							throw std::runtime_error( msg.str().c_str() );
+						}
+					} // if( LB.blockIdx > ksup )
+				} // for (ib)
+			} // sender is the same as receiver
+		} // if I am a receiver
+	} // for (ksup)
+  
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+#ifndef _RELEASE_
+	PushCallStack("L(i,i) <- [L(k,k) * U(k,k)]^{-1} ");
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "L(i,i) <- [L(k,k) * U(k,k)]^{-1}" << std::endl << std::endl; 
+#endif
+
+	for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+		if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
+		    MYCOL( grid_ ) == PCOL( ksup, grid_ )	){
+			IntNumVec ipiv( SuperSize( ksup, super_ ) );
+			// Note that the pivoting vector ipiv should follow the FORTRAN
+			// notation by adding the +1
+			for(Int i = 0; i < SuperSize( ksup, super_ ); i++){
+				ipiv[i] = i + 1;
+			}
+			LBlock& LB = this->L( LBj( ksup, grid_ ) )[0];
+#if ( _DEBUGlevel_ >= 1 )
+			// Check the correctness of the matrix inversion for the first local column
+			if( LBj( ksup, grid_ ) == 0 ){
+				statusOFS << "Factorized A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;
+			}
+#endif
+			lapack::Getri( SuperSize( ksup, super_ ), LB.nzval.Data(), 
+					SuperSize( ksup, super_ ), ipiv.Data() );
+#if ( _DEBUGlevel_ >= 1 )
+			// Check the correctness of the matrix inversion for the first local column
+			if( LBj( ksup, grid_ ) == 0 ){
+				statusOFS << "Inversed   A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;
+			}
+#endif
+		} // if I need to inverse the diagonal block
+	} // for (ksup)
+  
+
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PMatrix::PreSelInv  ----- 
+
+
+void
+PMatrix::UpdateL	( Int ksup )
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::UpdateL");
+#endif
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PMatrix::UpdateL  ----- 
+
+
+void
+PMatrix::UpdateD	( Int ksup )
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::UpdateD");
+#endif
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PMatrix::UpdateD  ----- 
+
+
+void
+PMatrix::UpdateU	( Int ksup  )
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::UpdateU");
+#endif
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PMatrix::UpdateU  ----- 
 
 } // namespace PEXSI
 
