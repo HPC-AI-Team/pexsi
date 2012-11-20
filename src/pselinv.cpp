@@ -373,20 +373,23 @@ PMatrix::SelInv	(  )
 	this->PreSelInv();
 
 	for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << std::endl << "ksup = " << ksup << std::endl << std::endl; 
+#endif
 #ifndef _RELEASE_
 		PushCallStack("Update lower triangluar part");
 #endif
+#ifndef _RELEASE_
+		PushCallStack("Communication to the Schur complement");
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
+#endif
 		// Communication for the U part.
-		std::vector<MPI_Request> mpireqsUSend( grid_->numProcRow ); 
-		std::vector<MPI_Request> mpireqsURecv( grid_->numProcRow ); 
-		std::vector<MPI_Status>  mpistatUSend( grid_->numProcRow ); 
-		std::vector<MPI_Status>  mpistatURecv( grid_->numProcRow ); 
-
-		// Initialize the MPI_Request and MPI_Status
-		for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
-			mpireqsUSend[iProcRow]  = MPI_REQUEST_NULL;
-			mpireqsURecv[iProcRow]  = MPI_REQUEST_NULL;
-		}
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << std::endl << "Communication for the U part." << std::endl << std::endl; 
+#endif
+		std::vector<MPI_Request> mpireqsSendToDown( 2 * grid_->numProcRow, MPI_REQUEST_NULL ); 
 
 		// Senders
 		if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
@@ -396,29 +399,107 @@ PMatrix::SelInv	(  )
 			std::vector<UBlock>&  Urow = this->U( LBi(ksup, grid_) );
 			serialize( (Int)Urow.size(), sstm, NO_MASK );
 			for( Int jb = 0; jb < Urow.size(); jb++ ){
-				if( Urow[jb].blockIdx > ksup ){
-					serialize( Urow[jb], sstm, mask );
-				}
-				else{
+				if( Urow[jb].blockIdx <= ksup ){
 					throw std::logic_error( "U contains more than the upper triangular matrix." );
 				}
+				serialize( Urow[jb], sstm, mask );
 			}
 			for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
 				if( MYROW( grid_ ) != iProcRow &&
 						isSendToDown_( ksup, iProcRow ) == true ){
 					// Use Isend to send to multiple targets
-//					mpi::Isend( sstm, iProcRow, , , grid_->colComm, reqs );
-
+					mpi::Isend( sstm, iProcRow, grid_->numProcRow + iProcRow, 
+							iProcRow, grid_->colComm, 
+							mpireqsSendToDown[grid_->numProcRow + iProcRow], 
+							mpireqsSendToDown[iProcRow] );
 				} // Send 
 			} // for (iProcRow)
 		} // if I am the sender
 
-		if( 1 ){
+		// Communication for the L part.
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << std::endl << "Communication for the L part." << std::endl << std::endl; 
+#endif
+
+		std::vector<MPI_Request> mpireqsSendToRight( 2 * grid_->numProcCol, MPI_REQUEST_NULL ); 
+
+		// Senders
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+			// Pack the data in L 
+			std::stringstream sstm;
+			std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+			mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
+
+			std::vector<LBlock>&  Lcol = this->L( LBj(ksup, grid_) );
+			serialize( (Int)Lcol.size(), sstm, NO_MASK );
+			for( Int ib = 0; ib < Lcol.size(); ib++ ){
+				if( Lcol[ib].blockIdx < ksup ){
+					throw std::logic_error( "L contains more than the lower triangular and the diagonal matrix." );	
+				}
+				serialize( Lcol[ib], sstm, mask );
+			}
+			for( Int iProcCol = 0; iProcCol < grid_->numProcCol ; iProcCol++ ){
+				if( MYCOL( grid_ ) != iProcCol &&
+						isSendToRight_( ksup, iProcCol ) == true ){
+					// Use Isend to send to multiple targets
+					mpi::Isend( sstm, iProcCol, grid_->numProcCol + iProcCol, 
+							iProcCol, grid_->rowComm, 
+							mpireqsSendToRight[grid_->numProcCol + iProcCol], 
+							mpireqsSendToRight[iProcCol] );
+				} // Send 
+			} // for (iProcCol)
+		} // if I am the sender
+
+    // Receive
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << std::endl << "Receive from both up and from left." << std::endl << std::endl; 
+#endif
+		std::vector<MPI_Request> mpireqsRecvFromUp( 2, MPI_REQUEST_NULL ); 
+		std::vector<MPI_Request> mpireqsRecvFromLeft( 2, MPI_REQUEST_NULL ); 
+
+		std::vector<LBlock>   LcolRecv;
+		std::vector<UBlock>   UrowRecv;
+		std::stringstream     sstmLcolRecv;
+		std::stringstream     sstmUrowRecv;
+
+		if( isRecvFromUp_( ksup ) && isRecvFromLeft_( ksup ) ){
+			// U part
+			if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+				std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+				mpi::Irecv( sstmUrowRecv, PROW( ksup, grid_ ), grid_->numProcRow + MYROW( grid_ ),
+						MYROW( grid_ ), grid_->colComm, 
+						mpireqsRecvFromUp[0],
+						mpireqsRecvFromUp[1] );
+			} // sender is not the same as receiver
+			// L part
+			if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+				std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+				mask[LBlockMask::NZVAL] = 0; // nzval is excluded
+				mpi::Irecv( sstmLcolRecv, PCOL( ksup, grid_ ), grid_->numProcCol + MYCOL( grid_ ),
+						MYCOL( grid_ ), grid_->rowComm,
+						mpireqsRecvFromLeft[0],
+						mpireqsRecvFromLeft[1] );
+			} // sender is not the same as receiver
 		} // if I am a receiver
 
-		// Wait
-		mpi::Waitall( mpireqsUSend, mpistatUSend );
-		mpi::Waitall( mpireqsURecv, mpistatURecv );
+		// Wait for all communication to finish
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << std::endl << "Wait for all communication to be done." << std::endl << std::endl; 
+#endif
+		mpi::Waitall( mpireqsSendToDown );
+		mpi::Waitall( mpireqsRecvFromUp );
+		mpi::Waitall( mpireqsSendToRight );
+		mpi::Waitall( mpireqsRecvFromLeft );
+
+#if ( _DEBUGlevel_ >= 1 )
+//		statusOFS << std::endl << "Unpack the received data." << std::endl << std::endl; 
+#endif
+
+
+#ifndef _RELEASE_
+		PopCallStack();
+#endif
+
 
 #ifndef _RELEASE_
 		PopCallStack();
@@ -440,7 +521,8 @@ PMatrix::SelInv	(  )
 		PopCallStack();
 #endif
 
-	}
+    MPI_Barrier( grid_-> comm );
+	} // for (ksup) : Main loop
 
 #ifndef _RELEASE_
 	PopCallStack();
@@ -525,7 +607,6 @@ PMatrix::PreSelInv	(  )
 	for( Int ksup = 0; ksup < numSuper; ksup++ ){
 		Int ksupProcRow = PROW( ksup, grid_ );
 		Int ksupProcCol = PCOL( ksup, grid_ );
-		MPI_Status mpistatSize, mpistatContent;
 
 		// Sender
 		if( isSendToCrossDiagonal_[ksup]  &&
@@ -536,9 +617,7 @@ PMatrix::PreSelInv	(  )
 			std::vector<LBlock>&  Lcol = this->L( LBj(ksup, grid_) );
 			serialize( (Int)Lcol.size(), sstm, NO_MASK );
 			for( Int ib = 0; ib < Lcol.size(); ib++ ){
-				if( Lcol[ib].blockIdx > ksup ){
-					serialize( Lcol[ib], sstm, mask );
-				}
+				serialize( Lcol[ib], sstm, mask );
 			}
 			// Send/Recv is possible here due to the one to one correspondence
 			// in the case of square processor grid
@@ -548,102 +627,65 @@ PMatrix::PreSelInv	(  )
 
 		// Receiver
 		if( isRecvFromCrossDiagonal_[ksup] ){
+
+			std::vector<LBlock> LcolRecv;
 			if( PNUM( MYCOL( grid_ ), ksupProcCol, grid_ ) != MYPROC( grid_ ) ){
 				std::stringstream sstm;
 				mpi::Recv( sstm, PNUM( MYCOL( grid_ ), ksupProcCol, grid_ ), 
-						ksup + numSuper, ksup, grid_->comm, mpistatSize, mpistatContent );
+						ksup + numSuper, ksup, grid_->comm, *MPI_STATUS_IGNORE, *MPI_STATUS_IGNORE );
 				
 				// Unpack L data.  
 				Int numLBlock;
 				std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
 				deserialize( numLBlock, sstm, NO_MASK );
-				std::vector<LBlock>  Lcol(numLBlock);
+				std::vector<LBlock>  LcolRecv(numLBlock);
 				for( Int ib = 0; ib < numLBlock; ib++ ){
-					deserialize( Lcol[ib], sstm, mask );
+					deserialize( LcolRecv[ib], sstm, mask );
 				}
-				
-				// Update U
-				// Make sure that the size of L and the corresponding U blocks match.
-				std::vector<UBlock>& Urow = this->U( LBi( ksup, grid_ ) );
-				for( Int ib = 0; ib < Lcol.size(); ib++ ){
-					LBlock& LB = Lcol[ib];
-					if( LB.blockIdx > ksup ){
-						bool isUBFound = false;
-						for( Int jb = 0; jb < Urow.size(); jb++ ){
-							UBlock&  UB = Urow[jb];
-							if( LB.blockIdx == UB.blockIdx ){
-								// Compare size
-								if( LB.numRow != UB.numCol || LB.numCol != UB.numRow ){
-									std::ostringstream msg;
-									msg << "LB(" << LB.blockIdx << ", " << ksup << ") and UB(" 
-										<< ksup << ", " << UB.blockIdx << ")	do not share the same size." << std::endl
-										<< "LB: " << LB.numRow << " x " << LB.numCol << std::endl
-										<< "UB: " << UB.numRow << " x " << UB.numCol << std::endl;
-									throw std::runtime_error( msg.str().c_str() );
-								}
-
-								// Note that the order of the column indices of the U
-								// block may not follow the order of the row indices,
-								// overwrite the information in U.
-								UB.cols = LB.rows;
-								Transpose( LB.nzval, UB.nzval );
-							
-								isUBFound = true;
-								break;
-							} // if( LB.blockIdx == UB.blockIdx )
-						} // for (jb)
-						// Did not find a matching block
-						if( !isUBFound ){
-							std::ostringstream msg;
-							msg << "LB(" << LB.blockIdx << ", " << ksup << ") did not find a matching block in U." << std::endl;
-							throw std::runtime_error( msg.str().c_str() );
-						}
-					} // if( LB.blockIdx > ksup )
-				} // for (ib)
 			} // sender is not the same as receiver
 			else{
-				// L is obtained locally.
-				std::vector<LBlock>& Lcol = this->L( LBj( ksup, grid_ ) );
-				
-				// Update U
-				// Make sure that the size of L and the corresponding U blocks match.
-				std::vector<UBlock>& Urow = this->U( LBi( ksup, grid_ ) );
-				for( Int ib = 0; ib < Lcol.size(); ib++ ){
-					LBlock& LB = Lcol[ib];
-					if( LB.blockIdx > ksup ){
-						bool isUBFound = false;
-						for( Int jb = 0; jb < Urow.size(); jb++ ){
-							UBlock&  UB = Urow[jb];
-							if( LB.blockIdx == UB.blockIdx ){
-								// Compare size
-								if( LB.numRow != UB.numCol || LB.numCol != UB.numRow ){
-									std::ostringstream msg;
-									msg << "LB(" << LB.blockIdx << ", " << ksup << ") and UB(" 
-										<< ksup << ", " << UB.blockIdx << ")	do not share the same size." << std::endl
-										<< "LB: " << LB.numRow << " x " << LB.numCol << std::endl
-										<< "UB: " << UB.numRow << " x " << UB.numCol << std::endl;
-									throw std::runtime_error( msg.str().c_str() );
-								}
-
-								// Note that the order of the column indices of the U
-								// block may not follow the order of the row indices,
-								// overwrite the information in U.
-								UB.cols = LB.rows;
-								Transpose( LB.nzval, UB.nzval );
-							
-								isUBFound = true;
-								break;
-							} // if( LB.blockIdx == UB.blockIdx )
-						} // for (jb)
-						// Did not find a matching block
-						if( !isUBFound ){
-							std::ostringstream msg;
-							msg << "LB(" << LB.blockIdx << ", " << ksup << ") did not find a matching block in U." << std::endl;
-							throw std::runtime_error( msg.str().c_str() );
-						}
-					} // if( LB.blockIdx > ksup )
-				} // for (ib)
+				// L is obtained locally, just make a copy
+				LcolRecv = this->L( LBj( ksup, grid_ ) );
 			} // sender is the same as receiver
+				
+			// Update U
+			// Make sure that the size of L and the corresponding U blocks match.
+			std::vector<UBlock>& Urow = this->U( LBi( ksup, grid_ ) );
+			for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+				LBlock& LB = LcolRecv[ib];
+				if( LB.blockIdx > ksup ){
+					bool isUBFound = false;
+					for( Int jb = 0; jb < Urow.size(); jb++ ){
+						UBlock&  UB = Urow[jb];
+						if( LB.blockIdx == UB.blockIdx ){
+							// Compare size
+							if( LB.numRow != UB.numCol || LB.numCol != UB.numRow ){
+								std::ostringstream msg;
+								msg << "LB(" << LB.blockIdx << ", " << ksup << ") and UB(" 
+									<< ksup << ", " << UB.blockIdx << ")	do not share the same size." << std::endl
+									<< "LB: " << LB.numRow << " x " << LB.numCol << std::endl
+									<< "UB: " << UB.numRow << " x " << UB.numCol << std::endl;
+								throw std::runtime_error( msg.str().c_str() );
+							}
+
+							// Note that the order of the column indices of the U
+							// block may not follow the order of the row indices,
+							// overwrite the information in U.
+							UB.cols = LB.rows;
+							Transpose( LB.nzval, UB.nzval );
+
+							isUBFound = true;
+							break;
+						} // if( LB.blockIdx == UB.blockIdx )
+					} // for (jb)
+					// Did not find a matching block
+					if( !isUBFound ){
+						std::ostringstream msg;
+						msg << "LB(" << LB.blockIdx << ", " << ksup << ") did not find a matching block in U." << std::endl;
+						throw std::runtime_error( msg.str().c_str() );
+					}
+				} // if( LB.blockIdx > ksup )
+			} // for (ib)
 		} // if I am a receiver
 	} // for (ksup)
   

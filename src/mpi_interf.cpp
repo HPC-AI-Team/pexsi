@@ -85,6 +85,26 @@ Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
 	return ;
 }		// -----  end of function Recv  ----- 
 
+void
+Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
+		MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Recv (MPI_STATUS_IGNORE)");
+#endif
+	std::vector<char> str;
+	Int sizeStm;
+	MPI_Recv( &sizeStm, 1, MPI_INT, src, tagSize, comm, MPI_STATUS_IGNORE );
+	str.resize( sizeStm );
+	MPI_Recv( (void*) &str[0], sizeStm, MPI_BYTE, src, tagContent, comm, MPI_STATUS_IGNORE );
+	sstm.write( &str[0], sizeStm );
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Recv  ----- 
+
 
 void
 Isend ( const std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
@@ -149,6 +169,24 @@ Waitall ( std::vector<MPI_Request>& reqs, std::vector<MPI_Status>& stats )
 
 	return ;
 }		// -----  end of function Waitall  ----- 
+
+void
+Waitall ( std::vector<MPI_Request>& reqs )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Waitall (MPI_STATUS_IGNORE)");
+#endif
+	for( Int i = 0; i < reqs.size(); i++ ){
+		MPI_Wait( &reqs[i], MPI_STATUS_IGNORE );
+	}
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Waitall  ----- 
+
+
 } // namespace mpi
 
 } // namespace PEXSI
