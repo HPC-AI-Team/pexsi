@@ -19,6 +19,9 @@ void Allgatherv(
 
 // *********************************************************************
 // Send / Recv for stringstream 
+//
+// Isend / Irecv is not here because the size and content has to be 
+// communicated separately for non-blocking communication.
 // *********************************************************************
 
 void Send( const std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
@@ -30,17 +33,13 @@ void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
 void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
 		MPI_Comm comm );
 
-void
-Isend ( const std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
-		MPI_Comm comm, MPI_Request& reqSize, MPI_Request& reqContent );
-
-void
-Irecv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
-		MPI_Comm comm, MPI_Request& reqSize, MPI_Request& reqContent );
 
 // *********************************************************************
 // Waitall
 // *********************************************************************
+
+void
+Wait	( MPI_Request& req  );
 
 void
 Waitall ( std::vector<MPI_Request>& reqs, std::vector<MPI_Status>& stats );

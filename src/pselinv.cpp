@@ -245,7 +245,7 @@ PMatrix::ConstructCommunicationPattern	(  )
 #endif
 	for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
 		// Loop over all the supernodes to the right of ksup
-		for( Int jsup = ksup + 1; jsup < numSuper - 1; jsup++ ){
+		for( Int jsup = ksup + 1; jsup < numSuper; jsup++ ){
 			Int jsupLocalBlockCol = LBj( jsup, grid_ );
 			Int jsupProcCol = PCOL( jsup, grid_ );
 			if( MYCOL( grid_ ) == jsupProcCol ){
@@ -284,7 +284,7 @@ PMatrix::ConstructCommunicationPattern	(  )
 #endif
   for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
 		// Loop over all the supernodes below ksup
-		for( Int isup = ksup + 1; isup < numSuper - 1; isup++ ){
+		for( Int isup = ksup + 1; isup < numSuper; isup++ ){
 			Int isupLocalBlockRow = LBi( isup, grid_ );
 			Int isupProcRow       = PROW( isup, grid_ );
 			if( MYROW( grid_ ) == isupProcRow ){
@@ -332,7 +332,7 @@ PMatrix::ConstructCommunicationPattern	(  )
 		} // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
 	} // for (ksup)
   
-	for( Int ksup = 0; ksup < numSuper-1; ksup++ ){
+	for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
 		if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
 			for( std::set<Int>::iterator si = localRowBlockColIdx[ LBi(ksup, grid_) ].begin();
 					 si != localRowBlockColIdx[ LBi(ksup, grid_) ].end(); si++ ){
@@ -404,10 +404,12 @@ PMatrix::SelInv	(  )
 				if( MYROW( grid_ ) != iProcRow &&
 						isSendToDown_( ksup, iProcRow ) == true ){
 					// Use Isend to send to multiple targets
-					mpi::Isend( sstm, iProcRow, grid_->numProcRow + iProcRow, 
-							iProcRow, grid_->colComm, 
-							mpireqsSendToDown[grid_->numProcRow + iProcRow], 
-							mpireqsSendToDown[iProcRow] );
+					const std::string& sstr = sstm.str();
+					Int sizeStm = sstr.length();
+					MPI_Isend( &sizeStm, 1, MPI_INT,  iProcRow, grid_->numProcRow + iProcRow, 
+							grid_->colComm, &mpireqsSendToDown[grid_->numProcRow + iProcRow] );
+					MPI_Isend( (void*)sstr.c_str(), sizeStm, MPI_BYTE, iProcRow, iProcRow, 
+							grid_->colComm, &mpireqsSendToDown[iProcRow] );
 				} // Send 
 			} // for (iProcRow)
 		} // if I am the sender
@@ -443,10 +445,12 @@ PMatrix::SelInv	(  )
 				if( MYCOL( grid_ ) != iProcCol &&
 						isSendToRight_( ksup, iProcCol ) == true ){
 					// Use Isend to send to multiple targets
-					mpi::Isend( sstm, iProcCol, grid_->numProcCol + iProcCol, 
-							iProcCol, grid_->rowComm, 
-							mpireqsSendToRight[grid_->numProcCol + iProcCol], 
-							mpireqsSendToRight[iProcCol] );
+					const std::string& sstr = sstm.str();
+					Int sizeStm = sstr.length();
+					MPI_Isend( &sizeStm, 1, MPI_INT,  iProcCol, grid_->numProcCol + iProcCol, 
+							grid_->rowComm, &mpireqsSendToRight[grid_->numProcCol + iProcCol] );
+					MPI_Isend( (void*)sstr.c_str(), sizeStm, MPI_BYTE, iProcCol, iProcCol, 
+							grid_->rowComm, &mpireqsSendToRight[iProcCol] );
 				} // Send 
 			} // for (iProcCol)
 		} // if I am the sender
@@ -457,38 +461,74 @@ PMatrix::SelInv	(  )
 #endif
 		std::vector<MPI_Request> mpireqsRecvFromUp( 2, MPI_REQUEST_NULL ); 
 		std::vector<MPI_Request> mpireqsRecvFromLeft( 2, MPI_REQUEST_NULL ); 
+		Int sizeStmFromUp, sizeStmFromLeft;
 
 		std::stringstream     sstmLcolRecv;
 		std::stringstream     sstmUrowRecv;
+		std::vector<char>     sstrLcolRecv;
+		std::vector<char>     sstrUrowRecv;
 
-		if( isRecvFromUp_( ksup ) && isRecvFromLeft_( ksup ) ){
-			// U part
-			if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-				mpi::Irecv( sstmUrowRecv, PROW( ksup, grid_ ), grid_->numProcRow + MYROW( grid_ ),
-						MYROW( grid_ ), grid_->colComm, 
-						mpireqsRecvFromUp[0],
-						mpireqsRecvFromUp[1] );
-			} // sender is not the same as receiver
-			// L part
-			if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
-				mpi::Irecv( sstmLcolRecv, PCOL( ksup, grid_ ), grid_->numProcCol + MYCOL( grid_ ),
-						MYCOL( grid_ ), grid_->rowComm,
-						mpireqsRecvFromLeft[0],
-						mpireqsRecvFromLeft[1] );
-			} // sender is not the same as receiver
-		} // if I am a receiver
+		// Receive the size first
+
+		if( isRecvFromUp_( ksup ) && 
+				MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+			MPI_Irecv( &sizeStmFromUp, 1, MPI_INT, PROW( ksup, grid_ ), grid_->numProcRow + MYROW( grid_ ),
+					grid_->colComm, &mpireqsRecvFromUp[0] );
+		} // if I need to receive from up
+
+
+		if( isRecvFromLeft_( ksup ) &&
+				MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+			MPI_Irecv( &sizeStmFromLeft, 1, MPI_INT, PCOL( ksup, grid_ ), grid_->numProcCol + MYCOL( grid_ ),
+					grid_->rowComm, &mpireqsRecvFromLeft[0] );
+		} // if I need to receive from left
+
+		// Wait to obtain size information
+		mpi::Wait( mpireqsRecvFromUp[0] );
+		mpi::Wait( mpireqsRecvFromLeft[0] );
+
+
+		if( isRecvFromUp_( ksup ) && 
+				MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+			sstrUrowRecv.resize( sizeStmFromUp );
+			MPI_Irecv( &sstrUrowRecv[0], sizeStmFromUp, MPI_BYTE, PROW( ksup, grid_ ), 
+					MYROW( grid_ ), grid_->colComm, 
+					&mpireqsRecvFromUp[1] );
+		} // if I need to receive from up
+
+		if( isRecvFromLeft_( ksup ) &&
+				MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+			sstrLcolRecv.resize( sizeStmFromLeft );
+			MPI_Irecv( &sstrLcolRecv[0], sizeStmFromLeft, MPI_BYTE, PCOL( ksup, grid_ ), 
+					MYCOL( grid_ ), grid_->rowComm,
+					&mpireqsRecvFromLeft[1] );
+		} // if I need to receive from left
 
 		// Wait for all communication to finish
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << std::endl << "Wait for all communication to be done." << std::endl << std::endl; 
 #endif
-		mpi::Waitall( mpireqsSendToDown );
-		mpi::Waitall( mpireqsRecvFromUp );
+		mpi::Wait( mpireqsRecvFromUp[1] );
+		mpi::Wait( mpireqsRecvFromLeft[1] );
+
+		if( isRecvFromUp_( ksup ) && 
+				MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+			sstmUrowRecv.write( &sstrUrowRecv[0], sizeStmFromUp );
+			sstrUrowRecv.clear();
+		} // if I need to receive from up 
+
+
+		if( isRecvFromLeft_( ksup ) &&
+				MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+			sstmLcolRecv.write( &sstrLcolRecv[0], sizeStmFromLeft );
+			sstrLcolRecv.clear();
+		} // if I need to receive from left
+
 		mpi::Waitall( mpireqsSendToRight );
-		mpi::Waitall( mpireqsRecvFromLeft );
+		mpi::Waitall( mpireqsSendToDown );
 
 #if ( _DEBUGlevel_ >= 1 )
-		statusOFS << std::endl << "Unpack the received data." << std::endl << std::endl; 
+		statusOFS << std::endl << "Unpack the received data for processors participate in GEMM. " << std::endl << std::endl; 
 #endif
 		std::vector<LBlock>   LcolRecv;
 		std::vector<UBlock>   UrowRecv;
@@ -498,8 +538,12 @@ PMatrix::SelInv	(  )
 				std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
 				Int numUBlock;
 				deserialize( numUBlock, sstmUrowRecv, NO_MASK );
+				if( ksup == 91 )
+					statusOFS << "OUT:" << numUBlock << std::endl;
 				UrowRecv.resize( numUBlock );
 				for( Int jb = 0; jb < numUBlock; jb++ ){
+					if( ksup == 91 )
+						statusOFS << "jb:" << jb << std::endl;
 					deserialize( UrowRecv[jb], sstmUrowRecv, mask );
 				} 
 			} // sender is not the same as receiver
@@ -537,6 +581,7 @@ PMatrix::SelInv	(  )
 				}
 			} // sender is the same as receiver
 		} // if I am a receiver
+
 
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << std::endl << "Calculate the relative indices." << std::endl << std::endl; 
@@ -734,7 +779,7 @@ PMatrix::PreSelInv	(  )
 			if( PNUM( MYCOL( grid_ ), ksupProcCol, grid_ ) != MYPROC( grid_ ) ){
 				std::stringstream sstm;
 				mpi::Recv( sstm, PNUM( MYCOL( grid_ ), ksupProcCol, grid_ ), 
-						ksup + numSuper, ksup, grid_->comm, *MPI_STATUS_IGNORE, *MPI_STATUS_IGNORE );
+						ksup + numSuper, ksup, grid_->comm );
 				
 				// Unpack L data.  
 				Int numLBlock;
