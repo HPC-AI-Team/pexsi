@@ -377,7 +377,12 @@ public:
 	///
 	/// \sum_{jsup} A^{-1}(isup, jsup) U^{T}(ksup, jsup)
 	///
-	/// is performed.  The result is reduced to the processor column ksup
+	/// is performed.  In this procedure, only processors with
+	/// isRecvFromUp[ksup] == true && isRecvFromLeft[ksup] == true
+	/// participate in the computation.
+	///
+	///
+	/// The result is reduced to the processor column ksup
 	/// within the same processor row. 
 	///
 	/// - UpdateD.
@@ -418,10 +423,9 @@ public:
 	///
 	///   Dimension: numSuper
 	///
-	///   Role     : At supernode ksup, if isRecvFromUp(ksup) == true and
-	///   isRecvFromLeft(ksup) == true, receive blocks from the processor
-	///   owning the block row of ksup within the same column processor
-	///   group.
+	///   Role     : At supernode ksup, if isRecvFromUp(ksup) == true,
+	///   receive blocks from the processor owning the block row of ksup
+	///   within the same column processor group.
 	///
 	/// - isSendToRight:
 	///
@@ -435,10 +439,9 @@ public:
 	///   
 	///   Dimension: numSuper
 	///
-	///   Role     : At supernode ksup, if isRecvFromUp(ksup) == true and
-	///   isRecvFromLeft(ksup) == true, receive blocks from the processor
-	///   owning the block column of ksup within the same row processor
-	///   group.
+	///   Role     : At supernode ksup, if isRecvFromLeft(ksup) == true,
+	///   receive blocks from the processor owning the block column of
+	///   ksup within the same row processor group.
 	///
 	/// - isSendToCrossDiagonal:
 	///

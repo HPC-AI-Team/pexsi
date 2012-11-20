@@ -546,42 +546,50 @@ PMatrix::SelInv	(  )
 		NumMat<Scalar>  LUpdateBuf;
     
 		// Only the processors received information participate in the GEMM 
-//		if( isRecvFromUp_( ksup ) && isRecvFromLeft_( ksup ) ){
-//			// rowPtr[ib] gives the row index in LUpdateBuf for the first
-//			// nonzero row in LcolRecv[ib]. The total number of rows in
-//			// LUpdateBuf is given by rowPtr[end]-1
-//			std::vector<Int> rowPtr(LcolRecv.size());
-//			// colPtr[jb] gives the column index in UBuf for the first
-//			// nonzero column in UrowRecv[jb]. The total number of rows in
-//			// UBuf is given by colPtr[end]-1
-//			std::vector<Int> colPtr(UrowRecv.size());
-//
-//			rowPtr[0] = 0;
-//			for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
-//				rowPtr[ib+1] = rowPtr[ib] + LcolRecv[ib].numRow;
-//			}
-//			colPtr[0] = 0;
-//			for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-//				colPtr[jb+1] = colPtr[jb] + UrowRecv[jb].numCol;
-//			}
-//
-//			Int numRowAinvBuf(0), numColAinvBuf(0);
-//
-//			// Loop over all the nonzero local blocks isup in Lcol
-//			//   Loop over all the nonzero local blocks jsup in Urow
-//			//     Calculate the relative indices for (isup, jsup)
-//			//     Fill AinvBuf with the information in L or U block.
-//
-//			// GEMM for LUpdateBuf = AinvBufAinv * UBuf^T
-//
-//
+		if( isRecvFromUp_( ksup ) && isRecvFromLeft_( ksup ) ){
+			// rowPtr[ib] gives the row index in LUpdateBuf for the first
+			// nonzero row in LcolRecv[ib]. The total number of rows in
+			// LUpdateBuf is given by rowPtr[end]-1
+			std::vector<Int> rowPtr(LcolRecv.size() + 1);
+			// colPtr[jb] gives the column index in UBuf for the first
+			// nonzero column in UrowRecv[jb]. The total number of rows in
+			// UBuf is given by colPtr[end]-1
+			std::vector<Int> colPtr(UrowRecv.size() + 1);
+
+			rowPtr[0] = 0;
+			for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+				rowPtr[ib+1] = rowPtr[ib] + LcolRecv[ib].numRow;
+			}
+			colPtr[0] = 0;
+			for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+				colPtr[jb+1] = colPtr[jb] + UrowRecv[jb].numCol;
+			}
+
+			Int numRowAinvBuf = *rowPtr.rbegin();
+			Int numColAinvBuf = *colPtr.rbegin();
+
+      statusOFS << "AinvBuf ~ " << numRowAinvBuf << " x " << numColAinvBuf << std::endl;
+			statusOFS << "rowPtr:" << std::endl << rowPtr << std::endl;
+			statusOFS << "colPtr:" << std::endl << colPtr << std::endl;
+
+
+
+
+			// Loop over all the nonzero local blocks isup in Lcol
+			//   Loop over all the nonzero local blocks jsup in Urow
+			//     Calculate the relative indices for (isup, jsup)
+			//     Fill AinvBuf with the information in L or U block.
+
+			// GEMM for LUpdateBuf = AinvBufAinv * UBuf^T
+
+
 //
 //			NumMat<Scalar> AinvBuf;
 //			
 //			std::vector<Int> rowRelIdx;
 //			std::vector<Int> colRelIdx;
 //			
-//		} // if I am a receiver
+		} // if I am a receiver
 		
 		// Reduce LUpdateBuf across all the processors in the same processor row.
 
