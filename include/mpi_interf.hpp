@@ -50,6 +50,14 @@ Waitall ( std::vector<MPI_Request>& reqs );
 // *********************************************************************
 // Reduce
 // *********************************************************************
+
+void
+Reduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm );
+
+void
+Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm );
+
+
 void
 Allreduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, MPI_Comm comm );
 

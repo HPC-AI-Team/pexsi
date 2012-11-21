@@ -110,8 +110,8 @@ SuperLUMatrix::SuperLUMatrix	( SuperLUGrid& g )
 	options.ParSymbFact       = NO;
 	options.Equil             = NO; 
 	options.ReplaceTinyPivot  = NO;
-	options.ColPerm           = NATURAL;
-//	options.ColPerm           = MMD_AT_PLUS_A;
+//	options.ColPerm           = NATURAL;
+	options.ColPerm           = MMD_AT_PLUS_A;
 //	options.ColPerm           = METIS_AT_PLUS_A;
 	options.PrintStat         = YES;
 	options.SolveInitialized  = NO;

@@ -168,6 +168,35 @@ Waitall ( std::vector<MPI_Request>& reqs )
 
 
 void
+Reduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Reduce");
+#endif
+	MPI_Reduce( sendbuf,  recvbuf, count, MPI_DOUBLE, op, root, comm );
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Reduce  ----- 
+
+void
+Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Reduce");
+#endif
+	MPI_Reduce( (Real*)sendbuf,  (Real*)recvbuf, 2 * count, MPI_DOUBLE, op, root, comm );
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Reduce  ----- 
+
+
+void
 Allreduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
 {
 #ifndef _RELEASE_

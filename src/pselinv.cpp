@@ -842,15 +842,10 @@ PMatrix::SelInv	(  )
 				SetValue( LUpdateBuf, SCALAR_ZERO );
 			}
 
-#ifdef _USE_COMPLEX_
-			MPI_Reduce( (Real*)LUpdateBuf.Data(), (Real*)LUpdateBufReduced.Data(),
-					2 * numRowLUpdateBuf * SuperSize( ksup, super_ ),
-					MPI_DOUBLE, MPI_SUM, PCOL( ksup, grid_ ), grid_->rowComm );
-#else
-			MPI_Reduce( LUpdateBuf.Data(), LUpdateBufReduced.Data(),
-					numRowLUpdateBuf * SuperSize( ksup, super_ ),
-					MPI_DOUBLE, MPI_SUM, PCOL( ksup, grid_ ), grid_->rowComm );
-#endif
+			mpi::Reduce( LUpdateBuf.Data(), LUpdateBufReduced.Data(),
+					numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 
+					PCOL( ksup, grid_ ), grid_->rowComm );
+
 		} // Perform reduce for nonzero block rows in the column of ksup
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -892,17 +887,13 @@ PMatrix::SelInv	(  )
 			} // I owns the diagonal block, skip the diagonal block
 
 			NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
+
 			if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
 				SetValue( DiagBufReduced, SCALAR_ZERO );
-#ifdef _USE_COMPLEX_
-			MPI_Reduce( (Real*)DiagBuf.Data(), (Real*)DiagBufReduced.Data(),
-					2 * SuperSize( ksup, super_ ) * SuperSize( ksup, super_ ),
-					MPI_DOUBLE, MPI_SUM, PROW( ksup, grid_ ), grid_->colComm);
-#else
-			MPI_Reduce( (Real*)DiagBuf.Data(), (Real*)DiagBufReduced.Data(),
+
+			mpi::Reduce( DiagBuf.Data(), DiagBufReduced.Data(), 
 					SuperSize( ksup, super_ ) * SuperSize( ksup, super_ ),
-					MPI_DOUBLE, MPI_SUM, PROW( ksup, grid_ ), grid_->colComm);
-#endif
+					MPI_SUM, PROW( ksup, grid_ ), grid_->colComm );
 			
 #if ( _DEBUGlevel_ >= 1 )
 			statusOFS << std::endl << "DiagBuf: " << DiagBuf << std::endl << std::endl; 
