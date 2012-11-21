@@ -1,6 +1,6 @@
 /// @file ex14.cpp
 /// @brief Test for the new input interface for SuperLU together with
-/// the new selected inversion (tree information only).
+/// the new parallel selected inversion.
 /// @author Lin Lin
 /// @version 0.1
 /// @date 2012-11-16
@@ -199,61 +199,57 @@ int main(int argc, char **argv)
 		{
 			Grid g1( MPI_COMM_WORLD, nprow, npcol );
 			SuperNode super;
-			luMat.SymbolicToSuperNode( super );
 			
+			GetTime( timeSta );
+			luMat.SymbolicToSuperNode( super );
+			PMatrix PMloc( &g1, &super );
+			luMat.LUstructToPMatrix( PMloc );
+			GetTime( timeEnd );
+
+			if( mpirank == 0 )
+				cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
+
 			statusOFS << "perm: " << endl << super.perm << endl;
 			statusOFS << "superIdx:" << endl << super.superIdx << endl;
 			statusOFS << "superPtr:" << endl << super.superPtr << endl; 
 
-			PMatrix PMloc( &g1, &super );
-			luMat.LUstructToPMatrix( PMloc );
+
+			GetTime( timeSta );
+			PMloc.ConstructCommunicationPattern();
+			GetTime( timeEnd );
+
+			if( mpirank == 0 )
+				cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
+
+			GetTime( timeSta );
+			PMloc.SelInv();
+			GetTime( timeEnd );
+
+			if( mpirank == 0 )
+				cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 
 			NumVec<Scalar> diag;
 			
+			GetTime( timeSta );
 			PMloc.Diagonal( diag );
-			statusOFS << std::endl << "Diagonal of U before SelInv: " << std::endl << diag << std::endl;
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
 
-			PMloc.ConstructCommunicationPattern();
-
-			PMloc.SelInv();
-
-			PMloc.Diagonal( diag );
-
-			statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
+			if( mpirank == 0 )
+				statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
 
 		}
 		
-//		{
-//			GetTime(timeSta);
-//			SuperLU2SelInv(n, &LUstruct, &grid, PMloc);
-//			GetTime(timeEnd);
-//			if( mpirank == 0 )
-//				cout << "Time for converting the SuperLU to SelInv format is " 
-//					<< timeEnd - timeSta << " sec" << endl; 
-//
-//			GetTime(timeSta);
-//			ConstructLocalEtree(n, &grid, PMloc, localEtree);
-//			GetTime(timeEnd);
-//			if( mpirank == 0 )
-//				cout << "Time for converting the SelInv elimination tree is " 
-//					<< timeEnd - timeSta << " sec" << endl; 
-//			
-//			GetTime(timeSta);
-//			PLUSelInv(&grid, PMloc, localEtree);
-//			GetTime(timeEnd);
-//			if( mpirank == 0 )
-//				cout << "Time for the selected inversion is " 
-//					<< timeEnd - timeSta << " sec" << endl; 
-//		}
-
-
 		statusOFS.close();
 	}
 	catch( std::exception& e )
 	{
 		std::cerr << "Processor " << mpirank << " caught exception with message: "
 			<< e.what() << std::endl;
+#ifndef _RELEASE_
 		DumpCallStack();
+#endif
 	}
 	
 	MPI_Finalize();

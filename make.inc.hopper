@@ -2,7 +2,7 @@
 
 PEXSI_DIR     = /global/homes/l/linlin/project/pexsi
 # DSUPERLU_DIR  = /usr/common/acts/SuperLU/SuperLU_DIST/2.5
-DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_3.1
+DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_3.2
 PLUSELINV_DIR = ${PEXSI_DIR}/external/PLUSelInv
 
 # inclues
@@ -20,7 +20,7 @@ METIS_LIB        = -L/global/homes/l/linlin/software/parmetis-4.0.2/build/Linux-
 PARMETISLIB	     = -L/global/homes/l/linlin/software/parmetis-4.0.2/build/Linux-x86_64/libparmetis -lparmetis
 SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
 # DSUPERLU_LIB     = $(DSUPERLU_DIR)/craypgi-xe6_O/lib/libsuperlu_dist_2.5.a
-DSUPERLU_LIB     = $(DSUPERLU_DIR)/build/lib/libsuperlu_dist_3.1.a
+DSUPERLU_LIB     = $(DSUPERLU_DIR)/build/lib/libsuperlu_dist_3.2.a
 PLUSELINV_LIB    = ${PLUSELINV_DIR}/libpluselinv.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi.a
 
@@ -47,7 +47,7 @@ RMFLAGS      = -f
 MODE	         = debug
 
 ifeq ($(MODE), debug)
-	COMMONDEFS   = -D__DEBUGlevel=0 -D__PRNTlevel=0 -DAdd_ -D_USE_COMPLEX_
+	COMMONDEFS   = -D_DEBUGlevel_=0 -DAdd_ -D_USE_COMPLEX_
   CFLAGS       = -O2 -g -w ${INCLUDES}
   FFLAGS       = -O2 -g -w ${INCLUDES}
   CXXFLAGS     = -O2 -g -w ${INCLUDES}
@@ -56,6 +56,15 @@ ifeq ($(MODE), debug)
   LOADOPTS     = ${LIBS}
 endif
 
+ifeq ($(MODE), release)
+	COMMONDEFS   = -D_RELEASE_ -DAdd_ -D_USE_COMPLEX_
+  CFLAGS       = -fast -w ${INCLUDES}
+  FFLAGS       = -fast -w ${INCLUDES}
+  CXXFLAGS     = -fast -w ${INCLUDES}
+	CCDEFS       = ${COMMONDEFS}
+	CPPDEFS      = ${COMMONDEFS}
+  LOADOPTS     = ${LIBS}
+endif
 
 
 # Generate auto-dependencies 

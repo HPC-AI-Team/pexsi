@@ -688,9 +688,6 @@ PMatrix::SelInv	(  )
 									relCols[j] = UB.cols[j] - SinvColsSta;
 								}
 
-								statusOFS << "relRows = " << relRows << std::endl;
-								statusOFS << "relCols = " << relCols << std::endl;
-
 								// Transfer the values from Sinv to AinvBlock
 								Scalar* nzvalSinv = SinvB.nzval.Data();
 								Int     ldSinv    = SinvB.numRow;
@@ -878,7 +875,6 @@ PMatrix::SelInv	(  )
 			} // I do not own the diaogonal block
 			else{
 				for( Int ib = 1; ib < Lcol.size(); ib++ ){
-					statusOFS << "LB = " << Lcol[ib].nzval << std::endl;
 					blas::Gemm( 'T', 'N', SuperSize( ksup, super_ ), SuperSize( ksup, super_ ), Lcol[ib].numRow, 
 							SCALAR_MINUS_ONE, &LUpdateBufReduced( rowLocalPtr[ib-1], 0 ), LUpdateBufReduced.m(),	
 							Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
@@ -1263,7 +1259,6 @@ PMatrix::Diagonal	( NumVec<Scalar>& diagNaturalOrder )
 		if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
 				MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 			LBlock& LB = this->L( LBj( ksup, grid_ ) )[0];
-			statusOFS << "LB(" << ksup << ", " << ksup << ").rows = " << LB.rows << std::endl;
       for( Int i = 0; i < LB.numRow; i++ ){
         diagLocal( LB.rows(i) ) = LB.nzval( i, i );
 			}

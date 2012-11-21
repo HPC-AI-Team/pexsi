@@ -50,13 +50,23 @@ RMFLAGS      = -f
 
 # Different compiling and linking options.
 #
-MODE	         = debug
+MODE	         = release
 
 ifeq ($(MODE), debug)
-	COMMONDEFS   = -D_DEBUGlevel_=1 -DAdd_ -D_USE_COMPLEX_
+	COMMONDEFS   = -D_DEBUGlevel_=0 -DAdd_ -D_USE_COMPLEX_
   CFLAGS       = -O2 -w -g ${INCLUDES}
   FFLAGS       = -O2 -w -g ${INCLUDES}
   CXXFLAGS     = -O2 -w -g ${INCLUDES}
+	CCDEFS       = ${COMMONDEFS}
+	CPPDEFS      = ${COMMONDEFS}
+  LOADOPTS     = ${LIBS}
+endif
+
+ifeq ($(MODE), release)
+	COMMONDEFS   = -D_RELEASE_ -DAdd_ -D_USE_COMPLEX_
+  CFLAGS       = -O3 -w ${INCLUDES}
+  FFLAGS       = -O3 -w ${INCLUDES}
+  CXXFLAGS     = -O3 -w ${INCLUDES}
 	CCDEFS       = ${COMMONDEFS}
 	CPPDEFS      = ${COMMONDEFS}
   LOADOPTS     = ${LIBS}
