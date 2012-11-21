@@ -784,8 +784,8 @@ PMatrix::SelInv	(  )
 			else{
 				rowLocalPtr.resize( Lcol.size() );
 				rowLocalPtr[0] = 0;
-				for( Int ib = 0; ib < Lcol.size() -1; ib++ ){
-					rowLocalPtr[ib+1] = rowLocalPtr[ib] + Lcol[ib+1].numRow;
+				for( Int ib = 1; ib < Lcol.size(); ib++ ){
+					rowLocalPtr[ib] = rowLocalPtr[ib-1] + Lcol[ib].numRow;
 				}
 			} // I owns the diagonal block, skip the diagonal block
 			numRowLUpdateBuf = *rowLocalPtr.rbegin();
@@ -816,7 +816,7 @@ PMatrix::SelInv	(  )
 					numRowLUpdateBuf * SuperSize( ksup, super_ ),
 					MPI_DOUBLE, MPI_SUM, PCOL( ksup, grid_ ), grid_->rowComm );
 #endif
-		}
+		} // Perform reduce for nonzero block rows in the column of ksup
 
 #if ( _DEBUGlevel_ >= 1 )
 		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && numRowLUpdateBuf > 0 )
@@ -831,6 +831,58 @@ PMatrix::SelInv	(  )
 #ifndef _RELEASE_
 		PushCallStack("PMatrix::SelInv::UpdateD");
 #endif
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << std::endl << "Update the diagonal block" << std::endl << std::endl; 
+#endif
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+			NumMat<Scalar> DiagBuf( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
+			SetValue( DiagBuf, SCALAR_ZERO );
+			std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+			if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+				for( Int ib = 0; ib < Lcol.size(); ib++ ){
+					blas::Gemm( 'T', 'N', SuperSize( ksup, super_ ), SuperSize( ksup, super_ ), Lcol[ib].numRow, 
+							SCALAR_MINUS_ONE, Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
+							&LUpdateBufReduced( rowLocalPtr[ib], 0 ), LUpdateBufReduced.m(),
+							SCALAR_ONE, DiagBuf.Data(), DiagBuf.m() );
+				}
+			} // I do not own the diaogonal block
+			else{
+				for( Int ib = 1; ib < Lcol.size(); ib++ ){
+					blas::Gemm( 'T', 'N', SuperSize( ksup, super_ ), SuperSize( ksup, super_ ), Lcol[ib].numRow, 
+							SCALAR_MINUS_ONE, Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
+							&LUpdateBufReduced( rowLocalPtr[ib-1], 0 ), LUpdateBufReduced.m(),
+							SCALAR_ONE, DiagBuf.Data(), DiagBuf.m() );
+				}
+			} // I owns the diagonal block, skip the diagonal block
+
+			NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
+			if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+				SetValue( DiagBufReduced, SCALAR_ZERO );
+#ifdef _USE_COMPLEX_
+			MPI_Reduce( (Real*)DiagBuf.Data(), (Real*)DiagBufReduced.Data(),
+					2 * SuperSize( ksup, super_ ) * SuperSize( ksup, super_ ),
+					MPI_DOUBLE, MPI_SUM, PROW( ksup, grid_ ), grid_->colComm);
+#else
+			MPI_Reduce( (Real*)DiagBuf.Data(), (Real*)DiagBufReduced.Data(),
+					SuperSize( ksup, super_ ) * SuperSize( ksup, super_ ),
+					MPI_DOUBLE, MPI_SUM, PROW( ksup, grid_ ), grid_->colComm);
+#endif
+			
+#if ( _DEBUGlevel_ >= 1 )
+			statusOFS << std::endl << "DiagBuf: " << DiagBuf << std::endl << std::endl; 
+#endif
+			// Add DiagBufReduced to diagonal block.
+			if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+#if ( _DEBUGlevel_ >= 1 )
+				statusOFS << std::endl << "DiagBufReduced: " << DiagBufReduced << std::endl << std::endl; 
+#endif
+        LBlock&  LB = this->L( LBj( ksup, grid_ ) )[0];
+				blas::Axpy( LB.numRow * LB.numCol, 1.0, DiagBufReduced.Data(),
+						1, LB.nzval.Data(), 1 );
+			}
+		} // Update the diagonal in the processor column of ksup. All processors participate
+
+
 
 #ifndef _RELEASE_
 		PopCallStack();
@@ -839,10 +891,86 @@ PMatrix::SelInv	(  )
 #ifndef _RELEASE_
 		PushCallStack("PMatrix::SelInv::UpdateU");
 #endif
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << std::endl << "Update the upper triangular block" << std::endl << std::endl; 
+#endif
+		// Send LUpdateBufReduced to the cross diagonal blocks. 
+		// NOTE: This assumes square processor grid
+	  if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_( ksup ) ){
+			Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+			if( MYPROC( grid_ ) != dest	){
+				std::stringstream sstm;
+				serialize( LUpdateBufReduced, sstm, NO_MASK );
+				mpi::Send( sstm, dest, ksup + numSuper, ksup, grid_->comm );
+			}
+		} // sender
+
+		if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_( ksup ) ){
+			Int src = PNUM( MYCOL( grid_ ), PCOL( ksup, grid_ ), grid_ );
+			NumMat<Scalar> UUpdateBuf;
+			if( MYPROC( grid_ ) != src ){
+				std::stringstream sstm;
+				mpi::Recv( sstm, src, ksup + numSuper, ksup, grid_->comm );
+			  deserialize( UUpdateBuf, sstm, NO_MASK );	
+			} // sender is not the same as receiver
+			else{
+				UUpdateBuf = LUpdateBufReduced;
+			} // sender is the same as receiver
+#if ( _DEBUGlevel_ >= 1 )
+			statusOFS << std::endl << "UUpdateBuf:" << UUpdateBuf << std::endl << std::endl; 
+#endif
+
+			// Update U
+			std::vector<UBlock>&  Urow = this->U( LBi( ksup, grid_ ) );
+			Int cntRow = 0;
+			for( Int jb = 0; jb < Urow.size(); jb++ ){
+				UBlock& UB = Urow[jb];
+				NumMat<Scalar> Ltmp( UB.numCol, UB.numRow );
+				lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), &UUpdateBuf( cntRow, 0 ),
+						UUpdateBuf.m(), Ltmp.Data(), Ltmp.m() );
+
+				Transpose( Ltmp, UB.nzval );
+				cntRow += UB.numCol;
+			} // for (jb)
+			if( cntRow != UUpdateBuf.m() ){
+				std::ostringstream msg;
+				msg << "The number of rows received from L is " << UUpdateBuf.m()
+					<< ", which does not match the total number of columns in U which is "
+					<< cntRow <<  std::endl;
+				throw std::runtime_error( msg.str().c_str() );
+			}
+		} // receiver
 
 #ifndef _RELEASE_
 		PopCallStack();
 #endif
+
+#ifndef _RELEASE_
+		PushCallStack("PMatrix::SelInv::UpdateLFinal");
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << std::endl << "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
+#endif
+#ifndef _RELEASE_
+		PopCallStack();
+#endif
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && numRowLUpdateBuf > 0 ){
+			std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+			if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+        for( Int ib = 0; ib < Lcol.size(); ib++ ){
+					LBlock& LB = Lcol[ib];
+					lapack::Lacpy( 'A', LB.numRow, LB.numCol, &LUpdateBufReduced( rowLocalPtr[ib], 0 ),
+							LUpdateBufReduced.m(), LB.nzval.Data(), LB.numRow );
+				}
+			} // I do not own the diagonal block
+			else{
+				for( Int ib = 1; ib < Lcol.size(); ib++ ){
+					LBlock& LB = Lcol[ib];
+					lapack::Lacpy( 'A', LB.numRow, LB.numCol, &LUpdateBufReduced( rowLocalPtr[ib-1], 0 ),
+							LUpdateBufReduced.m(), LB.nzval.Data(), LB.numRow );
+				}
+			} // I owns the diagonal block
+		} // Finish updating L	
 
     MPI_Barrier( grid_-> comm );
 	} // for (ksup) : Main loop
