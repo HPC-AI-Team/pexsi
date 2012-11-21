@@ -371,8 +371,10 @@ PMatrix::SelInv	(  )
 #endif
   Int numSuper = this->NumSuper(); 
 
+	// Preparation for the selected inversion
 	this->PreSelInv();
 
+	// Main loop
 	for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << std::endl << "ksup = " << ksup << std::endl << std::endl; 
@@ -383,6 +385,7 @@ PMatrix::SelInv	(  )
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
 #endif
+
 		// Communication for the U part.
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << std::endl << "Communication for the U part." << std::endl << std::endl; 
@@ -455,10 +458,10 @@ PMatrix::SelInv	(  )
 			} // for (iProcCol)
 		} // if I am the sender
 
-    // Receive
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << std::endl << "Receive from both up and from left." << std::endl << std::endl; 
 #endif
+    // Receive
 		std::vector<MPI_Request> mpireqsRecvFromUp( 2, MPI_REQUEST_NULL ); 
 		std::vector<MPI_Request> mpireqsRecvFromLeft( 2, MPI_REQUEST_NULL ); 
 		Int sizeStmFromUp, sizeStmFromLeft;
@@ -508,6 +511,7 @@ PMatrix::SelInv	(  )
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << std::endl << "Wait for all communication to be done." << std::endl << std::endl; 
 #endif
+		// Wait to obtain packed information in a string and then write into stringstream
 		mpi::Wait( mpireqsRecvFromUp[1] );
 		mpi::Wait( mpireqsRecvFromLeft[1] );
 
@@ -524,11 +528,11 @@ PMatrix::SelInv	(  )
 			sstrLcolRecv.clear();
 		} // if I need to receive from left
 
-		mpi::Waitall( mpireqsSendToRight );
-		mpi::Waitall( mpireqsSendToDown );
+		// Overlap the communication with computation.  All processors move
+		// to Gemm phase when ready 
 
 #if ( _DEBUGlevel_ >= 1 )
-		statusOFS << std::endl << "Unpack the received data for processors participate in GEMM. " << std::endl << std::endl; 
+		statusOFS << std::endl << "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
 #endif
 		std::vector<LBlock>   LcolRecv;
 		std::vector<UBlock>   UrowRecv;
@@ -538,12 +542,8 @@ PMatrix::SelInv	(  )
 				std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
 				Int numUBlock;
 				deserialize( numUBlock, sstmUrowRecv, NO_MASK );
-				if( ksup == 91 )
-					statusOFS << "OUT:" << numUBlock << std::endl;
 				UrowRecv.resize( numUBlock );
 				for( Int jb = 0; jb < numUBlock; jb++ ){
-					if( ksup == 91 )
-						statusOFS << "jb:" << jb << std::endl;
 					deserialize( UrowRecv[jb], sstmUrowRecv, mask );
 				} 
 			} // sender is not the same as receiver
@@ -584,13 +584,14 @@ PMatrix::SelInv	(  )
 
 
 #if ( _DEBUGlevel_ >= 1 )
-		statusOFS << std::endl << "Calculate the relative indices." << std::endl << std::endl; 
+		statusOFS << std::endl << "Main work: Gemm" << std::endl << std::endl; 
 #endif
 
 		// Save all the data to be updated for { L( isup, ksup ) | isup > ksup }.
+		// The size will be updated in the Gemm phase and the reduce phase
 		NumMat<Scalar>  LUpdateBuf;
     
-		// Only the processors received information participate in the GEMM 
+		// Only the processors received information participate in the Gemm 
 		if( isRecvFromUp_( ksup ) && isRecvFromLeft_( ksup ) ){
 			// rowPtr[ib] gives the row index in LUpdateBuf for the first
 			// nonzero row in LcolRecv[ib]. The total number of rows in
@@ -613,34 +614,215 @@ PMatrix::SelInv	(  )
 			Int numRowAinvBuf = *rowPtr.rbegin();
 			Int numColAinvBuf = *colPtr.rbegin();
 
+#if ( _DEBUGlevel_ >= 1 )
       statusOFS << "AinvBuf ~ " << numRowAinvBuf << " x " << numColAinvBuf << std::endl;
 			statusOFS << "rowPtr:" << std::endl << rowPtr << std::endl;
 			statusOFS << "colPtr:" << std::endl << colPtr << std::endl;
+#endif
+			// Allocate for the computational storage
+			NumMat<Scalar> AinvBuf( numRowAinvBuf, numColAinvBuf );
+			LUpdateBuf.Resize( numRowAinvBuf, SuperSize( ksup, super_ ) );
+			NumMat<Scalar> UBuf( SuperSize( ksup, super_ ), numColAinvBuf );
+			SetValue( AinvBuf, SCALAR_ZERO );
+			SetValue( LUpdateBuf, SCALAR_ZERO );
+			SetValue( UBuf, SCALAR_ZERO );
+
+			// Fill UBuf first.  Make the transpose later in the Gemm phase.
+			for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+				UBlock& UB = UrowRecv[jb];
+				if( UB.numRow != SuperSize(ksup, super_) ){
+					throw std::logic_error( "The size of UB is not right.  Something is seriously wrong." );
+				}
+				lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
+					UB.numRow, UBuf.VecData( colPtr[jb] ), UBuf.m() );	
+			}
 
 
+			// Calculate the relative indices for (isup, jsup)
+			// Fill AinvBuf with the information in L or U block.
+			for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+				for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+					LBlock& LB = LcolRecv[ib];
+					UBlock& UB = UrowRecv[jb];
+					Int isup = LB.blockIdx;
+					Int jsup = UB.blockIdx;
+					Scalar* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
+					Int     ldAinv    = AinvBuf.m();
+					
+					// Pin down the corresponding block in the part of Sinv.
+					if( isup >= jsup ){
+						std::vector<LBlock>&  LcolSinv = this->L( LBj(jsup, grid_ ) );
+						bool isBlockFound = false;
+						for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+							if( LcolSinv[ibSinv].blockIdx == isup ){
+								LBlock& SinvB = LcolSinv[ibSinv];
+								
+								// Row relative indices
+								std::vector<Int> relRows( LB.numRow );
+								std::set<Int>    SinvRows;
+								SinvRows.insert( &SinvB.rows[0], &SinvB.rows[0] + SinvB.numRow );
+								for( Int i = 0; i < LB.numRow; i++ ){
+									relRows[i] = *( SinvRows.find( LB.rows[i] ) );
+								}
 
+								// Column relative indicies
+								std::vector<Int> relCols( UB.numCol );
+                Int SinvColsSta = FirstBlockCol( jsup, super_ );
+								for( Int j = 0; j < UB.numCol; j++ ){
+									relCols[j] = UB.cols[j] - SinvColsSta;
+								}
 
-			// Loop over all the nonzero local blocks isup in Lcol
-			//   Loop over all the nonzero local blocks jsup in Urow
-			//     Calculate the relative indices for (isup, jsup)
-			//     Fill AinvBuf with the information in L or U block.
+								// Transfer the values from Sinv to AinvBlock
+								Scalar* nzvalSinv = SinvB.nzval.Data();
+								Int     ldSinv    = SinvB.numRow;
+								for( Int j = 0; j < UB.numCol; j++ ){
+									for( Int i = 0; i < LB.numRow; i++ ){
+										nzvalAinv[i+j*ldAinv] =
+										 nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+									}
+								}
+								
+								isBlockFound = true;
+								break;
+							}	
+						} // for (ibSinv )
+						if( isBlockFound == false ){
+							std::ostringstream msg;
+							msg << "Block(" << isup << ", " << jsup 
+								<< ") did not find a matching block in Sinv." << std::endl;
+							throw std::runtime_error( msg.str().c_str() );
+						}
+					} // if (isup, jsup) is in L
+					else{
+						std::vector<UBlock>&   UrowSinv = this->U( LBi( isup, grid_ ) );
+						bool isBlockFound = false;
+						for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
+							if( UrowSinv[jbSinv].blockIdx == jsup ){
+								UBlock& SinvB = UrowSinv[jbSinv];
 
-			// GEMM for LUpdateBuf = AinvBufAinv * UBuf^T
+								// Row relative indices
+								std::vector<Int> relRows( LB.numRow );
+								Int SinvRowsSta = FirstBlockCol( isup, super_ );
+								for( Int i = 0; i < LB.numRow; i++ ){
+									relRows[i] = LB.rows[i] - SinvRowsSta;
+								}
 
+								// Column relative indices
+								std::vector<Int> relCols( UB.numCol );
+								std::set<Int>    SinvCols;
+								SinvCols.insert( &SinvB.cols[0], &SinvB.cols[0] + SinvB.numCol );
+								for( Int j = 0; j < UB.numCol; j++ ){
+									relCols[j] = *( SinvCols.find( UB.cols[j] ) );
+								}
 
-//
-//			NumMat<Scalar> AinvBuf;
-//			
-//			std::vector<Int> rowRelIdx;
-//			std::vector<Int> colRelIdx;
-//			
-		} // if I am a receiver
-		
+								// Trasnfer the values from Sinv to AinvBlock
+								Scalar* nzvalSinv = SinvB.nzval.Data();
+								Int     ldSinv    = SinvB.numRow;
+								for( Int j = 0; j < UB.numCol; j++ ){
+									for( Int i = 0; i < LB.numRow; i++ ){
+										nzvalAinv[i+j*ldAinv] =
+											nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+									}
+								}
+
+								isBlockFound = true;
+								break;
+							}
+						} // for (jbSinv)
+						if( isBlockFound == false ){
+							std::ostringstream msg;
+							msg << "Block(" << isup << ", " << jsup 
+								<< ") did not find a matching block in Sinv." << std::endl;
+							throw std::runtime_error( msg.str().c_str() );
+						}
+					} // if (isup, jsup) is in U
+
+				} // for( ib )
+			} // for ( jb )
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl << "AinvBuf: " << AinvBuf << std::endl;
+      statusOFS << std::endl << "UBuf   : " << UBuf << std::endl;
+#endif
+
+			// Gemm for LUpdateBuf = AinvBuf * UBuf^T
+			blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
+					AinvBuf.Data(), AinvBuf.m(), 
+					UBuf.Data(), UBuf.m(), SCALAR_ZERO,
+					LUpdateBuf.Data(), LUpdateBuf.m() ); 
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl << "LUpdateBuf: " << LUpdateBuf << std::endl;
+#endif
+
+		} // if Gemm is to be done locally
+
+		// Now all the Isend / Irecv should have finished.
+		mpi::Waitall( mpireqsSendToRight );
+		mpi::Waitall( mpireqsSendToDown );
+
 		// Reduce LUpdateBuf across all the processors in the same processor row.
+		
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << std::endl << "Reduce LUpdateBuf to PCOL( ksup, grid_ )" << std::endl << std::endl; 
+#endif
 
+		NumMat<Scalar> LUpdateBufReduced;
 
+		// Processor column of ksup collects the symbolic data for LUpdateBuf.
+		std::vector<Int>  rowLocalPtr;
+		Int numRowLUpdateBuf;
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+			std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+			if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+				rowLocalPtr.resize( Lcol.size() + 1 );
+				rowLocalPtr[0] = 0;
+				for( Int ib = 0; ib < Lcol.size(); ib++ ){
+					rowLocalPtr[ib+1] = rowLocalPtr[ib] + Lcol[ib].numRow;
+				}
+			} // I do not own the diaogonal block
+			else{
+				rowLocalPtr.resize( Lcol.size() );
+				rowLocalPtr[0] = 0;
+				for( Int ib = 0; ib < Lcol.size() -1; ib++ ){
+					rowLocalPtr[ib+1] = rowLocalPtr[ib] + Lcol[ib+1].numRow;
+				}
+			} // I owns the diagonal block, skip the diagonal block
+			numRowLUpdateBuf = *rowLocalPtr.rbegin();
+			if( numRowLUpdateBuf > 0 ){
+				LUpdateBufReduced.Resize( numRowLUpdateBuf, SuperSize( ksup, super_ ) );
+				SetValue( LUpdateBufReduced, SCALAR_ZERO );
+			}
+		} 
 
+		// Processor column sends the total row dimension to all processors
+		// in the same row to prepare for reduce
+		MPI_Bcast( &numRowLUpdateBuf, 1, MPI_INT, PCOL( ksup, grid_ ), grid_->rowComm );
 
+		// If LUpdatebuf has not been constructed, resize and fill with zero
+		if( numRowLUpdateBuf > 0 ){
+			if( LUpdateBuf.m() == 0 && LUpdateBuf.n() == 0 ){
+				LUpdateBuf.Resize( numRowLUpdateBuf, SuperSize( ksup, super_ ) );
+				// Fill zero is important
+				SetValue( LUpdateBuf, SCALAR_ZERO );
+			}
+
+#ifdef _USE_COMPLEX_
+			MPI_Reduce( (Real*)LUpdateBuf.Data(), (Real*)LUpdateBufReduced.Data(),
+					2 * numRowLUpdateBuf * SuperSize( ksup, super_ ),
+					MPI_DOUBLE, MPI_SUM, PCOL( ksup, grid_ ), grid_->rowComm );
+#else
+			MPI_Reduce( LUpdateBuf.Data(), LUpdateBufReduced.Data(),
+					numRowLUpdateBuf * SuperSize( ksup, super_ ),
+					MPI_DOUBLE, MPI_SUM, PCOL( ksup, grid_ ), grid_->rowComm );
+#endif
+		}
+
+#if ( _DEBUGlevel_ >= 1 )
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && numRowLUpdateBuf > 0 )
+			statusOFS << std::endl << "LUpdateBufReduced: " << LUpdateBufReduced << std::endl << std::endl; 
+#endif
+		
 
 #ifndef _RELEASE_
 		PopCallStack();
