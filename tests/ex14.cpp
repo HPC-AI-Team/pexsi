@@ -210,8 +210,8 @@ int main(int argc, char **argv)
 
 			NumVec<Scalar> diag;
 			
-//			PMloc.Diagonal( diag );
-//			statusOFS << std::endl << "Diagonal of U before SelInv: " << std::endl << diag << std::endl;
+			PMloc.Diagonal( diag );
+			statusOFS << std::endl << "Diagonal of U before SelInv: " << std::endl << diag << std::endl;
 
 			PMloc.ConstructCommunicationPattern();
 

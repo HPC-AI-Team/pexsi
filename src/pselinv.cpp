@@ -716,6 +716,7 @@ PMatrix::SelInv	(  )
 						std::vector<UBlock>&   UrowSinv = this->U( LBi( isup, grid_ ) );
 						bool isBlockFound = false;
 						for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
+							// Found the (isup, jsup) block in Sinv
 							if( UrowSinv[jbSinv].blockIdx == jsup ){
 								UBlock& SinvB = UrowSinv[jbSinv];
 
@@ -733,7 +734,7 @@ PMatrix::SelInv	(  )
 								for( Int j = 0; j < UB.numCol; j++ ){
 									bool isColFound = false;
 									for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
-										if( colsUBPtr[j] == colsUBPtr[j1] ){
+										if( colsUBPtr[j] == colsSinvBPtr[j1] ){
 											isColFound = true;
 											relCols[j] = j1;
 											break;
@@ -875,16 +876,17 @@ PMatrix::SelInv	(  )
 			if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
 				for( Int ib = 0; ib < Lcol.size(); ib++ ){
 					blas::Gemm( 'T', 'N', SuperSize( ksup, super_ ), SuperSize( ksup, super_ ), Lcol[ib].numRow, 
-							SCALAR_MINUS_ONE, Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
-							&LUpdateBufReduced( rowLocalPtr[ib], 0 ), LUpdateBufReduced.m(),
+							SCALAR_MINUS_ONE, &LUpdateBufReduced( rowLocalPtr[ib], 0 ), LUpdateBufReduced.m(),
+							Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
 							SCALAR_ONE, DiagBuf.Data(), DiagBuf.m() );
 				}
 			} // I do not own the diaogonal block
 			else{
 				for( Int ib = 1; ib < Lcol.size(); ib++ ){
+					statusOFS << "LB = " << Lcol[ib].nzval << std::endl;
 					blas::Gemm( 'T', 'N', SuperSize( ksup, super_ ), SuperSize( ksup, super_ ), Lcol[ib].numRow, 
-							SCALAR_MINUS_ONE, Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
-							&LUpdateBufReduced( rowLocalPtr[ib-1], 0 ), LUpdateBufReduced.m(),
+							SCALAR_MINUS_ONE, &LUpdateBufReduced( rowLocalPtr[ib-1], 0 ), LUpdateBufReduced.m(),	
+							Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
 							SCALAR_ONE, DiagBuf.Data(), DiagBuf.m() );
 				}
 			} // I owns the diagonal block, skip the diagonal block
@@ -913,6 +915,9 @@ PMatrix::SelInv	(  )
         LBlock&  LB = this->L( LBj( ksup, grid_ ) )[0];
 				blas::Axpy( LB.numRow * LB.numCol, 1.0, DiagBufReduced.Data(),
 						1, LB.nzval.Data(), 1 );
+#if ( _DEBUGlevel_ >= 1 )
+				statusOFS << std::endl << "Diag of Ainv: " << LB.nzval << std::endl << std::endl; 
+#endif
 			}
 		} // Update the diagonal in the processor column of ksup. All processors participate
 
@@ -1204,7 +1209,7 @@ PMatrix::PreSelInv	(  )
 	statusOFS << std::endl << "L(i,i) <- [L(k,k) * U(k,k)]^{-1}" << std::endl << std::endl; 
 #endif
 
-	for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+	for( Int ksup = 0; ksup < numSuper; ksup++ ){
 		if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
 		    MYCOL( grid_ ) == PCOL( ksup, grid_ )	){
 			IntNumVec ipiv( SuperSize( ksup, super_ ) );
@@ -1216,17 +1221,13 @@ PMatrix::PreSelInv	(  )
 			LBlock& LB = this->L( LBj( ksup, grid_ ) )[0];
 #if ( _DEBUGlevel_ >= 1 )
 			// Check the correctness of the matrix inversion for the first local column
-			if( LBj( ksup, grid_ ) == 0 ){
-				statusOFS << "Factorized A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;
-			}
+			statusOFS << "Factorized A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;
 #endif
 			lapack::Getri( SuperSize( ksup, super_ ), LB.nzval.Data(), 
 					SuperSize( ksup, super_ ), ipiv.Data() );
 #if ( _DEBUGlevel_ >= 1 )
 			// Check the correctness of the matrix inversion for the first local column
-			if( LBj( ksup, grid_ ) == 0 ){
-				statusOFS << "Inversed   A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;
-			}
+			statusOFS << "Inversed   A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;
 #endif
 		} // if I need to inverse the diagonal block
 	} // for (ksup)
