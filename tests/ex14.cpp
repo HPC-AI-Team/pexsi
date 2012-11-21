@@ -17,7 +17,7 @@ using namespace std;
 void Usage(){
   std::cout 
 		<< "Usage" << std::endl
-		<< "ex14 -r [nprow] -c [npcol]" << std::endl;
+		<< "ex14 -H [Hfile] -S [Sfile]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -41,24 +41,18 @@ int main(int argc, char **argv)
 		// *********************************************************************
 		// Input parameter
 		// *********************************************************************
-		int      nprow, npcol;
 		std::map<std::string,std::string> options;
 		std::string Hfile, Sfile;                   
 
 		OptionsCreate(argc, argv, options);
-		if( options.find("-r") != options.end() ){ 
-			nprow = std::atoi(options["-r"].c_str());
-		}
-		else{
-      throw std::logic_error("nprow must be provided.");
+	  Int nprow = iround( std::sqrt( (double)mpisize) );
+		Int npcol = mpisize / nprow;
+		if( mpisize != nprow * npcol || nprow != npcol ){
+			throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
 		}
 
-		if( options.find("-c") != options.end() ){ 
-			npcol = std::atoi(options["-c"].c_str());
-		}
-		else{
-      throw std::logic_error("npcol must be provided.");
-		}
+		if( mpirank == 0 )
+			cout << "nprow = " << nprow << ", npcol = " << npcol << endl;
 		
 		if( options.find("-H") != options.end() ){ 
 			Hfile = options["-H"];
@@ -108,7 +102,7 @@ int main(int argc, char **argv)
 		Real *ptr1 = HMat.nzvalLocal.Data();
 		Real *ptr2 = SMat.nzvalLocal.Data();
 		for(Int i = 0; i < HMat.nnzLocal; i++){
-			*(ptr0++) = *(ptr1++);// - Z_I * *(ptr2++);
+			*(ptr0++) = *(ptr1++) - Z_I * *(ptr2++);
 		}
 		GetTime( timeEnd );
 		if( mpirank == 0 )
