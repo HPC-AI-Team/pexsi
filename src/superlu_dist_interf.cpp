@@ -110,7 +110,8 @@ SuperLUMatrix::SuperLUMatrix	( SuperLUGrid& g )
 	options.ParSymbFact       = NO;
 	options.Equil             = NO; 
 	options.ReplaceTinyPivot  = NO;
-	options.ColPerm           = MMD_AT_PLUS_A;
+	options.ColPerm           = NATURAL;
+//	options.ColPerm           = MMD_AT_PLUS_A;
 //	options.ColPerm           = METIS_AT_PLUS_A;
 	options.PrintStat         = YES;
 	options.SolveInitialized  = NO;
@@ -538,7 +539,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 			Lcol.resize( index[cnt++] );
 			Int lda = index[cnt++];
 
-			for( Int iblk= 0; iblk < Lcol.size(); iblk++ ){
+			for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
 				LBlock& LB     = Lcol[iblk];
 				LB.blockIdx    = index[cnt++];
 				LB.numRow      = index[cnt++];

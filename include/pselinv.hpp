@@ -495,16 +495,14 @@ public:
 			const DistSparseMatrix<Scalar>& A,
 			DistSparseMatrix<Scalar>& B );
 
-//	Int DumpL(string filename, gridinfo_t* grid);
-//	Int DumpU(string filename, gridinfo_t* grid);
-//
-//	Int DumpLBlock(Int isup, Int jsup, string filename, gridinfo_t* grid);
-//	Int DumpUBlock(Int isup, Int jsup, string filename, gridinfo_t* grid);
-//
-//	//    Int CondDiagBlock(gridinfo_t* grid);
-//	Int DumpDiagVec(NumVec<Scalar>& globalDiagVec, 
-//			string filename, gridinfo_t *grid);
-//
+	/// @brief Diagonal extracts the diagonal elements of the PMatrix.
+	///
+	/// 1) diagNaturalOrder is permuted back to the natural order
+	///
+	/// 2) diagNaturalOrder is shared by all processors in grid_->comm through a
+	/// Allreduce procedure.
+	void Diagonal( NumVec<Scalar>& diagNaturalOrder );
+
 };
 
 

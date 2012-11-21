@@ -654,15 +654,31 @@ PMatrix::SelInv	(  )
 						std::vector<LBlock>&  LcolSinv = this->L( LBj(jsup, grid_ ) );
 						bool isBlockFound = false;
 						for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+							// Found the (isup, jsup) block in Sinv
 							if( LcolSinv[ibSinv].blockIdx == isup ){
 								LBlock& SinvB = LcolSinv[ibSinv];
 								
 								// Row relative indices
 								std::vector<Int> relRows( LB.numRow );
-								std::set<Int>    SinvRows;
-								SinvRows.insert( &SinvB.rows[0], &SinvB.rows[0] + SinvB.numRow );
+								Int* rowsLBPtr    = LB.rows.Data();
+								Int* rowsSinvBPtr = SinvB.rows.Data();
 								for( Int i = 0; i < LB.numRow; i++ ){
-									relRows[i] = *( SinvRows.find( LB.rows[i] ) );
+									bool isRowFound = false;
+									for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
+										if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
+											isRowFound = true;
+											relRows[i] = i1;
+											break;
+										}
+									}
+									if( isRowFound == false ){
+										std::ostringstream msg;
+										msg << "Row " << rowsLBPtr[i] << 
+											" in LB cannot find the corresponding row in SinvB" << std::endl
+										 << "LB.rows    = " << LB.rows << std::endl
+									   << "SinvB.rows = " << SinvB.rows << std::endl;
+										throw std::runtime_error( msg.str().c_str() );
+									}
 								}
 
 								// Column relative indicies
@@ -671,6 +687,9 @@ PMatrix::SelInv	(  )
 								for( Int j = 0; j < UB.numCol; j++ ){
 									relCols[j] = UB.cols[j] - SinvColsSta;
 								}
+
+								statusOFS << "relRows = " << relRows << std::endl;
+								statusOFS << "relCols = " << relCols << std::endl;
 
 								// Transfer the values from Sinv to AinvBlock
 								Scalar* nzvalSinv = SinvB.nzval.Data();
@@ -709,10 +728,25 @@ PMatrix::SelInv	(  )
 
 								// Column relative indices
 								std::vector<Int> relCols( UB.numCol );
-								std::set<Int>    SinvCols;
-								SinvCols.insert( &SinvB.cols[0], &SinvB.cols[0] + SinvB.numCol );
+								Int* colsUBPtr    = UB.cols.Data();
+								Int* colsSinvBPtr = SinvB.cols.Data();
 								for( Int j = 0; j < UB.numCol; j++ ){
-									relCols[j] = *( SinvCols.find( UB.cols[j] ) );
+									bool isColFound = false;
+									for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
+										if( colsUBPtr[j] == colsUBPtr[j1] ){
+											isColFound = true;
+											relCols[j] = j1;
+											break;
+										}
+									}
+									if( isColFound == false ){
+										std::ostringstream msg;
+										msg << "Col " << colsUBPtr[j] << 
+											" in UB cannot find the corresponding row in SinvB" << std::endl
+										 << "UB.cols    = " << UB.cols << std::endl
+									   << "UinvB.cols = " << SinvB.cols << std::endl;
+										throw std::runtime_error( msg.str().c_str() );
+									}
 								}
 
 								// Trasnfer the values from Sinv to AinvBlock
@@ -1213,5 +1247,50 @@ PMatrix::PreSelInv	(  )
 } 		// -----  end of method PMatrix::PreSelInv  ----- 
 
 
+void
+PMatrix::Diagonal	( NumVec<Scalar>& diagNaturalOrder )
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::Diagonal");
+#endif
+  Int numSuper = this->NumSuper(); 
+
+  Int numCol = this->NumCol();
+
+	NumVec<Scalar> diagLocal( numCol );
+	SetValue( diagLocal, SCALAR_ZERO );
+	NumVec<Scalar> diag( numCol );
+	SetValue( diag, SCALAR_ZERO );
+
+	diagNaturalOrder.Resize( numCol );
+	SetValue( diagNaturalOrder, SCALAR_ZERO );
+
+
+	for( Int ksup = 0; ksup < numSuper; ksup++ ){
+	  // I own the diagonal block	
+		if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
+				MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+			LBlock& LB = this->L( LBj( ksup, grid_ ) )[0];
+			statusOFS << "LB(" << ksup << ", " << ksup << ").rows = " << LB.rows << std::endl;
+      for( Int i = 0; i < LB.numRow; i++ ){
+        diagLocal( LB.rows(i) ) = LB.nzval( i, i );
+			}
+		}
+	}
+
+	// All processors own diag
+	mpi::Allreduce( diagLocal.Data(), diag.Data(), numCol, MPI_SUM, grid_->comm );
+
+	// Permute diag back to natural order
+	for( Int i = 0; i < numCol; i++ ){
+		diagNaturalOrder(i) = diag( super_->perm(i) );
+	}
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PMatrix::Diagonal  ----- 
 
 } // namespace PEXSI

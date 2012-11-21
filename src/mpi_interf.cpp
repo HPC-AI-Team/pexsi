@@ -5,7 +5,7 @@ namespace PEXSI{
 namespace mpi{
 
 // *********************************************************************
-// Allgather
+// Gather
 // *********************************************************************
 
 void
@@ -161,6 +161,42 @@ Waitall ( std::vector<MPI_Request>& reqs )
 	return ;
 }		// -----  end of function Waitall  ----- 
 
+
+// *********************************************************************
+// Reduce
+// *********************************************************************
+
+
+void
+Allreduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Allreduce");
+#endif
+	MPI_Allreduce( sendbuf,  recvbuf, count, MPI_DOUBLE, 
+			op, comm );
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Allreduce  ----- 
+
+
+void
+Allreduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Allreduce");
+#endif
+	MPI_Allreduce( (Real*)sendbuf, (Real*) recvbuf, 2*count, MPI_DOUBLE, 
+			op, comm );
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Allreduce  ----- 
 
 } // namespace mpi
 

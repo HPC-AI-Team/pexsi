@@ -1280,6 +1280,8 @@ inline void GetTime(Real&  t){
 // *********************************************************************
 // Comparator
 // *********************************************************************
+
+// Real
 inline bool PairLtComparator( const std::pair<Real, Int>& l, 
 		const std::pair<Real, Int>& r ){
 	return l.first < r.first;

@@ -208,9 +208,18 @@ int main(int argc, char **argv)
 			PMatrix PMloc( &g1, &super );
 			luMat.LUstructToPMatrix( PMloc );
 
+			NumVec<Scalar> diag;
+			
+//			PMloc.Diagonal( diag );
+//			statusOFS << std::endl << "Diagonal of U before SelInv: " << std::endl << diag << std::endl;
+
 			PMloc.ConstructCommunicationPattern();
 
 			PMloc.SelInv();
+
+			PMloc.Diagonal( diag );
+
+			statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
 
 		}
 		

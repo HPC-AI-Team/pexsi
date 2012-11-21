@@ -47,10 +47,21 @@ Waitall ( std::vector<MPI_Request>& reqs, std::vector<MPI_Status>& stats );
 void
 Waitall ( std::vector<MPI_Request>& reqs );
 
+// *********************************************************************
+// Reduce
+// *********************************************************************
+void
+Allreduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, MPI_Comm comm );
+
+void
+Allreduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, MPI_Comm comm );
+
 } // namespace mpi
 
 
 } // namespace PEXSI
+
+
 
 #endif // _MPI_INTERF_HPP_
 
