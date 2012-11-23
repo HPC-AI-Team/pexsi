@@ -404,7 +404,7 @@ PMatrix::SelInv	(  )
 			for( Int jb = 0; jb < Urow.size(); jb++ ){
 				serialize( Urow[jb], sstm, mask );
 			}
-			sstrUrowSend.resize( sstm.str().length() );
+			sstrUrowSend.resize( Size( sstm ) );
 			sstm.read( &sstrUrowSend[0], sstrUrowSend.size() );
 			for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
 				if( MYROW( grid_ ) != iProcRow &&
@@ -448,7 +448,7 @@ PMatrix::SelInv	(  )
 					serialize( Lcol[ib], sstm, mask );
 				}
 			}
-			sstrLcolSend.resize( sstm.str().length() );
+			sstrLcolSend.resize( Size( sstm ) );
 			sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
 			for( Int iProcCol = 0; iProcCol < grid_->numProcCol ; iProcCol++ ){
 				if( MYCOL( grid_ ) != iProcCol &&

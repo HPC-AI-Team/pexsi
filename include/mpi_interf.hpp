@@ -24,7 +24,7 @@ void Allgatherv(
 // communicated separately for non-blocking communication.
 // *********************************************************************
 
-void Send( const std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
+void Send( std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
 		MPI_Comm comm );
 
 void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 

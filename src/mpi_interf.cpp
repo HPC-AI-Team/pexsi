@@ -49,15 +49,17 @@ Allgatherv (
 // Send / Recv
 // *********************************************************************
 void 
-Send( const std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
+Send( std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
 		MPI_Comm comm ){
 #ifndef _RELEASE_
 	PushCallStack("mpi::Send");
 #endif
-	const std::string& sstr = sstm.str();
-	Int sizeStm = sstr.length();
+	std::vector<char> sstr;
+	sstr.resize( Size( sstm ) );
+	Int sizeStm = sstr.size();
+	sstm.read( &sstr[0], sizeStm );
 	MPI_Send( &sizeStm, 1, MPI_INT,  dest, tagSize, comm );
-	MPI_Send( (void*)sstr.c_str(), sizeStm, MPI_BYTE, dest, tagContent, comm );
+	MPI_Send( (void*)&sstr[0], sizeStm, MPI_BYTE, dest, tagContent, comm );
 #ifndef _RELEASE_
 	PopCallStack();
 #endif

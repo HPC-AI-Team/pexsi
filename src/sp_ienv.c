@@ -58,11 +58,16 @@ sp_ienv_dist(int_t ispec)
 	// DEBUG PURPOSE
 	if(0){
 		switch (ispec ){
-			case 2: return (6);
-			case 3: return (6);
-			case 4: return (1);
-			case 5: return (1);
-			case 6: return (1);
+			case 2: return (16);
+			case 3: return (128);
+			case 4: return (64);
+			case 5: return (64);
+			case 6: return (10);
+//			case 2: return (6);
+//			case 3: return (6);
+//			case 4: return (1);
+//			case 5: return (1);
+//			case 6: return (1);
 		}
 	}
 	else{

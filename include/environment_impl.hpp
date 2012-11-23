@@ -24,6 +24,20 @@ inline void OptionsCreate(Int argc, char** argv, std::map<std::string,std::strin
 	}
 }
 
+// *********************************************************************
+// Stringstream
+// *********************************************************************
+
+// Size information.
+// Like sstm.str().length() but without making the copy
+inline Int Size( std::stringstream& sstm ){
+	Int length;
+	sstm.seekg (0, std::ios::end);
+	length = sstm.tellg();
+	sstm.seekg (0, std::ios::beg);
+	return length;
+}
+
 } // namespace PEXSI
 
 #endif // _ENVIRONMENT_IMPL_HPP_
