@@ -296,6 +296,16 @@ private:
 	NumVec<bool>                       isRecvFromLeft_;
 	NumVec<bool>                       isRecvFromCrossDiagonal_;
 
+	// This is the tag used for mpi communication for selinv
+	enum{
+		SELINV_TAG_U_SIZE,
+		SELINV_TAG_U_CONTENT,
+		SELINV_TAG_L_SIZE,
+		SELINV_TAG_L_CONTENT,
+		SELINV_TAG_D_SIZE,
+		SELINV_TAG_D_CONTENT
+	};
+
 private:
 	// *********************************************************************
 	// Private member functions 

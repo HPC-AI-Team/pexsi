@@ -390,7 +390,8 @@ PMatrix::SelInv	(  )
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << std::endl << "Communication for the U part." << std::endl << std::endl; 
 #endif
-		std::vector<MPI_Request> mpireqsSendToDown( 2 * grid_->numProcRow, MPI_REQUEST_NULL ); 
+		std::vector<MPI_Request> mpireqsSendToDown( 2 * grid_->numProcRow, MPI_REQUEST_NULL );
+		std::vector<char> sstrUrowSend;
 
 		// Senders
 		if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
@@ -403,15 +404,18 @@ PMatrix::SelInv	(  )
 			for( Int jb = 0; jb < Urow.size(); jb++ ){
 				serialize( Urow[jb], sstm, mask );
 			}
+			sstrUrowSend.resize( sstm.str().length() );
+			sstm.read( &sstrUrowSend[0], sstrUrowSend.size() );
 			for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
 				if( MYROW( grid_ ) != iProcRow &&
 						isSendToDown_( ksup, iProcRow ) == true ){
 					// Use Isend to send to multiple targets
-					const std::string& sstr = sstm.str();
-					Int sizeStm = sstr.length();
-					MPI_Isend( &sizeStm, 1, MPI_INT,  iProcRow, grid_->numProcRow + iProcRow, 
+					Int sizeStm = sstrUrowSend.size();
+					MPI_Isend( &sizeStm, 1, MPI_INT,  
+							iProcRow, SELINV_TAG_U_SIZE, 
 							grid_->colComm, &mpireqsSendToDown[grid_->numProcRow + iProcRow] );
-					MPI_Isend( (void*)sstr.c_str(), sizeStm, MPI_BYTE, iProcRow, iProcRow, 
+					MPI_Isend( (void*)&sstrUrowSend[0], sizeStm, MPI_BYTE, 
+							iProcRow, SELINV_TAG_U_CONTENT, 
 							grid_->colComm, &mpireqsSendToDown[iProcRow] );
 				} // Send 
 			} // for (iProcRow)
@@ -423,6 +427,7 @@ PMatrix::SelInv	(  )
 #endif
 
 		std::vector<MPI_Request> mpireqsSendToRight( 2 * grid_->numProcCol, MPI_REQUEST_NULL ); 
+		std::vector<char> sstrLcolSend;
 
 		// Senders
 		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
@@ -443,16 +448,18 @@ PMatrix::SelInv	(  )
 					serialize( Lcol[ib], sstm, mask );
 				}
 			}
-			
+			sstrLcolSend.resize( sstm.str().length() );
+			sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
 			for( Int iProcCol = 0; iProcCol < grid_->numProcCol ; iProcCol++ ){
 				if( MYCOL( grid_ ) != iProcCol &&
 						isSendToRight_( ksup, iProcCol ) == true ){
 					// Use Isend to send to multiple targets
-					const std::string& sstr = sstm.str();
-					Int sizeStm = sstr.length();
-					MPI_Isend( &sizeStm, 1, MPI_INT,  iProcCol, grid_->numProcCol + iProcCol, 
+					Int sizeStm = sstrLcolSend.size();
+					MPI_Isend( &sizeStm, 1, MPI_INT,  
+							iProcCol, SELINV_TAG_L_SIZE, 
 							grid_->rowComm, &mpireqsSendToRight[grid_->numProcCol + iProcCol] );
-					MPI_Isend( (void*)sstr.c_str(), sizeStm, MPI_BYTE, iProcCol, iProcCol, 
+					MPI_Isend( (void*)&sstrLcolSend[0], sizeStm, MPI_BYTE, 
+							iProcCol, SELINV_TAG_L_CONTENT, 
 							grid_->rowComm, &mpireqsSendToRight[iProcCol] );
 				} // Send 
 			} // for (iProcCol)
@@ -466,8 +473,6 @@ PMatrix::SelInv	(  )
 		std::vector<MPI_Request> mpireqsRecvFromLeft( 2, MPI_REQUEST_NULL ); 
 		Int sizeStmFromUp, sizeStmFromLeft;
 
-		std::stringstream     sstmLcolRecv;
-		std::stringstream     sstmUrowRecv;
 		std::vector<char>     sstrLcolRecv;
 		std::vector<char>     sstrUrowRecv;
 
@@ -475,14 +480,16 @@ PMatrix::SelInv	(  )
 
 		if( isRecvFromUp_( ksup ) && 
 				MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-			MPI_Irecv( &sizeStmFromUp, 1, MPI_INT, PROW( ksup, grid_ ), grid_->numProcRow + MYROW( grid_ ),
+			MPI_Irecv( &sizeStmFromUp, 1, MPI_INT, PROW( ksup, grid_ ), 
+					SELINV_TAG_U_SIZE,
 					grid_->colComm, &mpireqsRecvFromUp[0] );
 		} // if I need to receive from up
 
 
 		if( isRecvFromLeft_( ksup ) &&
 				MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
-			MPI_Irecv( &sizeStmFromLeft, 1, MPI_INT, PCOL( ksup, grid_ ), grid_->numProcCol + MYCOL( grid_ ),
+			MPI_Irecv( &sizeStmFromLeft, 1, MPI_INT, PCOL( ksup, grid_ ), 
+					SELINV_TAG_L_SIZE,
 					grid_->rowComm, &mpireqsRecvFromLeft[0] );
 		} // if I need to receive from left
 
@@ -494,16 +501,17 @@ PMatrix::SelInv	(  )
 		if( isRecvFromUp_( ksup ) && 
 				MYROW( grid_ ) != PROW( ksup, grid_ ) ){
 			sstrUrowRecv.resize( sizeStmFromUp );
-			MPI_Irecv( &sstrUrowRecv[0], sizeStmFromUp, MPI_BYTE, PROW( ksup, grid_ ), 
-					MYROW( grid_ ), grid_->colComm, 
-					&mpireqsRecvFromUp[1] );
+			MPI_Irecv( &sstrUrowRecv[0], sizeStmFromUp, MPI_BYTE, 
+					PROW( ksup, grid_ ), SELINV_TAG_U_CONTENT, 
+					grid_->colComm, &mpireqsRecvFromUp[1] );
 		} // if I need to receive from up
 
 		if( isRecvFromLeft_( ksup ) &&
 				MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
 			sstrLcolRecv.resize( sizeStmFromLeft );
-			MPI_Irecv( &sstrLcolRecv[0], sizeStmFromLeft, MPI_BYTE, PCOL( ksup, grid_ ), 
-					MYCOL( grid_ ), grid_->rowComm,
+			MPI_Irecv( &sstrLcolRecv[0], sizeStmFromLeft, MPI_BYTE, 
+					PCOL( ksup, grid_ ), SELINV_TAG_L_CONTENT, 
+					grid_->rowComm,
 					&mpireqsRecvFromLeft[1] );
 		} // if I need to receive from left
 
@@ -514,19 +522,6 @@ PMatrix::SelInv	(  )
 		// Wait to obtain packed information in a string and then write into stringstream
 		mpi::Wait( mpireqsRecvFromUp[1] );
 		mpi::Wait( mpireqsRecvFromLeft[1] );
-
-		if( isRecvFromUp_( ksup ) && 
-				MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-			sstmUrowRecv.write( &sstrUrowRecv[0], sizeStmFromUp );
-			sstrUrowRecv.clear();
-		} // if I need to receive from up 
-
-
-		if( isRecvFromLeft_( ksup ) &&
-				MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
-			sstmLcolRecv.write( &sstrLcolRecv[0], sizeStmFromLeft );
-			sstrLcolRecv.clear();
-		} // if I need to receive from left
 
 		// Overlap the communication with computation.  All processors move
 		// to Gemm phase when ready 
@@ -539,12 +534,14 @@ PMatrix::SelInv	(  )
 		if( isRecvFromUp_( ksup ) && isRecvFromLeft_( ksup ) ){
 			// U part
 			if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+				std::stringstream sstm;
+				sstm.write( &sstrUrowRecv[0], sizeStmFromUp );
 				std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
 				Int numUBlock;
-				deserialize( numUBlock, sstmUrowRecv, NO_MASK );
+				deserialize( numUBlock, sstm, NO_MASK );
 				UrowRecv.resize( numUBlock );
 				for( Int jb = 0; jb < numUBlock; jb++ ){
-					deserialize( UrowRecv[jb], sstmUrowRecv, mask );
+					deserialize( UrowRecv[jb], sstm, mask );
 				} 
 			} // sender is not the same as receiver
 			else{
@@ -554,13 +551,15 @@ PMatrix::SelInv	(  )
 			} // sender is the same as receiver
 
 			if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+				std::stringstream     sstm;
+				sstm.write( &sstrLcolRecv[0], sizeStmFromLeft );
 				std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
 				mask[LBlockMask::NZVAL] = 0; // nzval is excluded
 				Int numLBlock;
-				deserialize( numLBlock, sstmLcolRecv, NO_MASK );
+				deserialize( numLBlock, sstm, NO_MASK );
 				LcolRecv.resize( numLBlock );
 				for( Int ib = 0; ib < numLBlock; ib++ ){
-					deserialize( LcolRecv[ib], sstmLcolRecv, mask );
+					deserialize( LcolRecv[ib], sstm, mask );
 				}
 			} // sender is not the same as receiver
 			else{
@@ -927,7 +926,7 @@ PMatrix::SelInv	(  )
 			if( MYPROC( grid_ ) != dest	){
 				std::stringstream sstm;
 				serialize( LUpdateBufReduced, sstm, NO_MASK );
-				mpi::Send( sstm, dest, ksup + numSuper, ksup, grid_->comm );
+				mpi::Send( sstm, dest, SELINV_TAG_D_SIZE, SELINV_TAG_D_CONTENT, grid_->comm );
 			}
 		} // sender
 
@@ -936,7 +935,7 @@ PMatrix::SelInv	(  )
 			NumMat<Scalar> UUpdateBuf;
 			if( MYPROC( grid_ ) != src ){
 				std::stringstream sstm;
-				mpi::Recv( sstm, src, ksup + numSuper, ksup, grid_->comm );
+				mpi::Recv( sstm, src, SELINV_TAG_D_SIZE, SELINV_TAG_D_CONTENT, grid_->comm );
 			  deserialize( UUpdateBuf, sstm, NO_MASK );	
 			} // sender is not the same as receiver
 			else{
@@ -1105,7 +1104,7 @@ PMatrix::PreSelInv	(  )
 			// Send/Recv is possible here due to the one to one correspondence
 			// in the case of square processor grid
 			mpi::Send( sstm, PNUM( ksupProcRow, MYROW( grid_ ), grid_ ), 
-					ksup + numSuper, ksup, grid_->comm );
+					SELINV_TAG_D_SIZE, SELINV_TAG_D_CONTENT, grid_->comm );
 		} // if I am a sender
 
 		// Receiver
@@ -1115,7 +1114,7 @@ PMatrix::PreSelInv	(  )
 			if( PNUM( MYCOL( grid_ ), ksupProcCol, grid_ ) != MYPROC( grid_ ) ){
 				std::stringstream sstm;
 				mpi::Recv( sstm, PNUM( MYCOL( grid_ ), ksupProcCol, grid_ ), 
-						ksup + numSuper, ksup, grid_->comm );
+						SELINV_TAG_D_SIZE, SELINV_TAG_D_CONTENT, grid_->comm );
 				
 				// Unpack L data.  
 				Int numLBlock;
