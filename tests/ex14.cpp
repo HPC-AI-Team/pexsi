@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 
 		GetTime( timeTotalFactorizationEnd );
 		if( mpirank == 0 )
-			cout << "Total time for factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
+			cout << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
 
 
 		// *********************************************************************
@@ -257,6 +257,13 @@ int main(int argc, char **argv)
 			if( mpirank == 0 )
 				statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
 
+			GetTime( timeSta );
+			DistSparseMatrix<Scalar> Ainv;
+			PMloc.PMatrixToDistSparseMatrix( Ainv );
+			GetTime( timeEnd );
+			
+			if( mpirank == 0 )
+				cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
 		}
 		
 		statusOFS.close();

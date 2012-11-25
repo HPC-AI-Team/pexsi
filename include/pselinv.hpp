@@ -490,18 +490,6 @@ public:
 	///
 	void SelInv( );
 
-	/// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
-	/// distributed compressed sparse column matrix format, according
-	/// block row partition.
-	///
-	/// @param[in] A Input sparse matrix to enforce the sparsity
-	/// pattern.
-	/// @param[out] B Output sparse matrix with the same sparsity pattern
-	/// as A.
-	void PMatrixToDistSparseMatrix( 
-			const DistSparseMatrix<Scalar>& A,
-			DistSparseMatrix<Scalar>& B );
-
 	/// @brief Diagonal extracts the diagonal elements of the PMatrix.
 	///
 	/// 1) diagNaturalOrder is permuted back to the natural order
@@ -510,6 +498,12 @@ public:
 	/// Allreduce procedure.
 	void Diagonal( NumVec<Scalar>& diagNaturalOrder );
 
+
+	/// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
+	/// distributed compressed sparse column matrix format.
+	///
+	/// @param[out] A Output sparse matrix.
+	void PMatrixToDistSparseMatrix( DistSparseMatrix<Scalar>& A );
 };
 
 

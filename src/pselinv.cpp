@@ -1276,4 +1276,96 @@ PMatrix::Diagonal	( NumVec<Scalar>& diagNaturalOrder )
 	return ;
 } 		// -----  end of method PMatrix::Diagonal  ----- 
 
+
+void
+PMatrix::PMatrixToDistSparseMatrix	( 
+			DistSparseMatrix<Scalar>& A )
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::PMatrixToDistSparseMatrix");
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix." << std::endl;
+#endif
+	Int mpirank = grid_->mpirank;
+	Int mpisize = grid_->mpisize;
+
+	std::vector<std::vector<Int> >     rowSend( mpisize );
+	std::vector<std::vector<Int> >     colSend( mpisize );
+	std::vector<std::vector<Scalar> >  valSend( mpisize );
+	std::vector<Int>                   sizeSend( mpisize, 0 );
+	std::vector<Int>                   sizeRecv( mpisize, 0 );
+  
+	Int numSuper = this->NumSuper();
+
+	// The number of local columns in DistSparseMatrix format for the
+	// processor with rank 0.  This number is the same for processors
+	// with rank ranging from 0 to mpisize - 2, and may or may not differ
+	// from the number of local columns for processor with rank mpisize -
+	// 1.
+	Int numColFirst = this->NumCol() / mpisize;
+  
+	// Count the size first.
+	for( Int ksup = 0; ksup < numSuper; ksup++ ){
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+			// L blocks
+			std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+			for( Int jcol = FirstBlockCol( ksup, super_ );
+					 jcol < FirstBlockCol( ksup+1, super_ );
+					 jcol++ ){
+				Int dest = jcol / numColFirst;
+				for( Int ib = 0; ib < Lcol.size(); ib++ ){
+					sizeSend[dest] += Lcol[ib].numRow;
+				}
+			}
+			// U blocks
+			std::vector<UBlock>&  Urow = this->U( LBi( ksup, grid_ ) );
+			for( Int jb = 0; jb < Urow.size(); jb++ ){
+				IntNumVec& cols = Urow[jb].cols;
+				for( Int j = 0; j < cols.m(); j++ ){
+					Int jcol = cols(j);
+					Int dest = jcol / numColFirst;
+					sizeSend[dest] += Urow[jb].numRow;
+				}
+			}
+		} // I own the ksup column
+	}
+
+	// All-to-all exchange of size information
+	MPI_Alltoall( 
+			&sizeSend[0], 1, MPI_INT,
+			&sizeRecv[0], 1, MPI_INT, grid_->comm );
+
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "sizeSend: " << sizeSend << std::endl;
+	statusOFS << std::endl << "sizeRecv: " << sizeRecv << std::endl;
+#endif
+	
+	/// Prepare for the alltoall send/recv
+	/// for each supernode
+	///   Loop over U
+	///     serialize (i,j,val) to the corresponding processor
+	///   Loop over L
+	///     serialize (i,j,val) to the corresponding processor
+	///
+  	
+
+	/// Alltoall for the sizes and allocate the storage
+	/// Alltoallv for the (i,j,val) triplet
+	/// TODO Alltoallv for stringstream
+
+  /// Form DistSparseMatrix according to the received message	
+	/// NOTE: for indicies,  DistSparseMatrix follows the FORTRAN
+	/// convention (1 based) while PMatrix follows the C convention (0
+	/// based)
+	
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PMatrix::PMatrixToDistSparseMatrix  ----- 
+
+
 } // namespace PEXSI
