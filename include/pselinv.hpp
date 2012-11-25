@@ -306,18 +306,6 @@ private:
 		SELINV_TAG_D_CONTENT
 	};
 
-private:
-	// *********************************************************************
-	// Private member functions 
-	// *********************************************************************
-  
-	/// @brief PreSelInv computes the inverse of the diagonal blocks, 
-	/// scale the off-diagonal L blocks by L_{kk}^{-1}, and fill the
-	/// U_{ki} blocks by L_{ik}.
-	///
-	/// PreSelInv assumes that ConstructCommunicationPattern has been
-	/// executed.
-	void PreSelInv( );
 
 public:
 	// *********************************************************************
@@ -359,6 +347,15 @@ public:
 	/// @brief ConstructCommunicationPattern constructs the communication
 	/// pattern to be used later in the selected inversion stage.
 	void ConstructCommunicationPattern( );
+
+	/// @brief PreSelInv computes the inverse of the diagonal blocks, 
+	/// scale the off-diagonal L blocks by L_{kk}^{-1}, and fill the
+	/// U_{ki} blocks by L_{ik}.
+	///
+	/// PreSelInv assumes that ConstructCommunicationPattern has been
+	/// executed.
+	void PreSelInv( );
+
 
 	/// @brief SelInv is the main function for the selected inversion.
 	///

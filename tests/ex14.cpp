@@ -135,10 +135,14 @@ int main(int argc, char **argv)
 		// *********************************************************************
 		// Numerical factorization only 
 		// *********************************************************************
+		Real timeTotalFactorizationSta, timeTotalFactorizationEnd; 
+	
 		
 		// Important: the distribution in pzsymbfact is going to mess up the
 		// A matrix.  Recompute the matrix A here.
 		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+
+		GetTime( timeTotalFactorizationSta );
     
 		GetTime( timeSta );
 		luMat.Distribute();
@@ -154,6 +158,10 @@ int main(int argc, char **argv)
 
 		if( mpirank == 0 )
 			cout << "Time for factorization is " << timeEnd - timeSta << " sec" << endl; 
+
+		GetTime( timeTotalFactorizationEnd );
+		if( mpirank == 0 )
+			cout << "Total time for factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
 
 
 		// *********************************************************************
@@ -191,6 +199,9 @@ int main(int argc, char **argv)
 
 		if( 1 )
 		{
+			Real timeTotalSelInvSta, timeTotalSelInvEnd;
+			GetTime( timeTotalSelInvSta );
+
 			Grid g1( MPI_COMM_WORLD, nprow, npcol );
 			SuperNode super;
 			
@@ -215,12 +226,25 @@ int main(int argc, char **argv)
 			if( mpirank == 0 )
 				cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
 
+
+			// Preparation for the selected inversion
+			GetTime( timeSta );
+			PMloc.PreSelInv();
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
+
 			GetTime( timeSta );
 			PMloc.SelInv();
 			GetTime( timeEnd );
 
 			if( mpirank == 0 )
 				cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
+
+
+			GetTime( timeTotalSelInvEnd );
+			if( mpirank == 0 )
+				cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 			NumVec<Scalar> diag;
 			

@@ -371,9 +371,6 @@ PMatrix::SelInv	(  )
 #endif
   Int numSuper = this->NumSuper(); 
 
-	// Preparation for the selected inversion
-	this->PreSelInv();
-
 	// Main loop
 	for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
 #if ( _DEBUGlevel_ >= 1 )
