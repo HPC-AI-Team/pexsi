@@ -7,7 +7,6 @@ namespace PEXSI{
 
 namespace mpi{
 
-
 // *********************************************************************
 // Allgatherv
 // *********************************************************************
@@ -57,12 +56,33 @@ Reduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm 
 void
 Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm );
 
+void
+Allreduce ( Int* sendbuf, Int* recvbuf, Int count, MPI_Op op, MPI_Comm comm );
 
 void
 Allreduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, MPI_Comm comm );
 
 void
 Allreduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, MPI_Comm comm );
+
+// *********************************************************************
+// Alltoall
+// *********************************************************************
+
+void
+Alltoallv ( Int *bufSend, Int *sizeSend, Int *displsSend, 
+		Int *bufRecv, Int *sizeRecv, 
+		Int *displsRecv, MPI_Comm comm );
+
+void
+Alltoallv ( Real *bufSend, Int *sizeSend, Int *displsSend, 
+		Real *bufRecv, Int *sizeRecv, 
+		Int *displsRecv, MPI_Comm comm );
+
+void
+Alltoallv ( Complex *bufSend, Int *sizeSend, Int *displsSend, 
+		Complex *bufRecv, Int *sizeRecv, 
+		Int *displsRecv, MPI_Comm comm );
 
 } // namespace mpi
 

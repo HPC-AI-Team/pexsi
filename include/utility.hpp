@@ -1292,6 +1292,21 @@ inline bool PairGtComparator( const std::pair<Real, Int>& l,
 	return l.first > r.first;
 }
 
+// For sorting with indices
+// Example usage:
+//   std::sort(val.begin(), val.end(), IndexComp<std::vector<int>&>(indices));
+template<class T> 
+struct IndexComp {
+private: 
+	const T indices_;
+public:
+	IndexComp (const T indices) : indices_(indices) {}
+	bool operator()(const size_t a, const size_t b) const
+		{ return indices_[a] < indices_[b]; }
+};
+
+
+
 
 // *********************************************************************
 // Sparse Matrix

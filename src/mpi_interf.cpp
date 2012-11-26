@@ -2,6 +2,10 @@
 
 namespace PEXSI{
 
+// *********************************************************************
+// Constants
+// *********************************************************************
+
 namespace mpi{
 
 // *********************************************************************
@@ -197,6 +201,21 @@ Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI
 	return ;
 }		// -----  end of function Reduce  ----- 
 
+void
+Allreduce ( Int* sendbuf, Int* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Allreduce");
+#endif
+	MPI_Allreduce( sendbuf,  recvbuf, count, MPI_INT, 
+			op, comm );
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Allreduce  ----- 
+
 
 void
 Allreduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
@@ -228,6 +247,77 @@ Allreduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, MPI_Comm c
 
 	return ;
 }		// -----  end of function Allreduce  ----- 
+
+
+// *********************************************************************
+// Alltoall
+// *********************************************************************
+
+void
+Alltoallv ( Int *bufSend, Int *sizeSend, Int *displsSend, 
+		Int *bufRecv, Int *sizeRecv, 
+		Int *displsRecv, MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Alltoallv");
+#endif
+  MPI_Alltoallv( bufSend, sizeSend, displsSend, MPI_INT,
+		 bufRecv, sizeRecv, displsRecv, MPI_INT, comm );	
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return ;
+}		// -----  end of function Alltoallv  ----- 
+
+
+void
+Alltoallv ( Real *bufSend, Int *sizeSend, Int *displsSend, 
+		Real *bufRecv, Int *sizeRecv, 
+		Int *displsRecv, MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Alltoallv");
+#endif
+  MPI_Alltoallv( bufSend, sizeSend, displsSend, MPI_DOUBLE,
+		 bufRecv, sizeRecv, displsRecv, MPI_DOUBLE, comm );	
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return ;
+}		// -----  end of function Alltoallv  ----- 
+
+void
+Alltoallv ( Complex *bufSend, Int *sizeSend, Int *displsSend, 
+		Complex *bufRecv, Int *sizeRecv, 
+		Int *displsRecv, MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Alltoallv");
+#endif
+	Int mpisize; 
+	MPI_Comm_size( comm, &mpisize );
+	std::vector<Int> dblSizeSend( mpisize );
+	std::vector<Int> dblDisplsSend( mpisize ); 
+	std::vector<Int> dblSizeRecv( mpisize );
+	std::vector<Int> dblDisplsRecv( mpisize );
+
+	for( Int ip = 0; ip < mpisize; ip++ ){
+    dblSizeSend[ip] = 2 * sizeSend[ip];
+		dblSizeRecv[ip] = 2 * sizeRecv[ip];
+		dblDisplsSend[ip] = 2 * displsSend[ip];
+		dblDisplsRecv[ip] = 2 * displsRecv[ip];
+	}
+
+  MPI_Alltoallv( 
+			(Real*)bufSend, &dblSizeSend[0], &dblDisplsSend[0], MPI_DOUBLE, 
+			(Real*)bufRecv, &dblSizeRecv[0], &dblDisplsRecv[0], MPI_DOUBLE, comm );	
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return ;
+}		// -----  end of function Alltoallv  ----- 
+
 
 } // namespace mpi
 

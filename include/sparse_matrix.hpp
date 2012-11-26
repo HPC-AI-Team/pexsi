@@ -29,13 +29,14 @@ typedef SparseMatrix<Complex>    CpxSparseMatrix;
 //
 // TODO add class Type so that Type can be NR (row major distributed)
 // and NCloc (column major distributed)
+// TODO Comment on the size of indices
 // *********************************************************************
 
 template <class F> struct DistSparseMatrix{
 	Int          size;                            // Matrix dimension
 	Int          nnz;                             // Number of nonzeros
 	Int          nnzLocal;                        // Number of local nonzeros
-	IntNumVec    colptrLocal;                     // Local lolumn index pointer
+	IntNumVec    colptrLocal;                     // Local column index pointer
 	IntNumVec    rowindLocal;                     // Local starting row index pointer
 	NumVec<F>    nzvalLocal;                      // Local nonzero values for the sparse matrix
 	MPI_Comm     comm;                            // MPI Communicator

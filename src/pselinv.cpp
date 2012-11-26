@@ -1294,7 +1294,17 @@ PMatrix::PMatrixToDistSparseMatrix	(
 	std::vector<std::vector<Int> >     colSend( mpisize );
 	std::vector<std::vector<Scalar> >  valSend( mpisize );
 	std::vector<Int>                   sizeSend( mpisize, 0 );
+	std::vector<Int>                   displsRowSend( mpisize, 0 );
+	std::vector<Int>                   displsColSend( mpisize, 0 );
+	std::vector<Int>                   displsValSend( mpisize, 0 );
+	
+	std::vector<std::vector<Int> >     rowRecv( mpisize );
+	std::vector<std::vector<Int> >     colRecv( mpisize );
+	std::vector<std::vector<Scalar> >  valRecv( mpisize );
 	std::vector<Int>                   sizeRecv( mpisize, 0 );
+	std::vector<Int>                   displsRowRecv( mpisize, 0 );
+	std::vector<Int>                   displsColRecv( mpisize, 0 );
+	std::vector<Int>                   displsValRecv( mpisize, 0 );
   
 	Int numSuper = this->NumSuper();
 
@@ -1307,18 +1317,20 @@ PMatrix::PMatrixToDistSparseMatrix	(
   
 	// Count the size first.
 	for( Int ksup = 0; ksup < numSuper; ksup++ ){
+		// L blocks
 		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-			// L blocks
 			std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
-			for( Int jcol = FirstBlockCol( ksup, super_ );
-					 jcol < FirstBlockCol( ksup+1, super_ );
-					 jcol++ ){
-				Int dest = jcol / numColFirst;
-				for( Int ib = 0; ib < Lcol.size(); ib++ ){
+			for( Int ib = 0; ib < Lcol.size(); ib++ ){
+				for( Int j = 0; j < SuperSize( ksup, super_ ); j++ ){
+					Int jcol = j + FirstBlockCol( ksup, super_ );
+					Int dest = jcol / numColFirst;
 					sizeSend[dest] += Lcol[ib].numRow;
 				}
 			}
-			// U blocks
+		} // I own the column of ksup 
+
+		// U blocks
+		if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
 			std::vector<UBlock>&  Urow = this->U( LBi( ksup, grid_ ) );
 			for( Int jb = 0; jb < Urow.size(); jb++ ){
 				IntNumVec& cols = Urow[jb].cols;
@@ -1328,8 +1340,8 @@ PMatrix::PMatrixToDistSparseMatrix	(
 					sizeSend[dest] += Urow[jb].numRow;
 				}
 			}
-		} // I own the ksup column
-	}
+		} // I own the row of ksup
+	} // for (ksup)
 
 	// All-to-all exchange of size information
 	MPI_Alltoall( 
@@ -1340,25 +1352,183 @@ PMatrix::PMatrixToDistSparseMatrix	(
 	statusOFS << std::endl << "sizeSend: " << sizeSend << std::endl;
 	statusOFS << std::endl << "sizeRecv: " << sizeRecv << std::endl;
 #endif
+
+
+	// Reserve the space
+	for( Int ip = 0; ip < mpisize; ip++ ){
+		rowSend[ip].resize( sizeSend[ip] );
+		colSend[ip].resize( sizeSend[ip] );
+		valSend[ip].resize( sizeSend[ip] );
+		displsRowSend[ip] = &rowSend[ip][0] - &rowSend[0][0];
+		displsColSend[ip] = &colSend[ip][0] - &colSend[0][0];
+		displsValSend[ip] = &valSend[ip][0] - &valSend[0][0];
+
+		rowRecv[ip].resize( sizeRecv[ip] );
+		colRecv[ip].resize( sizeRecv[ip] );
+		valRecv[ip].resize( sizeRecv[ip] );
+		displsRowRecv[ip] = &rowRecv[ip][0] - &rowRecv[0][0];
+		displsColRecv[ip] = &colRecv[ip][0] - &colRecv[0][0];
+		displsValRecv[ip] = &valRecv[ip][0] - &valRecv[0][0];
+	}
+
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << "displsRowSend = " << displsRowSend << std::endl;
+	statusOFS << "displsRowRecv = " << displsRowRecv << std::endl;
+#endif
 	
-	/// Prepare for the alltoall send/recv
-	/// for each supernode
-	///   Loop over U
-	///     serialize (i,j,val) to the corresponding processor
-	///   Loop over L
-	///     serialize (i,j,val) to the corresponding processor
-	///
+	// Put (row, col, val) to the sending buffer
+	std::vector<Int>   cntSize( mpisize, 0 );
+
+	for( Int ksup = 0; ksup < numSuper; ksup++ ){
+		// L blocks
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+			std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+			for( Int ib = 0; ib < Lcol.size(); ib++ ){
+				IntNumVec&  rows = Lcol[ib].rows;
+				NumMat<Scalar>& nzval = Lcol[ib].nzval;
+				for( Int j = 0; j < Lcol[ib].numCol; j++ ){
+					Int jcol = j + FirstBlockCol( ksup, super_ );
+					Int dest = jcol / numColFirst;
+					for( Int i = 0; i < rows.m(); i++ ){
+						rowSend[dest][cntSize[dest]] = rows(i);
+						colSend[dest][cntSize[dest]] = jcol;
+						valSend[dest][cntSize[dest]] = nzval( i, j );
+						cntSize[dest]++;
+					}
+				}
+			}
+		} // I own the column of ksup 
+
+		// U blocks
+		if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+			std::vector<UBlock>&  Urow = this->U( LBi( ksup, grid_ ) );
+			for( Int jb = 0; jb < Urow.size(); jb++ ){
+				IntNumVec& cols = Urow[jb].cols;
+				NumMat<Scalar>& nzval = Urow[jb].nzval;
+				for( Int j = 0; j < cols.m(); j++ ){
+					Int jcol = cols(j);
+					Int dest = jcol / numColFirst;
+					for( Int i = 0; i < Urow[jb].numRow; i++ ){
+						rowSend[dest][cntSize[dest]] = i + FirstBlockCol( ksup, super_ );
+						colSend[dest][cntSize[dest]] = jcol;
+						valSend[dest][cntSize[dest]] = nzval( i, j );
+						cntSize[dest]++;
+					}
+				}
+			}
+		} // I own the row of ksup
+	}
   	
+	// Check sizes match
+	for( Int ip = 0; ip < mpisize; ip++ ){
+		if( cntSize[ip] != sizeSend[ip] )
+			throw std::runtime_error( "Sizes of the sending information do not match." );
+	}
 
-	/// Alltoall for the sizes and allocate the storage
-	/// Alltoallv for the (i,j,val) triplet
-	/// TODO Alltoallv for stringstream
+	// Alltoallv to exchange information
+	mpi::Alltoallv( 
+			&rowSend[0][0], &sizeSend[0], &displsRowSend[0],
+			&rowRecv[0][0], &sizeRecv[0], &displsRowRecv[0],
+			grid_->comm );
+	mpi::Alltoallv( 
+			&colSend[0][0], &sizeSend[0], &displsColSend[0],
+			&colRecv[0][0], &sizeRecv[0], &displsColRecv[0],
+			grid_->comm );
+	mpi::Alltoallv( 
+			&valSend[0][0], &sizeSend[0], &displsValSend[0],
+			&valRecv[0][0], &sizeRecv[0], &displsValRecv[0],
+			grid_->comm );
 
-  /// Form DistSparseMatrix according to the received message	
-	/// NOTE: for indicies,  DistSparseMatrix follows the FORTRAN
-	/// convention (1 based) while PMatrix follows the C convention (0
-	/// based)
+#if ( _DEBUGlevel_ >= 1 )
+	for( Int ip = 0; ip < mpisize; ip++ ){
+		statusOFS << "rowSend[" << ip << "] = " << rowSend[ip] << std::endl;
+		statusOFS << "rowRecv[" << ip << "] = " << rowRecv[ip] << std::endl;
+		statusOFS << "colSend[" << ip << "] = " << colSend[ip] << std::endl;
+		statusOFS << "colRecv[" << ip << "] = " << colRecv[ip] << std::endl;
+		statusOFS << "valSend[" << ip << "] = " << valSend[ip] << std::endl;
+		statusOFS << "valRecv[" << ip << "] = " << valRecv[ip] << std::endl;
+	}
+#endif
+
+	// Organize the received message.
+	Int firstCol = mpirank * numColFirst;
+	Int numColLocal;
+	if( mpirank == mpisize-1 )
+		numColLocal = this->NumCol() - numColFirst * (mpisize-1);
+	else
+    numColLocal = numColFirst;
 	
+	std::vector<std::vector<Int> > rows( numColLocal );
+	std::vector<std::vector<Scalar> > vals( numColLocal );
+	
+	for( Int ip = 0; ip < mpisize; ip++ ){
+		std::vector<Int>&  rowRecvCur = rowRecv[ip];
+		std::vector<Int>&  colRecvCur = colRecv[ip];
+		std::vector<Scalar>&  valRecvCur = valRecv[ip];
+		for( Int i = 0; i < sizeRecv[ip]; i++ ){
+			rows[colRecvCur[i]-firstCol].push_back( rowRecvCur[i] );
+			vals[colRecvCur[i]-firstCol].push_back( valRecvCur[i] );
+		} // for (i)
+	} // for (ip)
+
+	// Sort the rows
+	std::vector<std::vector<Int> > sortIndex( numColLocal );
+	for( Int j = 0; j < numColLocal; j++ ){
+		sortIndex[j].resize( rows[j].size() );
+		for( Int i = 0; i < sortIndex[j].size(); i++ )
+			sortIndex[j][i] = i;
+		std::sort( sortIndex[j].begin(), sortIndex[j].end(),
+				IndexComp<std::vector<Int>& > ( rows[j] ) );
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << "sortIndex[" << j << "] = " << sortIndex[j]  << std::endl;
+#endif
+	} // for (j)
+
+  // Form DistSparseMatrix according to the received message	
+	// NOTE: for indicies,  DistSparseMatrix follows the FORTRAN
+	// convention (1 based) while PMatrix follows the C convention (0
+	// based)
+	A.size = this->NumCol();
+	A.nnzLocal  = 0;
+	A.colptrLocal.Resize( numColLocal + 1 );
+	// Note that 1 is important since the index follows the FORTRAN convention
+	A.colptrLocal(0) = 1;
+	for( Int j = 0; j < numColLocal; j++ ){
+		A.nnzLocal += rows[j].size();
+		A.colptrLocal(j+1) = A.colptrLocal(j) + rows[j].size();
+	}
+  
+	mpi::Allreduce( &A.nnzLocal, &A.nnz, 1, MPI_SUM, grid_->comm );
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << "nnzLocal = " << A.nnzLocal << std::endl;
+		statusOFS << "nnz      = " << A.nnz      << std::endl;
+#endif
+
+
+	A.rowindLocal.Resize( A.nnzLocal );
+	A.nzvalLocal.Resize(  A.nnzLocal );
+	A.comm = grid_->comm;
+
+	Int*     rowPtr = A.rowindLocal.Data();
+	Scalar*  nzvalPtr = A.nzvalLocal.Data();
+	for( Int j = 0; j < numColLocal; j++ ){
+    std::vector<Int>& rowsCur = rows[j];
+		std::vector<Int>& sortIndexCur = sortIndex[j];
+    std::vector<Scalar>& valsCur = vals[j];
+		for( Int i = 0; i < rows[j].size(); i++ ){
+			// Note that 1 is important since the index follows the FORTRAN convention
+			*(rowPtr++)   = rowsCur[sortIndexCur[i]] + 1;
+			*(nzvalPtr++) = valsCur[sortIndexCur[i]]; 
+		}
+	}
+
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << "A.colptrLocal[end]   = " << A.colptrLocal(numColLocal) << std::endl;
+	statusOFS << "A.rowindLocal.size() = " << A.rowindLocal.m() << std::endl;
+	statusOFS << "A.rowindLocal[end]   = " << A.rowindLocal(A.nnzLocal-1) << std::endl;
+	statusOFS << "A.nzvalLocal[end]    = " << A.nzvalLocal(A.nnzLocal-1) << std::endl;
+#endif
+
 
 #ifndef _RELEASE_
 	PopCallStack();
