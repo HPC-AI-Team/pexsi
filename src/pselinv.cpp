@@ -1232,22 +1232,21 @@ PMatrix::PreSelInv	(  )
 
 
 void
-PMatrix::Diagonal	( NumVec<Scalar>& diagNaturalOrder )
+PMatrix::GetDiagonal	( NumVec<Scalar>& diag )
 {
 #ifndef _RELEASE_
-	PushCallStack("PMatrix::Diagonal");
+	PushCallStack("PMatrix::GetDiagonal");
 #endif
   Int numSuper = this->NumSuper(); 
 
   Int numCol = this->NumCol();
+	const IntNumVec& permInv = super_->permInv;
 
 	NumVec<Scalar> diagLocal( numCol );
 	SetValue( diagLocal, SCALAR_ZERO );
-	NumVec<Scalar> diag( numCol );
-	SetValue( diag, SCALAR_ZERO );
 
-	diagNaturalOrder.Resize( numCol );
-	SetValue( diagNaturalOrder, SCALAR_ZERO );
+	diag.Resize( numCol );
+	SetValue( diag, SCALAR_ZERO );
 
 
 	for( Int ksup = 0; ksup < numSuper; ksup++ ){
@@ -1256,7 +1255,7 @@ PMatrix::Diagonal	( NumVec<Scalar>& diagNaturalOrder )
 				MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 			LBlock& LB = this->L( LBj( ksup, grid_ ) )[0];
       for( Int i = 0; i < LB.numRow; i++ ){
-        diagLocal( LB.rows(i) ) = LB.nzval( i, i );
+        diagLocal( permInv( LB.rows(i) ) ) = LB.nzval( i, i );
 			}
 		}
 	}
@@ -1264,17 +1263,12 @@ PMatrix::Diagonal	( NumVec<Scalar>& diagNaturalOrder )
 	// All processors own diag
 	mpi::Allreduce( diagLocal.Data(), diag.Data(), numCol, MPI_SUM, grid_->comm );
 
-	// Permute diag back to natural order
-	for( Int i = 0; i < numCol; i++ ){
-		diagNaturalOrder(i) = diag( super_->perm(i) );
-	}
-
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
 
 	return ;
-} 		// -----  end of method PMatrix::Diagonal  ----- 
+} 		// -----  end of method PMatrix::GetDiagonal  ----- 
 
 
 void
@@ -1307,6 +1301,7 @@ PMatrix::PMatrixToDistSparseMatrix	(
 	std::vector<Int>                   displsValRecv( mpisize, 0 );
   
 	Int numSuper = this->NumSuper();
+	const IntNumVec& permInv = super_->permInv;
 
 	// The number of local columns in DistSparseMatrix format for the
 	// processor with rank 0.  This number is the same for processors
@@ -1322,7 +1317,7 @@ PMatrix::PMatrixToDistSparseMatrix	(
 			std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
 			for( Int ib = 0; ib < Lcol.size(); ib++ ){
 				for( Int j = 0; j < SuperSize( ksup, super_ ); j++ ){
-					Int jcol = j + FirstBlockCol( ksup, super_ );
+					Int jcol = permInv( j + FirstBlockCol( ksup, super_ ) );
 					Int dest = jcol / numColFirst;
 					sizeSend[dest] += Lcol[ib].numRow;
 				}
@@ -1335,7 +1330,7 @@ PMatrix::PMatrixToDistSparseMatrix	(
 			for( Int jb = 0; jb < Urow.size(); jb++ ){
 				IntNumVec& cols = Urow[jb].cols;
 				for( Int j = 0; j < cols.m(); j++ ){
-					Int jcol = cols(j);
+					Int jcol = permInv( cols(j) );
 					Int dest = jcol / numColFirst;
 					sizeSend[dest] += Urow[jb].numRow;
 				}
@@ -1387,10 +1382,10 @@ PMatrix::PMatrixToDistSparseMatrix	(
 				IntNumVec&  rows = Lcol[ib].rows;
 				NumMat<Scalar>& nzval = Lcol[ib].nzval;
 				for( Int j = 0; j < Lcol[ib].numCol; j++ ){
-					Int jcol = j + FirstBlockCol( ksup, super_ );
+					Int jcol = permInv( j + FirstBlockCol( ksup, super_ ) );
 					Int dest = jcol / numColFirst;
 					for( Int i = 0; i < rows.m(); i++ ){
-						rowSend[dest][cntSize[dest]] = rows(i);
+						rowSend[dest][cntSize[dest]] = permInv( rows(i) );
 						colSend[dest][cntSize[dest]] = jcol;
 						valSend[dest][cntSize[dest]] = nzval( i, j );
 						cntSize[dest]++;
@@ -1406,10 +1401,11 @@ PMatrix::PMatrixToDistSparseMatrix	(
 				IntNumVec& cols = Urow[jb].cols;
 				NumMat<Scalar>& nzval = Urow[jb].nzval;
 				for( Int j = 0; j < cols.m(); j++ ){
-					Int jcol = cols(j);
+					Int jcol = permInv( cols(j) );
 					Int dest = jcol / numColFirst;
 					for( Int i = 0; i < Urow[jb].numRow; i++ ){
-						rowSend[dest][cntSize[dest]] = i + FirstBlockCol( ksup, super_ );
+						rowSend[dest][cntSize[dest]] = 
+							permInv( i + FirstBlockCol( ksup, super_ ) );
 						colSend[dest][cntSize[dest]] = jcol;
 						valSend[dest][cntSize[dest]] = nzval( i, j );
 						cntSize[dest]++;

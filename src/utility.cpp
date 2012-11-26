@@ -365,4 +365,44 @@ void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat
 	return ;
 }		// -----  end of function ReadDistSparseMatrix  ----- 
 
+
+void
+GetDiagonal ( const DistSparseMatrix<Complex>& A, 
+		NumVec<Complex>& diag )
+{
+#ifndef _RELEASE_
+	PushCallStack("GetDiagonal");
+#endif
+	Int mpirank, mpisize;
+	MPI_Comm_rank( A.comm, &mpirank );
+	MPI_Comm_size( A.comm, &mpisize );
+
+  NumVec<Complex>	 diagLocal( A.size );
+	SetValue( diagLocal, Z_ZERO );
+	diag.Resize( A.size );
+	SetValue( diag, Z_ZERO );
+
+	Int numColFirst = A.size / mpisize;
+	Int firstCol    = mpirank * numColFirst;
+	Int numColLocal = A.colptrLocal.m() - 1;
+
+	// Note that the indices in DistSparseMatrix follows the FORTRAN convention
+  for( Int j = 0; j < numColLocal; j++ ){
+		Int jcol = j + firstCol + 1;
+		Int numRow = A.colptrLocal(j+1) - A.colptrLocal(j);
+		const Int* rowPtr = &A.rowindLocal( A.colptrLocal(j) - 1 );
+		Int diagIdx = lower_bound( rowPtr, rowPtr + numRow, jcol ) - 
+			A.rowindLocal.Data();
+    diagLocal( jcol - 1 ) = A.nzvalLocal( diagIdx );
+	}
+
+	mpi::Allreduce( &diagLocal[0], &diag[0], A.size, MPI_SUM, A.comm );
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function GetDiagonal  ----- 
+
 }  // namespace PEXSI

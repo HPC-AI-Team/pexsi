@@ -8,13 +8,9 @@
 #include  "nummat_impl.hpp"
 #include  "numtns_impl.hpp"
 #include  "sparse_matrix.hpp"
+#include	"mpi_interf.hpp"
 
 namespace PEXSI{
-
-// *********************************************************************
-// Data types
-// *********************************************************************
-
 
 // *********************************************************************
 // Define constants
@@ -1316,6 +1312,10 @@ public:
 void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat );
 
 void ReadDistSparseMatrix( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
+
+void
+GetDiagonal ( const DistSparseMatrix<Complex>& A, 
+		NumVec<Complex>& diag );
 
 } // namespace PEXSI
 #endif // _UTILITY_HPP_

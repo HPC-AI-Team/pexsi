@@ -79,8 +79,11 @@ struct Grid{
 /// perm is the permutation vector.  Symmetric permutation is assumed.
 /// perm is the same as ScalePermstruct -> perm_c.
 ///
+/// permInv is the inverse of the permutation vector.
+///
 struct SuperNode{
   IntNumVec   perm;              
+	IntNumVec   permInv;
 	IntNumVec   superIdx;
 	IntNumVec   superPtr;
 };
@@ -490,17 +493,18 @@ public:
 	///
 	void SelInv( );
 
-	/// @brief Diagonal extracts the diagonal elements of the PMatrix.
+	/// @brief GetDiagonal extracts the diagonal elements of the PMatrix.
 	///
-	/// 1) diagNaturalOrder is permuted back to the natural order
+	/// 1) diag is permuted back to the natural order
 	///
-	/// 2) diagNaturalOrder is shared by all processors in grid_->comm through a
+	/// 2) diag is shared by all processors in grid_->comm through a
 	/// Allreduce procedure.
-	void Diagonal( NumVec<Scalar>& diagNaturalOrder );
+	void GetDiagonal( NumVec<Scalar>& diag );
 
 
 	/// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
 	/// distributed compressed sparse column matrix format.
+	/// The DistSparseMatrix follows the natural order.
 	///
 	/// @param[out] A Output sparse matrix.
 	void PMatrixToDistSparseMatrix( DistSparseMatrix<Scalar>& A );

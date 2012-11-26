@@ -215,6 +215,7 @@ int main(int argc, char **argv)
 				cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
 
 			statusOFS << "perm: " << endl << super.perm << endl;
+			statusOFS << "permInv: " << endl << super.permInv << endl;
 			statusOFS << "superIdx:" << endl << super.superIdx << endl;
 			statusOFS << "superPtr:" << endl << super.superPtr << endl; 
 
@@ -249,7 +250,7 @@ int main(int argc, char **argv)
 			NumVec<Scalar> diag;
 			
 			GetTime( timeSta );
-			PMloc.Diagonal( diag );
+			PMloc.GetDiagonal( diag );
 			GetTime( timeEnd );
 			if( mpirank == 0 )
 				cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
@@ -264,6 +265,18 @@ int main(int argc, char **argv)
 			
 			if( mpirank == 0 )
 				cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
+
+			NumVec<Scalar> diagDistSparse;
+			GetTime( timeSta );
+			GetDiagonal( Ainv, diagDistSparse );
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+
+			if( mpirank == 0 )
+				statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+
+
 		}
 		
 		statusOFS.close();

@@ -668,6 +668,16 @@ SuperLUMatrix::SymbolicToSuperNode	( SuperNode& super )
 	super.perm.Resize( n );
 	std::copy( perm_c, perm_c + n, super.perm.Data() );
 
+	// Construct the inverse permutation vector
+	super.permInv.Resize( n );
+	for( Int i = 0; i < n; i++ ){
+		super.permInv(i) = i;
+	}
+
+	std::sort( super.permInv.Data(), super.permInv.Data() + n,
+			IndexComp<IntNumVec&>(super.perm) );
+
+
   // Supernodal information
 
 	Int *xsup    = ptrData -> LUstruct.Glu_persist -> xsup;
