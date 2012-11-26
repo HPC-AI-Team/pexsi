@@ -97,6 +97,7 @@ int main(int argc, char **argv)
 		AMat.colptrLocal = HMat.colptrLocal;
 		AMat.rowindLocal = HMat.rowindLocal;
 		AMat.nzvalLocal.Resize( HMat.nnzLocal );
+		AMat.comm = MPI_COMM_WORLD;
 
 		Complex *ptr0 = AMat.nzvalLocal.Data();
 		Real *ptr1 = HMat.nzvalLocal.Data();
@@ -220,6 +221,7 @@ int main(int argc, char **argv)
 			statusOFS << "superPtr:" << endl << super.superPtr << endl; 
 
 
+			// Preparation for the selected inversion
 			GetTime( timeSta );
 			PMloc.ConstructCommunicationPattern();
 			GetTime( timeEnd );
@@ -228,13 +230,13 @@ int main(int argc, char **argv)
 				cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
 
 
-			// Preparation for the selected inversion
 			GetTime( timeSta );
 			PMloc.PreSelInv();
 			GetTime( timeEnd );
 			if( mpirank == 0 )
 				cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
+			// Main subroutine for selected inversion
 			GetTime( timeSta );
 			PMloc.SelInv();
 			GetTime( timeEnd );
@@ -258,6 +260,7 @@ int main(int argc, char **argv)
 			if( mpirank == 0 )
 				statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
 
+			// Convert to DistSparseMatrix and get the diagonal
 			GetTime( timeSta );
 			DistSparseMatrix<Scalar> Ainv;
 			PMloc.PMatrixToDistSparseMatrix( Ainv );
@@ -275,6 +278,26 @@ int main(int argc, char **argv)
 
 			if( mpirank == 0 )
 				statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+
+			// Convert to DistSparseMatrix in the 2nd format and get the diagonal
+			GetTime( timeSta );
+			DistSparseMatrix<Scalar> Ainv2;
+			PMloc.PMatrixToDistSparseMatrix( AMat, Ainv2 );
+			GetTime( timeEnd );
+			
+			if( mpirank == 0 )
+				cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
+
+			NumVec<Scalar> diagDistSparse2;
+			GetTime( timeSta );
+			GetDiagonal( Ainv2, diagDistSparse2 );
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+
+			if( mpirank == 0 )
+				statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+
 
 
 		}

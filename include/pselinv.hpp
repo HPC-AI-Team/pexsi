@@ -508,6 +508,21 @@ public:
 	///
 	/// @param[out] A Output sparse matrix.
 	void PMatrixToDistSparseMatrix( DistSparseMatrix<Scalar>& A );
+
+	/// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
+	/// distributed compressed sparse column matrix format B, which has
+	/// the same sparsity pattern as the DistSparseMatrix A.
+	///
+	/// The DistSparseMatrix follows the natural order.
+	///
+	/// @param[in]  A Input sparse matrix to provide the sparsity pattern.
+	///
+	/// @param[out] B Output sparse matrix.
+	void PMatrixToDistSparseMatrix( 
+			const DistSparseMatrix<Scalar>& A,
+		  DistSparseMatrix<Scalar>& B	);
+
+
 };
 
 
