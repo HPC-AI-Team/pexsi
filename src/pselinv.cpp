@@ -18,8 +18,6 @@ Grid::Grid	( MPI_Comm Bcomm, int nprow, int npcol )
 	if( mpisize != nprow * npcol ){
 		throw std::logic_error( "mpisize != nprow * npcol." ); 
 	}
-	if( nprow != npcol ){
-		throw std::runtime_error( "The current version of SelInv only works for square processor grids." ); }
 
   numProcRow = nprow;
   numProcCol = npcol;
@@ -67,7 +65,11 @@ PMatrix::PMatrix ( const PEXSI::Grid* g, const PEXSI::SuperNode* s ):grid_(g), s
 #ifndef _RELEASE_
 	PushCallStack("PMatrix::PMatrix");
 #endif
-  L_.resize( this->NumLocalBlockCol() );
+	if( grid_->numProcRow != grid_->numProcCol ){
+		throw std::runtime_error( "The current version of SelInv only works for square processor grids." ); }
+  
+	
+	L_.resize( this->NumLocalBlockCol() );
 	U_.resize( this->NumLocalBlockRow() );
 
 #if ( _DEBUGlevel_ >= 1 )

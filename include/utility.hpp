@@ -1313,9 +1313,30 @@ void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat );
 
 void ReadDistSparseMatrix( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
 
+// TODO Real format
 void
 GetDiagonal ( const DistSparseMatrix<Complex>& A, 
 		NumVec<Complex>& diag );
+
+
+// Functions for DistSparseMatrix
+
+template <class F> 
+void
+CopyPattern	( const DistSparseMatrix<F>& A, DistSparseMatrix<F>& B )
+{
+#ifndef _RELEASE_
+	PushCallStack("CopyPattern");
+#endif
+	B.size        = A.size;
+	B.nnz         = A.nnz;
+	B.nnzLocal    = A.nnzLocal;
+	B.colptrLocal = A.colptrLocal;
+	B.rowindLocal = A.rowindLocal;
+	B.nzvalLocal.Resize( A.nnzLocal );
+	B.comm        = A.comm;
+	return ;
+}		// -----  end of template function CopyPattern  ----- 
 
 } // namespace PEXSI
 #endif // _UTILITY_HPP_

@@ -1,12 +1,12 @@
-#include "pexsi.hpp"
+#include "ppexsi.hpp"
 
 namespace PEXSI{
 
 void
-PEXSIData::Setup	(  )
+PPEXSIData::Setup	(  )
 {
 #ifndef _RELEASE_
-	PushCallStack("PEXSIData::Setup");
+	PushCallStack("PPEXSIData::Setup");
 #endif
 	if( numPole % 2 != 0 ){
 		throw std::logic_error( "Must be even number of poles!" );
@@ -30,14 +30,14 @@ PEXSIData::Setup	(  )
 #endif
 
 	return ;
-} 		// -----  end of method PEXSIData::Setup  ----- 
+} 		// -----  end of method PPEXSIData::Setup  ----- 
 
 
 // Main subroutine for the electronic structure calculation
-void PEXSIData::Solve( )
+void PPEXSIData::Solve( )
 {
 #ifndef _RELEASE_
-	PushCallStack("PEXSIData::Solve");
+	PushCallStack("PPEXSIData::Solve");
 #endif
 	int token = 0;                                
 	int dumpL = 0;
@@ -257,18 +257,18 @@ void PEXSIData::Solve( )
 #endif
 
 	return ;
-} 		// -----  end of method PEXSIData::Solve----- 
+} 		// -----  end of method PPEXSIData::Solve----- 
 
 
   
 // Use symmetry, compute the trace of the product of two matrices
 // sharing the same structure as H
 
-Real PEXSIData::ProductTrace	( 
+Real PPEXSIData::ProductTrace	( 
 		const DblNumVec& nzval1, const DblNumVec& nzval2 )
 {
 #ifndef _RELEASE_
-	PushCallStack("PEXSIData::ProductTrace");
+	PushCallStack("PPEXSIData::ProductTrace");
 #endif
 	Real val = 0.0;
 	for(Int j = 0; j < HMat.size; j++){
@@ -287,13 +287,13 @@ Real PEXSIData::ProductTrace	(
 #endif
 
 	return val;
-} 		// -----  end of method PEXSIData::ProductTrace  ----- 
+} 		// -----  end of method PPEXSIData::ProductTrace  ----- 
 
 
-Real PEXSIData::UpdateChemicalPotential	( const Int iter )
+Real PPEXSIData::UpdateChemicalPotential	( const Int iter )
 {
 #ifndef _RELEASE_
-	PushCallStack("PEXSIData::UpdateChemicalPotential");
+	PushCallStack("PPEXSIData::UpdateChemicalPotential");
 #endif
   // FIXME Magic number here
 	Real  muMin = -5.0, muMax = 5.0, muMinStep = 0.01;;
@@ -340,7 +340,7 @@ Real PEXSIData::UpdateChemicalPotential	( const Int iter )
 #endif
 
 	return muNew;
-} 		// -----  end of method PEXSIData::UpdateChemicalPotential  ----- 
+} 		// -----  end of method PPEXSIData::UpdateChemicalPotential  ----- 
 
 
 

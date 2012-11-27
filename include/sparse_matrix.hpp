@@ -47,6 +47,7 @@ typedef DistSparseMatrix<Real>       DblDistSparseMatrix;
 typedef DistSparseMatrix<Complex>    CpxDistSparseMatrix;
 
 
+
 } // namespace PEXSI
 
 #endif // _SPARSE_MATRIX_HPP_

@@ -4,8 +4,8 @@
 include ../make.inc.${HOSTID}
 
 #SRCS = ex1.cpp ex2.cpp ex3.cpp ex4.cpp ex5.cpp ex6.cpp ex7.cpp \
-			 ex8.cpp ex9.cpp ex10.cpp ex11.cpp ex12.cpp ex13.cpp ex14.cpp
-SRCS  = ex14.cpp
+			 ex8.cpp ex9.cpp ex10.cpp ex11.cpp ex12.cpp ex13.cpp ex14.cpp ex15.cpp
+SRCS  = ex15.cpp
 
 OBJS = ${SRCS:.cpp=.o}
 DEPS = ${SRCS:.cpp=.d}
@@ -21,6 +21,12 @@ EXES = ${SRCS:.cpp=}
 	${FC} -c ${FFLAGS} $<
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
+
+ex15: ex15.o ${PEXSI_LIB} ${PLUSELINV_LIB}
+	($(LOADER) -o $@ ex15.o  $(LOADOPTS) )
+
+ex15.o: ex15.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 ex14: ex14.o ${PEXSI_LIB} ${PLUSELINV_LIB}
 	($(LOADER) -o $@ ex14.o  $(LOADOPTS) )
