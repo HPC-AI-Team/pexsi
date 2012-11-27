@@ -6,6 +6,7 @@
 #include  "utility.hpp"
 #include  "pole.hpp"
 #include	"mpi_interf.hpp"
+#include  "superlu_dist_interf.hpp"
 #include	"pselinv.hpp"
 
 namespace PEXSI{
@@ -15,62 +16,73 @@ namespace PEXSI{
 // *********************************************************************
 class PPEXSIData{
 private:
-  
-public:
-	// *********************************************************************
-	// Input parameters
-	// *********************************************************************
-	Real gap;                    // Band gap (in the unit of au)
-	Real temperature;            // Temperature (in the unit of K)
-	Real deltaE;                 // an upperbound of the spectrum width
-	Int  numPole;                // Number of poles for the pole expansion
-	Real poleTolerance;          // Truncation tolerance for the absolute value of the weight
-	Real mu0;                    // initial guess of chemical potential (in the unit of au)
-	Real numElectronExact;       // Exact number of electrons
-
-	Real numElectronTolerance;   // Stopping criterion for the mu iteration 
-	Int  muMaxIter;              // Maximum iteration number for mu
-
-	bool isHelmholtz;                           // Whether to compute the Helmholtz free energy
-	bool isForce;                               // Whether to compute the force
-
-	// H, S, Rho shares the same sparsity pattern.
-	DistSparseMatrix<Real>  HMat;                    // Hamiltonian matrix
-	DistSparseMatrix<Real>  SMat;                    // Overlap matrix
-
-	Real totalEnergy;             // The total energy (linear part)
-	Real totalFreeEnergy;         // The total Helmholtz free energy (linear part)
-
-	// *********************************************************************
-	// Output parameters
-	// *********************************************************************
-	DistSparseMatrix<Real>  rhoMat;        // Density matrix
-
-	std::vector<Real> muList;              // chemical potential
-	std::vector<Real> numElectronList;     // number of electrons
-
-
 	// *********************************************************************
 	// Computational variables
 	// *********************************************************************
 
-	std::vector<Complex>  zshift;      // Complex shift for the pole expansion
-	std::vector<Complex>  zweightRho;  // Complex weight for the pole expansion for density
-	std::vector<Complex>  zweightFreeEnergy;  // Complex shift for the pole expansion for Helmholtz free energy
-	std::vector<Complex>  zweightForce;  // Complex weight for the pole expansion for force
-	Int        numPoleUsed;            // Number of poles after truncation
+	std::vector<Complex>  zshift_;      // Complex shift for the pole expansion
+	std::vector<Complex>  zweightRho_;  // Complex weight for the pole expansion for density
+	std::vector<Complex>  zweightFreeEnergy_;  // Complex shift for the pole expansion for Helmholtz free energy
+	std::vector<Complex>  zweightForce_;  // Complex weight for the pole expansion for force
+	Int                   numPoleUsed_;            // Number of poles after truncation
+
+  const Grid*           gridPole_;              // Outer layer communicator. Also used for distributing the DistSparseMatrix.  Each DistSparseMatrix is replicated in the row (numPoleGroup) direction of gridPole.
+	const Grid*           gridSelInv_;            // Inner layer communicator for SelInv
+	const SuperLUGrid*    gridSuperLU_;           // Inner layer communicator for SuperLU factorization
+
+	SuperNode             super_;                 // Supernode partition
+
+	std::vector<Real>          muList_;              // chemical potential
+	std::vector<Real>          numElectronList_;     // number of electrons
+
+	DistSparseMatrix<Real>     rhoMat_;                   // Density matrix
+	DistSparseMatrix<Real>     freeEnergyDensityMat_;     // Helmholtz free energy density matrix
+	DistSparseMatrix<Real>     energyDensityMat_;         // Energy density matrix for computing the Pulay force
+
+	// *********************************************************************
+	// Member functions
+	// *********************************************************************
+	Real UpdateChemicalPotential( const Int iter );
 
 public:
-	PPEXSIData(){}
-	~PPEXSIData() {}
 
-  void Setup();
-	
-	void Solve();
 
-	Real ProductTrace	( const DblNumVec& nzval1, const DblNumVec& nzval2 );
+public:
+	PPEXSIData( const PEXSI::Grid* g, Int nprow, Int npcol );
+	~PPEXSIData();
 
-	Real UpdateChemicalPotential( const Int iter );
+	void Solve( 
+			Int  numPole,                // Number of poles for the pole expansion
+			Real temperature,            // Temperature (in the unit of K)
+			Real numElectronExact,       // Exact number of electrons
+			Real gap,                    // Band gap (in the unit of au)
+			Real deltaE,                 // an upperbound of the spectrum width
+			Real mu0,                    // initial guess of chemical potential (in the unit of au)
+			const DistSparseMatrix<Real>&  HMat, // Hamiltonian matrix 
+			const DistSparseMatrix<Real>&  SMat, // Overlap matrix
+			Int  muMaxIter,              // Maximum iteration number for mu
+			Real numElectronTolerance,   // Stopping criterion for the mu iteration 
+			bool isFreeEnergyDensityMatrix,           // Whether to compute the Helmholtz free energy matrix
+			bool isEnergyDensityMatrix                // Whether to compute the energy density matrix for force
+			);
+
+	std::vector<Real>& MuHistory( ) { return muList_; }
+
+	std::vector<Real>& NumElectronHistory( ) { return numElectronList_; }
+
+	DistSparseMatrix<Real>& DensityMatrix () { return rhoMat_; }
+
+	DistSparseMatrix<Real>& FreeEnergyDensityMatrix () { return freeEnergyDensityMat_; }
+
+	DistSparseMatrix<Real>& EnergyDensityMatrix() { return energyDensityMat_; }
+
+  Real CalculateEnergy( const DistSparseMatrix<Real>& HMat );
+
+	Real CalculateFreeEnergy( const DistSparseMatrix<Real>& HMat );
+
+	Real CalculateForce( 
+			const DistSparseMatrix<Real>& HDerivativeMat,  
+			const DistSparseMatrix<Real>& SDerivativeMat ); 
 };
 
 

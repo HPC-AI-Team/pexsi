@@ -1321,9 +1321,9 @@ GetDiagonal ( const DistSparseMatrix<Complex>& A,
 
 // Functions for DistSparseMatrix
 
-template <class F> 
+template <class F1, class F2> 
 void
-CopyPattern	( const DistSparseMatrix<F>& A, DistSparseMatrix<F>& B )
+CopyPattern	( const DistSparseMatrix<F1>& A, DistSparseMatrix<F2>& B )
 {
 #ifndef _RELEASE_
 	PushCallStack("CopyPattern");

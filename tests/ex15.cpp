@@ -10,12 +10,13 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "ex15 -mu0 [mu0] -numel [numel] -deltaE [deltaE] -H [Hfile] -S [Sfile]" << std::endl
+		<< "ex15 -mu0 [mu0] -numel [numel] -deltaE [deltaE] -H [Hfile] -S [Sfile] -npPerPole [npPole]" << std::endl
 		<< "mu0:    Initial guess for chemical potential" << std::endl
 		<< "numel:  Exact number of electrons (spin-restricted)" << std::endl
 		<< "deltaE: guess for the width of the spectrum of H-mu S" << std::endl
 		<< "H: Hamiltonian matrix (csc format, both lower triangular and upper triangular)" << std::endl
-		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular)" << std::endl;
+		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular)" << std::endl
+		<< "npPerPole: number of processors used for each pole" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -36,25 +37,21 @@ int main(int argc, char **argv)
 	
 	try{
 		stringstream  ss;
-		ss << "logPEXSI";
+		ss << "logPEXSI" << mpirank;
 		statusOFS.open( ss.str().c_str() );
-
-		PPEXSIData ppexsiData;
 
 
 		// *********************************************************************
 		// Input parameter
 		// *********************************************************************
-//		std::map<std::string,std::string> options;
-//		OptionsCreate(argc, argv, options);
-//		
-//		pexsiData.gap              = 0.0;
-//		pexsiData.temperature      = 300;
-//		pexsiData.numPole          = 80;
-//		pexsiData.permOrder        = -1;
-//		pexsiData.numElectronTolerance = 1e-4;
-//		pexsiData.muMaxIter        = 30;
-//		pexsiData.poleTolerance    = 1e-4;
+		std::map<std::string,std::string> options;
+		OptionsCreate(argc, argv, options);
+		
+		Real gap              = 0.0;
+		Real temperature      = 300;
+		Real numPole          = 80;
+		Real numElectronTolerance = 1e-4;
+		Real muMaxIter        = 30;
 //		// WaterPT
 ////		pexsiData.mu0              = -0.5;
 ////		pexsiData.numElectronExact = 1600.0;
@@ -66,26 +63,48 @@ int main(int argc, char **argv)
 ////		pexsiData.deltaE           = 20.0;
 //
 //
-//		if( options.find("-mu0") != options.end() ){
-//			pexsiData.mu0 = std::atof(options["-mu0"].c_str());
-//		}
-//		else{
-//      throw std::logic_error("mu0 must be provided.");
-//		}
-//
-//    if( options.find("-numel") != options.end() ){
-//			pexsiData.numElectronExact = std::atof(options["-numel"].c_str());
-//		}
-//		else{
-//      throw std::logic_error("numel must be provided.");
-//		}
-//
-//    if( options.find("-deltaE") != options.end() ){
-//			pexsiData.deltaE = std::atof(options["-deltaE"].c_str());
-//		}
-//		else{
-//      throw std::logic_error("deltaE must be provided.");
-//		}
+		Real mu0;
+		if( options.find("-mu0") != options.end() ){
+			mu0 = std::atof(options["-mu0"].c_str());
+		}
+		else{
+      throw std::logic_error("mu0 must be provided.");
+		}
+
+		Real numElectronExact;
+    if( options.find("-numel") != options.end() ){
+			numElectronExact = std::atof(options["-numel"].c_str());
+		}
+		else{
+      throw std::logic_error("numel must be provided.");
+		}
+
+		Real deltaE;
+    if( options.find("-deltaE") != options.end() ){
+			deltaE = std::atof(options["-deltaE"].c_str());
+		}
+		else{
+      throw std::logic_error("deltaE must be provided.");
+		}
+
+		Int npPerPole;
+    if( options.find("-npPerPole") != options.end() ){
+			npPerPole = std::atoi(options["-npPerPole"].c_str());
+		}
+		else{
+      throw std::logic_error("npPerPole must be provided.");
+		}
+   
+
+		// *********************************************************************
+		// Check the input parameters
+		// *********************************************************************
+		if( mpisize % npPerPole != 0 ){
+			throw std::logic_error( "mpisize cannot be divided evenly by npPerPole." );
+		}
+
+
+
 //
 //
 //		// *********************************************************************

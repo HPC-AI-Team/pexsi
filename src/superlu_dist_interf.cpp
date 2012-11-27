@@ -87,7 +87,7 @@ struct SuperLUMatrix::SuperLUData{
 	bool                isLUstructAllocated;
 };
 
-SuperLUMatrix::SuperLUMatrix	( SuperLUGrid& g )
+SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g )
 {
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix::SuperLUMatrix");

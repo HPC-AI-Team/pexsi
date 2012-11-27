@@ -43,7 +43,7 @@ private:
 	SuperLUData*  ptrData;
 public:
 
-	SuperLUMatrix( SuperLUGrid& g );
+	SuperLUMatrix( const SuperLUGrid& g );
 
 	~SuperLUMatrix();
 
