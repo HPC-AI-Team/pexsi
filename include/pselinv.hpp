@@ -487,8 +487,8 @@ public:
 	/// Note
 	/// ----
 	///
-	/// PreSelInv assumes that ConstructCommunicationPattern has been
-	/// executed.
+	/// PreSelInv assumes that
+	/// PEXSI::PMatrix::ConstructCommunicationPattern has been executed.
 	void PreSelInv( );
 
 	/// @brief SelInv is the main function for the selected inversion.
