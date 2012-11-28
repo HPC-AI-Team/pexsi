@@ -1,3 +1,7 @@
+/// @file nummat_decl.hpp
+/// @brief Numerical matrix.
+/// @author Lin Lin and Lexing Ying
+/// @date 2012-09-27
 #ifndef _NUMMAT_DECL_HPP_
 #define _NUMMAT_DECL_HPP_
 
@@ -7,18 +11,27 @@
 
 namespace  PEXSI{
 
-// Templated form of numerical matrix
-//
-// The main advantage of this portable NumVec structure is that it can
-// either own (owndata == true) or view (owndata == false) a piece of
-// data.
-
+/// @class NumMat
+///
+/// @brief Numerical matrix.
+///
+/// NumMat is a portable encapsulation of a pointer to represent a 2D
+/// matrix, which can either own (owndata == true) or view (owndata ==
+/// false) a piece of data.  
 template <class F>
 class NumMat
 {
 public:
-  Int m_, n_;
+	/// @brief The size of the first dimension.
+  Int m_; 
+	
+	/// @brief The size of second dimension.
+	Int n_;
+	
+	/// @brief Whether it owns the data.
   bool owndata_;
+	
+	/// @brief The pointer for the actual data.
   F* data_;
 public:
   NumMat(Int m=0, Int n=0): m_(m), n_(n), owndata_(true) {
@@ -101,6 +114,14 @@ typedef NumMat<Int>      IntNumMat;
 typedef NumMat<Real>     DblNumMat;
 typedef NumMat<Complex>  CpxNumMat;
 
+// *********************************************************************
+// Utility functions
+// *********************************************************************
+/// @brief SetValue sets a numerical matrix to a constant val.
+template <class F> inline void SetValue(NumMat<F>& M, F val);
+
+/// @brief Energy computes the L2 norm of a matrix (treated as a vector).
+template <class F> inline Real Energy(const NumMat<F>& M);
  
 } // namespace PEXSI
 

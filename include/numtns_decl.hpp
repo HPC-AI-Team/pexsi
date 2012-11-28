@@ -1,3 +1,7 @@
+/// @file numtns_decl.hpp
+/// @brief Numerical tensor
+/// @author Lin Lin and Lexing Ying
+/// @date 2012-09-27
 #ifndef _NUMTNS_DECL_HPP_
 #define _NUMTNS_DECL_HPP_
 
@@ -8,18 +12,30 @@
 
 namespace  PEXSI{
 
-// Templated form of numerical tensor
-//
-// The main advantage of this portable NumVec structure is that it can
-// either own (owndata == true) or view (owndata == false) a piece of
-// data.
-
+/// @class NumTns
+///
+/// @brief Numerical tensor.
+///
+/// NumTns is a portable encapsulation of a pointer to represent a 3D
+/// tensor, which can either own (owndata == true) or view (owndata ==
+/// false) a piece of data.  
 template <class F>
 class NumTns
 {
 public:
-  Int m_, n_, p_;
+	/// @brief The size of the first dimension.
+  Int m_; 
+	
+	/// @brief The size of second dimension.
+	Int n_; 
+	
+	/// @brief The size of third dimension.
+	Int p_;
+	
+	/// @brief Whether it owns the data.
   bool owndata_;
+
+	/// @brief The pointer for the actual data.
   F* data_;
 public:
   NumTns(Int m=0, Int n=0, Int p=0): m_(m), n_(n), p_(p), owndata_(true) {
@@ -117,6 +133,15 @@ typedef NumTns<bool>       BolNumTns;
 typedef NumTns<Int>        IntNumTns;
 typedef NumTns<Real>       DblNumTns;
 typedef NumTns<Complex>    CpxNumTns;
+
+// *********************************************************************
+// Utility functions
+// *********************************************************************
+/// @brief SetValue sets a numerical tensor to a constant val.
+template <class F> inline void SetValue(NumTns<F>& T, F val);
+
+/// @brief Energy computes the L2 norm of a tensor (treated as a vector).
+template <class F> inline Real Energy(const NumTns<F>& T);
 
 } // namespace PEXSI
 

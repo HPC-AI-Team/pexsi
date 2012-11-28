@@ -1,3 +1,7 @@
+/// @file mpi_interf.hpp
+/// @brief Inerface with MPI to facilitate communication.
+/// @author Lin Lin
+/// @date 2012-11-03
 #ifndef _MPI_INTERF_HPP_
 #define _MPI_INTERF_HPP_
 

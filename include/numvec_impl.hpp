@@ -251,16 +251,6 @@ template <class F> inline Real Energy( const NumVec<F>& vec )
 	return sum;
 }  
 
-template <class F> inline void Sort( NumVec<F>& vec ){
-	std::vector<F>  tvec(vec.m());
-	std::copy( vec.Data(), vec.Data() + vec.m(), tvec.begin() );
-	std::sort( tvec.begin(), tvec.end() );
-	for(Int i = 0; i < vec.m(); i++){
-		vec(i) = tvec[i];
-	}
-	return;
-}
-
 
 } // namespace PEXSI
 

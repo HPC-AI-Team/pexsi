@@ -1,3 +1,7 @@
+/// @file pexsi.hpp
+/// @brief Main class of sequential PEXSI.
+/// @author Lin Lin
+/// @date 2012-11-02
 #ifndef _PEXSI_HPP_
 #define _PEXSI_HPP_
 #include  "environment_impl.hpp"
@@ -10,14 +14,17 @@
 /// @namespace PEXSI
 /// @brief Main namespace for the PEXSI project. 
 ///
-/// Everything used in PEXSI is under the PEXSI namespace so that PEXSI
-/// can be safely included as a subproject.
+/// Everything used in PEXSI, including the sequential and the parallel
+/// version  is under the PEXSI namespace so that PEXSI can be safely
+/// included as a subproject.
 
-// *********************************************************************
-// Main class for performing the pole expansion and selected inversion
-// *********************************************************************
 namespace PEXSI{
 
+/// @class PEXSIData
+///
+/// @brief Main class for the sequential PEXSI calculation.
+/// 
+/// TODO reorganize PEXSI class so that it is consistent with PPEXSI
 class PEXSIData{
 public:
 	// *********************************************************************

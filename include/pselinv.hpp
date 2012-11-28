@@ -1,7 +1,6 @@
 /// @file pselinv.hpp
-/// @brief Header file for PSelInv
+/// @brief Main file for parallel selected inversion.
 /// @author Lin Lin
-/// @version 0.1
 /// @date 2012-11-14
 #ifndef _PSELINV_HPP_
 #define _PSELINV_HPP_
@@ -20,17 +19,6 @@
 #include	"lapack.hpp"
 
 namespace PEXSI{
-
-//const char UPPER = 'U';
-//const char LOWER = 'L';
-//const char FROMRIGHT = 'R';
-//const char FROMLEFT  = 'L';
-//const char TRAN = 'T';
-//const char NOTRAN = 'N';
-//const char ALL   = 'A';
-//const char UDIAG = 'U';
-//const char NOUDIAG = 'N';
-
 
 /**********************************************************************
  * Basic PSelInv data structure
@@ -90,14 +78,23 @@ struct SuperNode{
 
 /// @struct LBlock
 ///
-/// @brief LBlock stores a lower triangular block, including the
-/// diagonal block in PSelInv.
+/// @brief LBlock stores a nonzero block in the lower triangular part or
+/// the diagonal part in PSelInv.
 struct LBlock{
 	// Variables
+	/// @brief Block index (supernodal index)
 	Int               blockIdx;
+
+	/// @brief Number of nonzero rows. 
 	Int               numRow;
+
+	/// @brief Number of nonzero columns. 
 	Int               numCol;
+	
+	/// @brief Dimension numRow * 1, index (0-based) for the number of nonzero rows.
 	IntNumVec         rows;
+
+	/// @brief Dimension numRow * numCol, nonzero elements.
 	NumMat<Scalar>    nzval;
 
 	// Member functions;
@@ -115,14 +112,29 @@ struct LBlock{
 
 /// @struct UBlock
 ///
-/// @brief UBlock stores a upper triangular block, excluding the
-/// diagonal block in PSelInv.
+/// @brief UBlock stores a nonzero block in the upper triangular part in PSelInv. 
+/// 
+/// In particular, the current version of PSelInv is for sparse
+/// symmetric matrices.  All UBlocks, labeled as U(i,j), i<j save the
+/// redundant information as saved in L(j,i). The purpose of having
+/// UBlocks is to facilitate the communication.  
+///
+/// @see PMatrix::SelInv
 struct UBlock{
 	// Variables
+	/// @brief Block index (supernodal index)
 	Int               blockIdx;
+
+	/// @brief Number of nonzero rows. 
 	Int               numRow;
+
+	/// @brief Number of nonzero columns. 
 	Int               numCol;
+	
+	/// @brief Dimension numRow * 1, index (0-based) for the number of nonzero rows.
 	IntNumVec         cols;
+	
+	/// @brief Dimension numRow * numCol, nonzero elements.
 	NumMat<Scalar>    nzval;
 
 	// Member functions;
@@ -141,54 +153,81 @@ struct UBlock{
 // *********************************************************************
 // SuperLU style utility functions
 // 
-// The define MACROS are removed so that the code is more portable.
+// The SuperLU style macros are defined here as inline functions 
+// so that the code is more portable.
 // *********************************************************************
 
+/// @brief MYPROC returns the current processor rank.
 inline Int MYPROC( const Grid* g )
 { return g->mpirank; }
 
+/// @brief MYROW returns my processor row
 inline Int MYROW( const Grid* g )
 { return g->mpirank / g->numProcCol; }
 
+/// @brief MYCOL returns my processor column
 inline Int MYCOL( const Grid* g )
 { return g->mpirank % g->numProcCol; }
 
+/// @brief PROW returns the processor row that the bnum-th block
+/// (supernode) belongs to.
 inline Int PROW( Int bnum, const Grid* g ) 
 { return bnum % g->numProcRow; }
 
+/// @brief PCOL returns the processor column that the bnum-th block
+/// (supernode) belongs to.
 inline Int PCOL( Int bnum, const Grid* g ) 
 { return bnum % g->numProcCol; }
 
+/// @brief PNUM returns the processor rank that the bnum-th block
+/// (supernode) belongs to.
 inline Int PNUM( Int i, Int j, const Grid* g )
 { return i * g->numProcCol + j; }
 
+/// @brief LBi returns the local block number on the processor at
+/// processor row PROW( bnum, g ).
 inline Int LBi( Int bnum, const Grid* g )
 { return bnum / g->numProcRow; }
 
+/// @brief LBj returns the local block number on the processor at
+/// processor column PCOL( bnum, g ).
 inline Int LBj( Int bnum, const Grid* g)
 { return bnum / g->numProcCol; }
 
+/// @brief GBi returns the global block number from a local block number
+/// in the row direction.
 inline Int GBi( Int iLocal, const Grid* g )
 { return iLocal * g->numProcRow + MYROW( g ); }
 
+/// @brief GBj returns the global block number from a local block number
+/// in the column direction.
 inline Int GBj( Int jLocal, const Grid* g )
 { return jLocal * g->numProcCol + MYCOL( g ); }
 
+/// @brief CEILING is used for computing the storage space for local
+/// number of blocks.
 inline Int CEILING( Int a, Int b )
 { return (a%b) ? ( a/b + 1 ) : ( a/b ); }
 
+/// @brief BlockIdx returns the block index of a column i.
 inline Int BlockIdx( Int i, const SuperNode *s )
 { return s->superIdx[i]; }
 
+/// @brief FirstBlockCol returns the first column of a block
+/// bnum.
 inline Int FirstBlockCol( Int bnum, const SuperNode *s )
 { return s->superPtr[bnum]; }	
 
+/// @brief SuperSize returns the size of the block bnum.
 inline Int SuperSize( Int bnum, const SuperNode *s )
 { return s->superPtr[bnum+1] - s->superPtr[bnum]; } 
 
+/// @brief SuperSize returns the total number of supernodes.
 inline Int NumSuper( const SuperNode *s )
 { return s->superPtr.m() - 1; }
 
+/// @brief NumCol returns the total number of columns for a supernodal
+/// partiiton.
 inline Int NumCol( const SuperNode *s )
 { return s->superIdx.m(); }
 
@@ -199,6 +238,21 @@ inline Int NumCol( const SuperNode *s )
 
 // L part
 
+/// @namespace LBlockMask 
+///
+/// @brief LBlockMask allows one to compress the selected data in
+/// LBlock used for communication.
+///
+/// Example
+/// -------
+/// std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+///
+/// assumes all information is to be communicated. 
+///
+///	mask[LBlockMask::NZVAL] = 0;
+///
+///	then nzval will not be serialized / deserialized.
+///
 namespace LBlockMask{
 enum {
 	BLOCKIDX,
@@ -231,6 +285,21 @@ Int inline deserialize(LBlock& val, std::istream& is, const std::vector<Int>& ma
 }
 
 // U part
+/// @namespace UBlockMask 
+///
+/// @brief UBlockMask allows one to compress the selected data in
+/// UBlock used for communication.
+///
+/// Example
+/// -------
+///
+/// std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+///
+/// assumes all information is to be communicated. 
+///
+///	mask[UBlockMask::NZVAL] = 0;
+///
+///	then nzval will not be serialized / deserialized.
 namespace UBlockMask{
 enum {
 	BLOCKIDX,
@@ -272,11 +341,33 @@ Int inline deserialize(UBlock& val, std::istream& is, const std::vector<Int>& ma
 /// @brief PMatrix contains the main data structure and the
 /// computational routine for the parallel selected inversion.  
 ///
-/// NOTE: In the current version of PMatrix, square grid is assumed.
-/// This assumption is only used when sending the information to
+/// Selected inversion
+/// ------------------
+///
+/// After factorizing a SuperLUMatrix luMat (See SuperLUMatrix for
+/// information on how to perform factorization), perform the following
+/// steps for parallel selected inversion.
+/// 
+/// - Conversion
+///
+/// SuperNode super; 
+/// luMat.SymbolicToSuperNode( super ); // Symbolic information
+///
+/// PMatrix PMloc;
+///	luMat.LUstructToPMatrix( PMloc ); // Numerical information, both L and U
+///
+///	- Preparation
+///
+/// Note
+/// ----
+///
+/// - All major operations of PMatrix, including the selected inversion
+/// are defined directly as the member function of PMatrix.
+///
+/// - In the current version of PMatrix, square grid is assumed.  This
+/// assumption is only used when sending the information to
 /// cross-diagonals, i.e. from L_{ik} to U_{ki}.  This assumption can be
 /// relaxed later.
-/// 
 
 class PMatrix{
 
@@ -285,6 +376,7 @@ private:
 	// Variables
 	// *********************************************************************
 	// Data variables
+
 	const Grid*           grid_;
 	const SuperNode*      super_;
 	std::vector<std::vector<LBlock> > L_;
@@ -323,8 +415,10 @@ public:
 
 	Int NumSuper() const { return super_ ->superPtr.m() - 1; }
 
+	/// @brief NumLocalBlockCol returns the total number of block columns.
 	Int NumLocalBlockCol() const { return CEILING( this->NumSuper(), grid_->numProcCol ); }
 
+	/// @brief NumLocalBlockRow returns the total number of block rows.
 	Int NumLocalBlockRow() const { return CEILING( this->NumSuper(), grid_->numProcRow); }
 
 	/// @brief NumBlockL returns the number of nonzero L blocks for the
@@ -335,8 +429,11 @@ public:
 	/// local block row iLocal.
   Int NumBlockU( Int iLocal ) const { return U_[iLocal].size(); }
 
+	/// @brief Grid returns the Grid structure of the current PMatrix.
 	const PEXSI::Grid* Grid() const { return grid_; }
   
+	/// @brief SuoerNode returns the supernodal partition of the current
+	/// PMatrix.
 	const PEXSI::SuperNode* SuperNode() const { return super_; }	
 
 	/// @brief L returns the vector of nonzero L blocks for the local
@@ -358,7 +455,6 @@ public:
 	/// PreSelInv assumes that ConstructCommunicationPattern has been
 	/// executed.
 	void PreSelInv( );
-
 
 	/// @brief SelInv is the main function for the selected inversion.
 	///
