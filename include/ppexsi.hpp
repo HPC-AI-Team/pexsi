@@ -13,6 +13,8 @@
 #include  "superlu_dist_interf.hpp"
 #include	"pselinv.hpp"
 
+namespace PEXSI{
+
 /// @class PPEXSIData
 ///
 /// @brief Main class for parallel PEXSI.

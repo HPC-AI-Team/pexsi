@@ -47,19 +47,21 @@ PPEXSIData::~PPEXSIData	(  )
 
 // Main subroutine for the electronic structure calculation
 void PPEXSIData::Solve( 
-			Int  numPole,                // Number of poles for the pole expansion
-			Real temperature,            // Temperature (in the unit of K)
-			Real numElectronExact,       // Exact number of electrons
-			Real gap,                    // Band gap (in the unit of au)
-			Real deltaE,                 // an upperbound of the spectrum width
-			Real mu0,                    // initial guess of chemical potential (in the unit of au)
-			const DistSparseMatrix<Real>&  HMat, // Hamiltonian matrix 
-			const DistSparseMatrix<Real>&  SMat, // Overlap matrix
-			Int  muMaxIter,              // Maximum iteration number for mu
-			Real numElectronTolerance,   // Stopping criterion for the mu iteration 
-			bool isFreeEnergyDensityMatrix,           // Whether to compute the Helmholtz free energy matrix
-			bool isEnergyDensityMatrix                // Whether to compute the energy density matrix for force
-		) {
+		Int  numPole, 
+		Real temperature,
+		Real numElectronExact,
+		Real gap,
+		Real deltaE,
+		Real mu0,
+		const DistSparseMatrix<Real>&  HMat,
+		const DistSparseMatrix<Real>&  SMat,
+		Int  muMaxIter,
+		Real numElectronTolerance,
+		bool isFreeEnergyDensityMatrix, 
+		bool isEnergyDensityMatrix,
+		std::vector<Real>&	muList,
+		std::vector<Real>&  numElectronList
+		){
 #ifndef _RELEASE_
 	PushCallStack("PPEXSIData::Solve");
 #endif
@@ -80,8 +82,8 @@ void PPEXSIData::Solve(
 	// *********************************************************************
 	// Initialize
 	// *********************************************************************
-	muList_.clear();
-	numElectronList_.clear();
+	muList.clear();
+	numElectronList.clear();
 
 	DistSparseMatrix<Complex>  AMat;             // A = H - z * S
 	// Copy the pattern
