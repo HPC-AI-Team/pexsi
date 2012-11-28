@@ -1,3 +1,7 @@
+/// @file numtns_impl.hpp
+/// @brief Implementation of numerical tensor.
+/// @author Lexing Ying and Lin Lin
+/// @date 2010-09-27
 #ifndef _NUMTNS_IMPL_HPP_
 #define _NUMTNS_IMPL_HPP_
 

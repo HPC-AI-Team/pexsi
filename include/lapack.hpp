@@ -1,6 +1,14 @@
+/// @file lapack.hpp
+/// @brief Thin interface to LAPACK
+/// @author Jack Poulson and Lin Lin 
+/// @date 2012-09-12
 #include  "environment_impl.hpp"
 
 namespace PEXSI {
+
+/// @namespace lapack
+///
+/// @brief Thin interface to LAPACK.
 namespace lapack {
 
 typedef  int                    Int; 
@@ -93,18 +101,19 @@ void QRSVD
 ( Int m, Int n, dcomplex* A, Int lda, 
   double* s, dcomplex* U, Int ldu, dcomplex* VAdj, Int ldva );
 
-//
+
+// *********************************************************************
 // Compute the singular values of a general matrix using the QR algorithm
-//
+// *********************************************************************
 
 void SingularValues( Int m, Int n, float* A, Int lda, float* s );
 void SingularValues( Int m, Int n, double* A, Int lda, double* s );
 void SingularValues( Int m, Int n, scomplex* A, Int lda, float* s );
 void SingularValues( Int m, Int n, dcomplex* A, Int lda, double* s );
 
-//
+// *********************************************************************
 // Compute the SVD of a bidiagonal matrix using the QR algorithm
-//
+// *********************************************************************
 
 void BidiagQRAlg
 ( char uplo, Int n, Int numColsVTrans, Int numRowsU,
@@ -139,24 +148,20 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, dcomplex * A, Int lda,
 // Copy
 // *********************************************************************
 
+void Lacpy( char uplo, Int m, Int n, const double* A, Int lda,
+	double* B, Int ldb	);
+
 void Lacpy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
 	dcomplex* B, Int ldb	);
-
-// *********************************************************************
-// Triangular solve : Trsm
-// *********************************************************************
-
-//void
-//Trsm ( char side, char uplo, char transa, char diag, 
-//		Int m, Int n, dcomplex alpha, 
-//		const dcomplex* A, Int lda, dcomplex* B, Int ldb );
 
 // *********************************************************************
 // Inverting a factorized matrix: Getri
 // *********************************************************************
 
-void
-Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv );
+
+void Getri ( Int n, double* A, Int lda, const Int* ipiv );
+
+void Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv );
 
 
 } // namespace lapack

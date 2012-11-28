@@ -1,7 +1,7 @@
 /// @file numvec_decl.hpp
 /// @brief  Numerical vector.
-/// @author Lin Lin and Lexing Ying
-/// @date 2012-09-27
+/// @author Lexing Ying and Lin Lin
+/// @date 2010-09-27
 #ifndef _NUMVEC_DECL_HPP_
 #define _NUMVEC_DECL_HPP_
 

@@ -1,6 +1,12 @@
+/// @file selinv_interf.cpp
+/// @brief Implementation of the interface with sequential SelInv.
+/// @author Lin Lin
+/// @date 2012-10-16
 #include <stdio.h>
 #include <stdlib.h>
 #include "selinv_interf.hpp"
+
+// TODO See SuperLUMatrix for encapsulation of the class.
 
 namespace PEXSI{
 

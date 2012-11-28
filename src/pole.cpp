@@ -1,3 +1,7 @@
+/// @file pole.cpp
+/// @brief Implementation of the pole expansion subroutines.
+/// @author Lin Lin
+/// @date 2011-11-15
 #include "pole.hpp"
 
 namespace PEXSI{

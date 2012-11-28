@@ -1,3 +1,7 @@
+/// @file pselinv.cpp
+/// @brief Implementation of the parallel SelInv.
+/// @author Lin Lin
+/// @date 2012-11-20
 #include "pselinv.hpp"
 
 namespace PEXSI{

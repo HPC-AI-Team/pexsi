@@ -1,3 +1,7 @@
+/// @file ppexsi.cpp
+/// @brief Implementation of the parallel version of PEXSI.
+/// @author Lin Lin
+/// @date 2012-11-20
 #include "ppexsi.hpp"
 
 namespace PEXSI{

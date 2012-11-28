@@ -1,5 +1,5 @@
 /// @file mpi_interf.hpp
-/// @brief Inerface with MPI to facilitate communication.
+/// @brief Interface with MPI to facilitate communication.
 /// @author Lin Lin
 /// @date 2012-11-03
 #ifndef _MPI_INTERF_HPP_
@@ -9,10 +9,15 @@
 
 namespace PEXSI{
 
+/// @namespace mpi
+///
+/// @brief Interface with MPI to facilitate communication.
 namespace mpi{
 
 // *********************************************************************
 // Allgatherv
+//
+// NOTE: The interface is quite preliminary.
 // *********************************************************************
 void Allgatherv( 
 		std::vector<Int>& localVec, 

@@ -1,7 +1,7 @@
 /// @file nummat_decl.hpp
 /// @brief Numerical matrix.
-/// @author Lin Lin and Lexing Ying
-/// @date 2012-09-27
+/// @author Lexing Ying and Lin Lin
+/// @date 2010-09-27
 #ifndef _NUMMAT_DECL_HPP_
 #define _NUMMAT_DECL_HPP_
 

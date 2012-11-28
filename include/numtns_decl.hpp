@@ -1,7 +1,7 @@
 /// @file numtns_decl.hpp
 /// @brief Numerical tensor
-/// @author Lin Lin and Lexing Ying
-/// @date 2012-09-27
+/// @author Lexing Ying and Lin Lin
+/// @date 2010-09-27
 #ifndef _NUMTNS_DECL_HPP_
 #define _NUMTNS_DECL_HPP_
 

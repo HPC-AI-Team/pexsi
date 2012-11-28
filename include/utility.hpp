@@ -1,3 +1,7 @@
+/// @file utility.hpp
+/// @brief Various utility subroutines.
+/// @author Lin Lin
+/// @date 2012-09-27
 #ifndef _UTILITY_HPP_ 
 #define _UTILITY_HPP_
 

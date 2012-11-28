@@ -1,7 +1,7 @@
 /// @file tinyvec_decl.hpp
 /// @brief Tiny vectors of dimension 3.
-/// @author Lin Lin and Lexing Ying
-/// @date 2012-09-20
+/// @author Lexing Ying and Lin Lin
+/// @date 2010-09-20
 #ifndef  _TINYVEC_DECL_HPP_
 #define  _TINYVEC_DECL_HPP_
 

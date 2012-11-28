@@ -1,3 +1,7 @@
+/// @file numvec_impl.hpp
+/// @brief Implementation of Numerical Vector.
+/// @author Lexing Ying and Lin Lin
+/// @date 2010-09-27
 #ifndef _NUMVEC_IMPL_HPP_
 #define _NUMVEC_IMPL_HPP_
 

@@ -5,7 +5,7 @@
 #ifndef _PPEXSI_HPP_
 #define _PPEXSI_HPP_
 #include  "environment_impl.hpp"
-#include  "sparse_matrix.hpp"
+#include  "sparse_matrix_impl.hpp"
 #include  "numvec_impl.hpp"
 #include  "utility.hpp"
 #include  "pole.hpp"

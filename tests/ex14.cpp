@@ -5,7 +5,7 @@
 /// @version 0.1
 /// @date 2012-11-16
 #include  "environment_impl.hpp"
-#include  "sparse_matrix.hpp"
+#include  "sparse_matrix_impl.hpp"
 #include  "numvec_impl.hpp"
 #include  "utility.hpp"
 #include  "superlu_dist_interf.hpp"

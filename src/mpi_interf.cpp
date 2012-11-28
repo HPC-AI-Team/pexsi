@@ -1,3 +1,7 @@
+/// @file mpi_interf.cpp
+/// @brief Inerface with MPI to facilitate communication.
+/// @author Lin Lin
+/// @date 2012-11-03
 #include  "mpi_interf.hpp"
 
 namespace PEXSI{

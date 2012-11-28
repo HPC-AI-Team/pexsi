@@ -1,6 +1,14 @@
+/// @file blas.hpp
+/// @brief Thin interface to BLAS
+/// @author Jack Poulson and Lin Lin
+/// @date 2012-09-12
 #include  "environment_impl.hpp"
 
 namespace PEXSI {
+
+/// @namespace blas
+///
+/// @brief Thin interface to BLAS
 namespace blas {
 
 typedef  int                    Int;
@@ -8,12 +16,9 @@ typedef  std::complex<float>    scomplex;
 typedef  std::complex<double>   dcomplex;
 
 
-// NOTE: templated routines are custom and not wrappers
-//
-
-//----------------------------------------------------------------//
+// *********************************************************************
 // Level 1 BLAS                                                   //
-//----------------------------------------------------------------//
+// *********************************************************************
 void Axpy
 	( Int n, float alpha, const float* x, Int incx, float* y, Int incy );
 void Axpy
@@ -73,9 +78,9 @@ void Scal( Int n, scomplex alpha, scomplex* x, Int incx );
 void Scal( Int n, dcomplex alpha, dcomplex* x, Int incx );
 template<typename F> void Scal( Int n, F alpha, F* x, Int incx );
 
-//----------------------------------------------------------------//
-// Level 2 BLAS                                                   //
-//----------------------------------------------------------------//
+// *********************************************************************
+// Level 2 BLAS                                                   
+// *********************************************************************
 void Gemv
 	( char trans, Int m, Int n,
 		float alpha, const float* A, Int lda, const float* x, Int incx,
@@ -316,9 +321,9 @@ template<typename T>
 	( char uplo, char trans, char diag, Int m,
 		const T* A, Int lda, T* x, Int incx );
 
-//----------------------------------------------------------------//
-// Level 3 BLAS                                                   //
-//----------------------------------------------------------------//
+// *********************************************************************
+// Level 3 BLAS                                                  
+// *********************************************************************
 void Gemm
 	( char transA, char transB, Int m, Int n, Int k,
 		float alpha, const float* A, Int lda, const float* B, Int ldb,

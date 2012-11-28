@@ -1,3 +1,7 @@
+/// @file lapack.cpp
+/// @brief Thin interface to LAPACK
+/// @author Jack Poulson and Lin Lin
+/// @date 2012-09-12
 #include "lapack.hpp"
 
 namespace PEXSI {
@@ -1412,7 +1416,16 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, dcomplex * A, Int lda,
 // Copy
 // *********************************************************************
 
-// TODO Real arithmetic
+void Lacpy( char uplo, Int m, Int n, const double* A, Int lda,
+	double* B, Int ldb	){
+#ifndef _RELEASE_
+    PushCallStack("lapack::Lacpy");
+#endif
+  LAPACK(dlacpy)( &uplo, &m, &n, A, &lda, B, &ldb );
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
+}
 
 void Lacpy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
 	dcomplex* B, Int ldb	){
@@ -1425,33 +1438,46 @@ void Lacpy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
 #endif
 }
 
-
-// *********************************************************************
-// Triangular solve : Trsm
-// *********************************************************************
-
-// TODO Real arithmetic
-
-//void
-//Trsm ( char side, char uplo, char transa, char diag, 
-//		Int m, Int n, dcomplex alpha, 
-//		const dcomplex* A, Int lda, dcomplex* B, Int ldb )
-//{
-//#ifndef _RELEASE_
-//	PushCallStack("lapack::Trsm");
-//#endif
-//  LAPACK(ztrsm)( &side, &uplo, &transa, &diag, &m, &n, &alpha,
-//			A, &lda, B, &ldb );
-//#ifndef _RELEASE_
-//	PopCallStack();
-//#endif
-//
-//	return ;
-//}		// -----  end of function Trsm  ----- 
-
 // *********************************************************************
 // Inverting a factorized matrix: Getri
 // *********************************************************************
+void
+Getri ( Int n, double* A, Int lda, const Int* ipiv )
+{
+#ifndef _RELEASE_
+	PushCallStack("lapack::Getri");
+#endif
+	Int lwork = -1, info;
+	double dummyWork;
+
+	LAPACK(dgetri)( &n, A, &lda, ipiv, &dummyWork, &lwork, &info );
+
+	lwork = dummyWork;
+	std::vector<double> work(lwork);
+
+	LAPACK(dgetri)( &n, A, &lda, ipiv, &work[0], &lwork, &info );
+
+	if( info < 0 )
+	{
+		std::ostringstream msg;
+		msg << "Argument " << -info << " had illegal value";
+		throw std::logic_error( msg.str().c_str() );
+	}
+	else if( info > 0 )
+	{
+		std::ostringstream msg;
+		msg << "U(" << info << ", " << info << ") = 0. The matrix is singular and cannot be inverted.";
+		throw std::runtime_error( msg.str().c_str() );
+	}
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Getri  ----- 
+
+
 void
 Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv )
 {

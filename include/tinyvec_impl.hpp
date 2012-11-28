@@ -1,3 +1,7 @@
+/// @file tinyvec_impl.hpp
+/// @brief Implementation of tiny vectors
+/// @author Lexing Ying and Lin Lin
+/// @date 2010-09-20
 #ifndef  _TINYVEC_IMPL_HPP_
 #define  _TINYVEC_IMPL_HPP_
 

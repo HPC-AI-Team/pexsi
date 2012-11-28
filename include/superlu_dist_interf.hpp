@@ -1,3 +1,7 @@
+/// @file superlu_dist_interf.hpp
+/// @brief Inteface with SuperLU_Dist (version 3.0 and later)
+/// @author Lin Lin
+/// @date 2012-11-12
 #ifndef _SUPERLU_DIST_INTERF_HPP_
 #define _SUPERLU_DIST_INTERF_HPP_
 
@@ -5,7 +9,7 @@
 #include "pselinv.hpp"
 
 // Interface with sparse matrix (CSC format)
-#include  "sparse_matrix.hpp"
+#include  "sparse_matrix_impl.hpp"
 
 // Interface with LAPACK
 #include  "lapack.hpp"
@@ -37,7 +41,7 @@ private:
 	/// @brief  Data of a matrix in the SuperLU format.
 	///
 	/// SuperLUData is only used to define ptrData which is a private member
-	/// SuperLUMatrix.
+	/// SuperLUMatrix, and is only defined in superlu_dist_interf.cpp.
 	struct        SuperLUData;
 	/// @brief Actual pointer to save the data related to SuperLU.
 	SuperLUData*  ptrData;
@@ -59,6 +63,10 @@ public:
 	/// FIXME: IntNumVec convention.  Assumes a symmetric matrix
 	void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>& sparseA );
 
+	/// @brief DestroyAOnly releases the data in A but keeps other data,
+	/// such as LUstruct. This allows one to perform factorization of
+	/// matrices of the same pattern, such as the option
+	/// fact = SamePattern_SameRowPerm in SuperLU_DIST.
 	void DestroyAOnly();
 
 	/// @brief SymbolicFactorize factorizes the superlu matrix symbolically.
@@ -126,14 +134,6 @@ public:
 };
 
 
-
-
-
-//void LUstructToPMatrix( const SuperLUData& luData, Grid &grid, PMatrix& PMloc );
-//
-//void ConstructCommunicationPattern( CommunicationPattern& commPattern, 
-//		const Grid& grid, const PMatrix& PMloc);
-//
 
 
 

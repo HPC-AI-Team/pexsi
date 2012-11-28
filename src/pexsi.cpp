@@ -1,3 +1,7 @@
+/// @file pexsi.cpp
+/// @brief Implementation of the sequential PEXSI.
+/// @author Lin Lin
+/// @date 2012-10-15
 #include "pexsi.hpp"
 
 namespace PEXSI{

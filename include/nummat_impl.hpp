@@ -1,3 +1,7 @@
+/// @file nummat_impl.hpp
+/// @brief Implementation of numerical matrix.
+/// @author Lexing Ying and Lin Lin
+/// @date 2010-09-27
 #ifndef _NUMMAT_IMPL_HPP_
 #define _NUMMAT_IMPL_HPP_
 

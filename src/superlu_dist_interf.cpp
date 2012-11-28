@@ -73,15 +73,47 @@ SuperLUGrid::~SuperLUGrid	(  )
 namespace PEXSI{
 
 struct SuperLUMatrix::SuperLUData{
-	SuperMatrix         A;                        ///< SuperLU matrix. 
-	superlu_options_t   options;                  ///< SuperLU options.
-	ScalePermstruct_t   ScalePermstruct;          ///< Permutation vectors. 
+	/// @brief SuperLU matrix. 
+	SuperMatrix         A;                        
+
+	/// @brief SuperLU options. 
+	///
+	/// Note
+	/// ----
+	///
+	/// It is important to have 
+	///
+	/// options.RowPerm           = NOROWPERM;
+	/// 
+	/// to make sure that symmetric permutation is used.
+	///
+	/// TODO
+	/// ----
+	/// Set the options, especially the reordering of the matrix from
+	/// the outside. 
+	superlu_options_t   options;                  
+
+	/// @brief Saves the permutation vectors.  Only perm_c (permutation of
+	/// column as well as rows due to the symmetric permutation) will be used.
+	ScalePermstruct_t   ScalePermstruct;          
+
+	/// @brief SuperLU grid structure.
 	gridinfo_t*         grid;
+
+	/// @brief Saves the supernodal partition as well as the numerical
+	/// values and structures of the L and U structure.
 	LUstruct_t          LUstruct;
+
+	/// @brief Used for solve for multivectors.
 	SOLVEstruct_t       SOLVEstruct;
+
+	/// @brief SuperLU statistics
 	SuperLUStat_t       stat;
+
+	/// @brief SuperLU information
 	Int                 info;
 
+	// The following are for consistency checks
 	bool                isSuperMatrixAllocated;
 	bool                isSuperMatrixFactorized;
 	bool                isScalePermstructAllocated;

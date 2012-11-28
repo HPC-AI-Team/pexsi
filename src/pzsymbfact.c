@@ -1,6 +1,16 @@
+/// @file pzsymbfact.c
+/// @brief Symbolic factorization routine using complex arithmetic.
+/// @author Lin Lin
+/// @date 2012-11-01
 #include <math.h>
 #include "superlu_zdefs.h"
 
+/// @brief pzsymbfact performs symbolic factorization that can be
+/// reused.
+///
+/// pzsymbfact is a simplified version of the driver subroutine pzgssvx
+/// from SuperLU_DIST. For its use see SuperLUMatrix for more
+/// information.
 void
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
 		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
