@@ -358,6 +358,22 @@ Int inline deserialize(UBlock& val, std::istream& is, const std::vector<Int>& ma
 ///
 ///	- Preparation
 ///
+/// PMloc.ConstructCommunicationPattern(); // Communication pattern for
+/// SelInv
+///
+/// PMloc.PreSelInv();  // Numerical preparation so that SelInv only
+/// involves Gemm.  
+///
+/// - Solve
+///
+/// PMloc.SelInv();
+///
+/// - Postprocessing
+///
+/// DistSparseMatrix<Scalar> Ainv;
+/// PMloc.PMatrixToDistSparseMatrix( Ainv ); // Get the information in
+/// DistSparseMatrix format.
+///
 /// Note
 /// ----
 ///
@@ -448,9 +464,28 @@ public:
 	/// pattern to be used later in the selected inversion stage.
 	void ConstructCommunicationPattern( );
 
-	/// @brief PreSelInv computes the inverse of the diagonal blocks, 
-	/// scale the off-diagonal L blocks by L_{kk}^{-1}, and fill the
-	/// U_{ki} blocks by L_{ik}.
+	/// @brief PreSelInv prepares the structure in L_ and U_ so that
+	/// SelInv only involves matrix-matrix multiplication.
+	///
+	/// Procedure
+	/// ---------
+	/// PreSelInv performs
+	///
+	/// - Compute the inverse of the diagonal blocks
+	///
+	///   L_{kk} <- (L_{kk} U_{kk})^{-1}
+	///
+	/// - Update the lower triangular L blocks
+	///
+	///   L_{ik} <- L_{ik} L_{kk}^{-1}
+	///
+	/// - Update the upper triangular U blocks which saves redundant
+	/// information as in L
+	///
+	///   U_{kj} <- L_{ik}
+	///
+	/// Note
+	/// ----
 	///
 	/// PreSelInv assumes that ConstructCommunicationPattern has been
 	/// executed.
@@ -458,8 +493,8 @@ public:
 
 	/// @brief SelInv is the main function for the selected inversion.
 	///
-	/// Algorithm description for PSelInv
-	/// ---------------------------------
+	/// Procedure
+	/// ---------
 	///
 	/// PSelInv is a right-looking based parallel selected inversion
 	/// subroutine for sparse symmetric matrices.  Static pivoting is

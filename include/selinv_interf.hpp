@@ -1,5 +1,11 @@
-#ifndef SELINV_INTERF_HPP
-#define SELINV_INTERF_HPP
+/// @file selinv_interf.hpp
+/// @brief Interface with the sequential version of SelInv.
+/// @author Lin Lin
+/// @date 2012-11-28
+#ifndef _SELINV_INTERF_HPP_
+#define _SELINV_INTERF_HPP_
+
+// TODO Make the wrapper better, such as in the format of SuperLUData
 
 namespace PEXSI{
 
@@ -106,4 +112,4 @@ namespace SelInvInterface
 
 }
 
-#endif
+#endif  // _SELINV_INTERF_HPP_

@@ -1,3 +1,8 @@
+/// @file sparse_matrix.hpp
+/// @brief Sparse matrix and Distributed sparse matrix in compressed
+/// column format.
+/// @author Lin Lin
+/// @date 2012-11-28
 #ifndef _SPARSE_MATRIX_HPP_
 #define _SPARSE_MATRIX_HPP_
 
@@ -6,10 +11,17 @@
 
 namespace  PEXSI{
 
-// *********************************************************************
-// Sparse matrix in the compressed sparse column format (CSC)
-// *********************************************************************
-
+/// @struct SparseMatrix
+/// 
+/// @brief SparseMatrix describes a sequential sparse matrix saved in
+/// compressed sparse column format.
+///
+/// Note
+/// ----
+///
+/// Since in PEXSI and PPEXSI only symmetric matrix is considered, the
+/// compressed sparse row format will also be represented by the
+/// compressed sparse column format.
 template <class F> struct SparseMatrix{
 	Int          size;                            // Matrix dimension
 	Int          nnz;                             // Number of nonzeros
@@ -22,16 +34,17 @@ template <class F> struct SparseMatrix{
 typedef SparseMatrix<Real>       DblSparseMatrix;
 typedef SparseMatrix<Complex>    CpxSparseMatrix;
 
-// *********************************************************************
-// Sparse matrix in the compressed sparse column format (CSC) and
-// distributed with column major partition. (This can be trivially
-// transformed to the row major partition for SYMMETRIC matrices.
-//
-// TODO add class Type so that Type can be NR (row major distributed)
-// and NCloc (column major distributed)
-// TODO Comment on the size of indices
-// *********************************************************************
-
+/// @struct DistSparseMatrix
+///
+/// @brief DistSparseMatrix describes a Sparse matrix in the compressed
+/// sparse column format (CSC) and distributed with column major partition. 
+///
+/// Note
+/// ----
+/// 
+/// Since in PEXSI and PPEXSI only symmetric matrix is considered, the
+/// compressed sparse row format will also be represented by the
+/// compressed sparse column format.
 template <class F> struct DistSparseMatrix{
 	Int          size;                            // Matrix dimension
 	Int          nnz;                             // Number of nonzeros
