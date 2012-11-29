@@ -69,7 +69,7 @@ void PPEXSIData::Solve(
 #ifndef _RELEASE_
 	PushCallStack("PPEXSIData::Solve");
 #endif
-	
+
 
 	// *********************************************************************
 	// Check the input parameters
@@ -96,190 +96,176 @@ void PPEXSIData::Solve(
 
 	statusOFS << "AMat.nnzLocal = " << AMat.nnzLocal << std::endl;
 
-	SuperLUMatrix              luMat( *gridSuperLU_ );  // SuperLU matrix.  Can be used for sparsity pattern.
-
-
+	SuperLUMatrix              luMat( *gridSuperLU_ );  // SuperLU matrix.
 
 	// *********************************************************************
 	// Symbolic factorization.  
-  // Each numPoleGroup perform independently
+	// Each numPoleGroup perform independently
 	// *********************************************************************
 	luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
 	luMat.SymbolicFactorize();
+	luMat.SymbolicToSuperNode( super_ );
 	luMat.DestroyAOnly();
 
 
-//	Real muNow = mu0;
-//	Real numElectronNow;
-//
-//	Real timeMuSta, timeMuEnd;
-//
-//	for(Int iter = 0; iter < muMaxIter; iter++){
-//		GetTime( timeMuSta );
-//		statusOFS << "Iteration " << iter << ", mu = " << muNow << std::endl;
-//		// Reinitialize the variables
-//		SetValue( rhoMat.nzval, 0.0 );
-//
-//		// Initialize the number of electrons
-//		numElectronNow  = 0.0;
-//
-//		//Initialize the pole expansion
-//
-//		std::vector<Complex> zshiftRaw( numPole );
-//		std::vector<Complex> zweightRhoRaw( numPole );
-//
-//		GetPoleDensity(&zshiftRaw[0], &zweightRhoRaw[0],
-//				numPole, temperature, gap, deltaE, muNow); 
-//
-//		// Sort and truncate the poles according to the weights
-//		{
-//			std::vector<std::pair<Real,Int> >  weightAbs( numPole );
-//			for( Int i = 0; i < numPole; i++ ){
-//				weightAbs[i] = std::pair<Real,Int>(abs( zweightRhoRaw[i] ), i);
-//			}
-//			std::sort( weightAbs.begin(), weightAbs.end(), PairGtComparator );
-//
-//			zshift.clear();
-//			zweightRho.clear();
-//
-//			numPoleUsed = 0;
-//			for( Int i = 0; i < numPole; i++ ){
-//				if( weightAbs[i].first > poleTolerance ){
-//					zshift.push_back( zshiftRaw[weightAbs[i].second] );
-//					zweightRho.push_back( zweightRhoRaw[weightAbs[i].second] );
-//					numPoleUsed++;
-//				}
-//			}
-//
-//		}
-//
-//		
-//		Print( statusOFS, "Number of poles used = ", numPoleUsed );
-//		Print( statusOFS, "zshift" );
-//		statusOFS << zshift << std::endl;
-//		Print( statusOFS, "zweightRho " );
-//		statusOFS << zweightRho << std::endl;
-//
-//		// for each pole, perform LDLT factoriation and selected inversion
-//
-//		Real timeSta, timeEnd;
-//		Real timePoleSta, timePoleEnd;
-//
-//		for(Int l = 0; l < numPoleUsed; l++){
-//			GetTime( timePoleSta );
-//			statusOFS << "Pole " << l << std::endl;
-//			statusOFS << "zshift = " << zshift[l] << ", " 
-//				<< "zweightRho = " << zweightRho[l] << std::endl;
-//
-//			for(Int i = 0; i < HMat.nnz; i++){
-//				AMat.nzval(i) = HMat.nzval(i) - zshift[l] * SMat.nzval(i);
-//			}
-//
-//
-//			GetTime( timeSta );
-//
-//			SelInvInterface::ldlt_fact__(&token, HMat.colptr.Data(),
-//					HMat.rowind.Data(), 
-//					reinterpret_cast<doublecomplex*>(AMat.nzval.Data()));
-//
-//			GetTime( timeEnd );
-//
-//			Print( statusOFS, "Factorization done" );
-//			Print( statusOFS, "Factorization time = ", timeEnd - timeSta, "[s]" );
-//			
-//			GetTime( timeSta );
-//
-//			SelInvInterface::ldlt_blkselinv__(&token, invAMat.colptr.Data(),
-//					invAMat.rowind.Data(), 
-//					reinterpret_cast<doublecomplex*>(invAMat.nzval.Data()), &dumpL);
-//			
-//			GetTime( timeEnd );
-//
-//			Print( statusOFS, "Selected inversion done" );
-//			Print( statusOFS, "Selected inversion time = ", timeEnd - timeSta, "[s]" );
-//
-//			// Evaluate the electron density
-//			GetTime( timeSta );
-//			
-//			{
-//				// Otherwise the speed is too slow.
-//				Int* colptrHPtr = HMat.colptr.Data();
-//				Int* rowindHPtr = HMat.rowind.Data();
-//				Int* colptrInvAPtr = invAMat.colptr.Data();
-//				Int* rowindInvAPtr = invAMat.rowind.Data();
-//				Real* nzvalRhoPtr  = rhoMat.nzval.Data();
-//				Complex* nzvalInvAPtr = invAMat.nzval.Data();
-//				Complex  zweightl = zweightRho[l];
-//
-//				for(Int j = 1; j < HMat.size+1; j++){
-//					for(Int ii = colptrHPtr[j-1]; ii < colptrHPtr[j]; ii++){
-//						Int kk;
-//						for(kk = colptrInvAPtr[j-1]; kk < colptrInvAPtr[j]; kk++){
-//							if( rowindHPtr[ii-1] == rowindInvAPtr[kk-1] ){
-//								nzvalRhoPtr[ii-1] += 
-//									zweightl.real() * nzvalInvAPtr[kk-1].imag() +
-//									zweightl.imag() * nzvalInvAPtr[kk-1].real();
-//								break;
-//							}
-//						}
-//						if( kk == colptrInvAPtr[j] ){
-//							std::ostringstream msg;
-//							msg << "H(" << HMat.rowind(ii-1) << ", " << j << ") cannot be found in invA" << std::endl;
-//							throw std::logic_error( msg.str().c_str() );
-//						}
-//					}
-//				} // for (j)
-//			} 
-//			
-//			GetTime( timeEnd );
-//
-//			Print( statusOFS, "Evaluating density done" );
-//			Print( statusOFS, "Evaluating density time = ", timeEnd - timeSta, "[s]" );
-//
-//
-//			// Accumulate the number of electrons
-//			GetTime( timeSta );
-//			numElectronNow = ProductTrace( SMat.nzval, rhoMat.nzval );
-//			GetTime( timeEnd );
-//			
-//			GetTime( timePoleEnd );
-//
-//			Print( statusOFS, "Accumulated number of electron = ", numElectronNow );
-//			Print( statusOFS, "Evaluating number of electrons done" );
-//			Print( statusOFS, "Evaluating number of electrons time = ", timeEnd - timeSta, "[s]" );
-//
-//			Print( statusOFS, "\nTime for this pole = ", timePoleEnd - timePoleSta, "[s]" );
-//
-//		} // for(l)
-//
-//		// Reduce Ne
-//		
-//		muList.push_back(muNow);
-//		numElectronList.push_back( numElectronNow );
-//		
-//		Print( statusOFS, "Computed number of electron = ", numElectronNow );
-//		Print( statusOFS, "Exact number of electron    = ", numElectronExact );
-//
-//
-//		// Reduce band energy
-//		// Reduce Helmholtz free energy
-//		// Reduce force
-//		if( std::abs( numElectronExact - numElectronList[iter] ) <
-//				numElectronTolerance ){
-//			break;
-//		}
-//
-//		muNow = UpdateChemicalPotential( iter );
-//
-//		GetTime( timeMuEnd );
-//
-//		Print( statusOFS, "Total wall clock time for this iteration = ", 
-//				timeMuEnd - timeMuSta, "[s]" );
-//	}
-//
-//	// FIXME
-//	if ( permOrder == 0) free(perm);
-//	SelInvInterface::ldlt_free__(&token); 
+	Real muNow = mu0;
+	Real numElectronNow;
+
+	Real timeMuSta, timeMuEnd;
+
+	// rename for convenience
+	DistSparseMatrix<Real>& rhoMat = rhoMat_; 
+
+
+	// Iteration with chemical potentials
+	for(Int iter = 0; iter < muMaxIter; iter++){
+		GetTime( timeMuSta );
+
+		statusOFS << "Iteration " << iter << ", mu = " << muNow << std::endl;
+
+		// Reinitialize the variables
+		SetValue( rhoMat.nzvalLocal, 0.0 );
+
+		// Initialize the number of electrons
+		numElectronNow  = 0.0;
+
+		//Initialize the pole expansion
+		zshift_.clear(); zshift_.resize( numPole );
+		zweightRho_.clear(); zweightRho_.resize( numPole );
+
+		GetPoleDensity( &zshift_[0], &zweightRho_[0],
+				numPole, temperature, gap, deltaE, muNow ); 
+
+#if ( _DEBUGlevel_ >= 1 )
+		statusOFS << "zshift" << std::endl << zshift_ << std:;endl;
+		statusOFS << "zweightRho" << std::endl << zweightRho_ << std::endl;
+#endif
+
+		// for each pole, perform LDLT factoriation and selected inversion
+		Real timeSta, timeEnd;
+		Real timePoleSta, timePoleEnd;
+
+		for(Int l = 0; l < numPoleUsed; l++){
+			if( MYROW( gridPole_ ) == PROW( l, gridPole_ ) ){
+
+				GetTime( timePoleSta );
+#if ( _DEBUGlevel_ >= 1 )
+				statusOFS << "Pole " << l << std::endl;
+				statusOFS << "zshift = " << zshift_[l] << ", " 
+					<< "zweightRho = " << zweightRho_[l] << std::endl;
+#endif
+
+				for( Int i = 0; i < HMat.nnzLocal; i++ ){
+					AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift[l] * SMat.nzvalLocal(i);
+				}
+
+
+				// *********************************************************************
+				// Factorization
+				// *********************************************************************
+				// Important: the distribution in pzsymbfact is going to mess up the
+				// A matrix.  Recompute the matrix A here.
+				luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+
+				Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+				GetTime( timeTotalFactorizationSta );
+
+				// Data redistribution
+				luMat.Distribute();
+
+				// Numerical factorization
+				luMat.NumericalFactorize();
+
+				GetTime( timeTotalFactorizationEnd );
+
+				statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << endl; 
+
+				// *********************************************************************
+				// Selected inversion
+				// *********************************************************************
+				Real timeTotalSelInvSta, timeTotalSelInvEnd;
+				GetTime( timeTotalSelInvSta );
+
+				PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
+
+				luMat.LUstructToPMatrix( PMloc );
+
+				PMloc.ConstructCommunicationPattern();
+
+				PMloc.PreSelInv();
+
+				PMloc.SelInv();
+
+				GetTime( timeTotalSelInvEnd );
+
+				statusOFS << "Time for total selected inversion is " <<
+					timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
+
+				// *********************************************************************
+				// Postprocessing
+				// *********************************************************************
+
+				DistSparseMatrix<Complex>  AinvMat;       // A^{-1} in DistSparseMatrix format
+
+				Real timePostProcessingSta, timePostProcessingEnd;
+
+				GetTime( timePostProcessingSta );
+
+				PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+
+				// Update the density matrix
+				for( Int i = 0; i < rhoMat.nnzLocal; i++ ){
+					rhoMat.nzvalLocal(i) += 
+						zweightRho_[l].real() * AinvMat.nzvalLocal(i).imag() + 
+						zweightRho_[l].imag() * AinvMat.nzvalLocal(i).real();
+				}
+
+				GetTime( timePostProcessingEnd );
+
+				statusOFS << "Time for postprocessing is " <<
+					timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
+
+				GetTime( timePoleEnd );
+
+				statusOFS << "Time for pole " << l << " is " <<
+					timePoleEnd - timePoleSta << " [s]" << std::endl;
+			} // if I am in charge of this pole
+		} // for(l)
+
+		// Reduce the density matrix across the processor rows in gridPole_
+
+		DblNumVal nzvalRhoMatLocal = rhoMat.nzvalLocal;
+		mpi::Allreduce( nzvalRhoMatLocal.Data(), rhoMat.nzvalLocal.Data(),
+				rhoMat.nnzLocal, MPI_SUM, gridPole_->rowComm );
+
+		// All processors groups compute the number of electrons
+
+		numElectronNow = CalculateNumElectron( SMat );
+
+		muList.push_back(muNow);
+		numElectronList.push_back( numElectronNow );
+
+		Print( statusOFS, "Computed number of electron = ", numElectronNow );
+		Print( statusOFS, "Exact number of electron    = ", numElectronExact );
+
+		// TODO
+		// Reduce band energy
+		// Reduce Helmholtz free energy
+		// Reduce force
+
+		if( std::abs( numElectronExact - numElectronList[iter] ) <
+				numElectronTolerance ){
+			break;
+		}
+
+		muNow = CalculateChemicalPotential( iter, muList, numElectronList );
+
+		GetTime( timeMuEnd );
+
+		statusOFS << "Time for mu iteration " << iter << " is " <<
+			timeMuEnd - timeMuSta << " [s]" << std::endl;
+	} // for ( iteration of the chemical potential )
 
 #ifndef _RELEASE_
 	PopCallStack();
@@ -290,62 +276,82 @@ void PPEXSIData::Solve(
 
 
   
-// Use symmetry, compute the trace of the product of two matrices
-// sharing the same structure as H
+Real PPEXSIData::CalculateChemicalPotential	( 
+			const Int iter, 
+			const std::vector<Real>& muList,
+			const std::vector<Real>& numElectronList )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::CalculateChemicalPotential");
+#endif
+  // FIXME Magic number here
+	Real  muMin = -5.0, muMax = 5.0, muMinStep = 0.01;;
+	Real  muNew;
+
+	if( iter == 0 ){
+		if( numElectronExact > numElectronList[iter] ){
+			muNew = muList[iter] + muMinStep;
+		}
+		else{
+			muNew = muList[iter] - muMinStep;
+		}
+	}
+	else{
+		if( std::abs(numElectronList[iter] -  numElectronList[iter-1])
+		    < numElectronTolerance ){
+			statusOFS << "The number of electrons did not change." << std::endl;
+			if( numElectronExact > numElectronList[iter] ){
+				muNew = muList[iter] + muMinStep;
+			}
+			else{
+				muNew = muList[iter] - muMinStep;
+			}
+		}
+		else {
+			muNew = muList[iter] + (muList[iter] - muList[iter-1]) / 
+				( numElectronList[iter] - numElectronList[iter-1] ) *
+				( numElectronExact - numElectronList[iter] );
+			if( muNew < muMin || muNew > muMax ){
+				statusOFS << "muNew = " << muNew << " is out of bound ["
+					<< muMin << ", " << muMax << "]" << std::endl;
+				if( numElectronExact > numElectronList[iter] ){
+					muNew = muList[iter] + muMinStep;
+				}
+				else{
+					muNew = muList[iter] - muMinStep;
+				}
+			}
+		} // if ( numElectron changed )
+	} // if (iter == 0)
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return muNew;
+} 		// -----  end of method PPEXSIData::CalculateChemicalPotential  ----- 
 
 
-//Real PPEXSIData::UpdateChemicalPotential	( const Int iter )
-//{
-//#ifndef _RELEASE_
-//	PushCallStack("PPEXSIData::UpdateChemicalPotential");
-//#endif
-//  // FIXME Magic number here
-//	Real  muMin = -5.0, muMax = 5.0, muMinStep = 0.01;;
-//	Real  muNew;
-//
-//	if( iter == 0 ){
-//		if( numElectronExact > numElectronList[iter] ){
-//			muNew = muList[iter] + muMinStep;
-//		}
-//		else{
-//			muNew = muList[iter] - muMinStep;
-//		}
-//	}
-//	else{
-//		if( std::abs(numElectronList[iter] -  numElectronList[iter-1])
-//		    < numElectronTolerance ){
-//			statusOFS << "The number of electrons did not change." << std::endl;
-//			if( numElectronExact > numElectronList[iter] ){
-//				muNew = muList[iter] + muMinStep;
-//			}
-//			else{
-//				muNew = muList[iter] - muMinStep;
-//			}
-//		}
-//		else {
-//			muNew = muList[iter] + (muList[iter] - muList[iter-1]) / 
-//				( numElectronList[iter] - numElectronList[iter-1] ) *
-//				( numElectronExact - numElectronList[iter] );
-//			if( muNew < muMin || muNew > muMax ){
-//				statusOFS << "muNew = " << muNew << " is out of bound ["
-//					<< muMin << ", " << muMax << "]" << std::endl;
-//				if( numElectronExact > numElectronList[iter] ){
-//					muNew = muList[iter] + muMinStep;
-//				}
-//				else{
-//					muNew = muList[iter] - muMinStep;
-//				}
-//			}
-//		} // if ( numElectron changed )
-//	} // if (iter == 0)
-//
-//#ifndef _RELEASE_
-//	PopCallStack();
-//#endif
-//
-//	return muNew;
-//} 		// -----  end of method PPEXSIData::UpdateChemicalPotential  ----- 
+Real
+PPEXSIData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::CalculateNumElectron");
+#endif
+	Real numElecLocal = 0.0, numElec = 0.0;
+	
+	// TODO Check SMat and rhoMat has the same sparsity
+
+	numElecLocal = Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+			1, rhoMat_.nzvalLocal.Data(), 1 );
+
+	mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, rhoMat_.comm ); 
 
 
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
 
+	return numElec;
+} 		// -----  end of method PPEXSIData::CalculateNumElectron  ----- 
 } //  namespace PEXSI

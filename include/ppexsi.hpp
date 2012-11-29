@@ -29,9 +29,8 @@ private:
 
 	std::vector<Complex>  zshift_;      // Complex shift for the pole expansion
 	std::vector<Complex>  zweightRho_;  // Complex weight for the pole expansion for density
-	std::vector<Complex>  zweightFreeEnergy_;  // Complex shift for the pole expansion for Helmholtz free energy
+	std::vector<Complex>  zweightHelmholtz_;  // Complex shift for the pole expansion for Helmholtz free energy
 	std::vector<Complex>  zweightForce_;  // Complex weight for the pole expansion for force
-	Int                   numPoleUsed_;            // Number of poles after truncation
 
   const Grid*           gridPole_;              // Outer layer communicator. Also used for distributing the DistSparseMatrix.  Each DistSparseMatrix is replicated in the row (numPoleGroup) direction of gridPole.
 	const Grid*           gridSelInv_;            // Inner layer communicator for SelInv
@@ -49,7 +48,11 @@ private:
 	// *********************************************************************
 	// Member functions
 	// *********************************************************************
-	Real UpdateChemicalPotential( const Int iter );
+	/// @brief Calculate the new chemical potential based on the history.
+	Real CalculateChemicalPotential( 
+			const Int iter, 
+			const std::vector<Real>& muList,
+			const std::vector<Real>& numElectronList );
 
 public:
 	PPEXSIData( const PEXSI::Grid* g, Int nprow, Int npcol );
@@ -156,7 +159,7 @@ public:
 	/// @param[in] SMat overlap matrix.
 	///
 	/// @return The number of electrons Tr[\rho S]
-	Real CalculateNumElectron( const DistSparseMatrix<Real>& SDerivativeMat );
+	Real CalculateNumElectron( const DistSparseMatrix<Real>& SMat );
 };
 
 
