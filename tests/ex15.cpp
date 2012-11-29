@@ -103,83 +103,131 @@ int main(int argc, char **argv)
 			throw std::logic_error( "mpisize cannot be divided evenly by npPerPole." );
 		}
 
+	  Int nprow = iround( std::sqrt( (double)npPerPole) );
+		Int npcol = mpisize / nprow;
+		if( mpisize != nprow * npcol || nprow != npcol ){
+			throw std::runtime_error( "npPerPole must be a square number due to the current implementation of PSelInv." );
+		}
+
+		Grid gridPole( MPI_COMM_WORLD, mpisize % npPerPole, npPerPole );
+		PPEXSIData pexsi( &gridPole, nprow, npcol );
+
+		// *********************************************************************
+		// Read input matrix
+		// *********************************************************************
 
 
-//
-//
-//		// *********************************************************************
-//		// Read input matrix
-//		// *********************************************************************
-//
-//		// Test code
-//		if(0){
-//			Real timeSta, timeEnd;
-//			GetTime( timeSta );
-//			ReadSparseMatrix( "H.ccs", pexsiData.HMat );
-//			GetTime( timeEnd );
-//			cout << pexsiData.HMat.size << endl;
-//			cout << pexsiData.HMat.nnz  << endl;
-//			cout << pexsiData.HMat.colptr.m() << endl;
-//			cout << "Time for reading H is " << timeEnd - timeSta << endl;
-//		}
-// 
-//
-//		if(1)
-//		{
-//			ReadSparseMatrix( "H.ccs", pexsiData.HMat );
-//			ReadSparseMatrix( "S.ccs", pexsiData.SMat );
-//
-//			// Make sure that the sparsity of H and S matches.
-//			if( pexsiData.HMat.size != pexsiData.SMat.size ||
-//					pexsiData.HMat.nnz  != pexsiData.SMat.nnz ){
-//					std::ostringstream msg;
-//					msg 
-//						<< "The dimensions colptr for H and S do not match" << std::endl
-//						<< "H.colptr.size = " << pexsiData.HMat.size << std::endl
-//						<< "H.colptr.nnz  = " << pexsiData.HMat.nnz  << std::endl
-//						<< "S.colptr.size = " << pexsiData.SMat.size << std::endl
-//						<< "S.colptr.nnz  = " << pexsiData.SMat.nnz  << std::endl;
-//				throw std::logic_error( msg.str().c_str() );
-//			}
-//
-//      for( int j = 0; j < pexsiData.HMat.colptr.m(); j++ ){
-//				if( pexsiData.HMat.colptr(j) != pexsiData.SMat.colptr(j) ){
-//					std::ostringstream msg;
-//					msg 
-//						<< "Colptr of H and S do not match:" << std::endl
-//						<< "H.colptr(" << j << ") = " << pexsiData.HMat.colptr(j) << std::endl
-//						<< "S.colptr(" << j << ") = " << pexsiData.SMat.colptr(j) << std::endl;
-//					throw std::logic_error( msg.str().c_str() );	
-//				}
-//			}
-//		}
-//
-//
-//		Print(statusOFS, "mu0                    = ", pexsiData.mu0);
-//		Print(statusOFS, "numElectronExact       = ", pexsiData.numElectronExact);
-//		Print(statusOFS, "deltaE                 = ", pexsiData.deltaE);
-//		Print(statusOFS, "gap                    = ", pexsiData.gap);
-//		Print(statusOFS, "temperature            = ", pexsiData.temperature);
-//		Print(statusOFS, "numPole                = ", pexsiData.numPole);
-//		Print(statusOFS, "numElectronTolerance   = ", pexsiData.numElectronTolerance);
-//		Print(statusOFS, "poleTolerance          = ", pexsiData.poleTolerance);
-//		Print(statusOFS, "muMaxIter              = ", pexsiData.muMaxIter);
-//		Print(statusOFS, "permOrder              = ", pexsiData.permOrder);
-//
-//
-//
-//
-//
-//		// *********************************************************************
-//		// Solve
-//		// *********************************************************************
-//		pexsiData.Setup( );
-//		Print( statusOFS, "PEXSI setup finished." );
-//
-//		pexsiData.Solve( );
-//		Print( statusOFS, "PEXSI solve finished." );
-//
-//		statusOFS.close();
+		DistSparseMatrix<Real> HMat;
+		DistSparseMatrix<Real> SMat;
+
+		Real timeSta, timeEnd;
+
+		// The first processor row gridPole reads first, and then
+		// broadcast the information to other row processors in gridPole
+
+		// HMat
+		std::stringstream sstm;
+		std::vector<char> sstr;
+		Int sizeStm;
+		if( MYROW( &gridPole ) == 0 ){
+			ReadDistSparseMatrix( Hfile.c_str(), HMat, gridPole.rowComm ); 
+			serialize( HMat.size, sstm, NO_MASK );
+			serialize( HMat.nnz,  sstm, NO_MASK );
+			serialize( HMat.nnzLocal, sstm, NO_MASK );
+			serialize( HMat.colptrLocal, sstm, NO_MASK );
+			serialize( HMat.rowindLocal, sstm, NO_MASK );
+			serialize( HMat.nzvalLocal,  sstm, NO_MASK );
+			sstr.resize( Size( sstm ) );
+		  sstm.write( &sstr[0], sstr.size() ); 	
+			sizeStm = sstr.size();
+		}
+		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
+		if( MYROW( &gridPole ) != 0 )
+			sstr.resize( sizeStm );
+		MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
+		if( MYROW( &gridPole ) != 0 ){
+			sstm.write( &sstr[0], sizeStm );
+			deserialize( HMat.size, sstm, NO_MASK );
+			deserialize( HMat.nnz,  sstm, NO_MASK );
+			deserialize( HMat.nnzLocal, sstm, NO_MASK );
+			deserialize( HMat.colptrLocal, sstm, NO_MASK );
+			deserialize( HMat.rowindLocal, sstm, NO_MASK );
+			deserialize( HMat.nzvalLocal,  sstm, NO_MASK );
+		}
+
+
+		// SMat
+		if( MYROW( &gridPole ) == 0 ){
+			ReadDistSparseMatrix( Hfile.c_str(), SMat, gridPole.rowComm ); 
+			serialize( SMat.size, sstm, NO_MASK );
+			serialize( SMat.nnz,  sstm, NO_MASK );
+			serialize( SMat.nnzLocal, sstm, NO_MASK );
+			serialize( SMat.colptrLocal, sstm, NO_MASK );
+			serialize( SMat.rowindLocal, sstm, NO_MASK );
+			serialize( SMat.nzvalLocal,  sstm, NO_MASK );
+			sstr.resize( Size( sstm ) );
+		  sstm.write( &sstr[0], sstr.size() ); 	
+			sizeStm = sstr.size();
+		}
+		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
+		if( MYROW( &gridPole ) != 0 )
+			sstr.resize( sizeStm );
+		MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
+		if( MYROW( &gridPole ) != 0 ){
+			sstm.write( &sstr[0], sizeStm );
+			deserialize( SMat.size, sstm, NO_MASK );
+			deserialize( SMat.nnz,  sstm, NO_MASK );
+			deserialize( SMat.nnzLocal, sstm, NO_MASK );
+			deserialize( SMat.colptrLocal, sstm, NO_MASK );
+			deserialize( SMat.rowindLocal, sstm, NO_MASK );
+			deserialize( SMat.nzvalLocal,  sstm, NO_MASK );
+		}
+
+
+
+
+		Print(statusOFS, "mu0                    = ", mu0);
+		Print(statusOFS, "numElectronExact       = ", numElectronExact);
+		Print(statusOFS, "deltaE                 = ", deltaE);
+		Print(statusOFS, "gap                    = ", gap);
+		Print(statusOFS, "temperature            = ", temperature);
+		Print(statusOFS, "numPole                = ", numPole);
+		Print(statusOFS, "numElectronTolerance   = ", numElectronTolerance);
+		Print(statusOFS, "muMaxIter              = ", muMaxIter);
+
+
+
+		// *********************************************************************
+		// Solve
+		// *********************************************************************
+		std::vector<Real>  muList;
+		std::vector<Real>  numElectronList;
+		
+		Real timeSolveSta, timeSolveEnd;
+
+		GetTime( timeSolveSta );
+		pexsi.Solve( 
+				numPole,
+				temperature,
+				numElectronExact,
+				gap,
+				deltaE,
+				mu0,
+				HMat,
+				SMat,
+				muMaxIter,
+				numElectronTolerance,
+				0,
+				0,
+				muList,
+				numElectronList );
+
+		GetTime( timeSolveEnd );
+
+		statusOFS << "Time for solving the PEXSI is " <<
+			timeSolveEnd - timeSolveSta << " [s]" << std::endl;
+
+		statusOFS.close();
 	}
 	catch( std::exception& e )
 	{

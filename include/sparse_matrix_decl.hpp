@@ -45,6 +45,8 @@ typedef SparseMatrix<Complex>    CpxSparseMatrix;
 /// Since in PEXSI and PPEXSI only symmetric matrix is considered, the
 /// compressed sparse row format will also be represented by the
 /// compressed sparse column format.
+///
+/// TODO Add the parameter of numColLocal
 template <class F> struct DistSparseMatrix{
 	/// @brief Matrix dimension.
 	Int          size;         
