@@ -95,6 +95,20 @@ int main(int argc, char **argv)
       throw std::logic_error("npPerPole must be provided.");
 		}
    
+		std::string Hfile, Sfile;                   
+		if( options.find("-H") != options.end() ){ 
+			Hfile = options["-H"];
+		}
+		else{
+      throw std::logic_error("Hfile must be provided.");
+		}
+
+		if( options.find("-S") != options.end() ){ 
+			Sfile = options["-S"];
+		}
+		else{
+      throw std::logic_error("Sfile must be provided.");
+		}
 
 		// *********************************************************************
 		// Check the input parameters
@@ -109,7 +123,8 @@ int main(int argc, char **argv)
 			throw std::runtime_error( "npPerPole must be a square number due to the current implementation of PSelInv." );
 		}
 
-		Grid gridPole( MPI_COMM_WORLD, mpisize % npPerPole, npPerPole );
+		// Initialize
+		Grid gridPole( MPI_COMM_WORLD, mpisize / npPerPole, npPerPole );
 		PPEXSIData pexsi( &gridPole, nprow, npcol );
 
 		// *********************************************************************
@@ -123,7 +138,8 @@ int main(int argc, char **argv)
 		Real timeSta, timeEnd;
 
 		// The first processor row gridPole reads first, and then
-		// broadcast the information to other row processors in gridPole
+		// broadcast the information to other row processors in gridPole.
+		// This can be improved later by MPI_Bcast directly.
 
 		// HMat
 		std::stringstream sstm;
@@ -158,7 +174,7 @@ int main(int argc, char **argv)
 
 		// SMat
 		if( MYROW( &gridPole ) == 0 ){
-			ReadDistSparseMatrix( Hfile.c_str(), SMat, gridPole.rowComm ); 
+			ReadDistSparseMatrix( Sfile.c_str(), SMat, gridPole.rowComm ); 
 			serialize( SMat.size, sstm, NO_MASK );
 			serialize( SMat.nnz,  sstm, NO_MASK );
 			serialize( SMat.nnzLocal, sstm, NO_MASK );
@@ -194,6 +210,8 @@ int main(int argc, char **argv)
 		Print(statusOFS, "numPole                = ", numPole);
 		Print(statusOFS, "numElectronTolerance   = ", numElectronTolerance);
 		Print(statusOFS, "muMaxIter              = ", muMaxIter);
+		Print(statusOFS, "mpisize                = ", mpisize );
+		Print(statusOFS, "npPerPole              = ", npPerPole );
 
 
 

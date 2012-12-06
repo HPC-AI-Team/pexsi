@@ -168,6 +168,10 @@ void LAPACK(zgelss)
 
 // Copy
 
+void LAPACK(dlacpy)
+	( const char* uplo, const Int* m, const Int* n, 
+		const double* A, const Int *lda, 
+		double* B, const Int *ldb );
 void LAPACK(zlacpy)
 	( const char* uplo, const Int* m, const Int* n, 
 		const dcomplex* A, const Int *lda, 
@@ -180,6 +184,9 @@ void LAPACK(zlacpy)
 //		dcomplex* B, const Int* ldb );
 
 // Inverting a factorized matrix: Getri
+void LAPACK(dgetri)
+	( const Int* n, double* A, const Int* lda, const Int* ipiv, double* work,
+		const Int* lwork, Int* info );
 void LAPACK(zgetri)
 	( const Int* n, dcomplex* A, const Int* lda, const Int* ipiv, dcomplex* work,
 		const Int* lwork, Int* info );
@@ -1421,7 +1428,7 @@ void Lacpy( char uplo, Int m, Int n, const double* A, Int lda,
 #ifndef _RELEASE_
     PushCallStack("lapack::Lacpy");
 #endif
-  LAPACK(dlacpy)( &uplo, &m, &n, A, &lda, B, &ldb );
+		LAPACK(dlacpy)( &uplo, &m, &n, A, &lda, B, &ldb );
 #ifndef _RELEASE_
     PopCallStack();
 #endif

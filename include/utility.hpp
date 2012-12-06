@@ -11,7 +11,7 @@
 #include  "numvec_impl.hpp"
 #include  "nummat_impl.hpp"
 #include  "numtns_impl.hpp"
-#include  "sparse_matrix.hpp"
+#include  "sparse_matrix_impl.hpp"
 #include	"mpi_interf.hpp"
 
 namespace PEXSI{

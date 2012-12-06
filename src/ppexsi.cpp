@@ -137,7 +137,7 @@ void PPEXSIData::Solve(
 				numPole, temperature, gap, deltaE, muNow ); 
 
 #if ( _DEBUGlevel_ >= 1 )
-		statusOFS << "zshift" << std::endl << zshift_ << std:;endl;
+		statusOFS << "zshift" << std::endl << zshift_ << std::endl;
 		statusOFS << "zweightRho" << std::endl << zweightRho_ << std::endl;
 #endif
 
@@ -145,7 +145,7 @@ void PPEXSIData::Solve(
 		Real timeSta, timeEnd;
 		Real timePoleSta, timePoleEnd;
 
-		for(Int l = 0; l < numPoleUsed; l++){
+		for(Int l = 0; l < numPole; l++){
 			if( MYROW( gridPole_ ) == PROW( l, gridPole_ ) ){
 
 				GetTime( timePoleSta );
@@ -156,7 +156,7 @@ void PPEXSIData::Solve(
 #endif
 
 				for( Int i = 0; i < HMat.nnzLocal; i++ ){
-					AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift[l] * SMat.nzvalLocal(i);
+					AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
 				}
 
 
@@ -179,7 +179,7 @@ void PPEXSIData::Solve(
 
 				GetTime( timeTotalFactorizationEnd );
 
-				statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << endl; 
+				statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
 
 				// *********************************************************************
 				// Selected inversion
@@ -235,7 +235,7 @@ void PPEXSIData::Solve(
 
 		// Reduce the density matrix across the processor rows in gridPole_
 
-		DblNumVal nzvalRhoMatLocal = rhoMat.nzvalLocal;
+		DblNumVec nzvalRhoMatLocal = rhoMat.nzvalLocal;
 		mpi::Allreduce( nzvalRhoMatLocal.Data(), rhoMat.nzvalLocal.Data(),
 				rhoMat.nnzLocal, MPI_SUM, gridPole_->rowComm );
 
@@ -259,7 +259,9 @@ void PPEXSIData::Solve(
 			break;
 		}
 
-		muNow = CalculateChemicalPotential( iter, muList, numElectronList );
+		muNow = CalculateChemicalPotential( 
+				iter, numElectronExact, numElectronTolerance,
+				muList, numElectronList );
 
 		GetTime( timeMuEnd );
 
@@ -278,6 +280,8 @@ void PPEXSIData::Solve(
   
 Real PPEXSIData::CalculateChemicalPotential	( 
 			const Int iter, 
+			const Real numElectronExact, 
+			const Real numElectronTolerance, 
 			const std::vector<Real>& muList,
 			const std::vector<Real>& numElectronList )
 {
@@ -342,7 +346,7 @@ PPEXSIData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
 	
 	// TODO Check SMat and rhoMat has the same sparsity
 
-	numElecLocal = Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+	numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
 			1, rhoMat_.nzvalLocal.Data(), 1 );
 
 	mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, rhoMat_.comm ); 

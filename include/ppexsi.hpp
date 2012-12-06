@@ -51,6 +51,8 @@ private:
 	/// @brief Calculate the new chemical potential based on the history.
 	Real CalculateChemicalPotential( 
 			const Int iter, 
+			const Real numElectronExact, 
+			const Real numElectronTolerance,
 			const std::vector<Real>& muList,
 			const std::vector<Real>& numElectronList );
 
