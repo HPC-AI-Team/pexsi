@@ -341,38 +341,58 @@ Int inline deserialize(UBlock& val, std::istream& is, const std::vector<Int>& ma
 /// @brief PMatrix contains the main data structure and the
 /// computational routine for the parallel selected inversion.  
 ///
-/// Selected inversion
-/// ------------------
+/// Procedure for Selected Inversion 
+/// --------------------------------
 ///
 /// After factorizing a SuperLUMatrix luMat (See SuperLUMatrix for
 /// information on how to perform factorization), perform the following
 /// steps for parallel selected inversion.
 /// 
-/// - Conversion
+/// - Conversion from SuperLU_DIST.
+///   
+///   Symbolic information
 ///
-/// SuperNode super; 
-/// luMat.SymbolicToSuperNode( super ); // Symbolic information
 ///
-/// PMatrix PMloc;
-///	luMat.LUstructToPMatrix( PMloc ); // Numerical information, both L and U
+///   \code{.cpp}
+///   SuperNode super; 
+///   PMatrix PMloc;
+///   luMat.SymbolicToSuperNode( super );  
+///   \endcode
 ///
-///	- Preparation
+///   
+///   Numerical information, both L and U.
 ///
-/// PMloc.ConstructCommunicationPattern(); // Communication pattern for
-/// SelInv
+///   \code{.cpp}
+///   luMat.LUstructToPMatrix( PMloc ); 
+///   \endcode
 ///
-/// PMloc.PreSelInv();  // Numerical preparation so that SelInv only
-/// involves Gemm.  
+/// - Preparation.
 ///
-/// - Solve
+///   Construct the communication pattern for SelInv.
 ///
-/// PMloc.SelInv();
+///   \code{.cpp}
+///   PMloc.ConstructCommunicationPattern(); 
+///   \endcode
+///   
+///   Numerical preparation so that SelInv only involves Gemm.
+///   \code{.cpp}
+///   PMloc.PreSelInv();  
+///   \endcode
 ///
-/// - Postprocessing
+/// - Selected inversion.
 ///
-/// DistSparseMatrix<Scalar> Ainv;
-/// PMloc.PMatrixToDistSparseMatrix( Ainv ); // Get the information in
-/// DistSparseMatrix format.
+///   \code{.cpp}
+///   PMloc.SelInv();
+///   \endcode
+///
+/// - Postprocessing.
+///
+///   Get the information in DistSparseMatrix format 
+///
+///   \code{.cpp}
+///   DistSparseMatrix<Scalar> Ainv;
+///   PMloc.PMatrixToDistSparseMatrix( Ainv );  
+///   \endcode
 ///
 /// Note
 /// ----
@@ -382,8 +402,8 @@ Int inline deserialize(UBlock& val, std::istream& is, const std::vector<Int>& ma
 ///
 /// - In the current version of PMatrix, square grid is assumed.  This
 /// assumption is only used when sending the information to
-/// cross-diagonals, i.e. from L_{ik} to U_{ki}.  This assumption can be
-/// relaxed later.
+/// cross-diagonal blocks, i.e. from L(isup, ksup) to U(ksup, isup).
+/// This assumption can be relaxed later.
 
 class PMatrix{
 
@@ -503,43 +523,35 @@ public:
 	/// Although the matrix is symmetric, the key idea of the current
 	/// implementation of PSelInv is that the upper-triangular matrix is
 	/// saved (in the form of UBlock).  Such redundant information is
-	/// effective for reducing the complexity of the communication
-	/// pattern.  
+	/// effective for reducing the complexity for designing the
+	/// communication pattern.  
 	///
-	/// At each supernode ksup, three subroutines are executed:
-	///
-	/// - UpdateL.
-	/// 
-	/// The blocks in the processor row of ksup first sends the nonzero
-	/// blocks in U(ksup, jsup) to the Schur complements Ainv(isup, jsup).
-	/// At the same time the blocks in the processor column of ksup sends
-	/// the nonzero blocks (only row indices) to the Schur complement
+	/// At each supernode ksup, the lower triangular part Ainv(isup, ksup)
+	/// (isup > ksup) are first updated.  The blocks in the processor row
+	/// of ksup first sends the nonzero blocks in U(ksup, jsup) (which is
+	/// L(isup, ksup)^T) to the Schur complements Ainv(isup, jsup).  At
+	/// the same time the blocks in the processor column of ksup sends the
+	/// nonzero blocks (only nonzero row indices) to the Schur complement
 	/// Ainv(isup, jsup).  Then 
 	///
-	/// \sum_{jsup} A^{-1}(isup, jsup) U^{T}(ksup, jsup)
+	/// sum_{jsup} Ainv(isup, jsup) U^{T}(ksup, jsup)
 	///
 	/// is performed.  In this procedure, only processors with
 	/// isRecvFromUp[ksup] == true && isRecvFromLeft[ksup] == true
 	/// participate in the computation.
 	///
 	///
-	/// The result is reduced to the processor column ksup
-	/// within the same processor row. 
+	/// The result is reduced to the processor column ksup within the same
+	/// processor row.  The diagonal block Ainv(ksup, ksup) is simply updated
+	/// by a reduce procedure within the column processor group of ksup.
 	///
-	/// - UpdateD.
+	/// Then we update the Ainv(ksup, isup) blocks, simply via the update
+	/// from the cross diagonal processors.
 	///
-	/// The diagonal block (ksup, ksup) is simply updated by a reduce
-	/// procedure within the column processor group of ksup.
-	///
-	/// - UpdateU.
-	///
-	/// The Ainv(ksup, isup) blocks can be simply updated via
-	/// the update from the cross diagonal processors.
-	///
-	/// The cross diagonal processor is only well defined for square
-	/// grids.  For a P x P square grid, (ip, jp) is the cross diagonal
-	/// processor of (jp, ip) if ip != jp.  The current version of SelInv
-	/// only works for square processor grids.
+	/// <b> NOTE </b>: The cross diagonal processor is only well here
+	/// defined for square grids.  For a P x P square grid, (ip,
+	/// jp) is the cross diagonal processor of (jp, ip) if ip != jp.  The
+	/// current version of SelInv only works for square processor grids.
 	///
 	///
 	/// Communication pattern
@@ -547,42 +559,58 @@ public:
 	///
 	/// The communication is controlled by 3 sending varaibles and 3
 	/// receiving variables. The first dimension of all the sending and
-	/// receiving variables are numSuper.  There is redundant information
-	/// saved, but this increases the readability of the output by only
-	/// increasing a small amount of memory cost for indexing.  This set of
-	/// sending / receiving mechanism avoids the double indexing of the
-	/// supernodes and can scale to matrices of large size.
+	/// receiving variables are numSuper.  The information contains
+	/// redundancy since not all processors have access to all the
+	/// supernodes.  However, this increases the readability of the output
+	/// significantly and only increases a small amount of memory cost for
+	/// indexing.  This set of sending / receiving mechanism avoids the
+	/// double indexing of the supernodes and can scale to matrices of
+	/// large size.
 	///
 	/// - isSendToDown:  
 	///
 	///   Dimension: numSuper x numProcRow
 	///
 	///   Role     : At supernode ksup, if isSendToDown(ksup, ip) == true, send
-	///   all local blocks {(ksup, jsup) | jsup > ksup} to the processor row ip.
+	///   all local blocks {U(ksup, jsup) | jsup > ksup} to the processor row ip.
 	///
 	/// - isRecvFromUp:
 	///
 	///   Dimension: numSuper
 	///
-	///   Role     : At supernode ksup, if isRecvFromUp(ksup) == true,
-	///   receive blocks from the processor owning the block row of ksup
-	///   within the same column processor group.
+	///   Role     : 
+	///
+	///     * At supernode ksup, if isRecvFromUp(ksup) == true,
+	///       receive blocks from the processor owning the block row of ksup
+	///       within the same column processor group.
+	///
+	///     * If isRecvFromUp(ksup) == true && isRecvFromLeft(ksup) ==
+	///     true, the ucrrent processor participate in updating Ainv(isup,
+	///     ksup).
+	///
 	///
 	/// - isSendToRight:
 	///
 	///   Dimension: numSuper x numProcCol
 	///
-	///   Role     : At supernode ksup, if isSendToRight(jp, ksup) == true, send
-	///   all local blocks {(isup, ksup) | isup > ksup} to the processor
-	///   column jp.
+	///   Role     : At supernode ksup, if isSendToRight(ksup, jp) == true, send
+	///   all local blocks (mainly the nonzero row indicies, without the
+	///   values to save the communication cost) {L(isup, ksup) | isup >
+	///   ksup} to the processor column jp.
 	///
 	/// - isRecvFromLeft:
 	///   
 	///   Dimension: numSuper
 	///
-	///   Role     : At supernode ksup, if isRecvFromLeft(ksup) == true,
-	///   receive blocks from the processor owning the block column of
-	///   ksup within the same row processor group.
+	///   Role     : 
+	///
+	///     * At supernode ksup, if isRecvFromLeft(ksup) == true, receive
+	///     blocks from the processor owning the block column of ksup
+	///     within the same row processor group.
+	///
+	///     * If isRecvFromUp(ksup) == true && isRecvFromLeft(ksup) ==
+	///     true, the ucrrent processor participate in updating Ainv(isup,
+	///     ksup).
 	///
 	/// - isSendToCrossDiagonal:
 	///
@@ -590,16 +618,16 @@ public:
 	///
 	///   Role     : At supernode ksup, if isSendToCrossDiagonal(ksup) ==
 	///   true, send all local blocks {(isup, ksup) | isup > ksup} to the
-	///   cross-diagonal processor.  NOTE: This requires a square processor
-	///   grid.
+	///   cross-diagonal processor.  <b> NOTE </b>: This requires a square
+	///   processor grid.
 	///
 	/// - isRecvCrossDiagonal:
 	///
 	///   Dimension: numSuper
 	///
 	///   Role     : At supernode ksup, if isRecvFromCrossDiagonal(ksup) ==
-	///   true, receive from the cross-diagonal processor.  NOTE: This
-	///   requires a square processor grid.
+	///   true, receive from the cross-diagonal processor.  <b> NOTE </b>:
+	///   This requires a square processor grid.
 	///   
 	///
 	/// Future work
