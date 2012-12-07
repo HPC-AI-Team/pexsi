@@ -43,22 +43,22 @@ public:
 /// (complex arithmetic for example).
 ///  
 ///   \code{.cpp}
-///		DistSparseMatrix<Complex>  AMat;
-///		...(Construct AMat)
+///   DistSparseMatrix<Complex>  AMat;
+///   ...(Construct AMat)
 ///   \endcode
 ///
 /// - Create a SuperMatrix from a DistSparseMatrix.
 ///   
 ///   \code{.cpp}
 ///   SuperLUMatrix luMat( g );
-///		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
-///		\endcode
+///   luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+///   \endcode
 ///
 /// - Symbolic factorization.
 ///
 ///   \code{.cpp}
-///		luMat.SymbolicFactorize();
-///	  luMat.DestroyAOnly();
+///   luMat.SymbolicFactorize();
+///   luMat.DestroyAOnly();
 ///		\endcode
 ///
 ///		<b> NOTE: </b> Destroy the SuperMatrix by DestroyAOnly is
@@ -69,45 +69,45 @@ public:
 /// as AMat.
 ///
 ///   \code{.cpp}
-///		DistSparseMatrix<Complex>  BMat;
-///		...(Construct BMat)
-///		luMat.DistSparseMatrixToSuperMatrixNRloc( BMat );
-///		luMat.Distribute();
+///   DistSparseMatrix<Complex>  BMat;
+///   ...(Construct BMat)
+///   luMat.DistSparseMatrixToSuperMatrixNRloc( BMat );
+///   luMat.Distribute();
 ///		\endcode
 ///
 /// - Numerical factorization
 ///
 ///   \code{.cpp}
 ///   luMat.NumericalFactorize();
-///		\endcode
+///   \endcode
 ///
-///	- (Optional) Solve multivectors (for consistency check).
-/// 
+/// - (Optional) Solve multivectors (for consistency check).
+///
 ///   Construct a global matrix.
 ///
 ///   \code{.cpp}
-///		SuperLUMatrix A1( g ), GA( g );
-///		A1.DistSparseMatrixToSuperMatrixNRloc( AMat );
-///		A1.ConvertNRlocToNC( GA );
+///   SuperLUMatrix A1( g ), GA( g );
+///   A1.DistSparseMatrixToSuperMatrixNRloc( AMat );
+///   A1.ConvertNRlocToNC( GA );
 ///   \endcode
 ///
 ///   Construct the distributed right hand sides and the exact
 ///   solution.
 ///
 ///   \code{.cpp}
-///		CpxNumMat xTrueGlobal(n, nrhs), bGlobal(n, nrhs);
-///		CpxNumMat xTrueLocal, bLocal;
-///		UniformRandom( xTrueGlobal );
-///		GA.MultiplyGlobalMultiVector( xTrueGlobal, bGlobal );
-///		A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
-///		A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
+///   CpxNumMat xTrueGlobal(n, nrhs), bGlobal(n, nrhs);
+///   CpxNumMat xTrueLocal, bLocal;
+///   UniformRandom( xTrueGlobal );
+///   GA.MultiplyGlobalMultiVector( xTrueGlobal, bGlobal );
+///   A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
+///   A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
 ///   \endcode
 ///   
 ///   Solve and check the error.
 ///
 ///   \code{.cpp}
-///		luMat.SolveDistMultiVector( bLocal, berr );
-///		luMat.CheckErrorDistMultiVector( bLocal, xTrueLocal );
+///   luMat.SolveDistMultiVector( bLocal, berr );
+///   luMat.CheckErrorDistMultiVector( bLocal, xTrueLocal );
 ///   \endcode
 ///
 ///
