@@ -170,6 +170,8 @@ int main(int argc, char **argv)
 			deserialize( HMat.rowindLocal, sstm, NO_MASK );
 			deserialize( HMat.nzvalLocal,  sstm, NO_MASK );
 		}
+		// Communicator
+		HMat.comm = gridPole.rowComm;
 
 
 		// SMat
@@ -198,6 +200,7 @@ int main(int argc, char **argv)
 			deserialize( SMat.rowindLocal, sstm, NO_MASK );
 			deserialize( SMat.nzvalLocal,  sstm, NO_MASK );
 		}
+		SMat.comm = gridPole.rowComm;
 
 
 
@@ -251,7 +254,9 @@ int main(int argc, char **argv)
 	{
 		std::cerr << " caught exception with message: "
 			<< e.what() << std::endl;
+#ifndef _RELEASE_
 		DumpCallStack();
+#endif
 	}
 	
 	MPI_Finalize();
