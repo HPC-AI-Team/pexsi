@@ -118,8 +118,8 @@ int main(int argc, char **argv)
 		}
 
 	  Int nprow = iround( std::sqrt( (double)npPerPole) );
-		Int npcol = mpisize / nprow;
-		if( mpisize != nprow * npcol || nprow != npcol ){
+		Int npcol = npPerPole / nprow;
+		if( npPerPole != nprow * npcol || nprow != npcol ){
 			throw std::runtime_error( "npPerPole must be a square number due to the current implementation of PSelInv." );
 		}
 

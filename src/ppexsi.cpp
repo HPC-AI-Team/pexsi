@@ -89,9 +89,12 @@ void PPEXSIData::Solve(
 	muList.clear();
 	numElectronList.clear();
 
-	DistSparseMatrix<Complex>  AMat;             // A = H - z * S
+	DistSparseMatrix<Complex>  AMat;              // A = H - z * S
+	DistSparseMatrix<Real>& rhoMat = rhoMat_;     // rename for convenience
 	// Copy the pattern
 	CopyPattern( HMat, AMat );
+	CopyPattern( HMat, rhoMat );
+
 	SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
 
 	statusOFS << "AMat.nnzLocal = " << AMat.nnzLocal << std::endl;
@@ -113,15 +116,17 @@ void PPEXSIData::Solve(
 
 	Real timeMuSta, timeMuEnd;
 
-	// rename for convenience
-	DistSparseMatrix<Real>& rhoMat = rhoMat_; 
 
 
 	// Iteration with chemical potentials
 	for(Int iter = 0; iter < muMaxIter; iter++){
 		GetTime( timeMuSta );
 
-		statusOFS << "Iteration " << iter << ", mu = " << muNow << std::endl;
+		{
+			std::ostringstream msg;
+			msg << "Iteration " << iter << ", mu = " << muNow;
+			PrintBlock( statusOFS, msg.str() );
+		}
 
 		// Reinitialize the variables
 		SetValue( rhoMat.nzvalLocal, 0.0 );
@@ -149,8 +154,8 @@ void PPEXSIData::Solve(
 			if( MYROW( gridPole_ ) == PROW( l, gridPole_ ) ){
 
 				GetTime( timePoleSta );
+				statusOFS << "Pole " << l << " processing..." << std::endl;
 #if ( _DEBUGlevel_ >= 1 )
-				statusOFS << "Pole " << l << std::endl;
 				statusOFS << "zshift = " << zshift_[l] << ", " 
 					<< "zweightRho = " << zweightRho_[l] << std::endl;
 #endif
@@ -176,6 +181,7 @@ void PPEXSIData::Solve(
 
 				// Numerical factorization
 				luMat.NumericalFactorize();
+				luMat.DestroyAOnly();
 
 				GetTime( timeTotalFactorizationEnd );
 
@@ -229,7 +235,7 @@ void PPEXSIData::Solve(
 				GetTime( timePoleEnd );
 
 				statusOFS << "Time for pole " << l << " is " <<
-					timePoleEnd - timePoleSta << " [s]" << std::endl;
+					timePoleEnd - timePoleSta << " [s]" << std::endl << std::endl;
 			} // if I am in charge of this pole
 		} // for(l)
 
@@ -265,8 +271,8 @@ void PPEXSIData::Solve(
 
 		GetTime( timeMuEnd );
 
-		statusOFS << "Time for mu iteration " << iter << " is " <<
-			timeMuEnd - timeMuSta << " [s]" << std::endl;
+		statusOFS << std::endl << "Time for mu iteration " << iter << " is " <<
+			timeMuEnd - timeMuSta << " [s]" << std::endl << std::endl;
 	} // for ( iteration of the chemical potential )
 
 #ifndef _RELEASE_

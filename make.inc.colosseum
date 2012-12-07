@@ -53,7 +53,7 @@ RMFLAGS      = -f
 MODE	         = debug
 
 ifeq ($(MODE), debug)
-	COMMONDEFS   = -D_DEBUGlevel_=1 -DAdd_ -D_USE_COMPLEX_
+	COMMONDEFS   = -D_DEBUGlevel_=0 -DAdd_ -D_USE_COMPLEX_
   CFLAGS       = -O2 -w -g ${INCLUDES}
   FFLAGS       = -O2 -w -g ${INCLUDES}
   CXXFLAGS     = -O2 -w -g ${INCLUDES}

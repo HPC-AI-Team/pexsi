@@ -1339,6 +1339,9 @@ CopyPattern	( const DistSparseMatrix<F1>& A, DistSparseMatrix<F2>& B )
 	B.rowindLocal = A.rowindLocal;
 	B.nzvalLocal.Resize( A.nnzLocal );
 	B.comm        = A.comm;
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
 	return ;
 }		// -----  end of template function CopyPattern  ----- 
 

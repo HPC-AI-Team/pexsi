@@ -144,8 +144,8 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g )
 	options.Equil             = NO; 
 	options.ReplaceTinyPivot  = NO;
 //	options.ColPerm           = NATURAL;
-//	options.ColPerm           = MMD_AT_PLUS_A;
-	options.ColPerm           = METIS_AT_PLUS_A;
+	options.ColPerm           = MMD_AT_PLUS_A;
+//	options.ColPerm           = METIS_AT_PLUS_A;
 	options.PrintStat         = YES;
 	options.SolveInitialized  = NO;
 
