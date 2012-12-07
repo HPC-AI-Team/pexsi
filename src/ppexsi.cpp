@@ -243,7 +243,7 @@ void PPEXSIData::Solve(
 
 		DblNumVec nzvalRhoMatLocal = rhoMat.nzvalLocal;
 		mpi::Allreduce( nzvalRhoMatLocal.Data(), rhoMat.nzvalLocal.Data(),
-				rhoMat.nnzLocal, MPI_SUM, gridPole_->rowComm );
+				rhoMat.nnzLocal, MPI_SUM, gridPole_->colComm );
 
 		// All processors groups compute the number of electrons
 

@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 		
 		Real gap              = 0.0;
 		Real temperature      = 300;
-		Real numPole          = 80;
+		Real numPole          = 78;
 		Real numElectronTolerance = 1e-4;
 		Real muMaxIter        = 30;
 //		// WaterPT
@@ -154,10 +154,11 @@ int main(int argc, char **argv)
 			serialize( HMat.rowindLocal, sstm, NO_MASK );
 			serialize( HMat.nzvalLocal,  sstm, NO_MASK );
 			sstr.resize( Size( sstm ) );
-		  sstm.write( &sstr[0], sstr.size() ); 	
+		  sstm.read( &sstr[0], sstr.size() ); 	
 			sizeStm = sstr.size();
 		}
 		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
+		statusOFS << "sizeStm = " << sizeStm << std::endl;
 		if( MYROW( &gridPole ) != 0 )
 			sstr.resize( sizeStm );
 		MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
@@ -170,6 +171,8 @@ int main(int argc, char **argv)
 			deserialize( HMat.rowindLocal, sstm, NO_MASK );
 			deserialize( HMat.nzvalLocal,  sstm, NO_MASK );
 		}
+		statusOFS << "size     = " << HMat.size     << std::endl;
+		statusOFS << "nnzLocal = " << HMat.nnzLocal << std::endl;
 		// Communicator
 		HMat.comm = gridPole.rowComm;
 
@@ -184,7 +187,7 @@ int main(int argc, char **argv)
 			serialize( SMat.rowindLocal, sstm, NO_MASK );
 			serialize( SMat.nzvalLocal,  sstm, NO_MASK );
 			sstr.resize( Size( sstm ) );
-		  sstm.write( &sstr[0], sstr.size() ); 	
+		  sstm.read( &sstr[0], sstr.size() ); 	
 			sizeStm = sstr.size();
 		}
 		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
