@@ -1236,6 +1236,7 @@ PMatrix::PreSelInv	(  )
 } 		// -----  end of method PMatrix::PreSelInv  ----- 
 
 
+// TODO change the displacements
 void
 PMatrix::GetDiagonal	( NumVec<Scalar>& diag )
 {
@@ -1289,21 +1290,17 @@ PMatrix::PMatrixToDistSparseMatrix	(
 	Int mpirank = grid_->mpirank;
 	Int mpisize = grid_->mpisize;
 
-	std::vector<std::vector<Int> >     rowSend( mpisize );
-	std::vector<std::vector<Int> >     colSend( mpisize );
-	std::vector<std::vector<Scalar> >  valSend( mpisize );
-	std::vector<Int>                   sizeSend( mpisize, 0 );
-	std::vector<Int>                   displsRowSend( mpisize, 0 );
-	std::vector<Int>                   displsColSend( mpisize, 0 );
-	std::vector<Int>                   displsValSend( mpisize, 0 );
+	std::vector<Int>     rowSend( mpisize );
+	std::vector<Int>     colSend( mpisize );
+	std::vector<Scalar>  valSend( mpisize );
+	std::vector<Int>     sizeSend( mpisize, 0 );
+	std::vector<Int>     displsSend( mpisize, 0 );
 	
-	std::vector<std::vector<Int> >     rowRecv( mpisize );
-	std::vector<std::vector<Int> >     colRecv( mpisize );
-	std::vector<std::vector<Scalar> >  valRecv( mpisize );
-	std::vector<Int>                   sizeRecv( mpisize, 0 );
-	std::vector<Int>                   displsRowRecv( mpisize, 0 );
-	std::vector<Int>                   displsColRecv( mpisize, 0 );
-	std::vector<Int>                   displsValRecv( mpisize, 0 );
+	std::vector<Int>     rowRecv( mpisize );
+	std::vector<Int>     colRecv( mpisize );
+	std::vector<Scalar>  valRecv( mpisize );
+	std::vector<Int>     sizeRecv( mpisize, 0 );
+	std::vector<Int>     displsRecv( mpisize, 0 );
   
 	Int numSuper = this->NumSuper();
 	const IntNumVec& permInv = super_->permInv;
@@ -1356,24 +1353,34 @@ PMatrix::PMatrixToDistSparseMatrix	(
 
 	// Reserve the space
 	for( Int ip = 0; ip < mpisize; ip++ ){
-		rowSend[ip].resize( sizeSend[ip] );
-		colSend[ip].resize( sizeSend[ip] );
-		valSend[ip].resize( sizeSend[ip] );
-		displsRowSend[ip] = &rowSend[ip][0] - &rowSend[0][0];
-		displsColSend[ip] = &colSend[ip][0] - &colSend[0][0];
-		displsValSend[ip] = &valSend[ip][0] - &valSend[0][0];
-
-		rowRecv[ip].resize( sizeRecv[ip] );
-		colRecv[ip].resize( sizeRecv[ip] );
-		valRecv[ip].resize( sizeRecv[ip] );
-		displsRowRecv[ip] = &rowRecv[ip][0] - &rowRecv[0][0];
-		displsColRecv[ip] = &colRecv[ip][0] - &colRecv[0][0];
-		displsValRecv[ip] = &valRecv[ip][0] - &valRecv[0][0];
+		if( ip == 0 ){
+			displsSend[ip] = 0;
+		}
+		else{
+			displsSend[ip] = displsSend[ip-1] + sizeSend[ip-1];
+		}
+		
+		if( ip == 0 ){
+			displsRecv[ip] = 0;
+		}
+		else{
+			displsRecv[ip] = displsRecv[ip-1] + sizeRecv[ip-1];
+		}
 	}
+	Int sizeSendTotal = displsSend[mpisize-1] + sizeSend[mpisize-1];
+	Int sizeRecvTotal = displsRecv[mpisize-1] + sizeRecv[mpisize-1];
+
+	rowSend.resize( sizeSendTotal );
+	colSend.resize( sizeSendTotal );
+	valSend.resize( sizeSendTotal );
+
+	rowRecv.resize( sizeRecvTotal );
+	colRecv.resize( sizeRecvTotal );
+	valRecv.resize( sizeRecvTotal );
 
 #if ( _DEBUGlevel_ >= 1 )
-	statusOFS << "displsRowSend = " << displsRowSend << std::endl;
-	statusOFS << "displsRowRecv = " << displsRowRecv << std::endl;
+	statusOFS << "displsSend = " << displsSend << std::endl;
+	statusOFS << "displsRecv = " << displsRecv << std::endl;
 #endif
 	
 	// Put (row, col, val) to the sending buffer
@@ -1390,9 +1397,9 @@ PMatrix::PMatrixToDistSparseMatrix	(
 					Int jcol = permInv( j + FirstBlockCol( ksup, super_ ) );
 					Int dest = jcol / numColFirst;
 					for( Int i = 0; i < rows.m(); i++ ){
-						rowSend[dest][cntSize[dest]] = permInv( rows(i) );
-						colSend[dest][cntSize[dest]] = jcol;
-						valSend[dest][cntSize[dest]] = nzval( i, j );
+						rowSend[displsSend[dest] + cntSize[dest]] = permInv( rows(i) );
+						colSend[displsSend[dest] + cntSize[dest]] = jcol;
+						valSend[displsSend[dest] + cntSize[dest]] = nzval( i, j );
 						cntSize[dest]++;
 					}
 				}
@@ -1409,10 +1416,10 @@ PMatrix::PMatrixToDistSparseMatrix	(
 					Int jcol = permInv( cols(j) );
 					Int dest = jcol / numColFirst;
 					for( Int i = 0; i < Urow[jb].numRow; i++ ){
-						rowSend[dest][cntSize[dest]] = 
+						rowSend[displsSend[dest] + cntSize[dest]] = 
 							permInv( i + FirstBlockCol( ksup, super_ ) );
-						colSend[dest][cntSize[dest]] = jcol;
-						valSend[dest][cntSize[dest]] = nzval( i, j );
+						colSend[displsSend[dest] + cntSize[dest]] = jcol;
+						valSend[displsSend[dest] + cntSize[dest]] = nzval( i, j );
 						cntSize[dest]++;
 					}
 				}
@@ -1426,30 +1433,31 @@ PMatrix::PMatrixToDistSparseMatrix	(
 			throw std::runtime_error( "Sizes of the sending information do not match." );
 	}
 
+
 	// Alltoallv to exchange information
 	mpi::Alltoallv( 
-			&rowSend[0][0], &sizeSend[0], &displsRowSend[0],
-			&rowRecv[0][0], &sizeRecv[0], &displsRowRecv[0],
+			&rowSend[0], &sizeSend[0], &displsSend[0],
+			&rowRecv[0], &sizeRecv[0], &displsRecv[0],
 			grid_->comm );
 	mpi::Alltoallv( 
-			&colSend[0][0], &sizeSend[0], &displsColSend[0],
-			&colRecv[0][0], &sizeRecv[0], &displsColRecv[0],
+			&colSend[0], &sizeSend[0], &displsSend[0],
+			&colRecv[0], &sizeRecv[0], &displsRecv[0],
 			grid_->comm );
 	mpi::Alltoallv( 
-			&valSend[0][0], &sizeSend[0], &displsValSend[0],
-			&valRecv[0][0], &sizeRecv[0], &displsValRecv[0],
+			&valSend[0], &sizeSend[0], &displsSend[0],
+			&valRecv[0], &sizeRecv[0], &displsRecv[0],
 			grid_->comm );
 
-#if ( _DEBUGlevel_ >= 1 )
-	for( Int ip = 0; ip < mpisize; ip++ ){
-		statusOFS << "rowSend[" << ip << "] = " << rowSend[ip] << std::endl;
-		statusOFS << "rowRecv[" << ip << "] = " << rowRecv[ip] << std::endl;
-		statusOFS << "colSend[" << ip << "] = " << colSend[ip] << std::endl;
-		statusOFS << "colRecv[" << ip << "] = " << colRecv[ip] << std::endl;
-		statusOFS << "valSend[" << ip << "] = " << valSend[ip] << std::endl;
-		statusOFS << "valRecv[" << ip << "] = " << valRecv[ip] << std::endl;
-	}
-#endif
+//#if ( _DEBUGlevel_ >= 1 )
+//	for( Int ip = 0; ip < mpisize; ip++ ){
+//		statusOFS << "rowSend[" << ip << "] = " << rowSend[ip] << std::endl;
+//		statusOFS << "rowRecv[" << ip << "] = " << rowRecv[ip] << std::endl;
+//		statusOFS << "colSend[" << ip << "] = " << colSend[ip] << std::endl;
+//		statusOFS << "colRecv[" << ip << "] = " << colRecv[ip] << std::endl;
+//		statusOFS << "valSend[" << ip << "] = " << valSend[ip] << std::endl;
+//		statusOFS << "valRecv[" << ip << "] = " << valRecv[ip] << std::endl;
+//	}
+//#endif
 
 	// Organize the received message.
 	Int firstCol = mpirank * numColFirst;
@@ -1463,9 +1471,9 @@ PMatrix::PMatrixToDistSparseMatrix	(
 	std::vector<std::vector<Scalar> > vals( numColLocal );
 	
 	for( Int ip = 0; ip < mpisize; ip++ ){
-		std::vector<Int>&  rowRecvCur = rowRecv[ip];
-		std::vector<Int>&  colRecvCur = colRecv[ip];
-		std::vector<Scalar>&  valRecvCur = valRecv[ip];
+		Int*     rowRecvCur = &rowRecv[displsRecv[ip]];
+		Int*     colRecvCur = &colRecv[displsRecv[ip]];
+		Scalar*  valRecvCur = &valRecv[displsRecv[ip]];
 		for( Int i = 0; i < sizeRecv[ip]; i++ ){
 			rows[colRecvCur[i]-firstCol].push_back( rowRecvCur[i] );
 			vals[colRecvCur[i]-firstCol].push_back( valRecvCur[i] );
