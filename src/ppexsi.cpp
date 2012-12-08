@@ -141,7 +141,7 @@ void PPEXSIData::Solve(
 		GetPoleDensity( &zshift_[0], &zweightRho_[0],
 				numPole, temperature, gap, deltaE, muNow ); 
 
-#if ( _DEBUGlevel_ >= 1 )
+#if ( _DEBUGlevel_ >= 0 )
 		statusOFS << "zshift" << std::endl << zshift_ << std::endl;
 		statusOFS << "zweightRho" << std::endl << zweightRho_ << std::endl;
 #endif
@@ -155,10 +155,16 @@ void PPEXSIData::Solve(
 
 				GetTime( timePoleSta );
 				statusOFS << "Pole " << l << " processing..." << std::endl;
-#if ( _DEBUGlevel_ >= 1 )
+#if ( _DEBUGlevel_ >= 0 )
 				statusOFS << "zshift = " << zshift_[l] << ", " 
 					<< "zweightRho = " << zweightRho_[l] << std::endl;
 #endif
+				// FIXME magic number here
+				if( std::abs( zweightRho_[l] ) < 1e-8 ){
+					statusOFS << "|zweightRho| < 1e-8, pass this pole" << std::endl;
+					continue;
+				}
+
 
 				for( Int i = 0; i < HMat.nnzLocal; i++ ){
 					AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
@@ -220,8 +226,10 @@ void PPEXSIData::Solve(
 
 				PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
 				
+#if ( _DEBUGlevel_ >= 0 )
 				statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
 				statusOFS << "AinvMat.nnzLocal = " << AinvMat.nnzLocal << std::endl;
+#endif
 
 				// Update the density matrix
 				for( Int i = 0; i < rhoMat.nnzLocal; i++ ){
@@ -239,12 +247,15 @@ void PPEXSIData::Solve(
 
 				statusOFS << "Time for pole " << l << " is " <<
 					timePoleEnd - timePoleSta << " [s]" << std::endl << std::endl;
+
 			} // if I am in charge of this pole
 		} // for(l)
 
 		// Reduce the density matrix across the processor rows in gridPole_
 
 		DblNumVec nzvalRhoMatLocal = rhoMat.nzvalLocal;
+		SetValue( rhoMat.nzvalLocal, 0.0 );
+		
 		mpi::Allreduce( nzvalRhoMatLocal.Data(), rhoMat.nzvalLocal.Data(),
 				rhoMat.nnzLocal, MPI_SUM, gridPole_->colComm );
 
@@ -357,6 +368,10 @@ PPEXSIData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
 
 	numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
 			1, rhoMat_.nzvalLocal.Data(), 1 );
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "numElecLocal = " << numElecLocal << std::endl;
+#endif
+
 
 	mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, rhoMat_.comm ); 
 

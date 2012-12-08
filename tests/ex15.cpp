@@ -142,10 +142,10 @@ int main(int argc, char **argv)
 		// This can be improved later by MPI_Bcast directly.
 
 		// HMat
-		std::stringstream sstm;
 		std::vector<char> sstr;
 		Int sizeStm;
 		if( MYROW( &gridPole ) == 0 ){
+			std::stringstream sstm;
 			ReadDistSparseMatrix( Hfile.c_str(), HMat, gridPole.rowComm ); 
 			serialize( HMat.size, sstm, NO_MASK );
 			serialize( HMat.nnz,  sstm, NO_MASK );
@@ -159,10 +159,13 @@ int main(int argc, char **argv)
 		}
 		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
 		statusOFS << "sizeStm = " << sizeStm << std::endl;
-		if( MYROW( &gridPole ) != 0 )
-			sstr.resize( sizeStm );
+
+		if( MYROW( &gridPole ) != 0 ) sstr.resize( sizeStm );
+
 		MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
+
 		if( MYROW( &gridPole ) != 0 ){
+			std::stringstream sstm;
 			sstm.write( &sstr[0], sizeStm );
 			deserialize( HMat.size, sstm, NO_MASK );
 			deserialize( HMat.nnz,  sstm, NO_MASK );
@@ -176,9 +179,11 @@ int main(int argc, char **argv)
 		// Communicator
 		HMat.comm = gridPole.rowComm;
 
+		sstr.clear();
 
 		// SMat
 		if( MYROW( &gridPole ) == 0 ){
+			std::stringstream sstm;
 			ReadDistSparseMatrix( Sfile.c_str(), SMat, gridPole.rowComm ); 
 			serialize( SMat.size, sstm, NO_MASK );
 			serialize( SMat.nnz,  sstm, NO_MASK );
@@ -190,11 +195,15 @@ int main(int argc, char **argv)
 		  sstm.read( &sstr[0], sstr.size() ); 	
 			sizeStm = sstr.size();
 		}
+
 		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
-		if( MYROW( &gridPole ) != 0 )
-			sstr.resize( sizeStm );
+
+		if( MYROW( &gridPole ) != 0 ) sstr.resize( sizeStm );
+
 		MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
+
 		if( MYROW( &gridPole ) != 0 ){
+			std::stringstream sstm;
 			sstm.write( &sstr[0], sizeStm );
 			deserialize( SMat.size, sstm, NO_MASK );
 			deserialize( SMat.nnz,  sstm, NO_MASK );
@@ -203,8 +212,10 @@ int main(int argc, char **argv)
 			deserialize( SMat.rowindLocal, sstm, NO_MASK );
 			deserialize( SMat.nzvalLocal,  sstm, NO_MASK );
 		}
+		// Communicator
 		SMat.comm = gridPole.rowComm;
 
+		sstr.clear();
 
 
 
