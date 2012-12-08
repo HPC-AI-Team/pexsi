@@ -219,6 +219,9 @@ void PPEXSIData::Solve(
 				GetTime( timePostProcessingSta );
 
 				PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+				
+				statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
+				statusOFS << "AinvMat.nnzLocal = " << AinvMat.nnzLocal << std::endl;
 
 				// Update the density matrix
 				for( Int i = 0; i < rhoMat.nnzLocal; i++ ){
