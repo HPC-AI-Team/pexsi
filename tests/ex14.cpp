@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 		Real *ptr1 = HMat.nzvalLocal.Data();
 		Real *ptr2 = SMat.nzvalLocal.Data();
 		for(Int i = 0; i < HMat.nnzLocal; i++){
-			*(ptr0++) = *(ptr1++) - Z_I * *(ptr2++);
+			*(ptr0++) = *(ptr1++);// - Z_I * *(ptr2++);
 		}
 		GetTime( timeEnd );
 		if( mpirank == 0 )
@@ -276,8 +276,15 @@ int main(int argc, char **argv)
 			if( mpirank == 0 )
 				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-			if( mpirank == 0 )
+			if( mpirank == 0 ){
 				statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+				Real diffNorm = 0.0;;
+				for( Int i = 0; i < diag.m(); i++ ){
+					diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+				}
+				diffNorm = std::sqrt( diffNorm );
+				statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+			}
 
 			// Convert to DistSparseMatrix in the 2nd format and get the diagonal
 			GetTime( timeSta );
@@ -295,9 +302,23 @@ int main(int argc, char **argv)
 			if( mpirank == 0 )
 				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-			if( mpirank == 0 )
+			if( mpirank == 0 ){
 				statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+				Real diffNorm = 0.0;;
+				for( Int i = 0; i < diag.m(); i++ ){
+					diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
+				}
+				diffNorm = std::sqrt( diffNorm );
+				statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
+			}
 
+			Complex traceLocal = blas::Dot( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1, 
+					Ainv2.nzvalLocal.Data(), 1 );
+			Complex trace = Z_ZERO;
+			mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, MPI_COMM_WORLD );
+
+			if( mpirank == 0 )
+				statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
 
 
 		}
