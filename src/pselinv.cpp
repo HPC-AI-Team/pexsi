@@ -377,6 +377,7 @@ PMatrix::SelInv	(  )
   Int numSuper = this->NumSuper(); 
 
 	// Main loop
+
 	for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << std::endl << "ksup = " << ksup << std::endl << std::endl; 
@@ -447,6 +448,9 @@ PMatrix::SelInv	(  )
 
 			for( Int ib = 0; ib < Lcol.size(); ib++ ){
 				if( Lcol[ib].blockIdx > ksup ){
+#if ( _DEBUGlevel_ >= 2 )
+					statusOFS << std::endl << "Serializing Block index " << Lcol[ib].blockIdx << std::endl;
+#endif
 					serialize( Lcol[ib], sstm, mask );
 				}
 			}
@@ -804,21 +808,26 @@ PMatrix::SelInv	(  )
 
 		// Processor column of ksup collects the symbolic data for LUpdateBuf.
 		std::vector<Int>  rowLocalPtr;
+		std::vector<Int>  blockIdxLocal;
 		Int numRowLUpdateBuf;
 		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 			std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
 			if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
 				rowLocalPtr.resize( Lcol.size() + 1 );
+				blockIdxLocal.resize( Lcol.size() );
 				rowLocalPtr[0] = 0;
 				for( Int ib = 0; ib < Lcol.size(); ib++ ){
 					rowLocalPtr[ib+1] = rowLocalPtr[ib] + Lcol[ib].numRow;
+					blockIdxLocal[ib] = Lcol[ib].blockIdx;
 				}
 			} // I do not own the diaogonal block
 			else{
 				rowLocalPtr.resize( Lcol.size() );
+				blockIdxLocal.resize( Lcol.size() - 1 );
 				rowLocalPtr[0] = 0;
 				for( Int ib = 1; ib < Lcol.size(); ib++ ){
 					rowLocalPtr[ib] = rowLocalPtr[ib-1] + Lcol[ib].numRow;
+					blockIdxLocal[ib-1] = Lcol[ib].blockIdx;
 				}
 			} // I owns the diagonal block, skip the diagonal block
 			numRowLUpdateBuf = *rowLocalPtr.rbegin();
@@ -901,7 +910,7 @@ PMatrix::SelInv	(  )
 				statusOFS << std::endl << "DiagBufReduced: " << DiagBufReduced << std::endl << std::endl; 
 #endif
         LBlock&  LB = this->L( LBj( ksup, grid_ ) )[0];
-				blas::Axpy( LB.numRow * LB.numCol, 1.0, DiagBufReduced.Data(),
+				blas::Axpy( LB.numRow * LB.numCol, SCALAR_ONE, DiagBufReduced.Data(),
 						1, LB.nzval.Data(), 1 );
 #if ( _DEBUGlevel_ >= 2 )
 				statusOFS << std::endl << "Diag of Ainv: " << LB.nzval << std::endl << std::endl; 
@@ -927,23 +936,34 @@ PMatrix::SelInv	(  )
 			Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
 			if( MYPROC( grid_ ) != dest	){
 				std::stringstream sstm;
+				serialize( rowLocalPtr, sstm, NO_MASK );
+				serialize( blockIdxLocal, sstm, NO_MASK );
 				serialize( LUpdateBufReduced, sstm, NO_MASK );
 				mpi::Send( sstm, dest, SELINV_TAG_D_SIZE, SELINV_TAG_D_CONTENT, grid_->comm );
 			}
 		} // sender
 
+		std::vector<Int>  rowLocalPtrRecv;
+		std::vector<Int>  blockIdxLocalRecv;
 		if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_( ksup ) ){
 			Int src = PNUM( MYCOL( grid_ ), PCOL( ksup, grid_ ), grid_ );
 			NumMat<Scalar> UUpdateBuf;
 			if( MYPROC( grid_ ) != src ){
 				std::stringstream sstm;
 				mpi::Recv( sstm, src, SELINV_TAG_D_SIZE, SELINV_TAG_D_CONTENT, grid_->comm );
+
+				deserialize( rowLocalPtrRecv, sstm, NO_MASK );
+				deserialize( blockIdxLocalRecv, sstm, NO_MASK );
 			  deserialize( UUpdateBuf, sstm, NO_MASK );	
 			} // sender is not the same as receiver
 			else{
+				rowLocalPtrRecv   = rowLocalPtr;
+				blockIdxLocalRecv = blockIdxLocal;
 				UUpdateBuf = LUpdateBufReduced;
 			} // sender is the same as receiver
 #if ( _DEBUGlevel_ >= 2 )
+			statusOFS << std::endl << "rowLocalPtrRecv:" << rowLocalPtrRecv << std::endl << std::endl; 
+			statusOFS << std::endl << "blockIdxLocalRecv:" << blockIdxLocalRecv << std::endl << std::endl; 
 			statusOFS << std::endl << "UUpdateBuf:" << UUpdateBuf << std::endl << std::endl; 
 #endif
 
@@ -952,12 +972,21 @@ PMatrix::SelInv	(  )
 			Int cntRow = 0;
 			for( Int jb = 0; jb < Urow.size(); jb++ ){
 				UBlock& UB = Urow[jb];
+				bool isBlockFound = false;
 				NumMat<Scalar> Ltmp( UB.numCol, UB.numRow );
-				lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), &UUpdateBuf( cntRow, 0 ),
-						UUpdateBuf.m(), Ltmp.Data(), Ltmp.m() );
-
+				for( Int ib = 0; ib < blockIdxLocalRecv.size(); ib++ ){
+					if( UB.blockIdx == blockIdxLocalRecv[ib] ){
+						lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
+								&UUpdateBuf( rowLocalPtrRecv[ib], 0 ),
+								UUpdateBuf.m(), Ltmp.Data(), Ltmp.m() );
+						cntRow += UB.numCol;
+						isBlockFound = true;
+					}
+				}
+				if( isBlockFound == false ){
+					throw std::logic_error( "UBlock cannot find its update. Something is seriously wrong." );
+				}
 				Transpose( Ltmp, UB.nzval );
-				cntRow += UB.numCol;
 			} // for (jb)
 			if( cntRow != UUpdateBuf.m() ){
 				std::ostringstream msg;
@@ -1206,7 +1235,7 @@ PMatrix::PreSelInv	(  )
 			for(Int i = 0; i < SuperSize( ksup, super_ ); i++){
 				ipiv[i] = i + 1;
 			}
-			LBlock& LB = this->L( LBj( ksup, grid_ ) )[0];
+			LBlock& LB = (this->L( LBj( ksup, grid_ ) ))[0];
 #if ( _DEBUGlevel_ >= 2 )
 			// Check the correctness of the matrix inversion for the first local column
 			statusOFS << "Factorized A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;
@@ -1220,7 +1249,6 @@ PMatrix::PreSelInv	(  )
 		} // if I need to inverse the diagonal block
 	} // for (ksup)
   
-
 
 #ifndef _RELEASE_
 	PopCallStack();

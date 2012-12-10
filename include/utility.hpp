@@ -637,7 +637,7 @@ Int deserialize(std::vector<T>& val, std::istream& is, const std::vector<Int>& m
 {
   Int sz;
   is.read((char*)&sz, sizeof(Int));
-  val.Resize(sz);
+  val.resize(sz);
   for(Int k=0; k<sz; k++)
     deserialize(val[k], is, mask);
   return 0;
@@ -1344,6 +1344,48 @@ CopyPattern	( const DistSparseMatrix<F1>& A, DistSparseMatrix<F2>& B )
 #endif
 	return ;
 }		// -----  end of template function CopyPattern  ----- 
+
+
+template <class F> 
+Int inline serialize ( const DistSparseMatrix<F>& A, std::ostream& os,
+	 const std::vector<Int>& mask	)
+{
+#ifndef _RELEASE_
+	PushCallStack("serialize (DistSparseMatrix)");
+#endif
+  os.write((char*)&A.size, sizeof(Int));
+  os.write((char*)&A.nnz, sizeof(Int));
+  os.write((char*)&A.nnzLocal, sizeof(Int));
+	serialize( A.colptrLocal, os, mask );
+	serialize( A.rowindLocal, os, mask );
+	serialize( A.nzvalLocal, os, mask );
+	// Do not serialize the comm
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return 0;
+}		// -----  end of template function serialize  ----- 
+
+template <class F> 
+Int inline deserialize ( DistSparseMatrix<F>& A, std::istream& is,
+	 const std::vector<Int>& mask	)
+{
+#ifndef _RELEASE_
+	PushCallStack("deserialize (DistSparseMatrix)");
+#endif
+  is.read((char*)&A.size, sizeof(Int));
+  is.read((char*)&A.nnz, sizeof(Int));
+  is.read((char*)&A.nnzLocal, sizeof(Int));
+	deserialize( A.colptrLocal, is, mask );
+	deserialize( A.rowindLocal, is, mask );
+	deserialize( A.nzvalLocal, is, mask );
+	// Do not deserialize the comm
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return 0;
+}		// -----  end of template function deserialize  ----- 
+
 
 } // namespace PEXSI
 #endif // _UTILITY_HPP_
