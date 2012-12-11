@@ -10,7 +10,7 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "ex15 -mu0 [mu0] -numel [numel] -numPole [numPole] -deltaE [deltaE] -H [Hfile] -S [Sfile] -npPerPole [npPole] -colperm [colperm]" << std::endl
+		<< "ex15 -mu0 [mu0] -numel [numel] -numPole [numPole] -deltaE [deltaE] -H [Hfile] -S [Sfile] -npPerPole [npPole] -colperm [colperm] -muiter [muiter]" << std::endl
 		<< "mu0:    Initial guess for chemical potential" << std::endl
 		<< "numel:  Exact number of electrons (spin-restricted)" << std::endl
 		<< "numPole: Number of poles." << std::endl
@@ -18,7 +18,8 @@ void Usage(){
 		<< "H: Hamiltonian matrix (csc format, both lower triangular and upper triangular)" << std::endl
 		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular)" << std::endl
 		<< "npPerPole: number of processors used for each pole" << std::endl
-		<< "colperm: permutation method (for SuperLU_DIST)" << std::endl;
+		<< "colperm: permutation method (for SuperLU_DIST)" << std::endl
+	  << "muiter:  number of iterations for the chemical potential" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -29,7 +30,7 @@ int main(int argc, char **argv)
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
 
-	if( argc < 17 || argc%2 == 0 ) {
+	if( argc < 19 || argc%2 == 0 ) {
 		if( mpirank == 0 ) Usage();
 		MPI_Finalize();
 		return 0;
@@ -53,7 +54,6 @@ int main(int argc, char **argv)
 		Real temperature      = 300;
 		Real poleTolerance    = 1e-12;
 		Real numElectronTolerance = 1e-4;
-		Real muMaxIter        = 30;
 
 //		// WaterPT
 ////		pexsiData.mu0              = -0.5;
@@ -146,6 +146,15 @@ int main(int argc, char **argv)
 		if( npPerPole != nprow * npcol || nprow != npcol ){
 			throw std::runtime_error( "npPerPole must be a square number due to the current implementation of PSelInv." );
 		}
+
+		Int muMaxIter;
+    if( options.find("-muiter") != options.end() ){
+			muMaxIter = std::atoi(options["-muiter"].c_str());
+		}
+		else{
+      throw std::logic_error("muiter must be provided.");
+		}
+
 
 		// Initialize
 		Grid gridPole( MPI_COMM_WORLD, mpisize / npPerPole, npPerPole );
