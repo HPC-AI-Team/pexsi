@@ -440,7 +440,7 @@ void PPEXSIData::Solve(
 							1, rhoMat_.nzvalLocal.Data(), 1 );
 
 				Real numElec;
-				mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, rhoMat_.comm ); 
+				mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, gridPole_->comm ); 
 
 				statusOFS << std::endl << "numElecLocal = " << numElecLocal << std::endl;
 				statusOFS << "numElecTotal = " << numElec << std::endl << std::endl;
