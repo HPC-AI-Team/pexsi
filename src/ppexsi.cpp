@@ -183,6 +183,12 @@ void PPEXSIData::Solve(
 	luMat.SymbolicToSuperNode( super_ );
 	luMat.DestroyAOnly();
 
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "perm: "    << std::endl << super_.perm     << std::endl;
+	statusOFS << "permInv: " << std::endl << super_.permInv  << std::endl;
+	statusOFS << "superIdx:" << std::endl << super_.superIdx << std::endl;
+	statusOFS << "superPtr:" << std::endl << super_.superPtr << std::endl; 
+#endif
 
 	Real muNow = mu0;
 	Real numElectronNow;
@@ -426,6 +432,19 @@ void PPEXSIData::Solve(
 
 				statusOFS << "Time for postprocessing is " <<
 					timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
+
+				// Compute the contribution to the number of electrons for each pole
+#if ( _DEBUGlevel_ >= 0 )
+				Real numElecLocal = 
+					numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+							1, rhoMat_.nzvalLocal.Data(), 1 );
+
+				Real numElec;
+				mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, rhoMat_.comm ); 
+
+				statusOFS << std::endl << "numElecLocal = " << numElecLocal << std::endl;
+				statusOFS << "numElecTotal = " << numElec << std::endl << std::endl;
+#endif
 
 				GetTime( timePoleEnd );
 
