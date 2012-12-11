@@ -1882,5 +1882,53 @@ PMatrix::PMatrixToDistSparseMatrix	(
 } 		// -----  end of method PMatrix::PMatrixToDistSparseMatrix  ----- 
 
 
+Int
+PMatrix::NnzLocal	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::NnzLocal");
+#endif
+	Int numSuper = this->NumSuper();
+	Int nnzLocal = 0;
+	for( Int ksup = 0; ksup < numSuper; ksup++ ){
+		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+			std::vector<LBlock>& Lcol = this->L( LBj( ksup, grid_ ) );
+			for( Int ib = 0; ib < Lcol.size(); ib++ ){
+				nnzLocal += Lcol[ib].numRow * Lcol[ib].numCol;
+			}
+		} // if I own the column of ksup
+		if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+			std::vector<UBlock>& Urow = this->U( LBi( ksup, grid_ ) );
+			for( Int jb = 0; jb < Urow.size(); jb++ ){
+				nnzLocal += Urow[jb].numRow * Urow[jb].numCol;
+			}
+		} // if I own the row of ksup
+	}
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return nnzLocal;
+} 		// -----  end of method PMatrix::NnzLocal  ----- 
+
+
+Int
+PMatrix::Nnz	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::Nnz");
+#endif
+	Int nnzLocal = this->NnzLocal();
+	Int nnz;
+
+	mpi::Allreduce( &nnzLocal, &nnz, 1, MPI_SUM, grid_->comm );
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return nnz;
+} 		// -----  end of method PMatrix::Nnz  ----- 
 
 } // namespace PEXSI

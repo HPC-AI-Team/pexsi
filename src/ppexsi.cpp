@@ -166,6 +166,7 @@ void PPEXSIData::Solve(
 	SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
 
 	statusOFS << "AMat.nnzLocal = " << AMat.nnzLocal << std::endl;
+	statusOFS << "AMat.nnz      = " << AMat.nnz      << std::endl;
 
 	SuperLUOptions   luOpt;
 
@@ -355,6 +356,12 @@ void PPEXSIData::Solve(
 				PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
 
 				luMat.LUstructToPMatrix( PMloc );
+
+				Int nnzLocal = PMloc.NnzLocal();
+				statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
+				Int nnz      = PMloc.Nnz();
+				statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+
 
 				PMloc.ConstructCommunicationPattern();
 

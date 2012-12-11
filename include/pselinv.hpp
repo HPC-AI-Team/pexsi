@@ -681,6 +681,13 @@ public:
 			const DistSparseMatrix<Scalar>& A,
 		  DistSparseMatrix<Scalar>& B	);
 
+	/// @brief NnzLocal computes the number of nonzero elements (L and U)
+	/// saved locally.
+	Int  NnzLocal();
+
+	/// @brief Nnz computes the total number of nonzero elements in the
+	/// PMatrix.
+	Int  Nnz();
 
 };
 
