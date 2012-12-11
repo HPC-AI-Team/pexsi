@@ -320,118 +320,120 @@ void PPEXSIData::Solve(
 					statusOFS << "zweightForce     = " << zweightForce_[l] << std::endl;
 #endif
 				if( std::abs( zweightRho_[l] ) < poleTolerance ){
-					statusOFS << "|weightRho| < poleTolerance, pass this pole" << std::endl;
-					continue;
+					statusOFS << "|weightRho| < poleTolerance, pass the computation of this pole" << std::endl;
 				}
-				numPoleComputed++;
+				else
+				{
+					numPoleComputed++;
 
 
-				for( Int i = 0; i < HMat.nnzLocal; i++ ){
-					AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
-				}
+					for( Int i = 0; i < HMat.nnzLocal; i++ ){
+						AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
+					}
 
 
-				// *********************************************************************
-				// Factorization
-				// *********************************************************************
-				// Important: the distribution in pzsymbfact is going to mess up the
-				// A matrix.  Recompute the matrix A here.
-				luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+					// *********************************************************************
+					// Factorization
+					// *********************************************************************
+					// Important: the distribution in pzsymbfact is going to mess up the
+					// A matrix.  Recompute the matrix A here.
+					luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
 
-				Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+					Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
 
-				GetTime( timeTotalFactorizationSta );
+					GetTime( timeTotalFactorizationSta );
 
-				// Data redistribution
-				luMat.Distribute();
+					// Data redistribution
+					luMat.Distribute();
 
-				// Numerical factorization
-				luMat.NumericalFactorize();
-				luMat.DestroyAOnly();
+					// Numerical factorization
+					luMat.NumericalFactorize();
+					luMat.DestroyAOnly();
 
-				GetTime( timeTotalFactorizationEnd );
+					GetTime( timeTotalFactorizationEnd );
 
-				statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+					statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
 
-				// *********************************************************************
-				// Selected inversion
-				// *********************************************************************
-				Real timeTotalSelInvSta, timeTotalSelInvEnd;
-				GetTime( timeTotalSelInvSta );
+					// *********************************************************************
+					// Selected inversion
+					// *********************************************************************
+					Real timeTotalSelInvSta, timeTotalSelInvEnd;
+					GetTime( timeTotalSelInvSta );
 
-				PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
+					PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
 
-				luMat.LUstructToPMatrix( PMloc );
+					luMat.LUstructToPMatrix( PMloc );
 
-				Int nnzLocal = PMloc.NnzLocal();
-				statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
-				Int nnz      = PMloc.Nnz();
-				statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+					Int nnzLocal = PMloc.NnzLocal();
+					statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
+					Int nnz      = PMloc.Nnz();
+					statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
 
 
-				PMloc.ConstructCommunicationPattern();
+					PMloc.ConstructCommunicationPattern();
 
-				PMloc.PreSelInv();
+					PMloc.PreSelInv();
 
-				PMloc.SelInv();
+					PMloc.SelInv();
 
-				GetTime( timeTotalSelInvEnd );
+					GetTime( timeTotalSelInvEnd );
 
-				statusOFS << "Time for total selected inversion is " <<
-					timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
+					statusOFS << "Time for total selected inversion is " <<
+						timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
 
-				// *********************************************************************
-				// Postprocessing
-				// *********************************************************************
+					// *********************************************************************
+					// Postprocessing
+					// *********************************************************************
 
-				DistSparseMatrix<Complex>  AinvMat;       // A^{-1} in DistSparseMatrix format
+					DistSparseMatrix<Complex>  AinvMat;       // A^{-1} in DistSparseMatrix format
 
-				Real timePostProcessingSta, timePostProcessingEnd;
+					Real timePostProcessingSta, timePostProcessingEnd;
 
-				GetTime( timePostProcessingSta );
+					GetTime( timePostProcessingSta );
 
-				PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
-				
+					PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+
 #if ( _DEBUGlevel_ >= 0 )
-				statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
-				statusOFS << "AinvMat.nnzLocal = " << AinvMat.nnzLocal << std::endl;
+					statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
+					statusOFS << "AinvMat.nnzLocal = " << AinvMat.nnzLocal << std::endl;
 #endif
 
-				// Update the density matrix. The following lines are equivalent to
-        //
-        //				for( Int i = 0; i < rhoMat.nnzLocal; i++ ){
-        //					rhoMat.nzvalLocal(i) += 
-        //						zweightRho_[l].real() * AinvMat.nzvalLocal(i).imag() + 
-        //						zweightRho_[l].imag() * AinvMat.nzvalLocal(i).real();
-        //				}
-				// 
-				// But done more cache-efficiently with blas.
-				Real* AinvMatRealPtr = (Real*)AinvMat.nzvalLocal.Data();
-				Real* AinvMatImagPtr = AinvMatRealPtr + 1;
-				blas::Axpy( rhoMat.nnzLocal, zweightRho_[l].real(), AinvMatImagPtr, 2, 
-						rhoMat.nzvalLocal.Data(), 1 );
-				blas::Axpy( rhoMat.nnzLocal, zweightRho_[l].imag(), AinvMatRealPtr, 2,
-						rhoMat.nzvalLocal.Data(), 1 );
+					// Update the density matrix. The following lines are equivalent to
+					//
+					//				for( Int i = 0; i < rhoMat.nnzLocal; i++ ){
+					//					rhoMat.nzvalLocal(i) += 
+					//						zweightRho_[l].real() * AinvMat.nzvalLocal(i).imag() + 
+					//						zweightRho_[l].imag() * AinvMat.nzvalLocal(i).real();
+					//				}
+					// 
+					// But done more cache-efficiently with blas.
+					Real* AinvMatRealPtr = (Real*)AinvMat.nzvalLocal.Data();
+					Real* AinvMatImagPtr = AinvMatRealPtr + 1;
+					blas::Axpy( rhoMat.nnzLocal, zweightRho_[l].real(), AinvMatImagPtr, 2, 
+							rhoMat.nzvalLocal.Data(), 1 );
+					blas::Axpy( rhoMat.nnzLocal, zweightRho_[l].imag(), AinvMatRealPtr, 2,
+							rhoMat.nzvalLocal.Data(), 1 );
 
-				if( isFreeEnergyDensityMatrix ){
-					blas::Axpy( hmzMat.nnzLocal, zweightHelmholtz_[l].real(), AinvMatImagPtr, 2,
-							hmzMat.nzvalLocal.Data(), 1 );
-					blas::Axpy( hmzMat.nnzLocal, zweightHelmholtz_[l].imag(), AinvMatRealPtr, 2,
-							hmzMat.nzvalLocal.Data(), 1 );
+					if( isFreeEnergyDensityMatrix ){
+						blas::Axpy( hmzMat.nnzLocal, zweightHelmholtz_[l].real(), AinvMatImagPtr, 2,
+								hmzMat.nzvalLocal.Data(), 1 );
+						blas::Axpy( hmzMat.nnzLocal, zweightHelmholtz_[l].imag(), AinvMatRealPtr, 2,
+								hmzMat.nzvalLocal.Data(), 1 );
+					}
+
+					if( isEnergyDensityMatrix ){
+						blas::Axpy( frcMat.nnzLocal, zweightForce_[l].real(), AinvMatImagPtr, 2,
+								frcMat.nzvalLocal.Data(), 1 );
+						blas::Axpy( frcMat.nnzLocal, zweightForce_[l].imag(), AinvMatRealPtr, 2, 
+								frcMat.nzvalLocal.Data(), 1 );
+					}
+
+					// Update the free energy density matrix and energy density matrix similarly
+					GetTime( timePostProcessingEnd );
+
+					statusOFS << "Time for postprocessing is " <<
+						timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
 				}
-
-				if( isEnergyDensityMatrix ){
-					blas::Axpy( frcMat.nnzLocal, zweightForce_[l].real(), AinvMatImagPtr, 2,
-							frcMat.nzvalLocal.Data(), 1 );
-					blas::Axpy( frcMat.nnzLocal, zweightForce_[l].imag(), AinvMatRealPtr, 2, 
-							frcMat.nzvalLocal.Data(), 1 );
-				}
-
-				// Update the free energy density matrix and energy density matrix similarly
-				GetTime( timePostProcessingEnd );
-
-				statusOFS << "Time for postprocessing is " <<
-					timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
 
 				// Compute the contribution to the number of electrons for each pole
 #if ( _DEBUGlevel_ >= 0 )
