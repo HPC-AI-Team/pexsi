@@ -17,7 +17,7 @@ using namespace std;
 void Usage(){
   std::cout 
 		<< "Usage" << std::endl
-		<< "ex14 -H [Hfile] -S [Sfile]" << std::endl;
+		<< "ex14 -H [Hfile] -S [Sfile] -colperm [colperm]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -68,6 +68,13 @@ int main(int argc, char **argv)
 			Sfile = "S_LU.csc";
 		}
 
+		std::string ColPerm;
+		if( options.find("-colperm") != options.end() ){ 
+			ColPerm = options["-colperm"];
+		}
+		else{
+      throw std::logic_error("colperm must be provided.");
+		}
 
 		// *********************************************************************
 		// Read input matrix
@@ -102,21 +109,10 @@ int main(int argc, char **argv)
 		Complex *ptr0 = AMat.nzvalLocal.Data();
 		Real *ptr1 = HMat.nzvalLocal.Data();
 		Real *ptr2 = SMat.nzvalLocal.Data();
+		Complex zshift = Complex(-3.84573575e-03, -4.38677095e-03);
 		for(Int i = 0; i < HMat.nnzLocal; i++){
-			*(ptr0++) = *(ptr1++);// - Z_I * *(ptr2++);
+			*(ptr0++) = *(ptr1++) - zshift * *(ptr2++);
 		}
-//		Int col = 0;
-//		Int row;
-//		for(Int i = 0; i < HMat.nnzLocal; i++){
-//			if( i == HMat.colptrLocal[col] - 1 && i > 0 ) col++;
-//
-//			row = HMat.rowindLocal[i] - 1;
-//			if( row != col )
-//				*(ptr0++) = *(ptr1++);// - Z_I * *(ptr2++);
-//			else
-//				*(ptr0++) = *(ptr1++);
-//
-//		}
 		GetTime( timeEnd );
 		if( mpirank == 0 )
 			cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;
@@ -130,7 +126,9 @@ int main(int argc, char **argv)
 		SuperLUGrid g( MPI_COMM_WORLD, nprow, npcol );
 
 		GetTime( timeSta );
-		SuperLUMatrix luMat( g );
+		SuperLUOptions luOpt;
+		luOpt.ColPerm = ColPerm;
+		SuperLUMatrix luMat( g, luOpt );
 		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
 		GetTime( timeEnd );
 		if( mpirank == 0 )
