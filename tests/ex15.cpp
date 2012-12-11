@@ -10,9 +10,10 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "ex15 -mu0 [mu0] -numel [numel] -deltaE [deltaE] -H [Hfile] -S [Sfile] -npPerPole [npPole]" << std::endl
+		<< "ex15 -mu0 [mu0] -numel [numel] -numPole [numPole] -deltaE [deltaE] -H [Hfile] -S [Sfile] -npPerPole [npPole]" << std::endl
 		<< "mu0:    Initial guess for chemical potential" << std::endl
 		<< "numel:  Exact number of electrons (spin-restricted)" << std::endl
+		<< "numPole: Number of poles." << std::endl
 		<< "deltaE: guess for the width of the spectrum of H-mu S" << std::endl
 		<< "H: Hamiltonian matrix (csc format, both lower triangular and upper triangular)" << std::endl
 		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular)" << std::endl
@@ -27,7 +28,7 @@ int main(int argc, char **argv)
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
 
-	if( argc < 7 || argc%2 == 0 ) {
+	if( argc < 15 || argc%2 == 0 ) {
 		if( mpirank == 0 ) Usage();
 		MPI_Finalize();
 		return 0;
@@ -49,11 +50,11 @@ int main(int argc, char **argv)
 		
 		Real gap              = 0.0;
 		Real temperature      = 300;
-		Real numPole          = 78;
 		Real poleTolerance    = 1e-8;
 		Real numElectronTolerance = 1e-4;
 		Real muMaxIter        = 30;
-		std::string ColPerm          = "MMD_AT_PLUS_A";
+//		std::string ColPerm          = "MMD_AT_PLUS_A";
+		std::string ColPerm          = "METIS_AT_PLUS_A";
 
 //		// WaterPT
 ////		pexsiData.mu0              = -0.5;
@@ -81,6 +82,15 @@ int main(int argc, char **argv)
 		else{
       throw std::logic_error("numel must be provided.");
 		}
+		
+		Int numPole;
+    if( options.find("-numPole") != options.end() ){
+			numPole = std::atof(options["-numPole"].c_str());
+		}
+		else{
+      throw std::logic_error("numPole must be provided.");
+		}
+
 
 		Real deltaE;
     if( options.find("-deltaE") != options.end() ){

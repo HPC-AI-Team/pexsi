@@ -30,7 +30,7 @@ ex16.o: ex16.cpp
 
 
 ex15: ex15.o ${PEXSI_LIB} ${PLUSELINV_LIB}
-	($(LOADER) -o $@ ex15.o  $(LOADOPTS) )
+	($(LOADER) -o $@ ex15.o  $(LOADOPTS) $(IPM) )
 
 ex15.o: ex15.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 

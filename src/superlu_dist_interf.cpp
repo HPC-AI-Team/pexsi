@@ -166,7 +166,7 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 		options.ColPerm = MMD_AT_PLUS_A;
 	}
 	else if( opt.ColPerm == "METIS_AT_PLUS_A" ){
-		options.ColPerm = MMD_AT_PLUS_A;
+		options.ColPerm = METIS_AT_PLUS_A;
 	}
 	else{
 		throw std::runtime_error("Unsupported ColPerm types.");

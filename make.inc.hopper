@@ -44,7 +44,7 @@ RMFLAGS      = -f
 
 # Different compiling and linking options.
 #
-MODE	         = debug
+MODE	         = release
 
 ifeq ($(MODE), debug)
 	COMMONDEFS   = -D_DEBUGlevel_=0 -DAdd_ -D_USE_COMPLEX_
