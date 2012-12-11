@@ -31,6 +31,22 @@ public:
 
 };
 
+
+/// @struct SuperLUOptions
+/// @brief A thin interface for setting the SuperLU options from
+/// outside.  
+///
+/// NOTE: Currently only the column permutation (the most frequently
+/// used one) is allowed to be specified from outside.
+struct SuperLUOptions{
+	std::string      ColPerm;
+
+	// Member functions to setup the default value
+	SuperLUOptions(): ColPerm("MMD_AT_PLUS_A") {}
+
+	~SuperLUOptions(){};
+};
+
 /// @class SuperLUMatrix
 /// @brief An thin interface to keep the main code insulated from
 /// the source code of SuperLU. 
@@ -132,8 +148,8 @@ private:
 	/// @brief Actual pointer to save the data related to SuperLU.
 	SuperLUData*  ptrData;
 public:
-
-	SuperLUMatrix( const SuperLUGrid& g );
+	
+	SuperLUMatrix( const SuperLUGrid& g, const SuperLUOptions& opt = SuperLUOptions() );
 
 	~SuperLUMatrix();
 

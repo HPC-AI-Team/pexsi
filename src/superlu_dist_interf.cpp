@@ -87,10 +87,6 @@ struct SuperLUMatrix::SuperLUData{
 	/// 
 	/// to make sure that symmetric permutation is used.
 	///
-	/// TODO
-	/// ----
-	/// Set the options, especially the reordering of the matrix from
-	/// the outside. 
 	superlu_options_t   options;                  
 
 	/// @brief Saves the permutation vectors.  Only perm_c (permutation of
@@ -120,7 +116,7 @@ struct SuperLUMatrix::SuperLUData{
 	bool                isLUstructAllocated;
 };
 
-SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g )
+SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 {
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix::SuperLUMatrix");
@@ -137,17 +133,29 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g )
 	superlu_options_t& options = ptrData->options;
 	
 	set_default_options_dist(&options);
+
+	// The default value of ColPerm uses the default value from SuperLUOptions
 	options.Fact              = DOFACT;
 	options.RowPerm           = NOROWPERM; // IMPORTANT for symmetric matrices
 	options.IterRefine        = NOREFINE;
 	options.ParSymbFact       = NO;
 	options.Equil             = NO; 
 	options.ReplaceTinyPivot  = NO;
-	options.ColPerm           = NATURAL;
-//	options.ColPerm           = MMD_AT_PLUS_A;
-//	options.ColPerm           = METIS_AT_PLUS_A;
 	options.PrintStat         = YES;
 	options.SolveInitialized  = NO;
+
+	if ( opt.ColPerm == "NATURAL" ){
+		options.ColPerm = NATURAL;
+	} 
+	else if( opt.ColPerm == "MMD_AT_PLUS_A" ){
+		options.ColPerm = MMD_AT_PLUS_A;
+	}
+	else if( opt.ColPerm == "METIS_AT_PLUS_A" ){
+		options.ColPerm = MMD_AT_PLUS_A;
+	}
+	else{
+		throw std::runtime_error("Unsupported ColPerm types.");
+	}
 
 	// Setup grids
   ptrData->grid = &(g.ptrData->grid);
@@ -156,6 +164,7 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g )
 	PopCallStack();
 #endif
 } 		// -----  end of method SuperLUMatrix::SuperLUMatrix  ----- 
+
 
 SuperLUMatrix::~SuperLUMatrix	(  )
 {

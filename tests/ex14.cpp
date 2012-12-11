@@ -105,6 +105,18 @@ int main(int argc, char **argv)
 		for(Int i = 0; i < HMat.nnzLocal; i++){
 			*(ptr0++) = *(ptr1++);// - Z_I * *(ptr2++);
 		}
+//		Int col = 0;
+//		Int row;
+//		for(Int i = 0; i < HMat.nnzLocal; i++){
+//			if( i == HMat.colptrLocal[col] - 1 && i > 0 ) col++;
+//
+//			row = HMat.rowindLocal[i] - 1;
+//			if( row != col )
+//				*(ptr0++) = *(ptr1++);// - Z_I * *(ptr2++);
+//			else
+//				*(ptr0++) = *(ptr1++);
+//
+//		}
 		GetTime( timeEnd );
 		if( mpirank == 0 )
 			cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;

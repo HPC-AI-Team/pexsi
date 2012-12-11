@@ -60,7 +60,9 @@ void PPEXSIData::Solve(
 		const DistSparseMatrix<Real>&  HMat,
 		const DistSparseMatrix<Real>&  SMat,
 		Int  muMaxIter,
+		Real poleTolerance,
 		Real numElectronTolerance,
+		std::string         ColPerm,
 		bool isFreeEnergyDensityMatrix, 
 		bool isEnergyDensityMatrix,
 		std::vector<Real>&	muList,
@@ -99,7 +101,11 @@ void PPEXSIData::Solve(
 
 	statusOFS << "AMat.nnzLocal = " << AMat.nnzLocal << std::endl;
 
-	SuperLUMatrix              luMat( *gridSuperLU_ );  // SuperLU matrix.
+	SuperLUOptions   luOpt;
+
+	luOpt.ColPerm = ColPerm;
+
+	SuperLUMatrix    luMat( *gridSuperLU_, luOpt );  // SuperLU matrix.
 
 	// *********************************************************************
 	// Symbolic factorization.  
@@ -146,10 +152,39 @@ void PPEXSIData::Solve(
 		statusOFS << "zweightRho" << std::endl << zweightRho_ << std::endl;
 #endif
 
+		// Sort the poles according to their weights
+		std::vector<Int> sortIdx( numPole );
+		std::vector<Real> absWeightRho( numPole );
+		for( Int i = 0; i < sortIdx.size(); i++ ){
+			sortIdx[i]      = i;
+			absWeightRho[i] = std::abs( zweightRho_[i] );
+		}
+		// Sort in DESCENDING order
+		std::sort( sortIdx.begin(), sortIdx.end(), 
+				IndexComp<std::vector<Real>& >( absWeightRho ) ) ;
+		std::reverse( sortIdx.begin(), sortIdx.end() );
+
+		std::vector<Complex>  zshiftSort( numPole );
+		std::vector<Complex>  zweightRhoSort( numPole );
+		for( Int i = 0; i < numPole; i++ ){
+			zshiftSort[i]     = zshift_[sortIdx[i]];
+			zweightRhoSort[i] = zweightRho_[sortIdx[i]];
+		}
+
+		zshift_     = zshiftSort;
+		zweightRho_ = zweightRhoSort;
+
+#if ( _DEBUGlevel_ >= 0 )
+		statusOFS << "sorted indicies (according to |weightRho|) " << std::endl << sortIdx << std::endl;
+		statusOFS << "sorted zshift" << std::endl << zshift_ << std::endl;
+		statusOFS << "sorted zweightRho" << std::endl << zweightRho_ << std::endl;
+#endif
+
 		// for each pole, perform LDLT factoriation and selected inversion
 		Real timeSta, timeEnd;
 		Real timePoleSta, timePoleEnd;
 
+		Int numPoleComputed = 0;
 		for(Int l = 0; l < numPole; l++){
 			if( MYROW( gridPole_ ) == PROW( l, gridPole_ ) ){
 
@@ -159,11 +194,11 @@ void PPEXSIData::Solve(
 				statusOFS << "zshift = " << zshift_[l] << ", " 
 					<< "zweightRho = " << zweightRho_[l] << std::endl;
 #endif
-				// FIXME magic number here
-				if( std::abs( zweightRho_[l] ) < 1e-8 ){
-					statusOFS << "|zweightRho| < 1e-8, pass this pole" << std::endl;
+				if( std::abs( zweightRho_[l] ) < poleTolerance ){
+					statusOFS << "|weightRho| < poleTolerance, pass this pole" << std::endl;
 					continue;
 				}
+				numPoleComputed++;
 
 
 				for( Int i = 0; i < HMat.nnzLocal; i++ ){
@@ -266,6 +301,8 @@ void PPEXSIData::Solve(
 		muList.push_back(muNow);
 		numElectronList.push_back( numElectronNow );
 
+		statusOFS << std::endl;
+		Print( statusOFS, "Number of poles computed    = ", numPoleComputed );
 		Print( statusOFS, "Computed number of electron = ", numElectronNow );
 		Print( statusOFS, "Exact number of electron    = ", numElectronExact );
 
@@ -372,9 +409,7 @@ PPEXSIData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
 	statusOFS << "numElecLocal = " << numElecLocal << std::endl;
 #endif
 
-
 	mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, rhoMat_.comm ); 
-
 
 #ifndef _RELEASE_
 	PopCallStack();

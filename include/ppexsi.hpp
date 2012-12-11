@@ -81,7 +81,9 @@ public:
 	/// sparse column format. See DistSparseMatrix.
 	/// @param[in] muMaxIter Maximum iteration number for chemical
 	/// potential
+	/// @param[in] poleTolerance Skip the pole if weight is too small
 	/// @param[in] numElectronTolerance  Stopping criterion for the mu iteration 
+	/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
 	/// @param[in] isFreeEnergyDensityMatrix Whether to compute the Helmholtz free energy matrix
 	/// @param[in] isEnergyDensityMatrix Whether to compute the energy density matrix for force
 	/// @param[out] muList Convergence history of the chemical potential
@@ -97,7 +99,9 @@ public:
 			const DistSparseMatrix<Real>&  HMat,
 		 	const DistSparseMatrix<Real>&  SMat,
 		 	Int  muMaxIter,
+			Real poleTolerance,
 			Real numElectronTolerance,
+			std::string         ColPerm,
 			bool isFreeEnergyDensityMatrix, 
 			bool isEnergyDensityMatrix,
 			std::vector<Real>&	muList,

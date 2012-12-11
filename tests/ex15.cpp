@@ -50,8 +50,11 @@ int main(int argc, char **argv)
 		Real gap              = 0.0;
 		Real temperature      = 300;
 		Real numPole          = 78;
+		Real poleTolerance    = 1e-8;
 		Real numElectronTolerance = 1e-4;
 		Real muMaxIter        = 30;
+		std::string ColPerm          = "MMD_AT_PLUS_A";
+
 //		// WaterPT
 ////		pexsiData.mu0              = -0.5;
 ////		pexsiData.numElectronExact = 1600.0;
@@ -225,7 +228,9 @@ int main(int argc, char **argv)
 		Print(statusOFS, "gap                    = ", gap);
 		Print(statusOFS, "temperature            = ", temperature);
 		Print(statusOFS, "numPole                = ", numPole);
+		Print(statusOFS, "poleTolerance          = ", poleTolerance);
 		Print(statusOFS, "numElectronTolerance   = ", numElectronTolerance);
+		Print(statusOFS, "ColPerm                = ", ColPerm );
 		Print(statusOFS, "muMaxIter              = ", muMaxIter);
 		Print(statusOFS, "mpisize                = ", mpisize );
 		Print(statusOFS, "npPerPole              = ", npPerPole );
@@ -251,7 +256,9 @@ int main(int argc, char **argv)
 				HMat,
 				SMat,
 				muMaxIter,
+				poleTolerance,
 				numElectronTolerance,
+				ColPerm,
 				0,
 				0,
 				muList,
