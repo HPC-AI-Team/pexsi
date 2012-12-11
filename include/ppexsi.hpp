@@ -120,6 +120,15 @@ public:
 	/// computing the force.
 	DistSparseMatrix<Real>& EnergyDensityMatrix() { return energyDensityMat_; }
 
+	/// @brief CalculateNumElectron computes the number of electrons given
+	/// the current density matrix.
+	///
+	/// @param[in] SMat overlap matrix.
+	///
+	/// @return The number of electrons Tr[\rho S]
+	Real CalculateNumElectron( const DistSparseMatrix<Real>& SMat );
+
+
 	/// @brief CalculateTotalEnergy computes the total energy (band energy
 	/// part only).
 	///
@@ -159,13 +168,6 @@ public:
 			const DistSparseMatrix<Real>& HDerivativeMat,  
 			const DistSparseMatrix<Real>& SDerivativeMat ); 
 
-	/// @brief CalculateNumElectron computes the number of electrons given
-	/// the current density matrix.
-	///
-	/// @param[in] SMat overlap matrix.
-	///
-	/// @return The number of electrons Tr[\rho S]
-	Real CalculateNumElectron( const DistSparseMatrix<Real>& SMat );
 };
 
 

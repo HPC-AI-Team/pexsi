@@ -10,14 +10,15 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "ex15 -mu0 [mu0] -numel [numel] -numPole [numPole] -deltaE [deltaE] -H [Hfile] -S [Sfile] -npPerPole [npPole]" << std::endl
+		<< "ex15 -mu0 [mu0] -numel [numel] -numPole [numPole] -deltaE [deltaE] -H [Hfile] -S [Sfile] -npPerPole [npPole] -colperm [colperm]" << std::endl
 		<< "mu0:    Initial guess for chemical potential" << std::endl
 		<< "numel:  Exact number of electrons (spin-restricted)" << std::endl
 		<< "numPole: Number of poles." << std::endl
 		<< "deltaE: guess for the width of the spectrum of H-mu S" << std::endl
 		<< "H: Hamiltonian matrix (csc format, both lower triangular and upper triangular)" << std::endl
 		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular)" << std::endl
-		<< "npPerPole: number of processors used for each pole" << std::endl;
+		<< "npPerPole: number of processors used for each pole" << std::endl
+		<< "colperm: permutation method (for SuperLU_DIST)" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -28,7 +29,7 @@ int main(int argc, char **argv)
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
 
-	if( argc < 15 || argc%2 == 0 ) {
+	if( argc < 17 || argc%2 == 0 ) {
 		if( mpirank == 0 ) Usage();
 		MPI_Finalize();
 		return 0;
@@ -50,11 +51,9 @@ int main(int argc, char **argv)
 		
 		Real gap              = 0.0;
 		Real temperature      = 300;
-		Real poleTolerance    = 1e-8;
+		Real poleTolerance    = 1e-12;
 		Real numElectronTolerance = 1e-4;
 		Real muMaxIter        = 30;
-//		std::string ColPerm          = "MMD_AT_PLUS_A";
-		std::string ColPerm          = "METIS_AT_PLUS_A";
 
 //		// WaterPT
 ////		pexsiData.mu0              = -0.5;
@@ -122,6 +121,18 @@ int main(int argc, char **argv)
 		else{
       throw std::logic_error("Sfile must be provided.");
 		}
+
+		std::string ColPerm;
+		if( options.find("-colperm") != options.end() ){ 
+			ColPerm = options["-colperm"];
+		}
+		else{
+      throw std::logic_error("colperm must be provided.");
+		}
+
+		bool isFreeEnergyDensityMatrix = true;
+
+		bool isEnergyDensityMatrix     = true;
 
 		// *********************************************************************
 		// Check the input parameters
@@ -244,7 +255,8 @@ int main(int argc, char **argv)
 		Print(statusOFS, "muMaxIter              = ", muMaxIter);
 		Print(statusOFS, "mpisize                = ", mpisize );
 		Print(statusOFS, "npPerPole              = ", npPerPole );
-
+		Print(statusOFS, "isFreeEnergyMatrix     = ", isFreeEnergyDensityMatrix );
+		Print(statusOFS, "isEnergyMatrix         = ", isEnergyDensityMatrix ); 
 
 
 		// *********************************************************************
@@ -269,8 +281,8 @@ int main(int argc, char **argv)
 				poleTolerance,
 				numElectronTolerance,
 				ColPerm,
-				0,
-				0,
+				isFreeEnergyDensityMatrix,
+				isEnergyDensityMatrix,
 				muList,
 				numElectronList );
 
