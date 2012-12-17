@@ -1,5 +1,6 @@
-function Ainv = SelInv( APreInv, superPtr )
-% SelInv performs the same procedure as PMatrix::SelInv in pselinv.cpp.
+function Ainv = SelInv4( APreInv, superPtr )
+% SelInv4 performs the same procedure as SelInv.m, but adds
+% symmetrization to the diagonal blocks.
 %
 % This is subroutine to facilitate the debugging process.
 %
@@ -12,7 +13,7 @@ function Ainv = SelInv( APreInv, superPtr )
 % pexsi.
 %
 % Lin Lin
-% 12/10/2012
+% 12/13/2012
 
 numSuper = length(superPtr) - 1;
 numCol   = length(APreInv);
@@ -22,9 +23,11 @@ assert( numCol == superPtr( numSuper+1 ) );
 % Note: numSuper-th supernode has been treated in PreSelInv.
 supInd = superPtr( numSuper ) + 1 : superPtr( numSuper+1 );
 Ainv( supInd, supInd ) = APreInv( supInd, supInd );
+Ainv( supInd, supInd ) = ( Ainv( supInd, supInd ) + ...
+	transpose( Ainv( supInd, supInd ) ) ) / 2;
 
 % FIXME
-for ksup = numSuper-1 : -1 : numSuper-20
+for ksup = numSuper-1 : -1 : 1
   supInd = superPtr(ksup)+1 : superPtr(ksup+1);
 	offdiagInd = superPtr(ksup+1) + 1 : numCol;
 
@@ -37,7 +40,11 @@ for ksup = numSuper-1 : -1 : numSuper-20
   % Ainv(k,k) <- APreInv(k,k) - \sum_i transpose(L(i,k)) * LUpdateBuf(i,k)
 	Ainv( supInd, supInd ) = APreInv( supInd, supInd ) -...
 		transpose( LBuf ) * LUpdateBuf;
-	
+
+	% Symmetrization is important
+	Ainv( supInd, supInd ) = ( Ainv( supInd, supInd ) + ...
+		transpose( Ainv( supInd, supInd ) ) ) / 2;
+
 	% U(k,i) <- LUpdateBuf(i,k)^T
 	Ainv( supInd, offdiagInd ) = transpose( LUpdateBuf );
 

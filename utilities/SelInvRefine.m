@@ -1,18 +1,16 @@
-function Ainv = SelInv( APreInv, superPtr )
-% SelInv performs the same procedure as PMatrix::SelInv in pselinv.cpp.
+function Ainv = SelInvRefine( A, APreInv, superPtr )
+% SelInvRefine is the test program for selected inversion with
+% refinement for each supernode.  For the details of the refinement see
+% the OneNote
 %
-% This is subroutine to facilitate the debugging process.
-%
-% APreInv is obtained from PreSelInv.m 
-%
-% APreInv = PreSelInv( L, U, superPtr );
+% "Iterative refinement of selected inversion"
 %
 % superPtr is the same as that in SuperNode structure in PSelInv.hpp,
 % and can be obtained from the output file of the test subroutine in
 % pexsi.
 %
 % Lin Lin
-% 12/10/2012
+% 12/13/2012
 
 numSuper = length(superPtr) - 1;
 numCol   = length(APreInv);
@@ -37,6 +35,10 @@ for ksup = numSuper-1 : -1 : numSuper-20
   % Ainv(k,k) <- APreInv(k,k) - \sum_i transpose(L(i,k)) * LUpdateBuf(i,k)
 	Ainv( supInd, supInd ) = APreInv( supInd, supInd ) -...
 		transpose( LBuf ) * LUpdateBuf;
+
+	% Iterative refinement of LUpdateBuf(i,k) and Ainv(k,k)
+	eta = -A( supInd, offdiagInd ) * LUpdateBuf - ...
+		A( supInd, supInd 
 	
 	% U(k,i) <- LUpdateBuf(i,k)^T
 	Ainv( supInd, offdiagInd ) = transpose( LUpdateBuf );
