@@ -16,7 +16,7 @@ using namespace std;
 void Usage(){
   std::cout 
 		<< "Usage" << std::endl
-		<< "ex16 -H [Hfile] -S [Sfile]" << std::endl;
+		<< "ex16 -H [Hfile] -S [Sfile] -colperm [colperm]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -67,6 +67,13 @@ int main(int argc, char **argv)
 			Sfile = "S_LU.csc";
 		}
 
+		std::string ColPerm;
+		if( options.find("-colperm") != options.end() ){ 
+			ColPerm = options["-colperm"];
+		}
+		else{
+      throw std::logic_error("colperm must be provided.");
+		}
 
 		// *********************************************************************
 		// Read input matrix
@@ -117,7 +124,9 @@ int main(int argc, char **argv)
 		SuperLUGrid g( MPI_COMM_WORLD, nprow, npcol );
 
 		GetTime( timeSta );
-		SuperLUMatrix luMat( g );
+		SuperLUOptions luOpt;
+		luOpt.ColPerm = ColPerm;
+		SuperLUMatrix luMat( g, luOpt );
 		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
 		GetTime( timeEnd );
 		if( mpirank == 0 )

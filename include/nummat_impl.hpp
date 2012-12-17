@@ -55,6 +55,36 @@ Transpose ( const NumMat<F>& A, NumMat<F>& B )
 	return ;
 }		// -----  end of function Transpose  ----- 
 
+template <class F> inline void
+Symmetrize( NumMat<F>& A )
+{
+#ifndef _RELEASE_
+	PushCallStack("Symmetrize");
+#endif
+	if( A.m() != A.n() ){
+		throw std::logic_error( "The matrix to be symmetrized should be a square matrix." );
+	}
+
+	NumMat<F> B;
+	Transpose( A, B );
+
+	F* Adata = A.Data();
+	F* Bdata = B.Data();
+
+	F  half = (F) 0.5;
+
+	for( Int i = 0; i < A.m() * A.n(); i++ ){
+		*Adata = half * (*Adata + *Bdata);
+		Adata++; Bdata++;
+	}
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Symmetrize ----- 
+
 
 } // namespace PEXSI
 

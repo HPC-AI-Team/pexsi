@@ -910,8 +910,12 @@ PMatrix::SelInv	(  )
 				statusOFS << std::endl << "DiagBufReduced: " << DiagBufReduced << std::endl << std::endl; 
 #endif
         LBlock&  LB = this->L( LBj( ksup, grid_ ) )[0];
+
+				// Symmetrize LB
 				blas::Axpy( LB.numRow * LB.numCol, SCALAR_ONE, DiagBufReduced.Data(),
 						1, LB.nzval.Data(), 1 );
+
+				Symmetrize( LB.nzval );
 #if ( _DEBUGlevel_ >= 2 )
 				statusOFS << std::endl << "Diag of Ainv: " << LB.nzval << std::endl << std::endl; 
 #endif
@@ -1242,6 +1246,9 @@ PMatrix::PreSelInv	(  )
 #endif
 			lapack::Getri( SuperSize( ksup, super_ ), LB.nzval.Data(), 
 					SuperSize( ksup, super_ ), ipiv.Data() );
+
+			// Symmetrize the diagonal block
+			Symmetrize( LB.nzval );
 #if ( _DEBUGlevel_ >= 2 )
 			// Check the correctness of the matrix inversion for the first local column
 			statusOFS << "Inversed   A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;

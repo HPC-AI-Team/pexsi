@@ -109,9 +109,13 @@ int main(int argc, char **argv)
 		Complex *ptr0 = AMat.nzvalLocal.Data();
 		Real *ptr1 = HMat.nzvalLocal.Data();
 		Real *ptr2 = SMat.nzvalLocal.Data();
-		Complex zshift = Complex(-3.84573575e-03, -4.38677095e-03);
+//		Complex zshift = Complex(-3.84573575e-03, -4.38677095e-03);
+//		for(Int i = 0; i < HMat.nnzLocal; i++){
+//			*(ptr0++) = *(ptr1++) - zshift * *(ptr2++);
+//		}
+//		Complex zshift = Complex(-3.84573575e-03, -4.38677095e-03);
 		for(Int i = 0; i < HMat.nnzLocal; i++){
-			*(ptr0++) = *(ptr1++) - zshift * *(ptr2++);
+			*(ptr0++) = *(ptr1++);// - zshift * *(ptr2++);
 		}
 		GetTime( timeEnd );
 		if( mpirank == 0 )
