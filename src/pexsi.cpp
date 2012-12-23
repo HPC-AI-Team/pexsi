@@ -43,27 +43,15 @@ void PEXSIData::Solve( )
 #ifndef _RELEASE_
 	PushCallStack("PEXSIData::Solve");
 #endif
-	int token = 0;                                
-	int dumpL = 0;
 	int Lnnz;
-
-	int *perm;                             // Permutation vector
 
 	// Since all the poles share the same algebraic structure, the
 	// preprocess can be considered as a once-for-all process,The
 	// preprocessing procedure is a once-for-all calculation 
 
-	perm = NULL;   // perm is not used here unless order  0
-	SelInvInterface::ldlt_preprocess__(&token, &HMat.size, 
-			HMat.colptr.Data(), HMat.rowind.Data(), 
-			&Lnnz, &permOrder, perm);   
-	Print( statusOFS, "After preprocessing" );
-	Print( statusOFS, "Ndof = ", HMat.size );
-	Print( statusOFS, "number of nonzeros in H = ", HMat.nnz );
-	Print( statusOFS, "number of nonzeros in L = ", Lnnz );
+	SelInvInterface  selinv;
 
 	SparseMatrix<Complex>     AMat;               // A = H - z S
-	SparseMatrix<Complex>     invAMat;            // inverse(A)
 
 	AMat.size = HMat.size;
 	AMat.nnz  = HMat.nnz;
@@ -71,6 +59,15 @@ void PEXSIData::Solve( )
 	AMat.colptr = IntNumVec( HMat.colptr.m(), false, HMat.colptr.Data() );
 	AMat.rowind = IntNumVec( HMat.rowind.m(), false, HMat.rowind.Data() );
 	AMat.nzval.Resize( HMat.nnz );
+
+	selinv.SymbolicFactorize( AMat, permOrder, NULL, Lnnz );
+
+	Print( statusOFS, "After preprocessing" );
+	Print( statusOFS, "Ndof = ", HMat.size );
+	Print( statusOFS, "number of nonzeros in H = ", HMat.nnz );
+	Print( statusOFS, "number of nonzeros in L = ", Lnnz );
+
+	SparseMatrix<Complex>     invAMat;            // inverse(A)
 
 	invAMat.size = HMat.size;
 	invAMat.nnz  = Lnnz;
@@ -153,9 +150,7 @@ void PEXSIData::Solve( )
 
 			GetTime( timeSta );
 
-			SelInvInterface::ldlt_fact__(&token, HMat.colptr.Data(),
-					HMat.rowind.Data(), 
-					reinterpret_cast<doublecomplex*>(AMat.nzval.Data()));
+			selinv.NumericalFactorize( AMat );
 
 			GetTime( timeEnd );
 
@@ -164,9 +159,7 @@ void PEXSIData::Solve( )
 			
 			GetTime( timeSta );
 
-			SelInvInterface::ldlt_blkselinv__(&token, invAMat.colptr.Data(),
-					invAMat.rowind.Data(), 
-					reinterpret_cast<doublecomplex*>(invAMat.nzval.Data()), &dumpL);
+			selinv.SelInv( invAMat );
 			
 			GetTime( timeEnd );
 
@@ -252,9 +245,6 @@ void PEXSIData::Solve( )
 				timeMuEnd - timeMuSta, "[s]" );
 	}
 
-	// FIXME
-	if ( permOrder == 0) free(perm);
-	SelInvInterface::ldlt_free__(&token); 
 
 #ifndef _RELEASE_
 	PopCallStack();

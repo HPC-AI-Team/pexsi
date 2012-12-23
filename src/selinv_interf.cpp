@@ -1,18 +1,119 @@
 /// @file selinv_interf.cpp
 /// @brief Implementation of the interface with sequential SelInv.
-/// @author Lin Lin
+/// @author Chao Yang and Lin Lin
 /// @date 2012-10-16
 #include <stdio.h>
 #include <stdlib.h>
 #include "selinv_interf.hpp"
+// TODO Real arithmetic
 
-// TODO See SuperLUMatrix for encapsulation of the class.
+// METIS is not used by default 
+//#define METIS 1
 
 namespace PEXSI{
 
-// -------------------------
-//   Global Data structure
-// ------------------------- 
+#ifdef _USE_COMPLEX_
+typedef struct { double r, i; } doublecomplex;
+#endif
+
+
+// *********************************************************************
+// FORTRAN subroutines for factorization and selected inversion
+// *********************************************************************
+#ifdef _USE_COMPLEX_
+extern "C"
+{
+
+  int readmatrixheader_(char *, int *, int *);
+ 
+  int readcmatrix_(char *, int *, int *, doublecomplex *);
+  
+  void sfinit_(int* outunt, int *neqns, int *nnza, int *xadj, int *adjncy,
+	       int* perm, int* invp, int* colcnt, int* nnzl, int *nsub,
+	       int* nsuper, int* snode, int* xsuper, int* iwsiz, int* iwork,
+	       int* iflag );
+
+  void bfinit_(int *neqns, int *nsuper, int *xsuper, int *snode, 
+	       int *xlindx, int *lindx, int *cachsz, int *tmpsiz, int *split);	
+
+  void inpnv_(int *outunt, int *neqns, int *xadjf, int *adjf,
+	      doublecomplex *anzf, int *perm, int *invp, int *nsuper, int *xsuper,
+	      int *xlindx, int *lindx, int *xlnz, doublecomplex *lnz,
+	      int *iwsiz, int *offset, int *iflag);
+
+  void blkfct_(int *outunt, int *nequns, int *nsuper, int *nunrol, int *xsuper,
+	       int* snode, int* split, int* xlindx, int *lindx, int *xlnz,
+	       doublecomplex *lnz, doublecomplex *diag, int *iwsiz, int *iwork,
+	       int* tmpsiz, doublecomplex *tmpvec, int* iflag);
+
+  void blkslv_(int *nsuper, int* xsuper, int *xlindx, int *lindx, int *xlnz,
+	       doublecomplex *lnz, doublecomplex *rhs);
+
+  void exdiag_(int *nsuper, int* xsuper, int *xlindx, int *lindx, int *xlnz,
+	       doublecomplex *lnz, int *snodes, doublecomplex *diag, doublecomplex *y, int* perm,
+	       int* neqns);
+
+  void exdiagblk_(int *nsuper, int *xsuper, int *xlindx, int *lindx, int *xlnz,
+		  doublecomplex *lnz, int *snodes, doublecomplex *diag, int *perm,
+		  int *neqns, int *dumpl);
+
+  void selinvblk_(int *nsuper, int *xsuper, int *xlindx, int *lindx, int *xlnz,
+		  doublecomplex *lnz, int *snodes, int *perm, int *neqns,
+		  int *colptr, int *rowind, int *dumpl);
+
+  // in CSUPLDLT
+  void ilo2ho_(int *n, int *Hnnz, int *colptr, int *rowind, int *newptr, int *newind, int *ip);
+
+  void flo2ho_(int *n,          int *colptr, int *rowind,
+	       doublecomplex *nzvals,  int *xadj,   int *adj,
+	       doublecomplex *anz,     int *iwork);
+
+  extern void ordmmd_(int *logfil, int *n,      int *xlindx, int *lindx, 
+		      int *invp,   int *perm,   int *iwmax,  int *iwork,
+		      int *nnzl,   int *nsub,   int *colcnt, int *nsuper,
+		      int *xsuper, int *snodes, int *sfiflg, int *iflag); 
+
+  extern void symfct_(int *logfil, int *n,      int *nnza,   int *xadj,
+		      int *adj,    int *perm,   int *invp,   int *colcnt,
+		      int *nsuper, int *xsuper, int *snodes, int *nsub,
+		      int *xlindx, int *lindx,  int *xlnz,   int *iwsiz,
+		      int *iwork,  int *iflag);
+
+#ifdef METIS
+  extern void METIS_EdgeND(int *n,       int *xadj, int *adj, int *numflag,
+			   int *options, int *perm, int *invp);
+
+  extern void METIS_NodeND(int *n,       int *xadj, int *adj, int *numflag,
+			   int *options, int *perm, int *invp);
+#endif
+}; 
+#endif
+
+
+// *********************************************************************
+// Definition of interface subroutines with FORTRAN selinv
+// *********************************************************************
+#ifdef _USE_COMPLEX_
+void ldlt_preprocess__(int* token,  int *n,    int *colptr,
+		int* rowind, int *Lnnz, int *order, 
+		int *perm);
+
+void ldlt_fact__(int *token, int *colptr, int *rowind, doublecomplex *nzvals);
+
+void ldlt_solve__(int *token, doublecomplex *x, doublecomplex *rhs);
+
+void ldlt_getdiag__(int *token, doublecomplex *diag);
+
+void ldlt_blkselinv__(int *token, int* colptr, int* rowind, 
+		doublecomplex *inva, int *dumpL);
+
+void ldlt_free__(int *token);
+
+
+// *********************************************************************
+// Global Data structure and variables shared by the interface
+// subroutines
+// *********************************************************************
 
 typedef struct Anode {
 	int    n;
@@ -40,15 +141,22 @@ typedef struct Anode {
 	doublecomplex *newrhs;
 }  Anode_type;
 
-Anode_type mat[5]; //maxm
-int        cachsz=700;
-int        nunroll=4;
-int        fullrep = 0; 
+// Global variables
 
-//------------------
-//    Functions 
-//------------------
-void SelInvInterface::ldlt_preprocess__(int *token, int *n,    int *colptr,
+// Some global parameters to be optimized
+// Only use one matrix here.
+const int    MAX_NUM_MAT = 1;
+int          cachsz=700; 
+int          nunroll=4;
+int          fullrep = 0; 
+Anode_type   mat[MAX_NUM_MAT]; 
+
+
+
+// *********************************************************************
+// Implementation of interface subroutines with FORTRAN selinv
+// *********************************************************************
+void ldlt_preprocess__(int *token, int *n,    int *colptr,
 		int *rowind, int *Lnnz, int *order,
 		int *perm)
 {
@@ -448,7 +556,7 @@ void SelInvInterface::ldlt_preprocess__(int *token, int *n,    int *colptr,
 	}
 }
 
-void SelInvInterface::ldlt_fact__(int *token, int *colptr, int *rowind, doublecomplex *nzvals)
+void ldlt_fact__(int *token, int *colptr, int *rowind, doublecomplex *nzvals)
 {
 	int   i, nnz, nnzl, neqns, nsuper, tmpsiz, logfil=6, iflag, iwsiz;
 	int   ibegin, iend, irow, jcol;
@@ -570,7 +678,7 @@ void SelInvInterface::ldlt_fact__(int *token, int *colptr, int *rowind, doubleco
 #endif
 }
 
-void SelInvInterface::ldlt_solve__(int *token, doublecomplex *x, doublecomplex *rhs)
+void ldlt_solve__(int *token, doublecomplex *x, doublecomplex *rhs)
 {
 	int     neqns, nsuper, i;
 	int     *perm, *invp;
@@ -591,7 +699,7 @@ void SelInvInterface::ldlt_solve__(int *token, doublecomplex *x, doublecomplex *
 	for (i=0; i<neqns; i++) x[i] = newrhs[invp[i]-1];
 }
 
-void SelInvInterface::ldlt_getdiag__(int *token, doublecomplex *diag)
+void ldlt_getdiag__(int *token, doublecomplex *diag)
 {
 	int i, neqns;
 
@@ -600,50 +708,8 @@ void SelInvInterface::ldlt_getdiag__(int *token, doublecomplex *diag)
 	for (i=0;i<neqns;i++) diag[i] =  mat[*token].diag[i];
 }
 
-void SelInvInterface::ldlt_extract__(int *token, doublecomplex *diag)
-{
-	int   i, nnzl, neqns, nsuper;
-	doublecomplex  *ytemp;
 
-#ifdef TIMING
-	double t0, t1;
-#endif
-	neqns  = mat[*token].n;
-	nnzl   = mat[*token].nnzl;
-	nsuper = mat[*token].nsuper;
-	printf(" Number of nonzeros in the L factor = %d\n", nnzl); 
-
-	ytemp = (doublecomplex*)calloc(neqns,sizeof(doublecomplex));
-	exdiag_(&nsuper,            mat[*token].xsuper,  mat[*token].xlindx,
-			mat[*token].lindx,  mat[*token].xlnz  ,  mat[*token].lnz   ,
-			mat[*token].snodes, diag              ,  ytemp             ,
-			mat[*token].perm  , &neqns);
-
-	free(ytemp);
-}
-
-void SelInvInterface::ldlt_blkextract__(int *token, doublecomplex *diag, int *dumpL)
-{
-	int   i, nnzl, neqns, nsuper;
-	doublecomplex  *ytemp;
-
-#ifdef TIMING
-	double t0, t1;
-#endif
-	neqns  = mat[*token].n;
-	nnzl   = mat[*token].nnzl;
-	nsuper = mat[*token].nsuper;
-
-	ytemp = (doublecomplex*)calloc(neqns,sizeof(doublecomplex));
-	exdiagblk_(&nsuper,            mat[*token].xsuper,  mat[*token].xlindx,
-			mat[*token].lindx,  mat[*token].xlnz  ,  mat[*token].lnz   ,
-			mat[*token].snodes, diag              ,  mat[*token].perm  , 
-			&neqns            , dumpL);
-
-	free(ytemp);
-}
-
-void SelInvInterface::ldlt_blkselinv__(int *token, int* colptr, int* rowind, 
+void ldlt_blkselinv__(int *token, int* colptr, int* rowind, 
 		doublecomplex *inva, int *dumpL)
 {
 	int   i, nnzl, neqns, nsuper;
@@ -677,7 +743,7 @@ void SelInvInterface::ldlt_blkselinv__(int *token, int* colptr, int* rowind,
 }
 
 
-void SelInvInterface::ldlt_free__(int *token)
+void ldlt_free__(int *token)
 {
 	free(mat[*token].xadj);
 	free(mat[*token].adj);
@@ -717,5 +783,112 @@ void SelInvInterface::ldlt_free__(int *token)
 	mat[*token].tmat=NULL;
 	mat[*token].newrhs=NULL;
 }
+#endif
 
+
+// *********************************************************************
+// Implementation of the class SelInvInterface
+// *********************************************************************
+
+SelInvInterface::SelInvInterface	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("SelInvInterface::SelInvInterface");
+#endif
+	isSelInvInitialized_ = false;
+	// Only one matrix in the structure mat is used. If more than one
+	// matrix is used, change parameter MAX_NUM_MAT
+	token_ = 0; 
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+} 		// -----  end of method SelInvInterface::SelInvInterface  ----- 
+
+SelInvInterface::~SelInvInterface	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("SelInvInterface::~SelInvInterface");
+#endif
+	if( isSelInvInitialized_ )
+		ldlt_free__(&token_);
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+} 		// -----  end of method SelInvInterface::~SelInvInterface  ----- 
+
+
+void
+SelInvInterface::SymbolicFactorize	( SparseMatrix<Scalar>& A, Int order, Int* perm, Int& Lnnz )
+{
+#ifndef _RELEASE_
+	PushCallStack("SelInvInterface::SymbolicFactorize");
+#endif
+	ldlt_preprocess__( &token_, &A.size, A.colptr.Data(),
+			A.rowind.Data(), &Lnnz, &order, perm );
+	isSelInvInitialized_ = true;
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method SelInvInterface::SymbolicFactorize  ----- 
+
+
+void
+SelInvInterface::NumericalFactorize	( SparseMatrix<Scalar>& A )
+{
+#ifndef _RELEASE_
+	PushCallStack("SelInvInterface::NumericalFactorize");
+#endif
+#ifdef _USE_COMPLEX_
+	ldlt_fact__( &token_, A.colptr.Data(), A.rowind.Data(), reinterpret_cast<doublecomplex*>(A.nzval.Data()) );
+#endif
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method SelInvInterface::NumericalFactorize  ----- 
+
+
+void
+SelInvInterface::Solve	( Scalar* x, Scalar* rhs )
+{
+#ifndef _RELEASE_
+	PushCallStack("SelInvInterface::Solve");
+#endif
+#ifdef _USE_COMPLEX_
+  ldlt_solve__( &token_, reinterpret_cast<doublecomplex*>(x), reinterpret_cast<doublecomplex*>(rhs) );
+#endif
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method SelInvInterface::Solve  ----- 
+
+
+void
+SelInvInterface::SelInv	( SparseMatrix<Scalar>& Ainv )
+{
+#ifndef _RELEASE_
+	PushCallStack("SelInvInterface::SelInv");
+#endif
+	Int dumpL = 0;
+#ifdef _USE_COMPLEX_
+	ldlt_blkselinv__( &token_, Ainv.colptr.Data(),
+			Ainv.rowind.Data(), 
+			reinterpret_cast<doublecomplex*>(Ainv.nzval.Data()), &dumpL);
+#endif
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method SelInvInterface::SelInv  ----- 
 }

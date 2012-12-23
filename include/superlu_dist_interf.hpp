@@ -153,9 +153,9 @@ public:
 
 	~SuperLUMatrix();
 
-	int m() const;
+	Int m() const;
 
-	int n() const;
+	Int n() const;
 
 	/// @brief DistSparseMatrixToSuperMatrixNRloc converts a distributed
 	/// sparse matrix in compressed sparse column format into the SuperLU

@@ -1,5 +1,5 @@
-function Ainv = SelInv( L, U )
-% SelInv performs the element-wise selected inversion based on the
+function Ainv = SelInvElem( L, U )
+% SelInvElem performs the element-wise selected inversion based on the
 % LU-factorization.
 %
 % This is subroutine to facilitate the debugging process.
