@@ -23,8 +23,6 @@ namespace PEXSI{
 /// @class PEXSIData
 ///
 /// @brief Main class for the sequential PEXSI calculation.
-/// 
-/// TODO Helmholtz free energy and force support
 class PEXSIData{
 private:
 	// *********************************************************************
@@ -32,8 +30,12 @@ private:
 	// *********************************************************************
 	std::vector<Complex>  zshift_;      // Complex shift for the pole expansion
 	std::vector<Complex>  zweightRho_;  // Complex weight for the pole expansion for density
+	std::vector<Complex>  zweightHelmholtz_;  // Complex shift for the pole expansion for Helmholtz free energy
+	std::vector<Complex>  zweightForce_;  // Complex weight for the pole expansion for force
 
 	SparseMatrix<Real>    rhoMat_;              // Density matrix
+	SparseMatrix<Real>    freeEnergyDensityMat_;     // Helmholtz free energy density matrix
+	SparseMatrix<Real>    energyDensityMat_;         // Energy density matrix for computing the Pulay force
 
 	/// @brief Calculate the new chemical potential based on the history.
 	Real CalculateChemicalPotential( 
@@ -42,33 +44,6 @@ private:
 			const Real numElectronTolerance,
 			const std::vector<Real>& muList,
 			const std::vector<Real>& numElectronList );
-
-public:
-	// *********************************************************************
-	// Input parameters
-	// *********************************************************************
-//	Real gap;                    // Band gap (in the unit of au)
-//	Real temperature;            // Temperature (in the unit of K)
-//	Real deltaE;                 // an upperbound of the spectrum width
-//	Int  numPole;                // Number of poles for the pole expansion
-//	Real poleTolerance;          // Truncation tolerance for the absolute value of the weight
-//	Real mu0;                    // initial guess of chemical potential (in the unit of au)
-//	Real numElectronExact;       // Exact number of electrons
-//
-//	Real numElectronTolerance;   // Stopping criterion for the mu iteration 
-//	Int  muMaxIter;              // Maximum iteration number for mu
-//	Int  permOrder;              // Order of the permutation
-
-	/* -order     :   Reordering strategy:
-		 order = -1 (default) : Multiple Minimum Degree Reordering.
-		 If METIS is supported, then the following choices
-		 are also available:
-		 order = 2 : Node Nested Dissection
-		 order = 3 : Edge Nested Dissection  */
-
-//	bool isHelmholtz;                           // Whether to compute the Helmholtz free energy
-//	bool isForce;                               // Whether to compute the force
-
 
 public:
 	PEXSIData(){}
@@ -142,6 +117,37 @@ public:
 	///
 	/// @return The total energy Tr[ H \rho ]. 
   Real CalculateTotalEnergy( const SparseMatrix<Real>& HMat );
+
+	/// @brief CalculateFreeEnergy computes the total Helmholtz free
+	/// energy (band energy part only).  
+	///
+	/// For more information see 
+	/// Alavi, A., Kohanoff, J., Parrinello, M., & Frenkel, D. (1994). Ab
+	/// initio molecular dynamics with excited electrons. Physical review
+	/// letters, 73(19), 2599–2602. 
+	///
+	/// @param[in] HMat Hamilotian matrix.
+	///
+	/// @return The Helmholtz free energy Tr[rho_f H]
+	Real CalculateFreeEnergy( const SparseMatrix<Real>& HMat );
+
+	/// @brief CalculateFreeEnergy computes the force, including the
+	/// Hellman-Feynman force and the Pulay force. 
+	///
+	/// @param[in] HDerivativeMat Derivative of the Hamilotian matrix with
+	/// respect to the atomic position R_{i,j}, i = 1, ..., natoms,
+	/// j=1,2,3. 
+	///
+	/// @param[in] HDerivativeMat Derivative of the overlap matrix with
+	/// respect to the atomic position R_{i,j}, i = 1, ..., natoms,
+	/// j=1,2,3. 
+	///
+	/// @return The force f_{i,j} with
+	/// respect to the atomic position R_{i,j}, i = 1, ..., natoms,
+	/// j=1,2,3. 
+	Real CalculateForce( 
+			const SparseMatrix<Real>& HDerivativeMat,  
+			const SparseMatrix<Real>& SDerivativeMat ); 
 
 };
 

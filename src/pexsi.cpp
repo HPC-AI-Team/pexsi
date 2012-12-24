@@ -107,16 +107,16 @@ void PEXSIData::Solve(
 	SparseMatrix<Complex>  AMat;              // A = H - z * S
 	// rename for convenience
 	SparseMatrix<Real>& rhoMat       = rhoMat_;     
-//	SparseMatrix<Real>& hmzMat       = freeEnergyDensityMat_;
-//	SparseMatrix<Real>& frcMat     = energyDensityMat_;
+	SparseMatrix<Real>& hmzMat       = freeEnergyDensityMat_;
+	SparseMatrix<Real>& frcMat       = energyDensityMat_;
 
 	// Copy the pattern
 	CopyPattern( HMat, AMat );
 	CopyPattern( HMat, rhoMat );
-//	if( isFreeEnergyDensityMatrix )
-//		CopyPattern( HMat, hmzMat );
-//	if( isEnergyDensityMatrix )
-//		CopyPattern( HMat, frcMat );
+	if( isFreeEnergyDensityMatrix )
+		CopyPattern( HMat, hmzMat );
+	if( isEnergyDensityMatrix )
+		CopyPattern( HMat, frcMat );
 
 	SetValue( AMat.nzval, Z_ZERO );  
 
@@ -172,10 +172,10 @@ void PEXSIData::Solve(
 
 		// Reinitialize the variables
 		SetValue( rhoMat.nzval, 0.0 );
-//		if( isFreeEnergyDensityMatrix )
-//			SetValue( hmzMat.nzvalLocal, 0.0 );
-//		if( isEnergyDensityMatrix )
-//			SetValue( frcMat.nzvalLocal, 0.0 );
+		if( isFreeEnergyDensityMatrix )
+			SetValue( hmzMat.nzval, 0.0 );
+		if( isEnergyDensityMatrix )
+			SetValue( frcMat.nzval, 0.0 );
 
 		// Initialize the number of electrons
 		numElectronNow  = 0.0;
@@ -187,31 +187,31 @@ void PEXSIData::Solve(
 		GetPoleDensity( &zshift_[0], &zweightRho_[0],
 				numPole, temperature, gap, deltaE, muNow ); 
 
-//		if( isFreeEnergyDensityMatrix ){
-//			std::vector<Complex>  zshiftTmp( numPole );
-//			zweightHelmholtz_.resize( numPole );
-//			GetPoleHelmholtz( &zshiftTmp[0], &zweightHelmholtz_[0], 
-//				numPole, temperature, gap, deltaE, muNow ); 
-//			Real norm = 0.0;
-//			for( Int i = 0; i < numPole; i++ ){
-//				norm += pow( std::abs( zshiftTmp[i] - zshift_[i] ), 2.0 );
-//			}
-//			if( norm > 1e-12 )
-//				throw std::runtime_error("The pole shifts for rho and for Helmholtz do not match.");
-//		}
-//
-//		if( isEnergyDensityMatrix ){
-//			std::vector<Complex>  zshiftTmp( numPole );
-//			zweightForce_.resize( numPole );
-//			GetPoleForce( &zshiftTmp[0], &zweightForce_[0],
-//				numPole, temperature, gap, deltaE, muNow ); 
-//			Real norm = 0.0;
-//			for( Int i = 0; i < numPole; i++ ){
-//				norm += pow( std::abs( zshiftTmp[i] - zshift_[i] ), 2.0 );
-//			}
-//			if( norm > 1e-12 )
-//				throw std::runtime_error("The pole shifts for rho and for energy density matrix do not match.");
-//		}
+		if( isFreeEnergyDensityMatrix ){
+			std::vector<Complex>  zshiftTmp( numPole );
+			zweightHelmholtz_.resize( numPole );
+			GetPoleHelmholtz( &zshiftTmp[0], &zweightHelmholtz_[0], 
+				numPole, temperature, gap, deltaE, muNow ); 
+			Real norm = 0.0;
+			for( Int i = 0; i < numPole; i++ ){
+				norm += pow( std::abs( zshiftTmp[i] - zshift_[i] ), 2.0 );
+			}
+			if( norm > 1e-12 )
+				throw std::runtime_error("The pole shifts for rho and for Helmholtz do not match.");
+		}
+
+		if( isEnergyDensityMatrix ){
+			std::vector<Complex>  zshiftTmp( numPole );
+			zweightForce_.resize( numPole );
+			GetPoleForce( &zshiftTmp[0], &zweightForce_[0],
+				numPole, temperature, gap, deltaE, muNow ); 
+			Real norm = 0.0;
+			for( Int i = 0; i < numPole; i++ ){
+				norm += pow( std::abs( zshiftTmp[i] - zshift_[i] ), 2.0 );
+			}
+			if( norm > 1e-12 )
+				throw std::runtime_error("The pole shifts for rho and for energy density matrix do not match.");
+		}
 
 
 #if ( _DEBUGlevel_ >= 0 )
@@ -240,30 +240,30 @@ void PEXSIData::Solve(
 		zshift_     = zshiftSort;
 		zweightRho_ = zweightRhoSort;
 
-//		if( isFreeEnergyDensityMatrix ){
-//			std::vector<Complex>  zweightHelmholtzSort( numPole );
-//			for( Int i = 0; i < numPole; i++ ){
-//				zweightHelmholtzSort[i] = zweightHelmholtz_[sortIdx[i]];
-//			}
-//			zweightHelmholtz_ = zweightHelmholtzSort;
-//		}
-//
-//		if( isEnergyDensityMatrix ){
-//			std::vector<Complex>  zweightForceSort( numPole );
-//			for( Int i = 0; i < numPole; i++ ){
-//				zweightForceSort[i] = zweightForce_[sortIdx[i]];
-//			}
-//			zweightForce_ = zweightForceSort;
-//		}
+		if( isFreeEnergyDensityMatrix ){
+			std::vector<Complex>  zweightHelmholtzSort( numPole );
+			for( Int i = 0; i < numPole; i++ ){
+				zweightHelmholtzSort[i] = zweightHelmholtz_[sortIdx[i]];
+			}
+			zweightHelmholtz_ = zweightHelmholtzSort;
+		}
+
+		if( isEnergyDensityMatrix ){
+			std::vector<Complex>  zweightForceSort( numPole );
+			for( Int i = 0; i < numPole; i++ ){
+				zweightForceSort[i] = zweightForce_[sortIdx[i]];
+			}
+			zweightForce_ = zweightForceSort;
+		}
 
 #if ( _DEBUGlevel_ >= 0 )
 		statusOFS << "sorted indicies (according to |weightRho|) " << std::endl << sortIdx << std::endl;
 		statusOFS << "sorted zshift" << std::endl << zshift_ << std::endl;
 		statusOFS << "sorted zweightRho" << std::endl << zweightRho_ << std::endl;
-//		if( isFreeEnergyDensityMatrix )
-//			statusOFS << "sorted zweightHelmholtz" << std::endl << zweightHelmholtz_ << std::endl;
-//		if( isEnergyDensityMatrix )
-//			statusOFS << "sorted zweightForce" << std::endl << zweightForce_ << std::endl;
+		if( isFreeEnergyDensityMatrix )
+			statusOFS << "sorted zweightHelmholtz" << std::endl << zweightHelmholtz_ << std::endl;
+		if( isEnergyDensityMatrix )
+			statusOFS << "sorted zweightForce" << std::endl << zweightForce_ << std::endl;
 #endif
 
 		// for each pole, perform LDLT factoriation and selected inversion
@@ -278,10 +278,10 @@ void PEXSIData::Solve(
 #if ( _DEBUGlevel_ >= 0 )
 			statusOFS << "zshift           = " << zshift_[l] << std::endl;
 			statusOFS	<< "zweightRho       = " << zweightRho_[l] << std::endl;
-//			if( isFreeEnergyDensityMatrix )
-//				statusOFS << "zweightHelmholtz = " << zweightHelmholtz_[l] << std::endl;
-//			if( isEnergyDensityMatrix )
-//				statusOFS << "zweightForce     = " << zweightForce_[l] << std::endl;
+			if( isFreeEnergyDensityMatrix )
+				statusOFS << "zweightHelmholtz = " << zweightHelmholtz_[l] << std::endl;
+			if( isEnergyDensityMatrix )
+				statusOFS << "zweightForce     = " << zweightForce_[l] << std::endl;
 #endif
 			if( std::abs( zweightRho_[l] ) < poleTolerance ){
 				statusOFS << "|weightRho| < poleTolerance, pass the computation of this pole" << std::endl;
@@ -336,8 +336,16 @@ void PEXSIData::Solve(
 					Int* colptrInvAPtr = invAMat.colptr.Data();
 					Int* rowindInvAPtr = invAMat.rowind.Data();
 					Real* nzvalRhoPtr  = rhoMat.nzval.Data();
+					Real* nzvalHmzPtr  = hmzMat.nzval.Data();
+					Real* nzvalFrcPtr  = frcMat.nzval.Data();
 					Complex* nzvalInvAPtr = invAMat.nzval.Data();
-					Complex  zweightl = zweightRho_[l];
+					Complex  zweightRhol, zweightHmzl, zweightFrcl;
+					zweightRhol = zweightRho_[l];
+					if( isFreeEnergyDensityMatrix )
+						zweightHmzl = zweightHelmholtz_[l];
+					if( isEnergyDensityMatrix )
+						zweightFrcl = zweightForce_[l];
+
 
 					for(Int j = 1; j < HMat.size+1; j++){
 						for(Int ii = colptrHPtr[j-1]; ii < colptrHPtr[j]; ii++){
@@ -345,8 +353,17 @@ void PEXSIData::Solve(
 							for(kk = colptrInvAPtr[j-1]; kk < colptrInvAPtr[j]; kk++){
 								if( rowindHPtr[ii-1] == rowindInvAPtr[kk-1] ){
 									nzvalRhoPtr[ii-1] += 
-										zweightl.real() * nzvalInvAPtr[kk-1].imag() +
-										zweightl.imag() * nzvalInvAPtr[kk-1].real();
+										zweightRhol.real() * nzvalInvAPtr[kk-1].imag() +
+										zweightRhol.imag() * nzvalInvAPtr[kk-1].real();
+									if( isFreeEnergyDensityMatrix )
+										nzvalHmzPtr[ii-1] += 
+											zweightHmzl.real() * nzvalInvAPtr[kk-1].imag() +
+											zweightHmzl.imag() * nzvalInvAPtr[kk-1].real();
+									if( isEnergyDensityMatrix )
+										nzvalFrcPtr[ii-1] += 
+											zweightFrcl.real() * nzvalInvAPtr[kk-1].imag() +
+											zweightFrcl.imag() * nzvalInvAPtr[kk-1].real();
+
 									break;
 								}
 							}
@@ -358,21 +375,6 @@ void PEXSIData::Solve(
 						}
 					} // for (j)
 				} 
-
-
-//				if( isFreeEnergyDensityMatrix ){
-//					blas::Axpy( hmzMat.nnzLocal, zweightHelmholtz_[l].real(), AinvMatImagPtr, 2,
-//							hmzMat.nzvalLocal.Data(), 1 );
-//					blas::Axpy( hmzMat.nnzLocal, zweightHelmholtz_[l].imag(), AinvMatRealPtr, 2,
-//							hmzMat.nzvalLocal.Data(), 1 );
-//				}
-
-//				if( isEnergyDensityMatrix ){
-//					blas::Axpy( frcMat.nnzLocal, zweightForce_[l].real(), AinvMatImagPtr, 2,
-//							frcMat.nzvalLocal.Data(), 1 );
-//					blas::Axpy( frcMat.nnzLocal, zweightForce_[l].imag(), AinvMatRealPtr, 2, 
-//							frcMat.nzvalLocal.Data(), 1 );
-//				}
 
 				// Update the free energy density matrix and energy density matrix similarly
 				GetTime( timePostProcessingEnd );
@@ -395,34 +397,13 @@ void PEXSIData::Solve(
 
 		} // for(l)
 
-		// Reduce the density matrix across the processor rows in gridPole_
-
-//		if( isFreeEnergyDensityMatrix ){
-//			DblNumVec nzvalHmzMatLocal = hmzMat.nzvalLocal;
-//			SetValue( hmzMat.nzvalLocal, 0.0 );
-//
-//			mpi::Allreduce( nzvalHmzMatLocal.Data(), hmzMat.nzvalLocal.Data(),
-//					hmzMat.nnzLocal, MPI_SUM, gridPole_->colComm );
-//		}
-
-//		if( isEnergyDensityMatrix ){
-//			DblNumVec nzvalFrcMatLocal = frcMat.nzvalLocal;
-//			SetValue( frcMat.nzvalLocal, 0.0 );
-//
-//			mpi::Allreduce( nzvalFrcMatLocal.Data(), frcMat.nzvalLocal.Data(),
-//					frcMat.nnzLocal, MPI_SUM, gridPole_->colComm );
-//		}
-
-		// All processors groups compute the number of electrons, and total
-		// energy, and optimally the helmholtz free energy
-
 		numElectronNow = CalculateNumElectron( SMat );
 
     Real totalEnergy = CalculateTotalEnergy( HMat );
 		
-//		Real totalFreeEnergy;
-//		if( isFreeEnergyDensityMatrix )
-//			totalFreeEnergy = CalculateFreeEnergy( HMat );
+		Real totalFreeEnergy;
+		if( isFreeEnergyDensityMatrix )
+			totalFreeEnergy = CalculateFreeEnergy( HMat );
 
 		muList.push_back(muNow);
 		numElectronList.push_back( numElectronNow );
@@ -432,8 +413,8 @@ void PEXSIData::Solve(
 		Print( statusOFS, "Computed number of electron = ", numElectronNow );
 		Print( statusOFS, "Exact number of electron    = ", numElectronExact );
 		Print( statusOFS, "Total energy                = ", totalEnergy );
-//		if( isFreeEnergyDensityMatrix )
-//			Print( statusOFS, "Total free energy           = ", totalFreeEnergy );
+		if( isFreeEnergyDensityMatrix )
+			Print( statusOFS, "Total free energy           = ", totalFreeEnergy );
 
 		if( std::abs( numElectronExact - numElectronList[iter] ) <
 				numElectronTolerance ){
@@ -516,6 +497,83 @@ PEXSIData::CalculateTotalEnergy	( const SparseMatrix<Real>& HMat )
 	return val;
 } 		// -----  end of method PEXSIData::CalculateTotalEnergy  ----- 
 
+Real 
+PEXSIData::CalculateFreeEnergy	( const SparseMatrix<Real>& HMat )
+{
+#ifndef _RELEASE_
+	PushCallStack("PEXSIData::CalculateFreeEnergy");
+#endif
+	// TODO Check HMat and hmzMat has the same sparsity
+
+	Real val = 0.0;
+	Real *ptr1 = HMat.nzval.Data();
+	Real *ptr2 = freeEnergyDensityMat_.nzval.Data();
+	for(Int j = 0; j < HMat.size; j++){
+		for(Int i = HMat.colptr[j] - 1; i < HMat.colptr[j+1] - 1; i++){
+			if( j+1 == HMat.rowind[i] ){ // diagonal
+				val += ptr1[i]*ptr2[i];  
+			}
+			else{
+				val += 2.0 * ptr1[i]*ptr2[i];
+			}
+		}
+	}
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return val;
+} 		// -----  end of method PEXSIData::CalculateFreeEnergy  ----- 
+
+Real
+PEXSIData::CalculateForce	( 
+		const SparseMatrix<Real>& HDerivativeMat,  
+		const SparseMatrix<Real>& SDerivativeMat )
+{
+#ifndef _RELEASE_
+	PushCallStack("PEXSIData::CalculateForce");
+#endif
+
+	Real val = 0.0;
+	{
+		Real *ptr1 = HDerivativeMat.nzval.Data();
+		Real *ptr2 = rhoMat_.nzval.Data();
+		for(Int j = 0; j < HDerivativeMat.size; j++){
+			for(Int i = HDerivativeMat.colptr[j] - 1; 
+					i < HDerivativeMat.colptr[j+1] - 1; i++){
+				if( j+1 == HDerivativeMat.rowind[i] ){ // diagonal
+					val -= ptr1[i]*ptr2[i];  
+				}
+				else{
+					val -= 2.0 * ptr1[i]*ptr2[i];
+				}
+			}
+		}
+	}
+
+	{
+		Real *ptr1 = SDerivativeMat.nzval.Data();
+		Real *ptr2 = energyDensityMat_.nzval.Data();
+		for(Int j = 0; j < SDerivativeMat.size; j++){
+			for(Int i = SDerivativeMat.colptr[j] - 1; 
+					i < SDerivativeMat.colptr[j+1] - 1; i++){
+				if( j+1 == SDerivativeMat.rowind[i] ){ // diagonal
+					val += ptr1[i]*ptr2[i];  
+				}
+				else{
+					val += 2.0 * ptr1[i]*ptr2[i];
+				}
+			}
+		}
+	}
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return val;
+} 		// -----  end of method PEXSIData::CalculateForce  ----- 
 
 
 
