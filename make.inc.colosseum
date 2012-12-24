@@ -2,14 +2,12 @@
 
 PEXSI_DIR     = /Users/linlin/Projects/pexsi
 DSUPERLU_DIR  = $(HOME)/Documents/Software/SuperLU_DIST_3.2
-PLUSELINV_DIR = ${PEXSI_DIR}/external/PLUSelInv
 
 # inclues
 
 PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
 DSUPERLU_INCLUDE = -I${DSUPERLU_DIR}/SRC
-PLUSELINV_INCLUDE= -I${PLUSELINV_DIR}
-#INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} ${PLUSELINV_INCLUDE}
+#INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} 
 INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} 
 
 # Libraries
@@ -23,10 +21,9 @@ METIS_LIB        = /Users/linlin/Software/parmetis-4.0.2/build/Darwin-x86_64/lib
 PARMETISLIB	     = /Users/linlin/Software/parmetis-4.0.2/build/Darwin-x86_64/libparmetis/libparmetis.a
 SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
 DSUPERLU_LIB     = $(DSUPERLU_DIR)/lib/libsuperlu_dist_3.2.a
-PLUSELINV_LIB    = ${PLUSELINV_DIR}/libpluselinv.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi.a
 
-#LIBS             = ${PEXSI_LIB} ${PLUSELINV_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
+#LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
 LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
 
 CC           = openmpicc 

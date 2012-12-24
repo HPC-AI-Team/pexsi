@@ -1,3 +1,9 @@
+/// @file ex1.cpp
+/// @brief Test subroutine for PEXSI.
+///
+/// This subroutine is obsolete.
+/// @author Lin Lin
+/// @date 2012-10-02
 #include "pexsi.hpp"
 
 using namespace PEXSI;

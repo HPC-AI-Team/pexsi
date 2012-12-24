@@ -38,9 +38,6 @@ private:
 
 	SuperNode             super_;                 // Supernode partition
 
-	std::vector<Real>          muList_;              // chemical potential
-	std::vector<Real>          numElectronList_;     // number of electrons
-
 	DistSparseMatrix<Real>     rhoMat_;                   // Density matrix
 	DistSparseMatrix<Real>     freeEnergyDensityMat_;     // Helmholtz free energy density matrix
 	DistSparseMatrix<Real>     energyDensityMat_;         // Energy density matrix for computing the Pulay force

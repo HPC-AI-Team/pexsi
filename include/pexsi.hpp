@@ -24,23 +24,40 @@ namespace PEXSI{
 ///
 /// @brief Main class for the sequential PEXSI calculation.
 /// 
-/// TODO reorganize PEXSI class so that it is consistent with PPEXSI
+/// TODO Helmholtz free energy and force support
 class PEXSIData{
+private:
+	// *********************************************************************
+	// Computational variables
+	// *********************************************************************
+	std::vector<Complex>  zshift_;      // Complex shift for the pole expansion
+	std::vector<Complex>  zweightRho_;  // Complex weight for the pole expansion for density
+
+	SparseMatrix<Real>    rhoMat_;              // Density matrix
+
+	/// @brief Calculate the new chemical potential based on the history.
+	Real CalculateChemicalPotential( 
+			const Int iter, 
+			const Real numElectronExact, 
+			const Real numElectronTolerance,
+			const std::vector<Real>& muList,
+			const std::vector<Real>& numElectronList );
+
 public:
 	// *********************************************************************
 	// Input parameters
 	// *********************************************************************
-	Real gap;                    // Band gap (in the unit of au)
-	Real temperature;            // Temperature (in the unit of K)
-	Real deltaE;                 // an upperbound of the spectrum width
-	Int  numPole;                // Number of poles for the pole expansion
-	Real poleTolerance;          // Truncation tolerance for the absolute value of the weight
-	Real mu0;                    // initial guess of chemical potential (in the unit of au)
-	Real numElectronExact;       // Exact number of electrons
-
-	Real numElectronTolerance;   // Stopping criterion for the mu iteration 
-	Int  muMaxIter;              // Maximum iteration number for mu
-	Int  permOrder;              // Order of the permutation
+//	Real gap;                    // Band gap (in the unit of au)
+//	Real temperature;            // Temperature (in the unit of K)
+//	Real deltaE;                 // an upperbound of the spectrum width
+//	Int  numPole;                // Number of poles for the pole expansion
+//	Real poleTolerance;          // Truncation tolerance for the absolute value of the weight
+//	Real mu0;                    // initial guess of chemical potential (in the unit of au)
+//	Real numElectronExact;       // Exact number of electrons
+//
+//	Real numElectronTolerance;   // Stopping criterion for the mu iteration 
+//	Int  muMaxIter;              // Maximum iteration number for mu
+//	Int  permOrder;              // Order of the permutation
 
 	/* -order     :   Reordering strategy:
 		 order = -1 (default) : Multiple Minimum Degree Reordering.
@@ -49,47 +66,83 @@ public:
 		 order = 2 : Node Nested Dissection
 		 order = 3 : Edge Nested Dissection  */
 
-	bool isHelmholtz;                           // Whether to compute the Helmholtz free energy
-	bool isForce;                               // Whether to compute the force
+//	bool isHelmholtz;                           // Whether to compute the Helmholtz free energy
+//	bool isForce;                               // Whether to compute the force
 
-
-	// H, S, Rho shares the same sparsity pattern.
-	SparseMatrix<Real>  HMat;                    // Hamiltonian matrix
-	SparseMatrix<Real>  SMat;                    // Overlap matrix
-
-	Real totalEnergy;             // The total energy (linear part)
-	Real totalFreeEnergy;         // The total Helmholtz free energy (linear part)
-
-	// *********************************************************************
-	// Output parameters
-	// *********************************************************************
-	SparseMatrix<Real>  rhoMat;                  // Density matrix
-
-	std::vector<Real> muList;              // chemical potential
-	std::vector<Real> numElectronList;     // number of electrons
-
-
-	// *********************************************************************
-	// Computational variables
-	// *********************************************************************
-
-	std::vector<Complex>  zshift;      // Complex shift for the pole expansion
-	std::vector<Complex>  zweightRho;  // Complex weight for the pole expansion for density
-	std::vector<Complex>  zweightFreeEnergy;  // Complex shift for the pole expansion for Helmholtz free energy
-	std::vector<Complex>  zweightForce;  // Complex weight for the pole expansion for force
-	Int        numPoleUsed;            // Number of poles after truncation
 
 public:
 	PEXSIData(){}
+
 	~PEXSIData() {}
 
-  void Setup();
-	
-	void Solve();
+	/// @brief Solve is the main subroutine for PEXSI.
+	///
+	/// Compute the single particle density matrix, the Helmholtz free
+	/// energy density matrix, and the energy density matrix (for
+	/// computing the Pulay force) simultaneously.   These matrices can be
+	/// called later via member functions DensityMatrix,
+	/// FreeEnergyDensityMatrix, EnergyDensityMatrix.
+	///
+	///
+	///	@param[in] numPole Number of poles for the pole expansion
+	///	@param[in] temperature  Temperature (in the unit of K)
+	///	@param[in] numElectronExact Exact number of electrons
+	/// @param[in] gap Band gap (in the unit of au)
+	/// @param[in] deltaE Upperbound of the spectrum width
+	/// @param[in] mu0 initial guess of chemical potential (in the unit of au)
+	/// @param[in] HMat Hamiltonian matrix saved in compressed sparse
+	/// column format.  See SparseMatrix.  
+	/// @param[in] SMat Overlap matrix saved in compressed sparse column
+	/// format. See SparseMatrix.
+	/// @param[in] muMaxIter Maximum iteration number for chemical
+	/// potential
+	/// @param[in] poleTolerance Skip the pole if weight is too small
+	/// @param[in] numElectronTolerance  Stopping criterion for the mu iteration 
+	/// @param[in] ColPerm   Permutation method used for SelInv. So far
+	/// only MMD_AT_PLUS_A is supported.
+	/// @param[in] isFreeEnergyDensityMatrix Whether to compute the Helmholtz free energy matrix
+	/// @param[in] isEnergyDensityMatrix Whether to compute the energy density matrix for force
+	/// @param[out] muList Convergence history of the chemical potential
+	/// @param[out] numElectronList Convergence history of the number of
+	/// electrons
+	void Solve( 
+			Int  numPole, 
+			Real temperature,
+			Real numElectronExact,
+			Real gap,
+			Real deltaE,
+			Real mu0,
+			const SparseMatrix<Real>&  HMat,
+		 	const SparseMatrix<Real>&  SMat,
+		 	Int  muMaxIter,
+			Real poleTolerance,
+			Real numElectronTolerance,
+			std::string         ColPerm,
+			bool isFreeEnergyDensityMatrix, 
+			bool isEnergyDensityMatrix,
+			std::vector<Real>&	muList,
+			std::vector<Real>&  numElectronList
+			);
 
-	Real ProductTrace	( const DblNumVec& nzval1, const DblNumVec& nzval2 );
+	/// @brief DensityMatrix returns the single particle density matrix.
+	SparseMatrix<Real>& DensityMatrix () { return rhoMat_; }
 
-	Real UpdateChemicalPotential( const Int iter );
+	/// @brief CalculateNumElectron computes the number of electrons given
+	/// the current density matrix.
+	///
+	/// @param[in] SMat overlap matrix.
+	///
+	/// @return The number of electrons Tr[\rho S]
+	Real CalculateNumElectron( const SparseMatrix<Real>& SMat );
+
+	/// @brief CalculateTotalEnergy computes the total energy (band energy
+	/// part only).
+	///
+	/// @param[in] HMat Hamilotian matrix.
+	///
+	/// @return The total energy Tr[ H \rho ]. 
+  Real CalculateTotalEnergy( const SparseMatrix<Real>& HMat );
+
 };
 
 

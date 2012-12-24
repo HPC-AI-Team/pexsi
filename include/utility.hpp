@@ -1317,6 +1317,25 @@ void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat );
 
 void ReadDistSparseMatrix( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
 
+template <class F1, class F2> 
+void
+CopyPattern	( const SparseMatrix<F1>& A, SparseMatrix<F2>& B )
+{
+#ifndef _RELEASE_
+	PushCallStack("CopyPattern");
+#endif
+	B.size        = A.size;
+	B.nnz         = A.nnz;
+	B.colptr      = A.colptr;
+	B.rowind      = A.rowind;
+	B.nzval.Resize( A.nnz );
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return ;
+}		// -----  end of template function CopyPattern  ----- 
+
+
 // TODO Real format
 void
 GetDiagonal ( const DistSparseMatrix<Complex>& A, 
