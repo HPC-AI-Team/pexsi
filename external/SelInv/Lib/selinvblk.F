@@ -417,6 +417,19 @@ C       LL: Initialize the variable, EXTREMELY IMPORTANT!
                  call zgemm('T','N',supsize,supsize,nrows,-zone,
      &                      lnz(ix), ldsupj, ywork(iy), ldy,
      &                      zone, lnz(jx), ldsupj)
+                 ! 
+                 ! SYMMETRIZE THE DIAGONAL BLOCK IS IMPORTANT  
+                 ! FOR STABILITY (LL: 12/18/2012)
+                 !
+                 DO IROW = 1,SUPSIZE-1
+                    DO JCOL = IROW+1,SUPSIZE
+                       LNZ(JX+(JCOL-1)*LDSUPJ+IROW-1) = 
+     &                   0.5d0 * ( LNZ(JX+(IROW-1)*LDSUPJ+JCOL-1) + 
+     &                   LNZ(JX+(JCOL-1)*LDSUPJ+IROW-1) )
+                       LNZ(JX+(IROW-1)*LDSUPJ+JCOL-1) =
+     &                   LNZ(JX+(JCOL-1)*LDSUPJ+IROW-1)
+                    END DO
+                 END DO
               endif
               ix = ix + nrows
               iy = iy + nrows
