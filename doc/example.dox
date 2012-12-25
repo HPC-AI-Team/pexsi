@@ -1,0 +1,29 @@
+/// \page pag_example Example
+///
+/// \section sec_lap2d_seq Sequential example: 2D Laplacian
+///
+/// Description
+/// -----------
+///
+/// `lap2d_seq.csc` stores the matrix of a two dimensional Laplacian
+/// operator with Dirichlet boundary condition on a domain [0,1] *
+/// [0,1], discretized using a five point stencil on a 20 * 20 grid.
+/// Only the lower triangular part and the diagonal part of the matrix
+/// is given as required by SelInv.
+/// 
+/// `identity_seq.csc` stores the identity matrix (as overlap matrix)
+/// which has **exactly the same sparsity pattern** as `lap2d_seq.csc`.
+///
+///
+/// \section sec_lap2d_par Parallel example: 2D Laplacian
+///
+/// Description
+/// -----------
+///
+/// `lap2d_par.csc` stores the matrix of a two dimensional Laplacian
+/// operator with Dirichlet boundary condition on a domain [0,1] *
+/// [0,1], discretized using a five point stencil on a 20 * 20 grid.
+/// All the nonzero matrix elements are saved as required by PSelInv.
+///
+/// `identity_par.csc` stores the identity matrix (as overlap matrix)
+/// which has **exactly the same sparsity pattern** as `lap2d_par.csc`.

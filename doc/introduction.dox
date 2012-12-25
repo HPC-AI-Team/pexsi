@@ -1,0 +1,8 @@
+/// \page pag_introduction Introduction
+///
+/// Pole EXpansion and Selected Inversion for solving Kohn-Sham density
+/// functional theory.
+///
+/// The main function is described in the PEXSI::PMatrix::SelInv
+/// function in the class PEXSI::PMatrix.
+///

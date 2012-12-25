@@ -1,7 +1,11 @@
-/// \mainpage PEXSI Code Documentation
+/// \mainpage Welcome to the documentation of %PEXSI
 /// 
-/// Pole EXpansion and Selected Inversion for solving Kohn-Sham density
-/// functional theory.
+/// - \ref pag_introduction
+/// - \ref pag_install
+///   + \ref sec_dependency
+///   + \ref sec_build
+/// - \ref pag_example
+///   + \ref sec_lap2d_seq
+///   + \ref sec_lap2d_par
 ///
-/// The main function is described in the PEXSI::PMatrix::SelInv
-/// function in the class PEXSI::PMatrix.
+///

@@ -352,47 +352,34 @@ Int inline deserialize(UBlock& val, std::istream& is, const std::vector<Int>& ma
 ///   
 ///   Symbolic information
 ///
-///
-///   \code{.cpp}
-///   SuperNode super; 
-///   PMatrix PMloc;
-///   luMat.SymbolicToSuperNode( super );  
-///   \endcode
-///
+///       SuperNode super; 
+///       PMatrix PMloc;
+///       luMat.SymbolicToSuperNode( super );  
 ///   
 ///   Numerical information, both L and U.
 ///
-///   \code{.cpp}
-///   luMat.LUstructToPMatrix( PMloc ); 
-///   \endcode
+///       luMat.LUstructToPMatrix( PMloc ); 
 ///
 /// - Preparation.
 ///
 ///   Construct the communication pattern for SelInv.
 ///
-///   \code{.cpp}
-///   PMloc.ConstructCommunicationPattern(); 
-///   \endcode
+///       PMloc.ConstructCommunicationPattern(); 
 ///   
 ///   Numerical preparation so that SelInv only involves Gemm.
-///   \code{.cpp}
-///   PMloc.PreSelInv();  
-///   \endcode
+///
+///       PMloc.PreSelInv();  
 ///
 /// - Selected inversion.
 ///
-///   \code{.cpp}
-///   PMloc.SelInv();
-///   \endcode
+///       PMloc.SelInv();
 ///
 /// - Postprocessing.
 ///
 ///   Get the information in DistSparseMatrix format 
 ///
-///   \code{.cpp}
-///   DistSparseMatrix<Scalar> Ainv;
-///   PMloc.PMatrixToDistSparseMatrix( Ainv );  
-///   \endcode
+///       DistSparseMatrix<Scalar> Ainv;
+///       PMloc.PMatrixToDistSparseMatrix( Ainv );  
 ///
 /// Note
 /// ----
