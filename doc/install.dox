@@ -1,4 +1,5 @@
 /// \page pag_install Installation
+/// \tableofcontents
 ///
 /// \section sec_dependency Dependencies
 ///
@@ -91,3 +92,6 @@
 ///     make
 ///
 /// For running the test examples, see \ref pag_example.
+///
+/// \attention The `tests` folder are for developing purpose, and not
+/// all test subroutines are readily to be compiled.

@@ -85,6 +85,7 @@ public:
 	/// @param[in] isEnergyDensityMatrix Whether to compute the energy density matrix for force
 	/// @param[out] muList Convergence history of the chemical potential
 	/// @param[out] numElectronList Convergence history of the number of
+	/// @param[out] isConverged Whether PEXSI has converged.
 	/// electrons
 	void Solve( 
 			Int  numPole, 
@@ -102,7 +103,8 @@ public:
 			bool isFreeEnergyDensityMatrix, 
 			bool isEnergyDensityMatrix,
 			std::vector<Real>&	muList,
-			std::vector<Real>&  numElectronList
+			std::vector<Real>&  numElectronList,
+			bool&               isConverged
 			);
 			
 

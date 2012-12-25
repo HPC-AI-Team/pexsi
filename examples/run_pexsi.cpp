@@ -1,9 +1,8 @@
 /// @file run_pexsi.cpp
 /// @brief Test for the PEXSI module using SelInv.
 ///
-/// This is an updated version for ex1.cpp.
 /// @author Lin Lin
-/// @date 2012-12-23
+/// @date 2012-12-24
 #include "pexsi.hpp"
 
 using namespace PEXSI;
@@ -11,13 +10,15 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "ex17 -mu0 [mu0] -numel [numel] -numPole [numPole] -deltaE [deltaE] -H [Hfile] -S [Sfile] -muiter [muiter]" << std::endl
-		<< "mu0:    Initial guess for chemical potential" << std::endl
-		<< "numel:  Exact number of electrons (spin-restricted)" << std::endl
+		<< "run_pexsi -temp [temp] -mu0 [mu0] -numel [numel] -numPole [numPole] -deltaE [deltaE] -gap [gap] -H [Hfile] -S [Sfile] -muiter [muiter]" << std::endl
+		<< "temp:    Temperature (unit: K)" << std::endl
+		<< "mu0:     Initial guess for chemical potential" << std::endl
+		<< "numel:   Exact number of electrons (spin-restricted)" << std::endl
 		<< "numPole: Number of poles." << std::endl
-		<< "deltaE: guess for the width of the spectrum of H-mu S" << std::endl
-		<< "H: Hamiltonian matrix (csc format, both lower triangular and upper triangular)" << std::endl
-		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular)" << std::endl
+		<< "deltaE:  guess for the width of the spectrum of H-mu S" << std::endl
+		<< "gap:     guess for the distance betweeen the spectrum and mu" << std::endl
+		<< "H: Hamiltonian matrix (csc format, lower triangular only)" << std::endl
+		<< "S: Overlap     matrix (csc format, lower triangular only)" << std::endl
 	  << "muiter:  number of iterations for the chemical potential" << std::endl;
 }
 
@@ -29,7 +30,7 @@ int main(int argc, char **argv)
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
 
-	if( argc < 15 || argc%2 == 0 ) {
+	if( argc < 19 || argc%2 == 0 ) {
 		if( mpirank == 0 ) Usage();
 		MPI_Finalize();
 		return 0;
@@ -49,8 +50,6 @@ int main(int argc, char **argv)
 		std::map<std::string,std::string> options;
 		OptionsCreate(argc, argv, options);
 		
-		Real gap              = 0.0;
-		Real temperature      = 300;
 		Real poleTolerance    = 1e-12;
 		Real numElectronTolerance = 1e-4;
 
@@ -65,6 +64,14 @@ int main(int argc, char **argv)
 ////		pexsiData.deltaE           = 20.0;
 //
 //
+		Real temperature;
+		if( options.find("-temp") != options.end() ){
+			temperature = std::atof(options["-temp"].c_str());
+		}
+		else{
+      throw std::logic_error("temp must be provided.");
+		}
+
 		Real mu0;
 		if( options.find("-mu0") != options.end() ){
 			mu0 = std::atof(options["-mu0"].c_str());
@@ -97,6 +104,15 @@ int main(int argc, char **argv)
 		else{
       throw std::logic_error("deltaE must be provided.");
 		}
+
+		Real gap;
+    if( options.find("-gap") != options.end() ){
+			gap = std::atof(options["-gap"].c_str());
+		}
+		else{
+      throw std::logic_error("gap must be provided.");
+		}
+
 
 		std::string Hfile, Sfile;                   
 		if( options.find("-H") != options.end() ){ 
@@ -196,10 +212,12 @@ int main(int argc, char **argv)
 		// *********************************************************************
 		std::vector<Real>  muList;
 		std::vector<Real>  numElectronList;
-		
+	  bool isConverged;	
+
 		Real timeSolveSta, timeSolveEnd;
 
 		GetTime( timeSolveSta );
+		
 		pexsi.Solve( 
 				numPole,
 				temperature,
@@ -216,12 +234,24 @@ int main(int argc, char **argv)
 				isFreeEnergyDensityMatrix,
 				isEnergyDensityMatrix,
 				muList,
-				numElectronList );
+				numElectronList,
+			  isConverged	);
 
 		GetTime( timeSolveEnd );
 
-		statusOFS << "Time for solving the PEXSI is " <<
-			timeSolveEnd - timeSolveSta << " [s]" << std::endl;
+		PrintBlock( statusOFS, "Solve finished." );
+		if( isConverged ){
+			statusOFS << "PEXSI has converged with " << muList.size() << 
+				" iterations" << std::endl;
+		}
+		else {
+			statusOFS << "PEXSI did not converge with " << muList.size() << 
+				" iterations" << std::endl;
+		}
+		Print( statusOFS, "mu                   = ", 
+				*muList.rbegin() );
+		Print( statusOFS, "Total time for PEXSI = ", 
+				timeSolveEnd - timeSolveSta );
 
 		statusOFS.close();
 	}

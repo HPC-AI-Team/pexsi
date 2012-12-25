@@ -16,8 +16,8 @@ void Usage(){
 		<< "numel:  Exact number of electrons (spin-restricted)" << std::endl
 		<< "numPole: Number of poles." << std::endl
 		<< "deltaE: guess for the width of the spectrum of H-mu S" << std::endl
-		<< "H: Hamiltonian matrix (csc format, both lower triangular and upper triangular)" << std::endl
-		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular)" << std::endl
+		<< "H: Hamiltonian matrix (csc format, lower triangular only)" << std::endl
+		<< "S: Overlap     matrix (csc format, lower triangular only)" << std::endl
 	  << "muiter:  number of iterations for the chemical potential" << std::endl;
 }
 

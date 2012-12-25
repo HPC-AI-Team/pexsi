@@ -17,7 +17,6 @@ tic
 	nzval = zeros( nnzA, 1 );
 	cnt = 1;
 	for i = 1 : nnzA 
-		cnt
 		if( i == colptr( cnt + 1 ) )
 			cnt = cnt + 1;
 		end

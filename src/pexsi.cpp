@@ -82,7 +82,8 @@ void PEXSIData::Solve(
 		bool isFreeEnergyDensityMatrix, 
 		bool isEnergyDensityMatrix,
 		std::vector<Real>&	muList,
-		std::vector<Real>&  numElectronList
+		std::vector<Real>&  numElectronList,
+		bool&               isConverged
 		){
 #ifndef _RELEASE_
 	PushCallStack("PEXSIData::Solve");
@@ -101,6 +102,7 @@ void PEXSIData::Solve(
 	// *********************************************************************
 	// Initialize
 	// *********************************************************************
+	isConverged = false;
 	muList.clear();
 	numElectronList.clear();
 
@@ -416,19 +418,22 @@ void PEXSIData::Solve(
 		if( isFreeEnergyDensityMatrix )
 			Print( statusOFS, "Total free energy           = ", totalFreeEnergy );
 
-		if( std::abs( numElectronExact - numElectronList[iter] ) <
-				numElectronTolerance ){
-			break;
-		}
-
-		muNow = CalculateChemicalPotential( 
-				iter, numElectronExact, numElectronTolerance,
-				muList, numElectronList );
-
 		GetTime( timeMuEnd );
 
 		statusOFS << std::endl << "Time for mu iteration " << iter << " is " <<
 			timeMuEnd - timeMuSta << " [s]" << std::endl << std::endl;
+
+		if( std::abs( numElectronExact - numElectronList[iter] ) <
+				numElectronTolerance ){
+			isConverged = true;
+			break;
+		}
+
+		// Update the chemical potential
+		muNow = CalculateChemicalPotential( 
+				iter, numElectronExact, numElectronTolerance,
+				muList, numElectronList );
+
 	} // for ( iteration of the chemical potential )
 
 #ifndef _RELEASE_

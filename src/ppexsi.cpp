@@ -124,7 +124,8 @@ void PPEXSIData::Solve(
 		bool isFreeEnergyDensityMatrix, 
 		bool isEnergyDensityMatrix,
 		std::vector<Real>&	muList,
-		std::vector<Real>&  numElectronList
+		std::vector<Real>&  numElectronList,
+		bool&               isConverged
 		){
 #ifndef _RELEASE_
 	PushCallStack("PPEXSIData::Solve");
@@ -148,6 +149,7 @@ void PPEXSIData::Solve(
 	// *********************************************************************
 	muList.clear();
 	numElectronList.clear();
+	isConverged = false;
 
 	DistSparseMatrix<Complex>  AMat;              // A = H - z * S
 	// rename for convenience
@@ -502,19 +504,23 @@ void PPEXSIData::Solve(
 		if( isFreeEnergyDensityMatrix )
 			Print( statusOFS, "Total free energy           = ", totalFreeEnergy );
 
+		GetTime( timeMuEnd );
+
+		statusOFS << std::endl << "Time for mu iteration " << iter << " is " <<
+			timeMuEnd - timeMuSta << " [s]" << std::endl << std::endl;
+
 		if( std::abs( numElectronExact - numElectronList[iter] ) <
 				numElectronTolerance ){
+			isConverged = true;
 			break;
 		}
+
+		// Update the chemical potential
 
 		muNow = CalculateChemicalPotential( 
 				iter, numElectronExact, numElectronTolerance,
 				muList, numElectronList );
 
-		GetTime( timeMuEnd );
-
-		statusOFS << std::endl << "Time for mu iteration " << iter << " is " <<
-			timeMuEnd - timeMuSta << " [s]" << std::endl << std::endl;
 	} // for ( iteration of the chemical potential )
 
 #ifndef _RELEASE_
