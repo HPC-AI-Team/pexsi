@@ -59,10 +59,12 @@
 /// .bashrc)
 ///
 ///     export HOSTID=<hostid> 
+///     export PEXSI_DIR = <directory>
 ///
 /// If you use csh, use
 ///
 ///     setenv HOSTID <hostid>
+///     setenv PEXSI_DIR = <directory>
 ///
 /// Edit the variables in make.inc.<hostid> to your directory
 ///

@@ -24,8 +24,8 @@
 /// Assume the number of electrons (Ne) is 20, and the temperature (T) is
 /// 300K.  
 ///
-///     $ ${PEXSI_DIR}/examples/run_pexsi -temp 300 -mu0 0.16 -numel
-///     20 -numPole 80 -deltaE 10 -gap 0 -H lap2d_seq.csc -S
+///     $ aprun -n 1 ${PEXSI_DIR}/examples/run_pexsi -temp 300 -mu0 0.16
+///     -numel 20 -numPole 80 -deltaE 10 -gap 0 -H lap2d_seq.csc -S
 ///     identity_seq.csc -muiter 30
 ///
 /// would generate a log file `logPEXSI0`.
@@ -38,7 +38,7 @@
 ///
 ///     PEXSI has converged with 7 iterations
 ///     mu                   = +1.71461149e-01 
-///     Total time for PEXSI = +7.36871004e-01 
+///     Total time for PEXSI = +1.06287694e+00
 /// 
 /// Compare with the true chemical potential 1.714611991618183e-01, the
 /// error is in the order of 1e-8.
@@ -67,9 +67,9 @@
 ///
 /// Run the parallel code sequentially:
 ///     
-///     $ ${PEXSI_DIR}/examples/run_ppexsi -temp 300 -mu0 0.16 -numel 20
-///     -numPole 80 -deltaE 10 -gap 0 -H lap2d_seq.csc -S
-///     identity_seq.csc -npPerPole 1 -colperm MMD_AT_PLUS_A -muiter 30
+///     $ aprun -n 1 ${PEXSI_DIR}/examples/run_ppexsi -temp 300 -mu0
+///     0.16 -numel 20 -numPole 80 -deltaE 10 -gap 0 -H lap2d_par.csc -S
+///     identity_par.csc -npPerPole 1 -colperm MMD_AT_PLUS_A -muiter 30
 ///
 /// Check the log file (only `logPEXSI0` is generated)
 ///
@@ -81,16 +81,16 @@
 ///
 ///     PEXSI has converged with 7 iterations
 ///     mu                   = +1.71461149e-01 
-///     Total time for PEXSI = +4.23133183e+00 
+///     Total time for PEXSI = +5.31659794e+00 
 ///
-/// Run the parallel code with 4 processors working on different poles:
+/// Run the parallel code with 16 processors and each processor work
+/// with one pole at a time:
 ///
-///     $ openmpirun -n 4 ${PEXSI_DIR}/examples/run_ppexsi -temp 300
-///     -mu0 0.16 -numel 20 -numPole 80 -deltaE 10 -gap 0 -H
-///     lap2d_seq.csc -S identity_seq.csc -npPerPole 1 -colperm
-///     MMD_AT_PLUS_A -muiter 30
+///     $ aprun -n 16 ${PEXSI_DIR}/examples/run_ppexsi -temp 300 -mu0
+///     0.16 -numel 20 -numPole 80 -deltaE 10 -gap 0 -H lap2d_par.csc -S
+///     identity_par.csc -npPerPole 1 -colperm MMD_AT_PLUS_A -muiter 30
 ///
-/// Check the log file (4 log files `logPEXSI0`--`logPEXSI4` are
+/// Check the log file (16 log files `logPEXSI0`--`logPEXSI15` are
 /// generated)
 ///
 ///     $ tail logPEXSI0 
@@ -101,16 +101,16 @@
 ///
 ///     PEXSI has converged with 7 iterations
 ///     mu                   = +1.71461149e-01 
-///     Total time for PEXSI = +6.47344685e+00 
+///     Total time for PEXSI = +7.59212971e-01 
 ///
-/// Run the parallel code with 4 processors working on each pole:
+/// Run the parallel code with 16 processors working with 4 processors
+/// working on each pole.
 ///
-///     $ openmpirun -n 4 ${PEXSI_DIR}/examples/run_ppexsi -temp 300
-///     -mu0 0.16 -numel 20 -numPole 80 -deltaE 10 -gap 0 -H
-///     lap2d_seq.csc -S identity_seq.csc -npPerPole 4 -colperm
-///     MMD_AT_PLUS_A -muiter 30
+///     $ aprun -n 16 ${PEXSI_DIR}/examples/run_ppexsi -temp 300 -mu0
+///     0.16 -numel 20 -numPole 80 -deltaE 10 -gap 0 -H lap2d_par.csc -S
+///     identity_par.csc -npPerPole 4 -colperm MMD_AT_PLUS_A -muiter 30
 ///
-/// Check the log file (4 log files `logPEXSI0`--`logPEXSI4` are
+/// Check the log file (16 log files `logPEXSI0`--`logPEXSI15` are
 /// generated)
 ///
 ///     $ tail logPEXSI0 
@@ -121,7 +121,10 @@
 ///
 ///     PEXSI has converged with 7 iterations
 ///     mu                   = +1.71461149e-01 
-///     Total time for PEXSI = +6.47344685e+00 
+///     Total time for PEXSI = +2.24112701e+00 
+///
+/// Note: The fact that the strong scaling is not preferable in this
+/// case is mainly due to the small size of the system.
 ///
 /// \section sec_generate_matrix Generate test matrices
 ///
@@ -178,8 +181,8 @@
 /// Convert to the parallel code format
 /// -----------------------------------
 ///
-///     >> [colptr,rowind,~]=WriteSparseMatrixLU(lap2d,'lap2d_seq.csc');
-///     >> WriteSparseMatrixLU2(speye(size(lap2d)),'identity_seq.csc',colptr,rowind);
+///     >> [colptr,rowind,~]=WriteSparseMatrixLU(lap2d,'lap2d_par.csc');
+///     >> WriteSparseMatrixLU2(speye(size(lap2d)),'identity_par.csc',colptr,rowind);
 ///
 ///
     
