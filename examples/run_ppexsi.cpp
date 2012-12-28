@@ -290,6 +290,7 @@ int main(int argc, char **argv)
 		// *********************************************************************
 		std::vector<Real>  muList;
 		std::vector<Real>  numElectronList;
+		std::vector<Real>  numElectronDrvList;
 	  bool isConverged;	
 		
 		Real timeSolveSta, timeSolveEnd;
@@ -312,6 +313,7 @@ int main(int argc, char **argv)
 				isEnergyDensityMatrix,
 				muList,
 				numElectronList,
+				numElectronDrvList,
 			  isConverged	);
 
 		GetTime( timeSolveEnd );

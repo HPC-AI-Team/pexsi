@@ -49,7 +49,7 @@ PPEXSIData::~PPEXSIData	(  )
 } 		// -----  end of method PPEXSIData::~PPEXSIData  ----- 
 
 
-Real PPEXSIData::CalculateChemicalPotential	( 
+Real PPEXSIData::CalculateChemicalPotentialNewtonFD ( 
 			const Int iter, 
 			const Real numElectronExact, 
 			const Real numElectronTolerance, 
@@ -57,7 +57,7 @@ Real PPEXSIData::CalculateChemicalPotential	(
 			const std::vector<Real>& numElectronList )
 {
 #ifndef _RELEASE_
-	PushCallStack("PPEXSIData::CalculateChemicalPotential");
+	PushCallStack("PPEXSIData::CalculateChemicalPotentialNewtonFD");
 #endif
   // FIXME Magic number here
 	Real  muMin = -5.0, muMax = 5.0, muMinStep = 0.01;;
@@ -104,8 +104,76 @@ Real PPEXSIData::CalculateChemicalPotential	(
 #endif
 
 	return muNew;
-} 		// -----  end of method PPEXSIData::CalculateChemicalPotential  ----- 
+} 		// -----  end of method PPEXSIData::CalculateChemicalPotentialNewtonFD  ----- 
 
+Real PPEXSIData::CalculateChemicalPotentialNewton ( 
+			const Int iter, 
+			const Real numElectronExact, 
+			const Real numElectronTolerance, 
+			const std::vector<Real>& muList,
+			const std::vector<Real>& numElectronList,
+		  const std::vector<Real>& numElectronDrvList	)
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::CalculateChemicalPotentialNewton");
+#endif
+  // FIXME Magic number here
+	Real  muMin = -5.0, muMax = 5.0, muMinStep = 0.01;;
+	Real  muNew;
+
+	if( iter == 0 ){
+		if( numElectronExact > numElectronList[iter] ){
+			muNew = muList[iter] + muMinStep;
+		}
+		else{
+			muNew = muList[iter] - muMinStep;
+		}
+	}
+	else{
+		if( std::abs(numElectronList[iter] -  numElectronList[iter-1])
+		    < numElectronTolerance ){
+			statusOFS << "The number of electrons did not change." << std::endl;
+			if( numElectronExact > numElectronList[iter] ){
+				muNew = muList[iter] + muMinStep;
+			}
+			else{
+				muNew = muList[iter] - muMinStep;
+			}
+		}
+		else {
+			muNew = muList[iter] - ( numElectronList[iter] - numElectronExact ) / 
+				numElectronDrvList[iter];
+			if( muNew < muMin || muNew > muMax ){
+				statusOFS << "muNew = " << muNew << " is out of bound ["
+					<< muMin << ", " << muMax << "]" << std::endl;
+				if( numElectronExact > numElectronList[iter] ){
+					muNew = muList[iter] + muMinStep;
+				}
+				else{
+					muNew = muList[iter] - muMinStep;
+				}
+			}
+		} // if ( numElectron changed )
+	} // if (iter == 0)
+
+
+//	Real  muNew;
+//
+//	Real  muNow         = muList[iter];
+//	Real  numElecNow    = numElectronList[iter];
+//	Real  numElecDrvNow = numElectronDrvList[iter];
+//	Real  resNumElec    = numElecNow - numElectronExact;
+//	Real  lambda        = 0.01;
+//
+//	muNew = muNow - numElecDrvNow * resNumElec / 
+//		( numElecDrvNow * numElecDrvNow + lambda );
+	
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return muNew;
+} 		// -----  end of method PPEXSIData::CalculateChemicalPotentialNewton  ----- 
 
 // Main subroutine for the electronic structure calculation
 void PPEXSIData::Solve( 
@@ -125,6 +193,7 @@ void PPEXSIData::Solve(
 		bool isEnergyDensityMatrix,
 		std::vector<Real>&	muList,
 		std::vector<Real>&  numElectronList,
+		std::vector<Real>&  numElectronDrvList,
 		bool&               isConverged
 		){
 #ifndef _RELEASE_
@@ -154,12 +223,14 @@ void PPEXSIData::Solve(
 	DistSparseMatrix<Complex>  AMat;              // A = H - z * S
 	// rename for convenience
 	DistSparseMatrix<Real>& rhoMat       = rhoMat_;     
+	DistSparseMatrix<Real>& rhoDrvMat    = rhoDrvMat_;
 	DistSparseMatrix<Real>& hmzMat       = freeEnergyDensityMat_;
-	DistSparseMatrix<Real>& frcMat     = energyDensityMat_;
+	DistSparseMatrix<Real>& frcMat       = energyDensityMat_;
 
 	// Copy the pattern
 	CopyPattern( HMat, AMat );
 	CopyPattern( HMat, rhoMat );
+	CopyPattern( HMat, rhoDrvMat );
 	if( isFreeEnergyDensityMatrix )
 		CopyPattern( HMat, hmzMat );
 	if( isEnergyDensityMatrix )
@@ -194,6 +265,7 @@ void PPEXSIData::Solve(
 
 	Real muNow = mu0;
 	Real numElectronNow;
+	Real numElectronDrvNow;
 
 	Real timeMuSta, timeMuEnd;
 
@@ -209,6 +281,7 @@ void PPEXSIData::Solve(
 
 		// Reinitialize the variables
 		SetValue( rhoMat.nzvalLocal, 0.0 );
+		SetValue( rhoDrvMat.nzvalLocal, 0.0 );
 		if( isFreeEnergyDensityMatrix )
 			SetValue( hmzMat.nzvalLocal, 0.0 );
 		if( isEnergyDensityMatrix )
@@ -220,8 +293,13 @@ void PPEXSIData::Solve(
 		//Initialize the pole expansion
 		zshift_.resize( numPole );
 		zweightRho_.resize( numPole );
+		
+		zweightRhoDrv_.resize( numPole );
 
 		GetPoleDensity( &zshift_[0], &zweightRho_[0],
+				numPole, temperature, gap, deltaE, muNow ); 
+
+		GetPoleDensityDerivative( &zshift_[0], &zweightRhoDrv_[0],
 				numPole, temperature, gap, deltaE, muNow ); 
 
 		if( isFreeEnergyDensityMatrix ){
@@ -270,12 +348,15 @@ void PPEXSIData::Solve(
 
 		std::vector<Complex>  zshiftSort( numPole );
 		std::vector<Complex>  zweightRhoSort( numPole );
+		std::vector<Complex>  zweightRhoDrvSort( numPole );
 		for( Int i = 0; i < numPole; i++ ){
-			zshiftSort[i]     = zshift_[sortIdx[i]];
-			zweightRhoSort[i] = zweightRho_[sortIdx[i]];
+			zshiftSort[i]        = zshift_[sortIdx[i]];
+			zweightRhoSort[i]    = zweightRho_[sortIdx[i]];
+			zweightRhoDrvSort[i] = zweightRhoDrv_[sortIdx[i]]; 
 		}
-		zshift_     = zshiftSort;
-		zweightRho_ = zweightRhoSort;
+		zshift_        = zshiftSort;
+		zweightRho_    = zweightRhoSort;
+		zweightRhoDrv_ = zweightRhoDrvSort;
 
 		if( isFreeEnergyDensityMatrix ){
 			std::vector<Complex>  zweightHelmholtzSort( numPole );
@@ -297,6 +378,7 @@ void PPEXSIData::Solve(
 		statusOFS << "sorted indicies (according to |weightRho|) " << std::endl << sortIdx << std::endl;
 		statusOFS << "sorted zshift" << std::endl << zshift_ << std::endl;
 		statusOFS << "sorted zweightRho" << std::endl << zweightRho_ << std::endl;
+		statusOFS << "sorted zweightRhoDrv" << std::endl << zweightRhoDrv_ << std::endl;
 		if( isFreeEnergyDensityMatrix )
 			statusOFS << "sorted zweightHelmholtz" << std::endl << zweightHelmholtz_ << std::endl;
 		if( isEnergyDensityMatrix )
@@ -316,6 +398,7 @@ void PPEXSIData::Solve(
 #if ( _DEBUGlevel_ >= 0 )
 				statusOFS << "zshift           = " << zshift_[l] << std::endl;
 				statusOFS	<< "zweightRho       = " << zweightRho_[l] << std::endl;
+				statusOFS	<< "zweightRhoDrv    = " << zweightRhoDrv_[l] << std::endl;
 				if( isFreeEnergyDensityMatrix )
 					statusOFS << "zweightHelmholtz = " << zweightHelmholtz_[l] << std::endl;
 				if( isEnergyDensityMatrix )
@@ -416,6 +499,13 @@ void PPEXSIData::Solve(
 					blas::Axpy( rhoMat.nnzLocal, zweightRho_[l].imag(), AinvMatRealPtr, 2,
 							rhoMat.nzvalLocal.Data(), 1 );
 
+					// Derivative of the Fermi-Dirac
+					blas::Axpy( rhoDrvMat.nnzLocal, zweightRhoDrv_[l].real(), AinvMatImagPtr, 2, 
+							rhoDrvMat.nzvalLocal.Data(), 1 );
+					blas::Axpy( rhoDrvMat.nnzLocal, zweightRhoDrv_[l].imag(), AinvMatRealPtr, 2,
+							rhoDrvMat.nzvalLocal.Data(), 1 );
+
+					// Free energy density matrix
 					if( isFreeEnergyDensityMatrix ){
 						blas::Axpy( hmzMat.nnzLocal, zweightHelmholtz_[l].real(), AinvMatImagPtr, 2,
 								hmzMat.nzvalLocal.Data(), 1 );
@@ -423,6 +513,7 @@ void PPEXSIData::Solve(
 								hmzMat.nzvalLocal.Data(), 1 );
 					}
 
+					// Energy density matrix
 					if( isEnergyDensityMatrix ){
 						blas::Axpy( frcMat.nnzLocal, zweightForce_[l].real(), AinvMatImagPtr, 2,
 								frcMat.nzvalLocal.Data(), 1 );
@@ -436,20 +527,6 @@ void PPEXSIData::Solve(
 					statusOFS << "Time for postprocessing is " <<
 						timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
 				}
-
-				// Compute the contribution to the number of electrons for each pole
-#if ( _DEBUGlevel_ >= 0 )
-				Real numElecLocal = 
-					numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-							1, rhoMat_.nzvalLocal.Data(), 1 );
-
-				Real numElec;
-				mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, gridPole_->comm ); 
-
-				statusOFS << std::endl << "numElecLocal = " << numElecLocal << std::endl;
-				statusOFS << "numElecTotal = " << numElec << std::endl << std::endl;
-#endif
-
 				GetTime( timePoleEnd );
 
 				statusOFS << "Time for pole " << l << " is " <<
@@ -465,6 +542,12 @@ void PPEXSIData::Solve(
 		
 		mpi::Allreduce( nzvalRhoMatLocal.Data(), rhoMat.nzvalLocal.Data(),
 				rhoMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+
+		DblNumVec nzvalRhoDrvMatLocal = rhoDrvMat.nzvalLocal;
+		SetValue( rhoDrvMat.nzvalLocal, 0.0 );
+
+		mpi::Allreduce( nzvalRhoDrvMatLocal.Data(), rhoDrvMat.nzvalLocal.Data(),
+				rhoDrvMat.nnzLocal, MPI_SUM, gridPole_->colComm );
 
 		if( isFreeEnergyDensityMatrix ){
 			DblNumVec nzvalHmzMatLocal = hmzMat.nzvalLocal;
@@ -486,6 +569,8 @@ void PPEXSIData::Solve(
 		// energy, and optimally the helmholtz free energy
 
 		numElectronNow = CalculateNumElectron( SMat );
+		
+		numElectronDrvNow = CalculateNumElectronDrv( SMat );
 
     Real totalEnergy = CalculateTotalEnergy( HMat );
 		
@@ -495,10 +580,12 @@ void PPEXSIData::Solve(
 
 		muList.push_back(muNow);
 		numElectronList.push_back( numElectronNow );
+		numElectronDrvList.push_back( numElectronDrvNow );
 
 		statusOFS << std::endl;
 		Print( statusOFS, "Number of poles computed    = ", numPoleComputed );
 		Print( statusOFS, "Computed number of electron = ", numElectronNow );
+		Print( statusOFS, "Derivative of # electron    = ", numElectronDrvNow );
 		Print( statusOFS, "Exact number of electron    = ", numElectronExact );
 		Print( statusOFS, "Total energy                = ", totalEnergy );
 		if( isFreeEnergyDensityMatrix )
@@ -517,9 +604,9 @@ void PPEXSIData::Solve(
 
 		// Update the chemical potential
 
-		muNow = CalculateChemicalPotential( 
+		muNow = CalculateChemicalPotentialNewton( 
 				iter, numElectronExact, numElectronTolerance,
-				muList, numElectronList );
+				muList, numElectronList, numElectronDrvList );
 
 	} // for ( iteration of the chemical potential )
 
@@ -557,6 +644,30 @@ PPEXSIData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
 	return numElec;
 } 		// -----  end of method PPEXSIData::CalculateNumElectron  ----- 
 
+Real
+PPEXSIData::CalculateNumElectronDrv	( const DistSparseMatrix<Real>& SMat )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::CalculateNumElectronDrv");
+#endif
+	Real numElecDrvLocal = 0.0, numElecDrv = 0.0;
+	
+	// TODO Check SMat and rhoDrvMat has the same sparsity
+
+	numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+			1, rhoDrvMat_.nzvalLocal.Data(), 1 );
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << std::endl << "numElecDrvLocal = " << numElecDrvLocal << std::endl;
+#endif
+
+	mpi::Allreduce( &numElecDrvLocal, &numElecDrv, 1, MPI_SUM, rhoDrvMat_.comm ); 
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return numElecDrv;
+} 		// -----  end of method PPEXSIData::CalculateNumElectronDrv  ----- 
 
 Real
 PPEXSIData::CalculateTotalEnergy	( const DistSparseMatrix<Real>& HMat )

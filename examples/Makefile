@@ -29,7 +29,7 @@ run_pexsi.o: run_pexsi.cpp
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 run_ppexsi: run_ppexsi.o ${PEXSI_LIB} ${PLUSELINV_LIB}
-	($(LOADER) -o $@ run_ppexsi.o  $(LOADOPTS) )
+	($(LOADER) -o $@ run_ppexsi.o  $(LOADOPTS) $(IPM))
 
 run_ppexsi.o: run_ppexsi.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 

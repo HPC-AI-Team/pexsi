@@ -29,6 +29,7 @@ private:
 
 	std::vector<Complex>  zshift_;      // Complex shift for the pole expansion
 	std::vector<Complex>  zweightRho_;  // Complex weight for the pole expansion for density
+	std::vector<Complex>  zweightRhoDrv_;  // Complex weight for the pole expansion for derivative of the Fermi-Dirac
 	std::vector<Complex>  zweightHelmholtz_;  // Complex shift for the pole expansion for Helmholtz free energy
 	std::vector<Complex>  zweightForce_;  // Complex weight for the pole expansion for force
 
@@ -38,20 +39,33 @@ private:
 
 	SuperNode             super_;                 // Supernode partition
 
-	DistSparseMatrix<Real>     rhoMat_;                   // Density matrix
+	DistSparseMatrix<Real>     rhoMat_;                   // Density matrix 
+	DistSparseMatrix<Real>     rhoDrvMat_;                // Derivative of the Fermi-Dirac
 	DistSparseMatrix<Real>     freeEnergyDensityMat_;     // Helmholtz free energy density matrix
 	DistSparseMatrix<Real>     energyDensityMat_;         // Energy density matrix for computing the Pulay force
 
 	// *********************************************************************
 	// Member functions
 	// *********************************************************************
-	/// @brief Calculate the new chemical potential based on the history.
-	Real CalculateChemicalPotential( 
+	/// @brief Calculate the new chemical potential using the Newton's
+	/// method with finite difference calculation of the derivative.
+	Real CalculateChemicalPotentialNewtonFD( 
 			const Int iter, 
 			const Real numElectronExact, 
 			const Real numElectronTolerance,
 			const std::vector<Real>& muList,
 			const std::vector<Real>& numElectronList );
+
+	/// @brief Calculate the new chemical potential using the Newton's
+	/// method with analytical derivative.
+	Real CalculateChemicalPotentialNewton( 
+			const Int iter, 
+			const Real numElectronExact, 
+			const Real numElectronTolerance,
+			const std::vector<Real>& muList,
+			const std::vector<Real>& numElectronList,
+		  const std::vector<Real>& numElectronDrvList	);
+
 
 public:
 	PPEXSIData( const PEXSI::Grid* g, Int nprow, Int npcol );
@@ -85,8 +99,10 @@ public:
 	/// @param[in] isEnergyDensityMatrix Whether to compute the energy density matrix for force
 	/// @param[out] muList Convergence history of the chemical potential
 	/// @param[out] numElectronList Convergence history of the number of
-	/// @param[out] isConverged Whether PEXSI has converged.
 	/// electrons
+	/// @param[out] numElectronDrvList Convergence history of the
+	/// derivative of electrons
+	/// @param[out] isConverged Whether PEXSI has converged.
 	void Solve( 
 			Int  numPole, 
 			Real temperature,
@@ -104,6 +120,7 @@ public:
 			bool isEnergyDensityMatrix,
 			std::vector<Real>&	muList,
 			std::vector<Real>&  numElectronList,
+			std::vector<Real>&  numElectronDrvList,
 			bool&               isConverged
 			);
 			
@@ -127,6 +144,14 @@ public:
 	/// @return The number of electrons Tr[\rho S]
 	Real CalculateNumElectron( const DistSparseMatrix<Real>& SMat );
 
+	/// @brief CalculateNumElectronDrv computes the derivative of the
+	/// number of electrons given the current density matrix with respect
+	/// to the chemical potential.
+	///
+	/// @param[in] SMat overlap matrix.
+	///
+	/// @return The derivative of the number of electrons Tr[f'(H-\muS) S]
+	Real CalculateNumElectronDrv( const DistSparseMatrix<Real>& SMat );
 
 	/// @brief CalculateTotalEnergy computes the total energy (band energy
 	/// part only).
