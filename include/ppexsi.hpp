@@ -29,7 +29,8 @@ private:
 
 	std::vector<Complex>  zshift_;      // Complex shift for the pole expansion
 	std::vector<Complex>  zweightRho_;  // Complex weight for the pole expansion for density
-	std::vector<Complex>  zweightRhoDrv_;  // Complex weight for the pole expansion for derivative of the Fermi-Dirac
+	std::vector<Complex>  zweightRhoDrvMu_;  // Complex weight for the pole expansion for derivative of the Fermi-Dirac with respect to the chemical potential
+	std::vector<Complex>  zweightRhoDrvT_;   // Complex weight for the pole expansion for derivative of the Fermi-Dirac with respect to the temperature T (1/beta, in au)
 	std::vector<Complex>  zweightHelmholtz_;  // Complex shift for the pole expansion for Helmholtz free energy
 	std::vector<Complex>  zweightForce_;  // Complex weight for the pole expansion for force
 
@@ -40,7 +41,7 @@ private:
 	SuperNode             super_;                 // Supernode partition
 
 	DistSparseMatrix<Real>     rhoMat_;                   // Density matrix 
-	DistSparseMatrix<Real>     rhoDrvMat_;                // Derivative of the Fermi-Dirac
+	DistSparseMatrix<Real>     rhoDrvMuMat_;              // Derivative of the Fermi-Dirac with respect to mu
 	DistSparseMatrix<Real>     freeEnergyDensityMat_;     // Helmholtz free energy density matrix
 	DistSparseMatrix<Real>     energyDensityMat_;         // Energy density matrix for computing the Pulay force
 
@@ -57,15 +58,22 @@ private:
 			const std::vector<Real>& numElectronList );
 
 	/// @brief Calculate the new chemical potential using the Newton's
-	/// method with analytical derivative.
-	Real CalculateChemicalPotentialNewton( 
-			const Int iter, 
+	/// method with bisection as safeguard
+	/// @param[in] numElectronExact  Exact number of electrons.
+	/// @param[in] numElectron       Computed number of electrons.
+	/// @param[in] numElectronDrvMu  The derivative of the number of
+	/// electrons with respect to the chemical potential.
+	/// @param[in] mu Chemical potential and its update (output).
+	/// @param[in] muMin Lower bound of the chemical potential.
+	/// @param[in] muMax Upper bound of the chemical potential.
+	/// @return Update of the chemical potential.
+	Real CalculateChemicalPotentialNewtonBisection(
 			const Real numElectronExact, 
-			const Real numElectronTolerance,
-			const std::vector<Real>& muList,
-			const std::vector<Real>& numElectronList,
-		  const std::vector<Real>& numElectronDrvList	);
-
+			const Real numElectron,
+			const Real numElectronDrvMu,
+			const Real mu,
+			const Real muMin,
+			const Real muMax );
 
 public:
 	PPEXSIData( const PEXSI::Grid* g, Int nprow, Int npcol );
@@ -85,7 +93,11 @@ public:
 	///	@param[in] numElectronExact Exact number of electrons
 	/// @param[in] gap Band gap (in the unit of au)
 	/// @param[in] deltaE Upperbound of the spectrum width
-	/// @param[in] mu0 initial guess of chemical potential (in the unit of au)
+	/// @param[in] mu0 Initial guess of chemical potential (in the unit of au)
+	/// @param[in] muMin Initial guess for the lower bound of the chemical
+	/// potential.
+	/// @param[in] muMax Initial guess for the upper bound of the chemical
+	/// potential.
 	/// @param[in] HMat Hamiltonian matrix saved in distributed compressed
 	/// sparse column format. See DistSparseMatrix.
 	/// @param[in] SMat Overlap matrix saved in distributed compressed
@@ -100,8 +112,8 @@ public:
 	/// @param[out] muList Convergence history of the chemical potential
 	/// @param[out] numElectronList Convergence history of the number of
 	/// electrons
-	/// @param[out] numElectronDrvList Convergence history of the
-	/// derivative of electrons
+	/// @param[out] numElectronDrvMuList Convergence history of the
+	/// derivative of electrons with respect to the chemical potential.
 	/// @param[out] isConverged Whether PEXSI has converged.
 	void Solve( 
 			Int  numPole, 
@@ -110,6 +122,8 @@ public:
 			Real gap,
 			Real deltaE,
 			Real mu0,
+			Real muMin,
+			Real muMax,
 			const DistSparseMatrix<Real>&  HMat,
 		 	const DistSparseMatrix<Real>&  SMat,
 		 	Int  muMaxIter,
@@ -120,7 +134,7 @@ public:
 			bool isEnergyDensityMatrix,
 			std::vector<Real>&	muList,
 			std::vector<Real>&  numElectronList,
-			std::vector<Real>&  numElectronDrvList,
+			std::vector<Real>&  numElectronDrvMuList,
 			bool&               isConverged
 			);
 			
@@ -144,14 +158,14 @@ public:
 	/// @return The number of electrons Tr[\rho S]
 	Real CalculateNumElectron( const DistSparseMatrix<Real>& SMat );
 
-	/// @brief CalculateNumElectronDrv computes the derivative of the
-	/// number of electrons given the current density matrix with respect
-	/// to the chemical potential.
+	/// @brief CalculateNumElectronDrvMu computes the derivative of the
+	/// number of electrons with respect to the chemical potential given
+	/// the current density matrix with respect to the chemical potential.
 	///
 	/// @param[in] SMat overlap matrix.
 	///
 	/// @return The derivative of the number of electrons Tr[f'(H-\muS) S]
-	Real CalculateNumElectronDrv( const DistSparseMatrix<Real>& SMat );
+	Real CalculateNumElectronDrvMu( const DistSparseMatrix<Real>& SMat );
 
 	/// @brief CalculateTotalEnergy computes the total energy (band energy
 	/// part only).

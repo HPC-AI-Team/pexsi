@@ -10,8 +10,10 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "run_ppexsi -mu0 [mu0] -numel [numel] -numPole [numPole] -deltaE [deltaE] -gap [gap] -H [Hfile] -S [Sfile] -npPerPole [npPole] -colperm [colperm] -muiter [muiter]" << std::endl << "temp:    Temperature (unit: K)" << std::endl
+		<< "run_ppexsi -mu0 [mu0] -muMin [muMin] -muMax [muMax] -numel [numel] -numPole [numPole] -deltaE [deltaE] -gap [gap] -H [Hfile] -S [Sfile] -npPerPole [npPole] -colperm [colperm] -muiter [muiter]" << std::endl << "temp:    Temperature (unit: K)" << std::endl
 		<< "mu0:     Initial guess for chemical potential" << std::endl
+		<< "muMin:   Lower bound for chemical potential" << std::endl
+		<< "muMax:   Upper bound for chemical potential" << std::endl
 		<< "numel:   Exact number of electrons (spin-restricted)" << std::endl
 		<< "numPole: Number of poles." << std::endl
 		<< "deltaE:  guess for the width of the spectrum of H-mu S" << std::endl
@@ -31,7 +33,7 @@ int main(int argc, char **argv)
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
 
-	if( argc < 23 || argc%2 == 0 ) {
+	if( argc < 27 || argc%2 == 0 ) {
 		if( mpirank == 0 ) Usage();
 		MPI_Finalize();
 		return 0;
@@ -51,7 +53,7 @@ int main(int argc, char **argv)
 		std::map<std::string,std::string> options;
 		OptionsCreate(argc, argv, options);
 		
-		Real poleTolerance    = 1e-12;
+		Real poleTolerance    = 1e-30;
 		Real numElectronTolerance = 1e-4;
 
 //		// WaterPT
@@ -80,6 +82,22 @@ int main(int argc, char **argv)
 		}
 		else{
       throw std::logic_error("mu0 must be provided.");
+		}
+
+		Real muMin;
+		if( options.find("-muMin") != options.end() ){
+			muMin = std::atof(options["-muMin"].c_str());
+		}
+		else{
+      throw std::logic_error("muMin must be provided.");
+		}
+
+		Real muMax;
+		if( options.find("-muMax") != options.end() ){
+			muMax = std::atof(options["-muMax"].c_str());
+		}
+		else{
+      throw std::logic_error("muMax must be provided.");
 		}
 
 		Real numElectronExact;
@@ -270,6 +288,8 @@ int main(int argc, char **argv)
 
 
 		Print(statusOFS, "mu0                    = ", mu0);
+		Print(statusOFS, "muMin                  = ", muMin);
+		Print(statusOFS, "muMax                  = ", muMax); 
 		Print(statusOFS, "numElectronExact       = ", numElectronExact);
 		Print(statusOFS, "deltaE                 = ", deltaE);
 		Print(statusOFS, "gap                    = ", gap);
@@ -303,6 +323,8 @@ int main(int argc, char **argv)
 				gap,
 				deltaE,
 				mu0,
+				muMin,
+				muMax,
 				HMat,
 				SMat,
 				muMaxIter,

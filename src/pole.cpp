@@ -12,8 +12,6 @@ using std::log;
 using std::sin;
 using std::cos;
 
-
-
 // Fermi-Dirac distribution fd(z) = 2/(1+exp(beta*z))
 Complex fd(Complex z, double beta, double mu){
   Complex val, ez;
@@ -31,21 +29,39 @@ Complex fd(Complex z, double beta, double mu){
 
 // Derivative of the Fermi-Dirac distribution with respect to mu 
 // (therefore there is no minus sign)
-// fddrv(z) = beta * 2.0 * exp(beta*z)/(1+exp(beta*z))^2
-Complex fddrv(Complex z, double beta, double mu){
+// fdDrvMu(z) = beta * 2.0 * exp(beta*z)/(1+exp(beta*z))^2
+Complex fdDrvMu(Complex z, double beta, double mu){
   Complex val, ez;
-	val = fd( z, beta, mu );
+	val = fd( z, beta, mu ) * beta;
   /* LL: VERY IMPORTANT TO AVOID OVERFLOW/UNDERFLOW! */
   if( z.real() >= 0 ){
     ez = exp(-beta*z);
-		val *= beta / (1.0 + ez );
+		val *= 1.0 / (1.0 + ez );
   }
   else{
     ez = exp(beta* z);
-		val *= beta * ez / (1.0 + ez );
+		val *= ez / (1.0 + ez );
   }
   return val;
 }
+
+// Derivative of the Fermi-Dirac distribution with respect to T (1/beta) 
+// fdDrvT(z) = beta^2 * 2.0 * exp(beta*z) * z /(1+exp(beta*z))^2
+Complex fdDrvT(Complex z, double beta, double mu){
+  Complex val, ez;
+	val = fd( z, beta, mu ) * beta * beta * z;
+  /* LL: VERY IMPORTANT TO AVOID OVERFLOW/UNDERFLOW! */
+  if( z.real() >= 0 ){
+    ez = exp(-beta*z);
+		val *= 1.0 / (1.0 + ez );
+  }
+  else{
+    ez = exp(beta* z);
+		val *= ez / (1.0 + ez );
+  }
+  return val;
+}
+
 
 
 // Energy function egy(z) = (z+mu) * fd(z) 
@@ -413,10 +429,17 @@ int GetPoleDensity(Complex* zshift, Complex* zweight,
 			&Npole, &temp, &gap, &deltaE, &mu);
 }
 
-int GetPoleDensityDerivative(Complex* zshift, Complex* zweight, 
+int GetPoleDensityDrvMu(Complex* zshift, Complex* zweight, 
 	     int Npole, double temp, double gap, double deltaE,
 	     double mu){
-	return GetPoleFunc(&fddrv, zshift,  zweight,
+	return GetPoleFunc(&fdDrvMu, zshift,  zweight,
+			&Npole, &temp, &gap, &deltaE, &mu);
+}
+
+int GetPoleDensityDrvT(Complex* zshift, Complex* zweight, 
+	     int Npole, double temp, double gap, double deltaE,
+	     double mu){
+	return GetPoleFunc(&fdDrvT, zshift,  zweight,
 			&Npole, &temp, &gap, &deltaE, &mu);
 }
 

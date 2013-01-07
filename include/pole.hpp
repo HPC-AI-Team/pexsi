@@ -17,11 +17,16 @@ int GetPoleDensity(Complex* zshift, Complex* zweight,
 	     double mu);
 
 /// @brief Shift and weights of poles for calculating the derivative of
-/// the Fermi-Dirac distribution.
-int GetPoleDensityDerivative(Complex* zshift, Complex* zweight, 
+/// the Fermi-Dirac distribution with respect to mu.
+int GetPoleDensityDrvMu(Complex* zshift, Complex* zweight, 
 	     int Npole, double temp, double gap, double deltaE,
 	     double mu);
 
+/// @brief Shift and weights of poles for calculating the derivative of
+/// the Fermi-Dirac distribution with respect to T.
+int GetPoleDensityDrvT(Complex* zshift, Complex* zweight, 
+	     int Npole, double temp, double gap, double deltaE,
+	     double mu);
 
 /// @brief Shift and weights of poles for calculating the Helmholtz free energy
 /// density matrix, and the Helmholtz free energy using the formula by
