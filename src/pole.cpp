@@ -36,11 +36,11 @@ Complex fdDrvMu(Complex z, double beta, double mu){
   /* LL: VERY IMPORTANT TO AVOID OVERFLOW/UNDERFLOW! */
   if( z.real() >= 0 ){
     ez = exp(-beta*z);
-		val *= 1.0 / (1.0 + ez );
+		val *= 1.0 / ( 1.0 + ez );
   }
   else{
     ez = exp(beta* z);
-		val *= ez / (1.0 + ez );
+		val *= ez / ( 1.0 + ez );
   }
   return val;
 }
@@ -53,11 +53,11 @@ Complex fdDrvT(Complex z, double beta, double mu){
   /* LL: VERY IMPORTANT TO AVOID OVERFLOW/UNDERFLOW! */
   if( z.real() >= 0 ){
     ez = exp(-beta*z);
-		val *= 1.0 / (1.0 + ez );
+		val *= 1.0 / ( 1.0 + ez );
   }
   else{
     ez = exp(beta* z);
-		val *= ez / (1.0 + ez );
+		val *= ez / ( 1.0 + ez );
   }
   return val;
 }

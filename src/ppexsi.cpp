@@ -121,7 +121,7 @@ Real PPEXSIData::CalculateChemicalPotentialNewtonBisection (
 
 	muNewton = mu - ( numElectron - numElectronExact ) / numElectronDrvMu;
 
-	if( muNewton < muMin || muNew > muMax ){
+	if( muNewton < muMin || muNewton > muMax ){
 		// Bisection method
 		if( numElectron < numElectronExact )
 			muNew = 0.5 * ( mu + muMax );
@@ -183,6 +183,7 @@ void PPEXSIData::Solve(
 	// *********************************************************************
 	muList.clear();
 	numElectronList.clear();
+	numElectronDrvMuList.clear();
 	isConverged = false;
 
 	DistSparseMatrix<Complex>  AMat;              // A = H - z * S
@@ -505,8 +506,7 @@ void PPEXSIData::Solve(
 			// Output the number of electrons at each step for debugging,
 			// if there is no parallelization among poles
 			if( gridPole_->numProcRow == 1 ){
-				Real numElecLocal = 
-					numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+				Real numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
 							1, rhoMat_.nzvalLocal.Data(), 1 );
 
 				Real numElec;
@@ -584,6 +584,7 @@ void PPEXSIData::Solve(
 		muNow = CalculateChemicalPotentialNewtonBisection( 
 				numElectronExact, numElectronList[iter], 
 				numElectronDrvMuList[iter], muList[iter], muMin, muMax );
+	
 
 		// Output status 
 		statusOFS << std::endl;

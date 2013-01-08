@@ -37,8 +37,19 @@ private:
 	SparseMatrix<Real>    freeEnergyDensityMat_;     // Helmholtz free energy density matrix
 	SparseMatrix<Real>    energyDensityMat_;         // Energy density matrix for computing the Pulay force
 
-	/// @brief Calculate the new chemical potential based on the history.
-	Real CalculateChemicalPotential( 
+	/// @brief Calculate the new chemical potential based on the history
+	/// using Newton's method.
+	Real CalculateChemicalPotentialNewton( 
+			const Int iter, 
+			const Real numElectronExact, 
+			const Real numElectronTolerance,
+			const std::vector<Real>& muList,
+			const std::vector<Real>& numElectronList );
+
+
+	/// @brief Calculate the new chemical potential based on the history
+	/// using Anderson's method.
+	Real CalculateChemicalPotentialAnderson( 
 			const Int iter, 
 			const Real numElectronExact, 
 			const Real numElectronTolerance,
