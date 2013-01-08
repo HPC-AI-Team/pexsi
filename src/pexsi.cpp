@@ -488,7 +488,7 @@ void PEXSIData::Solve(
 		}
 
 		// Update the chemical potential
-		muNow = CalculateChemicalPotential( 
+		muNow = CalculateChemicalPotentialNewton( 
 				iter, numElectronExact, numElectronTolerance,
 				muList, numElectronList );
 
