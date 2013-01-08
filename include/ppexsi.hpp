@@ -42,6 +42,7 @@ private:
 
 	DistSparseMatrix<Real>     rhoMat_;                   // Density matrix 
 	DistSparseMatrix<Real>     rhoDrvMuMat_;              // Derivative of the Fermi-Dirac with respect to mu
+	DistSparseMatrix<Real>     rhoDrvTMat_;               // Derivative of the Fermi-Dirac with respect to T
 	DistSparseMatrix<Real>     freeEnergyDensityMat_;     // Helmholtz free energy density matrix
 	DistSparseMatrix<Real>     energyDensityMat_;         // Energy density matrix for computing the Pulay force
 
@@ -109,6 +110,8 @@ public:
 	/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
 	/// @param[in] isFreeEnergyDensityMatrix Whether to compute the Helmholtz free energy matrix
 	/// @param[in] isEnergyDensityMatrix Whether to compute the energy density matrix for force
+	/// @param[in] isDerivativeTMatrix Whether to compute the derivative of the
+	/// single particle density matrix with respect to the temperature.
 	/// @param[out] muList Convergence history of the chemical potential
 	/// @param[out] numElectronList Convergence history of the number of
 	/// electrons
@@ -132,6 +135,7 @@ public:
 			std::string         ColPerm,
 			bool isFreeEnergyDensityMatrix, 
 			bool isEnergyDensityMatrix,
+			bool isDerivativeTMatrix,
 			std::vector<Real>&	muList,
 			std::vector<Real>&  numElectronList,
 			std::vector<Real>&  numElectronDrvMuList,
@@ -159,13 +163,21 @@ public:
 	Real CalculateNumElectron( const DistSparseMatrix<Real>& SMat );
 
 	/// @brief CalculateNumElectronDrvMu computes the derivative of the
-	/// number of electrons with respect to the chemical potential given
-	/// the current density matrix with respect to the chemical potential.
+	/// number of electrons with respect to the chemical potential.
 	///
 	/// @param[in] SMat overlap matrix.
 	///
 	/// @return The derivative of the number of electrons Tr[f'(H-\muS) S]
 	Real CalculateNumElectronDrvMu( const DistSparseMatrix<Real>& SMat );
+
+	/// @brief CalculateNumElectronDrvT computes the derivative of the
+	/// number of electrons with respect to the temperature (1/beta, in
+	/// atomic unit).
+	///
+	/// @param[in] SMat overlap matrix.
+	///
+	/// @return The derivative of the number of electrons Tr[f'(H-\muS) S]
+	Real CalculateNumElectronDrvT( const DistSparseMatrix<Real>& SMat );
 
 	/// @brief CalculateTotalEnergy computes the total energy (band energy
 	/// part only).
@@ -205,6 +217,22 @@ public:
 	Real CalculateForce( 
 			const DistSparseMatrix<Real>& HDerivativeMat,  
 			const DistSparseMatrix<Real>& SDerivativeMat ); 
+
+
+	/// @brief Estimate the chemical potential at zero temperature using
+	/// quadratic approximation.
+	///
+	/// @param[in] temperature Temperature (in the unit of K), usually
+	/// high (~3000K)
+	/// @param[in] mu          Computed chemical potential at high
+	/// temperature
+	/// @param[in] SMat        Overlap matrix
+	///
+	/// @return Estimated chemical potential at zero temperature.
+	Real EstimateZeroTemperatureChemicalPotential( 
+		Real temperature,
+		Real mu,
+	 	const DistSparseMatrix<Real>& SMat );
 
 };
 

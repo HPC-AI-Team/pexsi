@@ -68,8 +68,9 @@
 /// Run the parallel code sequentially:
 ///     
 ///     $ aprun -n 1 ${PEXSI_DIR}/examples/run_ppexsi -temp 300 -mu0
-///     0.16 -numel 20 -numPole 80 -deltaE 10 -gap 0 -H lap2d_par.csc -S
-///     identity_par.csc -npPerPole 1 -colperm MMD_AT_PLUS_A -muiter 30
+///     0.16 -muMin -2 -muMax 2 -numel 20 -numPole 80 -deltaE 10 -gap 0
+///     -H lap2d_par.csc -S identity_par.csc -npPerPole 1 -colperm
+///     MMD_AT_PLUS_A -muiter 30
 ///
 /// Check the log file (only `logPEXSI0` is generated)
 ///
@@ -87,8 +88,9 @@
 /// with one pole at a time:
 ///
 ///     $ aprun -n 16 ${PEXSI_DIR}/examples/run_ppexsi -temp 300 -mu0
-///     0.16 -numel 20 -numPole 80 -deltaE 10 -gap 0 -H lap2d_par.csc -S
-///     identity_par.csc -npPerPole 1 -colperm MMD_AT_PLUS_A -muiter 30
+///     0.16 -muMin -2 -muMax 2 -numel 20 -numPole 80 -deltaE 10 -gap 0
+///     -H lap2d_par.csc -S identity_par.csc -npPerPole 1 -colperm
+///     MMD_AT_PLUS_A -muiter 30
 ///
 /// Check the log file (16 log files `logPEXSI0`--`logPEXSI15` are
 /// generated)
@@ -107,8 +109,9 @@
 /// working on each pole.
 ///
 ///     $ aprun -n 16 ${PEXSI_DIR}/examples/run_ppexsi -temp 300 -mu0
-///     0.16 -numel 20 -numPole 80 -deltaE 10 -gap 0 -H lap2d_par.csc -S
-///     identity_par.csc -npPerPole 4 -colperm MMD_AT_PLUS_A -muiter 30
+///     0.16 -muMin -2 -muMax 2 -numel 20 -numPole 80 -deltaE 10 -gap 0
+///     -H lap2d_par.csc -S identity_par.csc -npPerPole 4 -colperm
+///     MMD_AT_PLUS_A -muiter 30
 ///
 /// Check the log file (16 log files `logPEXSI0`--`logPEXSI15` are
 /// generated)
@@ -137,7 +140,6 @@
 /// 
 /// In MATLAB,
 ///
-///     >> spy(B)
 ///     >> N=20;
 ///     >> h=10*pi/(N+1);
 ///     >> e=ones(N,1);

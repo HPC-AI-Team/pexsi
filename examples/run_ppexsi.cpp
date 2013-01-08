@@ -169,6 +169,8 @@ int main(int argc, char **argv)
 
 		bool isEnergyDensityMatrix     = true;
 
+		bool isDerivativeTMatrix       = true;
+
 		// *********************************************************************
 		// Check the input parameters
 		// *********************************************************************
@@ -333,6 +335,7 @@ int main(int argc, char **argv)
 				ColPerm,
 				isFreeEnergyDensityMatrix,
 				isEnergyDensityMatrix,
+				isDerivativeTMatrix,
 				muList,
 				numElectronList,
 				numElectronDrvList,
@@ -353,6 +356,73 @@ int main(int argc, char **argv)
 				*muList.rbegin() );
 		Print( statusOFS, "Total time for PEXSI = ", 
 				timeSolveEnd - timeSolveSta );
+
+
+		
+		// *********************************************************************
+		// Solve for the second
+		// Using temperature expansion for the chemical potential
+		// *********************************************************************
+
+		if(1){
+			Real muZeroT = pexsi.EstimateZeroTemperatureChemicalPotential(
+					temperature,
+					*muList.rbegin(),
+					SMat );
+
+			PrintBlock( statusOFS, "Second calculation at low temperature." );
+
+			Print( statusOFS, "mu (T=0)             = ", 
+					muZeroT );
+
+			temperature = 300.0;
+
+			mu0   = (muZeroT < *muList.rbegin()) ? muZeroT : *muList.rbegin();
+			muMin = mu0 - 0.02;
+			muMax = *muList.rbegin();
+		
+			GetTime( timeSolveSta );
+
+			pexsi.Solve( 
+					numPole,
+					temperature,
+					numElectronExact,
+					gap,
+					deltaE,
+					mu0,
+					muMin,
+					muMax,
+					HMat,
+					SMat,
+					muMaxIter,
+					poleTolerance,
+					numElectronTolerance,
+					ColPerm,
+					isFreeEnergyDensityMatrix,
+					isEnergyDensityMatrix,
+					isDerivativeTMatrix,
+					muList,
+					numElectronList,
+					numElectronDrvList,
+					isConverged	);
+
+			GetTime( timeSolveEnd );
+
+			PrintBlock( statusOFS, "Solve finished." );
+			if( isConverged ){
+				statusOFS << "PEXSI has converged with " << muList.size() << 
+					" iterations" << std::endl;
+			}
+			else {
+				statusOFS << "PEXSI did not converge with " << muList.size() << 
+					" iterations" << std::endl;
+			}
+			Print( statusOFS, "mu                   = ", 
+					*muList.rbegin() );
+			Print( statusOFS, "Total time for PEXSI = ", 
+					timeSolveEnd - timeSolveSta );
+
+		}
 
 		statusOFS.close();
 	}

@@ -64,63 +64,6 @@ Real PEXSIData::CalculateChemicalPotentialNewton (
 	return muNew;
 } 		// -----  end of method PEXSIData::CalculateChemicalPotentialNewton  ----- 
 
-Real PEXSIData::CalculateChemicalPotentialAnderson ( 
-			const Int iter, 
-			const Real numElectronExact, 
-			const Real numElectronTolerance, 
-			const std::vector<Real>& muList,
-			const std::vector<Real>& numElectronList )
-{
-#ifndef _RELEASE_
-	PushCallStack("PEXSIData::CalculateChemicalPotentialAnderson");
-#endif
-  // FIXME Magic number here
-	Real  muMin = -5.0, muMax = 5.0, muMinStep = 0.01;;
-	Real  muNew;
-
-	if( iter == 0 ){
-		if( numElectronExact > numElectronList[iter] ){
-			muNew = muList[iter] + muMinStep;
-		}
-		else{
-			muNew = muList[iter] - muMinStep;
-		}
-	}
-	else{
-		if( std::abs(numElectronList[iter] -  numElectronList[iter-1])
-		    < numElectronTolerance ){
-			statusOFS << "The number of electrons did not change." << std::endl;
-			if( numElectronExact > numElectronList[iter] ){
-				muNew = muList[iter] + muMinStep;
-			}
-			else{
-				muNew = muList[iter] - muMinStep;
-			}
-		}
-		else {
-			muNew = muList[iter] + (muList[iter] - muList[iter-1]) / 
-				( numElectronList[iter] - numElectronList[iter-1] ) *
-				( numElectronExact - numElectronList[iter] );
-			if( muNew < muMin || muNew > muMax ){
-				statusOFS << "muNew = " << muNew << " is out of bound ["
-					<< muMin << ", " << muMax << "]" << std::endl;
-				if( numElectronExact > numElectronList[iter] ){
-					muNew = muList[iter] + muMinStep;
-				}
-				else{
-					muNew = muList[iter] - muMinStep;
-				}
-			}
-		} // if ( numElectron changed )
-	} // if (iter == 0)
-
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-
-	return muNew;
-} 		// -----  end of method PEXSIData::CalculateChemicalPotentialAnderson  ----- 
-
 
 
 // Main subroutine for the electronic structure calculation
