@@ -406,11 +406,11 @@ private:
 	std::vector<std::vector<UBlock> > U_;
 
 	// Communication variables
-	NumMat<bool>                       isSendToDown_;
+	NumMat<bool>                       isSendToBelow_;
 	NumMat<bool>                       isSendToRight_;
 	NumVec<bool>                       isSendToCrossDiagonal_;
 
-	NumVec<bool>                       isRecvFromUp_;
+	NumVec<bool>                       isRecvFromAbove_;
 	NumVec<bool>                       isRecvFromLeft_;
 	NumVec<bool>                       isRecvFromCrossDiagonal_;
 
@@ -524,7 +524,7 @@ public:
 	/// sum_{jsup} Ainv(isup, jsup) U^{T}(ksup, jsup)
 	///
 	/// is performed.  In this procedure, only processors with
-	/// isRecvFromUp[ksup] == true && isRecvFromLeft[ksup] == true
+	/// isRecvFromAbove[ksup] == true && isRecvFromLeft[ksup] == true
 	/// participate in the computation.
 	///
 	///
@@ -554,24 +554,24 @@ public:
 	/// double indexing of the supernodes and can scale to matrices of
 	/// large size.
 	///
-	/// - isSendToDown:  
+	/// - isSendToBelow:  
 	///
 	///   Dimension: numSuper x numProcRow
 	///
-	///   Role     : At supernode ksup, if isSendToDown(ksup, ip) == true, send
+	///   Role     : At supernode ksup, if isSendToBelow(ksup, ip) == true, send
 	///   all local blocks {U(ksup, jsup) | jsup > ksup} to the processor row ip.
 	///
-	/// - isRecvFromUp:
+	/// - isRecvFromAbove:
 	///
 	///   Dimension: numSuper
 	///
 	///   Role     : 
 	///
-	///     * At supernode ksup, if isRecvFromUp(ksup) == true,
+	///     * At supernode ksup, if isRecvFromAbove(ksup) == true,
 	///       receive blocks from the processor owning the block row of ksup
 	///       within the same column processor group.
 	///
-	///     * If isRecvFromUp(ksup) == true && isRecvFromLeft(ksup) ==
+	///     * If isRecvFromAbove(ksup) == true && isRecvFromLeft(ksup) ==
 	///     true, the ucrrent processor participate in updating Ainv(isup,
 	///     ksup).
 	///
@@ -595,7 +595,7 @@ public:
 	///     blocks from the processor owning the block column of ksup
 	///     within the same row processor group.
 	///
-	///     * If isRecvFromUp(ksup) == true && isRecvFromLeft(ksup) ==
+	///     * If isRecvFromAbove(ksup) == true && isRecvFromLeft(ksup) ==
 	///     true, the ucrrent processor participate in updating Ainv(isup,
 	///     ksup).
 	///

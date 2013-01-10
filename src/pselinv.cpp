@@ -101,17 +101,17 @@ PMatrix::ConstructCommunicationPattern	(  )
 #ifndef _RELEASE_
 	PushCallStack( "Initialize the communicatino pattern" );
 #endif
-	isSendToDown_.Resize( numSuper, grid_->numProcRow );
+	isSendToBelow_.Resize( numSuper, grid_->numProcRow );
 	isSendToRight_.Resize( numSuper, grid_->numProcCol );
 	isSendToCrossDiagonal_.Resize( numSuper );
-	SetValue( isSendToDown_, false );
+	SetValue( isSendToBelow_, false );
 	SetValue( isSendToRight_, false );
 	SetValue( isSendToCrossDiagonal_, false );
 
-	isRecvFromUp_.Resize( numSuper );
+	isRecvFromAbove_.Resize( numSuper );
 	isRecvFromLeft_.Resize( numSuper );
 	isRecvFromCrossDiagonal_.Resize( numSuper );
-  SetValue( isRecvFromUp_, false );
+  SetValue( isRecvFromAbove_, false );
 	SetValue( isRecvFromLeft_, false );
 	SetValue( isRecvFromCrossDiagonal_, false );
 
@@ -246,7 +246,7 @@ PMatrix::ConstructCommunicationPattern	(  )
 
 
 #ifndef _RELEASE_
-	PushCallStack("SendToDown / RecvFromUp");
+	PushCallStack("SendToBelow / RecvFromAbove");
 #endif
 	for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
 		// Loop over all the supernodes to the right of ksup
@@ -254,7 +254,7 @@ PMatrix::ConstructCommunicationPattern	(  )
 			Int jsupLocalBlockCol = LBj( jsup, grid_ );
 			Int jsupProcCol = PCOL( jsup, grid_ );
 			if( MYCOL( grid_ ) == jsupProcCol ){
-				// SendToDown / RecvFromUp only if (ksup, jsup) is nonzero.
+				// SendToBelow / RecvFromAbove only if (ksup, jsup) is nonzero.
 				if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 ){
           for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
 						   si != localColBlockRowIdx[jsupLocalBlockCol].end(); si++	 ){
@@ -262,10 +262,10 @@ PMatrix::ConstructCommunicationPattern	(  )
 						Int isupProcRow = PROW( isup, grid_ );
 						if( isup > ksup ){
 							if( MYROW( grid_ ) == isupProcRow ){
-								isRecvFromUp_(ksup) = true;
+								isRecvFromAbove_(ksup) = true;
 							}
 							if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
-								isSendToDown_( ksup, isupProcRow ) = true;
+								isSendToBelow_( ksup, isupProcRow ) = true;
 							}
 						} // if( isup > ksup )
 					} // for (si)
@@ -275,8 +275,8 @@ PMatrix::ConstructCommunicationPattern	(  )
 		} // for(jsup)
 	} // for(ksup)
 #if ( _DEBUGlevel_ >= 1 )
-	statusOFS << std::endl << "isSendToDown:" << isSendToDown_ << std::endl;
-	statusOFS << std::endl << "isRecvFromUp:" << isRecvFromUp_ << std::endl;
+	statusOFS << std::endl << "isSendToBelow:" << isSendToBelow_ << std::endl;
+	statusOFS << std::endl << "isRecvFromAbove:" << isRecvFromAbove_ << std::endl;
 #endif
  
 #ifndef _RELEASE_
@@ -393,7 +393,7 @@ PMatrix::SelInv	(  )
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << std::endl << "Communication for the U part." << std::endl << std::endl; 
 #endif
-		std::vector<MPI_Request> mpireqsSendToDown( 2 * grid_->numProcRow, MPI_REQUEST_NULL );
+		std::vector<MPI_Request> mpireqsSendToBelow( 2 * grid_->numProcRow, MPI_REQUEST_NULL );
 		std::vector<char> sstrUrowSend;
 
 		// Senders
@@ -411,15 +411,15 @@ PMatrix::SelInv	(  )
 			sstm.read( &sstrUrowSend[0], sstrUrowSend.size() );
 			for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
 				if( MYROW( grid_ ) != iProcRow &&
-						isSendToDown_( ksup, iProcRow ) == true ){
+						isSendToBelow_( ksup, iProcRow ) == true ){
 					// Use Isend to send to multiple targets
 					Int sizeStm = sstrUrowSend.size();
 					MPI_Isend( &sizeStm, 1, MPI_INT,  
 							iProcRow, SELINV_TAG_U_SIZE, 
-							grid_->colComm, &mpireqsSendToDown[grid_->numProcRow + iProcRow] );
+							grid_->colComm, &mpireqsSendToBelow[grid_->numProcRow + iProcRow] );
 					MPI_Isend( (void*)&sstrUrowSend[0], sizeStm, MPI_BYTE, 
 							iProcRow, SELINV_TAG_U_CONTENT, 
-							grid_->colComm, &mpireqsSendToDown[iProcRow] );
+							grid_->colComm, &mpireqsSendToBelow[iProcRow] );
 				} // Send 
 			} // for (iProcRow)
 		} // if I am the sender
@@ -475,20 +475,20 @@ PMatrix::SelInv	(  )
 		statusOFS << std::endl << "Receive from both up and from left." << std::endl << std::endl; 
 #endif
     // Receive
-		std::vector<MPI_Request> mpireqsRecvFromUp( 2, MPI_REQUEST_NULL ); 
+		std::vector<MPI_Request> mpireqsRecvFromAbove( 2, MPI_REQUEST_NULL ); 
 		std::vector<MPI_Request> mpireqsRecvFromLeft( 2, MPI_REQUEST_NULL ); 
-		Int sizeStmFromUp, sizeStmFromLeft;
+		Int sizeStmFromAbove, sizeStmFromLeft;
 
 		std::vector<char>     sstrLcolRecv;
 		std::vector<char>     sstrUrowRecv;
 
 		// Receive the size first
 
-		if( isRecvFromUp_( ksup ) && 
+		if( isRecvFromAbove_( ksup ) && 
 				MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-			MPI_Irecv( &sizeStmFromUp, 1, MPI_INT, PROW( ksup, grid_ ), 
+			MPI_Irecv( &sizeStmFromAbove, 1, MPI_INT, PROW( ksup, grid_ ), 
 					SELINV_TAG_U_SIZE,
-					grid_->colComm, &mpireqsRecvFromUp[0] );
+					grid_->colComm, &mpireqsRecvFromAbove[0] );
 		} // if I need to receive from up
 
 
@@ -500,16 +500,16 @@ PMatrix::SelInv	(  )
 		} // if I need to receive from left
 
 		// Wait to obtain size information
-		mpi::Wait( mpireqsRecvFromUp[0] );
+		mpi::Wait( mpireqsRecvFromAbove[0] );
 		mpi::Wait( mpireqsRecvFromLeft[0] );
 
 
-		if( isRecvFromUp_( ksup ) && 
+		if( isRecvFromAbove_( ksup ) && 
 				MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-			sstrUrowRecv.resize( sizeStmFromUp );
-			MPI_Irecv( &sstrUrowRecv[0], sizeStmFromUp, MPI_BYTE, 
+			sstrUrowRecv.resize( sizeStmFromAbove );
+			MPI_Irecv( &sstrUrowRecv[0], sizeStmFromAbove, MPI_BYTE, 
 					PROW( ksup, grid_ ), SELINV_TAG_U_CONTENT, 
-					grid_->colComm, &mpireqsRecvFromUp[1] );
+					grid_->colComm, &mpireqsRecvFromAbove[1] );
 		} // if I need to receive from up
 
 		if( isRecvFromLeft_( ksup ) &&
@@ -526,7 +526,7 @@ PMatrix::SelInv	(  )
 		statusOFS << std::endl << "Wait for all communication to be done." << std::endl << std::endl; 
 #endif
 		// Wait to obtain packed information in a string and then write into stringstream
-		mpi::Wait( mpireqsRecvFromUp[1] );
+		mpi::Wait( mpireqsRecvFromAbove[1] );
 		mpi::Wait( mpireqsRecvFromLeft[1] );
 
 		// Overlap the communication with computation.  All processors move
@@ -537,11 +537,11 @@ PMatrix::SelInv	(  )
 #endif
 		std::vector<LBlock>   LcolRecv;
 		std::vector<UBlock>   UrowRecv;
-		if( isRecvFromUp_( ksup ) && isRecvFromLeft_( ksup ) ){
+		if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
 			// U part
 			if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
 				std::stringstream sstm;
-				sstm.write( &sstrUrowRecv[0], sizeStmFromUp );
+				sstm.write( &sstrUrowRecv[0], sizeStmFromAbove );
 				std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
 				Int numUBlock;
 				deserialize( numUBlock, sstm, NO_MASK );
@@ -597,7 +597,7 @@ PMatrix::SelInv	(  )
 		NumMat<Scalar>  LUpdateBuf;
     
 		// Only the processors received information participate in the Gemm 
-		if( isRecvFromUp_( ksup ) && isRecvFromLeft_( ksup ) ){
+		if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
 			// rowPtr[ib] gives the row index in LUpdateBuf for the first
 			// nonzero row in LcolRecv[ib]. The total number of rows in
 			// LUpdateBuf is given by rowPtr[end]-1
@@ -796,7 +796,7 @@ PMatrix::SelInv	(  )
 
 		// Now all the Isend / Irecv should have finished.
 		mpi::Waitall( mpireqsSendToRight );
-		mpi::Waitall( mpireqsSendToDown );
+		mpi::Waitall( mpireqsSendToBelow );
 
 		// Reduce LUpdateBuf across all the processors in the same processor row.
 		
