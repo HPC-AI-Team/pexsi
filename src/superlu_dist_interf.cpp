@@ -168,10 +168,13 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 	else if( opt.ColPerm == "METIS_AT_PLUS_A" ){
 		options.ColPerm = METIS_AT_PLUS_A;
 	}
+	else if( opt.ColPerm == "PARMETIS" ){
+		options.ColPerm = PARMETIS;
+	}
 	else{
 		std::ostringstream msg;
 		msg << opt.ColPerm << " is not a supported ColPerm type. Try (case sensitive) " << std::endl
-			  << "NATURAL | MMD_AT_PLUS_A | METIS_AT_PLUS_A" << std::endl;
+			  << "NATURAL | MMD_AT_PLUS_A | METIS_AT_PLUS_A | PARMETIS" << std::endl;
 		throw std::runtime_error( msg.str().c_str() );
 	}
 
