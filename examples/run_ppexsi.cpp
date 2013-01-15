@@ -372,15 +372,36 @@ int main(int argc, char **argv)
 
 			PrintBlock( statusOFS, "Second calculation at low temperature." );
 
-			Print( statusOFS, "mu (T=0)             = ", 
+			Print( statusOFS, "mu (T=0 estimate)    = ", 
 					muZeroT );
 
+			mu0   = muZeroT;
+			// Safe choice of bound
+			muMin = mu0 - 2 * temperature / au2K;
+			muMax = mu0 + 2 * temperature / au2K;
+
+			// New temperature
 			temperature = 300.0;
 
-			mu0   = (muZeroT < *muList.rbegin()) ? muZeroT : *muList.rbegin();
-			muMin = mu0 - 0.02;
-			muMax = *muList.rbegin();
-		
+
+			Print(statusOFS, "mu0                    = ", mu0);
+			Print(statusOFS, "muMin                  = ", muMin);
+			Print(statusOFS, "muMax                  = ", muMax); 
+			Print(statusOFS, "numElectronExact       = ", numElectronExact);
+			Print(statusOFS, "deltaE                 = ", deltaE);
+			Print(statusOFS, "gap                    = ", gap);
+			Print(statusOFS, "temperature            = ", temperature);
+			Print(statusOFS, "numPole                = ", numPole);
+			Print(statusOFS, "poleTolerance          = ", poleTolerance);
+			Print(statusOFS, "numElectronTolerance   = ", numElectronTolerance);
+			Print(statusOFS, "ColPerm                = ", ColPerm );
+			Print(statusOFS, "muMaxIter              = ", muMaxIter);
+			Print(statusOFS, "mpisize                = ", mpisize );
+			Print(statusOFS, "npPerPole              = ", npPerPole );
+			Print(statusOFS, "isFreeEnergyMatrix     = ", isFreeEnergyDensityMatrix );
+			Print(statusOFS, "isEnergyMatrix         = ", isEnergyDensityMatrix ); 
+
+
 			GetTime( timeSolveSta );
 
 			pexsi.Solve( 
