@@ -245,10 +245,17 @@ void PPEXSIData::Solve(
 	// Each numPoleGroup perform independently
 	// *********************************************************************
 	luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "AMat is converted to SuperMatrix." << std::endl;
+#endif
 	luMat.SymbolicFactorize();
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "Symbolic factorization is finished." << std::endl;
+#endif
 	luMat.SymbolicToSuperNode( super_ );
 	luMat.DestroyAOnly();
-	
+
+
 	// Compute the number of nonzeros from PMatrix
 	{
 		PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
