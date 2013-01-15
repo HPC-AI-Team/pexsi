@@ -244,13 +244,22 @@ void PPEXSIData::Solve(
 	// Symbolic factorization.  
 	// Each numPoleGroup perform independently
 	// *********************************************************************
+	Real timeSta, timeEnd;
+	GetTime( timeSta );
 	luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+	GetTime( timeEnd );
 #if ( _DEBUGlevel_ >= 0 )
 	statusOFS << "AMat is converted to SuperMatrix." << std::endl;
+	statusOFS << "Time for SuperMatrix conversion is " <<
+		timeEnd - timeSta << " [s]" << std::endl << std::endl;
 #endif
+	GetTime( timeSta );
 	luMat.SymbolicFactorize();
+	GetTime( timeEnd );
 #if ( _DEBUGlevel_ >= 0 )
 	statusOFS << "Symbolic factorization is finished." << std::endl;
+	statusOFS << "Time for symbolic factorization is " <<
+		timeEnd - timeSta << " [s]" << std::endl << std::endl;
 #endif
 	luMat.SymbolicToSuperNode( super_ );
 	luMat.DestroyAOnly();
@@ -403,7 +412,6 @@ void PPEXSIData::Solve(
 #endif
 
 		// for each pole, perform LDLT factoriation and selected inversion
-		Real timeSta, timeEnd;
 		Real timePoleSta, timePoleEnd;
 
 		Int numPoleComputed = 0;

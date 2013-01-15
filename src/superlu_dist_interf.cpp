@@ -169,7 +169,8 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 		options.ColPerm = METIS_AT_PLUS_A;
 	}
 	else if( opt.ColPerm == "PARMETIS" ){
-		options.ColPerm = PARMETIS;
+		options.ColPerm           = PARMETIS;
+		options.ParSymbFact       = YES;
 	}
 	else{
 		std::ostringstream msg;
@@ -336,6 +337,9 @@ SuperLUMatrix::SymbolicFactorize	(  )
 	LUstructInit(A.nrow, A.ncol, &ptrData->LUstruct);
 
 	PStatInit(&ptrData->stat);
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "Before symbfact subroutine." << std::endl;
+#endif
 	pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
 			&ptrData->LUstruct, &ptrData->stat, &ptrData->info);
 	PStatFree(&ptrData->stat);

@@ -1,6 +1,6 @@
 include ../make.inc.${HOSTID}
 
-SRCS_C   = pzsymbfact.c 
+SRCS_C   = pzsymbfact.c get_perm_c_parmetis.c
 SRCS_CPP = ppexsi.cpp pexsi.cpp pole.cpp pselinv.cpp superlu_dist_interf.cpp \
 					 selinv_interf.cpp mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp 
 

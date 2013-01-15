@@ -4,6 +4,7 @@
 /// @date 2012-11-01
 #include <math.h>
 #include "superlu_zdefs.h"
+#define  PRNTlevel 1
 
 /// @brief pzsymbfact performs symbolic factorization that can be
 /// reused.
@@ -105,6 +106,7 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 		return;
 	}
 
+
 	factored = (Fact == FACTORED);
 	Equil = (!factored && options->Equil == YES);
 	notran = (options->Trans == NOTRANS);
@@ -118,6 +120,11 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 		colequ = (ScalePermstruct->DiagScale == COL) ||
 			(ScalePermstruct->DiagScale == BOTH);
 	} else rowequ = colequ = FALSE;
+
+#if ( PRNTlevel >= 1 )
+	if( !iam ) 
+		fprintf(stderr,"Entering pzsymbfact.");
+#endif
 
 	/* The following arrays are replicated on all processes. */
 	perm_r = ScalePermstruct->perm_r;
@@ -432,9 +439,15 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 				 * and does not modify it.  It also allocates memory for       *
 				 * sizes[] and fstVtxSep[] arrays, that contain information    *
 				 * on the separator tree computed by ParMETIS.                 */
+#if ( PRNTlevel >= 1 )
+				if( !iam ) fprintf(stderr,"Before get_perm_c_parmetis.");
+#endif
 				flinfo = get_perm_c_parmetis(A, perm_r, perm_c, nprocs_num,
 						noDomains, &sizes, &fstVtxSep,
 						grid, &symb_comm);
+#if ( PRNTlevel >= 1 )
+				if( !iam ) fprintf(stderr,"After Before get_perm_c_parmetis.");
+#endif
 				if (flinfo > 0)
 					ABORT("ERROR in get perm_c parmetis.");
 			} else {
