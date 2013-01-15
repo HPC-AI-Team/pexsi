@@ -1,4 +1,4 @@
-function g = fermidiracdrv(ev,efermi,Tbeta);
+function g = fermidiracDrvMu(ev,efermi,Tbeta);
 % The derivative of the Fermi-Dirac function with respect to the
 % chemical potential efermi.
 dif = ev - efermi;

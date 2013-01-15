@@ -19,7 +19,7 @@ void Usage(){
 		<< "deltaE:  guess for the width of the spectrum of H-mu S" << std::endl
 		<< "gap:     guess for the distance betweeen the spectrum and mu" << std::endl
 		<< "H: Hamiltonian matrix (csc format, both lower triangular and upper triangular)" << std::endl
-		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular)" << std::endl
+		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular). f omitted, the overlap matrix is treated as an identity matrix implicitly." << std::endl
 		<< "npPerPole: number of processors used for each pole" << std::endl
 		<< "colperm: permutation method (for SuperLU_DIST)" << std::endl
 	  << "muiter:  number of iterations for the chemical potential" << std::endl;
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
 
-	if( argc < 27 || argc%2 == 0 ) {
+	if( argc < 25 || argc%2 == 0 ) {
 		if( mpirank == 0 ) Usage();
 		MPI_Finalize();
 		return 0;
@@ -53,20 +53,8 @@ int main(int argc, char **argv)
 		std::map<std::string,std::string> options;
 		OptionsCreate(argc, argv, options);
 		
-		Real poleTolerance    = 1e-30;
-		Real numElectronTolerance = 1e-4;
-
-//		// WaterPT
-////		pexsiData.mu0              = -0.5;
-////		pexsiData.numElectronExact = 1600.0;
-////		pexsiData.deltaE           = 15.0;
-//
-//		// DNA
-////		pexsiData.mu0                = 0.00;
-////		pexsiData.numElectronExact   = 2442.0;
-////		pexsiData.deltaE           = 20.0;
-//
-//
+		Real poleTolerance        = 1e-12;
+		Real numElectronTolerance = 1e-2;
 
 		Real temperature;
 		if( options.find("-temp") != options.end() ){
@@ -154,7 +142,9 @@ int main(int argc, char **argv)
 			Sfile = options["-S"];
 		}
 		else{
-      throw std::logic_error("Sfile must be provided.");
+			statusOFS << "-S option is not given. " 
+				<< "Treat the overlap matrix as an identity matrix." 
+				<< std::endl << std::endl;
 		}
 
 		std::string ColPerm;
@@ -203,7 +193,6 @@ int main(int argc, char **argv)
 
 
 		DistSparseMatrix<Real> HMat;
-		DistSparseMatrix<Real> SMat;
 
 		Real timeSta, timeEnd;
 
@@ -252,41 +241,49 @@ int main(int argc, char **argv)
 		sstr.clear();
 
 		// SMat
-		if( MYROW( &gridPole ) == 0 ){
-			std::stringstream sstm;
-			ReadDistSparseMatrix( Sfile.c_str(), SMat, gridPole.rowComm ); 
-			serialize( SMat.size, sstm, NO_MASK );
-			serialize( SMat.nnz,  sstm, NO_MASK );
-			serialize( SMat.nnzLocal, sstm, NO_MASK );
-			serialize( SMat.colptrLocal, sstm, NO_MASK );
-			serialize( SMat.rowindLocal, sstm, NO_MASK );
-			serialize( SMat.nzvalLocal,  sstm, NO_MASK );
-			sstr.resize( Size( sstm ) );
-		  sstm.read( &sstr[0], sstr.size() ); 	
-			sizeStm = sstr.size();
+		DistSparseMatrix<Real> SMat;
+		if( Sfile.empty() ){
+			// Set the size to be zero.  This will tell PPEXSI.Solve to treat
+			// the overlap matrix as an identity matrix implicitly.
+			SMat.size = 0;  
 		}
+		else{
+			// SMat is given directly
+			if( MYROW( &gridPole ) == 0 ){
+				std::stringstream sstm;
+				ReadDistSparseMatrix( Sfile.c_str(), SMat, gridPole.rowComm ); 
+				serialize( SMat.size, sstm, NO_MASK );
+				serialize( SMat.nnz,  sstm, NO_MASK );
+				serialize( SMat.nnzLocal, sstm, NO_MASK );
+				serialize( SMat.colptrLocal, sstm, NO_MASK );
+				serialize( SMat.rowindLocal, sstm, NO_MASK );
+				serialize( SMat.nzvalLocal,  sstm, NO_MASK );
+				sstr.resize( Size( sstm ) );
+				sstm.read( &sstr[0], sstr.size() ); 	
+				sizeStm = sstr.size();
+			}
 
-		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
+			MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
 
-		if( MYROW( &gridPole ) != 0 ) sstr.resize( sizeStm );
+			if( MYROW( &gridPole ) != 0 ) sstr.resize( sizeStm );
 
-		MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
+			MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
 
-		if( MYROW( &gridPole ) != 0 ){
-			std::stringstream sstm;
-			sstm.write( &sstr[0], sizeStm );
-			deserialize( SMat.size, sstm, NO_MASK );
-			deserialize( SMat.nnz,  sstm, NO_MASK );
-			deserialize( SMat.nnzLocal, sstm, NO_MASK );
-			deserialize( SMat.colptrLocal, sstm, NO_MASK );
-			deserialize( SMat.rowindLocal, sstm, NO_MASK );
-			deserialize( SMat.nzvalLocal,  sstm, NO_MASK );
-		}
-		// Communicator
-		SMat.comm = gridPole.rowComm;
+			if( MYROW( &gridPole ) != 0 ){
+				std::stringstream sstm;
+				sstm.write( &sstr[0], sizeStm );
+				deserialize( SMat.size, sstm, NO_MASK );
+				deserialize( SMat.nnz,  sstm, NO_MASK );
+				deserialize( SMat.nnzLocal, sstm, NO_MASK );
+				deserialize( SMat.colptrLocal, sstm, NO_MASK );
+				deserialize( SMat.rowindLocal, sstm, NO_MASK );
+				deserialize( SMat.nzvalLocal,  sstm, NO_MASK );
+			}
+			// Communicator
+			SMat.comm = gridPole.rowComm;
 
-		sstr.clear();
-
+			sstr.clear();
+		} // if (Sfile.empty())
 
 
 		Print(statusOFS, "mu0                    = ", mu0);

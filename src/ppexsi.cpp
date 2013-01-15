@@ -195,6 +195,27 @@ void PPEXSIData::Solve(
 	DistSparseMatrix<Real>& hmzMat       = freeEnergyDensityMat_;
 	DistSparseMatrix<Real>& frcMat       = energyDensityMat_;
 
+	// Get the diagonal indices for H and save it n diagIdxLocal_
+	{
+		Int numColLocal      = HMat.colptrLocal.m() - 1;
+		Int numColLocalFirst = HMat.size / gridSelInv_->mpisize;
+		Int firstCol         = gridSelInv_->mpirank * numColLocalFirst;
+		
+		diagIdxLocal_.clear();
+
+		for( Int j = 0; j < numColLocal; j++ ){
+			Int jcol = firstCol + j + 1;
+			for( Int i = HMat.colptrLocal(j)-1; 
+				 	 i < HMat.colptrLocal(j+1)-1; i++ ){
+				Int irow = HMat.rowindLocal(i);
+				if( irow == jcol ){
+					diagIdxLocal_.push_back( i );
+				}
+			}
+		} // for (j)
+	}
+
+
 	// Copy the pattern
 	CopyPattern( HMat, AMat );
 	CopyPattern( HMat, rhoMat );
@@ -208,8 +229,10 @@ void PPEXSIData::Solve(
 
 	SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
 
+#if ( _DEBUGlevel_ >= 0 )
 	statusOFS << "AMat.nnzLocal = " << AMat.nnzLocal << std::endl;
 	statusOFS << "AMat.nnz      = " << AMat.nnz      << std::endl;
+#endif
 
 	SuperLUOptions   luOpt;
 
@@ -230,13 +253,15 @@ void PPEXSIData::Solve(
 	{
 		PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
 		luMat.LUstructToPMatrix( PMloc );
+#if ( _DEBUGlevel_ >= 0 )
 		Int nnzLocal = PMloc.NnzLocal();
 		statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
 		Int nnz      = PMloc.Nnz();
 		statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+#endif
 	}
 
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 	statusOFS << "perm: "    << std::endl << super_.perm     << std::endl;
 	statusOFS << "permInv: " << std::endl << super_.permInv  << std::endl;
 	statusOFS << "superIdx:" << std::endl << super_.superIdx << std::endl;
@@ -398,10 +423,22 @@ void PPEXSIData::Solve(
 				{
 					numPoleComputed++;
 
-
-					for( Int i = 0; i < HMat.nnzLocal; i++ ){
-						AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
+					if( SMat.size != 0 ){
+						// S is not an identity matrix
+						for( Int i = 0; i < HMat.nnzLocal; i++ ){
+							AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
+						}
 					}
+					else{
+						// S is an identity matrix
+						for( Int i = 0; i < HMat.nnzLocal; i++ ){
+							AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+						}
+
+						for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+							AMat.nzvalLocal( diagIdxLocal_[i] ) -= zshift_[l];
+						}
+					} // if (SMat.size != 0 )
 
 
 					// *********************************************************************
@@ -525,8 +562,10 @@ void PPEXSIData::Solve(
 			} // if I am in charge of this pole
 #if ( _DEBUGlevel_ >= 0 )
 			// Output the number of electrons at each step for debugging,
-			// if there is no parallelization among poles
-			if( gridPole_->numProcRow == 1 ){
+			// if there is no parallelization among poles.
+			// This debug mode is currently only available if SMat is not
+			// implicitly given by  an identity matrix 
+			if( gridPole_->numProcRow == 1 && SMat.size != 0 ){
 				Real numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
 							1, rhoMat_.nzvalLocal.Data(), 1 );
 
@@ -670,10 +709,22 @@ PPEXSIData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
 #endif
 	Real numElecLocal = 0.0, numElec = 0.0;
 	
-	// TODO Check SMat and rhoMat has the same sparsity
+	// TODO Check SMat and rhoMat has the same sparsity if SMat is not
+	// implicitly given by an identity matrix.
 
-	numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-			1, rhoMat_.nzvalLocal.Data(), 1 );
+	if( SMat.size != 0 ){
+		// S is not an identity matrix
+		numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+				1, rhoMat_.nzvalLocal.Data(), 1 );
+	}
+	else{
+		// S is an identity matrix
+		DblNumVec& nzval = rhoMat_.nzvalLocal;
+		for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+			numElecLocal += nzval(diagIdxLocal_[i]);
+		}
+
+	} // if ( SMat.size != 0 )
 #if ( _DEBUGlevel_ >= 0 )
 	statusOFS << std::endl << "numElecLocal = " << numElecLocal << std::endl;
 #endif
@@ -697,8 +748,20 @@ PPEXSIData::CalculateNumElectronDrvMu	( const DistSparseMatrix<Real>& SMat )
 	
 	// TODO Check SMat and rhoDrvMuMat has the same sparsity
 
-	numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-			1, rhoDrvMuMat_.nzvalLocal.Data(), 1 );
+
+	if( SMat.size != 0 ){
+		// S is not an identity matrix
+		numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+				1, rhoDrvMuMat_.nzvalLocal.Data(), 1 );
+	}
+	else{
+		// S is an identity matrix
+		DblNumVec& nzval = rhoDrvMuMat_.nzvalLocal;
+		for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+			numElecDrvLocal += nzval(diagIdxLocal_[i]);
+		}
+	}
+
 #if ( _DEBUGlevel_ >= 0 )
 	statusOFS << std::endl << "numElecDrvLocal = " << numElecDrvLocal << std::endl;
 #endif
@@ -722,8 +785,18 @@ PPEXSIData::CalculateNumElectronDrvT	( const DistSparseMatrix<Real>& SMat )
 	
 	// TODO Check SMat and rhoDrvTMat has the same sparsity
 
-	numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-			1, rhoDrvTMat_.nzvalLocal.Data(), 1 );
+	if( SMat.size != 0 ){
+		// S is not an identity matrix
+		numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+				1, rhoDrvTMat_.nzvalLocal.Data(), 1 );
+	}
+	else{
+		// S is an identity matrix
+		DblNumVec& nzval = rhoDrvTMat_.nzvalLocal;
+		for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+			numElecDrvLocal += nzval(diagIdxLocal_[i]);
+		}
+	}
 #if ( _DEBUGlevel_ >= 0 )
 	statusOFS << std::endl << "numElecDrvLocal = " << numElecDrvLocal << std::endl;
 #endif
@@ -806,11 +879,16 @@ PPEXSIData::CalculateForce	(
 	// TODO Check HDerivativeMat, SDerivativeMat, rhoMat and
 	// energyDensityMat_ has the same sparsity pattern
 
-	totalForceLocal = 
-		- blas::Dot( HDerivativeMat.nnzLocal, HDerivativeMat.nzvalLocal.Data(),
-				1, rhoMat_.nzvalLocal.Data(), 1 )
-		+ blas::Dot( SDerivativeMat.nnzLocal, SDerivativeMat.nzvalLocal.Data(),
-				1, energyDensityMat_.nzvalLocal.Data(), 1 );
+	totalForceLocal = - blas::Dot( HDerivativeMat.nnzLocal,
+			HDerivativeMat.nzvalLocal.Data(), 1, rhoMat_.nzvalLocal.Data(), 1
+			);
+
+	if( SDerivativeMat.size != 0 ){
+		// If S is not an identity matrix, compute the Pulay force
+		totalForceLocal += blas::Dot( SDerivativeMat.nnzLocal,
+				SDerivativeMat.nzvalLocal.Data(), 1,
+				energyDensityMat_.nzvalLocal.Data(), 1 );
+	}
 
 #if ( _DEBUGlevel_ >= 0 )
 	statusOFS << std::endl << "TotalForceLocal = " << totalForceLocal << std::endl;

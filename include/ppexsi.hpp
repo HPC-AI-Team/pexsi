@@ -46,6 +46,11 @@ private:
 	DistSparseMatrix<Real>     freeEnergyDensityMat_;     // Helmholtz free energy density matrix
 	DistSparseMatrix<Real>     energyDensityMat_;         // Energy density matrix for computing the Pulay force
 
+	// Saves all the indices of diagonal elements in H, so that
+	// H.nzvalLocal(diagIdxLocal_[j]) are diagonal elements for all j.
+	// This is manly used when S is implicitly given as an identity matrix.
+	std::vector<Int>           diagIdxLocal_;    
+
 	// *********************************************************************
 	// Member functions
 	// *********************************************************************
@@ -103,6 +108,9 @@ public:
 	/// sparse column format. See DistSparseMatrix.
 	/// @param[in] SMat Overlap matrix saved in distributed compressed
 	/// sparse column format. See DistSparseMatrix.
+	///
+	/// **Note**: If SMat.size == 0, SMat is treated as an identity matrix.
+	/// 
 	/// @param[in] muMaxIter Maximum iteration number for chemical
 	/// potential
 	/// @param[in] poleTolerance Skip the pole if weight is too small

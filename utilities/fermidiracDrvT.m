@@ -1,4 +1,4 @@
-function g = fermidiracdrvT(ev,efermi,Tbeta);
+function g = fermidiracDrvT(ev,efermi,Tbeta);
 % The derivative of the Fermi-Dirac function with respect to 1/beta.
 dif = ev - efermi;
 if( numel(efermi) > 1 )
