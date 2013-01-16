@@ -3,7 +3,7 @@
 PEXSI_DIR     = /global/homes/l/linlin/project/pexsi
 DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_3.2
 PARMETIS_DIR  = /global/homes/l/linlin/software/parmetis-4.0.2/build/Linux-x86_64
-
+SCOTCH_DIR    = /global/homes/l/linlin/software/scotch_6.0.0
 # inclues
 
 PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
@@ -15,12 +15,14 @@ INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE}
 #PARMETISLIB	     = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libparmetis.a 
 METIS_LIB        = ${PARMETIS_DIR}/libmetis/libmetis.a
 PARMETISLIB	     = ${PARMETIS_DIR}/libparmetis/libparmetis.a
+SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lptscotchparmetis #-lptscotch -lptscotcherr
 SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
 # DSUPERLU_LIB     = ${DSUPERLU_DIR}/craypgi-xe6_O/lib/libsuperlu_dist_2.5.a
 DSUPERLU_LIB     = ${DSUPERLU_DIR}/build/lib/libsuperlu_dist_3.2.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi.a
 
-LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} 
+#LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} 
+LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${SCOTCH_LIB} 
 
 CC           = cc
 CXX          = CC
