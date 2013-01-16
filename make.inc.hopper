@@ -21,8 +21,8 @@ SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
 DSUPERLU_LIB     = ${DSUPERLU_DIR}/build/lib/libsuperlu_dist_3.2.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi.a
 
-#LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} 
-LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${SCOTCH_LIB} 
+LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} 
+#LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${SCOTCH_LIB} 
 
 CC           = cc
 CXX          = CC
