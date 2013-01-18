@@ -122,8 +122,7 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 	} else rowequ = colequ = FALSE;
 
 #if ( PRNTlevel >= 1 )
-	if( !iam ) 
-		fprintf(stderr,"Entering pzsymbfact.");
+	if( !iam ) fprintf(stderr,"Entering pzsymbfact.\n");
 #endif
 
 	/* The following arrays are replicated on all processes. */
@@ -421,6 +420,12 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 		if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
 			nprocs_num = grid->nprow * grid->npcol;
 			noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
+			// FIXME for the strange problem in ParMETIS that no more than 64
+			// processors can be used for symbolic factorization.
+			if( noDomains > 16 ) noDomains = 16;
+#if ( PRNTlevel >= 1 )
+			if( !iam ) fprintf(stderr,"Using %d processors for ParMETIS.\n", noDomains);
+#endif
 
 			/* create a new communicator for the first noDomains processors in
 				 grid->comm */
