@@ -461,17 +461,35 @@ void PPEXSIData::Solve(
 					// *********************************************************************
 					// Important: the distribution in pzsymbfact is going to mess up the
 					// A matrix.  Recompute the matrix A here.
+#if ( _DEBUGlevel_ >= 0 )
+					statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+#endif
 					luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+#if ( _DEBUGlevel_ >= 0 )
+					statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+#endif
 
 					Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
 
 					GetTime( timeTotalFactorizationSta );
 
 					// Data redistribution
+#if ( _DEBUGlevel_ >= 0 )
+					statusOFS << "Before Distribute." << std::endl;
+#endif
 					luMat.Distribute();
+#if ( _DEBUGlevel_ >= 0 )
+					statusOFS << "After Distribute." << std::endl;
+#endif
 
 					// Numerical factorization
+#if ( _DEBUGlevel_ >= 0 )
+					statusOFS << "Before NumericalFactorize." << std::endl;
+#endif
 					luMat.NumericalFactorize();
+#if ( _DEBUGlevel_ >= 0 )
+					statusOFS << "After NumericalFactorize." << std::endl;
+#endif
 					luMat.DestroyAOnly();
 
 					GetTime( timeTotalFactorizationEnd );

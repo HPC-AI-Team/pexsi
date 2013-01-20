@@ -451,7 +451,7 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 						noDomains, &sizes, &fstVtxSep,
 						grid, &symb_comm);
 #if ( PRNTlevel >= 1 )
-				if( !iam ) fprintf(stderr,"After Before get_perm_c_parmetis.");
+				if( !iam ) fprintf(stderr,"After get_perm_c_parmetis.");
 #endif
 				if (flinfo > 0)
 					ABORT("ERROR in get perm_c parmetis.");
@@ -526,10 +526,16 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 			} /* end serial symbolic factorization */
 			else {  /* parallel symbolic factorization */
 				t = SuperLU_timer_();
+#if ( PRNTlevel >= 1 )
+				if( !iam ) fprintf(stderr,"Before symbfact_dist.");
+#endif
 				flinfo = symbfact_dist(nprocs_num, noDomains, A, perm_c, perm_r,
 						sizes, fstVtxSep, &Pslu_freeable, 
 						&(grid->comm), &symb_comm,
 						&symb_mem_usage); 
+#if ( PRNTlevel >= 1 )
+				if( !iam ) fprintf(stderr,"After symbfact_dist.");
+#endif
 				stat->utime[SYMBFAC] = SuperLU_timer_() - t;
 				if (flinfo > 0) 
 					ABORT("Insufficient memory for parallel symbolic factorization.");
