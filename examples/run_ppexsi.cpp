@@ -129,6 +129,14 @@ int main(int argc, char **argv)
 		else{
       throw std::logic_error("npPerPole must be provided.");
 		}
+
+		Int isFormatted;
+		if( options.find("-formatted") != options.end() ){
+			isFormatted = std::atoi(options["-formatted"].c_str());
+		}
+		else{
+			isFormatted = 0; // Binary file
+		}
    
 		std::string Hfile, Sfile;                   
 		if( options.find("-H") != options.end() ){ 
@@ -205,7 +213,13 @@ int main(int argc, char **argv)
 		Int sizeStm;
 		if( MYROW( &gridPole ) == 0 ){
 			std::stringstream sstm;
-			ReadDistSparseMatrix( Hfile.c_str(), HMat, gridPole.rowComm ); 
+
+
+			if( isFormatted )
+				ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, gridPole.rowComm ); 
+			else
+				ReadDistSparseMatrix( Hfile.c_str(), HMat, gridPole.rowComm ); 
+
 			serialize( HMat.size, sstm, NO_MASK );
 			serialize( HMat.nnz,  sstm, NO_MASK );
 			serialize( HMat.nnzLocal, sstm, NO_MASK );
@@ -216,6 +230,8 @@ int main(int argc, char **argv)
 		  sstm.read( &sstr[0], sstr.size() ); 	
 			sizeStm = sstr.size();
 		}
+
+
 		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
 		statusOFS << "sizeStm = " << sizeStm << std::endl;
 
@@ -251,7 +267,11 @@ int main(int argc, char **argv)
 			// SMat is given directly
 			if( MYROW( &gridPole ) == 0 ){
 				std::stringstream sstm;
-				ReadDistSparseMatrix( Sfile.c_str(), SMat, gridPole.rowComm ); 
+				if( isFormatted )
+					ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, gridPole.rowComm ); 
+				else
+					ReadDistSparseMatrix( Sfile.c_str(), SMat, gridPole.rowComm ); 
+
 				serialize( SMat.size, sstm, NO_MASK );
 				serialize( SMat.nnz,  sstm, NO_MASK );
 				serialize( SMat.nnzLocal, sstm, NO_MASK );
