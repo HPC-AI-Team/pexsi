@@ -171,6 +171,7 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 	else if( opt.ColPerm == "PARMETIS" ){
 		options.ColPerm           = PARMETIS;
 		options.ParSymbFact       = YES;
+//		options.ParSymbFact       = NO;
 	}
 	else{
 		std::ostringstream msg;

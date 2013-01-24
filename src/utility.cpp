@@ -280,7 +280,12 @@ void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat
 		Int tmp;
 		fin.read((char*)&tmp, sizeof(Int));  
 		if( tmp != pspmat.nnz ){
-			throw std::logic_error( "The number of nonzeros do not match." );
+			std::ostringstream msg;
+			msg 
+				<< "The number of nonzeros in row indices do not match." << std::endl
+				<< "nnz = " << pspmat.nnz << std::endl
+				<< "size of row indices = " << tmp << std::endl;
+			throw std::logic_error( msg.str().c_str() );
 		}
 		IntNumVec buf;
 		Int numRead;
@@ -303,7 +308,7 @@ void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat
 		MPI_Recv(&numRead, 1, MPI_INT, 0, 0, comm, &mpistat);
 		if( numRead != pspmat.nnzLocal ){
 			std::ostringstream msg;
-			msg << "The number of columns do not match." << std::endl
+			msg << "The number of columns in row indices do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
 			throw std::logic_error( msg.str().c_str() );
@@ -322,7 +327,12 @@ void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat
 		Int tmp;
 		fin.read((char*)&tmp, sizeof(Int));  
 		if( tmp != pspmat.nnz ){
-			throw std::logic_error( "The number of nonzeros do not match." );
+			std::ostringstream msg;
+			msg 
+				<< "The number of nonzeros in values do not match." << std::endl
+				<< "nnz = " << pspmat.nnz << std::endl
+				<< "size of values = " << tmp << std::endl;
+			throw std::logic_error( msg.str().c_str() );
 		}
 		NumVec<Real> buf;
 		Int numRead;
@@ -345,7 +355,7 @@ void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat
 		MPI_Recv(&numRead, 1, MPI_INT, 0, 0, comm, &mpistat);
 		if( numRead != pspmat.nnzLocal ){
 			std::ostringstream msg;
-			msg << "The number of columns do not match." << std::endl
+			msg << "The number of columns in values do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
 			throw std::logic_error( msg.str().c_str() );
@@ -371,6 +381,174 @@ void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat
 	return ;
 }		// -----  end of function ReadDistSparseMatrix  ----- 
 
+void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("ReadDistSparseMatrixFormatted");
+#endif
+	// Get the processor information within the current communicator
+  MPI_Barrier( comm );
+  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+	MPI_Status mpistat;
+	std::ifstream fin;
+
+  // Read basic information
+	if( mpirank == 0 ){
+		fin.open(filename);
+		if( !fin.good() ){
+			throw std::logic_error( "File cannot be openeded!" );
+		}
+		Int dummy;
+		fin >> pspmat.size >> dummy;
+		fin >> pspmat.nnz;
+		// FIXME this is temporary and only applies to 4*4 matrix.
+	  fin	>> dummy;
+		statusOFS << pspmat.size << ", " << pspmat.nnz <<std::endl;
+	}
+	
+	MPI_Bcast(&pspmat.size, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&pspmat.nnz,  1, MPI_INT, 0, comm);
+
+	// Read colptr
+
+//	IntNumVec  colptr(pspmat.size+1);
+//	if( mpirank == 0 ){
+//		Int tmp;
+//		fin.read((char*)&tmp, sizeof(Int));  
+//		if( tmp != pspmat.size+1 ){
+//			throw std::logic_error( "colptr is not of the right size." );
+//		}
+//		fin.read((char*)colptr.Data(), sizeof(Int)*tmp);
+//	}
+//
+//	MPI_Bcast(colptr.Data(), pspmat.size+1, MPI_INT, 0, comm);
+////	std::cout << "Proc " << mpirank << " outputs colptr[end]" << colptr[pspmat.size] << endl;
+//
+//	// Compute the number of columns on each processor
+//	IntNumVec numColLocalVec(mpisize);
+//	Int numColLocal, numColFirst;
+//	numColFirst = pspmat.size / mpisize;
+//  SetValue( numColLocalVec, numColFirst );
+//  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry	
+//	numColLocal = numColLocalVec[mpirank];
+//
+//	pspmat.colptrLocal.Resize( numColLocal + 1 );
+//	for( Int i = 0; i < numColLocal + 1; i++ ){
+//		pspmat.colptrLocal[i] = colptr[mpirank * numColFirst+i] - colptr[mpirank * numColFirst] + 1;
+//	}
+//
+//	// Calculate nnz_loc on each processor
+//	pspmat.nnzLocal = pspmat.colptrLocal[numColLocal] - pspmat.colptrLocal[0];
+//
+//  pspmat.rowindLocal.Resize( pspmat.nnzLocal );
+//	pspmat.nzvalLocal.Resize ( pspmat.nnzLocal );
+//
+//	// Read and distribute the row indices
+//	if( mpirank == 0 ){
+//		Int tmp;
+//		fin.read((char*)&tmp, sizeof(Int));  
+//		if( tmp != pspmat.nnz ){
+//			std::ostringstream msg;
+//			msg 
+//				<< "The number of nonzeros in row indices do not match." << std::endl
+//				<< "nnz = " << pspmat.nnz << std::endl
+//				<< "size of row indices = " << tmp << std::endl;
+//			throw std::logic_error( msg.str().c_str() );
+//		}
+//		IntNumVec buf;
+//		Int numRead;
+//		for( Int ip = 0; ip < mpisize; ip++ ){
+//			numRead = colptr[ip*numColFirst + numColLocalVec[ip]] - 
+//				colptr[ip*numColFirst];
+//			buf.Resize(numRead);
+//			fin.read( (char*)buf.Data(), numRead*sizeof(Int) );
+//			if( ip > 0 ){
+//				MPI_Send(&numRead, 1, MPI_INT, ip, 0, comm);
+//				MPI_Send(buf.Data(), numRead, MPI_INT, ip, 1, comm);
+//			}
+//			else{
+//        pspmat.rowindLocal = buf;
+//			}
+//		}
+//	}
+//	else{
+//		Int numRead;
+//		MPI_Recv(&numRead, 1, MPI_INT, 0, 0, comm, &mpistat);
+//		if( numRead != pspmat.nnzLocal ){
+//			std::ostringstream msg;
+//			msg << "The number of columns in row indices do not match." << std::endl
+//				<< "numRead  = " << numRead << std::endl
+//				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
+//			throw std::logic_error( msg.str().c_str() );
+//		}
+//
+//    pspmat.rowindLocal.Resize( numRead );
+//		MPI_Recv( pspmat.rowindLocal.Data(), numRead, MPI_INT, 0, 1, comm, &mpistat );
+//	}
+//		
+////	std::cout << "Proc " << mpirank << " outputs rowindLocal.size() = " 
+////		<< pspmat.rowindLocal.m() << endl;
+//
+//
+//	// Read and distribute the nonzero values
+//	if( mpirank == 0 ){
+//		Int tmp;
+//		fin.read((char*)&tmp, sizeof(Int));  
+//		if( tmp != pspmat.nnz ){
+//			std::ostringstream msg;
+//			msg 
+//				<< "The number of nonzeros in values do not match." << std::endl
+//				<< "nnz = " << pspmat.nnz << std::endl
+//				<< "size of values = " << tmp << std::endl;
+//			throw std::logic_error( msg.str().c_str() );
+//		}
+//		NumVec<Real> buf;
+//		Int numRead;
+//		for( Int ip = 0; ip < mpisize; ip++ ){
+//			numRead = colptr[ip*numColFirst + numColLocalVec[ip]] - 
+//				colptr[ip*numColFirst];
+//			buf.Resize(numRead);
+//			fin.read( (char*)buf.Data(), numRead*sizeof(Real) );
+//			if( ip > 0 ){
+//				MPI_Send(&numRead, 1, MPI_INT, ip, 0, comm);
+//				MPI_Send(buf.Data(), numRead, MPI_DOUBLE, ip, 1, comm);
+//			}
+//			else{
+//        pspmat.nzvalLocal = buf;
+//			}
+//		}
+//	}
+//	else{
+//		Int numRead;
+//		MPI_Recv(&numRead, 1, MPI_INT, 0, 0, comm, &mpistat);
+//		if( numRead != pspmat.nnzLocal ){
+//			std::ostringstream msg;
+//			msg << "The number of columns in values do not match." << std::endl
+//				<< "numRead  = " << numRead << std::endl
+//				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
+//			throw std::logic_error( msg.str().c_str() );
+//		}
+//
+//    pspmat.nzvalLocal.Resize( numRead );
+//		MPI_Recv( pspmat.nzvalLocal.Data(), numRead, MPI_DOUBLE, 0, 1, comm, &mpistat );
+//	}
+
+	// Close the file
+	if( mpirank == 0 ){
+    fin.close();
+	}
+
+
+
+  MPI_Barrier( comm );
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function ReadDistSparseMatrixFormatted  ----- 
 
 void
 GetDiagonal ( const DistSparseMatrix<Complex>& A, 

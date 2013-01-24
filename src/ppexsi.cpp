@@ -272,8 +272,8 @@ void PPEXSIData::Solve(
 #if ( _DEBUGlevel_ >= 0 )
 		Int nnzLocal = PMloc.NnzLocal();
 		statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
-		Int nnz      = PMloc.Nnz();
-		statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+//		Int nnz      = PMloc.Nnz();
+//		statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
 #endif
 	}
 

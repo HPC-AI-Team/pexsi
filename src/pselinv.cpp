@@ -1550,6 +1550,7 @@ PMatrix::PMatrixToDistSparseMatrix	(
 		A.colptrLocal(j+1) = A.colptrLocal(j) + rows[j].size();
 	}
   
+	// TODO Potentially make A.nnz using Long format
 	mpi::Allreduce( &A.nnzLocal, &A.nnz, 1, MPI_SUM, grid_->comm );
 #if ( _DEBUGlevel_ >= 1 )
 		statusOFS << "nnzLocal = " << A.nnzLocal << std::endl;
@@ -1920,6 +1921,7 @@ PMatrix::NnzLocal	(  )
 } 		// -----  end of method PMatrix::NnzLocal  ----- 
 
 
+// TODO Make nnz using long format
 Int
 PMatrix::Nnz	(  )
 {
