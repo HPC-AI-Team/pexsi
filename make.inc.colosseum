@@ -28,10 +28,6 @@ CC           = openmpicc
 CXX          = openmpicxx
 FC           = openmpif90
 LOADER       = openmpicxx
-#CC           = mpicc 
-#CXX          = mpicxx
-#FC           = mpif90
-#LOADER       = mpicxx
 
 AR           = ar 
 ARFLAGS      = rvcu
@@ -48,7 +44,7 @@ RMFLAGS      = -f
 MODE	         = release
 
 ifeq ($(MODE), debug)
-	COMMONDEFS   = -D_DEBUGlevel_=0 -DAdd_ -D_USE_COMPLEX_
+	COMMONDEFS   = -DDEBUG=0 
   CFLAGS       = -O2 -w -g ${INCLUDES}
   FFLAGS       = -O2 -w -g ${INCLUDES}
   CXXFLAGS     = -O2 -w -g ${INCLUDES}
@@ -58,8 +54,7 @@ ifeq ($(MODE), debug)
 endif
 
 ifeq ($(MODE), release)
-	#COMMONDEFS   = -D_DEBUGlevel_=-1 -D_RELEASE_ -DAdd_ -D_USE_COMPLEX_
-	COMMONDEFS   = -D_DEBUGlevel_=-1 -D_RELEASE_ -D_USE_COMPLEX_
+	COMMONDEFS   = -DRELEASE 
   CFLAGS       = -O3 -w ${INCLUDES}
   FFLAGS       = -O3 -w ${INCLUDES}
   CXXFLAGS     = -O3 -w ${INCLUDES}

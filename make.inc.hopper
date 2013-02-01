@@ -44,7 +44,7 @@ RMFLAGS      = -f
 MODE	         = release
 
 ifeq ($(MODE), debug)
-	COMMONDEFS   = -D_DEBUGlevel_=0 -DAdd_ -D_USE_COMPLEX_
+	COMMONDEFS   = -DDEBUG=0 
   CFLAGS       = -O2 -g -w ${INCLUDES}
   FFLAGS       = -O2 -g -w ${INCLUDES}
   CXXFLAGS     = -O2 -g -w ${INCLUDES}
@@ -54,7 +54,7 @@ ifeq ($(MODE), debug)
 endif
 
 ifeq ($(MODE), release)
-	COMMONDEFS   = -D_RELEASE_ -DAdd_ -D_USE_COMPLEX_
+	COMMONDEFS   = -DRELEASE 
   CFLAGS       = -fast -w ${INCLUDES}
   FFLAGS       = -fast -w ${INCLUDES}
   CXXFLAGS     = -fast -w ${INCLUDES}

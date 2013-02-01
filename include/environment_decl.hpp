@@ -30,6 +30,24 @@
 #include "mpi.h"
 
 
+// *********************************************************************
+// Redefine the global macros
+// *********************************************************************
+
+// Always use complex data for pexsi and ppexsi.
+#define _USE_COMPLEX_
+
+// The verbose level of debugging information
+#ifdef  DEBUG
+#define _DEBUGlevel_ DEBUG
+#endif
+
+// Release mode. For speed up the calculation and reduce verbose level.
+// Note that RELEASE overwrites DEBUG level.
+#ifdef RELEASE
+#define _RELEASE_
+#define _DEBUGlevel -1
+#endif
 
 /***********************************************************************
  *  Data types and constants
@@ -135,7 +153,7 @@ public:
 // Global utility functions 
 // These utility functions do not depend on local definitions
 // *********************************************************************
-// Return the closest integer to a rela number
+// Return the closest integer to a real number
 Int iround( Real a );
 
 // Read the options from command line
