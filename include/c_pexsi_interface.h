@@ -7,12 +7,44 @@
  */
 #ifndef _C_PEXSI_INTERFACE_H_ 
 #define _C_PEXSI_INTERFACE_H_
+#include <mpi.h>
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-void DummyInterface( int* a );
+/**
+ * @brief Dummy interface for test purpose.
+ *
+ */
+void DummyInterface( MPI_Comm comm, int a );
+
+/**
+ * @brief Main C-interface with PEXSI.
+ *
+ */
+void PEXSIInterface( int*          nrows, 
+										 int*          nnzLocal,
+										 int*          numColLocal,
+										 int*          colptrLocal,
+										 int*          rowindLocal,
+										 double*       HnzvalLocal,
+										 double*       SnzvalLocal,
+										 double*      DMnzvalLocal,
+										 double*     EDMnzvalLocal,
+										 double*     FDMnzvalLocal,
+										 int*          numPole,
+										 double*       temperature,
+										 double*       numElectronExact,
+										 double*       gap,
+										 double*       deltaE,
+										 double*       mu0,
+										 double*       muMin,
+										 double*       muMax,
+										 int*          muMaxIter,
+										 double*       poleTolerance,
+										 double*       numElectronTolerance,
+										 int*          isConverged );
 
 #ifdef __cplusplus
 }// extern "C"

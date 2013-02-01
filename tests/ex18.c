@@ -7,9 +7,11 @@
 int
 main ( int argc, char *argv[] )
 {
+	MPI_Init(&argc, &argv);
+	
 	int a = 2;
-
-	DummyInterface( &a );
+	DummyInterface( MPI_COMM_WORLD, a );
+	MPI_Finalize();
   	
 	return 0;
 }				// ----------  end of function main  ---------- 

@@ -25,7 +25,7 @@ EXES = ${SRCS:.cpp=}
 	${FC} -c ${FFLAGS} $<
 
 ex19: ex19.o ${PEXSI_LIB} 
-	($(FC) -o $@ ex19.o  $(LOADOPTS) -lstdc++ )
+	($(FC) -o $@ ex19.o  $(FLOADOPTS) )
 
 ex18: ex18.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ ex18.o  $(LOADOPTS) )
