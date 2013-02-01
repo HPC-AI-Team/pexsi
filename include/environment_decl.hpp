@@ -39,6 +39,7 @@ namespace PEXSI{
 
 // Basic data types
 
+#define FORTRAN(name) name##_
 #define BLAS(name) name##_
 #define LAPACK(name) name##_
 

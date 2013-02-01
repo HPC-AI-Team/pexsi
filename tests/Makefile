@@ -6,6 +6,8 @@ include ../make.inc.${HOSTID}
 #SRCS = ex1.cpp ex2.cpp ex3.cpp ex4.cpp ex5.cpp ex6.cpp ex7.cpp \
 			 ex8.cpp ex9.cpp ex10.cpp ex11.cpp ex12.cpp ex13.cpp ex14.cpp ex15.cpp
 SRCS  = ex17.cpp
+SRCS_C = ex18.c
+SRCS_F = ex19.f90
 
 OBJS = ${SRCS:.cpp=.o}
 DEPS = ${SRCS:.cpp=.d}
@@ -17,25 +19,31 @@ EXES = ${SRCS:.cpp=}
 	${CC} -c ${CFLAGS} ${CCDEFS} $< 
 %.o: %.cpp
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
-%.o: %.f
+%.o: %.f90
 	${FC} -c ${FFLAGS} $<
-%.o: %.F
+%.o: %.F90
 	${FC} -c ${FFLAGS} $<
 
-ex17: ex17.o ${PEXSI_LIB} ${PLUSELINV_LIB}
+ex19: ex19.o ${PEXSI_LIB} 
+	($(FC) -o $@ ex19.o  $(LOADOPTS) -lstdc++ )
+
+ex18: ex18.o ${PEXSI_LIB} 
+	($(LOADER) -o $@ ex18.o  $(LOADOPTS) )
+
+ex17: ex17.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ ex17.o  $(LOADOPTS) )
 
 ex17.o: ex17.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
-ex16: ex16.o ${PEXSI_LIB} ${PLUSELINV_LIB}
+ex16: ex16.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ ex16.o  $(LOADOPTS) )
 
 ex16.o: ex16.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 
-ex15: ex15.o ${PEXSI_LIB} ${PLUSELINV_LIB}
+ex15: ex15.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ ex15.o  $(LOADOPTS) $(IPM) )
 
 ex15.o: ex15.cpp 
