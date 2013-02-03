@@ -5,13 +5,13 @@ include ../make.inc.${HOSTID}
 
 #SRCS = ex1.cpp ex2.cpp ex3.cpp ex4.cpp ex5.cpp ex6.cpp ex7.cpp \
 			 ex8.cpp ex9.cpp ex10.cpp ex11.cpp ex12.cpp ex13.cpp ex14.cpp ex15.cpp
-SRCS  = ex17.cpp
+#SRCS  = ex17.cpp
 SRCS_C = ex18.c
-SRCS_F = ex19.f90
+SRCS_F = ex19.f90 ex20.f90
 
-OBJS = ${SRCS:.cpp=.o}
-DEPS = ${SRCS:.cpp=.d}
-EXES = ${SRCS:.cpp=}	
+OBJS = ${SRCS:.cpp=.o} ${SRCS_C:.c=.o} ${SRCS_F:.f90=.o}
+DEPS = ${SRCS:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F:.f90=.d}
+EXES = ${SRCS:.cpp=}	 ${SRCS_C:.c=}   ${SRCS_F:.f90=}
 
 # Compilation replacement rules
 
@@ -23,6 +23,9 @@ EXES = ${SRCS:.cpp=}
 	${FC} -c ${FFLAGS} $<
 %.o: %.F90
 	${FC} -c ${FFLAGS} $<
+
+ex20: ex20.o ${PEXSI_LIB} 
+	($(FC) -o $@ ex20.o  $(FLOADOPTS) )
 
 ex19: ex19.o ${PEXSI_LIB} 
 	($(FC) -o $@ ex19.o  $(FLOADOPTS) )

@@ -1,5 +1,5 @@
 !> @file ex19.f90
-!> @brief Test the interface between FORTRAN and PEXSI.
+!> @brief Test the dummy FORTRAN interface.
 !> @author Lin Lin
 !> @date 2013-01-31
 program ex19
