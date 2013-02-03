@@ -29,15 +29,23 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 ! Data is for the DNA matrix.
 temperature      = 3000.0d0
 numElectronExact = 2442.0d0
-numPole          = 40
+numPole          = 80
 gap              = 0.0d0
 deltaE           = 20.0d0
+! Initial guess of chemical potential
 mu0              = -0.63d0
+! The information of muMin/muMax can be obtained from previous iterations in the
+! case with SCF iterations.
 muMin            = -0.7d0
-muMax            = -0.5d0
+muMax            = -0.6d0
+! muMaxIter should be 1 or 2 later when combined with SCF.
 muMaxIter        = 10
+! Do not compute a pole if the corresponding weight is < poleTolerance.
 poleTolerance    = 1d-12
+! Stop mu-iteration if numElectronTolerance is < numElectronTolerance.
 numElectronTolerance = 1d-2
+! Number of processors used for each pole. At the moment use mpisize.
+! Later can be changed to 
 npPerPole        = mpisize
 Hfile            = "H.matrix"
 Sfile            = "S.matrix"
@@ -67,6 +75,9 @@ allocate( colptrLocal( numColLocal + 1 ) )
 allocate( rowindLocal( nnzLocal ) )
 allocate( HnzvalLocal( nnzLocal ) )
 allocate( SnzvalLocal( nnzLocal ) ) 
+allocate( DMnzvalLocal( nnzLocal ) ) 
+allocate( EDMnzvalLocal( nnzLocal ) ) 
+allocate( FDMnzvalLocal( nnzLocal ) ) 
 
 timeSta = mpi_wtime()
 
@@ -82,7 +93,7 @@ call f_read_distsparsematrix_formatted (&
 	MPI_COMM_WORLD )
 
 call f_read_distsparsematrix_formatted (&
-	trim(Hfile)//char(0),&
+	trim(Sfile)//char(0),&
 	nrows,&
 	nnz,&
 	nnzLocal,&
@@ -129,6 +140,10 @@ deallocate( colptrLocal )
 deallocate( rowindLocal )
 deallocate( HnzvalLocal )
 deallocate( SnzvalLocal )
+deallocate( DMnzvalLocal )
+deallocate( EDMnzvalLocal )
+deallocate( FDMnzvalLocal )
+
 
 call mpi_finalize( ierr )
 
