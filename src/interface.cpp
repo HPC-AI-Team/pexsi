@@ -142,9 +142,10 @@ void PPEXSIInterface (
 		int           numPole,
 		double        temperature,
 		double        numElectronExact,
+		double*       numElectron, 
 		double        gap,
 		double        deltaE,
-		double        mu0,
+		double*       mu,
 		double        muMin,
 		double        muMax,
 		int           muMaxIter,
@@ -198,6 +199,8 @@ void PPEXSIInterface (
 	bool isDerivativeTMatrix       = false;
 	bool isConverged               = false; 	
 	std::string colPerm            = "PARMETIS";
+	// Initial guess of chemical potential
+	Real mu0                       = *mu;
 
 	std::vector<Real>  muList;
 	std::vector<Real>  numElectronList;
@@ -239,8 +242,11 @@ void PPEXSIInterface (
 		statusOFS << "PEXSI did not converge with " << muList.size() << 
 			" iterations" << std::endl;
 	}
-//	Print( statusOFS, "mu                   = ", 
-//			*muList.rbegin() );
+	
+	// Update chemical potential
+	*mu = *(muList.rbegin());
+	*numElectron = *(numElectronList.rbegin());
+
 	Print( statusOFS, "Total time for PEXSI = ", 
 			timeSolveEnd - timeSolveSta );
 
@@ -350,9 +356,10 @@ void FORTRAN(f_ppexsi_interface)(
 		int*          numPole,
 		double*       temperature,
 		double*       numElectronExact,
+		double*       numElectron,
 		double*       gap,
 		double*       deltaE,
-		double*       mu0,
+		double*       mu,
 		double*       muMin,
 		double*       muMax,
 		int*          muMaxIter,
@@ -376,9 +383,10 @@ void FORTRAN(f_ppexsi_interface)(
 			*numPole,
 			*temperature,
 			*numElectronExact,
+			numElectron,
 			*gap,
 			*deltaE,
-			*mu0,
+			mu,
 			*muMin,
 			*muMax,
 			*muMaxIter,

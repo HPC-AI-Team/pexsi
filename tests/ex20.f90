@@ -12,8 +12,9 @@ double precision, allocatable, dimension(:) :: &
 	HnzvalLocal, SnzvalLocal, DMnzvalLocal, EDMnzvalLocal, &
 	FDMnzvalLocal
 integer :: numPole
-double precision :: temperature, numElectronExact, gap, deltaE
-double precision :: mu0, muMin, muMax
+double precision :: temperature, numElectronExact, numElectron,&
+	gap, deltaE
+double precision :: mu, muMin, muMax
 integer:: muMaxIter
 double precision :: poleTolerance, numElectronTolerance
 integer:: npPerPole, nprow, npcol
@@ -32,12 +33,11 @@ numElectronExact = 2442.0d0
 numPole          = 80
 gap              = 0.0d0
 deltaE           = 20.0d0
-! Initial guess of chemical potential
-mu0              = -0.63d0
-! The information of muMin/muMax can be obtained from previous iterations in the
-! case with SCF iterations.
-muMin            = -0.7d0
-muMax            = -0.6d0
+! Initial guess of chemical potential, also updated after pexsi.
+mu               = -0.60d0
+! Lower/Upper bound for the chemical potential.
+muMin            =  0.0d0
+muMax            = -1.0d0
 ! muMaxIter should be 1 or 2 later when combined with SCF.
 muMaxIter        = 10
 ! Do not compute a pole if the corresponding weight is < poleTolerance.
@@ -125,9 +125,10 @@ call f_ppexsi_interface( &
 	numPole,&
 	temperature,&
 	numElectronExact,&
+	numElectron,&
 	gap,&
 	deltaE,&
-	mu0,&
+	mu,&
 	muMin,&
   muMax,&
 	muMaxIter,&
@@ -135,6 +136,12 @@ call f_ppexsi_interface( &
 	numElectronTolerance,&
 	MPI_COMM_WORLD,&
 	npPerPole )
+
+if( mpirank == 0 ) then
+	write(*, *) "mu          = ", mu
+	write(*, *) "numElectron = ", numElectron
+endif
+
 
 deallocate( colptrLocal )
 deallocate( rowindLocal )
