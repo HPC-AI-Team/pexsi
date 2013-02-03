@@ -36,8 +36,8 @@ deltaE           = 20.0d0
 ! Initial guess of chemical potential, also updated after pexsi.
 mu               = -0.60d0
 ! Lower/Upper bound for the chemical potential.
-muMin            =  0.0d0
-muMax            = -1.0d0
+muMin            = -1.0d0
+muMax            =  0.0d0
 ! muMaxIter should be 1 or 2 later when combined with SCF.
 muMaxIter        = 10
 ! Do not compute a pole if the corresponding weight is < poleTolerance.

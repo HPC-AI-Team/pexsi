@@ -5,6 +5,7 @@
 // TODO
 //#include "c_pexsi_interface.h"
 #include "ppexsi.hpp"
+#include "blas.hpp"
 
 // Error handling used in the C interface that is different from the
 // throw/catch system.
@@ -112,14 +113,14 @@ void ReadDistSparseMatrixFormattedInterface(
 	iA( nnzLocal == A.nnzLocal );
 	iA( numColLocal + 1 == A.colptrLocal.m() );
 	
-	memcpy( colptrLocal, A.colptrLocal.Data(), 
-			sizeof(int)* (numColLocal+1) );
+	memcpy( colptrLocal,  A.colptrLocal.Data(),
+			sizeof(int) * (numColLocal + 1) );
 
-	memcpy( rowindLocal, A.rowindLocal.Data(),
-			sizeof(int)*nnzLocal );
+	memcpy( rowindLocal,  A.colptrLocal.Data(),
+			sizeof(int) * (nnzLocal) );
 
-	memcpy( nzvalLocal, A.nzvalLocal.Data(),
-			sizeof(double) * A.nnzLocal );
+	blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
+			nzvalLocal, 1 );
 
 	return;
 }  
@@ -246,6 +247,16 @@ void PPEXSIInterface (
 	// Update chemical potential
 	*mu = *(muList.rbegin());
 	*numElectron = *(numElectronList.rbegin());
+
+	// Update the density matrices
+	blas::Copy( nnzLocal, pexsi.DensityMatrix().nzvalLocal.Data(), 
+			1, DMnzvalLocal, 1 );
+
+	blas::Copy( nnzLocal, pexsi.FreeEnergyDensityMatrix().nzvalLocal.Data(), 
+			1, FDMnzvalLocal, 1 );
+
+	blas::Copy( nnzLocal, pexsi.EnergyDensityMatrix().nzvalLocal.Data(), 
+			1, EDMnzvalLocal, 1 );
 
 	Print( statusOFS, "Total time for PEXSI = ", 
 			timeSolveEnd - timeSolveSta );
