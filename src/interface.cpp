@@ -235,11 +235,11 @@ void PPEXSIInterface (
 		std::stringstream sstm;
 		sstm.write( &sstr[0], sizeStm );
 		deserialize( HMat, sstm, NO_MASK );
-		CopyPattern( HMat, SMat );
-		deserialize( SMat.nnzLocal, sstm, NO_MASK );
 		// Communicator
 		HMat.comm = gridPole.rowComm;
+		CopyPattern( HMat, SMat );
 		SMat.comm = gridPole.rowComm;
+		deserialize( SMat.nzvalLocal, sstm, NO_MASK );
 	}
 	sstr.clear();
 
