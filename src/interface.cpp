@@ -12,6 +12,9 @@
 #define iC(fun)  { int ierr=fun; if(ierr!=0) exit(1); }
 #define iA(expr) { if((expr)==0) { std::cerr<<"wrong "<<__LINE__<<" in " <<__FILE__<<std::endl; std::cerr.flush(); exit(1); } }
 
+// FIXME
+#define _DEBUGlevel_ 0
+
 using namespace PEXSI;
 
 // *********************************************************************
@@ -159,9 +162,15 @@ void PPEXSIInterface (
 	MPI_Comm_rank( comm, &mpirank );
 	MPI_Comm_size( comm, &mpisize );
 
-	if( mpisize != npPerPole ){
-		throw std::runtime_error( "The current interface only supports mpisize == npPerPole" );
+	if( mpisize % npPerPole != 0 ){
+		std::ostringstream msg;
+		msg 
+			<< "mpisize    = " << mpisize << std::endl
+			<< "npPerPole  = " << npPerPole << std::endl
+			<< "mpisize is not divisible by npPerPole!" << std::endl;
+		throw std::runtime_error( msg.str().c_str() );
 	}
+
 	// log files
 	std::stringstream  ss;
 	ss << "logPEXSI" << mpirank;
@@ -175,24 +184,73 @@ void PPEXSIInterface (
 	PPEXSIData pexsi( &gridPole, nprow, npcol );
 
 	// Convert into H and S matrices
-	// TODO Simultaneous treatment of multiple poles
 	DistSparseMatrix<Real> HMat, SMat;
 
-	HMat.size        = nrows;
-	HMat.nnzLocal    = nnzLocal;
-	HMat.nnz         = nnz;
-	// Pointer without actual copying the data
-	HMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
-	HMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
-	HMat.comm        = gridPole.rowComm;
+	// The first row processors (size: npPerPole) read the matrix, and
+	// then distribute the matrix to the rest of the processors.
+	//
+	// NOTE: The first row processor must have data for H/S.
+	std::vector<char> sstr;
+	Int sizeStm;
+	if( MYROW( &gridPole ) == 0 ){
+		std::stringstream sstm;
 
-	// Copy symbolic data from H to S, including communicator
-	CopyPattern( HMat, SMat );                    
+		HMat.size        = nrows;
+		HMat.nnz         = nnz;
+		HMat.nnzLocal    = nnzLocal;
+		// The first row processor does not need extra copies of the index /
+		// value of the matrix. 
+		HMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
+		HMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
+		// H value
+		HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
+		HMat.comm = gridPole.rowComm;
+
+		CopyPattern( HMat, SMat );
+		SMat.comm = gridPole.rowComm;
+
+		// S value
+		SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+		
+		// Serialization will copy the values regardless of the ownership
+		serialize( HMat, sstm, NO_MASK );
+		serialize( SMat.nzvalLocal, sstm, NO_MASK );
+		
+		sstr.resize( Size( sstm ) );
+		sstm.read( &sstr[0], sstr.size() ); 	
+		sizeStm = sstr.size();
+	}
 	
-	// Pointer without actual copying the data
-	HMat.nzvalLocal  = DblNumVec( nnzLocal, false, HnzvalLocal );
-	SMat.nzvalLocal  = DblNumVec( nnzLocal, false, SnzvalLocal );
-  	
+	MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
+	
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "sizeStm = " << sizeStm << std::endl;
+#endif
+
+	if( MYROW( &gridPole ) != 0 ) sstr.resize( sizeStm );
+
+	MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
+
+	if( MYROW( &gridPole ) != 0 ){
+		std::stringstream sstm;
+		sstm.write( &sstr[0], sizeStm );
+		deserialize( HMat, sstm, NO_MASK );
+		CopyPattern( HMat, SMat );
+		deserialize( SMat.nnzLocal, sstm, NO_MASK );
+		// Communicator
+		HMat.comm = gridPole.rowComm;
+		SMat.comm = gridPole.rowComm;
+	}
+	sstr.clear();
+
+
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "H.size     = " << HMat.size     << std::endl;
+	statusOFS << "H.nnzLocal = " << HMat.nnzLocal << std::endl;
+	statusOFS << "S.size     = " << SMat.size     << std::endl;
+	statusOFS << "S.nnzLocal = " << SMat.nnzLocal << std::endl;
+#endif
+
 
 	// Parameters
 	bool isFreeEnergyDensityMatrix = true;
@@ -248,15 +306,19 @@ void PPEXSIInterface (
 	*mu = *(muList.rbegin());
 	*numElectron = *(numElectronList.rbegin());
 
-	// Update the density matrices
-	blas::Copy( nnzLocal, pexsi.DensityMatrix().nzvalLocal.Data(), 
-			1, DMnzvalLocal, 1 );
+	// Update the density matrices for the first row processors (size: npPerPole) 
+	if( MYROW( &gridPole ) == 0 ){
+		blas::Copy( nnzLocal, pexsi.DensityMatrix().nzvalLocal.Data(), 
+				1, DMnzvalLocal, 1 );
 
-	blas::Copy( nnzLocal, pexsi.FreeEnergyDensityMatrix().nzvalLocal.Data(), 
-			1, FDMnzvalLocal, 1 );
+		blas::Copy( nnzLocal, pexsi.FreeEnergyDensityMatrix().nzvalLocal.Data(), 
+				1, FDMnzvalLocal, 1 );
 
-	blas::Copy( nnzLocal, pexsi.EnergyDensityMatrix().nzvalLocal.Data(), 
-			1, EDMnzvalLocal, 1 );
+		blas::Copy( nnzLocal, pexsi.EnergyDensityMatrix().nzvalLocal.Data(), 
+				1, EDMnzvalLocal, 1 );
+	}
+
+	MPI_Barrier( comm );
 
 	Print( statusOFS, "Total time for PEXSI = ", 
 			timeSolveEnd - timeSolveSta );

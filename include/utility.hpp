@@ -1201,6 +1201,40 @@ Int inline combine(NumTns<T>& val, NumTns<T>& ext)
   return 0;
 }
 
+//-------------------
+//DistSparseMatrix
+template<class T>
+Int inline serialize(const DistSparseMatrix<T>& val, std::ostream& os, const std::vector<Int>& mask)
+{
+	serialize( val.size,        os, mask );
+	serialize( val.nnz,         os, mask );
+	serialize( val.nnzLocal,    os, mask );
+	serialize( val.colptrLocal, os, mask );
+	serialize( val.rowindLocal, os, mask );
+	serialize( val.nzvalLocal,  os, mask );
+	// No need to serialize the communicator
+	return 0;
+}
+
+template<class T>
+Int inline deserialize(DistSparseMatrix<T>& val, std::istream& is, const std::vector<Int>& mask)
+{
+	deserialize( val.size,        is, mask );
+	deserialize( val.nnz,         is, mask );
+	deserialize( val.nnzLocal,    is, mask );
+	deserialize( val.colptrLocal, is, mask );
+	deserialize( val.rowindLocal, is, mask );
+	deserialize( val.nzvalLocal,  is, mask );
+	// No need to deserialize the communicator
+  return 0;
+}
+
+template<class T>
+Int inline combine(DistSparseMatrix<T>& val, DistSparseMatrix<T>& ext)
+{
+	throw  std::logic_error( "Combine operation not implemented." );
+  return 0;
+}
 
 
 // *********************************************************************
@@ -1365,47 +1399,6 @@ CopyPattern	( const DistSparseMatrix<F1>& A, DistSparseMatrix<F2>& B )
 #endif
 	return ;
 }		// -----  end of template function CopyPattern  ----- 
-
-
-template <class F> 
-Int inline serialize ( const DistSparseMatrix<F>& A, std::ostream& os,
-	 const std::vector<Int>& mask	)
-{
-#ifndef _RELEASE_
-	PushCallStack("serialize (DistSparseMatrix)");
-#endif
-  os.write((char*)&A.size, sizeof(Int));
-  os.write((char*)&A.nnz, sizeof(Int));
-  os.write((char*)&A.nnzLocal, sizeof(Int));
-	serialize( A.colptrLocal, os, mask );
-	serialize( A.rowindLocal, os, mask );
-	serialize( A.nzvalLocal, os, mask );
-	// Do not serialize the comm
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-	return 0;
-}		// -----  end of template function serialize  ----- 
-
-template <class F> 
-Int inline deserialize ( DistSparseMatrix<F>& A, std::istream& is,
-	 const std::vector<Int>& mask	)
-{
-#ifndef _RELEASE_
-	PushCallStack("deserialize (DistSparseMatrix)");
-#endif
-  is.read((char*)&A.size, sizeof(Int));
-  is.read((char*)&A.nnz, sizeof(Int));
-  is.read((char*)&A.nnzLocal, sizeof(Int));
-	deserialize( A.colptrLocal, is, mask );
-	deserialize( A.rowindLocal, is, mask );
-	deserialize( A.nzvalLocal, is, mask );
-	// Do not deserialize the comm
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-	return 0;
-}		// -----  end of template function deserialize  ----- 
 
 
 } // namespace PEXSI
