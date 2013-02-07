@@ -49,7 +49,7 @@ poleTolerance    = 1d-12
 numElectronTolerance = 1d-2
 ! Number of processors used for each pole. At the moment use mpisize.
 ! Later can be changed to 
-npPerPole        = 1
+npPerPole        = 16
 Hfile            = "H.matrix"
 Sfile            = "S.matrix"
 
