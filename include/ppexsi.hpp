@@ -206,7 +206,7 @@ public:
 	/// @param[in] HMat Hamilotian matrix.
 	///
 	/// @return The Helmholtz free energy Tr[rho_f H]
-	Real CalculateFreeEnergy( const DistSparseMatrix<Real>& HMat );
+	Real CalculateFreeEnergy( const DistSparseMatrix<Real>& SMat );
 
 	/// @brief CalculateFreeEnergy computes the force, including the
 	/// Hellman-Feynman force and the Pulay force. 

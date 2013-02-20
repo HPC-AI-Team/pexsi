@@ -1,3 +1,4 @@
+
 /// @file ppexsi.cpp
 /// @brief Implementation of the parallel version of PEXSI.
 /// @author Lin Lin
@@ -671,7 +672,7 @@ void PPEXSIData::Solve(
 		
 		Real totalFreeEnergy;
 		if( isFreeEnergyDensityMatrix )
-			totalFreeEnergy = CalculateFreeEnergy( HMat );
+			totalFreeEnergy = CalculateFreeEnergy( SMat ) + muNow * numElectronNow;
 		Real numElectronDrvT;
 		if( isDerivativeTMatrix )
 			numElectronDrvT =  CalculateNumElectronDrvT( SMat );
@@ -871,7 +872,7 @@ PPEXSIData::CalculateTotalEnergy	( const DistSparseMatrix<Real>& HMat )
 } 		// -----  end of method PPEXSIData::CalculateTotalEnergy  ----- 
 
 Real 
-PPEXSIData::CalculateFreeEnergy	( const DistSparseMatrix<Real>& HMat )
+PPEXSIData::CalculateFreeEnergy	( const DistSparseMatrix<Real>& SMat )
 {
 #ifndef _RELEASE_
 	PushCallStack("PPEXSIData::CalculateFreeEnergy");
@@ -879,9 +880,9 @@ PPEXSIData::CalculateFreeEnergy	( const DistSparseMatrix<Real>& HMat )
 	
 	Real totalFreeEnergyLocal = 0.0, totalFreeEnergy = 0.0;
 	
-	// TODO Check HMat and freeEnergyDensityMat_ has the same sparsity
+	// TODO Check SMat and freeEnergyDensityMat_ has the same sparsity
 
-	totalFreeEnergyLocal = blas::Dot( HMat.nnzLocal, HMat.nzvalLocal.Data(),
+	totalFreeEnergyLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
 			1, freeEnergyDensityMat_.nzvalLocal.Data(), 1 );
 #if ( _DEBUGlevel_ >= 0 )
 	statusOFS << std::endl << "TotalFreeEnergyLocal = " << totalFreeEnergyLocal << std::endl;

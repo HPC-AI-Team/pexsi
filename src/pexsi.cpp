@@ -406,7 +406,7 @@ void PEXSIData::Solve(
 		
 		Real totalFreeEnergy;
 		if( isFreeEnergyDensityMatrix )
-			totalFreeEnergy = CalculateFreeEnergy( HMat );
+			totalFreeEnergy = CalculateFreeEnergy( SMat ) + muNow * numElectronNow;
 
 		muList.push_back(muNow);
 		numElectronList.push_back( numElectronNow );
@@ -504,19 +504,19 @@ PEXSIData::CalculateTotalEnergy	( const SparseMatrix<Real>& HMat )
 } 		// -----  end of method PEXSIData::CalculateTotalEnergy  ----- 
 
 Real 
-PEXSIData::CalculateFreeEnergy	( const SparseMatrix<Real>& HMat )
+PEXSIData::CalculateFreeEnergy	( const SparseMatrix<Real>& SMat )
 {
 #ifndef _RELEASE_
 	PushCallStack("PEXSIData::CalculateFreeEnergy");
 #endif
-	// TODO Check HMat and hmzMat has the same sparsity
+	// TODO Check SMat and hmzMat has the same sparsity
 
 	Real val = 0.0;
-	Real *ptr1 = HMat.nzval.Data();
+	Real *ptr1 = SMat.nzval.Data();
 	Real *ptr2 = freeEnergyDensityMat_.nzval.Data();
-	for(Int j = 0; j < HMat.size; j++){
-		for(Int i = HMat.colptr[j] - 1; i < HMat.colptr[j+1] - 1; i++){
-			if( j+1 == HMat.rowind[i] ){ // diagonal
+	for(Int j = 0; j < SMat.size; j++){
+		for(Int i = SMat.colptr[j] - 1; i < SMat.colptr[j+1] - 1; i++){
+			if( j+1 == SMat.rowind[i] ){ // diagonal
 				val += ptr1[i]*ptr2[i];  
 			}
 			else{

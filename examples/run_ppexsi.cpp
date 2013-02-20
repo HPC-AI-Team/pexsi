@@ -381,7 +381,7 @@ int main(int argc, char **argv)
 		// Using temperature expansion for the chemical potential
 		// *********************************************************************
 
-		if(1){
+		if(0){
 			Real muZeroT = pexsi.EstimateZeroTemperatureChemicalPotential(
 					temperature,
 					*muList.rbegin(),
