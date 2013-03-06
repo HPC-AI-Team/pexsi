@@ -1,1 +1,1 @@
-MAKEINCFILE = ../../make.inc.${HOSTID}
+MAKEINCFILE = ../../make.inc

@@ -1,7 +1,7 @@
 # NOTE: This Makefile does NOT support auto-dependency for the .h files.
 # If the header files are changed, do "make clean" first.
 
-include ../make.inc.${HOSTID}
+include ../make.inc
 
 SRCS  = run_pexsi.cpp run_ppexsi.cpp
 

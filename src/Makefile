@@ -1,4 +1,4 @@
-include ../make.inc.${HOSTID}
+include ../make.inc
 
 SRCS_C   = pzsymbfact.c get_perm_c_parmetis.c
 SRCS_CPP = interface.cpp ppexsi.cpp pexsi.cpp pole.cpp pselinv.cpp superlu_dist_interf.cpp \

@@ -116,11 +116,11 @@ void ReadDistSparseMatrixFormattedInterface(
 	iA( nnzLocal == A.nnzLocal );
 	iA( numColLocal + 1 == A.colptrLocal.m() );
 	
-	memcpy( colptrLocal,  A.colptrLocal.Data(),
-			sizeof(int) * (numColLocal + 1) );
+	blas::Copy( numColLocal+1, A.colptrLocal.Data(), 1,
+			colptrLocal, 1 );
 
-	memcpy( rowindLocal,  A.rowindLocal.Data(),
-			sizeof(int) * (nnzLocal) );
+	blas::Copy( nnzLocal, A.rowindLocal.Data(), 1,
+			rowindLocal, 1 );
 
 	blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
 			nzvalLocal, 1 );
