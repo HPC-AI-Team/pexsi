@@ -492,6 +492,10 @@ void Axpy
 ( Int n, dcomplex alpha, const dcomplex* x, Int incx, dcomplex* y, Int incy )
 { BLAS(zaxpy)( &n, &alpha, x, &incx, y, &incy ); }
 
+
+void Copy( Int n, const int* x, Int incx, int* y, Int incy )
+{ for(int i = 0; i < n; i++) { *y = *x; x+=incx; y+=incy; } }
+
 void Copy( Int n, const float* x, Int incx, float* y, Int incy )
 { BLAS(scopy)( &n, x, &incx, y, &incy ); }
 

@@ -30,6 +30,7 @@ void Axpy
 template<typename T>
 	void Axpy( Int n, T alpha, const T* x, Int incx, T* y, Int incy );
 
+void Copy( Int n, const int* x, Int incx, int* y, Int incy );
 void Copy( Int n, const float* x, Int incx, float* y, Int incy );
 void Copy( Int n, const double* x, Int incx, double* y, Int incy );
 void Copy( Int n, const scomplex* x, Int incx, scomplex* y, Int incy );
