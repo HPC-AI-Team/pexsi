@@ -359,7 +359,7 @@ void PPEXSIInterface (
 			SMat );
 
 	Print( statusOFS, "guess of mu(T=0) = ", 
-			muZeroT );
+			*muZeroT );
 
 	Print( statusOFS, "Total time for PEXSI = ", 
 			timeSolveEnd - timeSolveSta );
