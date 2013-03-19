@@ -153,6 +153,12 @@ void PPEXSIInterface (
 		double        muMin,
 		double        muMax,
 		int           muMaxIter,
+		int           ordering,
+		int*          muIter,
+		double*       muList,
+		double*       numElectronList,
+		double*       numElectronDrvList,
+		double*       muZeroT,
 		double        poleTolerance,
 		double        numElectronTolerance,
 	  MPI_Comm	    comm,
@@ -255,15 +261,29 @@ void PPEXSIInterface (
 	// Parameters
 	bool isFreeEnergyDensityMatrix = true;
 	bool isEnergyDensityMatrix     = true;
-	bool isDerivativeTMatrix       = false;
+	bool isDerivativeTMatrix       = true;
 	bool isConverged               = false; 	
-	std::string colPerm            = "PARMETIS";
+	std::string colPerm;
+	switch (ordering){
+		case 0:
+			colPerm = "PARMETIS";
+			break;
+		case 1:
+			colPerm = "METIS_AT_PLUS_A";
+			break;
+		case 2:
+			colPerm = "MMD_AT_PLUS_A";
+			break;
+		default:
+			throw std::logic_error("Unsupported ordering strategy.");
+	}
+
 	// Initial guess of chemical potential
 	Real mu0                       = *mu;
 
-	std::vector<Real>  muList;
-	std::vector<Real>  numElectronList;
-	std::vector<Real>  numElectronDrvList;
+	std::vector<Real>  muVec;
+	std::vector<Real>  numElectronVec;
+	std::vector<Real>  numElectronDrvVec;
 
 	Real timeSolveSta, timeSolveEnd;
 
@@ -286,25 +306,37 @@ void PPEXSIInterface (
 			isFreeEnergyDensityMatrix,
 			isEnergyDensityMatrix,
 			isDerivativeTMatrix,
-			muList,
-			numElectronList,
-			numElectronDrvList,
+			muVec,
+			numElectronVec,
+			numElectronDrvVec,
 			isConverged	);
 	GetTime( timeSolveEnd );
 
+	*muIter = muVec.size();
+
 	PrintBlock( statusOFS, "Solve finished." );
 	if( isConverged ){
-		statusOFS << "PEXSI has converged with " << muList.size() << 
+		statusOFS << "PEXSI has converged with " << *muIter << 
 			" iterations" << std::endl;
 	}
 	else {
-		statusOFS << "PEXSI did not converge with " << muList.size() << 
+		statusOFS << "PEXSI did not converge with " << *muIter << 
 			" iterations" << std::endl;
 	}
+
+	// Update the mu/numElectron information
+	for( Int i = 0; i < *muIter; i++ ){
+		muList[i]               = muVec[i];
+		numElectronList[i]      = numElectronVec[i];
+		numElectronDrvList[i]   = numElectronDrvVec[i];
+	}
+
+
+
 	
 	// Update chemical potential
-	*mu = *(muList.rbegin());
-	*numElectron = *(numElectronList.rbegin());
+	*mu = *(muVec.rbegin());
+	*numElectron = *(numElectronVec.rbegin());
 
 	// Update the density matrices for the first row processors (size: npPerPole) 
 	if( MYROW( &gridPole ) == 0 ){
@@ -319,6 +351,15 @@ void PPEXSIInterface (
 	}
 
 	MPI_Barrier( comm );
+
+	// Compute the guess for T=0 chemical potential
+	*muZeroT = pexsi.EstimateZeroTemperatureChemicalPotential(
+			temperature,
+			*mu,
+			SMat );
+
+	Print( statusOFS, "guess of mu(T=0) = ", 
+			muZeroT );
 
 	Print( statusOFS, "Total time for PEXSI = ", 
 			timeSolveEnd - timeSolveSta );
@@ -436,6 +477,12 @@ void FORTRAN(f_ppexsi_interface)(
 		double*       muMin,
 		double*       muMax,
 		int*          muMaxIter,
+		int*          ordering,
+		int*          muIter,
+		double*       muList,
+		double*       numElectronList,
+		double*       numElectronDrvList,
+		double*       muZeroT,
 		double*       poleTolerance,
 		double*       numElectronTolerance,
 		int*    	    Fcomm,
@@ -463,6 +510,12 @@ void FORTRAN(f_ppexsi_interface)(
 			*muMin,
 			*muMax,
 			*muMaxIter,
+		  *ordering,
+		  muIter,
+		  muList,
+	  	numElectronList,
+		  numElectronDrvList,
+		  muZeroT,
 			*poleTolerance,
 			*numElectronTolerance,
 			f2c_comm(Fcomm), 

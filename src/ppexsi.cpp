@@ -1,4 +1,3 @@
-
 /// @file ppexsi.cpp
 /// @brief Implementation of the parallel version of PEXSI.
 /// @author Lin Lin
