@@ -242,6 +242,38 @@ public:
 		Real mu,
 	 	const DistSparseMatrix<Real>& SMat );
 
+
+	/// @brief Compute the negative inertia (the number of eigenvalues
+	/// below a shift).
+	///
+	/// This subroutine computes the negative inertia of the matrix
+	///
+	/// I = H - shift * S
+	///
+	/// where I is the same as the number of eigenvalues lambda for
+	///
+	/// H x = lambda S x
+	///
+	/// with lambda < shift according to the Sylvester's law of inertia.
+	///
+	/// @param[in]  shiftVec Shift vectors.
+	/// @param[out] inertiaVec Negative inertia count, the same size as
+	/// shiftVec.
+	/// @param[in] HMat Hamiltonian matrix saved in distributed compressed
+	/// sparse column format. See DistSparseMatrix.
+	/// @param[in] SMat Overlap matrix saved in distributed compressed
+	/// sparse column format. See DistSparseMatrix.
+	///
+	/// **Note**: If SMat.size == 0, SMat is treated as an identity matrix.
+	/// 
+	/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+	void PPEXSIData::CalculateNegativeInertia( 
+			const std::vector<Real>&       shiftVec, 
+			std::vector<Int>&              inertiaVec,
+			const DistSparseMatrix<Real>&  HMat,
+			const DistSparseMatrix<Real>&  SMat,
+			std::string                    ColPerm);
+
 };
 
 

@@ -676,6 +676,11 @@ public:
 	/// PMatrix.
 	Int  Nnz();
 
+	/// @brief GetNegativeInertia computes the negative inertia of a
+	/// PMatrix.  This can be used to estimate e.g. the number of
+	/// eigenvalues of a matrix below a certain threshold.
+	void GetNegativeInertia	( Int& inertia );
+
 };
 
 

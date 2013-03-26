@@ -1,6 +1,7 @@
 function nzval = WriteSparseMatrixLU2(A, filename, colptr, rowind)
-% Write a sparse matrix A in compressed sparse column format, for given
-% colptr and rowind. It is used for LU factorization
+% Write a sparse matrix A in compressed sparse column format. Both upper
+% and lower triangular matrices are saved. The sparsity pattern is given
+% by colptr, rowind
 %
 % Lin Lin
 % 12/11/2012

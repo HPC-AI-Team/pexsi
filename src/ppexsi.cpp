@@ -969,4 +969,213 @@ PPEXSIData::EstimateZeroTemperatureChemicalPotential	(
 	return mu0;
 } 		// -----  end of method PPEXSIData::EstimateZeroTemperatureChemicalPotential  ----- 
 
+ 
+void PPEXSIData::CalculateNegativeInertia( 
+		const std::vector<Real>&       shiftVec, 
+		std::vector<Int>&              inertiaVec,
+		const DistSparseMatrix<Real>&  HMat,
+		const DistSparseMatrix<Real>&  SMat,
+		std::string                    ColPerm
+		){
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::CalculateNegativeInertia");
+#endif
+
+
+
+	// *********************************************************************
+	// Initialize
+	// *********************************************************************
+
+	DistSparseMatrix<Complex>  AMat;              // A = H - z * S
+
+	// Get the diagonal indices for H and save it n diagIdxLocal_
+	{
+		Int numColLocal      = HMat.colptrLocal.m() - 1;
+		Int numColLocalFirst = HMat.size / gridSelInv_->mpisize;
+		Int firstCol         = gridSelInv_->mpirank * numColLocalFirst;
+		
+		diagIdxLocal_.clear();
+
+		for( Int j = 0; j < numColLocal; j++ ){
+			Int jcol = firstCol + j + 1;
+			for( Int i = HMat.colptrLocal(j)-1; 
+				 	 i < HMat.colptrLocal(j+1)-1; i++ ){
+				Int irow = HMat.rowindLocal(i);
+				if( irow == jcol ){
+					diagIdxLocal_.push_back( i );
+				}
+			}
+		} // for (j)
+	}
+
+
+	// Copy the pattern
+	CopyPattern( HMat, AMat );
+
+	SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
+
+
+	SuperLUOptions   luOpt;
+
+	luOpt.ColPerm = ColPerm;
+
+	SuperLUMatrix    luMat( *gridSuperLU_, luOpt );  // SuperLU matrix.
+
+	// *********************************************************************
+	// Symbolic factorization.  
+	// Each numPoleGroup perform independently
+	// *********************************************************************
+	Real timeSta, timeEnd;
+	GetTime( timeSta );
+	luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+	GetTime( timeEnd );
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "AMat is converted to SuperMatrix." << std::endl;
+	statusOFS << "Time for SuperMatrix conversion is " <<
+		timeEnd - timeSta << " [s]" << std::endl << std::endl;
+#endif
+	GetTime( timeSta );
+	luMat.SymbolicFactorize();
+	GetTime( timeEnd );
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "Symbolic factorization is finished." << std::endl;
+	statusOFS << "Time for symbolic factorization is " <<
+		timeEnd - timeSta << " [s]" << std::endl << std::endl;
+#endif
+	luMat.SymbolicToSuperNode( super_ );
+	luMat.DestroyAOnly();
+
+
+	// Compute the number of nonzeros from PMatrix
+	{
+		PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
+		luMat.LUstructToPMatrix( PMloc );
+#if ( _DEBUGlevel_ >= 0 )
+		Int nnzLocal = PMloc.NnzLocal();
+		statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
+//		Int nnz      = PMloc.Nnz();
+//		statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+#endif
+	}
+
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << "perm: "    << std::endl << super_.perm     << std::endl;
+	statusOFS << "permInv: " << std::endl << super_.permInv  << std::endl;
+	statusOFS << "superIdx:" << std::endl << super_.superIdx << std::endl;
+	statusOFS << "superPtr:" << std::endl << super_.superPtr << std::endl; 
+#endif
+
+
+	Real timeShiftSta, timeShiftEnd;
+	
+	Int numShift = shiftVec.size();
+	std::vector<Int>  inertiaVecLocal(numShift);
+	inertiaVec.resize(numShift);
+	for(Int l = 0; l < numShift; l++){
+		inertiaVecLocal[l] = 0;
+		inertiaVec[l]      = 0;
+	}
+
+	for(Int l = 0; l < numShift; l++){
+		if( MYROW( gridPole_ ) == PROW( l, gridPole_ ) ){
+
+			GetTime( timeShiftSta );
+
+			statusOFS << "Shift " << l << " = " << shiftVec[l] 
+				<< " processing..." << std::endl;
+
+			if( SMat.size != 0 ){
+				// S is not an identity matrix
+				for( Int i = 0; i < HMat.nnzLocal; i++ ){
+					AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - shiftVec[l] * SMat.nzvalLocal(i);
+				}
+			}
+			else{
+				// S is an identity matrix
+				for( Int i = 0; i < HMat.nnzLocal; i++ ){
+					AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+				}
+
+				for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+					AMat.nzvalLocal( diagIdxLocal_[i] ) -= shiftVec[l];
+				}
+			} // if (SMat.size != 0 )
+
+
+			// *********************************************************************
+			// Factorization
+			// *********************************************************************
+			// Important: the distribution in pzsymbfact is going to mess up the
+			// A matrix.  Recompute the matrix A here.
+#if ( _DEBUGlevel_ >= 0 )
+			statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+#endif
+			luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+#if ( _DEBUGlevel_ >= 0 )
+			statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+#endif
+
+			Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+			GetTime( timeTotalFactorizationSta );
+
+			// Data redistribution
+#if ( _DEBUGlevel_ >= 0 )
+			statusOFS << "Before Distribute." << std::endl;
+#endif
+			luMat.Distribute();
+#if ( _DEBUGlevel_ >= 0 )
+			statusOFS << "After Distribute." << std::endl;
+#endif
+
+			// Numerical factorization
+#if ( _DEBUGlevel_ >= 0 )
+			statusOFS << "Before NumericalFactorize." << std::endl;
+#endif
+			luMat.NumericalFactorize();
+#if ( _DEBUGlevel_ >= 0 )
+			statusOFS << "After NumericalFactorize." << std::endl;
+#endif
+			luMat.DestroyAOnly();
+
+			GetTime( timeTotalFactorizationEnd );
+
+			statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+
+			// *********************************************************************
+			// Compute inertia
+			// *********************************************************************
+			Real timeInertiaSta, timeInertiaEnd;
+			GetTime( timeInertiaSta );
+
+			PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
+
+			luMat.LUstructToPMatrix( PMloc );
+
+			// Compute the negative inertia of the matrix.
+			PMloc.GetNegativeInertia( inertiaVecLocal[l] );
+
+			GetTime( timeInertiaEnd );
+
+			statusOFS << "Time for computing the inertia is " <<
+				timeInertiaEnd  - timeInertiaSta << " [s]" << std::endl;
+
+
+		} // if I am in charge of this shift
+	} // for(l)
+
+	// Collect all the negative inertia together
+	mpi::Allreduce( &inertiaVecLocal[0], &inertiaVec[0], numShift, 
+			MPI_SUM, gridPole_->colComm );
+
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PPEXSIData::CalculateNegativeInertia ----- 
+
+
 } //  namespace PEXSI
