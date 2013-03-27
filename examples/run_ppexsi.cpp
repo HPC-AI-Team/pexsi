@@ -22,7 +22,8 @@ void Usage(){
 		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular). If omitted, the overlap matrix is treated as an identity matrix implicitly." << std::endl
 		<< "npPerPole: number of processors used for each pole" << std::endl
 		<< "colperm: permutation method (for SuperLU_DIST)" << std::endl
-	  << "muiter:  number of iterations for the chemical potential" << std::endl;
+	  << "muiter:  number of iterations for the chemical potential" << std::endl
+		<< "formatted: whether the input of H/S matrices are formatted (1) or unformatted (csc format, 0)" << std::endl;
 }
 
 int main(int argc, char **argv) 

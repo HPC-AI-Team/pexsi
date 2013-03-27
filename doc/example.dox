@@ -6,6 +6,8 @@
 /// Description
 /// -----------
 ///
+/// **Note** The sequential PEXSI code is out-of date. 3/26/2013
+///
 /// `lap2d_seq.csc` stores the matrix of a two dimensional Laplacian
 /// operator with Dirichlet boundary condition on a domain [0,10*pi] *
 /// [0,10*pi], discretized using a five point stencil on a 20 * 20 grid.
@@ -48,16 +50,11 @@
 /// Description
 /// -----------
 ///
-/// `lap2d_par.csc` stores the matrix of a two dimensional Laplacian
+/// `lap2d_par.matrix` stores the matrix of a two dimensional Laplacian
 /// operator with Dirichlet boundary condition on a domain [0,10*pi] *
 /// [0,10*pi], discretized using a five point stencil on a 20 * 20 grid.
-/// All the nonzero matrix elements are saved as required by PSelInv.
-///
-/// `identity_par.csc` stores the identity matrix (as overlap matrix)
-/// which has **exactly the same sparsity pattern** as `lap2d_par.csc`.
-///
-/// These matrices can be constructed following the procedure in \ref
-/// sec_generate_matrix.
+/// This is the standard compressed sparse column (CSC) format that can
+/// be directly read by run_ppexsi.
 ///
 /// Running the test
 /// ----------------
@@ -67,10 +64,9 @@
 ///
 /// Run the parallel code sequentially:
 ///     
-///     $ aprun -n 1 ${PEXSI_DIR}/examples/run_ppexsi -temp 300 -mu0
-///     0.16 -muMin -2 -muMax 2 -numel 20 -numPole 80 -deltaE 10 -gap 0
-///     -H lap2d_par.csc -S identity_par.csc -npPerPole 1 -colperm
-///     MMD_AT_PLUS_A -muiter 30
+///     $ aprun -n 1 -temp 300 -mu0 0.16 -muMin -2 -muMax 2 -numel 20 
+///      	-numPole 80 -deltaE 10 -gap 0 -H lap2d_par.matrix -npPerPole 1 
+///       -colperm MMD_AT_PLUS_A -muiter 30 -formatted 1
 ///
 /// Check the log file (only `logPEXSI0` is generated)
 ///
@@ -81,8 +77,9 @@
 ///     *********************************************************************
 ///
 ///     PEXSI has converged with 7 iterations
-///     mu                   = +1.71461149e-01 
-///     Total time for PEXSI = +5.31659794e+00 
+///     mu                   = +3.90691982e-01
+///     
+/// **Note** The following test results should be UPDATED. 3/26/2013
 ///
 /// Run the parallel code with 16 processors and each processor work
 /// with one pole at a time:
@@ -101,9 +98,6 @@
 ///     Solve finished.
 ///     *********************************************************************
 ///
-///     PEXSI has converged with 7 iterations
-///     mu                   = +1.71461149e-01 
-///     Total time for PEXSI = +7.59212971e-01 
 ///
 /// Run the parallel code with 16 processors working with 4 processors
 /// working on each pole.
@@ -129,7 +123,7 @@
 /// Note: The fact that the strong scaling is not preferable in this
 /// case is mainly due to the small size of the system.
 ///
-/// \section sec_generate_matrix Generate test matrices
+/// \section sec_generate_matrix Generate test matrices (csc format)
 ///
 /// Here we show how to generate the matrices that can be used by PEXSI
 /// using the utility subroutines in MATLAB, using the 2D Laplacian
