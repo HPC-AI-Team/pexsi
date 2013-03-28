@@ -5,6 +5,9 @@
 /// @date 2013-03-26
 #include "ppexsi.hpp"
 
+extern "C" {
+  double seekeig_(int *, int *, double *, double *, double *);
+}
 using namespace PEXSI;
 using namespace std;
 
@@ -283,6 +286,27 @@ int main(int argc, char **argv)
 				<< std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
 				<< std::endl;
 		}
+
+		if( mpirank == 0 ) {
+         double mu = 0.0;
+         int  nelec = 1221;
+         double *xs, *ys;
+
+         xs = (double*)malloc(numShift*sizeof(double));
+         ys = (double*)malloc(numShift*sizeof(double));
+
+         for (int i = 0; i <numShift; i++) {
+            xs[i] = (double)shiftVec[i];
+            ys[i] = (double)inertiaVec[i];
+            printf("x = %11.3e, y = %11.3e\n", xs[i], ys[i]);
+         }
+
+         double mu0 = (muMin  + muMax)/2.0;
+         mu = seekeig_(&nelec, &numShift, xs, ys, &mu0); 
+
+         free(xs);
+         free(ys); 
+      }
 		
 		Print( statusOFS, "Total time = ", 
 				timeEnd - timeSta );
