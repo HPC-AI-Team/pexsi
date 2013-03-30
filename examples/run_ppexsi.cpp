@@ -376,33 +376,41 @@ int main(int argc, char **argv)
 				// Inertia is multiplied by 2.0 to reflect the doubly occupied
 				// orbitals.
 				inertiaVec[l] *= 2.0;
-//				statusOFS << std::setiosflags(std::ios::left) 
-//					<< std::setw(LENGTH_VAR_NAME) << "Shift = "
-//					<< std::setw(LENGTH_VAR_DATA) << shiftVec[l]
-//					<< std::setw(LENGTH_VAR_NAME) << "Inertia = "
-//					<< std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
-//					<< std::endl << std::endl;
+				statusOFS << std::setiosflags(std::ios::left) 
+					<< std::setw(LENGTH_VAR_NAME) << "Shift = "
+					<< std::setw(LENGTH_VAR_DATA) << shiftVec[l]
+					<< std::setw(LENGTH_VAR_NAME) << "Inertia = "
+					<< std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
+					<< std::endl << std::endl;
 			}
 
 			Print( statusOFS, "Time for inertia count = ", 
 					timeEnd - timeSta );
-//			{
-//				double muStart = (muMin  + muMax)/2.0;
-//				int nelec = numElectronExact;
-//				mu = seekeig_(&nelec, &numShift, &shiftVec[0],&inertiaVec[0], &muStart); 
-//			}
+			{
+				double muStart = (muMin  + muMax)/2.0;
+				int nelec = numElectronExact;
+				mu = seekeig_(&nelec, &numShift, &shiftVec[0],&inertiaVec[0], &muStart); 
+			}
 
-//			std::vector<Real>::iterator vi;
-//			vi = std::lower_bound( inertiaVec.begin(), inertiaVec.end(), 
-//							numElectronExact );
-////			if( vi == inertiaVec.begin() || vi == inertiaVec.end() ){
-////				throw std::runtime_error("Increase the range of [muMin, muMax].");
-////			}
-//			Int idx = vi - inertiaVec.begin();
-//			muMin = shiftVec[idx-1] - 2 * temperature / au2K;
-//			muMax = shiftVec[idx]   + 2 * temperature / au2K;
-
-			mu = mu0;
+		// Just for numerical stability
+		const Real EPS = 1e-6;
+		std::vector<Real>::iterator vi0, vi1;
+		vi0 = std::lower_bound( inertiaVec.begin(), inertiaVec.end(), 
+				numElectronExact-EPS );
+		vi1 = std::upper_bound( inertiaVec.begin(), inertiaVec.end(), 
+				numElectronExact+EPS );
+		if( vi0 == inertiaVec.begin() || vi0 == inertiaVec.end() ){
+			throw std::runtime_error("Increase the range of [muMin, muMax].");
+		}
+		if( vi1 == inertiaVec.begin() || vi1 == inertiaVec.end() ){
+			throw std::runtime_error("Increase the range of [muMin, muMax].");
+		}
+		Int idx0 = vi0 - inertiaVec.begin() - 1;
+		Int idx1 = vi1 - inertiaVec.begin();
+		// Adjust muMin, muMax by a safer bound taking into account the
+		// temperature effect.  
+		muMin = shiftVec[idx0] - temperature / au2K;
+		muMax = shiftVec[idx1] + temperature / au2K;
 
 			statusOFS << std::endl << "After the inertia count," << std::endl;
 			Print( statusOFS, "mu      = ", mu );

@@ -156,8 +156,8 @@ void PPEXSIInterface (
 		double        gap,
 		double        deltaE,
 		double*       mu,
-		double        muMin,
-		double        muMax,
+		double*       muMin,
+		double*       muMax,
 		int           muMaxIter,
 		int           ordering,
 		int           isInertiaCount,
@@ -287,19 +287,17 @@ void PPEXSIInterface (
 	}
 
 	// Initial guess of chemical potential
-	Real mu0;
+	// Inertia count overwrites the initial input mu, as well as the
+	// bound muMin and muMax.
+	// Otherwise, use the initial input mu
 	if( isInertiaCount ){
-		// Inertia count overwrites the initial input mu, as well as the
-		// bound muMin and muMax.
-		// TODO
-
 		// Number of inertia counts is the same as the number of poles
 		Int  numShift = numPole;
 		std::vector<Real>  shiftVec( numShift );
 		std::vector<Real>  inertiaVec( numShift );
 
 		for( Int l = 0; l < numShift; l++ ){
-			shiftVec[l] = muMin + l * (muMax - muMin) / (numShift-1);
+			shiftVec[l] = *muMin + l * (*muMax - *muMin) / (numShift-1);
 		}
 
 		GetTime( timeSta );
@@ -327,16 +325,35 @@ void PPEXSIInterface (
 		Print( statusOFS, "Time for inertia count = ", 
 				timeEnd - timeSta );
 		{
-			double muStart = (muMin  + muMax)/2.0;
+			double muStart = (*muMin  + *muMax)/2.0;
 			int nelec = numElectronExact;
-			mu0 = seekeig_(&nelec, &numShift, &shiftVec[0],&inertiaVec[0], &muStart); 
+			*mu = seekeig_(&nelec, &numShift, &shiftVec[0],&inertiaVec[0], &muStart); 
 		}
-		Print( statusOFS, "After the inertia count, mu0 = ",
-				mu0 );
-	}
-	else{
-		// Otherwise, use the initial input mu
-		mu0 = *mu;
+		std::vector<Real>::iterator vi0, vi1;
+		// Just for numerical stability
+		const Real EPS = 1e-6;
+		vi0 = std::lower_bound( inertiaVec.begin(), inertiaVec.end(), 
+				numElectronExact-EPS );
+		vi1 = std::upper_bound( inertiaVec.begin(), inertiaVec.end(), 
+				numElectronExact+EPS );
+		if( vi0 == inertiaVec.begin() || vi0 == inertiaVec.end() ){
+			throw std::runtime_error("Increase the range of [muMin, muMax].");
+		}
+		if( vi1 == inertiaVec.begin() || vi1 == inertiaVec.end() ){
+			throw std::runtime_error("Increase the range of [muMin, muMax].");
+		}
+		Int idx0 = vi0 - inertiaVec.begin() - 1;
+		Int idx1 = vi1 - inertiaVec.begin();
+		// Adjust muMin, muMax by a safer bound taking into account the
+		// temperature effect.  
+		*muMin = shiftVec[idx0] - temperature / au2K;
+		*muMax = shiftVec[idx1] + temperature / au2K;
+
+		statusOFS << std::endl << "After the inertia count," << std::endl;
+		Print( statusOFS, "mu      = ", *mu );
+		Print( statusOFS, "muMin   = ", *muMin );
+		Print( statusOFS, "muMax   = ", *muMax );
+		statusOFS << std::endl;
 	}
 
 
@@ -353,9 +370,9 @@ void PPEXSIInterface (
 			numElectronExact,
 			gap,
 			deltaE,
-			mu0,
-			muMin,
-			muMax,
+			*mu,
+			*muMin,
+			*muMax,
 			HMat,
 			SMat,
 			muMaxIter,
@@ -565,8 +582,8 @@ void FORTRAN(f_ppexsi_interface)(
 			*gap,
 			*deltaE,
 			mu,
-			*muMin,
-			*muMax,
+			muMin,
+			muMax,
 			*muMaxIter,
 		  *ordering,
 			*isInertiaCount,
