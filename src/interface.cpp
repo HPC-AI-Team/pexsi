@@ -17,6 +17,12 @@
 
 using namespace PEXSI;
 
+// FIXME
+extern "C" { 
+	double seekeig_(int *, int *, double *, double *, double *);
+}
+
+
 // *********************************************************************
 // C interface
 // *********************************************************************
@@ -154,6 +160,7 @@ void PPEXSIInterface (
 		double        muMax,
 		int           muMaxIter,
 		int           ordering,
+		int           isInertiaCount,
 		int*          muIter,
 		double*       muList,
 		double*       numElectronList,
@@ -167,6 +174,7 @@ void PPEXSIInterface (
 	Int mpirank, mpisize;
 	MPI_Comm_rank( comm, &mpirank );
 	MPI_Comm_size( comm, &mpisize );
+	Real timeSta, timeEnd;
 
 	if( mpisize % npPerPole != 0 ){
 		std::ostringstream msg;
@@ -279,7 +287,59 @@ void PPEXSIInterface (
 	}
 
 	// Initial guess of chemical potential
-	Real mu0                       = *mu;
+	Real mu0;
+	if( isInertiaCount ){
+		// Inertia count overwrites the initial input mu.
+
+		// Number of inertia counts is the same as the number of poles
+		Int  numShift = numPole;
+		std::vector<Real>  shiftVec( numShift );
+		std::vector<Int>   inertiaVec( numShift );
+
+		for( Int l = 0; l < numShift; l++ ){
+			shiftVec[l] = muMin + l * (muMax - muMin) / (numShift-1);
+		}
+
+		GetTime( timeSta );
+		pexsi.CalculateNegativeInertia( 
+				shiftVec,
+				inertiaVec,
+				HMat,
+				SMat,
+				colPerm );
+
+		GetTime( timeEnd );
+
+		Print( statusOFS, "Time for inertia count = ", 
+				timeEnd - timeSta );
+		{
+			double *xs, *ys;
+
+			xs = (double*)malloc(numShift*sizeof(double));
+			ys = (double*)malloc(numShift*sizeof(double));
+
+			for (int i = 0; i <numShift; i++) {
+				// Inertia is multiplied by 2.0 to reflect the doubly occupied
+				// orbitals.
+				xs[i] = (double)shiftVec[i];
+				ys[i] = (double)inertiaVec[i] * 2.0;
+			}
+
+			double muStart = (muMin  + muMax)/2.0;
+			int nelec = numElectronExact;
+			mu0 = seekeig_(&nelec, &numShift, xs, ys, &muStart); 
+
+			free(xs);
+			free(ys); 
+		}
+		Print( statusOFS, "After the inertia count, mu0 = ",
+				mu0 );
+	}
+	else{
+		// Otherwise, use the initial input mu
+		mu0 = *mu;
+	}
+
 
 	std::vector<Real>  muVec;
 	std::vector<Real>  numElectronVec;
@@ -478,6 +538,7 @@ void FORTRAN(f_ppexsi_interface)(
 		double*       muMax,
 		int*          muMaxIter,
 		int*          ordering,
+		int*          isInertiaCount,
 		int*          muIter,
 		double*       muList,
 		double*       numElectronList,
@@ -511,6 +572,7 @@ void FORTRAN(f_ppexsi_interface)(
 			*muMax,
 			*muMaxIter,
 		  *ordering,
+			*isInertiaCount,
 		  muIter,
 		  muList,
 	  	numElectronList,

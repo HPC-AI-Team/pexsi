@@ -14,7 +14,7 @@
 
       real*8 :: f, r, d, lb, ub
       integer, parameter :: maxiter = 100
-      real*8, parameter :: h = 0.1, ftol = 1.5;
+      real*8, parameter :: ftol = 0.01;
       integer :: iter
 !
       if (mu .gt. x(n)) mu = x(n)
@@ -71,7 +71,7 @@
          r = mpci(mu, n, x, y) - f
          write(6,111) iter, mu, r
  111     format('bisect iter = ', I5, ' mu = ', 1pe15.6, 
-     &          ' r = ', 1pe11.3e) 
+     &          ' r = ', 1pe11.3) 
          iter = iter + 1
       end do
       end subroutine bisect

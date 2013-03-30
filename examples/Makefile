@@ -20,7 +20,13 @@ EXES = ${SRCS:.cpp=}
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
 
-all: run_pexsi run_ppexsi
+all: run_pexsi run_ppexsi f_ppexsi
+
+f_ppexsi: f_ppexsi.o ${PEXSI_LIB} 
+	  ($(FC) -o $@ f_ppexsi.o  $(FLOADOPTS) )
+
+f_ppexsi.o: f_ppexsi.f90
+	  ${FC} -c ${FFLAGS} $<
 
 run_pexsi: run_pexsi.o ${PEXSI_LIB} ${PLUSELINV_LIB}
 	($(LOADER) -o $@ run_pexsi.o  $(LOADOPTS) )

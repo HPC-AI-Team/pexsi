@@ -289,7 +289,7 @@ int main(int argc, char **argv)
 
 		if( mpirank == 0 ) {
          double mu = 0.0;
-         int  nelec = 1221;
+         int  nelec = 20;
          double *xs, *ys;
 
          xs = (double*)malloc(numShift*sizeof(double));
