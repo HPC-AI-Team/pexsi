@@ -69,9 +69,10 @@ C        print*, 'call bisection...'
          endif
          mu = (lb + ub)/2.0
          r = mpci(mu, n, x, y) - f
-C        write(6,111) iter, mu, r
+        write(6,111) iter, mu, r, lb, ub
  111     format('bisect iter = ', I5, ' mu = ', 1pe15.6, 
-     &          ' r = ', 1pe11.3) 
+     &          ' r = ', 1pe11.3, '  lb = ', 1pe15.6, 
+     &          ' ub = ', 1pe15.6) 
          iter = iter + 1
       end do
       end subroutine bisect

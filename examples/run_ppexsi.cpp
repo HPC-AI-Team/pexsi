@@ -8,9 +8,16 @@
 using namespace PEXSI;
 using namespace std;
 
+// FIXME
+extern "C" { 
+	double seekeig_(int *, int *, double *, double *, double *);
+}
+
+
 void Usage(){
   std::cout 
-		<< "run_ppexsi -mu0 [mu0] -muMin [muMin] -muMax [muMax] -numel [numel] -numPole [numPole] -deltaE [deltaE] -gap [gap] -H [Hfile] -S [Sfile] -npPerPole [npPole] -colperm [colperm] -muiter [muiter]" << std::endl << "temp:    Temperature (unit: K)" << std::endl
+		<< "run_ppexsi -temp [temp] -mu0 [mu0] -muMin [muMin] -muMax [muMax] -numel [numel] -numPole [numPole] -deltaE [deltaE] -gap [gap] -H [Hfile] -S [Sfile] -npPerPole [npPole] -colperm [colperm] -muiter [muiter]" << std::endl 
+		<< "temp:    Temperature (unit: K)" << std::endl
 		<< "mu0:     Initial guess for chemical potential" << std::endl
 		<< "muMin:   Lower bound for chemical potential" << std::endl
 		<< "muMax:   Upper bound for chemical potential" << std::endl
@@ -18,8 +25,8 @@ void Usage(){
 		<< "numPole: Number of poles." << std::endl
 		<< "deltaE:  guess for the width of the spectrum of H-mu S" << std::endl
 		<< "gap:     guess for the distance betweeen the spectrum and mu" << std::endl
-		<< "H: Hamiltonian matrix (csc format, both lower triangular and upper triangular)" << std::endl
-		<< "S: Overlap     matrix (csc format, both lower triangular and upper triangular). If omitted, the overlap matrix is treated as an identity matrix implicitly." << std::endl
+		<< "H: Hamiltonian matrix " << std::endl
+		<< "S: Overlap     matrix. if omitted, the overlap matrix is treated as an identity matrix implicitly." << std::endl
 		<< "npPerPole: number of processors used for each pole" << std::endl
 		<< "colperm: permutation method (for SuperLU_DIST)" << std::endl
 	  << "muiter:  number of iterations for the chemical potential" << std::endl
@@ -169,6 +176,8 @@ int main(int argc, char **argv)
 		bool isEnergyDensityMatrix     = true;
 
 		bool isDerivativeTMatrix       = true;
+
+		bool isInertiaCount            = true;
 
 		// *********************************************************************
 		// Check the input parameters
@@ -323,6 +332,7 @@ int main(int argc, char **argv)
 		Print(statusOFS, "npPerPole              = ", npPerPole );
 		Print(statusOFS, "isFreeEnergyMatrix     = ", isFreeEnergyDensityMatrix );
 		Print(statusOFS, "isEnergyMatrix         = ", isEnergyDensityMatrix ); 
+		Print(statusOFS, "isInertiaCount         = ", isInertiaCount ); 
 
 
 		// *********************************************************************
@@ -335,6 +345,77 @@ int main(int argc, char **argv)
 		
 		Real timeSolveSta, timeSolveEnd;
 
+		Real mu;
+		if( isInertiaCount ){
+			// Inertia count overwrites the initial input mu, as well as the
+			// bound muMin and muMax.
+
+			// It keeps refining till the accuracy of the number of electrons
+			// becomes less than 1.
+
+			// Number of inertia counts is the same as the number of poles
+			Int  numShift = numPole;
+			std::vector<Real>  shiftVec( numShift );
+			std::vector<Real>  inertiaVec( numShift );
+
+			for( Int l = 0; l < numShift; l++ ){
+				shiftVec[l] = muMin + l * (muMax - muMin) / (numShift-1);
+			}
+
+			GetTime( timeSta );
+			pexsi.CalculateNegativeInertia( 
+					shiftVec,
+					inertiaVec,
+					HMat,
+					SMat,
+					ColPerm );
+
+			GetTime( timeEnd );
+
+			for( Int l = 0; l < numShift; l++ ){
+				// Inertia is multiplied by 2.0 to reflect the doubly occupied
+				// orbitals.
+				inertiaVec[l] *= 2.0;
+//				statusOFS << std::setiosflags(std::ios::left) 
+//					<< std::setw(LENGTH_VAR_NAME) << "Shift = "
+//					<< std::setw(LENGTH_VAR_DATA) << shiftVec[l]
+//					<< std::setw(LENGTH_VAR_NAME) << "Inertia = "
+//					<< std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
+//					<< std::endl << std::endl;
+			}
+
+			Print( statusOFS, "Time for inertia count = ", 
+					timeEnd - timeSta );
+//			{
+//				double muStart = (muMin  + muMax)/2.0;
+//				int nelec = numElectronExact;
+//				mu = seekeig_(&nelec, &numShift, &shiftVec[0],&inertiaVec[0], &muStart); 
+//			}
+
+//			std::vector<Real>::iterator vi;
+//			vi = std::lower_bound( inertiaVec.begin(), inertiaVec.end(), 
+//							numElectronExact );
+////			if( vi == inertiaVec.begin() || vi == inertiaVec.end() ){
+////				throw std::runtime_error("Increase the range of [muMin, muMax].");
+////			}
+//			Int idx = vi - inertiaVec.begin();
+//			muMin = shiftVec[idx-1] - 2 * temperature / au2K;
+//			muMax = shiftVec[idx]   + 2 * temperature / au2K;
+
+			mu = mu0;
+
+			statusOFS << std::endl << "After the inertia count," << std::endl;
+			Print( statusOFS, "mu      = ", mu );
+			Print( statusOFS, "muMin   = ", muMin );
+			Print( statusOFS, "muMax   = ", muMax );
+			statusOFS << std::endl;
+
+		}
+		else{
+			// Otherwise, use the initial input mu
+			mu = mu0;
+		}
+
 		GetTime( timeSolveSta );
 		pexsi.Solve( 
 				numPole,
@@ -342,7 +423,7 @@ int main(int argc, char **argv)
 				numElectronExact,
 				gap,
 				deltaE,
-				mu0,
+				mu,
 				muMin,
 				muMax,
 				HMat,
@@ -370,8 +451,9 @@ int main(int argc, char **argv)
 			statusOFS << "PEXSI did not converge with " << muList.size() << 
 				" iterations" << std::endl;
 		}
-		Print( statusOFS, "mu                   = ", 
-				*muList.rbegin() );
+		Print( statusOFS, "mu                   = ", mu );
+		Print( statusOFS, "muMin                = ", muMin ); 
+		Print( statusOFS, "muMax                = ", muMax ); 
 		Print( statusOFS, "Total time for PEXSI = ", 
 				timeSolveEnd - timeSolveSta );
 
@@ -395,8 +477,8 @@ int main(int argc, char **argv)
 
 			mu0   = muZeroT;
 			// Safe choice of bound
-			muMin = mu0 - 2 * temperature / au2K;
-			muMax = mu0 + 2 * temperature / au2K;
+			muMin = mu0 - temperature / au2K;
+			muMax = mu0 + temperature / au2K;
 
 			// New temperature
 			temperature = 300.0;

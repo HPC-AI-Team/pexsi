@@ -371,7 +371,7 @@ void PPEXSIInterface (
 			isConverged	);
 	GetTime( timeSolveEnd );
 
-	*muIter = numElectron.size();
+	*muIter = muVec.size();
 
 	PrintBlock( statusOFS, "Solve finished." );
 	if( isConverged ){

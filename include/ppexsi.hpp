@@ -17,7 +17,7 @@ namespace PEXSI{
 
 /// @class PPEXSIData
 ///
-/// @brief Main class for parallel PEXSI.
+/// @brief Main class for parallel %PEXSI.
 ///
 /// PPEXSI uses SuperLU_DIST for parallel factorization and PSelInv for
 /// the selected inversion.  
@@ -94,23 +94,25 @@ public:
 	/// FreeEnergyDensityMatrix, EnergyDensityMatrix.
 	///
 	///
-	///	@param[in] numPole Number of poles for the pole expansion
+	/// @param[in] numPole Number of poles for the pole expansion
 	///	@param[in] temperature  Temperature (in the unit of K)
 	///	@param[in] numElectronExact Exact number of electrons
 	/// @param[in] gap Band gap (in the unit of au)
 	/// @param[in] deltaE Upperbound of the spectrum width
-	/// @param[in] mu0 Initial guess of chemical potential (in the unit of au)
-	/// @param[in] muMin Initial guess for the lower bound of the chemical
-	/// potential.
-	/// @param[in] muMax Initial guess for the upper bound of the chemical
-	/// potential.
+	/// @param[in,out] mu Input: Initial guess of chemical potential (in the
+	/// unit of au). Output: The final update of the chemical potential,
+	/// for which the number of electrons has NOT been computed.
+	/// **Note**: The output mu is NOT the same as last element in muList.
+	/// muList[end] corresponds to numElectronList[end].
+	/// @param[in,out] muMin Input: Initial guess for the lower bound of the
+	/// chemical potential. Output: Lower bound of the chemical potential.
+	/// @param[in,out] muMax Input: Initial guess for the upper bound of the
+	/// chemical potential. Output: Upper bound of the chemical potential.
 	/// @param[in] HMat Hamiltonian matrix saved in distributed compressed
 	/// sparse column format. See DistSparseMatrix.
 	/// @param[in] SMat Overlap matrix saved in distributed compressed
-	/// sparse column format. See DistSparseMatrix.
-	///
-	/// **Note**: If SMat.size == 0, SMat is treated as an identity matrix.
-	/// 
+	/// sparse column format. See DistSparseMatrix.  **Note**: If
+	/// SMat.size == 0, SMat is treated as an identity matrix.
 	/// @param[in] muMaxIter Maximum iteration number for chemical
 	/// potential
 	/// @param[in] poleTolerance Skip the pole if weight is too small
@@ -125,16 +127,16 @@ public:
 	/// electrons
 	/// @param[out] numElectronDrvMuList Convergence history of the
 	/// derivative of electrons with respect to the chemical potential.
-	/// @param[out] isConverged Whether PEXSI has converged.
+	/// @param[out] isConverged Whether %PEXSI has converged.
 	void Solve( 
 			Int  numPole, 
 			Real temperature,
 			Real numElectronExact,
 			Real gap,
 			Real deltaE,
-			Real mu0,
-			Real muMin,
-			Real muMax,
+			Real& mu,
+			Real& muMin,
+			Real& muMax,
 			const DistSparseMatrix<Real>&  HMat,
 		 	const DistSparseMatrix<Real>&  SMat,
 		 	Int  muMaxIter,

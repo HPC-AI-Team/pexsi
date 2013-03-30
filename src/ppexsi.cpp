@@ -1,5 +1,5 @@
 /// @file ppexsi.cpp
-/// @brief Implementation of the parallel version of PEXSI.
+/// @brief Implementation of the parallel version of %PEXSI.
 /// @author Lin Lin
 /// @date 2012-11-20
 #include "ppexsi.hpp"
@@ -145,9 +145,9 @@ void PPEXSIData::Solve(
 		Real numElectronExact,
 		Real gap,
 		Real deltaE,
-		Real mu0,
-		Real muMin,
-		Real muMax,
+		Real& mu,
+		Real& muMin,
+		Real& muMax,
 		const DistSparseMatrix<Real>&  HMat,
 		const DistSparseMatrix<Real>&  SMat,
 		Int  muMaxIter,
@@ -284,7 +284,7 @@ void PPEXSIData::Solve(
 	statusOFS << "superPtr:" << std::endl << super_.superPtr << std::endl; 
 #endif
 
-	Real muNow = mu0;
+	Real muNow = mu;
 	Real numElectronNow;
 	Real numElectronDrvMuNow;
 
@@ -668,7 +668,10 @@ void PPEXSIData::Solve(
 		numElectronDrvMuNow = CalculateNumElectronDrvMu( SMat );
 
     Real totalEnergy = CalculateTotalEnergy( HMat );
-		
+
+		statusOFS<< "muNow = " << muNow << std::endl; 
+		statusOFS<< "numElectronNow = " << numElectronNow << std::endl;
+
 		Real totalFreeEnergy;
 		if( isFreeEnergyDensityMatrix )
 			totalFreeEnergy = CalculateFreeEnergy( SMat ) + muNow * numElectronNow;
@@ -727,7 +730,7 @@ void PPEXSIData::Solve(
 
 	// The final chemical potential for which the number of electrons is
 	// NOT computed yet.
-	muList.push_back( muNow );
+	mu = muNow;
 
 #ifndef _RELEASE_
 	PopCallStack();
@@ -882,11 +885,22 @@ PPEXSIData::CalculateFreeEnergy	( const DistSparseMatrix<Real>& SMat )
 #endif
 	
 	Real totalFreeEnergyLocal = 0.0, totalFreeEnergy = 0.0;
-	
+
 	// TODO Check SMat and freeEnergyDensityMat_ has the same sparsity
 
-	totalFreeEnergyLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-			1, freeEnergyDensityMat_.nzvalLocal.Data(), 1 );
+	if( SMat.size != 0 ){
+		// S is not an identity matrix
+		totalFreeEnergyLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+				1, freeEnergyDensityMat_.nzvalLocal.Data(), 1 );
+	}
+	else{
+		// S is an identity matrix
+		DblNumVec& nzval = freeEnergyDensityMat_.nzvalLocal;
+		for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+		  totalFreeEnergyLocal += nzval(diagIdxLocal_[i]);
+		}
+	} // if ( SMat.size != 0 )
+
 #if ( _DEBUGlevel_ >= 0 )
 	statusOFS << std::endl << "TotalFreeEnergyLocal = " << totalFreeEnergyLocal << std::endl;
 #endif
