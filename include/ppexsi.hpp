@@ -269,7 +269,7 @@ public:
 	/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
 	void PPEXSIData::CalculateNegativeInertia( 
 			const std::vector<Real>&       shiftVec, 
-			std::vector<Int>&              inertiaVec,
+			std::vector<Real>&             inertiaVec,
 			const DistSparseMatrix<Real>&  HMat,
 			const DistSparseMatrix<Real>&  SMat,
 			std::string                    ColPerm);

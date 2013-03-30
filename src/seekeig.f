@@ -38,7 +38,7 @@
         ub = x(n) 
       endif
       if (ub-lb .gt. lb*1e-6) then
-         print*, 'call bisection...'
+C        print*, 'call bisection...'
          call bisect(n, x, y, dble(cdf), lb, ub, mu)
       endif
  100  continue
@@ -69,7 +69,7 @@
          endif
          mu = (lb + ub)/2.0
          r = mpci(mu, n, x, y) - f
-         write(6,111) iter, mu, r
+C        write(6,111) iter, mu, r
  111     format('bisect iter = ', I5, ' mu = ', 1pe15.6, 
      &          ' r = ', 1pe11.3) 
          iter = iter + 1

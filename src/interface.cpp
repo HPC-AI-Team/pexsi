@@ -289,12 +289,14 @@ void PPEXSIInterface (
 	// Initial guess of chemical potential
 	Real mu0;
 	if( isInertiaCount ){
-		// Inertia count overwrites the initial input mu.
+		// Inertia count overwrites the initial input mu, as well as the
+		// bound muMin and muMax.
+		// TODO
 
 		// Number of inertia counts is the same as the number of poles
 		Int  numShift = numPole;
 		std::vector<Real>  shiftVec( numShift );
-		std::vector<Int>   inertiaVec( numShift );
+		std::vector<Real>  inertiaVec( numShift );
 
 		for( Int l = 0; l < numShift; l++ ){
 			shiftVec[l] = muMin + l * (muMax - muMin) / (numShift-1);
@@ -310,27 +312,24 @@ void PPEXSIInterface (
 
 		GetTime( timeEnd );
 
+		for( Int l = 0; l < numShift; l++ ){
+			// Inertia is multiplied by 2.0 to reflect the doubly occupied
+			// orbitals.
+			inertiaVec[l] *= 2.0;
+			statusOFS << std::setiosflags(std::ios::left) 
+				<< std::setw(LENGTH_VAR_NAME) << "Shift = "
+				<< std::setw(LENGTH_VAR_DATA) << shiftVec[l]
+				<< std::setw(LENGTH_VAR_NAME) << "Inertia = "
+				<< std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
+				<< std::endl << std::endl;
+		}
+		
 		Print( statusOFS, "Time for inertia count = ", 
 				timeEnd - timeSta );
 		{
-			double *xs, *ys;
-
-			xs = (double*)malloc(numShift*sizeof(double));
-			ys = (double*)malloc(numShift*sizeof(double));
-
-			for (int i = 0; i <numShift; i++) {
-				// Inertia is multiplied by 2.0 to reflect the doubly occupied
-				// orbitals.
-				xs[i] = (double)shiftVec[i];
-				ys[i] = (double)inertiaVec[i] * 2.0;
-			}
-
 			double muStart = (muMin  + muMax)/2.0;
 			int nelec = numElectronExact;
-			mu0 = seekeig_(&nelec, &numShift, xs, ys, &muStart); 
-
-			free(xs);
-			free(ys); 
+			mu0 = seekeig_(&nelec, &numShift, &shiftVec[0],&inertiaVec[0], &muStart); 
 		}
 		Print( statusOFS, "After the inertia count, mu0 = ",
 				mu0 );
@@ -372,7 +371,7 @@ void PPEXSIInterface (
 			isConverged	);
 	GetTime( timeSolveEnd );
 
-	*muIter = muVec.size();
+	*muIter = numElectron.size();
 
 	PrintBlock( statusOFS, "Solve finished." );
 	if( isConverged ){
@@ -390,8 +389,6 @@ void PPEXSIInterface (
 		numElectronList[i]      = numElectronVec[i];
 		numElectronDrvList[i]   = numElectronDrvVec[i];
 	}
-
-
 
 	
 	// Update chemical potential

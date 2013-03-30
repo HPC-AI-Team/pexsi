@@ -34,9 +34,9 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 
 ! Data is for the DNA matrix.
-temperature      = 3000.0d0
+temperature      = 300.0d0
 numElectronExact = 2442.0d0
-numPole          = 20
+numPole          = 64
 gap              = 0.0d0
 ! deltaE is in theory the spectrum width, but in practice can be much smaller
 ! than | E_max - mu |.  It is found that deltaE that is slightly bigger
@@ -48,11 +48,11 @@ mu               = -0.60d0
 muMin            = -1.0d0
 muMax            =  0.0d0
 ! muMaxIter should be 1 or 2 later when combined with SCF.
-muMaxIter        = 10
+muMaxIter        = 1
 ! Do not compute a pole if the corresponding weight is < poleTolerance.
 poleTolerance    = 1d-8
 ! Stop mu-iteration if numElectronTolerance is < numElectronTolerance.
-numElectronTolerance = 1d-1
+numElectronTolerance = 1d-2
 ! Number of processors used for each pole. At the moment use mpisize.
 ! Later can be changed to 
 npPerPole        = 16
@@ -63,7 +63,7 @@ Sfile            = "S.matrix"
 !   1   : METIS_AT_PLUS_A
 !   2   : MMD_AT_PLUS_A
 ordering         = 1
-isInertiaCount   = 0
+isInertiaCount   = 1
 
 
 ! Read and compute the size/local size of the arrays 

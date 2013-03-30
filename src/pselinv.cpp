@@ -1941,15 +1941,15 @@ PMatrix::Nnz	(  )
 } 		// -----  end of method PMatrix::Nnz  ----- 
 
 void
-PMatrix::GetNegativeInertia	( Int& inertia )
+PMatrix::GetNegativeInertia	( Real& inertia )
 {
 #ifndef _RELEASE_
 	PushCallStack("PMatrix::GetNegativeInertia");
 #endif
   Int numSuper = this->NumSuper(); 
 
-	Int inertiaLocal = 0;
-	inertia          = 0;
+	Real inertiaLocal = 0.0;
+	inertia          = 0.0;
 
 	for( Int ksup = 0; ksup < numSuper; ksup++ ){
 	  // I own the diagonal block	

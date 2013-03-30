@@ -725,6 +725,10 @@ void PPEXSIData::Solve(
 
 	} // for ( iteration of the chemical potential )
 
+	// The final chemical potential for which the number of electrons is
+	// NOT computed yet.
+	muList.push_back( muNow );
+
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
@@ -972,7 +976,7 @@ PPEXSIData::EstimateZeroTemperatureChemicalPotential	(
  
 void PPEXSIData::CalculateNegativeInertia( 
 		const std::vector<Real>&       shiftVec, 
-		std::vector<Int>&              inertiaVec,
+		std::vector<Real>&             inertiaVec,
 		const DistSparseMatrix<Real>&  HMat,
 		const DistSparseMatrix<Real>&  SMat,
 		std::string                    ColPerm
@@ -1070,11 +1074,11 @@ void PPEXSIData::CalculateNegativeInertia(
 	Real timeShiftSta, timeShiftEnd;
 	
 	Int numShift = shiftVec.size();
-	std::vector<Int>  inertiaVecLocal(numShift);
+	std::vector<Real>  inertiaVecLocal(numShift);
 	inertiaVec.resize(numShift);
 	for(Int l = 0; l < numShift; l++){
-		inertiaVecLocal[l] = 0;
-		inertiaVec[l]      = 0;
+		inertiaVecLocal[l] = 0.0;
+		inertiaVec[l]      = 0.0;
 	}
 
 	for(Int l = 0; l < numShift; l++){
