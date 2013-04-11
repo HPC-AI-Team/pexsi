@@ -7,7 +7,7 @@ include ../make.inc
 			 ex8.cpp ex9.cpp ex10.cpp ex11.cpp ex12.cpp ex13.cpp ex14.cpp ex15.cpp
 SRCS   = ex21.cpp
 SRCS_C = ex18.c
-SRCS_F = ex19.f90 ex20.f90
+SRCS_F = ex22.f90 
 
 OBJS = ${SRCS:.cpp=.o} ${SRCS_C:.c=.o} ${SRCS_F:.f90=.o}
 DEPS = ${SRCS:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F:.f90=.d}
@@ -24,11 +24,11 @@ EXES = ${SRCS:.cpp=}	 ${SRCS_C:.c=}   ${SRCS_F:.f90=}
 %.o: %.F90
 	${FC} -c ${FFLAGS} $<
 
+ex22: ex22.o ${PEXSI_LIB} 
+	($(FC) -o $@ ex22.o  $(FLOADOPTS) )
+
 ex21: ex21.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ ex21.o  $(LOADOPTS) )
-
-ex21.o: ex21.cpp 
-	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 ex20: ex20.o ${PEXSI_LIB} 
 	($(FC) -o $@ ex20.o  $(FLOADOPTS) )

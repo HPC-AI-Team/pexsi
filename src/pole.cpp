@@ -312,18 +312,20 @@ void ellipjc(Complex* psn, Complex* pcn,
   shares the same analytic structure with the Fermi-Dirac distribution
   with chemical potential mu and inverse temperature beta.
 
+  NOTE: All units (temperature, gap, deltaE) should be the same.  
+	Without specification they should all be Hartree (au)
+
   Input:
 		func      :    input function to be expanded by pole
 		               expansion 
                 Npole     :    the number of poles to be used.
-		temp      :    temperature, unit(K)
+		temp      :    temperature
 		Gap       :    Energy gap defined to be min(abs(EV-mu)).
-			       EV is the eigenvalue set of Hamiltonian,
-			       unit(hatree) 
+			       EV is the eigenvalue set of Hamiltonian
 		deltaE    :    Spectrum width defined to be
 			       max(EV)-min(EV). EV is the eigenvalue set
-			       of Hamiltonian, unit(hartree) 
-                mu        :    Chemical potential, unit(hartree)
+			       of Hamiltonian
+                mu        :    Chemical potential
 
   Output:
 		
@@ -356,12 +358,12 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
 #ifndef _RELEASE_
 	PushCallStack("GetPoleFunc");
 #endif
-  double K2au = 3.166815e-6, beta;
+  double beta;
   double M, mshift, m2, M2, kr, L, K, Kp, coef;
   Complex t, sn, cn, dn, z, dzdt, zsq, funczsq;
   double pi = atan(1.0)*4.0;
   int i, j, Npolehalf, flag=0;
-  beta = 1.0 / ((*temp) * K2au);
+  beta = 1.0 / ((*temp));
 
   if( (*Npole) % 2 != 0 ){
     fprintf(stderr, "Npole has to be an even number!\n");

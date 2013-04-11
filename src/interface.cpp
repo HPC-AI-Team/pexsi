@@ -149,6 +149,7 @@ void PPEXSIInertiaCountInterface(
 		int*          colptrLocal,                  // Colomn pointer in CSC format
 		int*          rowindLocal,                  // Row index pointer in CSC format
 		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int           isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
 		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
 		double        temperature,                  // Temperature, in the same unit as H
 		double        numElectronExact,             // Exact number of electrons
@@ -230,15 +231,22 @@ void PPEXSIInertiaCountInterface(
 		HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
 		HMat.comm = gridPole.rowComm;
 
-		CopyPattern( HMat, SMat );
-		SMat.comm = gridPole.rowComm;
-
-		// S value
-		SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
-		
 		// Serialization will copy the values regardless of the ownership
 		serialize( HMat, sstm, NO_MASK );
-		serialize( SMat.nzvalLocal, sstm, NO_MASK );
+
+		// S value
+		if( isSIdentity ){
+			SMat.size = 0;
+			SMat.nnz  = 0;
+			SMat.nnzLocal = 0;
+		}
+		else{
+			CopyPattern( HMat, SMat );
+			SMat.comm = gridPole.rowComm;
+			SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+			serialize( SMat.nzvalLocal, sstm, NO_MASK );
+		}
+		
 		
 		sstr.resize( Size( sstm ) );
 		sstm.read( &sstr[0], sstr.size() ); 	
@@ -261,9 +269,16 @@ void PPEXSIInertiaCountInterface(
 		deserialize( HMat, sstm, NO_MASK );
 		// Communicator
 		HMat.comm = gridPole.rowComm;
-		CopyPattern( HMat, SMat );
-		SMat.comm = gridPole.rowComm;
-		deserialize( SMat.nzvalLocal, sstm, NO_MASK );
+		if( isSIdentity ){
+			SMat.size = 0;
+			SMat.nnz  = 0;
+			SMat.nnzLocal = 0;
+		}
+		else{
+			CopyPattern( HMat, SMat );
+			SMat.comm = gridPole.rowComm;
+			deserialize( SMat.nzvalLocal, sstm, NO_MASK );
+		}
 	}
 	sstr.clear();
 
@@ -302,8 +317,8 @@ void PPEXSIInertiaCountInterface(
 	const Real EPS = 1e-3;                        // For numerical stability
 
 	bool isConverged = false;
-	Int  iter = 0;
-	for( iter = 0; iter < maxIter; iter++ ){
+	Int  iter;
+	for( iter = 1; iter <= maxIter; iter++ ){
 		for( Int l = 0; l < numShift; l++ ){
 			shiftVec[l] = muMin + l * (muMax - muMin) / (numShift-1);
 		}
@@ -365,6 +380,14 @@ void PPEXSIInertiaCountInterface(
 
 		Int idx0 = vi0 - inertiaVec.begin();
 		Int idx1 = vi1 - inertiaVec.begin();
+
+		// Special treatment of lower bound.
+		if( inertiaVec[idx0] > numElectronExact - 2 ){
+			if( idx0 == 0 ){
+				throw std::runtime_error("muMin is too low.");
+			}
+			idx0 = idx0-1;
+		}
 
 		muMin = shiftVec[idx0];
 		muMax = shiftVec[idx1];
@@ -430,6 +453,7 @@ void PPEXSISolveInterface (
 		int*          colptrLocal,                  // Colomn pointer in CSC format
 		int*          rowindLocal,                  // Row index pointer in CSC format
 		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int           isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
 		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
 		double        temperature,                  // Temperature, in the same unit as H
 		double        numElectronExact,             // Exact number of electrons
@@ -508,15 +532,22 @@ void PPEXSISolveInterface (
 		HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
 		HMat.comm = gridPole.rowComm;
 
-		CopyPattern( HMat, SMat );
-		SMat.comm = gridPole.rowComm;
-
-		// S value
-		SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
-		
 		// Serialization will copy the values regardless of the ownership
 		serialize( HMat, sstm, NO_MASK );
-		serialize( SMat.nzvalLocal, sstm, NO_MASK );
+
+		// S value
+		if( isSIdentity ){
+			SMat.size = 0;
+			SMat.nnz  = 0;
+			SMat.nnzLocal = 0;
+		}
+		else{
+			CopyPattern( HMat, SMat );
+			SMat.comm = gridPole.rowComm;
+			SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+			serialize( SMat.nzvalLocal, sstm, NO_MASK );
+		}
+		
 		
 		sstr.resize( Size( sstm ) );
 		sstm.read( &sstr[0], sstr.size() ); 	
@@ -539,9 +570,16 @@ void PPEXSISolveInterface (
 		deserialize( HMat, sstm, NO_MASK );
 		// Communicator
 		HMat.comm = gridPole.rowComm;
-		CopyPattern( HMat, SMat );
-		SMat.comm = gridPole.rowComm;
-		deserialize( SMat.nzvalLocal, sstm, NO_MASK );
+		if( isSIdentity ){
+			SMat.size = 0;
+			SMat.nnz  = 0;
+			SMat.nnzLocal = 0;
+		}
+		else{
+			CopyPattern( HMat, SMat );
+			SMat.comm = gridPole.rowComm;
+			deserialize( SMat.nzvalLocal, sstm, NO_MASK );
+		}
 	}
 	sstr.clear();
 
@@ -762,6 +800,7 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 		int*          colptrLocal,                  // Colomn pointer in CSC format
 		int*          rowindLocal,                  // Row index pointer in CSC format
 		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int*          isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
 		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
 		double*       temperature,                  // Temperature, in the same unit as H
 		double*       numElectronExact,             // Exact number of electrons
@@ -791,6 +830,7 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 			colptrLocal,
 			rowindLocal,
 			HnzvalLocal,
+			*isSIdentity,
 			SnzvalLocal,
 			*temperature,
 			*numElectronExact,
@@ -825,6 +865,7 @@ void FORTRAN(f_ppexsi_solve_interface)(
 		int*          colptrLocal,                  // Colomn pointer in CSC format
 		int*          rowindLocal,                  // Row index pointer in CSC format
 		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int*          isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
 		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
 		double*       temperature,                  // Temperature, in the same unit as H
 		double*       numElectronExact,             // Exact number of electrons
@@ -862,6 +903,7 @@ void FORTRAN(f_ppexsi_solve_interface)(
 			colptrLocal,
 			rowindLocal,
 			HnzvalLocal,
+			*isSIdentity,
 			SnzvalLocal,
 			*temperature,
 			*numElectronExact,

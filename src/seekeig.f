@@ -15,13 +15,13 @@
 
       real*8 :: f, r, d, lb, ub
       integer, parameter :: maxiter = 100
-      real*8, parameter :: ftol = 0.01;
+      real*8, parameter :: ftol = 1e-8;
       integer :: iter
 !
       if (mu .gt. x(n)) mu = x(n)
       if (mu .lt. x(1)) mu = x(1)
       f = mpci(mu, n, x, y)
-      print*, 'f = ', f, 'cdf = ', cdf
+!     print*, 'f = ', f, 'cdf = ', cdf
       if (mu .le. x(1) .and. f .gt. cdf) then
          print*, 'solution is out of bound, increase nbins!'
          goto 100
@@ -53,16 +53,16 @@ C        print*, 'call bisection...'
       real*8 :: x(n), y(n)
       real*8 :: lb, ub, mu, f, r
       integer, parameter :: maxitr = 100
-      real*8, parameter :: ftol = 0.01
+      real*8, parameter :: ftol = 1e-8
       integer :: iter
       real*8 :: mpci
 !
       mu = (lb+ub)/2.0
       r = mpci(mu, n, x, y) - f
       iter = 1
-      print*, 'r = ', r, ' lb = ', lb, ' ub = ', ub 
+!     print*, 'r = ', r, ' lb = ', lb, ' ub = ', ub 
       do while ( abs(r) > ftol .and. iter .lt. maxitr .and. 
-     &           ub-lb .gt. lb*1.0e-6) 
+     &           ub-lb .gt. lb*1.0e-8) 
          if (r .gt. 0) then
             ub = mu
          else
@@ -70,7 +70,7 @@ C        print*, 'call bisection...'
          endif
          mu = (lb + ub)/2.0
          r = mpci(mu, n, x, y) - f
-        write(6,111) iter, mu, r, lb, ub
+!        write(6,111) iter, mu, r, lb, ub
  111     format('bisect iter = ', I5, ' mu = ', 1pe15.6, 
      &          ' r = ', 1pe11.3, '  lb = ', 1pe15.6, 
      &          ' ub = ', 1pe15.6) 

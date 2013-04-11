@@ -690,19 +690,11 @@ void PPEXSIData::Solve(
 			timeMuEnd - timeMuSta << " [s]" << std::endl << std::endl;
 
 
-		// Update the chemical potential
-
-		muNow = CalculateChemicalPotentialNewtonBisection( 
-				numElectronExact, numElectronList[iter], 
-				numElectronDrvMuList[iter], muList[iter], muMin, muMax );
-	
-
 		// Output status 
 		statusOFS << std::endl;
 		Print( statusOFS, "mu                          = ", muList[iter] );
 		Print( statusOFS, "muMin                       = ", muMin );
 		Print( statusOFS, "muMax                       = ", muMax ); 
-		Print( statusOFS, "muNew                       = ", muNow );
 		Print( statusOFS, "Number of poles computed    = ", numPoleComputed );
 		Print( statusOFS, "Computed number of electron = ", numElectronList[iter] );
 		Print( statusOFS, "d Ne / d mu                 = ", numElectronDrvMuList[iter] );
@@ -712,12 +704,6 @@ void PPEXSIData::Solve(
 			Print( statusOFS, "Total free energy           = ", totalFreeEnergy );
 		if( isDerivativeTMatrix )
 			Print( statusOFS, "d Ne / d T                  = ", numElectronDrvT );
-		
-		// Update the bisection interval
-		if( numElectronList[iter] < numElectronExact )
-			muMin = muList[iter];
-		else
-			muMax = muList[iter];
 
 		// Check convergence
 		if( std::abs( numElectronExact - numElectronList[iter] ) <
@@ -725,6 +711,18 @@ void PPEXSIData::Solve(
 			isConverged = true;
 			break;
 		}
+
+		// Update the chemical potential
+
+		muNow = CalculateChemicalPotentialNewtonBisection( 
+				numElectronExact, numElectronList[iter], 
+				numElectronDrvMuList[iter], muList[iter], muMin, muMax );
+	
+		// Update the bisection interval
+		if( numElectronList[iter] < numElectronExact )
+			muMin = muList[iter];
+		else
+			muMax = muList[iter];
 
 	} // for ( iteration of the chemical potential )
 
@@ -967,10 +965,10 @@ PPEXSIData::EstimateZeroTemperatureChemicalPotential	(
 #endif
  
   Real numElecDrvMu, numElecDrvT, muDrvT;
-  Real K2au = 3.166815e-6, beta;
+  Real beta;
 	Real mu0;
 
-	beta = 1.0 / (temperature * K2au);
+	beta = 1.0 / (temperature);
 
   numElecDrvMu = CalculateNumElectronDrvMu( SMat );
   
