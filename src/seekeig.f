@@ -4,7 +4,8 @@
 !     --- use bisection to find a mu
 !         with a prescribed cdf value ---
 !
-      integer :: n, cdf
+      integer :: n
+      real*8 :: cdf
       real*8 :: mpci
       real*8 :: x(n), y(n)
 !
@@ -21,16 +22,16 @@
       if (mu .lt. x(1)) mu = x(1)
       f = mpci(mu, n, x, y)
       print*, 'f = ', f, 'cdf = ', cdf
-      if (mu .le. x(1) .and. f .gt. dble(cdf)) then
+      if (mu .le. x(1) .and. f .gt. cdf) then
          print*, 'solution is out of bound, increase nbins!'
          goto 100
       endif
-      if (mu .ge. x(n) .and. f .le. dble(cdf)) then
+      if (mu .ge. x(n) .and. f .le. cdf) then
          print*, 'solution is out of bound, increase nbins!'
          goto 100
       endif
 
-      if (f .gt. dble(cdf)) then
+      if (f .gt. cdf) then
         lb = x(1)
         ub = mu  
       else
@@ -39,7 +40,7 @@
       endif
       if (ub-lb .gt. lb*1e-6) then
 C        print*, 'call bisection...'
-         call bisect(n, x, y, dble(cdf), lb, ub, mu)
+         call bisect(n, x, y, cdf, lb, ub, mu)
       endif
  100  continue
       seekeig = mu

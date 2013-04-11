@@ -6,7 +6,7 @@
 #include "ppexsi.hpp"
 
 extern "C" {
-  double seekeig_(int *, int *, double *, double *, double *);
+  double seekeig_(double *, int *, double *, double *, double *);
 }
 using namespace PEXSI;
 using namespace std;
