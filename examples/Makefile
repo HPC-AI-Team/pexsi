@@ -3,7 +3,7 @@
 
 include ../make.inc
 
-SRCS  = run_pexsi.cpp run_ppexsi.cpp
+SRCS  = run_pexsi.cpp run_ppexsi.cpp run_pselinv.cpp 
 
 OBJS = ${SRCS:.cpp=.o}
 DEPS = ${SRCS:.cpp=.d}
@@ -20,7 +20,14 @@ EXES = ${SRCS:.cpp=}
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
 
-all: run_pexsi run_ppexsi f_ppexsi
+all: run_pselinv run_pexsi run_ppexsi f_ppexsi
+
+run_pselinv: run_pselinv.o ${PEXSI_LIB} 
+	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS) )
+
+run_pselinv.o: run_pselinv.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
+
 
 f_ppexsi: f_ppexsi.o ${PEXSI_LIB} 
 	  ($(FC) -o $@ f_ppexsi.o  $(FLOADOPTS) )
@@ -28,13 +35,13 @@ f_ppexsi: f_ppexsi.o ${PEXSI_LIB}
 f_ppexsi.o: f_ppexsi.f90
 	  ${FC} -c ${FFLAGS} $<
 
-run_pexsi: run_pexsi.o ${PEXSI_LIB} ${PLUSELINV_LIB}
+run_pexsi: run_pexsi.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ run_pexsi.o  $(LOADOPTS) )
 
 run_pexsi.o: run_pexsi.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
-run_ppexsi: run_ppexsi.o ${PEXSI_LIB} ${PLUSELINV_LIB}
+run_ppexsi: run_ppexsi.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ run_ppexsi.o  $(LOADOPTS) $(IPM))
 
 run_ppexsi.o: run_ppexsi.cpp 
