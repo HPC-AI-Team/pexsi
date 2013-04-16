@@ -269,7 +269,7 @@ public:
 	/// **Note**: If SMat.size == 0, SMat is treated as an identity matrix.
 	/// 
 	/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
-	void PPEXSIData::CalculateNegativeInertia( 
+	void CalculateNegativeInertia( 
 			const std::vector<Real>&       shiftVec, 
 			std::vector<Real>&             inertiaVec,
 			const DistSparseMatrix<Real>&  HMat,
