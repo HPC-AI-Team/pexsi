@@ -405,6 +405,9 @@ private:
 	std::vector<std::vector<LBlock> > L_;
 	std::vector<std::vector<UBlock> > U_;
 
+	// MJ
+	std::vector<std::vector<int> > WorkingSet_;
+
 	// Communication variables
 	NumMat<bool>                       isSendToBelow_;
 	NumMat<bool>                       isSendToRight_;

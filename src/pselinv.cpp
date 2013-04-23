@@ -363,6 +363,17 @@ PMatrix::ConstructCommunicationPattern	(  )
 	PopCallStack();
 #endif
 
+//MJ dummy filling of WorkingSet_
+
+	this->WorkingSet_.resize(this->NumSuper());
+	for( Int ksup = this->NumSuper() - 2; ksup >= 0; ksup-- ){
+		std::vector<int> & CurWorkingSet = this->WorkingSet_.back();
+		CurWorkingSet.push_back(ksup);
+	}
+
+	for (unsigned lidx=0; lidx<this->WorkingSet_.size() ; lidx++)
+    std::cout << ' ' << myvector[i];
+
 	return ;
 } 		// -----  end of method PMatrix::ConstructCommunicationPattern  ----- 
 
@@ -556,6 +567,8 @@ PMatrix::SelInv	(  )
 				UrowRecv = this->U( LBi( ksup, grid_ ) );
 			} // sender is the same as receiver
 
+
+			//L part
 			if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
 				std::stringstream     sstm;
 				sstm.write( &sstrLcolRecv[0], sizeStmFromLeft );
@@ -752,7 +765,7 @@ PMatrix::SelInv	(  )
 									}
 								}
 
-								// Trasnfer the values from Sinv to AinvBlock
+								// Transfer the values from Sinv to AinvBlock
 								Scalar* nzvalSinv = SinvB.nzval.Data();
 								Int     ldSinv    = SinvB.numRow;
 								for( Int j = 0; j < UB.numCol; j++ ){
@@ -782,7 +795,7 @@ PMatrix::SelInv	(  )
       statusOFS << std::endl << "UBuf   : " << UBuf << std::endl;
 #endif
 
-			// Gemm for LUpdateBuf = AinvBuf * UBuf^T
+			// Gemm for LUpdateBuf = -AinvBuf * UBuf^T
 			blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
 					AinvBuf.Data(), AinvBuf.m(), 
 					UBuf.Data(), UBuf.m(), SCALAR_ZERO,
@@ -856,6 +869,8 @@ PMatrix::SelInv	(  )
 		} // Perform reduce for nonzero block rows in the column of ksup
 
 #if ( _DEBUGlevel_ >= 2 )
+		statusOFS << std::endl<< "Column doing the reduction: " <<PCOL( ksup, grid_ )<<std::endl << std::endl;
+
 		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && numRowLUpdateBuf > 0 )
 			statusOFS << std::endl << "LUpdateBufReduced: " << LUpdateBufReduced << std::endl << std::endl; 
 #endif
@@ -882,7 +897,7 @@ PMatrix::SelInv	(  )
 							Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
 							SCALAR_ONE, DiagBuf.Data(), DiagBuf.m() );
 				}
-			} // I do not own the diaogonal block
+			} // I do not own the diagonal block
 			else{
 				for( Int ib = 1; ib < Lcol.size(); ib++ ){
 					blas::Gemm( 'T', 'N', SuperSize( ksup, super_ ), SuperSize( ksup, super_ ), Lcol[ib].numRow, 
@@ -890,7 +905,7 @@ PMatrix::SelInv	(  )
 							Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
 							SCALAR_ONE, DiagBuf.Data(), DiagBuf.m() );
 				}
-			} // I owns the diagonal block, skip the diagonal block
+			} // I own the diagonal block, skip the diagonal block
 
 			NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
 
