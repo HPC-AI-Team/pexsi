@@ -1400,6 +1400,18 @@ CopyPattern	( const DistSparseMatrix<F1>& A, DistSparseMatrix<F2>& B )
 	return ;
 }		// -----  end of template function CopyPattern  ----- 
 
+// *********************************************************************
+// Other numerical routines
+// *********************************************************************
+
+void
+LinearInterpolation ( 
+		const std::vector<Real>& x, 
+		const std::vector<Real>& y,
+		const std::vector<Real>& xx,
+		std::vector<Real>& yy );
+
+
 
 } // namespace PEXSI
 #endif // _UTILITY_HPP_

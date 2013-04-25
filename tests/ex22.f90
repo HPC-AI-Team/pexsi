@@ -17,7 +17,6 @@ double precision :: K2au, temperature, numElectronExact, numElectron,&
 	gap, deltaE
 double precision ::   muMin0, muMax0, muInertia, muMinInertia, muMaxInertia,&
 	muLowerEdge, muUpperEdge, muPEXSI, muMinPEXSI, muMaxPEXSI
-
 integer:: inertiaMaxIter, inertiaIter, muMaxIter, muIter
 integer:: ordering
 integer:: isInertiaCount
@@ -41,9 +40,9 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 ! Data is for the g20 matrix.
 K2au             = 3.1668152d-6
 ! Temperature should be in the same unit as the H matrix. Here it is Hartree.
-temperature      = 300.0d0 * K2au
+temperature      = 1000.0d0 * K2au
 
-numElectronExact = 12.0d0
+numElectronExact = 13.0d0
 numPole          = 60
 gap              = 0.0d0
 ! deltaE is in theory the spectrum width, but in practice can be much smaller
@@ -189,11 +188,10 @@ call f_ppexsi_inertiacount_interface(&
 	muMaxInertia,&
 	muLowerEdge,&
 	muUpperEdge,&
+	muInertia,&
 	inertiaIter,&
 	shiftList,&
 	inertiaList)
-
-muInertia    = (muLowerEdge + muUpperEdge) / 2d0
 
 
 call f_ppexsi_solve_interface(&

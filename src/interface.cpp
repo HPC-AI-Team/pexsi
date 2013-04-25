@@ -22,6 +22,55 @@ extern "C" {
 	double seekeig_(double *, int *, double *, double *, double *);
 }
 
+/// @brief Find the root using linear interpolation.
+///
+/// It assumes that the function y(x) is a monotonically increasing
+/// function.
+inline Real
+MonotoneRootFinding ( 
+		const std::vector<Real>&  x,
+		const std::vector<Real>&  y,
+		Real val)
+{
+#ifndef _RELEASE_
+	PushCallStack("MonotoneRootFinding");
+#endif
+	Int numX = x.size();
+
+	if( val <= y[0] || val >= y[numX-1] ){
+		std::ostringstream msg;
+		msg 
+			<< "val = " << val << " is out of bound." << std::endl;
+		throw std::runtime_error( msg.str().c_str() );
+	}
+
+	std::vector<Real>::const_iterator vi = lower_bound( 
+			y.begin(), y.end(), val );
+
+	Int idx = vi - y.begin();
+
+	Real root = x[idx-1] + ( x[idx] - x[idx-1] ) / ( y[idx] - y[idx-1] ) 
+		* ( val - y[idx-1] );
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return root;
+}		// -----  end of function MonotoneRootFinding  ----- 
+
+
+// Derivative of the Fermi-Dirac distribution with respect to mu 
+// (therefore there is no minus sign)
+// fdDrvMu(x) = beta * exp(beta*x)/(1+exp(beta*z))^2
+// Note: compared to fdDrvMu used in pole.cpp, the factor 2.0 is not
+// present, because it is included in inertiaVec. 
+inline Real fdDrvMu( Real x, double beta, double mu ){
+  Real val;
+	val = beta / ( 2.0 * ( 1.0 + std::cosh( beta * ( x - mu ) ) ) );
+  return val;
+}
+
 
 // *********************************************************************
 // C interface
@@ -166,6 +215,7 @@ void PPEXSIInertiaCountInterface(
 		double*       muMaxInertia,                 // Upper bound for mu after inertia count
 		double*       muLowerEdge,                  // Ne(muLowerEdge) = Ne - eps. For band gapped system
 		double*       muUpperEdge,                  // Ne(muUpperEdge) = Ne + eps. For band gapped system
+		double*       muInertia,                    // Ne(muInertia)   = Ne.
 		int*          numIter,                      // Number of actual iterations for inertia count
 		double*       muList,                       // The list of shifts
 		double*       numElectronList               // The number of electrons corresponding to shifts (0K)
@@ -308,13 +358,17 @@ void PPEXSIInertiaCountInterface(
 	}
 
 	// In inertia counts, "Pole" is the same as "Shifts" (since there is no actual pole here)
+	// inertiaVec is the zero-temperature cumulative DOS.
+	// inertiaFTVec is the finite temperature cumulative DOS, obtained from linear interpolation of
+	// inertiaVec.
 	Int  numShift = numPole;
 	std::vector<Real>  shiftVec( numShift );
 	std::vector<Real>  inertiaVec( numShift );
+	std::vector<Real>  inertiaFTVec( numShift );
 
 	Real muMin = muMin0;
 	Real muMax = muMax0;
-	const Real EPS = 1e-3;                        // For numerical stability
+	Real muLow, muUpp, mu;
 
 	bool isConverged = false;
 	Int  iter;
@@ -333,20 +387,48 @@ void PPEXSIInertiaCountInterface(
 
 		GetTime( timeEnd );
 
+		// Inertia is multiplied by 2.0 to reflect the doubly occupied
+		// orbitals.
 		for( Int l = 0; l < numShift; l++ ){
-			// Inertia is multiplied by 2.0 to reflect the doubly occupied
-			// orbitals.
 			inertiaVec[l] *= 2.0;
+		}
+
+		// Interpolation to compute the finite temperature cumulative DOS
+		Int numInp = 1000;
+		std::vector<Real>  shiftInpVec( numInp );
+		std::vector<Real>  inertiaInpVec( numInp ); 
+		std::vector<Real>  fdDrvVec( numInp );
+		for( Int l = 0; l < numShift; l++ ){
+			Real shiftInp0 = shiftVec[l] - 10 * temperature;
+			Real shiftInp1 = shiftVec[l] + 10 * temperature;
+			Real h = (shiftInp1 - shiftInp0) / (numInp-1);
+			for( Int i = 0; i < numInp; i++ ){
+				shiftInpVec[i] = shiftInp0 + h * i;
+				// fdDrvMu(x) = beta * exp(beta*x)/(1+exp(beta*z))^2
+				// Note: compared to fdDrvMu used in pole.cpp, the factor 2.0 is not
+				// present, because it is included in inertiaVec. 
+				fdDrvVec[i]    = 1.0 / ( 2.0 * temperature * (
+							1.0 + std::cosh( ( shiftInpVec[i] - shiftVec[l] ) / temperature ) ) );
+			}
+			LinearInterpolation( shiftVec, inertiaVec, 
+					shiftInpVec, inertiaInpVec );
+
+			inertiaFTVec[l] = 0.0;
+			for( Int i = 0; i < numInp; i++ ){
+				inertiaFTVec[l] += fdDrvVec[i] * inertiaInpVec[i] * h;
+			}
 
 #if ( _DEBUGlevel_ >= 0 )
 			statusOFS << std::setiosflags(std::ios::left) 
-				<< std::setw(LENGTH_VAR_NAME) << "Shift = "
+				<< std::setw(LENGTH_VAR_NAME) << "Shift      = "
 				<< std::setw(LENGTH_VAR_DATA) << shiftVec[l]
-				<< std::setw(LENGTH_VAR_NAME) << "Inertia = "
+				<< std::setw(LENGTH_VAR_NAME) << "Inertia    = "
 				<< std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
-				<< std::endl << std::endl;
+				<< std::setw(LENGTH_VAR_NAME) << "InertiaFT  = "
+				<< std::setw(LENGTH_VAR_DATA) << inertiaFTVec[l]
+				<< std::endl;
 #endif
-		}
+		} // for (l)
 
 #if ( _DEBUGlevel_ >= 0 )
 		statusOFS << std::endl << "Time for iteration " 
@@ -354,71 +436,63 @@ void PPEXSIInertiaCountInterface(
 			<< timeEnd - timeSta << std::endl;
 #endif
 
-		if( inertiaVec[0] >= numElectronExact ||
-				inertiaVec[numShift-1] <= numElectronExact ){
+		// Update muMin, muMax
+		// NOTE: divide by 4 is just heuristics so that the interval does
+		// not get to be too small for the PEXSI iteration
+		double mu0 = (muMin + muMax)/2.0;
+		const Real EPS = 0.3;  // For numerically determining the band edge
+
+		Real NeMin = std::max( inertiaFTVec[0] + EPS, 
+				numElectronExact - numElectronTolerance / 4 );
+		Real NeMax = std::min( inertiaFTVec[numShift-1] - EPS,
+				numElectronExact + numElectronTolerance / 4 );
+
+		Real NeLower = numElectronExact - EPS;
+		Real NeUpper = numElectronExact + EPS;
+
+		// Root finding using linear interpolation
+		muMin = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMin );
+		muMax = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMax );
+
+		muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower );
+		muUpp = MonotoneRootFinding( shiftVec, inertiaFTVec, NeUpper );
+		mu    = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact );
+
+		statusOFS << "mu = " << mu << std::endl;
+
+		if( inertiaFTVec[0] >= numElectronExact ||
+				inertiaFTVec[numShift-1] <= numElectronExact ){
 			std::ostringstream msg;
 			msg 
 				<< "The solution is not in the prescribed (muMin, muMax) interval." << std::endl
 				<< "(muMin, muMax) ~ (" << shiftVec[0] << " , " << shiftVec[numShift-1] << " ) " << std::endl
-				<< "(Ne(muMin), Ne(muMax)) ~ (" << inertiaVec[0] << " , " << inertiaVec[numShift-1] 
+				<< "(Ne(muMin), Ne(muMax)) ~ (" << inertiaFTVec[0] << " , " << inertiaFTVec[numShift-1] 
 				<< " ) " << std::endl
 				<< "NeExact = " << numElectronExact << std::endl;
 			throw std::runtime_error( msg.str().c_str() );
 		}
 
-		if( inertiaVec[numShift-1] - inertiaVec[0] < numElectronTolerance ){
+		if( inertiaFTVec[numShift-1] - inertiaFTVec[0] < numElectronTolerance ){
 			isConverged = true;
 			break;
 		}
 
-		// Update muMin, muMax
-		std::vector<Real>::iterator vi0, vi1;
-		vi0 = std::lower_bound( inertiaVec.begin(), inertiaVec.end(), 
-				numElectronExact-2-EPS );
-		vi1 = std::lower_bound( inertiaVec.begin(), inertiaVec.end(), 
-				numElectronExact+2-EPS );
-
-		Int idx0 = vi0 - inertiaVec.begin();
-		Int idx1 = vi1 - inertiaVec.begin();
-
-		// Special treatment of lower bound.
-		if( inertiaVec[idx0] > numElectronExact - 2 ){
-			if( idx0 == 0 ){
-				throw std::runtime_error("muMin is too low.");
-			}
-			idx0 = idx0-1;
-		}
-
-		muMin = shiftVec[idx0];
-		muMax = shiftVec[idx1];
 	} // for (iter)
 
 	if( isConverged ){
 		statusOFS << std::endl << "Inertia count converged. N(muMax) - N(muMin) = " <<
-			inertiaVec[numShift-1] - inertiaVec[0] << std::endl;
+			inertiaFTVec[numShift-1] - inertiaFTVec[0] << std::endl;
 	}
 	else {
 		statusOFS << std::endl << "Inertia count did not converge. N(muMax) - N(muMin) = " <<
-			inertiaVec[numShift-1] - inertiaVec[0] << std::endl;
+			inertiaFTVec[numShift-1] - inertiaFTVec[0] << std::endl;
 	}
-
-	// TODO Add the finite temperature effect
-	Real muLow, muUpp;
-	{
-		double mu0, netarget;
-		mu0 = ( muMin + muMax ) / 2.0;
-		netarget = numElectronExact - EPS;
-		muLow = seekeig_(&netarget, &numShift, &shiftVec[0],&inertiaVec[0], &mu0);
-		mu0 = ( muMin + muMax ) / 2.0;
-		netarget = numElectronExact + EPS;
-		muUpp = seekeig_(&netarget, &numShift, &shiftVec[0],&inertiaVec[0], &mu0);
-	}
-
 
 	statusOFS << std::endl << "After the inertia count," << std::endl;
 	Print( statusOFS, "numIter = ", iter );
 	Print( statusOFS, "muLowerEdge   = ", muLow );
 	Print( statusOFS, "muUppperEdge  = ", muUpp );
+	Print( statusOFS, "mu            = ", mu ); 
 	Print( statusOFS, "muMin         = ", muMin );
 	Print( statusOFS, "muMax         = ", muMax );
 	statusOFS << std::endl;
@@ -430,7 +504,9 @@ void PPEXSIInertiaCountInterface(
 	*muMaxInertia = muMax;
 	*muLowerEdge  = muLow;
 	*muUpperEdge  = muUpp;
+	*muInertia    = mu;
 	*numIter      = iter;
+
 
 	for( Int l = 0; l < numShift; l++ ){
 		muList[l]          = shiftVec[l];
@@ -817,6 +893,7 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 		double*       muMaxInertia,                 // Upper bound for mu after inertia count
 		double*       muLowerEdge,                  // Ne(muLowerEdge) = Ne - eps. For band gapped system
 		double*       muUpperEdge,                  // Ne(muUpperEdge) = Ne + eps. For band gapped system
+		double*       muInertia,                    // Ne(muInertia)   = Ne.
 		int*          numIter,                      // Number of actual iterations for inertia count
 		double*       muList,                       // The list of shifts
 		double*       numElectronList               // The number of electrons corresponding to shifts (0K)
@@ -846,6 +923,7 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 			muMaxInertia,
 			muLowerEdge,
 			muUpperEdge,
+			muInertia,
 			numIter,
 			muList,
 			numElectronList );

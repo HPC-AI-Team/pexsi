@@ -5,7 +5,7 @@ include ../make.inc
 
 #SRCS = ex1.cpp ex2.cpp ex3.cpp ex4.cpp ex5.cpp ex6.cpp ex7.cpp \
 			 ex8.cpp ex9.cpp ex10.cpp ex11.cpp ex12.cpp ex13.cpp ex14.cpp ex15.cpp
-SRCS   = ex21.cpp
+SRCS   = ex23.cpp
 SRCS_C = ex18.c
 SRCS_F = ex22.f90 
 
@@ -23,6 +23,9 @@ EXES = ${SRCS:.cpp=}	 ${SRCS_C:.c=}   ${SRCS_F:.f90=}
 	${FC} -c ${FFLAGS} $<
 %.o: %.F90
 	${FC} -c ${FFLAGS} $<
+
+ex23: ex23.o ${PEXSI_LIB} 
+	($(LOADER) -o $@ ex23.o  $(LOADOPTS) )
 
 ex22: ex22.o ${PEXSI_LIB} 
 	($(FC) -o $@ ex22.o  $(FLOADOPTS) )

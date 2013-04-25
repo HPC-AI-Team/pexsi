@@ -587,4 +587,69 @@ GetDiagonal ( const DistSparseMatrix<Complex>& A,
 	return ;
 }		// -----  end of function GetDiagonal  ----- 
 
+// *********************************************************************
+// Other numerical routines
+// *********************************************************************
+
+// Interpolation
+/// @brief Linear interpolates from (x,y) to (xx,yy)
+///
+/// Note: 
+///
+/// x and xx must be sorted in ascending order.
+///
+/// if xx[i] < x[0],     yy[i] = y[0]
+///    xx[i] > x[end-1], yy[i] = y[end-1]
+void
+LinearInterpolation ( 
+		const std::vector<Real>& x, 
+		const std::vector<Real>& y,
+		const std::vector<Real>& xx,
+		std::vector<Real>& yy )
+{
+#ifndef _RELEASE_
+	PushCallStack("LinearInterpolation");
+#endif
+	Int numX  = x.size();
+	Int numXX = xx.size();
+
+  for( Int i = 1; i < numX; i++ ){
+		if( x[i] <= x[i-1] ) 
+			throw std::runtime_error("x must be sorted strictly ascendingly.");
+	}
+
+	for( Int i = 1; i < numXX; i++){
+		if( xx[i] < xx[i-1] )
+			throw std::runtime_error("xx must be sorted ascendingly.");
+	}
+
+
+	yy.resize( numXX );
+	std::vector<Real>::const_iterator vi;
+	Int ix;
+	for( Int i = 0; i < numXX; i++ ){
+		if( xx[i] <= x[0] ){
+			yy[i] = y[0];
+		}
+		else if( xx[i] >= x[numX-1] ){
+			yy[i] = y[numX-1];
+		}
+		else{
+			vi = lower_bound( x.begin(), x.end(), xx[i] );
+			ix = vi - x.begin();
+
+			yy[i] = y[ix-1] + (y[ix] - y[ix-1]) / (x[ix] - x[ix-1]) 
+				* (xx[i] - x[ix-1]);
+		}
+	} // for (i)
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function LinearInterpolation  ----- 
+
+
+
 }  // namespace PEXSI
