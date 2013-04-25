@@ -190,12 +190,10 @@ call f_ppexsi_inertiacount_interface(&
 	muMaxInertia,&
 	muLowerEdge,&
 	muUpperEdge,&
+	muInertia,&
 	inertiaIter,&
 	shiftList,&
 	inertiaList)
-
-muInertia    = (muLowerEdge + muUpperEdge) / 2d0
-
 
 call f_ppexsi_solve_interface(&
 	nrows,&

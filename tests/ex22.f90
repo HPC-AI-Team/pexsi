@@ -193,7 +193,6 @@ call f_ppexsi_inertiacount_interface(&
 	shiftList,&
 	inertiaList)
 
-
 call f_ppexsi_solve_interface(&
 	nrows,&
 	nnz,&
