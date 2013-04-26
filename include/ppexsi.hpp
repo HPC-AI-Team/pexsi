@@ -115,7 +115,6 @@ public:
 	/// SMat.size == 0, SMat is treated as an identity matrix.
 	/// @param[in] muMaxIter Maximum iteration number for chemical
 	/// potential
-	/// @param[in] poleTolerance Skip the pole if weight is too small
 	/// @param[in] numElectronTolerance  Stopping criterion for the mu iteration 
 	/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
 	/// @param[in] isFreeEnergyDensityMatrix Whether to compute the Helmholtz free energy matrix
@@ -140,7 +139,6 @@ public:
 			const DistSparseMatrix<Real>&  HMat,
 		 	const DistSparseMatrix<Real>&  SMat,
 		 	Int  muMaxIter,
-			Real poleTolerance,
 			Real numElectronTolerance,
 			std::string         ColPerm,
 			bool isFreeEnergyDensityMatrix, 

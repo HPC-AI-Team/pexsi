@@ -20,7 +20,7 @@ double precision ::   muMin0, muMax0, muInertia, muMinInertia, muMaxInertia,&
 integer:: inertiaMaxIter, inertiaIter, muMaxIter, muIter
 integer:: ordering
 integer:: isInertiaCount
-double precision :: poleTolerance, PEXSINumElectronTolerance, &
+double precision :: PEXSINumElectronTolerance, &
 	inertiaNumElectronTolerance
 integer:: npPerPole, nprow, npcol
 integer :: mpirank, mpisize, ierr
@@ -42,8 +42,8 @@ K2au             = 3.1668152d-6
 ! Temperature should be in the same unit as the H matrix. Here it is Hartree.
 temperature      = 1000.0d0 * K2au
 
-numElectronExact = 13.0d0
-numPole          = 60
+numElectronExact = 12.0d0
+numPole          = 40
 gap              = 0.0d0
 ! deltaE is in theory the spectrum width, but in practice can be much smaller
 ! than | E_max - mu |.  It is found that deltaE that is slightly bigger
@@ -55,13 +55,11 @@ muMax0           =  2.0d0
 ! Maximum number of iterations for computing the inertia
 inertiaMaxIter   = 3
 ! Maximum number of iterations for PEXSI iteration
-muMaxIter        = 3
-! Do not compute a pole if the corresponding weight is < poleTolerance.
-poleTolerance    = 1d-8
+muMaxIter        = 10
 ! Stop inertia count if Ne(muMax) - Ne(muMin) < inertiaNumElectronTolerance
 inertiaNumElectronTolerance = 10
 ! Stop mu-iteration if numElectronTolerance is < numElectronTolerance.
-PEXSINumElectronTolerance = 1d-2
+PEXSINumElectronTolerance = 1d-6
 ! Number of processors used for each pole. At the moment use mpisize.
 ! Later can be changed to 
 npPerPole        = 1
@@ -188,10 +186,12 @@ call f_ppexsi_inertiacount_interface(&
 	muMaxInertia,&
 	muLowerEdge,&
 	muUpperEdge,&
-	muInertia,&
 	inertiaIter,&
 	shiftList,&
 	inertiaList)
+
+muInertia = (muLowerEdge + muUpperEdge)/2.0;
+
 
 call f_ppexsi_solve_interface(&
 	nrows,&
@@ -213,7 +213,6 @@ call f_ppexsi_solve_interface(&
 	numPole,&
 	muMaxIter,&
 	PEXSINumElectronTolerance,&
-	poleTolerance,&
 	ordering,&
 	npPerPole,&
 	MPI_COMM_WORLD,&

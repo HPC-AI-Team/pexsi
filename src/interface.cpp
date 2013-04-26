@@ -215,7 +215,6 @@ void PPEXSIInertiaCountInterface(
 		double*       muMaxInertia,                 // Upper bound for mu after inertia count
 		double*       muLowerEdge,                  // Ne(muLowerEdge) = Ne - eps. For band gapped system
 		double*       muUpperEdge,                  // Ne(muUpperEdge) = Ne + eps. For band gapped system
-		double*       muInertia,                    // Ne(muInertia)   = Ne.
 		int*          numIter,                      // Number of actual iterations for inertia count
 		double*       muList,                       // The list of shifts
 		double*       numElectronList               // The number of electrons corresponding to shifts (0K)
@@ -368,7 +367,7 @@ void PPEXSIInertiaCountInterface(
 
 	Real muMin = muMin0;
 	Real muMax = muMax0;
-	Real muLow, muUpp, mu;
+	Real muLow, muUpp;
 
 	bool isConverged = false;
 	Int  iter;
@@ -399,8 +398,8 @@ void PPEXSIInertiaCountInterface(
 		std::vector<Real>  inertiaInpVec( numInp ); 
 		std::vector<Real>  fdDrvVec( numInp );
 		for( Int l = 0; l < numShift; l++ ){
-			Real shiftInp0 = shiftVec[l] - 10 * temperature;
-			Real shiftInp1 = shiftVec[l] + 10 * temperature;
+			Real shiftInp0 = shiftVec[l] - 20 * temperature;
+			Real shiftInp1 = shiftVec[l] + 20 * temperature;
 			Real h = (shiftInp1 - shiftInp0) / (numInp-1);
 			for( Int i = 0; i < numInp; i++ ){
 				shiftInpVec[i] = shiftInp0 + h * i;
@@ -443,9 +442,9 @@ void PPEXSIInertiaCountInterface(
 		const Real EPS = 0.3;  // For numerically determining the band edge
 
 		Real NeMin = std::max( inertiaFTVec[0] + EPS, 
-				numElectronExact - numElectronTolerance / 4 );
+				numElectronExact - numElectronTolerance / 2 + EPS );
 		Real NeMax = std::min( inertiaFTVec[numShift-1] - EPS,
-				numElectronExact + numElectronTolerance / 4 );
+				numElectronExact + numElectronTolerance / 2 - EPS );
 
 		Real NeLower = numElectronExact - EPS;
 		Real NeUpper = numElectronExact + EPS;
@@ -456,9 +455,6 @@ void PPEXSIInertiaCountInterface(
 
 		muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower );
 		muUpp = MonotoneRootFinding( shiftVec, inertiaFTVec, NeUpper );
-		mu    = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact );
-
-		statusOFS << "mu = " << mu << std::endl;
 
 		if( inertiaFTVec[0] >= numElectronExact ||
 				inertiaFTVec[numShift-1] <= numElectronExact ){
@@ -492,7 +488,6 @@ void PPEXSIInertiaCountInterface(
 	Print( statusOFS, "numIter = ", iter );
 	Print( statusOFS, "muLowerEdge   = ", muLow );
 	Print( statusOFS, "muUppperEdge  = ", muUpp );
-	Print( statusOFS, "mu            = ", mu ); 
 	Print( statusOFS, "muMin         = ", muMin );
 	Print( statusOFS, "muMax         = ", muMax );
 	statusOFS << std::endl;
@@ -504,7 +499,6 @@ void PPEXSIInertiaCountInterface(
 	*muMaxInertia = muMax;
 	*muLowerEdge  = muLow;
 	*muUpperEdge  = muUpp;
-	*muInertia    = mu;
 	*numIter      = iter;
 
 
@@ -541,7 +535,6 @@ void PPEXSISolveInterface (
 		int           numPole,                      // Number of poles
 		int           maxIter,                      // Maximum number of iterations for mu-iteration in PEXSI
 		double        numElectronTolerance,         // Stopping criterion of PEXSI mu iteration.
-		double        poleTolerance,                // Tolerance for neglecting a pole
 		int           ordering,                     // SuperLUDIST ordering
 	  int           npPerPole,                    // Number of processors for each pole
 	  MPI_Comm	    comm,                         // Overall MPI communicator
@@ -711,7 +704,6 @@ void PPEXSISolveInterface (
 			HMat,
 			SMat,
 			maxIter,
-			poleTolerance,
 			numElectronTolerance,
 			colPerm,
 			isFreeEnergyDensityMatrix,
@@ -893,7 +885,6 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 		double*       muMaxInertia,                 // Upper bound for mu after inertia count
 		double*       muLowerEdge,                  // Ne(muLowerEdge) = Ne - eps. For band gapped system
 		double*       muUpperEdge,                  // Ne(muUpperEdge) = Ne + eps. For band gapped system
-		double*       muInertia,                    // Ne(muInertia)   = Ne.
 		int*          numIter,                      // Number of actual iterations for inertia count
 		double*       muList,                       // The list of shifts
 		double*       numElectronList               // The number of electrons corresponding to shifts (0K)
@@ -923,7 +914,6 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 			muMaxInertia,
 			muLowerEdge,
 			muUpperEdge,
-			muInertia,
 			numIter,
 			muList,
 			numElectronList );
@@ -955,7 +945,6 @@ void FORTRAN(f_ppexsi_solve_interface)(
 		int*          numPole,                      // Number of poles
 		int*          maxIter,                      // Maximum number of iterations for mu-iteration in PEXSI
 		double*       numElectronTolerance,         // Stopping criterion of PEXSI mu iteration.
-		double*       poleTolerance,                // Tolerance for neglecting a pole
 		int*          ordering,                     // SuperLUDIST ordering
 	  int*          npPerPole,                    // Number of processors for each pole
 		int*    	    Fcomm,                        // Overall MPI communicator
@@ -993,7 +982,6 @@ void FORTRAN(f_ppexsi_solve_interface)(
 			*numPole,
 			*maxIter,
 			*numElectronTolerance,
-			*poleTolerance,
 		  *ordering,
 			*npPerPole,
 			f2c_comm(Fcomm),

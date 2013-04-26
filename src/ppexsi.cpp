@@ -151,7 +151,6 @@ void PPEXSIData::Solve(
 		const DistSparseMatrix<Real>&  HMat,
 		const DistSparseMatrix<Real>&  SMat,
 		Int  muMaxIter,
-		Real poleTolerance,
 		Real numElectronTolerance,
 		std::string         ColPerm,
 		bool isFreeEnergyDensityMatrix, 
@@ -310,116 +309,185 @@ void PPEXSIData::Solve(
 		if( isDerivativeTMatrix )
 			SetValue( rhoDrvTMat.nzvalLocal, 0.0 );
 
+
+		// Refine the pole expansion until 
+		// 1) The number of poles used is numPole
+		// 2) The worst case bound for the relative error of the pole
+		// expansion using numPole poles is less than
+		//
+		//   numElectronTolerance / numElectronExact  
+		
+		// numPoleInput is the number of poles to be given to other parts of
+		// the pole expansion, which is larger than or equal to numPole.
+		Int numPoleInput;
+		// poleIdx is of size numPole.  Only poles with index in poleIdx is
+		// used for computation. The rest of the poles are discarded
+		// according to tolerance criterion
+		//
+		//   numElectronTolerance / numElectronExact / numPole
+		std::vector<Int>  poleIdx(numPole);
+		{
+			// Setup a grid from (muNow - deltaE, muNow + deltaE), and measure
+			// the error bound in the L^infty sense on this grid.
+			//
+			// fdGrid:      Exact Fermi-Dirac function evaluated on xGrid
+			// fdPoleGrid:  Fermi-Dirac function using pole expansion
+			// evaluated on the grid.
+			Int numX = 10000;
+			std::vector<Real>    xGrid( numX );
+			std::vector<Real>    fdGrid( numX );
+
+			Real x0 = muNow - deltaE;
+			Real x1 = muNow + deltaE;
+			Real h  = (x1 - x0) / (numX - 1);
+			Real ez;
+			for( Int i = 0; i < numX; i++ ){
+				xGrid[i]  = x0 + i * h;
+				if( xGrid[i] - muNow >= 0 ){
+					ez = std::exp(- (xGrid[i] - muNow) / temperature );
+					fdGrid[i] = 2.0 * ez / (1.0 + ez);
+				}
+				else{
+					ez = std::exp((xGrid[i] - muNow) / temperature );
+					fdGrid[i] = 2.0 / (1.0 + ez);
+				}
+			}
+
+
+			numPoleInput = numPole;
+			Real tol;
+			Int  numPoleSignificant;
+				
+			Int poleIter = 0;
+			do{
+				// If the number of significant poles is less than numPole,
+				// increase numPoleInput by 2 at a time and redo the
+				// computation.
+				if( poleIter > 0 )
+					numPoleInput += 2;
+
+				zshift_.resize( numPoleInput );
+				zweightRho_.resize( numPoleInput );
+				GetPoleDensity( &zshift_[0], &zweightRho_[0],
+						numPoleInput, temperature, gap, deltaE, muNow ); 
+
+				std::vector<Real>  maxMagPole(numPoleInput);
+				for( Int l = 0; l < numPoleInput; l++ ){
+					maxMagPole[l] = 0.0;
+				}
+					
+				// Compute the approximation due to pole expansion, as well as
+				// the maximum magnitude of each pole
+				Complex cpxmag;
+				Real    mag;
+				numPoleSignificant = 0;
+				tol = numElectronTolerance / numElectronExact / numPoleInput;
+				for( Int l = 0; l < numPoleInput; l++ ){
+					for( Int i = 0; i < numX; i++ ){
+						cpxmag = zweightRho_[l] / ( xGrid[i] - zshift_[l] );
+						mag    = cpxmag.imag();
+						maxMagPole[l] = ( maxMagPole[l] >= mag ) ?  maxMagPole[l] : mag;
+					}
+					if( maxMagPole[l] > tol ){
+						numPoleSignificant++;
+					}	
+				} // for (l)
+
+				// Pick the most significant numPole poles and update poleIdx
+				// Sort in DESCENDING order
+				std::vector<Int>  sortIdx( numPoleInput );
+				for( Int i = 0; i < sortIdx.size(); i++ ){
+					sortIdx[i]      = i;
+				}
+				std::sort( sortIdx.begin(), sortIdx.end(), 
+						IndexComp<std::vector<Real>& >( maxMagPole ) ) ;
+				std::reverse( sortIdx.begin(), sortIdx.end() );
+
+				for( Int l = 0; l < numPole; l++ ){
+					poleIdx[l]      = sortIdx[l];
+				}
+				
+
+				// Update poleIter
+				poleIter++; 
+			} while( numPoleSignificant < numPole );
+
+
+			// Compute the error 
+			std::vector<Real>  fdPoleGrid( numX );
+			Real err;
+			Real errorMax;
+			errorMax = 0.0;
+			for( Int i = 0; i < numX; i++ ){
+				fdPoleGrid[i] = 0.0;
+//				for( Int lidx = 0; lidx < numPole; lidx++ ){
+//					Int l = poleIdx[lidx];
+				for( Int lidx = 0; lidx < numPoleInput; lidx++ ){
+					Int l = lidx;
+					Complex cpxmag = zweightRho_[l] / ( xGrid[i] - zshift_[l] );
+					fdPoleGrid[i] += cpxmag.imag();
+				}
+				err = std::abs( fdPoleGrid[i] - fdGrid[i] );
+				errorMax = ( errorMax >= err ) ? errorMax : err;
+			}
+
+			statusOFS << "Pole expansion indicates that the relative error "
+				<< "of numElectron is bounded by "
+				<< errorMax << std::endl;
+
+			statusOFS << "Required relative accuracy: numElectronTolerance / numElectronExact is "
+				<< numElectronTolerance / numElectronExact << std::endl;
+			statusOFS << "numPoleInput =" << numPoleInput << std::endl;
+			statusOFS << "numPoleSignificant = " << numPoleSignificant << std::endl;
+		}
+
+
 		// Initialize the number of electrons
 		numElectronNow  = 0.0;
 
 		//Initialize the pole expansion
-		zshift_.resize( numPole );
-		zweightRho_.resize( numPole );
-		zweightRhoDrvMu_.resize( numPole );
-
-		GetPoleDensity( &zshift_[0], &zweightRho_[0],
-				numPole, temperature, gap, deltaE, muNow ); 
+		zweightRhoDrvMu_.resize( numPoleInput );
 
 		GetPoleDensityDrvMu( &zshift_[0], &zweightRhoDrvMu_[0],
-				numPole, temperature, gap, deltaE, muNow ); 
+				numPoleInput, temperature, gap, deltaE, muNow ); 
 
 		if( isFreeEnergyDensityMatrix ){
-			std::vector<Complex>  zshiftTmp( numPole );
-			zweightHelmholtz_.resize( numPole );
+			std::vector<Complex>  zshiftTmp( numPoleInput );
+			zweightHelmholtz_.resize( numPoleInput );
 			GetPoleHelmholtz( &zshiftTmp[0], &zweightHelmholtz_[0], 
-				numPole, temperature, gap, deltaE, muNow ); 
+				numPoleInput, temperature, gap, deltaE, muNow ); 
 		}
 
 		if( isEnergyDensityMatrix ){
-			std::vector<Complex>  zshiftTmp( numPole );
-			zweightForce_.resize( numPole );
+			std::vector<Complex>  zshiftTmp( numPoleInput );
+			zweightForce_.resize( numPoleInput );
 			GetPoleForce( &zshiftTmp[0], &zweightForce_[0],
-				numPole, temperature, gap, deltaE, muNow ); 
+				numPoleInput, temperature, gap, deltaE, muNow ); 
 		}
 
 		if( isDerivativeTMatrix ){
-			std::vector<Complex>  zshiftTmp( numPole );
-			zweightRhoDrvT_.resize( numPole );
+			std::vector<Complex>  zshiftTmp( numPoleInput );
+			zweightRhoDrvT_.resize( numPoleInput );
 			GetPoleDensityDrvT( &zshiftTmp[0], &zweightRhoDrvT_[0],
-				numPole, temperature, gap, deltaE, muNow ); 
+				numPoleInput, temperature, gap, deltaE, muNow ); 
 		}
 
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 		statusOFS << "zshift" << std::endl << zshift_ << std::endl;
 		statusOFS << "zweightRho" << std::endl << zweightRho_ << std::endl;
-#endif
-
-		// Sort the poles according to their weights
-		std::vector<Int>  sortIdx( numPole );
-		std::vector<Real> absWeightRho( numPole );
-		for( Int i = 0; i < sortIdx.size(); i++ ){
-			sortIdx[i]      = i;
-			absWeightRho[i] = std::abs( zweightRho_[i] );
-		}
-		// Sort in DESCENDING order
-		std::sort( sortIdx.begin(), sortIdx.end(), 
-				IndexComp<std::vector<Real>& >( absWeightRho ) ) ;
-		std::reverse( sortIdx.begin(), sortIdx.end() );
-
-		std::vector<Complex>  zshiftSort( numPole );
-		std::vector<Complex>  zweightRhoSort( numPole );
-		std::vector<Complex>  zweightRhoDrvMuSort( numPole );
-		for( Int i = 0; i < numPole; i++ ){
-			zshiftSort[i]          = zshift_[sortIdx[i]];
-			zweightRhoSort[i]      = zweightRho_[sortIdx[i]];
-			zweightRhoDrvMuSort[i] = zweightRhoDrvMu_[sortIdx[i]]; 
-		}
-		zshift_          = zshiftSort;
-		zweightRho_      = zweightRhoSort;
-		zweightRhoDrvMu_ = zweightRhoDrvMuSort;
-
-		if( isFreeEnergyDensityMatrix ){
-			std::vector<Complex>  zweightHelmholtzSort( numPole );
-			for( Int i = 0; i < numPole; i++ ){
-				zweightHelmholtzSort[i] = zweightHelmholtz_[sortIdx[i]];
-			}
-			zweightHelmholtz_ = zweightHelmholtzSort;
-		}
-
-		if( isEnergyDensityMatrix ){
-			std::vector<Complex>  zweightForceSort( numPole );
-			for( Int i = 0; i < numPole; i++ ){
-				zweightForceSort[i] = zweightForce_[sortIdx[i]];
-			}
-			zweightForce_ = zweightForceSort;
-		}
-
-		if( isDerivativeTMatrix ){
-			std::vector<Complex>  zweightRhoDrvTSort( numPole );
-			for( Int i = 0; i < numPole; i++ ){
-				zweightRhoDrvTSort[i] = zweightRhoDrvT_[sortIdx[i]];
-			}
-			zweightRhoDrvT_ = zweightRhoDrvTSort;
-		}
-
-#if ( _DEBUGlevel_ >= 0 )
-		statusOFS << "sorted indicies (according to |weightRho|) " << std::endl << sortIdx << std::endl;
-		statusOFS << "sorted zshift" << std::endl << zshift_ << std::endl;
-		statusOFS << "sorted zweightRho" << std::endl << zweightRho_ << std::endl;
-		statusOFS << "sorted zweightRhoDrvMu" << std::endl << zweightRhoDrvMu_ << std::endl;
-		if( isFreeEnergyDensityMatrix )
-			statusOFS << "sorted zweightHelmholtz" << std::endl << zweightHelmholtz_ << std::endl;
-		if( isEnergyDensityMatrix )
-			statusOFS << "sorted zweightForce" << std::endl << zweightForce_ << std::endl;
-		if( isDerivativeTMatrix )
-			statusOFS << "sorted zweightRhoDrvT" << std::endl << zweightRhoDrvT_ << std::endl;
 #endif
 
 		// for each pole, perform LDLT factoriation and selected inversion
 		Real timePoleSta, timePoleEnd;
 
 		Int numPoleComputed = 0;
-		for(Int l = 0; l < numPole; l++){
-			if( MYROW( gridPole_ ) == PROW( l, gridPole_ ) ){
+		for(Int lidx = 0; lidx < numPole; lidx++){
+			if( MYROW( gridPole_ ) == PROW( lidx, gridPole_ ) ){
+
+				Int l = poleIdx[lidx];
 
 				GetTime( timePoleSta );
-				statusOFS << "Pole " << l << " processing..." << std::endl;
+				statusOFS << "Pole " << lidx << " processing..." << std::endl;
 #if ( _DEBUGlevel_ >= 0 )
 				statusOFS << "zshift           = " << zshift_[l] << std::endl;
 				statusOFS	<< "zweightRho       = " << zweightRho_[l] << std::endl;
@@ -431,10 +499,6 @@ void PPEXSIData::Solve(
 				if( isDerivativeTMatrix )
 					statusOFS << "zweightRhoDrvT   = " << zweightRhoDrvT_[l] << std::endl;
 #endif
-				if( std::abs( zweightRho_[l] ) < poleTolerance ){
-					statusOFS << "|weightRho| < poleTolerance, pass the computation of this pole" << std::endl;
-				}
-				else
 				{
 					numPoleComputed++;
 
@@ -589,7 +653,7 @@ void PPEXSIData::Solve(
 				}
 				GetTime( timePoleEnd );
 
-				statusOFS << "Time for pole " << l << " is " <<
+				statusOFS << "Time for pole " << lidx << " is " <<
 					timePoleEnd - timePoleSta << " [s]" << std::endl << std::endl;
 
 			} // if I am in charge of this pole
@@ -611,7 +675,7 @@ void PPEXSIData::Solve(
 				
 			}
 #endif
-		} // for(l)
+		} // for(lidx)
 
 		// Reduce the density matrix across the processor rows in gridPole_
 		{
