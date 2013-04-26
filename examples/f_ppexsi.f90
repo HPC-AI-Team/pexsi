@@ -21,7 +21,7 @@ double precision ::   muMin0, muMax0, muInertia, muMinInertia, muMaxInertia,&
 integer:: inertiaMaxIter, inertiaIter, muMaxIter, muIter
 integer:: ordering
 integer:: isInertiaCount
-double precision :: poleTolerance, PEXSINumElectronTolerance, &
+double precision :: PEXSINumElectronTolerance, &
 	inertiaNumElectronTolerance
 integer:: npPerPole, nprow, npcol
 integer :: mpirank, mpisize, ierr
@@ -217,7 +217,6 @@ call f_ppexsi_solve_interface(&
 	numPole,&
 	muMaxIter,&
 	PEXSINumElectronTolerance,&
-	poleTolerance,&
 	ordering,&
 	npPerPole,&
 	MPI_COMM_WORLD,&
