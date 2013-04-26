@@ -61,7 +61,6 @@ int main(int argc, char **argv)
 		std::map<std::string,std::string> options;
 		OptionsCreate(argc, argv, options);
 		
-		Real poleTolerance        = 1e-12;
 		Real numElectronTolerance = 1e-2;
 
 		Real temperature;
@@ -324,7 +323,6 @@ int main(int argc, char **argv)
 		Print(statusOFS, "gap                    = ", gap);
 		Print(statusOFS, "temperature            = ", temperature);
 		Print(statusOFS, "numPole                = ", numPole);
-		Print(statusOFS, "poleTolerance          = ", poleTolerance);
 		Print(statusOFS, "numElectronTolerance   = ", numElectronTolerance);
 		Print(statusOFS, "ColPerm                = ", ColPerm );
 		Print(statusOFS, "muMaxIter              = ", muMaxIter);
@@ -437,7 +435,6 @@ int main(int argc, char **argv)
 				HMat,
 				SMat,
 				muMaxIter,
-				poleTolerance,
 				numElectronTolerance,
 				ColPerm,
 				isFreeEnergyDensityMatrix,
@@ -500,7 +497,6 @@ int main(int argc, char **argv)
 			Print(statusOFS, "gap                    = ", gap);
 			Print(statusOFS, "temperature            = ", temperature);
 			Print(statusOFS, "numPole                = ", numPole);
-			Print(statusOFS, "poleTolerance          = ", poleTolerance);
 			Print(statusOFS, "numElectronTolerance   = ", numElectronTolerance);
 			Print(statusOFS, "ColPerm                = ", ColPerm );
 			Print(statusOFS, "muMaxIter              = ", muMaxIter);
@@ -524,7 +520,6 @@ int main(int argc, char **argv)
 					HMat,
 					SMat,
 					muMaxIter,
-					poleTolerance,
 					numElectronTolerance,
 					ColPerm,
 					isFreeEnergyDensityMatrix,

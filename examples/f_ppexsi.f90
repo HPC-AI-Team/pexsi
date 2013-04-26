@@ -57,8 +57,6 @@ muMax0           =  0.0d0
 inertiaMaxIter   = 3
 ! Maximum number of iterations for PEXSI iteration
 muMaxIter        = 3
-! Do not compute a pole if the corresponding weight is < poleTolerance.
-poleTolerance    = 1d-8
 ! Stop inertia count if Ne(muMax) - Ne(muMin) < inertiaNumElectronTolerance
 inertiaNumElectronTolerance = 100
 ! Stop mu-iteration if numElectronTolerance is < numElectronTolerance.
