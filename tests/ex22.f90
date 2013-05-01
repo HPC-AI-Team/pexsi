@@ -30,7 +30,9 @@ integer:: isSIdentity
 ! Communicator for reading the matrix, with size npPerPole
 integer:: readComm
 integer:: isProcRead
+integer:: info
 integer:: i
+
 
 call mpi_init( ierr )
 call mpi_comm_rank( MPI_COMM_WORLD, mpirank, ierr )
@@ -40,9 +42,9 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 ! Data is for the g20 matrix.
 K2au             = 3.1668152d-6
 ! Temperature should be in the same unit as the H matrix. Here it is Hartree.
-temperature      = 1000.0d0 * K2au
+temperature      = 3000.0d0 * K2au
 
-numElectronExact = 12.0d0
+numElectronExact = 9.0d0
 numPole          = 40
 gap              = 0.0d0
 ! deltaE is in theory the spectrum width, but in practice can be much smaller
@@ -53,11 +55,11 @@ deltaE           = 20.0d0
 muMin0           =  0.0d0
 muMax0           =  2.0d0
 ! Maximum number of iterations for computing the inertia
-inertiaMaxIter   = 3
+inertiaMaxIter   = 5
 ! Maximum number of iterations for PEXSI iteration
 muMaxIter        = 10
 ! Stop inertia count if Ne(muMax) - Ne(muMin) < inertiaNumElectronTolerance
-inertiaNumElectronTolerance = 10
+inertiaNumElectronTolerance = 4
 ! Stop mu-iteration if numElectronTolerance is < numElectronTolerance.
 PEXSINumElectronTolerance = 1d-6
 ! Number of processors used for each pole. At the moment use mpisize.
@@ -188,7 +190,14 @@ call f_ppexsi_inertiacount_interface(&
 	muUpperEdge,&
 	inertiaIter,&
 	shiftList,&
-	inertiaList)
+	inertiaList,&
+	info)
+
+if( info .ne. 0 ) then
+	call mpi_finalize( ierr )
+	call exit(info)
+endif
+
 
 muInertia = (muLowerEdge + muUpperEdge)/2.0;
 
@@ -226,7 +235,14 @@ call f_ppexsi_solve_interface(&
 	muIter,&
 	muList,&
 	numElectronList,&
-	numElectronDrvList)
+	numElectronDrvList,&
+	info)
+
+if( info .ne. 0 ) then
+	call mpi_finalize( ierr )
+	call exit(info)
+endif
+
 
 if( mpirank == 0 ) then
 	write(*, *) "After inertia count,"

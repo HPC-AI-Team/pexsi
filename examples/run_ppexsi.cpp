@@ -552,7 +552,10 @@ int main(int argc, char **argv)
 	}
 	catch( std::exception& e )
 	{
-		std::cerr << " caught exception with message: "
+		statusOFS << std::endl << " ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< e.what() << std::endl;
+		statusOFS.close();
+		statusOFS << std::endl << " ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< e.what() << std::endl;
 #ifndef _RELEASE_
 		DumpCallStack();
