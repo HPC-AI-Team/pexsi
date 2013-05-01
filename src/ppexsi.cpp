@@ -413,30 +413,45 @@ void PPEXSIData::Solve(
 			} while( numPoleSignificant < numPole );
 
 
-			// Compute the error 
+			// Compute the relative error 
 			std::vector<Real>  fdPoleGrid( numX );
-			Real err;
-			Real errorMax;
-			errorMax = 0.0;
+			Real errRel, errorRelMax;
+			Real errAbs, errorAbsMax;
+			Real errorTotal;
+			Real errEPS = 1e-1;
+
+			errorRelMax = 0.0;
+			errorAbsMax = 0.0; 
 			for( Int i = 0; i < numX; i++ ){
 				fdPoleGrid[i] = 0.0;
-//				for( Int lidx = 0; lidx < numPole; lidx++ ){
-//					Int l = poleIdx[lidx];
 				for( Int lidx = 0; lidx < numPoleInput; lidx++ ){
 					Int l = lidx;
 					Complex cpxmag = zweightRho_[l] / ( xGrid[i] - zshift_[l] );
 					fdPoleGrid[i] += cpxmag.imag();
 				}
-				err = std::abs( fdPoleGrid[i] - fdGrid[i] );
-				errorMax = ( errorMax >= err ) ? errorMax : err;
+				errAbs = std::abs( fdPoleGrid[i] - fdGrid[i] );
+				errorAbsMax = ( errorAbsMax >= errAbs ) ? errorAbsMax : errAbs;
+
+				if( std::abs(fdGrid[i]) > errEPS ){
+					errRel = std::abs( fdPoleGrid[i] - fdGrid[i] ) / ( std::abs( fdGrid[i] ) );
+					errorRelMax = ( errorRelMax >= errRel ) ? errorRelMax : errRel;
+				}
 			}
 
-			statusOFS << "Pole expansion indicates that the relative error "
-				<< "of numElectron is bounded by "
-				<< errorMax << std::endl;
+			errorTotal = errorRelMax * numElectronExact + errorAbsMax * HMat.size;
 
-			statusOFS << "Required relative accuracy: numElectronTolerance / numElectronExact is "
-				<< numElectronTolerance / numElectronExact << std::endl;
+			statusOFS << "Pole expansion indicates that the error "
+				<< "of numElectron is bounded by "
+				<< errorTotal << std::endl;
+			statusOFS << "Required accuracy: numElectronTolerance is "
+				<< numElectronTolerance << std::endl << std::endl;
+
+			if( errorTotal > numElectronTolerance ){
+				statusOFS << "WARNING!!! " 
+					<< "Pole expansion may not be accurate enough to reach numElectronTolerance. " << std::endl
+					<< "Try to increase numPole or increase numElectronTolerance." << std::endl << std::endl;
+
+			}
 			statusOFS << "numPoleInput =" << numPoleInput << std::endl;
 			statusOFS << "numPoleSignificant = " << numPoleSignificant << std::endl;
 		}

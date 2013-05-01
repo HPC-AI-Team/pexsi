@@ -248,7 +248,7 @@ void PPEXSIInertiaCountInterface(
 			std::ostringstream msg;
 			msg 
 				<< "numElectronTolerance = " << numElectronTolerance 
-				<< ", which is less than 2. " <<
+				<< ", which is less than 1. " <<
 				"This is probably too tight for the purpose of inertia count." 
 				<< std::endl;
 			throw std::runtime_error( msg.str().c_str() );
@@ -448,7 +448,8 @@ void PPEXSIInertiaCountInterface(
 					<< "(muMin, muMax) ~ (" << shiftVec[0] << " , " << shiftVec[numShift-1] << " ) " << std::endl
 					<< "(Ne(muMin), Ne(muMax)) ~ (" << inertiaFTVec[0] << " , " << inertiaFTVec[numShift-1] 
 					<< " ) " << std::endl
-					<< "NeExact = " << numElectronExact << std::endl;
+					<< "NeExact = " << numElectronExact << std::endl
+					<< "Try to increase numElectronTolerance or initial search interval for mu." << std::endl;
 				throw std::runtime_error( msg.str().c_str() );
 			}
 

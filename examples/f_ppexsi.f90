@@ -31,6 +31,7 @@ integer:: isSIdentity
 ! Communicator for reading the matrix, with size npPerPole
 integer:: readComm
 integer:: isProcRead
+integer:: info
 integer:: i
 
 call mpi_init( ierr )
@@ -190,7 +191,13 @@ call f_ppexsi_inertiacount_interface(&
 	muUpperEdge,&
 	inertiaIter,&
 	shiftList,&
-	inertiaList)
+	inertiaList,&
+	info)
+
+if( info .ne. 0 ) then
+	call mpi_finalize( ierr )
+	call exit(info)
+endif
 
 muInertia = (muLowerEdge + muUpperEdge)/2.0;
 
@@ -228,7 +235,13 @@ call f_ppexsi_solve_interface(&
 	muIter,&
 	muList,&
 	numElectronList,&
-	numElectronDrvList)
+	numElectronDrvList,&
+	info)
+
+if( info .ne. 0 ) then
+	call mpi_finalize( ierr )
+	call exit(info)
+endif
 
 if( mpirank == 0 ) then
 	write(*, *) "After inertia count,"

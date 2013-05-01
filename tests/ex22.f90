@@ -42,9 +42,9 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 ! Data is for the g20 matrix.
 K2au             = 3.1668152d-6
 ! Temperature should be in the same unit as the H matrix. Here it is Hartree.
-temperature      = 3000.0d0 * K2au
+temperature      = 300.0d0 * K2au
 
-numElectronExact = 9.0d0
+numElectronExact = 26.0d0
 numPole          = 40
 gap              = 0.0d0
 ! deltaE is in theory the spectrum width, but in practice can be much smaller
@@ -59,9 +59,9 @@ inertiaMaxIter   = 5
 ! Maximum number of iterations for PEXSI iteration
 muMaxIter        = 10
 ! Stop inertia count if Ne(muMax) - Ne(muMin) < inertiaNumElectronTolerance
-inertiaNumElectronTolerance = 4
+inertiaNumElectronTolerance = 10
 ! Stop mu-iteration if numElectronTolerance is < numElectronTolerance.
-PEXSINumElectronTolerance = 1d-6
+PEXSINumElectronTolerance = 1d-3
 ! Number of processors used for each pole. At the moment use mpisize.
 ! Later can be changed to 
 npPerPole        = 1
@@ -198,7 +198,6 @@ if( info .ne. 0 ) then
 	call exit(info)
 endif
 
-
 muInertia = (muLowerEdge + muUpperEdge)/2.0;
 
 
@@ -242,7 +241,6 @@ if( info .ne. 0 ) then
 	call mpi_finalize( ierr )
 	call exit(info)
 endif
-
 
 if( mpirank == 0 ) then
 	write(*, *) "After inertia count,"
