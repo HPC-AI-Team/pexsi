@@ -369,7 +369,7 @@ namespace PEXSI{
 
       std::vector<std::vector<Int> > & WSet = this->WorkingSet();
       for( Int ksup = this->NumSuper() - 2; ksup >= 0; ksup-- ){
-        WSet[ksup].push_back(ksup);
+        WSet[this->NumSuper()-2 - ksup].push_back(ksup);
       }
 
       for (Int lidx=0; lidx<WSet.size() ; lidx++){
@@ -425,6 +425,18 @@ namespace PEXSI{
         std::vector<NumMat<Scalar> >  arrLUpdateBuf;
         std::vector<NumMat<Scalar> >  arrLUpdateBufReduced;
 
+#ifndef _RELEASE_
+        PushCallStack("PMatrix::SelInv::UpdateL");
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
+#endif
+
+        // Communication for the U part.
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "Communication for the U part." << std::endl << std::endl; 
+#endif
+
 
         for (Int supidx=0; supidx<stepSuper; supidx++){
           Int ksup = superList[lidx][supidx];
@@ -432,29 +444,17 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl << "ksup = " << ksup << std::endl << std::endl; 
 #endif
-#ifndef _RELEASE_
-          PushCallStack("PMatrix::SelInv::UpdateL");
-#endif
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
-#endif
-
-          // Communication for the U part.
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "Communication for the U part." << std::endl << std::endl; 
-#endif
-
           // Senders
 
           //allocate the buffers for this supernode
           arrMpireqsSendToBelow.push_back( std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
-          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow.back();
+          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
           arrSstrUrowSend.push_back( std::vector<char>( ));
-          std::vector<char> & sstrUrowSend = arrSstrUrowSend.back();
+          std::vector<char> & sstrUrowSend = arrSstrUrowSend[supidx];
           arrMpireqsSendToRight.push_back( std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
-          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight.back();
+          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
           arrSstrLcolSend.push_back( std::vector<char>( ));
-          std::vector<char> & sstrLcolSend = arrSstrLcolSend.back();
+          std::vector<char> & sstrLcolSend = arrSstrLcolSend[supidx];
 
 
 
@@ -538,18 +538,18 @@ namespace PEXSI{
           Int ksup = superList[lidx][supidx];
 
           arrMpireqsRecvFromAbove.push_back( std::vector<MPI_Request>( 2 , MPI_REQUEST_NULL ));
-          std::vector<MPI_Request> & mpireqsRecvFromAbove = arrMpireqsRecvFromAbove.back();
+          std::vector<MPI_Request> & mpireqsRecvFromAbove = arrMpireqsRecvFromAbove[supidx];
           arrSstrUrowRecv.push_back( std::vector<char>( ));
-          std::vector<char> & sstrUrowRecv = arrSstrUrowRecv.back();
+          std::vector<char> & sstrUrowRecv = arrSstrUrowRecv[supidx];
           arrMpireqsRecvFromLeft.push_back( std::vector<MPI_Request>( 2 , MPI_REQUEST_NULL ));
-          std::vector<MPI_Request> & mpireqsRecvFromLeft = arrMpireqsRecvFromLeft.back();
+          std::vector<MPI_Request> & mpireqsRecvFromLeft = arrMpireqsRecvFromLeft[supidx];
           arrSstrLcolRecv.push_back( std::vector<char>( ));
-          std::vector<char> & sstrLcolRecv = arrSstrLcolRecv.back();
+          std::vector<char> & sstrLcolRecv = arrSstrLcolRecv[supidx];
 
           arrSizeStmFromLeft.push_back(0);
-          Int & sizeStmFromLeft = arrSizeStmFromLeft.back();
+          Int & sizeStmFromLeft = arrSizeStmFromLeft[supidx];
           arrSizeStmFromAbove.push_back(0);
-          Int & sizeStmFromAbove = arrSizeStmFromAbove.back();
+          Int & sizeStmFromAbove = arrSizeStmFromAbove[supidx];
 
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl << "Receive from both up and from left." << std::endl << std::endl; 
@@ -600,6 +600,7 @@ namespace PEXSI{
           mpi::Wait( mpireqsRecvFromAbove[1] );
           mpi::Wait( mpireqsRecvFromLeft[1] );
 
+          statusOFS << std::endl << "DEBUGMAT " << sstrLcolRecv << std::endl << std::endl; 
         }
 
 
@@ -676,6 +677,13 @@ namespace PEXSI{
           } // if I am a receiver
 
 
+          for( Int ib = 0; ib < LcolRecv.size() ; ib++ ){
+            statusOFS << std::endl << "DEBUGMAT LcolRecv" << LcolRecv[ib] << std::endl << std::endl; 
+          }
+
+          for( Int ib = 0; ib < UrowRecv.size() ; ib++ ){
+            statusOFS << std::endl << "DEBUGMAT URowRecv" << UrowRecv[ib] << std::endl << std::endl; 
+          }
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl << "Main work: Gemm" << std::endl << std::endl; 
 #endif
@@ -870,8 +878,8 @@ namespace PEXSI{
             } // for ( jb )
 
 #if ( _DEBUGlevel_ >= 2 )
-            statusOFS << std::endl << "AinvBuf: " << AinvBuf << std::endl;
-            statusOFS << std::endl << "UBuf   : " << UBuf << std::endl;
+            statusOFS << std::endl << "DEBUGMAT AinvBuf: " << AinvBuf << std::endl;
+            statusOFS << std::endl << "DEBUGMAT UBuf   : " << UBuf << std::endl;
 #endif
 
             // Gemm for LUpdateBuf = -AinvBuf * UBuf^T
@@ -885,7 +893,7 @@ namespace PEXSI{
             //              UBuf.Data(), UBuf.m(), SCALAR_ZERO,
             //              arrLUpdateBuf_test.Data(idxLUpdateBuf), arrLUpdateBuf_test.m(idxLUpdateBuf) ); 
 #if ( _DEBUGlevel_ >= 2 )
-            statusOFS << std::endl << "LUpdateBuf: " << LUpdateBuf << std::endl;
+            statusOFS << std::endl << "DEBUGMAT LUpdateBuf: " << LUpdateBuf << std::endl;
 #endif
 
           } // if Gemm is to be done locally
@@ -893,7 +901,7 @@ namespace PEXSI{
 
 
 
-//TODO ------- Not sure if I can remove this
+        //TODO ------- Not sure if I can remove this
         for (Int supidx=0; supidx<stepSuper; supidx++){
           // Now all the Isend / Irecv should have finished.
           std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
@@ -960,6 +968,8 @@ namespace PEXSI{
 
         }
 
+
+        //TODO Replace by a point to point "broadcast" if possible
         MPI_Allreduce( &arrNumRowLUpdateBuf, &arrNumRowLUpdateBufReduced,
             stepSuper, MPI_INT, MPI_SUM, grid_->rowComm );
 
@@ -976,140 +986,45 @@ namespace PEXSI{
         //------------------End of determination of number of nnz rows per LUpdateBuf------------
 
         //--------------------- Beginning of reduce of LUpdateBuf-------------------------
-        //Now we need to pack the LUpdateBufs in order to perform the reduce only once
-        Int totalSize = 0;
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          Int ksup = superList[lidx][supidx];
-          Int numRowLUpdateBuf = arrNumRowLUpdateBufReduced[supidx];
-          if( numRowLUpdateBuf > 0 ){
-            totalSize += numRowLUpdateBuf * SuperSize( ksup, super_ );
-          }
-        }
 
-        Scalar * aggBuffer = new Scalar[totalSize];
-        Scalar * iterPtr = aggBuffer;
+
+
         for (Int supidx=0; supidx<stepSuper; supidx++){
           Int ksup = superList[lidx][supidx];
-          // Pack the data in LUpdateBuf 
+          arrLUpdateBufReduced.push_back(NumMat<Scalar>());
           NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
-            statusOFS << std::endl << "DEBUGMAT Initial LUpdateBuf: " << LUpdateBuf << std::endl << std::endl; 
-          Int numRowLUpdateBuf = arrNumRowLUpdateBufReduced[supidx];
-          // If LUpdatebuf has not been constructed, resize and fill with zero
+          Int numRowLUpdateBuf = arrNumRowLUpdateBuf[supidx];
+
           if( numRowLUpdateBuf > 0 ){
             if( LUpdateBuf.m() == 0 && LUpdateBuf.n() == 0 ){
               LUpdateBuf.Resize( numRowLUpdateBuf, SuperSize( ksup, super_ ) );
               // Fill zero is important
               SetValue( LUpdateBuf, SCALAR_ZERO );
             }
-
-            std::copy(LUpdateBuf.Data(), LUpdateBuf.Data() + numRowLUpdateBuf*SuperSize( ksup, super_ ), iterPtr);
-            iterPtr += numRowLUpdateBuf*SuperSize( ksup, super_ );
           }
-        }
 
-        Scalar * reduceBuffer = new Scalar[totalSize];
-
-        MPI_Allreduce( aggBuffer, reduceBuffer, totalSize,MPI_DOUBLE, MPI_SUM, grid_->rowComm );
-
-        delete [] aggBuffer;
-
-        //Unpack data
-        iterPtr = reduceBuffer;
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          Int ksup = superList[lidx][supidx];
-
-          arrLUpdateBufReduced.push_back(NumMat<Scalar>());
-          NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBufReduced[supidx];
-          Int numRowLUpdateBuf = arrNumRowLUpdateBufReduced[supidx];
-          if( numRowLUpdateBuf > 0 ){
-            LUpdateBufReduced.Resize(numRowLUpdateBuf, SuperSize( ksup, super_ ) );
-            std::copy(iterPtr, iterPtr + numRowLUpdateBuf*SuperSize( ksup, super_ ), LUpdateBufReduced.Data());
-            iterPtr += numRowLUpdateBuf*SuperSize( ksup, super_ );
-          }
-        }
-        delete [] reduceBuffer;
-
-        //--------------------- End of reduce of LUpdateBuf-------------------------
-
-
-
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          Int ksup = superList[lidx][supidx];
-          //If I was a receiver, I need to send my data to proc in column of ksup
-
-          NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
           Int blockSize = LUpdateBuf.m()*LUpdateBuf.n();
 
-          if(  isRecvFromLeft_( ksup ) ){
-            if(MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+          //If I was a receiver, I need to send my data to proc in column of ksup
+          if(  isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
             std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-//            std::vector<char> & sstrLcolSend = arrSstrLcolSend[supidx];
-//
-//            std::stringstream sstm;
-//            serialize( LUpdateBuf, sstm, NO_MASK );
-//
-//            sstrLcolSend.resize( Size( sstm ) );
-//            sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
-//            Int sizeStm = sstrLcolSend.size();
-//            MPI_Isend( &sizeStm, 1, MPI_INT,  
-//                PCOL(ksup, grid_), SELINV_TAG_L_SIZE, 
-//                grid_->rowComm, &mpireqsSendToRight[(supidx+1)*grid_->numProcCol] );
-//            MPI_Isend( (void*)&sstrLcolSend[0], sizeStm, MPI_BYTE, 
-//                PCOL(ksup,grid_) , SELINV_TAG_L_CONTENT, 
-//                grid_->rowComm, &mpireqsSendToRight[supidx*grid_->numProcCol] );
             MPI_Isend( LUpdateBuf.Data(), blockSize*sizeof(Scalar), MPI_BYTE, PCOL(ksup,grid_) , SELINV_TAG_L_CONTENT, grid_->rowComm, &mpireqsSendToRight[supidx*grid_->numProcCol] );
-
-            statusOFS << std::endl << "DEBUGMAT SENT LUpdateBuf: " << LUpdateBuf << std::endl << std::endl; 
-            statusOFS << std::endl << "DEBUGMAT SN "<<ksup<<" sender " << MYCOL(grid_) << std::endl << std::endl; 
-            }//remote processor
-            //else{
-            //}//local processor
           }//Sender
-
-
-          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-
-            NumMat<Scalar> tmpLUpdateBuf = LUpdateBuf;
-            //arrLUpdateBufReduced.push_back(NumMat<Scalar>());
-            //NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBufReduced[supidx];
-            //SetValue( LUpdateBufReduced, SCALAR_ZERO );
-            std::vector<Int> rcvproc;
-
-            statusOFS << std::endl << "Initial tmpLUpdateBuf: " << tmpLUpdateBuf << std::endl << std::endl; 
-
-            NumMat<Scalar>  LUpdateBufReduced;
-            LUpdateBufReduced.Resize(LUpdateBuf.m(), LUpdateBuf.n() );
+          else if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+            NumMat<Scalar>  LUpdateBufReduced(LUpdateBuf.m(), LUpdateBuf.n() );
             for( Int iProcCol = 0; iProcCol < grid_->numProcCol ; iProcCol++ ){
-              if( MYCOL( grid_ ) != iProcCol &&
-                  isSendToRight_( ksup, iProcCol )  ){
-
+              if( MYCOL( grid_ ) != iProcCol && isSendToRight_( ksup, iProcCol )  ){
                 //Do the blocking recv
-                rcvproc.push_back(iProcCol);
-
-//                std::stringstream sstm;
-//                mpi::Recv( sstm, MPI_ANY_SOURCE, SELINV_TAG_L_SIZE, SELINV_TAG_L_CONTENT, grid_->rowComm );
                 MPI_Recv(LUpdateBufReduced.Data(), blockSize*sizeof(Scalar), MPI_BYTE, MPI_ANY_SOURCE, SELINV_TAG_L_CONTENT, grid_->rowComm,MPI_STATUS_IGNORE);
-//                deserialize( LUpdateBufReduced, sstm, NO_MASK );	
-
-              //do the sum
-
-                statusOFS << std::endl << "RECV LUpdateBuf: " << LUpdateBufReduced << std::endl << std::endl; 
+                //do the sum
                 blas::Axpy( blockSize, SCALAR_ONE, LUpdateBufReduced.Data(),
-                    1, tmpLUpdateBuf.Data(), 1 );
-
-
-                statusOFS << std::endl << "TMP tmpLUpdateBuf: " << tmpLUpdateBuf << std::endl << std::endl; 
-
-              } // Send 
+                    1, LUpdateBuf.Data(), 1 );
+              } // Recv 
             } // for (iProcCol)
 
-            statusOFS << std::endl << "Final tmpLUpdateBuf: " << tmpLUpdateBuf << std::endl << std::endl; 
-            statusOFS << std::endl << "LUpdateBufOrigReduced: " <<  arrLUpdateBufReduced[supidx] << std::endl << std::endl; 
-            statusOFS << std::endl << "DEBUGMAT SN "<<ksup<<" "<<MYCOL(grid_)<<" receives from " << rcvproc << std::endl << std::endl; 
-            arrLUpdateBufReduced[supidx] = tmpLUpdateBuf;
-          } // if I am the sender
-
-
+            arrLUpdateBufReduced[supidx] = LUpdateBuf;
+            statusOFS << std::endl << "DEBUGMAT LUpdateBufReduced: " <<  arrLUpdateBufReduced[supidx] << std::endl << std::endl; 
+          } // Receiver
         }
 
 
@@ -1118,68 +1033,58 @@ namespace PEXSI{
           if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) && isRecvFromLeft_( ksup ) ){
             // Now all the Isend / Irecv should have finished.
             std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            //mpi::Wait( mpireqsSendToRight[(supidx+1)*grid_->numProcCol] );
             mpi::Wait( mpireqsSendToRight[(supidx)*grid_->numProcCol] );
           }
         }
-
-
-
-
-
-        //---------Computing  Diagonal block, all processors in the column are participating to all pipelined supernodes
-        totalSize = 0;
-        Int diagBufOffset[stepSuper];
+        //--------------------- End of reduce of LUpdateBuf-------------------------
 
         for (Int supidx=0; supidx<stepSuper; supidx++){
           Int ksup = superList[lidx][supidx];
-          diagBufOffset[supidx] = totalSize;
-          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-            totalSize+= SuperSize( ksup, super_ )* SuperSize( ksup, super_ );
-          }
+          Int numRowLUpdateBuf = arrNumRowLUpdateBufReduced[supidx];
+          NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBufReduced[supidx];
+#if ( _DEBUGlevel_ >= 2 )
+          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && numRowLUpdateBuf > 0 )
+            statusOFS << std::endl << "LUpdateBufReduced: " << LUpdateBufReduced << std::endl << std::endl; 
+#endif
         }
 
-        Scalar * arrDiagBuf = new Scalar[totalSize];
-        std::fill(arrDiagBuf,arrDiagBuf+totalSize,0);
+#ifndef _RELEASE_
+        PopCallStack();
+#endif
+
+#ifndef _RELEASE_
+        PushCallStack("PMatrix::SelInv::UpdateD");
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "Update the diagonal block" << std::endl << std::endl; 
+#endif
+
 
 
         for (Int supidx=0; supidx<stepSuper; supidx++){
           Int ksup = superList[lidx][supidx];
-
           if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+
+            //---------Computing  Diagonal block, all processors in the column are participating to all pipelined supernodes
+            Int totalSize = SuperSize( ksup, super_ )* SuperSize( ksup, super_ );
+
+            Scalar * arrDiagBuf = new Scalar[totalSize];
+            std::fill(arrDiagBuf,arrDiagBuf+totalSize,0);
+
+
             std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
             std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
             NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBufReduced[supidx];
             Int numRowLUpdateBuf = arrNumRowLUpdateBufReduced[supidx];
 
-#if ( _DEBUGlevel_ >= 2 )
-            statusOFS << std::endl<< "Column doing the reduction: " <<PCOL( ksup, grid_ )<<std::endl << std::endl;
 
-            if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && numRowLUpdateBuf > 0 )
-              statusOFS << std::endl << "LUpdateBufReduced: " << LUpdateBufReduced << std::endl << std::endl; 
-#endif
-
-
-#ifndef _RELEASE_
-            PopCallStack();
-#endif
-
-#ifndef _RELEASE_
-            PushCallStack("PMatrix::SelInv::UpdateD");
-#endif
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "Update the diagonal block" << std::endl << std::endl; 
-#endif
-
-            //        NumMat<Scalar> DiagBuf( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
-            //        SetValue( DiagBuf, SCALAR_ZERO );
             std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
             if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
               for( Int ib = 0; ib < Lcol.size(); ib++ ){
                 blas::Gemm( 'T', 'N', SuperSize( ksup, super_ ), SuperSize( ksup, super_ ), Lcol[ib].numRow, 
                     SCALAR_MINUS_ONE, &LUpdateBufReduced( rowLocalPtr[ib], 0 ), LUpdateBufReduced.m(),
                     Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
-                    SCALAR_ONE, &arrDiagBuf[diagBufOffset[supidx]], SuperSize( ksup, super_ ) );
+                    SCALAR_ONE, &arrDiagBuf[0], SuperSize( ksup, super_ ) );
 
               }
             } // I do not own the diagonal block
@@ -1188,65 +1093,87 @@ namespace PEXSI{
                 blas::Gemm( 'T', 'N', SuperSize( ksup, super_ ), SuperSize( ksup, super_ ), Lcol[ib].numRow, 
                     SCALAR_MINUS_ONE, &LUpdateBufReduced( rowLocalPtr[ib-1], 0 ), LUpdateBufReduced.m(),
                     Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
-                    SCALAR_ONE, &arrDiagBuf[diagBufOffset[supidx]], SuperSize( ksup, super_ ) );
+                    SCALAR_ONE, &arrDiagBuf[0], SuperSize( ksup, super_ ) );
               }
             } // I own the diagonal block, skip the diagonal block
-          } // Update the diagonal in the processor column of ksup. All processors participate
-        }
 
 
-        Scalar * arrDiagBufReduced = new Scalar[totalSize];
+            NumMat<Scalar> DiagBuf( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ));
+            std::copy( &arrDiagBuf[0], &arrDiagBuf[0] + SuperSize( ksup, super_ )*SuperSize( ksup, super_ ), DiagBuf.Data());
+            //TODO Move to point to point send
+            //        MPI_Reduce(arrDiagBufReduced,arrDiagBuf,
+            //            totalSize, MPI_REAL, MPI_SUM,  PROW( ksup, grid_ ), grid_->colComm );
+            delete[] arrDiagBuf;
 
-//TODO Move to point to point send
-        MPI_Allreduce(arrDiagBufReduced,arrDiagBuf,
-            totalSize, MPI_REAL, MPI_SUM, grid_->colComm );
-        delete[] arrDiagBuf;
-
-        //#if ( _DEBUGlevel_ >= 2 )
-        //        statusOFS << std::endl << "DiagBuf: " << DiagBuf << std::endl << std::endl; 
-        //#endif
+            NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ));
 
 
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          Int ksup = superList[lidx][supidx];
 
-          NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBufReduced[supidx];
-          Int numRowLUpdateBuf = arrNumRowLUpdateBufReduced[supidx];
-          std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
-          std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
-          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+
+            mpi::Reduce( DiagBuf.Data(), DiagBufReduced.Data(), 
+                SuperSize( ksup, super_ ) * SuperSize( ksup, super_ ),
+                MPI_SUM, PROW( ksup, grid_ ), grid_->colComm );
+
+#if ( _DEBUGlevel_ >= 2 )
+            statusOFS << std::endl << "DEBUGMAT DiagBuf: " << DiagBuf << std::endl << std::endl; 
+#endif
+
+            //          NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBufReduced[supidx];
+            //          Int numRowLUpdateBuf = arrNumRowLUpdateBufReduced[supidx];
+            //          std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
+            //          std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
             // Add DiagBufReduced to diagonal block.
             if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
-              //#if ( _DEBUGlevel_ >= 2 )
-              //          statusOFS << std::endl << "DiagBufReduced: " << DiagBufReduced << std::endl << std::endl; 
-              //#endif
+
+              //NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ));
+              //    std::copy( &arrDiagBufReduced[diagBufOffset[supidx]], &arrDiagBufReduced[diagBufOffset[supidx]] + SuperSize( ksup, super_ )*SuperSize( ksup, super_ ), DiagBufReduced.Data());
+
+#if ( _DEBUGlevel_ >= 2 )
+              statusOFS << std::endl << "DEBUGMAT DiagBufReduced: " << DiagBufReduced << std::endl << std::endl; 
+#endif
+
+
+
               LBlock&  LB = this->L( LBj( ksup, grid_ ) )[0];
 
               // Symmetrize LB
-              blas::Axpy( LB.numRow * LB.numCol, SCALAR_ONE, &arrDiagBufReduced[diagBufOffset[supidx]],
-                  1, LB.nzval.Data(), 1 );
+              //      blas::Axpy( LB.numRow * LB.numCol, SCALAR_ONE, &arrDiagBufReduced[diagBufOffset[supidx]],
+              //          1, LB.nzval.Data(), 1 );
 
+              blas::Axpy( LB.numRow * LB.numCol, SCALAR_ONE, DiagBufReduced.Data(),
+                  1, LB.nzval.Data(), 1 );
               Symmetrize( LB.nzval );
 #if ( _DEBUGlevel_ >= 2 )
               statusOFS << std::endl << "Diag of Ainv: " << LB.nzval << std::endl << std::endl; 
 #endif
             }
-          } // Update the diagonal in the processor column of ksup. All processors participate
-          delete [] arrDiagBufReduced;
 
 
+          } 
+        }
 #ifndef _RELEASE_
-          PopCallStack();
+        PopCallStack();
 #endif
 
+
+
 #ifndef _RELEASE_
-          PushCallStack("PMatrix::SelInv::UpdateU");
+        PushCallStack("PMatrix::SelInv::UpdateU");
 #endif
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "Update the upper triangular block" << std::endl << std::endl; 
+        statusOFS << std::endl << "Update the upper triangular block" << std::endl << std::endl; 
 #endif
+
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          Int ksup = superList[lidx][supidx];
           // Send LUpdateBufReduced to the cross diagonal blocks. 
           // NOTE: This assumes square processor grid
+          std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
+          std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
+          NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBufReduced[supidx];
+          Int numRowLUpdateBuf = arrNumRowLUpdateBufReduced[supidx];
+
+
           if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_( ksup ) ){
             Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
             if( MYPROC( grid_ ) != dest	){
@@ -1316,20 +1243,27 @@ namespace PEXSI{
             //}
             //------------------------ end of test if
           } // receiver
-
+        }
 #ifndef _RELEASE_
-          PopCallStack();
+        PopCallStack();
 #endif
 
 #ifndef _RELEASE_
-          PushCallStack("PMatrix::SelInv::UpdateLFinal");
+        PushCallStack("PMatrix::SelInv::UpdateLFinal");
 #endif
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
+        statusOFS << std::endl << "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
 #endif
 #ifndef _RELEASE_
-          PopCallStack();
+        PopCallStack();
 #endif
+
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          Int ksup = superList[lidx][supidx];
+          std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
+          std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
+          NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBufReduced[supidx];
+          Int numRowLUpdateBuf = arrNumRowLUpdateBufReduced[supidx];
 
 
           //------------------------ begin of test if
@@ -1355,8 +1289,8 @@ namespace PEXSI{
           //}
           //------------------------ end of test if
 
-          MPI_Barrier( grid_-> comm );
         } // for (ksup) : Main loop
+        MPI_Barrier( grid_-> comm );
       }
 
 #ifndef _RELEASE_

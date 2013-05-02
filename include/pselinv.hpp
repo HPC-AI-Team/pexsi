@@ -108,6 +108,13 @@ namespace PEXSI{
       nzval       = LB.nzval;
       return *this;
     }
+    friend std::ostream& operator<<(std::ostream& out, const LBlock& vec) // output
+    {
+      out << "(" << vec.blockIdx << ", " << vec.numRow << ", " << vec.numCol <<std::endl<< "rows " << vec.rows <<std::endl<< "nzval " <<std::endl<< vec.nzval << ")";
+      return out;
+    }
+
+
   };
 
   /// @struct UBlock
@@ -148,6 +155,14 @@ namespace PEXSI{
       nzval       = UB.nzval;
       return *this;
     }
+
+    friend std::ostream& operator<<(std::ostream& out, const UBlock& vec) // output
+    {
+      out << "(" << vec.blockIdx << ", " << vec.numRow << ", " << vec.numCol <<std::endl<< "cols " << vec.cols <<std::endl<< "nzval " <<std::endl<< vec.nzval << ")";
+      return out;
+    }
+
+
   };
 
   // *********************************************************************
@@ -401,7 +416,7 @@ namespace PEXSI{
       // Data variables
 
       const Grid*           grid_;
-//      std::vector<MPI_comm>         superNodeRowComm_;
+      //      std::vector<MPI_comm>         superNodeRowComm_;
 
       const SuperNode*      super_;
       std::vector<std::vector<LBlock> > L_;
