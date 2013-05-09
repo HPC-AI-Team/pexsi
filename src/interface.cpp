@@ -40,7 +40,9 @@ MonotoneRootFinding (
 	if( val <= y[0] || val >= y[numX-1] ){
 		std::ostringstream msg;
 		msg 
-			<< "val = " << val << " is out of bound." << std::endl;
+			<< "The root finding procedure cannot find the solution for y(x)=" 
+			<< val << std::endl << "here [min(y) max(y)] = [" << y[0] << ", "
+			<< y[numX-1] << "]" << std::endl;
 		throw std::runtime_error( msg.str().c_str() );
 	}
 
@@ -479,13 +481,23 @@ void PPEXSIInertiaCountInterface(
 				// The smallest interval still contain too many eigenvalues
 				muMin = shiftVec[idxMin];
 				muMax = shiftVec[idxMax];
+				Real NeMin, NeMax;
+				NeMin = std::min( inertiaFTVec[idxMin], 
+						numElectronExact - numElectronTolerance / 2 + EPS );
+				NeMin = std::max( inertiaFTVec[0] + EPS, NeMin );
+				NeMax = std::max( inertiaFTVec[idxMax],
+						numElectronExact + numElectronTolerance / 2 - EPS );
+				NeMax = std::min( inertiaFTVec[numShift-1] - EPS, NeMax );
+				muMin = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMin );
+				muMax = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMax );
 			}
 			else{
 				// Root finding using linear interpolation
-				Real NeMin = std::max( inertiaFTVec[0] + EPS, 
-						numElectronExact - numElectronTolerance / 2 + EPS );
-				Real NeMax = std::min( inertiaFTVec[numShift-1] - EPS,
-						numElectronExact + numElectronTolerance / 2 - EPS );
+				Real NeMin, NeMax;
+				NeMin = numElectronExact - numElectronTolerance / 2 + EPS;
+				NeMin = std::max( inertiaFTVec[0] + EPS, NeMin );
+				NeMax = numElectronExact + numElectronTolerance / 2 - EPS;
+				NeMax = std::min( inertiaFTVec[numShift-1] - EPS, NeMax );
 				muMin = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMin );
 				muMax = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMax );
 			}
