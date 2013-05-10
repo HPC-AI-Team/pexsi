@@ -17,10 +17,12 @@
 
 using namespace PEXSI;
 
+
 // FIXME
-//extern "C" { 
-//	double seekeig_(double *, int *, double *, double *, double *);
-//}
+// complex data structure used for interfacing with FORTRAN
+// struct C_Complex {double r; double i;};
+
+
 
 /// @brief Find the root using linear interpolation.
 ///
@@ -189,7 +191,6 @@ void ReadDistSparseMatrixFormattedInterface(
 /// @brief Interface between PPEXSI and C for computing the cumulative
 /// density of states using inertia counts.
 ///
-/// TODO: Finite temperature dependence of the mu result
 extern "C"
 void PPEXSIInertiaCountInterface(
 		// Input parameters
@@ -850,6 +851,208 @@ void PPEXSISolveInterface (
 	return;
 }  // -----  end of function PPEXSISolveInterface ----- 
 
+/// @brief Interface between PPEXSI and C for computing the selected
+/// elements of the matrix (H - z S)^{-1} for a given shift z. 
+extern "C" 
+void PPEXSISelInvInterface (
+		// Input parameters
+		int           nrows,                        // Size of the matrix
+	  int           nnz,                          // Total number of nonzeros in H
+		int           nnzLocal,                     // Number of nonzeros in H on this proc
+		int           numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int           isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+		double*       zShift,                       // Shift. Real: zShift[0], Imag: zShift[1]    
+		int           ordering,                     // SuperLUDIST ordering
+	  MPI_Comm	    comm,                         // Overall MPI communicator
+		// Output parameters
+		double*       AinvnzvalLocal,               // Nonzero value of Ainv = (H - z S)^{-1}
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+	Int mpirank, mpisize;
+	MPI_Comm_rank( comm, &mpirank );
+	MPI_Comm_size( comm, &mpisize );
+	Real timeSta, timeEnd;
+
+	// log files
+	std::stringstream  ss;
+	ss << "logPEXSI" << mpirank;
+	// append to previous log files
+	statusOFS.open( ss.str().c_str(), std::ios_base::app );
+
+	try{
+	  Int nprow = iround( std::sqrt( (double)mpisize) );
+		Int npcol = mpisize / nprow;
+		if( mpisize != nprow * npcol || nprow != npcol ){
+			throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
+		}
+
+		SuperLUGrid g( MPI_COMM_WORLD, nprow, npcol );
+
+		// Convert into H and S matrices
+		DistSparseMatrix<Real> HMat, SMat;
+
+		// The first row processors (size: npPerPole) read the matrix, and
+		// then distribute the matrix to the rest of the processors.
+		//
+		// NOTE: The first row processor must have data for H/S.
+		{
+			HMat.size        = nrows;
+			HMat.nnz         = nnz;
+			HMat.nnzLocal    = nnzLocal;
+			// The first row processor does not need extra copies of the index /
+			// value of the matrix. 
+			HMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
+			HMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
+			// H value
+			HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
+			HMat.comm        = comm;
+			
+			// S value
+			if( isSIdentity ){
+				SMat.size = 0;
+				SMat.nnz  = 0;
+				SMat.nnzLocal = 0;
+			}
+			else{
+				CopyPattern( HMat, SMat );
+				SMat.comm = comm;
+				SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+			}
+		}
+
+		// Get the diagonal indices for H and save it n diagIdxLocal
+
+		std::vector<Int>  diagIdxLocal;
+		{ 
+			Int numColLocal      = HMat.colptrLocal.m() - 1;
+			Int numColLocalFirst = HMat.size / mpisize;
+			Int firstCol         = mpirank * numColLocalFirst;
+
+			diagIdxLocal.clear();
+
+			for( Int j = 0; j < numColLocal; j++ ){
+				Int jcol = firstCol + j + 1;
+				for( Int i = HMat.colptrLocal(j)-1; 
+						i < HMat.colptrLocal(j+1)-1; i++ ){
+					Int irow = HMat.rowindLocal(i);
+					if( irow == jcol ){
+						diagIdxLocal.push_back( i );
+					}
+				}
+			} // for (j)
+		}
+
+		DistSparseMatrix<Complex>  AMat;
+		AMat.size          = HMat.size;
+		AMat.nnz           = HMat.nnz;
+		AMat.nnzLocal      = HMat.nnzLocal;
+		AMat.colptrLocal   = HMat.colptrLocal;
+		AMat.rowindLocal   = HMat.rowindLocal;
+		AMat.nzvalLocal.Resize( HMat.nnzLocal );
+		AMat.comm          = comm;
+
+		Complex *ptr0 = AMat.nzvalLocal.Data();
+		Real *ptr1 = HMat.nzvalLocal.Data();
+		Real *ptr2 = SMat.nzvalLocal.Data();
+		Complex zshift = Complex(zShift[0], zShift[1]);
+
+		if( SMat.size != 0 ){
+			// S is not an identity matrix
+			for( Int i = 0; i < HMat.nnzLocal; i++ ){
+				AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift * SMat.nzvalLocal(i);
+			}
+		}
+		else{
+			// S is an identity matrix
+			for( Int i = 0; i < HMat.nnzLocal; i++ ){
+				AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+			}
+
+			for( Int i = 0; i < diagIdxLocal.size(); i++ ){
+				AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
+			}
+		} // if (SMat.size != 0 )
+
+		std::string colPerm;
+		switch (ordering){
+			case 0:
+				colPerm = "PARMETIS";
+				break;
+			case 1:
+				colPerm = "METIS_AT_PLUS_A";
+				break;
+			case 2:
+				colPerm = "MMD_AT_PLUS_A";
+				break;
+			default:
+				throw std::logic_error("Unsupported ordering strategy.");
+		}
+
+
+		// *********************************************************************
+		// Symbolic factorization 
+		// *********************************************************************
+
+		SuperLUOptions luOpt;
+		luOpt.ColPerm = colPerm;
+		SuperLUMatrix luMat( g, luOpt );
+		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+
+		luMat.SymbolicFactorize();
+		luMat.DestroyAOnly();
+		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+		luMat.Distribute();
+		luMat.NumericalFactorize();
+
+		// *********************************************************************
+		// Selected inversion
+		// *********************************************************************
+
+		Grid g1( comm, nprow, npcol );
+		SuperNode super;
+
+		luMat.SymbolicToSuperNode( super );
+		PMatrix PMloc( &g1, &super );
+		luMat.LUstructToPMatrix( PMloc );
+
+		PMloc.ConstructCommunicationPattern();
+		PMloc.PreSelInv();
+
+		// Main subroutine for selected inversion
+		PMloc.SelInv();
+
+		DistSparseMatrix<Complex>  AinvMat;       // A^{-1} in DistSparseMatrix format
+		PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+
+		// Convert the internal variables to output parameters
+
+		blas::Copy( nnzLocal*2, reinterpret_cast<double*>(AinvMat.nzvalLocal.Data()), 
+				1, AinvnzvalLocal, 1 );
+
+		statusOFS.close();
+		*info = 0;
+	}
+	catch( std::exception& e ) {
+		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		statusOFS.close();
+		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+	
+	return;
+}  // -----  end of function PPEXSISelInvInterface ----- 
+
+
 // *********************************************************************
 // FORTRAN interface
 // 
@@ -1079,3 +1282,44 @@ void FORTRAN(f_ppexsi_solve_interface)(
 
 	return;
 } // -----  end of function f_ppexsi_solve_interface  ----- 
+
+
+/// @brief Interface between PPEXSI and C for computing the selected
+/// elements of the matrix (H - z S)^{-1} for a given shift z. 
+extern "C" 
+void FORTRAN(f_ppexsi_selinv_interface)(
+		// Input parameters
+		int*          nrows,                        // Size of the matrix
+	  int*          nnz,                          // Total number of nonzeros in H
+		int*          nnzLocal,                     // Number of nonzeros in H on this proc
+		int*          numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int*          isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+		double*       zShift,                       // Shift. Real: zShift[0], Imag: zShift[1]    
+		int*          ordering,                     // SuperLUDIST ordering
+		int*    	    Fcomm,                        // Overall MPI communicator
+		// Output parameters
+		double*       AinvnzvalLocal,               // Nonzero value of Ainv = (H - z S)^{-1}
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+	PPEXSISelInvInterface(
+			*nrows,
+			*nnz,
+			*nnzLocal,
+			*numColLocal,
+			colptrLocal,
+			rowindLocal,
+			HnzvalLocal,
+			*isSIdentity,
+			SnzvalLocal,
+			zShift,
+			*ordering,
+			f2c_comm(Fcomm),
+			AinvnzvalLocal,
+			info );
+} // -----  end of function f_ppexsi_selinv_interface  ----- 
+
