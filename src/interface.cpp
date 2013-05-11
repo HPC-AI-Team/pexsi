@@ -514,6 +514,21 @@ void PPEXSIInertiaCountInterface(
 			muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower );
 			muUpp = MonotoneRootFinding( shiftVec, inertiaFTVec, NeUpper );
 
+			// Convert the internal variables to output parameters
+			// This early output is mainly for debugging purpose.
+			{
+				*muMinInertia = muMin;
+				*muMaxInertia = muMax;
+				*muLowerEdge  = muLow;
+				*muUpperEdge  = muUpp;
+				*numIter      = iter;
+
+
+				for( Int l = 0; l < numShift; l++ ){
+					muList[l]          = shiftVec[l];
+					numElectronList[l] = inertiaVec[l];
+				}
+			}
 
 			if( inertiaFTVec[numShift-1] - inertiaFTVec[0] < numElectronTolerance ){
 				isConverged = true;
@@ -521,6 +536,7 @@ void PPEXSIInertiaCountInterface(
 			}
 
 		} // for (iter)
+
 
 		if( isConverged ){
 			statusOFS << std::endl << "Inertia count converged. N(muMax) - N(muMin) = " <<
@@ -538,8 +554,6 @@ void PPEXSIInertiaCountInterface(
 		Print( statusOFS, "muMin         = ", muMin );
 		Print( statusOFS, "muMax         = ", muMax );
 		statusOFS << std::endl;
-
-		statusOFS.close();
 
 		// Convert the internal variables to output parameters
 		*muMinInertia = muMin;
@@ -560,8 +574,7 @@ void PPEXSIInertiaCountInterface(
 	{
 		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
-		statusOFS.close();
-		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
 #ifndef _RELEASE_
@@ -569,6 +582,14 @@ void PPEXSIInertiaCountInterface(
 #endif
 	}
 
+	// Synchronize the info among all processors. 
+	// If any processor gets error message, info = 1
+	Int infoAll = 0;
+	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+	*info = infoAll;
+
+	statusOFS.close(); 
+	return;
 }  // -----  end of function PPEXSIInertiaCountInterface ----- 
 
 
@@ -833,21 +854,26 @@ void PPEXSISolveInterface (
 		Print( statusOFS, "Total time for PEXSI = ", 
 				timeSolveEnd - timeSolveSta );
 
-		statusOFS.close();
 		*info = 0;
 	}
 	catch( std::exception& e ) {
 		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
-		statusOFS.close();
-		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
 #ifndef _RELEASE_
 		DumpCallStack();
 #endif
 	}
-	
+
+	// Synchronize the info among all processors. 
+	// If any processor gets error message, info = 1
+	Int infoAll = 0;
+	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+	*info = infoAll;
+
+	statusOFS.close();
 	return;
 }  // -----  end of function PPEXSISolveInterface ----- 
 
@@ -891,7 +917,7 @@ void PPEXSISelInvInterface (
 			throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
 		}
 
-		SuperLUGrid g( MPI_COMM_WORLD, nprow, npcol );
+		SuperLUGrid g( comm, nprow, npcol );
 
 		// Convert into H and S matrices
 		DistSparseMatrix<Real> HMat, SMat;
@@ -946,6 +972,7 @@ void PPEXSISelInvInterface (
 				}
 			} // for (j)
 		}
+
 
 		DistSparseMatrix<Complex>  AMat;
 		AMat.size          = HMat.size;
@@ -1034,14 +1061,12 @@ void PPEXSISelInvInterface (
 		blas::Copy( nnzLocal*2, reinterpret_cast<double*>(AinvMat.nzvalLocal.Data()), 
 				1, AinvnzvalLocal, 1 );
 
-		statusOFS.close();
 		*info = 0;
 	}
 	catch( std::exception& e ) {
 		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
-		statusOFS.close();
-		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
 #ifndef _RELEASE_
@@ -1049,9 +1074,108 @@ void PPEXSISelInvInterface (
 #endif
 	}
 	
+	// Synchronize the info among all processors. 
+	// If any processor gets error message, info = 1
+	Int infoAll = 0;
+	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+	*info = infoAll;
+
+	statusOFS.close();
 	return;
 }  // -----  end of function PPEXSISelInvInterface ----- 
 
+
+/// @brief Interface between PPEXSI and C for computing the local
+/// density of states, i.e.
+///   n(r;E) = lim_{eta->0+} Im 1/pi <r| (H-(E+i eta)I)^{-1} |r>
+/// This code returns the selected elements of the matrix
+///   
+///   1/pi Im ( H - (E+i eta) S )^{-1}
+///   
+extern "C" 
+void PPEXSILocalDOSInterface (
+		// Input parameters
+		int           nrows,                        // Size of the matrix
+	  int           nnz,                          // Total number of nonzeros in H
+		int           nnzLocal,                     // Number of nonzeros in H on this proc
+		int           numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int           isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+		double        Energy,                       // Real part of the shift
+		double        eta,                          // Broadening parameter
+		int           ordering,                     // SuperLUDIST ordering
+	  MPI_Comm	    comm,                         // Overall MPI communicator
+		// Output parameters
+		double*       localDOSnzvalLocal,           // Nonzero value of Im 1/pi (H - (E+ieta) S)^{-1}
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+	Int mpirank, mpisize;
+	MPI_Comm_rank( comm, &mpirank );
+	MPI_Comm_size( comm, &mpisize );
+	Real timeSta, timeEnd;
+
+	// log files
+	std::stringstream  ss;
+	ss << "logPEXSI" << mpirank;
+	// append to previous log files
+	statusOFS.open( ss.str().c_str(), std::ios_base::app );
+
+	try{
+		double zShift[2];
+		zShift[0] = Energy;
+		zShift[1] = eta;
+		DblNumVec Ainvnzval( 2 * nnzLocal );
+		SetValue( Ainvnzval, 0.0 );
+
+		PPEXSISelInvInterface(
+				nrows,
+				nnz,
+				nnzLocal,
+				numColLocal,
+				colptrLocal,
+				rowindLocal,
+				HnzvalLocal,
+				isSIdentity,
+				SnzvalLocal,
+				zShift,
+				ordering,
+				comm,	
+				Ainvnzval.Data(),
+				info );
+
+		if( *info ){
+			throw std::runtime_error("Error in SelInv!.");
+		}
+
+		// Get the imaginary part
+		blas::Copy( nnzLocal, Ainvnzval.Data()+1, 2, localDOSnzvalLocal, 1 );
+		// Scale the imaginary part by 1/pi
+		blas::Scal( nnzLocal, 1.0 / PI, localDOSnzvalLocal, 1 );
+	}
+	catch( std::exception& e ) {
+		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+	
+	// Synchronize the info among all processors. 
+	// If any processor gets error message, info = 1
+	Int infoAll = 0;
+	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+	*info = infoAll;
+
+	statusOFS.close();
+	return;
+}  // -----  end of function PPEXSILocalDOSInterface  ----- 
 
 // *********************************************************************
 // FORTRAN interface
@@ -1323,3 +1447,48 @@ void FORTRAN(f_ppexsi_selinv_interface)(
 			info );
 } // -----  end of function f_ppexsi_selinv_interface  ----- 
 
+/// @brief Interface between PPEXSI and C for computing the local
+/// density of states, i.e.
+///   n(r;E) = lim_{eta->0+} Im 1/pi <r| (H-(E+i eta)I)^{-1} |r>
+/// This code returns the selected elements of the matrix
+///   
+///   1/pi Im ( H - (E+i eta) S )^{-1}
+///   
+extern "C" 
+void FORTRAN(f_ppexsi_localdos_interface)(
+		// Input parameters
+		int*          nrows,                        // Size of the matrix
+	  int*          nnz,                          // Total number of nonzeros in H
+		int*          nnzLocal,                     // Number of nonzeros in H on this proc
+		int*          numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int*          isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+		double*       Energy,                       // Real part of the shift
+		double*       eta,                          // Broadening parameter
+		int*          ordering,                     // SuperLUDIST ordering
+		int*    	    Fcomm,                        // Overall MPI communicator
+		// Output parameters
+		double*       localDOSnzvalLocal,           // Nonzero value of Im 1/pi (H - (E+ieta) S)^{-1}
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+	PPEXSILocalDOSInterface(
+			*nrows,
+			*nnz,
+			*nnzLocal,
+			*numColLocal,
+			colptrLocal,
+			rowindLocal,
+			HnzvalLocal,
+			*isSIdentity,
+			SnzvalLocal,
+			*Energy,
+			*eta,
+			*ordering,
+			f2c_comm(Fcomm),
+			localDOSnzvalLocal,
+			info );
+} // -----  end of function f_ppexsi_localdos_interface  ----- 

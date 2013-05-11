@@ -11,7 +11,8 @@ integer, allocatable, dimension(:) ::  colptrLocal, rowindLocal
 double precision, allocatable, dimension(:) :: &
 	HnzvalLocal, SnzvalLocal, DMnzvalLocal, EDMnzvalLocal, &
 	FDMnzvalLocal, muList, numElectronList, numElectronDrvList,&
-	shiftList, inertiaList
+	shiftList, inertiaList, localDOSnzvalLocal
+double precision:: Energy, eta
 integer :: numPole
 double precision :: K2au, temperature, numElectronExact, numElectron,&
 	gap, deltaE
@@ -124,6 +125,7 @@ if( isProcRead == 1 ) then
 	allocate( DMnzvalLocal( nnzLocal ) ) 
 	allocate( EDMnzvalLocal( nnzLocal ) ) 
 	allocate( FDMnzvalLocal( nnzLocal ) ) 
+	allocate( localDOSnzvalLocal( nnzLocal ) )
 
 	timeSta = mpi_wtime()
 
@@ -156,13 +158,42 @@ if( isProcRead == 1 ) then
 endif
 
 call mpi_barrier( MPI_COMM_WORLD, ierr )
-call mpi_comm_free( readComm, ierr )
 
 if( mpirank == 0 ) then
 	write(*,*) "Time for reading H/S matrices is ", &
 		timeEnd - timeSta, " [s]"
 endif
 
+! Only the first pole group participates in the computation of the selected
+! inversion for a single shift.
+if( isProcRead == 1 ) then
+	Energy = 1.0;
+	eta    = 0.001;
+	call f_ppexsi_localdos_interface(&
+		nrows,&
+		nnz,&
+		nnzLocal,&
+		numColLocal,&
+		colptrLocal,&
+		rowindLocal,&
+		HnzvalLocal,&
+		isSIdentity,&
+		SnzvalLocal,&
+		Energy,&
+		eta,&
+		ordering,&
+		readComm,&
+		localDOSnzvalLocal,&
+		info)
+
+	if( info .ne. 0 ) then
+		call mpi_finalize( ierr )
+		call exit(info)
+	endif
+
+end if
+
+call mpi_barrier( MPI_COMM_WORLD, ierr )
 
 call f_ppexsi_inertiacount_interface(&
 	nrows,&
@@ -262,6 +293,8 @@ if( mpirank == 0 ) then
 	write(*, *) "muIter        = ", muIter
 endif
 
+
+
 deallocate( muList )
 deallocate( numElectronList )
 deallocate( numElectronDrvList )
@@ -277,9 +310,11 @@ if( isProcRead == 1 ) then
 	deallocate( DMnzvalLocal )
 	deallocate( EDMnzvalLocal )
 	deallocate( FDMnzvalLocal )
+	deallocate( localDOSnzvalLocal );
 endif
 
 
+call mpi_comm_free( readComm, ierr )
 call mpi_finalize( ierr )
 
 end program ex22
