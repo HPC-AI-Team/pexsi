@@ -220,7 +220,7 @@ void PPEXSIInertiaCountInterface(
 		double*       muUpperEdge,                  // Ne(muUpperEdge) = Ne + eps. For band gapped system
 		int*          numIter,                      // Number of actual iterations for inertia count
 		double*       muList,                       // The list of shifts
-		double*       numElectronList,              // The number of electrons corresponding to shifts (0K)
+		double*       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
 		int*          info                          // 0: successful exit.  1: unsuccessful
 		)
 {
@@ -474,8 +474,20 @@ void PPEXSIInertiaCountInterface(
 					idxMax = ( idxMax > i ) ? i : idxMax;
 			}
 
+#if ( _DEBUGlevel_ >= 0 )
 			statusOFS << "idxMin = " << idxMin << std::endl;
 			statusOFS << "idxMax = " << idxMax << std::endl;
+#endif
+
+
+			// Convert the internal variables to output parameters
+			// This early output is mainly for debugging purpose.
+			{
+				for( Int l = 0; l < numShift; l++ ){
+					muList[l]          = shiftVec[l];
+					numElectronList[l] = inertiaFTVec[l];
+				}
+			}
 
 			if( inertiaFTVec[idxMax] - inertiaFTVec[idxMin] >= 
 					numElectronTolerance ){
@@ -511,7 +523,7 @@ void PPEXSIInertiaCountInterface(
 			Real NeUpper = numElectronExact + EPS;
 
 
-			muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower );
+			muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower + 100 );
 			muUpp = MonotoneRootFinding( shiftVec, inertiaFTVec, NeUpper );
 
 			// Convert the internal variables to output parameters
@@ -522,12 +534,17 @@ void PPEXSIInertiaCountInterface(
 				*muLowerEdge  = muLow;
 				*muUpperEdge  = muUpp;
 				*numIter      = iter;
+			}
 
-
-				for( Int l = 0; l < numShift; l++ ){
-					muList[l]          = shiftVec[l];
-					numElectronList[l] = inertiaVec[l];
-				}
+			// Output some information after EACH STEP for dynamical adjustament.
+			{
+				statusOFS << std::endl << "After inertia count iteration " << iter
+					<< std::endl;
+				Print( statusOFS, "muLowerEdge   = ", muLow );
+				Print( statusOFS, "muUppperEdge  = ", muUpp );
+				Print( statusOFS, "muMin         = ", muMin );
+				Print( statusOFS, "muMax         = ", muMax );
+				statusOFS << std::endl;
 			}
 
 			if( inertiaFTVec[numShift-1] - inertiaFTVec[0] < numElectronTolerance ){
@@ -539,21 +556,16 @@ void PPEXSIInertiaCountInterface(
 
 
 		if( isConverged ){
-			statusOFS << std::endl << "Inertia count converged. N(muMax) - N(muMin) = " <<
+			statusOFS << std::endl << "Inertia count converged with " << iter
+				<< " iterations. N(muMax) - N(muMin) = " <<
 				inertiaFTVec[numShift-1] - inertiaFTVec[0] << std::endl;
 		}
 		else {
-			statusOFS << std::endl << "Inertia count did not converge. N(muMax) - N(muMin) = " <<
+			statusOFS << std::endl << "Inertia count did not converge with " << iter
+				<< " iterations. N(muMax) - N(muMin) = " <<
 				inertiaFTVec[numShift-1] - inertiaFTVec[0] << std::endl;
 		}
 
-		statusOFS << std::endl << "After the inertia count," << std::endl;
-		Print( statusOFS, "numIter = ", iter );
-		Print( statusOFS, "muLowerEdge   = ", muLow );
-		Print( statusOFS, "muUppperEdge  = ", muUpp );
-		Print( statusOFS, "muMin         = ", muMin );
-		Print( statusOFS, "muMax         = ", muMax );
-		statusOFS << std::endl;
 
 		// Convert the internal variables to output parameters
 		*muMinInertia = muMin;
@@ -565,7 +577,7 @@ void PPEXSIInertiaCountInterface(
 
 		for( Int l = 0; l < numShift; l++ ){
 			muList[l]          = shiftVec[l];
-			numElectronList[l] = inertiaVec[l];
+			numElectronList[l] = inertiaFTVec[l];
 		}
 
 		*info = 0;
@@ -1290,7 +1302,7 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 		double*       muUpperEdge,                  // Ne(muUpperEdge) = Ne + eps. For band gapped system
 		int*          numIter,                      // Number of actual iterations for inertia count
 		double*       muList,                       // The list of shifts
-		double*       numElectronList,              // The number of electrons corresponding to shifts (0K)
+		double*       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
 		int*          info                          // 0: successful exit.  1: unsuccessful
 		)
 {

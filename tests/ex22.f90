@@ -225,6 +225,12 @@ call f_ppexsi_inertiacount_interface(&
 	info)
 
 if( info .ne. 0 ) then
+	if( mpirank == 0 ) then
+		write(*,*) "Shift(1) = ", shiftList(1), &
+			" inertiaList(1) = ", inertiaList(1)
+		write(*,*) "Shift(end) = ", shiftList(numPole), &
+			" inertiaList(end) = ", inertiaList(numPole)
+	endif
 	call mpi_finalize( ierr )
 	call exit(info)
 endif
