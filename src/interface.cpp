@@ -443,6 +443,16 @@ void PPEXSIInertiaCountInterface(
 				<< timeEnd - timeSta << std::endl;
 #endif
 
+			// Convert the internal variables to output parameters
+			// This early output is mainly for debugging purpose.
+			{
+				for( Int l = 0; l < numShift; l++ ){
+					muList[l]          = shiftVec[l];
+					numElectronList[l] = inertiaFTVec[l];
+				}
+			}
+
+
 			if( inertiaFTVec[0] >= numElectronExact ||
 					inertiaFTVec[numShift-1] <= numElectronExact ){
 				std::ostringstream msg;
@@ -480,14 +490,6 @@ void PPEXSIInertiaCountInterface(
 #endif
 
 
-			// Convert the internal variables to output parameters
-			// This early output is mainly for debugging purpose.
-			{
-				for( Int l = 0; l < numShift; l++ ){
-					muList[l]          = shiftVec[l];
-					numElectronList[l] = inertiaFTVec[l];
-				}
-			}
 
 			if( inertiaFTVec[idxMax] - inertiaFTVec[idxMin] >= 
 					numElectronTolerance ){
@@ -523,7 +525,7 @@ void PPEXSIInertiaCountInterface(
 			Real NeUpper = numElectronExact + EPS;
 
 
-			muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower + 100 );
+			muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower );
 			muUpp = MonotoneRootFinding( shiftVec, inertiaFTVec, NeUpper );
 
 			// Convert the internal variables to output parameters

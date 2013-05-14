@@ -54,7 +54,7 @@ gap              = 0.0d0
 deltaE           = 20.0d0
 ! Initial searching interval for the chemical potential for inertia count.
 muMin0           =  0.0d0
-muMax0           =  2.0d0
+muMax0           =  0.58d0
 ! Maximum number of iterations for computing the inertia
 inertiaMaxIter   = 5
 ! Maximum number of iterations for PEXSI iteration
