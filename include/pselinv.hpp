@@ -419,6 +419,7 @@ namespace PEXSI{
       //      std::vector<MPI_comm>         superNodeRowComm_;
 
       const SuperNode*      super_;
+      //SuperNode*      super_;
       std::vector<std::vector<LBlock> > L_;
       std::vector<std::vector<UBlock> > U_;
 
@@ -428,9 +429,11 @@ namespace PEXSI{
       // Communication variables
       NumMat<bool>                       isSendToBelow_;
       NumMat<bool>                       isSendToRight_;
+      NumVec<bool>                       isSendToDiagonal_;
       NumVec<bool>                       isSendToCrossDiagonal_;
 
       NumVec<bool>                       isRecvFromAbove_;
+      NumMat<bool>                       isRecvFromBelow_;
       NumVec<bool>                       isRecvFromLeft_;
       NumVec<bool>                       isRecvFromCrossDiagonal_;
 
@@ -440,12 +443,13 @@ namespace PEXSI{
         SELINV_TAG_U_CONTENT,
         SELINV_TAG_L_SIZE,
         SELINV_TAG_L_CONTENT,
+        SELINV_TAG_L_REDUCE,
         SELINV_TAG_D_SIZE,
-        SELINV_TAG_D_CONTENT
+        SELINV_TAG_D_CONTENT,
+        SELINV_TAG_COUNT
       };
 
 
-      void PrepareBuffers( Int numRowAinvBuf, Int numColAinvBuf, Int supernodeSize , std::vector<UBlock> & UrowRecv, std::vector<LBlock> & LcolRecv, NumMat<Scalar> & AinvBuf, NumMat<Scalar> & LUpdateBuf, NumMat<Scalar> & UBuf );
 
     public:
       // *********************************************************************
@@ -492,6 +496,9 @@ namespace PEXSI{
       /// @brief WorkingSet returns the ordered list of supernodes which could
       /// be done in parallel.
       std::vector<std::vector<int> >& WorkingSet( ) { return workingSet_; } 	
+
+      Int CountSendToRight(Int ksup) {  Int count= std::count (isSendToRight_.VecData(ksup), isSendToRight_.VecData(ksup) + grid_->numProcCol, true); return (isSendToRight_(MYCOL(grid_),ksup)?count-1:count); }
+
 
       /// @brief ConstructCommunicationPattern constructs the communication
       /// pattern to be used later in the selected inversion stage.
