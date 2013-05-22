@@ -750,10 +750,36 @@ namespace PEXSI{
                 SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE,
                 grid_->rowComm, &mpireqsRecvFromLeft[0] );
           } // if I need to receive from left
+        }
 
-          // Wait to obtain size information
-          mpi::Wait( mpireqsRecvFromAbove[0] );
-          mpi::Wait( mpireqsRecvFromLeft[0] );
+
+
+        for (Int supidx=0; supidx<stepSuper ; supidx++){
+          Int ksup = superList[lidx][supidx];
+
+          if( ( isRecvFromAbove_( ksup ) && 
+              MYROW( grid_ ) != PROW( ksup, grid_ ) ) || ( isRecvFromLeft_( ksup ) &&
+              MYCOL( grid_ ) != PCOL( ksup, grid_ ) )){
+            std::vector<MPI_Request> & mpireqsRecvFromAbove = arrMpireqsRecvFromAbove[supidx];
+            std::vector<MPI_Request> & mpireqsRecvFromLeft = arrMpireqsRecvFromLeft[supidx];
+
+            // Wait to obtain size information
+            mpi::Wait( mpireqsRecvFromAbove[0] );
+            mpi::Wait( mpireqsRecvFromLeft[0] );
+          }
+        }
+
+        for (Int supidx=0; supidx<stepSuper ; supidx++){
+          Int ksup = superList[lidx][supidx];
+
+          std::vector<MPI_Request> & mpireqsRecvFromAbove = arrMpireqsRecvFromAbove[supidx];
+          std::vector<MPI_Request> & mpireqsRecvFromLeft = arrMpireqsRecvFromLeft[supidx];
+          std::vector<char> & sstrUrowRecv = arrSstrUrowRecv[supidx];
+          std::vector<char> & sstrLcolRecv = arrSstrLcolRecv[supidx];
+
+          Int & sizeStmFromLeft = arrSizeStmFromLeft[supidx];
+          Int & sizeStmFromAbove = arrSizeStmFromAbove[supidx];
+
 
 
           if( isRecvFromAbove_( ksup ) && 
@@ -783,18 +809,34 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl << "["<<ksup<<"] "<<  "Wait for all communication to be done." << std::endl << std::endl; 
 #endif
-          // Wait to obtain packed information in a string and then write into stringstream
-          mpi::Wait( mpireqsRecvFromAbove[1] );
-          mpi::Wait( mpireqsRecvFromLeft[1] );
         }
-////        //TODO ------- Not sure if I can remove this
-////                for (Int supidx=0; supidx<stepSuper; supidx++){
-////                  // Now all the Isend / Irecv should have finished.
-////                  std::vector<MPI_Request> & mpireqsSendToBelow = *arrMpireqsSendToBelow[supidx];
-////                  std::vector<MPI_Request> & mpireqsSendToRight = *arrMpireqsSendToRight[supidx];
-////                  mpi::Waitall( mpireqsSendToRight );
-////                  mpi::Waitall( mpireqsSendToBelow );
-////                }
+
+        for (Int supidx=0; supidx<stepSuper ; supidx++){
+          Int ksup = superList[lidx][supidx];
+
+          if( ( isRecvFromAbove_( ksup ) && 
+              MYROW( grid_ ) != PROW( ksup, grid_ ) ) || ( isRecvFromLeft_( ksup ) &&
+              MYCOL( grid_ ) != PCOL( ksup, grid_ ) )){
+            std::vector<MPI_Request> & mpireqsRecvFromAbove = arrMpireqsRecvFromAbove[supidx];
+            std::vector<MPI_Request> & mpireqsRecvFromLeft = arrMpireqsRecvFromLeft[supidx];
+
+            // Wait to obtain packed information in a string and then write into stringstream
+            mpi::Wait( mpireqsRecvFromAbove[1] );
+            mpi::Wait( mpireqsRecvFromLeft[1] );
+          }
+        }
+
+
+
+
+        //TODO ------- Not sure if I can remove this
+                for (Int supidx=0; supidx<stepSuper; supidx++){
+                  // Now all the Isend / Irecv should have finished.
+                  std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+                  std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+                  mpi::Waitall( mpireqsSendToRight );
+                  mpi::Waitall( mpireqsSendToBelow );
+                }
 
 
 
@@ -1090,7 +1132,7 @@ namespace PEXSI{
           //If I was a receiver, I need to send my data to proc in column of ksup
           if(  isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
             std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            MPI_Isend( LUpdateBuf.Data(), LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar), MPI_BYTE, PCOL(ksup,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->rowComm, &mpireqsSendToRight[0] );
+            MPI_Isend( LUpdateBuf.Data(), LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar), MPI_BYTE, PCOL(ksup,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_REDUCE, grid_->rowComm, &mpireqsSendToRight[0] );
 
 #if ( _DEBUGlevel_ >= 2 )
             statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar) << " bytes to " << PCOL(ksup,grid_) << std::endl;
@@ -1156,7 +1198,7 @@ namespace PEXSI{
               //Do the blocking recv
               MPI_Status stat;
               Int size = 0;
-              MPI_Recv(LUpdateBufRecv.Data(), numRowLUpdateBuf*SuperSize( ksup, super_ )*sizeof(Scalar), MPI_BYTE, MPI_ANY_SOURCE,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->rowComm,&stat);
+              MPI_Recv(LUpdateBufRecv.Data(), numRowLUpdateBuf*SuperSize( ksup, super_ )*sizeof(Scalar), MPI_BYTE, MPI_ANY_SOURCE,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_REDUCE, grid_->rowComm,&stat);
               MPI_Get_count(&stat, MPI_BYTE, &size);
               //if the processor contributes
               if(size>0){
