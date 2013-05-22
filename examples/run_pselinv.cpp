@@ -265,7 +265,12 @@ int main(int argc, char **argv)
 			PMatrix PMloc( &g1, &super );
 			luMat.LUstructToPMatrix( PMloc );
 			GetTime( timeEnd );
-
+#ifdef SANITY_CHECK
+			SuperNode superRef;
+			luMat.SymbolicToSuperNode( superRef );
+			PMatrix PMlocRef( &g1, &superRef );
+			luMat.LUstructToPMatrix( PMlocRef );
+#endif
 			if( mpirank == 0 )
 				cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
 
@@ -279,7 +284,9 @@ int main(int argc, char **argv)
 			GetTime( timeSta );
 			PMloc.ConstructCommunicationPattern();
 			GetTime( timeEnd );
-
+#ifdef SANITY_CHECK
+			PMlocRef.ConstructCommunicationPattern();
+#endif
 			if( mpirank == 0 )
 				cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
 
@@ -287,6 +294,9 @@ int main(int argc, char **argv)
 			GetTime( timeSta );
 			PMloc.PreSelInv();
 			GetTime( timeEnd );
+#ifdef SANITY_CHECK
+			PMlocRef.PreSelInv();
+#endif
 			if( mpirank == 0 )
 				cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
@@ -294,6 +304,11 @@ int main(int argc, char **argv)
 			GetTime( timeSta );
 			PMloc.SelInv();
 			GetTime( timeEnd );
+
+#ifdef SANITY_CHECK
+			PMlocRef.SelInvOriginal();
+//			PMlocRef.SelInv();
+#endif
 
 			if( mpirank == 0 )
 				cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
@@ -308,6 +323,15 @@ int main(int argc, char **argv)
 			GetTime( timeSta );
 			PMloc.GetDiagonal( diag );
 			GetTime( timeEnd );
+
+#ifdef SANITY_CHECK
+      Real maxError = 0.0;
+			PMlocRef.CompareDiagonal( PMloc ,maxError);
+
+			if( mpirank == 0 )
+				cout << "Max ||diag - diagRef||_2 = " << maxError << std::endl;
+#endif
+
 			if( mpirank == 0 )
 				cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
 

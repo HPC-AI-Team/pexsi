@@ -74,6 +74,7 @@ namespace PEXSI{
     IntNumVec   permInv;
     IntNumVec   superIdx;
     IntNumVec   superPtr;
+    IntNumVec   etree;
   };
 
   /// @struct LBlock
@@ -446,6 +447,7 @@ namespace PEXSI{
         SELINV_TAG_L_REDUCE,
         SELINV_TAG_D_SIZE,
         SELINV_TAG_D_CONTENT,
+        SELINV_TAG_D_REDUCE,
         SELINV_TAG_COUNT
       };
 
@@ -499,6 +501,7 @@ namespace PEXSI{
 
       Int CountSendToRight(Int ksup) {  Int count= std::count (isSendToRight_.VecData(ksup), isSendToRight_.VecData(ksup) + grid_->numProcCol, true); return (isSendToRight_(MYCOL(grid_),ksup)?count-1:count); }
 
+      Int CountRecvFromBelow(Int ksup) {  Int count= std::count (isRecvFromBelow_.VecData(ksup), isRecvFromBelow_.VecData(ksup) + grid_->numProcRow, true); return (isRecvFromBelow_(MYROW(grid_),ksup)?count-1:count); }
 
       /// @brief ConstructCommunicationPattern constructs the communication
       /// pattern to be used later in the selected inversion stage.
@@ -671,6 +674,9 @@ namespace PEXSI{
       ///
       ///
       void SelInv( );
+#ifdef SANITY_CHECK
+      void SelInvOriginal( );
+#endif
 
       /// @brief GetDiagonal extracts the diagonal elements of the PMatrix.
       ///
@@ -680,6 +686,9 @@ namespace PEXSI{
       /// Allreduce procedure.
       void GetDiagonal( NumVec<Scalar>& diag );
 
+#ifdef SANITY_CHECK
+      void CompareDiagonal( PMatrix & Ref, Real & globalMaxError );
+#endif
 
       /// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
       /// distributed compressed sparse column matrix format.

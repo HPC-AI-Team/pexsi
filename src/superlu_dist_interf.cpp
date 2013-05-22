@@ -750,11 +750,15 @@ SuperLUMatrix::SymbolicToSuperNode	( SuperNode& super )
 
 	Int *xsup    = ptrData -> LUstruct.Glu_persist -> xsup;
 	Int *superno = ptrData -> LUstruct.Glu_persist -> supno;
+  Int *etree = ptrData -> LUstruct.etree;
+
 	Int numSuper = superno[ n-1 ] + 1;
   super.superPtr.Resize( numSuper + 1 );
 	std::copy( xsup, xsup + numSuper + 1, super.superPtr.Data() );
 	super.superIdx.Resize( n );
 	std::copy( superno, superno + n, super.superIdx.Data() );
+  super.etree.Resize( n );
+	std::copy( etree, etree + n, super.etree.Data() );
   
 #ifndef _RELEASE_
 	PopCallStack();
