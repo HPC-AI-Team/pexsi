@@ -41,6 +41,9 @@ void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
 void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
 		MPI_Comm comm );
 
+void Isend( std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
+		MPI_Comm comm, MPI_Request & reqSize, MPI_Request & reqContent);
+
 
 // *********************************************************************
 // Waitall

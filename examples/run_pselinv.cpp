@@ -10,7 +10,7 @@ using namespace std;
 void Usage(){
   std::cout 
 		<< "Usage" << std::endl
-		<< "run_pselinv -H <Hfile> -S [Sfile] -colperm [colperm]" << std::endl;
+		<< "run_pselinv -T [isText] -H <Hfile> -S [Sfile] -colperm [colperm]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -46,12 +46,18 @@ int main(int argc, char **argv)
 		if( mpirank == 0 )
 			cout << "nprow = " << nprow << ", npcol = " << npcol << endl;
 		
-		std::string Hfile, Sfile;                   
+		std::string Hfile, Sfile;
+	  	int isCSC = true;
+		if( options.find("-T") != options.end() ){ 
+			isCSC= ! atoi(options["-T"].c_str());
+		}
+
+ 
 		if( options.find("-H") != options.end() ){ 
 			Hfile = options["-H"];
 		}
 		else{
-      throw std::logic_error("Hfile must be provided.");
+			throw std::logic_error("Hfile must be provided.");
 		}
 
 		if( options.find("-S") != options.end() ){ 
@@ -88,14 +94,20 @@ int main(int argc, char **argv)
 		DistSparseMatrix<Real> SMat;
 		Real timeSta, timeEnd;
 		GetTime( timeSta );
-		ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, MPI_COMM_WORLD ); 
+		if(isCSC)
+			ReadDistSparseMatrix( Hfile.c_str(), HMat, MPI_COMM_WORLD ); 
+		else
+			ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, MPI_COMM_WORLD ); 
 		if( Sfile.empty() ){
 			// Set the size to be zero.  This will tell PPEXSI.Solve to treat
 			// the overlap matrix as an identity matrix implicitly.
 			SMat.size = 0;  
 		}
 		else{
-			ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, MPI_COMM_WORLD ); 
+			if(isCSC)
+				ReadDistSparseMatrix( Sfile.c_str(), SMat, MPI_COMM_WORLD ); 
+			else
+				ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, MPI_COMM_WORLD ); 
 		}
 
 		GetTime( timeEnd );
