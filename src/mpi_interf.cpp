@@ -116,14 +116,13 @@ Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
 }		// -----  end of function Recv  ----- 
 
 
-void Isend( std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
+void Isend( std::stringstream& sstm,std::vector<char> & sstr, Int & sizeStm,  Int dest, Int tagSize, Int tagContent, 
 		MPI_Comm comm, MPI_Request & reqSize, MPI_Request & reqContent){
 #ifndef _RELEASE_
 	PushCallStack("mpi::Isend");
 #endif
-	std::vector<char> sstr;
 	sstr.resize( Size( sstm ) );
-	Int sizeStm = sstr.size();
+	sizeStm = sstr.size();
 	sstm.read( &sstr[0], sizeStm );
 	MPI_Isend( &sizeStm, 1, MPI_INT,  dest, tagSize, comm , &reqSize);
 	MPI_Isend( (void*)&sstr[0], sizeStm, MPI_BYTE, dest, tagContent, comm, &reqContent );

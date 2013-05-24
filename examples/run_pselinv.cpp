@@ -316,12 +316,6 @@ int main(int argc, char **argv)
 			GetTime( timeSta );
 			PMloc.SelInv();
 			GetTime( timeEnd );
-
-#ifdef SANITY_CHECK
-			PMlocRef.SelInvOriginal();
-//			PMlocRef.SelInv();
-#endif
-
 			if( mpirank == 0 )
 				cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 
@@ -329,6 +323,12 @@ int main(int argc, char **argv)
 			GetTime( timeTotalSelInvEnd );
 			if( mpirank == 0 )
 				cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+
+#ifdef SANITY_CHECK
+			PMlocRef.SelInvOriginal();
+//			PMlocRef.SelInv();
+#endif
+
 
 			NumVec<Scalar> diag;
 			

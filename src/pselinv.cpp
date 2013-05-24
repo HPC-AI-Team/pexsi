@@ -587,7 +587,8 @@ namespace PEXSI{
 
         std::vector<std::vector<Int> >  arrRowLocalPtr;
         std::vector<std::vector<Int> >  arrBlockIdxLocal;
-	std::vector< std::stringstream > arrSstmCrossDiag;
+	std::vector< std::vector<char> > arrSstrCrossDiag;
+        std::vector<Int >  arrSstrSizeCrossDiag;
 
 #ifndef _RELEASE_
         PushCallStack("PMatrix::SelInv::UpdateL");
@@ -629,7 +630,8 @@ namespace PEXSI{
           arrRowLocalPtr.resize(stepSuper,std::vector<Int>());
           arrBlockIdxLocal.resize(stepSuper,std::vector<Int>());
           arrDiagBufReduced.resize(stepSuper,NumMat<Scalar>());
-	  arrSstmCrossDiag.resize(stepSuper, std::stringstream());
+	  arrSstrCrossDiag.resize(stepSuper);
+	  arrSstrSizeCrossDiag.resize(stepSuper,0);
 
 
         for (Int supidx=0; supidx<stepSuper; supidx++){
@@ -1287,11 +1289,13 @@ namespace PEXSI{
             Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
             if( MYPROC( grid_ ) != dest	){
               std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-              std::stringstream & sstm = arrSstmCrossDiag[supidx];
+              std::stringstream sstm;
+	      std::vector<char> & sstr = arrSstrCrossDiag[supidx];
+	      Int & sizeStm = arrSstrSizeCrossDiag[supidx];
               serialize( rowLocalPtr, sstm, NO_MASK );
               serialize( blockIdxLocal, sstm, NO_MASK );
               serialize( LUpdateBufReduced, sstm, NO_MASK );
-	      mpi::Isend( sstm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, mpireqsSendToBelow[0], mpireqsSendToBelow[1]);
+	      mpi::Isend( sstm, sstr, sizeStm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, mpireqsSendToBelow[0], mpireqsSendToBelow[1]);
             }
           } // sender to cross diagonal
 
