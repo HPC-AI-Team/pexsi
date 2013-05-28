@@ -553,6 +553,18 @@ namespace PEXSI{
       //        sleep(5);
       //}
 
+#ifdef SELINV_TIMING
+      Real begin_SinvL, end_SinvL, time_SinvL = 0;
+      Real begin_SendUL, end_SendUL, time_SendUL = 0;
+      Real begin_SinvLRed, end_SinvLRed, time_SinvLRed = 0;
+      Real begin_UpdateDiag, end_UpdateDiag, time_UpdateDiag = 0;
+      Real begin_DiagbufRed, end_DiagbufRed, time_DiagbufRed = 0;
+      Real begin_UpdateU, end_UpdateU, time_UpdateU = 0;
+      Real begin_UpdateL, end_UpdateL, time_UpdateL = 0;
+      Real begin_AllocateBuf, end_AllocateBuf, time_AllocateBuf = 0;
+      Real begin_Barrier, end_Barrier, time_Barrier = 0;
+#endif
+
 #ifndef _RELEASE_
       PushCallStack("PMatrix::SelInv");
 #endif
@@ -564,6 +576,14 @@ namespace PEXSI{
 
       for (Int lidx=0; lidx<numSteps ; lidx++){
         Int stepSuper = superList[lidx].size(); 
+
+
+#ifdef SELINV_TIMING
+        begin_AllocateBuf = MPI_Wtime();
+#endif
+
+
+
 
         std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
         std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
@@ -621,13 +641,22 @@ namespace PEXSI{
           arrSstrCrossDiag.resize(stepSuper);
           arrSstrSizeCrossDiag.resize(stepSuper,0);
 
+
+
+#ifdef SELINV_TIMING
+        end_AllocateBuf = MPI_Wtime();
+        time_AllocateBuf += end_AllocateBuf - begin_AllocateBuf;
+#endif
+
+
+
+
 #ifndef _RELEASE_
         PushCallStack("PMatrix::SelInv::UpdateL");
 #endif
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
 #endif
-
 
 
         for (Int supidx=0; supidx<stepSuper; supidx++){
@@ -721,6 +750,9 @@ namespace PEXSI{
         }
 
 
+#ifdef SELINV_TIMING
+      begin_SendUL = MPI_Wtime();
+#endif
 
         //TODO Ideally, we should not receive data in sequence but in any order with ksup packed with the data
         //Receive   
@@ -800,11 +832,6 @@ namespace PEXSI{
           Int & sizeStmFromLeft = arrSizeStmFromLeft[supidx];
           Int & sizeStmFromAbove = arrSizeStmFromAbove[supidx];
 
-
-//          MPI_Errhandler_set(grid_->colComm, MPI_ERRORS_RETURN);
-//          MPI_Errhandler_set(grid_->rowComm, MPI_ERRORS_RETURN);
-//          Int error_code = MPI_SUCCESS;
-
           if( isRecvFromAbove_( ksup ) && 
               MYROW( grid_ ) != PROW( ksup, grid_ ) ){
             sstrUrowRecv.resize( sizeStmFromAbove );
@@ -827,52 +854,6 @@ namespace PEXSI{
             statusOFS << std::endl << "["<<ksup<<"] "<<  "Receiving L " << sizeStmFromLeft << " BYTES"<< std::endl <<  std::endl; 
 #endif
           } // if I need to receive from left
-
-
-//if (error_code != MPI_SUCCESS) {
-//
-//   char error_string[BUFSIZ];
-//   int length_of_error_string, error_class;
-//   int my_rank = MYPROC(grid_);
-//
-//   MPI_Error_class(error_code, &error_class);
-//   MPI_Error_string(error_class, error_string, &length_of_error_string);
-//   fprintf(stderr, "%3d: %s\n", my_rank, error_string);
-//   statusOFS << "["<<ksup<<"] "<< "P"<< my_rank << ": "<<error_string<< std::endl;
-//   MPI_Error_string(error_code, error_string, &length_of_error_string);
-//   fprintf(stderr, "%3d: %s\n", my_rank, error_string);
-//   statusOFS << "["<<ksup<<"] "<< "P"<< my_rank << ": "<<error_string<< std::endl;
-//	
-//   MPI_Status statLeft; 
-//   int flag = 0;
-//   MPI_Request_get_status(mpireqsRecvFromLeft[1], &flag, &statLeft); 
-//
-//   MPI_Status statAbove; 
-//   flag = 0;
-//   MPI_Request_get_status(mpireqsRecvFromAbove[1], &flag, &statAbove); 
-//
-//   statusOFS << "["<<ksup<<"] "<< "P"<< my_rank << " sizeStmFromLeft="<<sizeStmFromLeft<< std::endl;
-//   statusOFS << "["<<ksup<<"] "<< " arrsizeStmFromLeft=[";
-//        for (Int supidx=0; supidx<stepSuper ; supidx++){
-//          Int ksup = superList[lidx][supidx];
-//		statusOFS<<arrSizeStmFromLeft[supidx]<< " ";
-//	}
-//   statusOFS<<"]"<<std::endl;
-//
-//    statusOFS << "["<<ksup<<"] "<< "P"<< my_rank << " sizeStmFromAbove="<<sizeStmFromAbove<< std::endl;
-//   statusOFS << "["<<ksup<<"] "<< " arrsizeStmFromAbove=[";
-//        for (Int supidx=0; supidx<stepSuper ; supidx++){
-//          Int ksup = superList[lidx][supidx];
-//		statusOFS<<arrSizeStmFromAbove[supidx]<< " ";
-//	}
-//   statusOFS<<"]"<<std::endl;
-//
-// 
-//
-//
-//   MPI_Abort(MPI_COMM_WORLD, error_code);
-//}
-
         }
 
 
@@ -901,8 +882,16 @@ namespace PEXSI{
           }
         }
 
+#ifdef SELINV_TIMING
+      end_SendUL = MPI_Wtime();
+      time_SendUL+= end_SendUL-begin_SendUL;
+#endif
 
-        for (Int supidx=0; supidx<stepSuper; supidx++){
+#ifdef SELINV_TIMING
+      begin_SinvL = MPI_Wtime();
+#endif
+
+       for (Int supidx=0; supidx<stepSuper; supidx++){
           Int ksup = superList[lidx][supidx];
           // Overlap the communication with computation.  All processors move
           // to Gemm phase when ready 
@@ -1199,7 +1188,14 @@ namespace PEXSI{
           }//Sender
         }
 
-        //--------------------- Beginning of reduce of LUpdateBuf-------------------------  (we could also start the IRecv since we know who has to send us data at the price of extra buffers)
+#ifdef SELINV_TIMING
+      end_SinvL = MPI_Wtime();
+      time_SinvL += end_SinvL - begin_SinvL;
+#endif
+
+#ifdef SELINV_TIMING
+      begin_SinvLRed=MPI_Wtime();
+#endif
         for (Int supidx=0; supidx<stepSuper; supidx++){
           Int ksup = superList[lidx][supidx];
 
@@ -1249,9 +1245,6 @@ namespace PEXSI{
             statusOFS << std::endl << "["<<ksup<<"] "<<   "LUpdateBuf Before Reduction: " <<  LUpdateBufReduced << std::endl << std::endl; 
 #endif
 
-#if ( _DEBUGlevel_ >= 1 )
-          double begin = MPI_Wtime();
-#endif
             Int totCountRecv = 0;
             Int numRecv = CountSendToRight(ksup);
             for( Int countRecv = 0; countRecv < numRecv ; ++countRecv ){
@@ -1298,15 +1291,14 @@ namespace PEXSI{
           } // sender to cross diagonal
 #endif
 
-#if ( _DEBUGlevel_ >= 1 )
-          double end;
-          end = MPI_Wtime();
-          statusOFS<<std::endl<<"["<<ksup<<"] "<<"Time for reduction : "<<end-begin<<" s"<<std::endl<<std::endl;
-#endif
 
           } // Receiver
         }
 
+#ifdef SELINV_TIMING
+      end_SinvLRed = MPI_Wtime();
+      time_SinvLRed += end_SinvLRed - begin_SinvLRed;
+#endif
 
 //        for (Int supidx=0; supidx<stepSuper; supidx++){
 //          Int ksup = superList[lidx][supidx];
@@ -1330,38 +1322,15 @@ namespace PEXSI{
 
 
 
-//        for (Int supidx=0; supidx<stepSuper; supidx++){
-//          Int ksup = superList[lidx][supidx];
-//
-//          // Send LUpdateBufReduced to the cross diagonal blocks. 
-//          // NOTE: This assumes square processor grid
-//          std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
-//          std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
-//          NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBufReduced[supidx];
-//          Int numRowLUpdateBuf = LUpdateBufReduced.m();
-//
-//
-//          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_( ksup ) ){
-//            Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
-//            if( MYPROC( grid_ ) != dest	){
-//              std::stringstream sstm;
-//              serialize( rowLocalPtr, sstm, NO_MASK );
-//              serialize( blockIdxLocal, sstm, NO_MASK );
-//              serialize( LUpdateBufReduced, sstm, NO_MASK );
-//	      mpi::Isend( sstm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, &mpireqsSendToBelow[0] );
-//            }
-//          } // sender
-//	}
-
-
-
-
 #ifndef _RELEASE_
         PushCallStack("PMatrix::SelInv::UpdateD");
 #endif
 
 
 
+#ifdef SELINV_TIMING
+      begin_UpdateDiag = MPI_Wtime();
+#endif
         for (Int supidx=0; supidx<stepSuper; supidx++){
           Int ksup = superList[lidx][supidx];
 
@@ -1415,6 +1384,14 @@ namespace PEXSI{
           }
         }
 
+#ifdef SELINV_TIMING
+      end_UpdateDiag = MPI_Wtime();
+      time_UpdateDiag += end_UpdateDiag - begin_UpdateDiag;
+#endif
+
+#ifdef SELINV_TIMING
+      begin_DiagbufRed = MPI_Wtime();
+#endif
         for (Int supidx=0; supidx<stepSuper; supidx++){
           Int ksup = superList[lidx][supidx];
           if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
@@ -1477,27 +1454,89 @@ namespace PEXSI{
           } 
         }
 
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          Int ksup = superList[lidx][supidx];
-          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToDiagonal_(ksup) ){
-            // Now all the Isend / Irecv should have finished.
-            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            mpi::Wait( mpireqsSendToRight[0] );
-
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" is done sending DiagBuf to P" << PROW(ksup,grid_) <<  std::endl;
+#ifdef SELINV_TIMING
+      end_DiagbufRed = MPI_Wtime();
+      time_DiagbufRed += end_DiagbufRed - begin_DiagbufRed;
 #endif
-          }
-        }
+
+//        for (Int supidx=0; supidx<stepSuper; supidx++){
+//          Int ksup = superList[lidx][supidx];
+//          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToDiagonal_(ksup) ){
+//            // Now all the Isend / Irecv should have finished.
+//            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+//            mpi::Wait( mpireqsSendToRight[0] );
+//
+//#if ( _DEBUGlevel_ >= 1 )
+//            statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" is done sending DiagBuf to P" << PROW(ksup,grid_) <<  std::endl;
+//#endif
+//          }
+//        }
 
 #ifndef _RELEASE_
         PopCallStack();
 #endif
 
+
+
+
+#ifndef _RELEASE_
+        PushCallStack("PMatrix::SelInv::UpdateLFinal");
+#endif
+
+#ifdef SELINV_TIMING
+      begin_UpdateL = MPI_Wtime();
+#endif
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          Int ksup = superList[lidx][supidx];
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "["<<ksup<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
+#endif
+          std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
+          std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
+          NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBuf[supidx];
+          Int numRowLUpdateBuf = LUpdateBufReduced.m();
+
+          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && numRowLUpdateBuf > 0 ){
+            std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+            if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+              for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                LBlock& LB = Lcol[ib];
+                lapack::Lacpy( 'A', LB.numRow, LB.numCol, &LUpdateBufReduced( rowLocalPtr[ib], 0 ),
+                    LUpdateBufReduced.m(), LB.nzval.Data(), LB.numRow );
+              }
+            } // I do not own the diagonal block
+            else{
+              for( Int ib = 1; ib < Lcol.size(); ib++ ){
+                LBlock& LB = Lcol[ib];
+                lapack::Lacpy( 'A', LB.numRow, LB.numCol, &LUpdateBufReduced( rowLocalPtr[ib-1], 0 ),
+                    LUpdateBufReduced.m(), LB.nzval.Data(), LB.numRow );
+              }
+            } // I owns the diagonal block
+          } // Finish updating L	
+        } // for (ksup) : Main loop
+
+
+#ifdef SELINV_TIMING
+      end_UpdateL = MPI_Wtime();
+      time_UpdateL += end_UpdateL - begin_UpdateL;
+#endif
+
+#ifndef _RELEASE_
+        PopCallStack();
+#endif
+
+
+
+
+
 #ifndef _RELEASE_
         PushCallStack("PMatrix::SelInv::UpdateU");
 #endif
 
+#ifdef SELINV_TIMING
+      begin_UpdateU = MPI_Wtime();
+#endif
 //TODO REPLACE THIS BY ASYNC SEND RECV
         for (Int supidx=0; supidx<stepSuper; supidx++){
           Int ksup = superList[lidx][supidx];
@@ -1529,10 +1568,16 @@ namespace PEXSI{
 
 
           if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_( ksup ) ){
-            std::vector<Int>  rowLocalPtrRecv;
-            std::vector<Int>  blockIdxLocalRecv;
+            //std::vector<Int>  rowLocalPtrRecv;
+            //std::vector<Int>  blockIdxLocalRecv;
+            //NumMat<Scalar> UUpdateBuf;
+            std::vector<Int> & rowLocalPtrRecv = rowLocalPtr;
+            std::vector<Int> & blockIdxLocalRecv = blockIdxLocal;
+            NumMat<Scalar> & UUpdateBuf = LUpdateBufReduced;
+
+
+
             Int src = PNUM( MYCOL( grid_ ), PCOL( ksup, grid_ ), grid_ );
-            NumMat<Scalar> UUpdateBuf;
             if( MYPROC( grid_ ) != src ){
               std::stringstream sstm;
               mpi::Recv( sstm, src, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm );
@@ -1541,11 +1586,11 @@ namespace PEXSI{
               deserialize( blockIdxLocalRecv, sstm, NO_MASK );
               deserialize( UUpdateBuf, sstm, NO_MASK );	
             } // sender is not the same as receiver
-            else{
-              rowLocalPtrRecv   = rowLocalPtr;
-              blockIdxLocalRecv = blockIdxLocal;
-              UUpdateBuf = LUpdateBufReduced;
-            } // sender is the same as receiver
+//            else{
+//              rowLocalPtrRecv   = rowLocalPtr;
+//              blockIdxLocalRecv = blockIdxLocal;
+//              UUpdateBuf = LUpdateBufReduced;
+//            } // sender is the same as receiver
 #if ( _DEBUGlevel_ >= 2 )
             statusOFS << std::endl << "["<<ksup<<"] "<<   "rowLocalPtrRecv:" << rowLocalPtrRecv << std::endl << std::endl; 
             statusOFS << std::endl << "["<<ksup<<"] "<<   "blockIdxLocalRecv:" << blockIdxLocalRecv << std::endl << std::endl; 
@@ -1582,49 +1627,48 @@ namespace PEXSI{
             }
           } // receiver
         }
+
+
+#ifdef SELINV_TIMING
+      end_UpdateU = MPI_Wtime();
+      time_UpdateU += end_UpdateU - begin_UpdateU;
+#endif
+
 #ifndef _RELEASE_
         PopCallStack();
 #endif
 
-#ifndef _RELEASE_
-        PushCallStack("PMatrix::SelInv::UpdateLFinal");
-#endif
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
 
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          Int ksup = superList[lidx][supidx];
+//        for (Int supidx=0; supidx<stepSuper; supidx++){
+//          Int ksup = superList[lidx][supidx];
+//          if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) && isRecvFromLeft_( ksup ) ){
+//            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+//            mpi::Wait( mpireqsSendToRight[0] );
+//            }
+//          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToDiagonal_(ksup) ){
+//            // Now all the Isend / Irecv should have finished.
+//            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+//            mpi::Wait( mpireqsSendToRight[0] );
+//
+//            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+//            mpi::Wait( mpireqsSendToBelow[0] );
+//            mpi::Wait( mpireqsSendToBelow[1] );
+//#if ( _DEBUGlevel_ >= 1 )
+//            statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" is done sending DiagBuf to P" << PROW(ksup,grid_) <<  std::endl;
+//#endif
+//          }
+//        }
 
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "["<<ksup<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
+#ifdef SELINV_TIMING
+      begin_Barrier = MPI_Wtime();
 #endif
-          std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
-          std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
-          NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBuf[supidx];
-          Int numRowLUpdateBuf = LUpdateBufReduced.m();
-
-          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && numRowLUpdateBuf > 0 ){
-            std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
-            if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-              for( Int ib = 0; ib < Lcol.size(); ib++ ){
-                LBlock& LB = Lcol[ib];
-                lapack::Lacpy( 'A', LB.numRow, LB.numCol, &LUpdateBufReduced( rowLocalPtr[ib], 0 ),
-                    LUpdateBufReduced.m(), LB.nzval.Data(), LB.numRow );
-              }
-            } // I do not own the diagonal block
-            else{
-              for( Int ib = 1; ib < Lcol.size(); ib++ ){
-                LBlock& LB = Lcol[ib];
-                lapack::Lacpy( 'A', LB.numRow, LB.numCol, &LUpdateBufReduced( rowLocalPtr[ib-1], 0 ),
-                    LUpdateBufReduced.m(), LB.nzval.Data(), LB.numRow );
-              }
-            } // I owns the diagonal block
-          } // Finish updating L	
-        } // for (ksup) : Main loop
 
         MPI_Barrier( grid_->comm );
 
+#ifdef SELINV_TIMING
+      end_Barrier = MPI_Wtime();
+      time_Barrier += end_Barrier - begin_Barrier;
+#endif
         //clearing buffers
 
         //allocate the buffers for this supernode
@@ -1659,6 +1703,23 @@ namespace PEXSI{
 #ifndef _RELEASE_
       PopCallStack();
 #endif
+
+
+
+#ifdef SELINV_TIMING
+  statusOFS<<std::endl<<"Timings are :"<<std::endl;
+  statusOFS<<"Time for allocating buffers : "<<time_AllocateBuf<<std::endl;
+  statusOFS<<"Time for receiving L/U : "<<time_SendUL<<std::endl;
+  statusOFS<<"Time for computing SinvL : "<<time_SinvL<<std::endl;
+  statusOFS<<"Time for reducing SinvL : "<<time_SinvLRed<<std::endl;
+  statusOFS<<"Time for computing local updates of Diag : "<<time_UpdateDiag<<std::endl;
+  statusOFS<<"Time for reducing Diag : "<<time_DiagbufRed<<std::endl;
+  statusOFS<<"Time for updating L : "<<time_UpdateL<<std::endl;
+  statusOFS<<"Time for updating U : "<<time_UpdateU<<std::endl;
+  statusOFS<<"Time for MPI_barrier : "<<time_Barrier<<std::endl;
+#endif
+
+
 
 //        MPI_Barrier( grid_-> comm );
       return ;
