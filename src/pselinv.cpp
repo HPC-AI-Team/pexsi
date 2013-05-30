@@ -555,6 +555,7 @@ namespace PEXSI{
 
 #ifdef SELINV_TIMING
       Real begin_SinvL, end_SinvL, time_SinvL = 0;
+      Real begin_SinvLGemm, end_SinvLGemm, time_SinvLGemm = 0;
       Real begin_SendUL, end_SendUL, time_SendUL = 0;
       Real begin_SinvLRed, end_SinvLRed, time_SinvLRed = 0;
       Real begin_UpdateDiag, end_UpdateDiag, time_UpdateDiag = 0;
@@ -613,16 +614,25 @@ namespace PEXSI{
         std::vector<Int >  arrSstrSizeCrossDiag;
 
 
-//                MPI_Comm * arrColComm = new MPI_Comm[stepSuper];
+//                MPI_Comm * arrColComm = new MPI_Comm[2*stepSuper];
 //        
 //                for (Int supidx=0; supidx<stepSuper; supidx++){
 //                  Int ksup = superList[lidx][supidx];
-//                  MPI_Comm_split(grid_->colComm,( MYCOL(grid_) == PCOL(ksup,grid_)) && (( CountSendToRight(ksup)>0   ) || (MYROW(grid_) == PROW(ksup,grid_)))    ,MYROW(grid_) ,&arrColComm[supidx] );
+////                  MPI_Comm_split(grid_->colComm,( MYCOL(grid_) == PCOL(ksup,grid_)) && (( CountSendToRight(ksup)>0   ) || (MYROW(grid_) == PROW(ksup,grid_)))    ,MYROW(grid_) ,&arrColComm[supidx] );
+//                  MPI_Comm_split(grid_->colComm,isSendToDiagonal_(ksup)  ,MYROW(grid_) ,&arrColComm[2*supidx] );
 //                  Int tmpCnt = 0;
-//                  MPI_Comm_size(arrColComm[supidx], &tmpCnt);
+//                  MPI_Comm_size(arrColComm[2*supidx], &tmpCnt);
 //                  Int myRank = 0;
-//                  MPI_Comm_rank(arrColComm[supidx], &myRank);
-//                  statusOFS << std::endl<<  ksup << " Communicator size  = " << tmpCnt << "ROW "<< MYROW(grid_) << "has rank " << myRank << std::endl << std::endl; 
+//                  MPI_Comm_rank(arrColComm[2*supidx], &myRank);
+//                  if(isSendToDiagonal_(ksup))
+//                    statusOFS << std::endl<<  ksup << " Communicator size  = " << tmpCnt << "ROW "<< MYROW(grid_) << "has rank " << myRank << std::endl << std::endl; 
+//                  MPI_Comm_split(grid_->rowComm, (CountSendToRight(ksup)>0) || isRecvFromLeft_(ksup)  ,MYCOL(grid_) ,&arrColComm[2*supidx+1] );
+//                  tmpCnt = 0;
+//                  MPI_Comm_size(arrColComm[2*supidx+1], &tmpCnt);
+//                  myRank = 0;
+//                  MPI_Comm_rank(arrColComm[2*supidx+1], &myRank);
+//                  statusOFS << std::endl<<  ksup << " Communicator size  = " << tmpCnt << "COL "<< MYCOL(grid_) << "has rank " << myRank << std::endl << std::endl; 
+//
 //                }
 
           //allocate the buffers for this supernode
@@ -970,8 +980,8 @@ namespace PEXSI{
           statusOFS << std::endl << "["<<ksup<<"] "<<  "Main work: Gemm" << std::endl << std::endl; 
 #endif
 
-          //		// Save all the data to be updated for { L( isup, ksup ) | isup > ksup }.
-          //		// The size will be updated in the Gemm phase and the reduce phase
+          // Save all the data to be updated for { L( isup, ksup ) | isup > ksup }.
+          // The size will be updated in the Gemm phase and the reduce phase
 
           // Only the processors received information participate in the Gemm 
           if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
@@ -1170,11 +1180,19 @@ namespace PEXSI{
             statusOFS << std::endl << "["<<ksup<<"] "<<  "UBuf   : " << UBuf << std::endl;
 #endif
 
+#ifdef SELINV_TIMING
+      begin_SinvLGemm = MPI_Wtime();
+#endif
+
             // Gemm for LUpdateBuf = -AinvBuf * UBuf^T
             blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
                 AinvBuf.Data(), AinvBuf.m(), 
                 UBuf.Data(), UBuf.m(), SCALAR_ZERO,
                 LUpdateBuf.Data(), LUpdateBuf.m() ); 
+#ifdef SELINV_TIMING
+      end_SinvLGemm = MPI_Wtime();
+      time_SinvLGemm += end_SinvLGemm - begin_SinvLGemm;
+#endif
 
 #if ( _DEBUGlevel_ >= 2 )
             statusOFS << std::endl << "["<<ksup<<"] "<<  "LUpdateBuf: " << LUpdateBuf << std::endl;
@@ -1313,6 +1331,29 @@ namespace PEXSI{
 //          }
 //        }
         //--------------------- End of reduce of LUpdateBuf-------------------------
+
+
+////#ifdef SELINV_TIMING
+////      begin_SinvLRedBis = MPI_Wtime();
+////#endif
+////        for (Int supidx=0; supidx<stepSuper; supidx++){
+////          Int ksup = superList[lidx][supidx];
+////
+////          NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
+////
+//////allocate buffers if necessary
+////
+////			mpi::Reduce( LUpdateBuf.Data(), LUpdateBufReduced.Data(),
+////					numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 
+////					PCOL( ksup, grid_ ), grid_->rowComm );
+////
+////        }
+////#ifdef SELINV_TIMING
+////      end_SinvLRedBis = MPI_Wtime();
+////      time_SinvLRedBis += end_SinvLRedBis - begin_SinvLRedBis;
+////#endif
+
+
 
 
 #if ( _DEBUGlevel_ >= 2 )
@@ -1691,28 +1732,6 @@ namespace PEXSI{
       end_Barrier = MPI_Wtime();
       time_Barrier += end_Barrier - begin_Barrier;
 #endif
-        //clearing buffers
-
-        //allocate the buffers for this supernode
-////        arrMpireqsSendToBelow.clear();
-////        arrSstrUrowSend.clear();
-////        arrMpireqsSendToRight.clear();
-////        arrSstrLcolSend.clear();
-////
-////        arrMpireqsRecvFromAbove.clear();
-////        arrSstrUrowRecv.clear();
-////        arrMpireqsRecvFromLeft.clear();
-////        arrSstrLcolRecv.clear();
-////
-////        arrSizeStmFromLeft.clear();
-////        arrSizeStmFromAbove.clear();
-////        arrLUpdateBuf.clear();
-////        arrRowLocalPtr.clear();
-////        arrBlockIdxLocal.clear();
-////        arrDiagBufReduced.clear();
-////        arrArrJsups.clear();
-////        arrArrIsups.clear();
-
 
 //                for (Int supidx=0; supidx<stepSuper; supidx++){
 //                  Int ksup = superList[lidx][supidx];
@@ -1735,16 +1754,17 @@ namespace PEXSI{
 
 #ifdef SELINV_TIMING
   statusOFS<<std::endl<<"Timings are :"<<std::endl;
-  statusOFS<<"Time for SelInv : "<<time_Total<<std::endl;
-  statusOFS<<"Time for allocating buffers : "<< std::scientific<<time_AllocateBuf<< "("<< setiosflags(ios::fixed) << std::fixed << setprecision(2)<< 100.0*time_AllocateBuf/time_Total<< "%)"<<std::endl;
-  statusOFS<<"Time for receiving L/U : "<< std::scientific<<time_SendUL<< "("<< setiosflags(ios::fixed) << std::fixed << setprecision(2)<< 100.0*time_SendUL/time_Total<< "%)"<<std::endl;
-  statusOFS<<"Time for computing SinvL : "<< std::scientific<<time_SinvL<< "("<< setiosflags(ios::fixed) << std::fixed << setprecision(2)<< 100.0*time_SinvL/time_Total<< "%)"<<std::endl;
-  statusOFS<<"Time for reducing SinvL : "<< std::scientific<<time_SinvLRed<< "("<< setiosflags(ios::fixed) << std::fixed << setprecision(2)<< 100.0*time_SinvLRed/time_Total<< "%)"<<std::endl;
-  statusOFS<<"Time for computing local updates of Diag : "<< std::scientific<<time_UpdateDiag<< "("<< setiosflags(ios::fixed) << std::fixed << setprecision(2)<< 100.0*time_UpdateDiag/time_Total<< "%)"<<std::endl;
-  statusOFS<<"Time for reducing Diag : "<< std::scientific<<time_DiagbufRed<< "("<< setiosflags(ios::fixed) << std::fixed << setprecision(2)<< 100.0*time_DiagbufRed/time_Total<< "%)"<<std::endl;
-  statusOFS<<"Time for updating L : "<< std::scientific<<time_UpdateL<< "("<< setiosflags(ios::fixed) << std::fixed << setprecision(2)<< 100.0*time_UpdateL/time_Total<< "%)"<<std::endl;
-  statusOFS<<"Time for updating U : "<< std::scientific<<time_UpdateU<< "("<< setiosflags(ios::fixed) << std::fixed << setprecision(2)<< 100.0*time_UpdateU/time_Total<< "%)"<<std::endl;
-  statusOFS<<"Time for MPI_barrier : "<< std::scientific<<time_Barrier<< "("<< setiosflags(ios::fixed) << std::fixed << setprecision(2)<< 100.0*time_Barrier/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Time for SelInv : "<< std::scientific<<time_Total<<std::endl;
+  statusOFS<<"Time for allocating buffers : "<< std::scientific<<time_AllocateBuf<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_AllocateBuf/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Time for receiving L/U : "<< std::scientific<<time_SendUL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendUL/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Time for computing SinvL : "<< std::scientific<<time_SinvL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvL/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Time for computing SinvL (Gemm only) : "<< std::scientific<<time_SinvLGemm<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvLGemm/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Time for reducing SinvL : "<< std::scientific<<time_SinvLRed<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvLRed/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Time for computing local updates of Diag : "<< std::scientific<<time_UpdateDiag<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_UpdateDiag/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Time for reducing Diag : "<< std::scientific<<time_DiagbufRed<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_DiagbufRed/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Time for updating L : "<< std::scientific<<time_UpdateL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_UpdateL/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Time for updating U : "<< std::scientific<<time_UpdateU<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_UpdateU/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Time for MPI_barrier : "<< std::scientific<<time_Barrier<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_Barrier/time_Total<< "%)"<<std::endl<< std::scientific;
 #endif
 
 
@@ -1768,19 +1788,24 @@ PMatrix::SelInvOriginal	(  )
 #endif
   Int numSuper = this->NumSuper(); 
 
-	// Main loop
-//      if(MYPROC(grid_)==0)
-//      {
-//          int i = 0;
-//          char hostname[256];
-//          gethostname(hostname, sizeof(hostname));
-//          printf("PID %d on %s ready for attach\n", getpid(), hostname);
-//          fflush(stdout);
-//          while (0 == i)
-//              sleep(5);
-//      }
 
+#ifdef SELINV_TIMING
+      Real begin_SinvL, end_SinvL, time_SinvL = 0;
+      Real begin_SinvLGemm, end_SinvLGemm, time_SinvLGemm = 0;
+      Real begin_SendUL, end_SendUL, time_SendUL = 0;
+      Real begin_SinvLRed, end_SinvLRed, time_SinvLRed = 0;
+      Real begin_UpdateDiag, end_UpdateDiag, time_UpdateDiag = 0;
+      Real begin_DiagbufRed, end_DiagbufRed, time_DiagbufRed = 0;
+      Real begin_UpdateU, end_UpdateU, time_UpdateU = 0;
+      Real begin_UpdateL, end_UpdateL, time_UpdateL = 0;
+      Real begin_AllocateBuf, end_AllocateBuf, time_AllocateBuf = 0;
+      Real begin_Barrier, end_Barrier, time_Barrier = 0;
+      Real begin_Total, end_Total, time_Total = 0;
+#endif
 
+#ifdef SELINV_TIMING
+        begin_Total = MPI_Wtime();
+#endif
 	for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
 #ifndef _RELEASE_
 		PushCallStack("PMatrix::SelInvOriginal::UpdateL");
@@ -1859,6 +1884,9 @@ PMatrix::SelInvOriginal	(  )
 			} // for (iProcCol)
 		} // if I am the sender
 
+#ifdef SELINV_TIMING
+      begin_SendUL = MPI_Wtime();
+#endif
     // Receive
 		std::vector<MPI_Request> mpireqsRecvFromAbove( 2, MPI_REQUEST_NULL ); 
 		std::vector<MPI_Request> mpireqsRecvFromLeft( 2, MPI_REQUEST_NULL ); 
@@ -1915,11 +1943,17 @@ PMatrix::SelInvOriginal	(  )
 		mpi::Wait( mpireqsRecvFromLeft[1] );
 
 
+#ifdef SELINV_TIMING
+      end_SendUL = MPI_Wtime();
+      time_SendUL+= end_SendUL-begin_SendUL;
+#endif
 
 
 		// Overlap the communication with computation.  All processors move
 		// to Gemm phase when ready 
-
+#ifdef SELINV_TIMING
+      begin_SinvL = MPI_Wtime();
+#endif
 		std::vector<LBlock>   LcolRecv;
 		std::vector<UBlock>   UrowRecv;
 		if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
@@ -1971,8 +2005,6 @@ PMatrix::SelInvOriginal	(  )
 				}
 			} // sender is the same as receiver
 		} // if I am a receiver
-
-
 
 		// Save all the data to be updated for { L( isup, ksup ) | isup > ksup }.
 		// The size will be updated in the Gemm phase and the reduce phase
@@ -2155,21 +2187,45 @@ PMatrix::SelInvOriginal	(  )
 			} // for ( jb )
 
 
+#ifdef SELINV_TIMING
+      begin_SinvLGemm = MPI_Wtime();
+#endif
 			// Gemm for LUpdateBuf = AinvBuf * UBuf^T
 			blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
 					AinvBuf.Data(), AinvBuf.m(), 
 					UBuf.Data(), UBuf.m(), SCALAR_ZERO,
 					LUpdateBuf.Data(), LUpdateBuf.m() ); 
 
+#ifdef SELINV_TIMING
+      end_SinvLGemm = MPI_Wtime();
+      time_SinvLGemm += end_SinvLGemm - begin_SinvLGemm;
+#endif
 
 		} // if Gemm is to be done locally
+#ifdef SELINV_TIMING
+      end_SinvL = MPI_Wtime();
+      time_SinvL += end_SinvL - begin_SinvL;
+#endif
 
+
+
+#ifdef SELINV_TIMING
+      begin_Barrier = MPI_Wtime();
+#endif
 		// Now all the Isend / Irecv should have finished.
 		mpi::Waitall( mpireqsSendToRight );
 		mpi::Waitall( mpireqsSendToBelow );
+#ifdef SELINV_TIMING
+      end_Barrier = MPI_Wtime();
+      time_Barrier += end_Barrier - begin_Barrier;
+#endif
+
 
 		// Reduce LUpdateBuf across all the processors in the same processor row.
 		
+#ifdef SELINV_TIMING
+      begin_SinvLRed=MPI_Wtime();
+#endif
 
 		NumMat<Scalar> LUpdateBufReduced;
 
@@ -2216,24 +2272,19 @@ PMatrix::SelInvOriginal	(  )
 				SetValue( LUpdateBuf, SCALAR_ZERO );
 			}
 
-#if ( _DEBUGlevel_ >= 1 )
-          double begin = MPI_Wtime();
-#endif
 
 			mpi::Reduce( LUpdateBuf.Data(), LUpdateBufReduced.Data(),
 					numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 
 					PCOL( ksup, grid_ ), grid_->rowComm );
 
-#if ( _DEBUGlevel_ >= 1 )
-          double end;
-          end = MPI_Wtime();
-          statusOFS<<std::endl<<"["<<ksup<<"] "<<" ORIGIN Time for reduction : "<<end-begin<<" s"<<std::endl<<std::endl;
-#endif
-
 
 		} // Perform reduce for nonzero block rows in the column of ksup
 
 		
+#ifdef SELINV_TIMING
+      end_SinvLRed = MPI_Wtime();
+      time_SinvLRed += end_SinvLRed - begin_SinvLRed;
+#endif
 
 #ifndef _RELEASE_
 		PopCallStack();
@@ -2242,6 +2293,11 @@ PMatrix::SelInvOriginal	(  )
 #ifndef _RELEASE_
 		PushCallStack("PMatrix::SelInvOriginal::UpdateD");
 #endif
+
+#ifdef SELINV_TIMING
+      begin_UpdateDiag = MPI_Wtime();
+#endif
+
 		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 			NumMat<Scalar> DiagBuf( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
 			SetValue( DiagBuf, SCALAR_ZERO );
@@ -2263,6 +2319,9 @@ PMatrix::SelInvOriginal	(  )
 				}
 			} // I owns the diagonal block, skip the diagonal block
 
+#ifdef SELINV_TIMING
+      begin_DiagbufRed = MPI_Wtime();
+#endif
 			NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
 
 			if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
@@ -2282,7 +2341,17 @@ PMatrix::SelInvOriginal	(  )
 
 				Symmetrize( LB.nzval );
 			}
+
+#ifdef SELINV_TIMING
+      end_DiagbufRed = MPI_Wtime();
+      time_DiagbufRed += end_DiagbufRed - begin_DiagbufRed;
+#endif
 		} // Update the diagonal in the processor column of ksup. All processors participate
+
+#ifdef SELINV_TIMING
+      end_UpdateDiag = MPI_Wtime();
+      time_UpdateDiag += end_UpdateDiag - begin_UpdateDiag - time_DiagbufRed;
+#endif
 
 
 
@@ -2295,6 +2364,11 @@ PMatrix::SelInvOriginal	(  )
 
 #ifndef _RELEASE_
 		PushCallStack("PMatrix::SelInvOriginal::UpdateU");
+#endif
+
+
+#ifdef SELINV_TIMING
+      begin_UpdateU = MPI_Wtime();
 #endif
 		// Send LUpdateBufReduced to the cross diagonal blocks. 
 		// NOTE: This assumes square processor grid
@@ -2358,6 +2432,10 @@ PMatrix::SelInvOriginal	(  )
 			}
 		} // receiver
 
+#ifdef SELINV_TIMING
+      end_UpdateU = MPI_Wtime();
+      time_UpdateU += end_UpdateU - begin_UpdateU;
+#endif
 #ifndef _RELEASE_
 		PopCallStack();
 #endif
@@ -2365,8 +2443,8 @@ PMatrix::SelInvOriginal	(  )
 #ifndef _RELEASE_
 		PushCallStack("PMatrix::SelInvOriginal::UpdateLFinal");
 #endif
-#ifndef _RELEASE_
-		PopCallStack();
+#ifdef SELINV_TIMING
+      begin_UpdateL = MPI_Wtime();
 #endif
 		if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && numRowLUpdateBuf > 0 ){
 			std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
@@ -2386,11 +2464,47 @@ PMatrix::SelInvOriginal	(  )
 			} // I owns the diagonal block
 		} // Finish updating L	
 
+#ifdef SELINV_TIMING
+      end_UpdateL = MPI_Wtime();
+      time_UpdateL += end_UpdateL - begin_UpdateL;
+#endif
 
+#ifndef _RELEASE_
+		PopCallStack();
+#endif
 
+#ifdef SELINV_TIMING
+      begin_Barrier = MPI_Wtime();
+#endif
 
     MPI_Barrier( grid_-> comm );
+
+#ifdef SELINV_TIMING
+      end_Barrier = MPI_Wtime();
+      time_Barrier += end_Barrier - begin_Barrier;
+#endif
 	} // for (ksup) : Main loop
+
+#ifdef SELINV_TIMING
+      end_Total = MPI_Wtime();
+      time_Total += end_Total - begin_Total;
+#endif
+
+#ifdef SELINV_TIMING
+  statusOFS<<std::endl<<"Original Timings are :"<<std::endl;
+  statusOFS<<"Original Time for SelInv : "<< std::scientific<<time_Total<<std::endl;
+  statusOFS<<"Original Time for allocating buffers : "<< std::scientific<<time_AllocateBuf<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_AllocateBuf/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Original Time for receiving L/U : "<< std::scientific<<time_SendUL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendUL/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Original Time for computing SinvL : "<< std::scientific<<time_SinvL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvL/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Original time for computing SinvL (Gemm only) : "<< std::scientific<<time_SinvLGemm<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvLGemm/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Original Time for reducing SinvL : "<< std::scientific<<time_SinvLRed<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvLRed/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Original Time for computing local updates of Diag : "<< std::scientific<<time_UpdateDiag<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_UpdateDiag/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Original Time for reducing Diag : "<< std::scientific<<time_DiagbufRed<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_DiagbufRed/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Original Time for updating L : "<< std::scientific<<time_UpdateL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_UpdateL/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Original Time for updating U : "<< std::scientific<<time_UpdateU<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_UpdateU/time_Total<< "%)"<<std::endl;
+  statusOFS<<"Original Time for MPI_barrier : "<< std::scientific<<time_Barrier<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_Barrier/time_Total<< "%)"<<std::endl<< std::scientific;
+#endif
+
 
 #ifndef _RELEASE_
 	PopCallStack();
