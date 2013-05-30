@@ -418,19 +418,23 @@ namespace PEXSI{
 #endif
     //do the real stuff with elimination trees
     const PEXSI::SuperNode * superNode = this->SuperNode();
-#if ( _DEBUGlevel_ >= 2 )
+//#if ( _DEBUGlevel_ >= 2 )
     statusOFS << std::endl << " The parent list of the etree is: " << superNode->etree <<std::endl<<std::endl;
-#endif
+//#endif
 
     //translate from columns to supernodes etree using supIdx
     std::vector<Int> snodeEtree(this->NumSuper());
     for(Int i = 0; i < superNode->etree.m(); ++i){
         Int curSnode = superNode->superIdx[i];
         Int parentSnode = (superNode->etree[i]>= superNode->etree.m()) ?this->NumSuper():superNode->superIdx[superNode->etree[i]];
+	statusOFS << std::endl << "curSnode = "<<curSnode<<std::endl<<"parentSnode = "<<parentSnode<<std::endl<<std::endl;
+ 
         if( curSnode != parentSnode){
           snodeEtree[curSnode] = parentSnode;
         }
     }
+
+    statusOFS << std::endl << " The parent list of the Supernode etree is: " << snodeEtree <<std::endl<<std::endl;
 
     //find roots in the supernode etree
     //initialize the parent we are looking at 
@@ -462,55 +466,7 @@ namespace PEXSI{
       }
 
 
-
-//    //translate from columns to supernodes etree using supIdx
-//    IntNumVec superEtree(this->NumSuper());
-//    for(Int i = 0; i < superNode->etree.m(); ++i){
-//        Int curSnode = superNode->superIdx[i];
-//        Int parentSnode = (superNode->etree[i]>= superNode->etree.m()) ?this->NumSuper():superNode->superIdx[superNode->etree[i]];
-//        if( curSnode != parentSnode){
-//          superEtree[curSnode] = parentSnode;
-//        }
-//    }
-//
-//#if ( _DEBUGlevel_ >= 2 )
-//    statusOFS << std::endl << " The parent list of the superEtree is: " << superEtree <<std::endl<<std::endl;
-//#endif
-//
-//    //find roots in the supernode etree
-//    Int * last = superEtree.Data() + superEtree.m();
-//
-//    //initialize the parent we are looking at 
-//    Int rootParent = superEtree[this->NumSuper()-2];
-//
-//    //look for roots in the forest
-//    std::vector< Int>  tmpRoot;
-//    tmpRoot.push_back(rootParent);
-//    std::vector< Int> & prevRoot = tmpRoot;
-//
-//    while(prevRoot.size()>0){
-//      WSet.push_back(std::vector<Int>());
-//      for(Int i = 0; i<prevRoot.size();++i){
-//        rootParent = prevRoot[i];
-//        Int * curRoot = std::find (superEtree.Data() ,last, rootParent);
-//        while(curRoot != last){
-//          Int curNode = (curRoot - superEtree.Data())/sizeof(Int);
-//          WSet.back().push_back(curNode);
-//          //switch the sign to remove this root
-//          *curRoot =-*curRoot;
-//          //look for next root
-//          curRoot = std::find (superEtree.Data() ,last, rootParent);
-//        }
-//        }
-//        //No we have now several roots >> must maintain a vector of roots
-//        prevRoot = WSet.back();
-//      }
-//      if(WSet.back().size()==0){
-//        WSet.pop_back();
-//      }
-
-
-
+    statusOFS << std::endl << " Done building the working set" <<std::endl<<std::endl;
 
 
 #if ( _DEBUGlevel_ >= 2 )
