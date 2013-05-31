@@ -4,6 +4,12 @@
 /// @date 2012-11-20
 #include "pselinv.hpp"
 
+typedef struct {
+  int id, key;
+  void *next;
+} etree_node;
+
+
 namespace PEXSI{
 
   Grid::Grid	( MPI_Comm Bcomm, int nprow, int npcol )
@@ -414,48 +420,193 @@ namespace PEXSI{
       std::vector<std::vector<Int> > & WSet = this->WorkingSet();
 
 #if ( _DEBUGlevel_ >= 2 )
-    double begin =  MPI_Wtime( );
 #endif
     //do the real stuff with elimination trees
     const PEXSI::SuperNode * superNode = this->SuperNode();
 //#if ( _DEBUGlevel_ >= 2 )
-    statusOFS << std::endl << " The parent list of the etree is: " << superNode->etree <<std::endl<<std::endl;
+//    statusOFS << std::endl << " The parent list of the etree is: " << superNode->etree <<std::endl<<std::endl;
 //#endif
 
+    statusOFS << std::endl << " Building snode list " << std::endl<<std::endl;
+	Int nsupers = this->NumSuper();
+	  /* look for the first off-diagonal blocks */
+//         Int * etree_supno = new Int[nsupers];
+
+
+    double begin =  MPI_Wtime( );
+
+//	 std::vector<Int> etree_supno(nsupers,nsupers);
+//	 Int lb,jb;
+////          for( Int i=0; i<nsupers; i++ ) etree_supno[i] = nsupers;
+//          for( Int j=0, lb=0; lb<nsupers; lb++ ) {
+//              for( Int k=0; k<SuperSize(lb,super_); k++ ) {
+//                  jb = superNode->superIdx[superNode->etree[j+k]];
+//                  if( jb != lb ) etree_supno[lb] = std::min( etree_supno[lb], jb );
+//              }
+//              j += SuperSize(lb,super_);
+//          }
+//        etree_supno[nsupers-1]=nsupers;
+//	 delete [] etree_supno;
+
+    double end =  MPI_Wtime( );
+//    statusOFS<<"Building the list took "<<end-begin<<"s"<<std::endl;
+    begin =  MPI_Wtime( );
     //translate from columns to supernodes etree using supIdx
     std::vector<Int> snodeEtree(this->NumSuper());
     for(Int i = 0; i < superNode->etree.m(); ++i){
         Int curSnode = superNode->superIdx[i];
+	//statusOFS << std::endl << "curSnode = "<<curSnode<<std::endl;
         Int parentSnode = (superNode->etree[i]>= superNode->etree.m()) ?this->NumSuper():superNode->superIdx[superNode->etree[i]];
-	statusOFS << std::endl << "curSnode = "<<curSnode<<std::endl<<"parentSnode = "<<parentSnode<<std::endl<<std::endl;
+	//statusOFS << "parentSnode = "<<parentSnode<<std::endl<<std::endl;
  
         if( curSnode != parentSnode){
           snodeEtree[curSnode] = parentSnode;
         }
     }
 
-    statusOFS << std::endl << " The parent list of the Supernode etree is: " << snodeEtree <<std::endl<<std::endl;
+    end =  MPI_Wtime( );
+    statusOFS<<"Building the list took "<<end-begin<<"s"<<std::endl;
+//	 std::vector<Int> etree_supno(nsupers);
+//    statusOFS << std::endl << " The parent list of the Supernode etree is: " << etree_supno <<std::endl<<std::endl;
+//    statusOFS << std::endl << " The parent list of the Supernode etree is also : " << snodeEtree <<std::endl<<std::endl;
 
-    //find roots in the supernode etree
+
+
+
+
+//      etree_node *head, *tail, *ptr;
+//      std::vector<Int> num_child,perm_c_supno;
+//
+//
+//
+//      statusOFS<<std::endl<<"num_child = "<<num_child<<std::endl<<std::endl; 
+//      /* push initial leaves to the fifo queue */
+//      Int nnodes = 0;
+//      for( i=0; i<nsupers; i++ ) {
+//        if( num_child[i] == 0 ) {
+//          ptr = new etree_node;
+//          ptr->id = i;
+//          ptr->next = NULL;
+////         statusOFS<< "== push leaf "<<i<<" ("<<nnodes<<") ==\n";
+//          nnodes ++;
+//
+//          if( nnodes == 1 ) {
+//            head = ptr;
+//            tail = ptr;
+//          } else {
+//            tail->next = ptr;
+//            tail = ptr;
+//          }
+//        }
+//      }
+//
+//      /* process fifo queue, and compute the ordering */
+//      i = 0;
+//      perm_c_supno.resize(nsupers);
+//      while( nnodes > 0 ) {
+//        ptr = head;  j = ptr->id;
+//        head = ptr->next;
+//        perm_c_supno[i] = j;
+//        delete ptr;
+//        i++; nnodes --;
+//
+//        if( etree_supno[j] != nsupers ) {
+//          num_child[etree_supno[j]] --;
+//          if( num_child[etree_supno[j]] == 0 ) {
+//            nnodes ++;
+//
+//            ptr = new etree_node;
+//            ptr->id = etree_supno[j];
+//            ptr->next = NULL;
+//
+////            statusOFS<< "=== push "<<ptr->id<<" ===\n";
+//            if( nnodes == 1 ) {
+//              head = ptr;
+//              tail = ptr;
+//            } else {
+//              tail->next = ptr;
+//              tail = ptr;
+//            }
+//          }
+//        }
+////        statusOFS<<std::endl;
+//      }
+//
+//
+//    statusOFS<<std::endl<<"perm_c_supno = "<<perm_c_supno<<std::endl<<std::endl; 
+
+
+
+
+
+  begin = MPI_Wtime();
+
+
+    //find roots in the supernode etree (it must be postordered)
     //initialize the parent we are looking at 
     Int rootParent = snodeEtree[this->NumSuper()-2];
 
     //look for roots in the forest
     std::vector< Int>  initialRootList(1,rootParent);
     std::vector< Int> & prevRoot = initialRootList;
+   
+//    std::vector<Int> indexes(nsupers);
+//    for(Int i =0;i<nsupers;++i) indexes[i]=i;
+ 
+      /* initialize the num of child for each node */
+      std::vector<Int> num_child;
+      num_child.resize(nsupers,0);
+//      for( i=0; i<nsupers; i++ ) num_child[i] = 0;
+      for( i=0; i<nsupers; i++ ) if( snodeEtree[i] != nsupers ) num_child[snodeEtree[i]] ++;
 
     while(prevRoot.size()>0){
       WSet.push_back(std::vector<Int>());
+      Int totalChild =0;
+      for(Int i = 0; i<prevRoot.size();++i){ totalChild += num_child[prevRoot[i]]; }
+      WSet.back().reserve(totalChild);
+
+//      statusOFS<<"prevRoot "<<prevRoot<<std::endl;
       for(Int i = 0; i<prevRoot.size();++i){
         rootParent = prevRoot[i];
-        std::vector<Int>::iterator curRootIt = std::find (snodeEtree.begin() ,snodeEtree.end(), rootParent);
-        while(curRootIt != snodeEtree.end()){
+        std::vector<Int>::iterator parentIt = snodeEtree.begin()+rootParent;
+//        std::vector<Int>::iterator curRootIt = std::find (snodeEtree.begin() ,snodeEtree.end(), rootParent);
+        std::vector<Int>::iterator curRootIt = std::find (snodeEtree.begin() ,parentIt, rootParent);
+        while(curRootIt != parentIt){
+//        while(curRootIt != snodeEtree.end()){
           Int curNode = curRootIt - snodeEtree.begin();
+//if(curNode > rootParent)
+//          statusOFS<<"NON POSTORDER curNode "<<curNode<<std::endl;
+//          Int locidx = curRootIt - snodeEtree.begin();
+//          curNode = indexes[locidx];
           WSet.back().push_back(curNode);
           //switch the sign to remove this root
           *curRootIt =-*curRootIt;
+          
+////          Int lidx = locidx;
+////          while(indexes[lidx]!=lidx){
+////            statusOFS<<"lidx = "<<lidx<<std::endl;
+////            statusOFS<<"indexes[lidx] = "<<indexes[lidx]<<std::endl;
+////             lidx++;
+////          }
+////
+////          if(lidx<nsupers-1)
+////            indexes[locidx]= indexes[lidx];
+//
+//          if(indexes[locidx]!=locidx){
+//            indexes[locidx] = indexes[indexes[locidx]]; 
+//          }
+//          else{
+//            indexes[locidx]=indexes[locidx+1];
+//          }
+//
+//
+// 
+////          indexes.erase(indexes.begin()+locidx);
+//          snodeEtree.erase(curRootIt);
+          
           //look for next root
-          curRootIt = std::find (snodeEtree.begin() ,snodeEtree.end(), rootParent);
+//          curRootIt = std::find (snodeEtree.begin() ,snodeEtree.end(), rootParent);
+          curRootIt = std::find (snodeEtree.begin() ,parentIt, rootParent);
         }
         }
         //No we have now several roots >> must maintain a vector of roots
@@ -469,10 +620,8 @@ namespace PEXSI{
     statusOFS << std::endl << " Done building the working set" <<std::endl<<std::endl;
 
 
-#if ( _DEBUGlevel_ >= 2 )
-      double end =  MPI_Wtime( );
+      end =  MPI_Wtime( );
       statusOFS<<std::endl<<"Time for building working set: "<<end-begin<<std::endl<<std::endl;
-#endif
 
 #if ( _DEBUGlevel_ >= 1 )
       for (Int lidx=0; lidx<WSet.size() ; lidx++){
