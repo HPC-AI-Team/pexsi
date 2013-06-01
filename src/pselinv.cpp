@@ -641,6 +641,7 @@ namespace PEXSI{
           Real begin_SinvLGemm, end_SinvLGemm, time_SinvLGemm = 0;
           Real begin_SendUL, end_SendUL, time_SendUL = 0;
           Real begin_SendULWaitContent, end_SendULWaitContent, time_SendULWaitContent = 0;
+          Real begin_SendULWaitContentBis, end_SendULWaitContentBis, time_SendULWaitContentBis = 0;
           Real begin_SendULWaitSize, end_SendULWaitSize, time_SendULWaitSize = 0;
           Real begin_SinvLRed, end_SinvLRed, time_SinvLRed = 0;
           Real begin_UpdateDiag, end_UpdateDiag, time_UpdateDiag = 0;
@@ -1158,13 +1159,13 @@ namespace PEXSI{
                     if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
 
 #ifdef SELINV_TIMING
-            begin_SendULWaitContent = MPI_Wtime();
+            begin_SendULWaitContentBis = MPI_Wtime();
 #endif
                       mpi::Wait( arrMpireqsRecvContentFromAny[reqidx+1] );
 
 #ifdef SELINV_TIMING
-            end_SendULWaitContent = MPI_Wtime();
-            time_SendULWaitContent+= end_SendULWaitContent-begin_SendULWaitContent;
+            end_SendULWaitContentBis = MPI_Wtime();
+            time_SendULWaitContentBis+= end_SendULWaitContentBis-begin_SendULWaitContentBis;
 #endif
                       std::stringstream     sstm;
                       sstm.write( &sstrLcolRecv[0], sizeStmFromLeft );
@@ -1222,13 +1223,13 @@ namespace PEXSI{
                     if(MYROW( grid_ ) != PROW( ksup, grid_ ) ){
 
 #ifdef SELINV_TIMING
-            begin_SendULWaitContent = MPI_Wtime();
+            begin_SendULWaitContentBis = MPI_Wtime();
 #endif
                       mpi::Wait( arrMpireqsRecvContentFromAny[reqidx-1] );
 
 #ifdef SELINV_TIMING
-            end_SendULWaitContent = MPI_Wtime();
-            time_SendULWaitContent+= end_SendULWaitContent-begin_SendULWaitContent;
+            end_SendULWaitContentBis = MPI_Wtime();
+            time_SendULWaitContentBis+= end_SendULWaitContentBis-begin_SendULWaitContentBis;
 #endif
                       std::stringstream sstm;
                       sstm.write( &sstrUrowRecv[0], sizeStmFromAbove );
@@ -2354,6 +2355,7 @@ namespace PEXSI{
           statusOFS<<"Time for receiving L/U : "<< std::scientific<<time_SendUL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendUL/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for receiving L/U (Wait Size) : "<< std::scientific<<time_SendULWaitSize<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendULWaitSize/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for receiving L/U (Wait Content) : "<< std::scientific<<time_SendULWaitContent<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendULWaitContent/time_Total<< "%)"<<std::endl;
+          statusOFS<<"Time for receiving L/U (Wait Content (matching blocking)) : "<< std::scientific<<time_SendULWaitContentBis<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendULWaitContentBis/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for computing SinvL : "<< std::scientific<<time_SinvL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvL/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for computing SinvL (Gemm only) : "<< std::scientific<<time_SinvLGemm<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvLGemm/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for reducing SinvL : "<< std::scientific<<time_SinvLRed<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvLRed/time_Total<< "%)"<<std::endl;
