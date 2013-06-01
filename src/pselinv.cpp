@@ -727,12 +727,17 @@ namespace PEXSI{
             //allocate the buffers for this supernode
             arrMpireqsSendToBelow.resize( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
             arrMpireqsSendToRight.resize(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
+            arrMpireqsSendToBelow.assign( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
+            arrMpireqsSendToRight.assign(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
             //arrMpireqsRecvFromAbove.resize(stepSuper, std::vector<MPI_Request>( 2 , MPI_REQUEST_NULL ));
             //arrMpireqsRecvFromLeft.resize(stepSuper, std::vector<MPI_Request>( 2 , MPI_REQUEST_NULL ));
             //arrMpireqsRecvFromAbove.resize(stepSuper*2 , MPI_REQUEST_NULL );
             //arrMpireqsRecvFromLeft.resize(stepSuper*2 , MPI_REQUEST_NULL );
-            arrMpireqsRecvSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL );
-            arrMpireqsRecvContentFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL );
+            arrMpireqsRecvSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
+            arrMpireqsRecvContentFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
+            arrMpireqsRecvSizeFromAny.assign(stepSuper*2 , MPI_REQUEST_NULL );
+            arrMpireqsRecvContentFromAny.assign(stepSuper*2 , MPI_REQUEST_NULL );
+
             arrSstrUrowSend.resize(stepSuper, std::vector<char>( ));
             arrSstrLcolSend.resize(stepSuper, std::vector<char>( ));
             arrSstrUrowSizeSend.resize(stepSuper, 0);
@@ -878,15 +883,15 @@ namespace PEXSI{
               Int & sizeStmFromLeft = arrSizeStmFromLeft[supidx];
               Int & sizeStmFromAbove = arrSizeStmFromAbove[supidx];
 
-#if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl << "["<<ksup<<"] "<<  "Receive from both up and from left." << std::endl << std::endl; 
-#endif
+//#if ( _DEBUGlevel_ >= 1 )
+//              statusOFS << std::endl << "["<<ksup<<"] "<<  "Receive from both up and from left." << std::endl << std::endl; 
+//#endif
               // Receive the size first
               if( isRecvFromAbove_( ksup ) && 
                   MYROW( grid_ ) != PROW( ksup, grid_ ) ){
                 MPI_Irecv( &sizeStmFromAbove, 1, MPI_INT, PROW( ksup, grid_ ), 
                     SELINV_TAG_COUNT*supidx+SELINV_TAG_U_SIZE,
-                    grid_->colComm, &mpireqsRecvFromAbove[0] );
+                    grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<ksup<<"] "<<  "Receiving U size on tag " << (int)SELINV_TAG_COUNT*supidx+SELINV_TAG_U_SIZE<< std::endl <<  std::endl; 
 #endif
@@ -897,18 +902,20 @@ namespace PEXSI{
                   MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
                 MPI_Irecv( &sizeStmFromLeft, 1, MPI_INT, PCOL( ksup, grid_ ), 
                     SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE,
-                    grid_->rowComm, &mpireqsRecvFromLeft[0] );
+                    grid_->rowComm, mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<ksup<<"] "<<  "Receiving L size on tag " << (int)SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE<< std::endl <<  std::endl; 
 #endif
               } // if I need to receive from left
             }
 
+//            statusOFS<<std::endl<<"arrMpireqsRecvSizeFromAny = "<<arrMpireqsRecvSizeFromAny<<std::endl<<std::endl;
 
 
 #ifdef SELINV_TIMING
             begin_SendULWaitSize = MPI_Wtime();
 #endif
+
 
             mpi::Waitall(arrMpireqsRecvSizeFromAny);
 
@@ -971,7 +978,7 @@ namespace PEXSI{
                 sstrUrowRecv.resize( sizeStmFromAbove );
                 MPI_Irecv( &sstrUrowRecv[0], sizeStmFromAbove, MPI_BYTE, 
                     PROW( ksup, grid_ ), SELINV_TAG_COUNT*supidx+SELINV_TAG_U_CONTENT, 
-                    grid_->colComm, &mpireqsRecvFromAbove[1] );
+                    grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<ksup<<"] "<<  "Receiving U " << sizeStmFromAbove << " BYTES"<< std::endl <<  std::endl; 
 #endif
@@ -983,7 +990,7 @@ namespace PEXSI{
                 MPI_Irecv( &sstrLcolRecv[0], sizeStmFromLeft, MPI_BYTE, 
                     PCOL( ksup, grid_ ), SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, 
                     grid_->rowComm,
-                    &mpireqsRecvFromLeft[1] );
+                    mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<ksup<<"] "<<  "Receiving L " << sizeStmFromLeft << " BYTES"<< std::endl <<  std::endl; 
 #endif
@@ -991,9 +998,6 @@ namespace PEXSI{
             }
 
 
-#ifdef SELINV_TIMING
-            begin_SendULWaitContent = MPI_Wtime();
-#endif
 //            for (Int supidx=0; supidx<stepSuper ; supidx++){
 //              Int ksup = superList[lidx][supidx];
 //
@@ -1021,11 +1025,6 @@ namespace PEXSI{
 //              }
 //            }
 #ifdef SELINV_TIMING
-            end_SendULWaitContent = MPI_Wtime();
-            time_SendULWaitContent+= end_SendULWaitContent-begin_SendULWaitContent;
-#endif
-
-#ifdef SELINV_TIMING
             end_SendUL = MPI_Wtime();
             time_SendUL+= end_SendUL-begin_SendUL;
 #endif
@@ -1036,6 +1035,23 @@ namespace PEXSI{
 
 
             Int gemmProcessed = 0;
+            //copy the list of supernodes we need to process
+            std::vector<Int> localSupidx;
+              //find local things to do
+              for(Int sidx = 0;sidx<stepSuper;sidx++){
+                  Int ksup = superList[lidx][sidx];
+
+                  if( ( isRecvFromLeft_( ksup ) && ( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ) ) &&
+                     ( isRecvFromAbove_( ksup ) && ( MYROW( grid_ ) == PROW( ksup, grid_ ) ) ))
+                  {
+                    localSupidx.push_back(sidx);
+                  }
+              }
+
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<std::endl<<"localSupidx ="<<localSupidx<<std::endl;
+#endif
+
             while(gemmProcessed<stepSuper){
               Int reqidx = -1;
               Int supidx = -1;
@@ -1043,13 +1059,76 @@ namespace PEXSI{
               std::vector<LBlock> LcolRecv;
               std::vector<UBlock> UrowRecv;
 
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<std::endl;
+#endif
+
+
+
+
+
+              //if we have local computations, do them        
+              if(localSupidx.size() >0){
+                supidx = localSupidx.back();
+                localSupidx.pop_back();
+
+                ksup = superList[lidx][supidx];
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<<std::endl<<"Locally processing ["<<ksup<<"]"<<std::endl;
+#endif
+                std::vector<char> & sstrLcolRecv = arrSstrLcolRecv[supidx];
+                std::vector<char> & sstrUrowRecv = arrSstrUrowRecv[supidx];
+                Int & sizeStmFromLeft = arrSizeStmFromLeft[supidx];
+                Int & sizeStmFromAbove = arrSizeStmFromAbove[supidx];
+                  if( isRecvFromLeft_( ksup )){
+                      // L is obtained locally, just make a copy. 
+                      // Do not include the diagonal block
+                      std::vector<LBlock>& Lcol =  this->L( LBj( ksup, grid_ ) );
+                      if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+                        LcolRecv.resize( Lcol.size() );
+                        for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                          LcolRecv[ib] = Lcol[ib];
+                        }
+                      }
+                      else{
+                        LcolRecv.resize( Lcol.size() - 1 );
+                        for( Int ib = 0; ib < Lcol.size() - 1; ib++ ){
+                          LcolRecv[ib] = Lcol[ib+1];
+                        }
+                      }
+                  }
+
+                  if( isRecvFromAbove_( ksup )){
+                      // U is obtained locally, just make a copy. Include everything
+                      // (there is no diagonal block)
+                      UrowRecv = this->U( LBi( ksup, grid_ ) );
+                  }
+
+              }
+              else{
+
+
               //then process with the remote ones
+
+
+#ifdef SELINV_TIMING
+            begin_SendULWaitContent = MPI_Wtime();
+#endif
               MPI_Waitany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, MPI_STATUS_IGNORE);
+
+#ifdef SELINV_TIMING
+            end_SendULWaitContent = MPI_Wtime();
+            time_SendULWaitContent+= end_SendULWaitContent-begin_SendULWaitContent;
+#endif
               //I've received something
-              if(reqidx!=MPI_UNDEFINED){ 
+              if(reqidx!=MPI_UNDEFINED)
+              { 
                 supidx = reqidx/2;
                 ksup = superList[lidx][supidx];
 
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<<std::endl<<"Received data for ["<<ksup<<"] reqidx%2="<<reqidx%2<<std::endl;
+#endif
                 std::vector<char> & sstrLcolRecv = arrSstrLcolRecv[supidx];
                 std::vector<char> & sstrUrowRecv = arrSstrUrowRecv[supidx];
                 Int & sizeStmFromLeft = arrSizeStmFromLeft[supidx];
@@ -1057,12 +1136,36 @@ namespace PEXSI{
 
                 //if I've received from above
                 if(reqidx%2==0){
+
+
+                  if( isRecvFromAbove_( ksup )){
+                    if(MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+                      std::stringstream sstm;
+                      sstm.write( &sstrUrowRecv[0], sizeStmFromAbove );
+                      std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+                      Int numUBlock;
+                      deserialize( numUBlock, sstm, NO_MASK );
+                      UrowRecv.resize( numUBlock );
+                      for( Int jb = 0; jb < numUBlock; jb++ ){
+                        deserialize( UrowRecv[jb], sstm, mask );
+                      } 
+                    } // sender is not the same as receiver
+                  }
+
                   //Wait request from left if necessary
                   if( isRecvFromLeft_( ksup )){
                     //L part
                     if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+
+#ifdef SELINV_TIMING
+            begin_SendULWaitContent = MPI_Wtime();
+#endif
                       mpi::Wait( arrMpireqsRecvContentFromAny[reqidx+1] );
 
+#ifdef SELINV_TIMING
+            end_SendULWaitContent = MPI_Wtime();
+            time_SendULWaitContent+= end_SendULWaitContent-begin_SendULWaitContent;
+#endif
                       std::stringstream     sstm;
                       sstm.write( &sstrLcolRecv[0], sizeStmFromLeft );
                       std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
@@ -1095,11 +1198,38 @@ namespace PEXSI{
                 }
                 //If I've received from left
                 else{
+
+                  if( isRecvFromLeft_( ksup )){
+                    //L part
+                    if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+                      std::stringstream     sstm;
+                      sstm.write( &sstrLcolRecv[0], sizeStmFromLeft );
+                      std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+                      mask[LBlockMask::NZVAL] = 0; // nzval is excluded
+                      Int numLBlock;
+                      deserialize( numLBlock, sstm, NO_MASK );
+                      LcolRecv.resize( numLBlock );
+                      for( Int ib = 0; ib < numLBlock; ib++ ){
+                        deserialize( LcolRecv[ib], sstm, mask );
+                      }
+                    } // sender is not the same as receiver                    
+                  }
+
+
+
                   //Wait request from above if necessary
                   if( isRecvFromAbove_( ksup )){
                     if(MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+
+#ifdef SELINV_TIMING
+            begin_SendULWaitContent = MPI_Wtime();
+#endif
                       mpi::Wait( arrMpireqsRecvContentFromAny[reqidx-1] );
 
+#ifdef SELINV_TIMING
+            end_SendULWaitContent = MPI_Wtime();
+            time_SendULWaitContent+= end_SendULWaitContent-begin_SendULWaitContent;
+#endif
                       std::stringstream sstm;
                       sstm.write( &sstrUrowRecv[0], sizeStmFromAbove );
                       std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
@@ -1118,23 +1248,13 @@ namespace PEXSI{
 
                   }
                 }
-
-#if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl << "["<<ksup<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
-#endif
-
-
-
-
+              }
 
 
               }
-              //I did receive anything. Everything might be local
-              else{
-                //We have to pick one supidx 
-                supidx = gemmProcessed; 
-              }
-
+          
+            if(supidx!=-1){
+         
               ksup = superList[lidx][supidx];
               NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
 
@@ -1363,8 +1483,10 @@ namespace PEXSI{
               } // if Gemm is to be done locally
 
               //If I was a receiver, I need to send my data to proc in column of ksup
-              if( ( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) ) ||
-              (  isRecvFromAbove_( ksup ) && MYROW( grid_ ) != PROW( ksup, grid_ ))  ){
+              if( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) )
+//              if( ( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) ) ||
+//              (  isRecvFromAbove_( ksup ) && MYROW( grid_ ) != PROW( ksup, grid_ ))  )
+              {
                 std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
                 MPI_Isend( LUpdateBuf.Data(), LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar), MPI_BYTE, PCOL(ksup,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_REDUCE, grid_->rowComm, &mpireqsSendToRight[0] );
 
@@ -1372,12 +1494,12 @@ namespace PEXSI{
                 statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar) << " bytes to " << PCOL(ksup,grid_) << std::endl;
 #endif
               }//Sender
-
+              }
               gemmProcessed++;
             }
 
 
-
+{
 //
 //            for (Int supidx=0; supidx<stepSuper; supidx++){
 //              Int ksup = superList[lidx][supidx];
@@ -1684,6 +1806,7 @@ namespace PEXSI{
 //              }//Sender
 //            }
 //
+}
 #ifdef SELINV_TIMING
             end_SinvL = MPI_Wtime();
             time_SinvL += end_SinvL - begin_SinvL;
