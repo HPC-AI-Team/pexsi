@@ -325,7 +325,12 @@ int main(int argc, char **argv)
 				cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 #ifdef SANITY_CHECK
+			GetTime( timeSta );
 			PMlocRef.SelInvOriginal();
+			GetTime( timeEnd );
+			GetTime( timeTotalSelInvEnd );
+			if( mpirank == 0 )
+				cout << "Time for numerical selected inversion (original) is " << timeEnd  - timeSta << endl;
 //			PMlocRef.SelInv();
 #endif
 

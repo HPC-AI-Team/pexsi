@@ -1831,10 +1831,6 @@ namespace PEXSI{
                 std::vector<Int>  rowLocalPtrRecv;
                 std::vector<Int>  blockIdxLocalRecv;
                 NumMat<Scalar> UUpdateBuf;
-                //std::vector<Int> & rowLocalPtrRecv = rowLocalPtr;
-                //std::vector<Int> & blockIdxLocalRecv = blockIdxLocal;
-                //NumMat<Scalar> & UUpdateBuf = LUpdateBufReduced;
-
 
                 //TODO This has to be replaced by a MPI_ANY source...
                 Int src = PNUM( MYCOL( grid_ ), PCOL( ksup, grid_ ), grid_ );
@@ -1946,33 +1942,33 @@ namespace PEXSI{
 #endif
 
 
-            //        for (Int supidx=0; supidx<stepSuper; supidx++){
-            //          Int ksup = superList[lidx][supidx];
-            //            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            //            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-            //            mpi::Waitall( mpireqsSendToRight );
-            //            mpi::Waitall( mpireqsSendToBelow );
-            ////          if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) && isRecvFromLeft_( ksup ) ){
-            ////            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            ////            mpi::Wait( mpireqsSendToRight[0] );
-            ////            }
-            ////          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToDiagonal_(ksup) ){
-            ////            // Now all the Isend / Irecv should have finished.
-            ////            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            ////            mpi::Wait( mpireqsSendToRight[0] );
-            ////
-            ////            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-            ////            mpi::Wait( mpireqsSendToBelow[0] );
-            ////            mpi::Wait( mpireqsSendToBelow[1] );
-            ////#if ( _DEBUGlevel_ >= 1 )
-            ////            statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" is done sending DiagBuf to P" << PROW(ksup,grid_) <<  std::endl;
-            ////#endif
-            ////          }
-            //        }
-
 #ifdef SELINV_TIMING
             begin_Barrier = MPI_Wtime();
 #endif
+//                    for (Int supidx=0; supidx<stepSuper; supidx++){
+//                      Int ksup = superList[lidx][supidx];
+//                        std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+//                        std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+//                        mpi::Waitall( mpireqsSendToRight );
+//                        mpi::Waitall( mpireqsSendToBelow );
+//            //          if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) && isRecvFromLeft_( ksup ) ){
+//            //            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+//            //            mpi::Wait( mpireqsSendToRight[0] );
+//            //            }
+//            //          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToDiagonal_(ksup) ){
+//            //            // Now all the Isend / Irecv should have finished.
+//            //            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+//            //            mpi::Wait( mpireqsSendToRight[0] );
+//            //
+//            //            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+//            //            mpi::Wait( mpireqsSendToBelow[0] );
+//            //            mpi::Wait( mpireqsSendToBelow[1] );
+//            //#if ( _DEBUGlevel_ >= 1 )
+//            //            statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" is done sending DiagBuf to P" << PROW(ksup,grid_) <<  std::endl;
+//            //#endif
+//            //          }
+//                    }
+
 
             MPI_Barrier( grid_->comm );
 
