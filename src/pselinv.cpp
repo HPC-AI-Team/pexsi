@@ -69,7 +69,7 @@ namespace PEXSI{
 namespace PEXSI{
 
 
-  PMatrix::PMatrix ( const PEXSI::Grid* g, const PEXSI::SuperNode* s ):grid_(g), super_(s)
+  PMatrix::PMatrix ( const PEXSI::Grid* g, const PEXSI::SuperNode* s, const PEXSI::SuperLUOptions * o ):grid_(g), super_(s), options_(o)
   {
 #ifndef _RELEASE_
     PushCallStack("PMatrix::PMatrix");
@@ -95,6 +95,99 @@ namespace PEXSI{
   } 		// -----  end of method PMatrix::PMatrix  ----- 
 
   PMatrix::~PMatrix() {}	
+
+
+
+void PMatrix::GetEtree(std::vector<Int> & etree_supno )
+{
+
+#ifndef _RELEASE_
+      PushCallStack("PMatrix::GetEtree");
+#endif
+      Int nsupers = this->NumSuper();
+
+      if( options_->ColPerm != "PARMETIS" ) {
+          /* Use the etree computed from serial symb. fact., and turn it
+             into supernodal tree.  */
+        /* look for the first off-diagonal blocks */
+      //	 std::vector<Int> etree_supno(nsupers,nsupers);
+      //	 Int lb,jb;
+      ////          for( Int i=0; i<nsupers; i++ ) etree_supno[i] = nsupers;
+      //          for( Int j=0, lb=0; lb<nsupers; lb++ ) {
+      //              for( Int k=0; k<SuperSize(lb,super_); k++ ) {
+      //                  jb = superNode->superIdx[superNode->etree[j+k]];
+      //                  if( jb != lb ) etree_supno[lb] = std::min( etree_supno[lb], jb );
+      //              }
+      //              j += SuperSize(lb,super_);
+      //          }
+      //        etree_supno[nsupers-1]=nsupers;
+
+
+
+
+      const PEXSI::SuperNode * superNode = this->SuperNode();
+      statusOFS << std::endl << " Building snode list " << std::endl<<std::endl;
+
+      double begin =  MPI_Wtime( );
+
+      //translate from columns to supernodes etree using supIdx
+      etree_supno.resize(this->NumSuper());
+      for(Int i = 0; i < superNode->etree.m(); ++i){
+        Int curSnode = superNode->superIdx[i];
+        Int parentSnode = (superNode->etree[i]>= superNode->etree.m()) ?this->NumSuper():superNode->superIdx[superNode->etree[i]];
+        if( curSnode != parentSnode){
+          etree_supno[curSnode] = parentSnode;
+        }
+      }
+
+      double end =  MPI_Wtime( );
+      statusOFS<<"Building the list took "<<end-begin<<"s"<<std::endl;
+ 
+
+
+
+
+      } else { /* ParSymbFACT==YES and SymPattern==YES  and RowPerm == NOROWPERM */
+    /* Compute an "etree" based on struct(L), 
+       assuming struct(U) = struct(L').   */
+
+      double begin =  MPI_Wtime( );
+    /* find the first block in each supernodal-column of local L-factor */
+    std::vector<Int> etree_supno_l( nsupers, nsupers  );
+      for( Int ksup = 0; ksup < nsupers; ksup++ ){
+        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+          // L part
+          std::vector<LBlock>& Lcol = this->L( LBj(ksup, grid_) );
+          if(Lcol.size()>0){
+            Int firstBlk = 0;
+            if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+              firstBlk=1;
+
+            etree_supno_l[ksup] = Lcol[firstBlk].numRow;
+            for( Int ib = firstBlk+1; ib < Lcol.size(); ib++ ){
+              etree_supno_l[ksup] = std::min(etree_supno_l[ksup] , Lcol[ib].numRow);
+            }
+          }
+        }
+        }
+
+      statusOFS << std::endl << " etree_supno_l " << etree_supno_l << std::endl<<std::endl;
+
+    /* form global e-tree */
+    etree_supno.resize( nsupers );
+      statusOFS << std::endl << " etree_supno " << etree_supno << std::endl<<std::endl;
+      mpi::Allreduce( (Int*) &etree_supno_l[0],(Int *) &etree_supno[0], nsupers, MPI_MIN, grid_->comm );
+      statusOFS << std::endl << " etree_supno " << etree_supno << std::endl<<std::endl;
+    etree_supno[nsupers-1]=nsupers;
+
+      double end =  MPI_Wtime( );
+      statusOFS<<"Building the list took "<<end-begin<<"s"<<std::endl;
+  }
+
+#ifndef _RELEASE_
+      PopCallStack();
+#endif
+}
 
 
   void
@@ -400,124 +493,11 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 2 )
 #endif
       //do the real stuff with elimination trees
-      const PEXSI::SuperNode * superNode = this->SuperNode();
-      //#if ( _DEBUGlevel_ >= 2 )
-      //    statusOFS << std::endl << " The parent list of the etree is: " << superNode->etree <<std::endl<<std::endl;
-      //#endif
-
-      statusOFS << std::endl << " Building snode list " << std::endl<<std::endl;
-      Int nsupers = this->NumSuper();
-      /* look for the first off-diagonal blocks */
-      //         Int * etree_supno = new Int[nsupers];
-
-
-      double begin =  MPI_Wtime( );
-
-      //	 std::vector<Int> etree_supno(nsupers,nsupers);
-      //	 Int lb,jb;
-      ////          for( Int i=0; i<nsupers; i++ ) etree_supno[i] = nsupers;
-      //          for( Int j=0, lb=0; lb<nsupers; lb++ ) {
-      //              for( Int k=0; k<SuperSize(lb,super_); k++ ) {
-      //                  jb = superNode->superIdx[superNode->etree[j+k]];
-      //                  if( jb != lb ) etree_supno[lb] = std::min( etree_supno[lb], jb );
-      //              }
-      //              j += SuperSize(lb,super_);
-      //          }
-      //        etree_supno[nsupers-1]=nsupers;
-      //	 delete [] etree_supno;
-
-      double end =  MPI_Wtime( );
-      //    statusOFS<<"Building the list took "<<end-begin<<"s"<<std::endl;
-      begin =  MPI_Wtime( );
       //translate from columns to supernodes etree using supIdx
       std::vector<Int> snodeEtree(this->NumSuper());
-      for(Int i = 0; i < superNode->etree.m(); ++i){
-        Int curSnode = superNode->superIdx[i];
-        //statusOFS << std::endl << "curSnode = "<<curSnode<<std::endl;
-        Int parentSnode = (superNode->etree[i]>= superNode->etree.m()) ?this->NumSuper():superNode->superIdx[superNode->etree[i]];
-        //statusOFS << "parentSnode = "<<parentSnode<<std::endl<<std::endl;
+      GetEtree(snodeEtree);
 
-        if( curSnode != parentSnode){
-          snodeEtree[curSnode] = parentSnode;
-        }
-      }
-
-      end =  MPI_Wtime( );
-      statusOFS<<"Building the list took "<<end-begin<<"s"<<std::endl;
-      //	 std::vector<Int> etree_supno(nsupers);
-      //    statusOFS << std::endl << " The parent list of the Supernode etree is: " << etree_supno <<std::endl<<std::endl;
-      //    statusOFS << std::endl << " The parent list of the Supernode etree is also : " << snodeEtree <<std::endl<<std::endl;
-
-
-
-
-
-      //      etree_node *head, *tail, *ptr;
-      //      std::vector<Int> num_child,perm_c_supno;
-      //
-      //
-      //
-      //      statusOFS<<std::endl<<"num_child = "<<num_child<<std::endl<<std::endl; 
-      //      /* push initial leaves to the fifo queue */
-      //      Int nnodes = 0;
-      //      for( i=0; i<nsupers; i++ ) {
-      //        if( num_child[i] == 0 ) {
-      //          ptr = new etree_node;
-      //          ptr->id = i;
-      //          ptr->next = NULL;
-      ////         statusOFS<< "== push leaf "<<i<<" ("<<nnodes<<") ==\n";
-      //          nnodes ++;
-      //
-      //          if( nnodes == 1 ) {
-      //            head = ptr;
-      //            tail = ptr;
-      //          } else {
-      //            tail->next = ptr;
-      //            tail = ptr;
-      //          }
-      //        }
-      //      }
-      //
-      //      /* process fifo queue, and compute the ordering */
-      //      i = 0;
-      //      perm_c_supno.resize(nsupers);
-      //      while( nnodes > 0 ) {
-      //        ptr = head;  j = ptr->id;
-      //        head = ptr->next;
-      //        perm_c_supno[i] = j;
-      //        delete ptr;
-      //        i++; nnodes --;
-      //
-      //        if( etree_supno[j] != nsupers ) {
-      //          num_child[etree_supno[j]] --;
-      //          if( num_child[etree_supno[j]] == 0 ) {
-      //            nnodes ++;
-      //
-      //            ptr = new etree_node;
-      //            ptr->id = etree_supno[j];
-      //            ptr->next = NULL;
-      //
-      ////            statusOFS<< "=== push "<<ptr->id<<" ===\n";
-      //            if( nnodes == 1 ) {
-      //              head = ptr;
-      //              tail = ptr;
-      //            } else {
-      //              tail->next = ptr;
-      //              tail = ptr;
-      //            }
-      //          }
-      //        }
-      ////        statusOFS<<std::endl;
-      //      }
-      //
-      //
-      //    statusOFS<<std::endl<<"perm_c_supno = "<<perm_c_supno<<std::endl<<std::endl; 
-
-
-
-
-
-      begin = MPI_Wtime();
+      double begin = MPI_Wtime();
 
 
       //find roots in the supernode etree (it must be postordered)
@@ -532,6 +512,7 @@ namespace PEXSI{
       //    for(Int i =0;i<nsupers;++i) indexes[i]=i;
 
       /* initialize the num of child for each node */
+      Int nsupers = this->NumSuper();
       std::vector<Int> num_child;
       num_child.resize(nsupers,0);
       //      for( i=0; i<nsupers; i++ ) num_child[i] = 0;
@@ -598,7 +579,7 @@ namespace PEXSI{
         statusOFS << std::endl << " Done building the working set" <<std::endl<<std::endl;
 
 
-        end =  MPI_Wtime( );
+        double end =  MPI_Wtime( );
         statusOFS<<std::endl<<"Time for building working set: "<<end-begin<<std::endl<<std::endl;
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -635,6 +616,10 @@ namespace PEXSI{
           //    while (0 == i)
           //        sleep(5);
           //}
+
+#ifdef SELINV_MEMORY
+            Real globalBufSize = 0;
+#endif
 
 #ifdef SELINV_TIMING
           Real begin_SinvLRecv, end_SinvLRecv, time_SinvLRecv = 0;
@@ -680,11 +665,6 @@ namespace PEXSI{
 
             std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
             std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
-//            std::vector<std::vector<MPI_Request> >  arrMpireqsRecvFromAbove;
-//            std::vector<std::vector<MPI_Request> >  arrMpireqsRecvFromLeft;
-
-//            std::vector<MPI_Request>   arrMpireqsRecvFromAbove;
-//            std::vector<MPI_Request>   arrMpireqsRecvFromLeft;
             std::vector<MPI_Request>   arrMpireqsRecvSizeFromAny;
             std::vector<MPI_Request>   arrMpireqsRecvContentFromAny;
 
@@ -705,37 +685,11 @@ namespace PEXSI{
             std::vector<Int> arrSizeStmFromLeft;
             std::vector<Int >  arrSstrSizeCrossDiag;
 
-
-            //                MPI_Comm * arrColComm = new MPI_Comm[2*stepSuper];
-            //        
-            //                for (Int supidx=0; supidx<stepSuper; supidx++){
-            //                  Int ksup = superList[lidx][supidx];
-            ////                  MPI_Comm_split(grid_->colComm,( MYCOL(grid_) == PCOL(ksup,grid_)) && (( CountSendToRight(ksup)>0   ) || (MYROW(grid_) == PROW(ksup,grid_)))    ,MYROW(grid_) ,&arrColComm[supidx] );
-            //                  MPI_Comm_split(grid_->colComm,isSendToDiagonal_(ksup)  ,MYROW(grid_) ,&arrColComm[2*supidx] );
-            //                  Int tmpCnt = 0;
-            //                  MPI_Comm_size(arrColComm[2*supidx], &tmpCnt);
-            //                  Int myRank = 0;
-            //                  MPI_Comm_rank(arrColComm[2*supidx], &myRank);
-            //                  if(isSendToDiagonal_(ksup))
-            //                    statusOFS << std::endl<<  ksup << " Communicator size  = " << tmpCnt << "ROW "<< MYROW(grid_) << "has rank " << myRank << std::endl << std::endl; 
-            //                  MPI_Comm_split(grid_->rowComm, (CountSendToRight(ksup)>0) || isRecvFromLeft_(ksup)  ,MYCOL(grid_) ,&arrColComm[2*supidx+1] );
-            //                  tmpCnt = 0;
-            //                  MPI_Comm_size(arrColComm[2*supidx+1], &tmpCnt);
-            //                  myRank = 0;
-            //                  MPI_Comm_rank(arrColComm[2*supidx+1], &myRank);
-            //                  statusOFS << std::endl<<  ksup << " Communicator size  = " << tmpCnt << "COL "<< MYCOL(grid_) << "has rank " << myRank << std::endl << std::endl; 
-            //
-            //                }
-
             //allocate the buffers for this supernode
             arrMpireqsSendToBelow.resize( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
             arrMpireqsSendToRight.resize(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
             arrMpireqsSendToBelow.assign( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
             arrMpireqsSendToRight.assign(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
-            //arrMpireqsRecvFromAbove.resize(stepSuper, std::vector<MPI_Request>( 2 , MPI_REQUEST_NULL ));
-            //arrMpireqsRecvFromLeft.resize(stepSuper, std::vector<MPI_Request>( 2 , MPI_REQUEST_NULL ));
-            //arrMpireqsRecvFromAbove.resize(stepSuper*2 , MPI_REQUEST_NULL );
-            //arrMpireqsRecvFromLeft.resize(stepSuper*2 , MPI_REQUEST_NULL );
             arrMpireqsRecvSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
             arrMpireqsRecvContentFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
             arrMpireqsRecvSizeFromAny.assign(stepSuper*2 , MPI_REQUEST_NULL );
@@ -874,11 +828,6 @@ namespace PEXSI{
             for (Int supidx=0; supidx<stepSuper ; supidx++){
               Int ksup = superList[lidx][supidx];
 
-//              std::vector<MPI_Request> & mpireqsRecvFromAbove = arrMpireqsRecvFromAbove[supidx];
-//              std::vector<MPI_Request> & mpireqsRecvFromLeft = arrMpireqsRecvFromLeft[supidx];
-
-//              MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvFromAbove[supidx*2];
-//              MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvFromLeft[supidx*2];
 
               MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvSizeFromAny[supidx*2];
               MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvSizeFromAny[supidx*2+1];
@@ -912,7 +861,6 @@ namespace PEXSI{
               } // if I need to receive from left
             }
 
-//            statusOFS<<std::endl<<"arrMpireqsRecvSizeFromAny = "<<arrMpireqsRecvSizeFromAny<<std::endl<<std::endl;
 
 
 #ifdef SELINV_TIMING
@@ -922,37 +870,6 @@ namespace PEXSI{
 
             mpi::Waitall(arrMpireqsRecvSizeFromAny);
 
-//            mpi::Waitall(arrMpireqsRecvFromAbove);
-//            mpi::Waitall(arrMpireqsRecvFromLeft);
-
-//            for (Int supidx=0; supidx<stepSuper ; supidx++){
-//              Int ksup = superList[lidx][supidx];
-//
-//
-//              if( isRecvFromAbove_( ksup ) && 
-//                  MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-//
-//                //std::vector<MPI_Request> & mpireqsRecvFromAbove = arrMpireqsRecvFromAbove[supidx];
-//                MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvFromAbove[supidx*2];
-//#if ( _DEBUGlevel_ >= 1 )
-//                statusOFS << std::endl << "["<<ksup<<"] "<<  "Wait for all communication to be done (size)." << std::endl << std::endl; 
-//#endif
-//                // Wait to obtain size information
-//                mpi::Wait( mpireqsRecvFromAbove[0] );
-//              }
-//              if( isRecvFromLeft_( ksup ) &&
-//                  MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
-//                //std::vector<MPI_Request> & mpireqsRecvFromLeft = arrMpireqsRecvFromLeft[supidx];
-//                MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvFromLeft[supidx*2];
-//
-//#if ( _DEBUGlevel_ >= 1 )
-//                statusOFS << std::endl << "["<<ksup<<"] "<<  "Wait for all communication to be done (size)." << std::endl << std::endl; 
-//#endif
-//                // Wait to obtain size information
-//                mpi::Wait( mpireqsRecvFromLeft[0] );
-//              }
-//            }
-
 #ifdef SELINV_TIMING
             end_SendULWaitSize = MPI_Wtime();
             time_SendULWaitSize+= end_SendULWaitSize-begin_SendULWaitSize;
@@ -961,11 +878,6 @@ namespace PEXSI{
 
             for (Int supidx=0; supidx<stepSuper ; supidx++){
               Int ksup = superList[lidx][supidx];
-
-              //std::vector<MPI_Request> & mpireqsRecvFromAbove = arrMpireqsRecvFromAbove[supidx];
-              //std::vector<MPI_Request> & mpireqsRecvFromLeft = arrMpireqsRecvFromLeft[supidx];
-              //MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvFromAbove[supidx*2];
-              //MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvFromLeft[supidx*2];
 
               MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvContentFromAny[supidx*2];
               MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvContentFromAny[supidx*2+1];
@@ -999,38 +911,6 @@ namespace PEXSI{
 #endif
               } // if I need to receive from left
             }
-
-
-//            for (Int supidx=0; supidx<stepSuper ; supidx++){
-//              Int ksup = superList[lidx][supidx];
-//
-//              if( isRecvFromAbove_( ksup ) && 
-//                  MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-//
-//                //std::vector<MPI_Request> & mpireqsRecvFromAbove = arrMpireqsRecvFromAbove[supidx];
-//                MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvFromAbove[supidx*2];
-//#if ( _DEBUGlevel_ >= 1 )
-//                statusOFS << std::endl << "["<<ksup<<"] "<<  "Wait for all communication to be done (size)." << std::endl << std::endl; 
-//#endif
-//                // Wait to obtain size information
-//                mpi::Wait( mpireqsRecvFromAbove[1] );
-//              }
-//              if( isRecvFromLeft_( ksup ) &&
-//                  MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
-//                //std::vector<MPI_Request> & mpireqsRecvFromLeft = arrMpireqsRecvFromLeft[supidx];
-//                MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvFromLeft[supidx*2];
-//
-//#if ( _DEBUGlevel_ >= 1 )
-//                statusOFS << std::endl << "["<<ksup<<"] "<<  "Wait for all communication to be done (size)." << std::endl << std::endl; 
-//#endif
-//                // Wait to obtain size information
-//                mpi::Wait( mpireqsRecvFromLeft[1] );
-//              }
-//            }
-//#ifdef SELINV_TIMING
-//            end_SendUL = MPI_Wtime();
-//            time_SendUL+= end_SendUL-begin_SendUL;
-//#endif
 
 
 #ifdef SELINV_TIMING
@@ -1068,7 +948,7 @@ namespace PEXSI{
               }
               else if( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) )
                 {
-              //Dummy 0-b send If I was a receiver, I need to send my data to proc in column of ksup
+                  //Dummy 0-b send If I was a receiver, I need to send my data to proc in column of ksup
                   std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
                   NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
                   MPI_Isend( LUpdateBuf.Data(), LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar), MPI_BYTE, PCOL(ksup,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_REDUCE, grid_->rowComm, &mpireqsSendToRight[0] );
@@ -1087,8 +967,10 @@ namespace PEXSI{
 #endif
 
 #ifdef SELINV_TIMING
-end_SendULWaitContentFirst=0;
-begin_SendULWaitContentFirst=0;
+//              std::vector<Int> isReadyOriginal = isReady;
+//              statusOFS<<std::endl<<"isReadyOriginal ="<<isReadyOriginal<<std::endl;
+              end_SendULWaitContentFirst=0;
+              begin_SendULWaitContentFirst=0;
 #endif
 
             while(gemmProcessed<gemmToDo){
@@ -1141,7 +1023,7 @@ begin_SendULWaitContentFirst=0;
                     readySupidx.push_back(supidx);
 
 #ifdef SELINV_TIMING
-                if(end_SendULWaitContentFirst==0){
+                if(end_SendULWaitContentFirst==0){// && isReadyOriginal[supidx]==0){
                   end_SendULWaitContentFirst = MPI_Wtime();
                   time_SendULWaitContentFirst+= end_SendULWaitContentFirst-begin_SendULWaitContentFirst;
                 }
@@ -1599,28 +1481,6 @@ begin_SendULWaitContentFirst=0;
             //--------------------- End of reduce of LUpdateBuf-------------------------
 
 
-            ////#ifdef SELINV_TIMING
-            ////      begin_SinvLRedBis = MPI_Wtime();
-            ////#endif
-            ////        for (Int supidx=0; supidx<stepSuper; supidx++){
-            ////          Int ksup = superList[lidx][supidx];
-            ////
-            ////          NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
-            ////
-            //////allocate buffers if necessary
-            ////
-            ////			mpi::Reduce( LUpdateBuf.Data(), LUpdateBufReduced.Data(),
-            ////					numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 
-            ////					PCOL( ksup, grid_ ), grid_->rowComm );
-            ////
-            ////        }
-            ////#ifdef SELINV_TIMING
-            ////      end_SinvLRedBis = MPI_Wtime();
-            ////      time_SinvLRedBis += end_SinvLRedBis - begin_SinvLRedBis;
-            ////#endif
-
-
-
 
 #if ( _DEBUGlevel_ >= 2 )
             for (Int supidx=0; supidx<stepSuper; supidx++){
@@ -1995,12 +1855,52 @@ begin_SendULWaitContentFirst=0;
             time_Barrier += end_Barrier - begin_Barrier;
 #endif
 
-            //                for (Int supidx=0; supidx<stepSuper; supidx++){
-            //                  Int ksup = superList[lidx][supidx];
-            //                  MPI_Comm_free(&arrColComm[supidx]);
-            //                }
-            //                delete [] arrColComm;
 
+
+#ifdef SELINV_MEMORY
+            Real localBufSize = 0;
+
+            localBufSize += sizeof(arrMpireqsSendToBelow) + arrMpireqsSendToBelow.capacity()*sizeof(std::vector<MPI_Request>);
+            localBufSize += sizeof(arrMpireqsSendToRight) + arrMpireqsSendToRight.capacity()*sizeof(std::vector<MPI_Request>);
+            localBufSize += sizeof(arrMpireqsRecvSizeFromAny) + arrMpireqsRecvSizeFromAny.capacity()*sizeof(MPI_Request);
+            localBufSize += sizeof(arrMpireqsRecvContentFromAny) + arrMpireqsRecvContentFromAny.capacity()*sizeof(MPI_Request);
+            localBufSize += sizeof(arrLUpdateBuf) + arrLUpdateBuf.capacity()*sizeof(NumMat<Scalar>);
+            localBufSize += sizeof(arrDiagBuf) + arrDiagBuf.capacity()*sizeof(NumMat<Scalar>);
+
+            localBufSize += sizeof(arrSstrLcolSend) + arrSstrLcolSend.capacity()*sizeof(std::vector<char>);
+            localBufSize += sizeof(arrSstrUrowSend) + arrSstrUrowSend.capacity()*sizeof(std::vector<char>);
+            localBufSize += sizeof(arrSstrLcolRecv) + arrSstrLcolRecv.capacity()*sizeof(std::vector<char>);
+            localBufSize += sizeof(arrSstrUrowRecv) + arrSstrUrowRecv.capacity()*sizeof(std::vector<char>);
+            localBufSize += sizeof(arrSstrCrossDiag) + arrSstrCrossDiag.capacity()*sizeof(std::vector<char>);
+
+            localBufSize += sizeof(arrRowLocalPtr) + arrRowLocalPtr.capacity()*sizeof(std::vector<Int>);
+            localBufSize += sizeof(arrBlockIdxLocal) + arrBlockIdxLocal.capacity()*sizeof(std::vector<Int>);
+
+            localBufSize += sizeof(arrSstrLcolSizeSend) + arrSstrLcolSizeSend.capacity()*sizeof(Int);
+            localBufSize += sizeof(arrSstrUrowSizeSend) + arrSstrUrowSizeSend.capacity()*sizeof(Int);
+            localBufSize += sizeof(arrSstrSizeCrossDiag) + arrSstrSizeCrossDiag.capacity()*sizeof(Int);
+
+            localBufSize += sizeof(arrSizeStmFromAbove) + arrSizeStmFromAbove.capacity()*sizeof(Int);
+            localBufSize += sizeof(arrSizeStmFromLeft) + arrSizeStmFromLeft.capacity()*sizeof(Int);
+            for (Int supidx=0; supidx<stepSuper; supidx++){
+              localBufSize+= arrMpireqsSendToBelow[supidx].capacity()*sizeof(MPI_Request);
+              localBufSize+= arrMpireqsSendToRight[supidx].capacity()*sizeof(MPI_Request);
+
+              localBufSize+= arrLUpdateBuf[supidx].m()*arrLUpdateBuf[supidx].n()*sizeof(Scalar);
+              localBufSize+= arrDiagBuf[supidx].m()*arrDiagBuf[supidx].n()*sizeof(Scalar);
+
+
+              localBufSize+= arrSstrLcolSend[supidx].capacity()*sizeof(char);
+              localBufSize+= arrSstrUrowSend[supidx].capacity()*sizeof(char);
+              localBufSize+= arrSstrLcolRecv[supidx].capacity()*sizeof(char);
+              localBufSize+= arrSstrUrowRecv[supidx].capacity()*sizeof(char);
+              localBufSize+= arrSstrCrossDiag[supidx].capacity()*sizeof(char);
+
+              localBufSize+= arrRowLocalPtr[supidx].capacity()*sizeof(Int);
+              localBufSize+= arrBlockIdxLocal[supidx].capacity()*sizeof(Int);
+            }
+            globalBufSize = std::max(globalBufSize,localBufSize);
+#endif
           }
 
 #ifdef SELINV_TIMING
@@ -2011,7 +1911,6 @@ begin_SendULWaitContentFirst=0;
 #ifndef _RELEASE_
           PopCallStack();
 #endif
-
 
 
 #ifdef SELINV_TIMING
@@ -2035,7 +1934,13 @@ begin_SendULWaitContentFirst=0;
 #endif
 
 
-
+#ifdef SELINV_MEMORY
+          globalBufSize += sizeof(superList) + superList.capacity()*sizeof(std::vector<Int>);
+          for (Int lidx=0; lidx<numSteps ; lidx++){
+            globalBufSize += superList[lidx].capacity()*sizeof(Int);
+          }
+          statusOFS<<std::endl<<"Maximum allocated buffer size is : "<< globalBufSize << " Bytes" <<std::endl;
+#endif
           //        MPI_Barrier( grid_-> comm );
           return ;
         } 		// -----  end of method PMatrix::SelInv  ----- 

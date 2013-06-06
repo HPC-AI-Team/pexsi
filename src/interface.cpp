@@ -17,10 +17,12 @@
 
 using namespace PEXSI;
 
+
 // FIXME
-extern "C" { 
-	double seekeig_(double *, int *, double *, double *, double *);
-}
+// complex data structure used for interfacing with FORTRAN
+// struct C_Complex {double r; double i;};
+
+
 
 /// @brief Find the root using linear interpolation.
 ///
@@ -40,7 +42,9 @@ MonotoneRootFinding (
 	if( val <= y[0] || val >= y[numX-1] ){
 		std::ostringstream msg;
 		msg 
-			<< "val = " << val << " is out of bound." << std::endl;
+			<< "The root finding procedure cannot find the solution for y(x)=" 
+			<< val << std::endl << "here [min(y) max(y)] = [" << y[0] << ", "
+			<< y[numX-1] << "]" << std::endl;
 		throw std::runtime_error( msg.str().c_str() );
 	}
 
@@ -187,7 +191,6 @@ void ReadDistSparseMatrixFormattedInterface(
 /// @brief Interface between PPEXSI and C for computing the cumulative
 /// density of states using inertia counts.
 ///
-/// TODO: Finite temperature dependence of the mu result
 extern "C"
 void PPEXSIInertiaCountInterface(
 		// Input parameters
@@ -217,296 +220,389 @@ void PPEXSIInertiaCountInterface(
 		double*       muUpperEdge,                  // Ne(muUpperEdge) = Ne + eps. For band gapped system
 		int*          numIter,                      // Number of actual iterations for inertia count
 		double*       muList,                       // The list of shifts
-		double*       numElectronList               // The number of electrons corresponding to shifts (0K)
+		double*       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
+		int*          info                          // 0: successful exit.  1: unsuccessful
 		)
 {
 	Int mpirank, mpisize;
 	MPI_Comm_rank( comm, &mpirank );
 	MPI_Comm_size( comm, &mpisize );
 	Real timeSta, timeEnd;
-
-	if( mpisize % npPerPole != 0 ){
-		std::ostringstream msg;
-		msg 
-			<< "mpisize    = " << mpisize << std::endl
-			<< "npPerPole = " << npPerPole << std::endl
-			<< "mpisize is not divisible by npPerPole!" << std::endl;
-		throw std::runtime_error( msg.str().c_str() );
-	}
-
-	if( numElectronTolerance < 4 ){
-		std::ostringstream msg;
-		msg 
-			<< "numElectronTolerance = " << numElectronTolerance 
-			<< ", which is less than 4. " <<
-		 	"This is probably too tight for the purpose of inertia count." 
-			<< std::endl;
-		throw std::runtime_error( msg.str().c_str() );
-	}
-
-
 	// log files
 	std::stringstream  ss;
 	ss << "logPEXSI" << mpirank;
 	// append to previous log files
 	statusOFS.open( ss.str().c_str(), std::ios_base::app );
 
-	Int nprow = iround( std::sqrt( (double)npPerPole) );
-	Int npcol = npPerPole / nprow;
-
-	Grid gridPole( comm, mpisize / npPerPole, npPerPole );
-	PPEXSIData pexsi( &gridPole, nprow, npcol );
-
-	// Convert into H and S matrices
-	DistSparseMatrix<Real> HMat, SMat;
-
-	// The first row processors (size: npPerPole) read the matrix, and
-	// then distribute the matrix to the rest of the processors.
-	//
-	// NOTE: The first row processor must have data for H/S.
-	std::vector<char> sstr;
-	Int sizeStm;
-	if( MYROW( &gridPole ) == 0 ){
-		std::stringstream sstm;
-
-		HMat.size        = nrows;
-		HMat.nnz         = nnz;
-		HMat.nnzLocal    = nnzLocal;
-		// The first row processor does not need extra copies of the index /
-		// value of the matrix. 
-		HMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
-		HMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
-		// H value
-		HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
-		HMat.comm = gridPole.rowComm;
-
-		// Serialization will copy the values regardless of the ownership
-		serialize( HMat, sstm, NO_MASK );
-
-		// S value
-		if( isSIdentity ){
-			SMat.size = 0;
-			SMat.nnz  = 0;
-			SMat.nnzLocal = 0;
-		}
-		else{
-			CopyPattern( HMat, SMat );
-			SMat.comm = gridPole.rowComm;
-			SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
-			serialize( SMat.nzvalLocal, sstm, NO_MASK );
-		}
-		
-		
-		sstr.resize( Size( sstm ) );
-		sstm.read( &sstr[0], sstr.size() ); 	
-		sizeStm = sstr.size();
-	}
-	
-	MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
-	
-#if ( _DEBUGlevel_ >= 0 )
-	statusOFS << "sizeStm = " << sizeStm << std::endl;
-#endif
-
-	if( MYROW( &gridPole ) != 0 ) sstr.resize( sizeStm );
-
-	MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
-
-	if( MYROW( &gridPole ) != 0 ){
-		std::stringstream sstm;
-		sstm.write( &sstr[0], sizeStm );
-		deserialize( HMat, sstm, NO_MASK );
-		// Communicator
-		HMat.comm = gridPole.rowComm;
-		if( isSIdentity ){
-			SMat.size = 0;
-			SMat.nnz  = 0;
-			SMat.nnzLocal = 0;
-		}
-		else{
-			CopyPattern( HMat, SMat );
-			SMat.comm = gridPole.rowComm;
-			deserialize( SMat.nzvalLocal, sstm, NO_MASK );
-		}
-	}
-	sstr.clear();
+	try{
 
 
-#if ( _DEBUGlevel_ >= 0 )
-	statusOFS << "H.size     = " << HMat.size     << std::endl;
-	statusOFS << "H.nnzLocal = " << HMat.nnzLocal << std::endl;
-	statusOFS << "S.size     = " << SMat.size     << std::endl;
-	statusOFS << "S.nnzLocal = " << SMat.nnzLocal << std::endl;
-#endif
 
-
-	// Parameters
-	std::string colPerm;
-	switch (ordering){
-		case 0:
-			colPerm = "PARMETIS";
-			break;
-		case 1:
-			colPerm = "METIS_AT_PLUS_A";
-			break;
-		case 2:
-			colPerm = "MMD_AT_PLUS_A";
-			break;
-		default:
-			throw std::logic_error("Unsupported ordering strategy.");
-	}
-
-	// In inertia counts, "Pole" is the same as "Shifts" (since there is no actual pole here)
-	// inertiaVec is the zero-temperature cumulative DOS.
-	// inertiaFTVec is the finite temperature cumulative DOS, obtained from linear interpolation of
-	// inertiaVec.
-	Int  numShift = numPole;
-	std::vector<Real>  shiftVec( numShift );
-	std::vector<Real>  inertiaVec( numShift );
-	std::vector<Real>  inertiaFTVec( numShift );
-
-	Real muMin = muMin0;
-	Real muMax = muMax0;
-	Real muLow, muUpp;
-
-	bool isConverged = false;
-	Int  iter;
-	for( iter = 1; iter <= maxIter; iter++ ){
-		for( Int l = 0; l < numShift; l++ ){
-			shiftVec[l] = muMin + l * (muMax - muMin) / (numShift-1);
-		}
-
-		GetTime( timeSta );
-		pexsi.CalculateNegativeInertia( 
-				shiftVec,
-				inertiaVec,
-				HMat,
-				SMat,
-				colPerm );
-
-		GetTime( timeEnd );
-
-		// Inertia is multiplied by 2.0 to reflect the doubly occupied
-		// orbitals.
-		for( Int l = 0; l < numShift; l++ ){
-			inertiaVec[l] *= 2.0;
-		}
-
-		// Interpolation to compute the finite temperature cumulative DOS
-		Int numInp = 1000;
-		std::vector<Real>  shiftInpVec( numInp );
-		std::vector<Real>  inertiaInpVec( numInp ); 
-		std::vector<Real>  fdDrvVec( numInp );
-		for( Int l = 0; l < numShift; l++ ){
-			Real shiftInp0 = shiftVec[l] - 20 * temperature;
-			Real shiftInp1 = shiftVec[l] + 20 * temperature;
-			Real h = (shiftInp1 - shiftInp0) / (numInp-1);
-			for( Int i = 0; i < numInp; i++ ){
-				shiftInpVec[i] = shiftInp0 + h * i;
-				// fdDrvMu(x) = beta * exp(beta*x)/(1+exp(beta*z))^2
-				// Note: compared to fdDrvMu used in pole.cpp, the factor 2.0 is not
-				// present, because it is included in inertiaVec. 
-				fdDrvVec[i]    = 1.0 / ( 2.0 * temperature * (
-							1.0 + std::cosh( ( shiftInpVec[i] - shiftVec[l] ) / temperature ) ) );
-			}
-			LinearInterpolation( shiftVec, inertiaVec, 
-					shiftInpVec, inertiaInpVec );
-
-			inertiaFTVec[l] = 0.0;
-			for( Int i = 0; i < numInp; i++ ){
-				inertiaFTVec[l] += fdDrvVec[i] * inertiaInpVec[i] * h;
-			}
-
-#if ( _DEBUGlevel_ >= 0 )
-			statusOFS << std::setiosflags(std::ios::left) 
-				<< std::setw(LENGTH_VAR_NAME) << "Shift      = "
-				<< std::setw(LENGTH_VAR_DATA) << shiftVec[l]
-				<< std::setw(LENGTH_VAR_NAME) << "Inertia    = "
-				<< std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
-				<< std::setw(LENGTH_VAR_NAME) << "InertiaFT  = "
-				<< std::setw(LENGTH_VAR_DATA) << inertiaFTVec[l]
-				<< std::endl;
-#endif
-		} // for (l)
-
-#if ( _DEBUGlevel_ >= 0 )
-		statusOFS << std::endl << "Time for iteration " 
-			<< iter << " of the inertia count is " 
-			<< timeEnd - timeSta << std::endl;
-#endif
-
-		// Update muMin, muMax
-		// NOTE: divide by 4 is just heuristics so that the interval does
-		// not get to be too small for the PEXSI iteration
-		double mu0 = (muMin + muMax)/2.0;
-		const Real EPS = 0.3;  // For numerically determining the band edge
-
-		Real NeMin = std::max( inertiaFTVec[0] + EPS, 
-				numElectronExact - numElectronTolerance / 2 + EPS );
-		Real NeMax = std::min( inertiaFTVec[numShift-1] - EPS,
-				numElectronExact + numElectronTolerance / 2 - EPS );
-
-		Real NeLower = numElectronExact - EPS;
-		Real NeUpper = numElectronExact + EPS;
-
-		// Root finding using linear interpolation
-		muMin = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMin );
-		muMax = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMax );
-
-		muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower );
-		muUpp = MonotoneRootFinding( shiftVec, inertiaFTVec, NeUpper );
-
-		if( inertiaFTVec[0] >= numElectronExact ||
-				inertiaFTVec[numShift-1] <= numElectronExact ){
+		if( mpisize % npPerPole != 0 ){
 			std::ostringstream msg;
 			msg 
-				<< "The solution is not in the prescribed (muMin, muMax) interval." << std::endl
-				<< "(muMin, muMax) ~ (" << shiftVec[0] << " , " << shiftVec[numShift-1] << " ) " << std::endl
-				<< "(Ne(muMin), Ne(muMax)) ~ (" << inertiaFTVec[0] << " , " << inertiaFTVec[numShift-1] 
-				<< " ) " << std::endl
-				<< "NeExact = " << numElectronExact << std::endl;
+				<< "mpisize    = " << mpisize << std::endl
+				<< "npPerPole = " << npPerPole << std::endl
+				<< "mpisize is not divisible by npPerPole!" << std::endl;
 			throw std::runtime_error( msg.str().c_str() );
 		}
 
-		if( inertiaFTVec[numShift-1] - inertiaFTVec[0] < numElectronTolerance ){
-			isConverged = true;
-			break;
+		if( numElectronTolerance < 1 ){
+			std::ostringstream msg;
+			msg 
+				<< "numElectronTolerance = " << numElectronTolerance 
+				<< ", which is less than 1. " <<
+				"This is probably too tight for the purpose of inertia count." 
+				<< std::endl;
+			throw std::runtime_error( msg.str().c_str() );
 		}
 
-	} // for (iter)
 
-	if( isConverged ){
-		statusOFS << std::endl << "Inertia count converged. N(muMax) - N(muMin) = " <<
-			inertiaFTVec[numShift-1] - inertiaFTVec[0] << std::endl;
+
+		Int nprow = iround( std::sqrt( (double)npPerPole) );
+		Int npcol = npPerPole / nprow;
+
+		Grid gridPole( comm, mpisize / npPerPole, npPerPole );
+		PPEXSIData pexsi( &gridPole, nprow, npcol );
+
+		// Convert into H and S matrices
+		DistSparseMatrix<Real> HMat, SMat;
+
+		// The first row processors (size: npPerPole) read the matrix, and
+		// then distribute the matrix to the rest of the processors.
+		//
+		// NOTE: The first row processor must have data for H/S.
+		std::vector<char> sstr;
+		Int sizeStm;
+		if( MYROW( &gridPole ) == 0 ){
+			std::stringstream sstm;
+
+			HMat.size        = nrows;
+			HMat.nnz         = nnz;
+			HMat.nnzLocal    = nnzLocal;
+			// The first row processor does not need extra copies of the index /
+			// value of the matrix. 
+			HMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
+			HMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
+			// H value
+			HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
+			HMat.comm = gridPole.rowComm;
+
+			// Serialization will copy the values regardless of the ownership
+			serialize( HMat, sstm, NO_MASK );
+
+			// S value
+			if( isSIdentity ){
+				SMat.size = 0;
+				SMat.nnz  = 0;
+				SMat.nnzLocal = 0;
+			}
+			else{
+				CopyPattern( HMat, SMat );
+				SMat.comm = gridPole.rowComm;
+				SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+				serialize( SMat.nzvalLocal, sstm, NO_MASK );
+			}
+
+
+			sstr.resize( Size( sstm ) );
+			sstm.read( &sstr[0], sstr.size() ); 	
+			sizeStm = sstr.size();
+		}
+
+		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
+
+#if ( _DEBUGlevel_ >= 0 )
+		statusOFS << "sizeStm = " << sizeStm << std::endl;
+#endif
+
+		if( MYROW( &gridPole ) != 0 ) sstr.resize( sizeStm );
+
+		MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
+
+		if( MYROW( &gridPole ) != 0 ){
+			std::stringstream sstm;
+			sstm.write( &sstr[0], sizeStm );
+			deserialize( HMat, sstm, NO_MASK );
+			// Communicator
+			HMat.comm = gridPole.rowComm;
+			if( isSIdentity ){
+				SMat.size = 0;
+				SMat.nnz  = 0;
+				SMat.nnzLocal = 0;
+			}
+			else{
+				CopyPattern( HMat, SMat );
+				SMat.comm = gridPole.rowComm;
+				deserialize( SMat.nzvalLocal, sstm, NO_MASK );
+			}
+		}
+		sstr.clear();
+
+
+#if ( _DEBUGlevel_ >= 0 )
+		statusOFS << "H.size     = " << HMat.size     << std::endl;
+		statusOFS << "H.nnzLocal = " << HMat.nnzLocal << std::endl;
+		statusOFS << "S.size     = " << SMat.size     << std::endl;
+		statusOFS << "S.nnzLocal = " << SMat.nnzLocal << std::endl;
+#endif
+
+
+		// Parameters
+		std::string colPerm;
+		switch (ordering){
+			case 0:
+				colPerm = "PARMETIS";
+				break;
+			case 1:
+				colPerm = "METIS_AT_PLUS_A";
+				break;
+			case 2:
+				colPerm = "MMD_AT_PLUS_A";
+				break;
+			default:
+				throw std::logic_error("Unsupported ordering strategy.");
+		}
+
+		// In inertia counts, "Pole" is the same as "Shifts" (since there is no actual pole here)
+		// inertiaVec is the zero-temperature cumulative DOS.
+		// inertiaFTVec is the finite temperature cumulative DOS, obtained from linear interpolation of
+		// inertiaVec.
+		Int  numShift = numPole;
+		std::vector<Real>  shiftVec( numShift );
+		std::vector<Real>  inertiaVec( numShift );
+		std::vector<Real>  inertiaFTVec( numShift );
+
+		Real muMin = muMin0;
+		Real muMax = muMax0;
+		Real muLow, muUpp;
+
+		bool isConverged = false;
+		Int  iter;
+		for( iter = 1; iter <= maxIter; iter++ ){
+			for( Int l = 0; l < numShift; l++ ){
+				shiftVec[l] = muMin + l * (muMax - muMin) / (numShift-1);
+			}
+
+			GetTime( timeSta );
+			pexsi.CalculateNegativeInertia( 
+					shiftVec,
+					inertiaVec,
+					HMat,
+					SMat,
+					colPerm );
+
+			GetTime( timeEnd );
+
+			// Inertia is multiplied by 2.0 to reflect the doubly occupied
+			// orbitals.
+			for( Int l = 0; l < numShift; l++ ){
+				inertiaVec[l] *= 2.0;
+			}
+
+			// Interpolation to compute the finite temperature cumulative DOS
+			Int numInp = 1000;
+			std::vector<Real>  shiftInpVec( numInp );
+			std::vector<Real>  inertiaInpVec( numInp ); 
+			std::vector<Real>  fdDrvVec( numInp );
+			for( Int l = 0; l < numShift; l++ ){
+				Real shiftInp0 = shiftVec[l] - 20 * temperature;
+				Real shiftInp1 = shiftVec[l] + 20 * temperature;
+				Real h = (shiftInp1 - shiftInp0) / (numInp-1);
+				for( Int i = 0; i < numInp; i++ ){
+					shiftInpVec[i] = shiftInp0 + h * i;
+					// fdDrvMu(x) = beta * exp(beta*x)/(1+exp(beta*z))^2
+					// Note: compared to fdDrvMu used in pole.cpp, the factor 2.0 is not
+					// present, because it is included in inertiaVec. 
+					fdDrvVec[i]    = 1.0 / ( 2.0 * temperature * (
+								1.0 + std::cosh( ( shiftInpVec[i] - shiftVec[l] ) / temperature ) ) );
+				}
+				LinearInterpolation( shiftVec, inertiaVec, 
+						shiftInpVec, inertiaInpVec );
+
+				inertiaFTVec[l] = 0.0;
+				for( Int i = 0; i < numInp; i++ ){
+					inertiaFTVec[l] += fdDrvVec[i] * inertiaInpVec[i] * h;
+				}
+
+#if ( _DEBUGlevel_ >= 0 )
+				statusOFS << std::setiosflags(std::ios::left) 
+					<< std::setw(LENGTH_VAR_NAME) << "Shift      = "
+					<< std::setw(LENGTH_VAR_DATA) << shiftVec[l]
+					<< std::setw(LENGTH_VAR_NAME) << "Inertia    = "
+					<< std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
+					<< std::setw(LENGTH_VAR_NAME) << "InertiaFT  = "
+					<< std::setw(LENGTH_VAR_DATA) << inertiaFTVec[l]
+					<< std::endl;
+#endif
+			} // for (l)
+
+#if ( _DEBUGlevel_ >= 0 )
+			statusOFS << std::endl << "Time for iteration " 
+				<< iter << " of the inertia count is " 
+				<< timeEnd - timeSta << std::endl;
+#endif
+
+			// Convert the internal variables to output parameters
+			// This early output is mainly for debugging purpose.
+			{
+				for( Int l = 0; l < numShift; l++ ){
+					muList[l]          = shiftVec[l];
+					numElectronList[l] = inertiaFTVec[l];
+				}
+			}
+
+
+			if( inertiaFTVec[0] >= numElectronExact ||
+					inertiaFTVec[numShift-1] <= numElectronExact ){
+				std::ostringstream msg;
+				msg 
+					<< "The solution is not in the prescribed (muMin, muMax) interval." << std::endl
+					<< "(muMin, muMax) ~ (" << shiftVec[0] << " , " << shiftVec[numShift-1] << " ) " << std::endl
+					<< "(Ne(muMin), Ne(muMax)) ~ (" << inertiaFTVec[0] << " , " << inertiaFTVec[numShift-1] 
+					<< " ) " << std::endl
+					<< "NeExact = " << numElectronExact << std::endl
+					<< "Try to increase numElectronTolerance or initial search interval for mu." << std::endl;
+				throw std::runtime_error( msg.str().c_str() );
+			}
+
+
+			// Update muMin, muMax
+			// NOTE: divide by 4 is just heuristics so that the interval does
+			// not get to be too small for the PEXSI iteration
+
+			// First find the smallest interval
+			const Real EPS = 1e-1;
+			Int idxMin = 0, idxMax = numShift-1;
+			for( Int i = 0; i < numShift; i++ ){
+				if( inertiaFTVec[i] < numElectronExact &&
+						inertiaVec[i]   < numElectronExact ){
+					idxMin = ( idxMin < i ) ? i : idxMin;
+				}
+				if( inertiaFTVec[i] > numElectronExact &&
+						inertiaVec[i]   > numElectronExact )
+					idxMax = ( idxMax > i ) ? i : idxMax;
+			}
+
+#if ( _DEBUGlevel_ >= 0 )
+			statusOFS << "idxMin = " << idxMin << std::endl;
+			statusOFS << "idxMax = " << idxMax << std::endl;
+#endif
+
+
+
+			if( inertiaFTVec[idxMax] - inertiaFTVec[idxMin] >= 
+					numElectronTolerance ){
+				// The smallest interval still contain too many eigenvalues
+				muMin = shiftVec[idxMin];
+				muMax = shiftVec[idxMax];
+				Real NeMin, NeMax;
+				NeMin = std::min( inertiaFTVec[idxMin], 
+						numElectronExact - numElectronTolerance / 2 + EPS );
+				NeMin = std::max( inertiaFTVec[0] + EPS, NeMin );
+				NeMax = std::max( inertiaFTVec[idxMax],
+						numElectronExact + numElectronTolerance / 2 - EPS );
+				NeMax = std::min( inertiaFTVec[numShift-1] - EPS, NeMax );
+				muMin = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMin );
+				muMax = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMax );
+			}
+			else{
+				// Root finding using linear interpolation
+				Real NeMin, NeMax;
+				NeMin = numElectronExact - numElectronTolerance / 2 + EPS;
+				NeMin = std::max( inertiaFTVec[0] + EPS, NeMin );
+				NeMax = numElectronExact + numElectronTolerance / 2 - EPS;
+				NeMax = std::min( inertiaFTVec[numShift-1] - EPS, NeMax );
+				muMin = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMin );
+				muMax = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMax );
+			}
+
+
+			double mu0 = (muMin + muMax)/2.0;
+
+
+			Real NeLower = numElectronExact - EPS;
+			Real NeUpper = numElectronExact + EPS;
+
+
+			muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower );
+			muUpp = MonotoneRootFinding( shiftVec, inertiaFTVec, NeUpper );
+
+			// Convert the internal variables to output parameters
+			// This early output is mainly for debugging purpose.
+			{
+				*muMinInertia = muMin;
+				*muMaxInertia = muMax;
+				*muLowerEdge  = muLow;
+				*muUpperEdge  = muUpp;
+				*numIter      = iter;
+			}
+
+			// Output some information after EACH STEP for dynamical adjustament.
+			{
+				statusOFS << std::endl << "After inertia count iteration " << iter
+					<< std::endl;
+				Print( statusOFS, "muLowerEdge   = ", muLow );
+				Print( statusOFS, "muUppperEdge  = ", muUpp );
+				Print( statusOFS, "muMin         = ", muMin );
+				Print( statusOFS, "muMax         = ", muMax );
+				statusOFS << std::endl;
+			}
+
+			if( inertiaFTVec[numShift-1] - inertiaFTVec[0] < numElectronTolerance ){
+				isConverged = true;
+				break;
+			}
+
+		} // for (iter)
+
+
+		if( isConverged ){
+			statusOFS << std::endl << "Inertia count converged with " << iter
+				<< " iterations. N(muMax) - N(muMin) = " <<
+				inertiaFTVec[numShift-1] - inertiaFTVec[0] << std::endl;
+		}
+		else {
+			statusOFS << std::endl << "Inertia count did not converge with " << iter
+				<< " iterations. N(muMax) - N(muMin) = " <<
+				inertiaFTVec[numShift-1] - inertiaFTVec[0] << std::endl;
+		}
+
+
+		// Convert the internal variables to output parameters
+		*muMinInertia = muMin;
+		*muMaxInertia = muMax;
+		*muLowerEdge  = muLow;
+		*muUpperEdge  = muUpp;
+		*numIter      = iter;
+
+
+		for( Int l = 0; l < numShift; l++ ){
+			muList[l]          = shiftVec[l];
+			numElectronList[l] = inertiaFTVec[l];
+		}
+
+		*info = 0;
 	}
-	else {
-		statusOFS << std::endl << "Inertia count did not converge. N(muMax) - N(muMin) = " <<
-			inertiaFTVec[numShift-1] - inertiaFTVec[0] << std::endl;
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
 	}
 
-	statusOFS << std::endl << "After the inertia count," << std::endl;
-	Print( statusOFS, "numIter = ", iter );
-	Print( statusOFS, "muLowerEdge   = ", muLow );
-	Print( statusOFS, "muUppperEdge  = ", muUpp );
-	Print( statusOFS, "muMin         = ", muMin );
-	Print( statusOFS, "muMax         = ", muMax );
-	statusOFS << std::endl;
+	// Synchronize the info among all processors. 
+	// If any processor gets error message, info = 1
+	Int infoAll = 0;
+	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+	*info = infoAll;
 
-	statusOFS.close();
-
-	// Convert the internal variables to output parameters
-	*muMinInertia = muMin;
-	*muMaxInertia = muMax;
-	*muLowerEdge  = muLow;
-	*muUpperEdge  = muUpp;
-	*numIter      = iter;
-
-
-	for( Int l = 0; l < numShift; l++ ){
-		muList[l]          = shiftVec[l];
-		numElectronList[l] = inertiaVec[l];
-	}
-
+	statusOFS.close(); 
 	return;
 }  // -----  end of function PPEXSIInertiaCountInterface ----- 
 
@@ -549,7 +645,8 @@ void PPEXSISolveInterface (
 		int*          numIter,                      // Number of actual iterations for PEXSI
 		double*       muList,                       // The history of mu
 		double*       numElectronList,              // The history of number of electrons correspondig to mu
-		double*       numElectronDrvList            // The history of dN/dMu
+		double*       numElectronDrvList,           // The history of dN/dMu
+		int*          info                          // 0: successful exit.  1: unsuccessful
 		)
 {
 	Int mpirank, mpisize;
@@ -557,14 +654,269 @@ void PPEXSISolveInterface (
 	MPI_Comm_size( comm, &mpisize );
 	Real timeSta, timeEnd;
 
-	if( mpisize % npPerPole != 0 ){
-		std::ostringstream msg;
-		msg 
-			<< "mpisize    = " << mpisize << std::endl
-			<< "npPerPole  = " << npPerPole << std::endl
-			<< "mpisize is not divisible by npPerPole!" << std::endl;
-		throw std::runtime_error( msg.str().c_str() );
+	// log files
+	std::stringstream  ss;
+	ss << "logPEXSI" << mpirank;
+	// append to previous log files
+	statusOFS.open( ss.str().c_str(), std::ios_base::app );
+
+	try{
+		if( mpisize % npPerPole != 0 ){
+			std::ostringstream msg;
+			msg 
+				<< "mpisize    = " << mpisize << std::endl
+				<< "npPerPole  = " << npPerPole << std::endl
+				<< "mpisize is not divisible by npPerPole!" << std::endl;
+			throw std::runtime_error( msg.str().c_str() );
+		}
+
+
+		Int nprow = iround( std::sqrt( (double)npPerPole) );
+		Int npcol = npPerPole / nprow;
+
+		Grid gridPole( comm, mpisize / npPerPole, npPerPole );
+		PPEXSIData pexsi( &gridPole, nprow, npcol );
+
+		// Convert into H and S matrices
+		DistSparseMatrix<Real> HMat, SMat;
+
+		// The first row processors (size: npPerPole) read the matrix, and
+		// then distribute the matrix to the rest of the processors.
+		//
+		// NOTE: The first row processor must have data for H/S.
+		std::vector<char> sstr;
+		Int sizeStm;
+		if( MYROW( &gridPole ) == 0 ){
+			std::stringstream sstm;
+
+			HMat.size        = nrows;
+			HMat.nnz         = nnz;
+			HMat.nnzLocal    = nnzLocal;
+			// The first row processor does not need extra copies of the index /
+			// value of the matrix. 
+			HMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
+			HMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
+			// H value
+			HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
+			HMat.comm = gridPole.rowComm;
+
+			// Serialization will copy the values regardless of the ownership
+			serialize( HMat, sstm, NO_MASK );
+
+			// S value
+			if( isSIdentity ){
+				SMat.size = 0;
+				SMat.nnz  = 0;
+				SMat.nnzLocal = 0;
+			}
+			else{
+				CopyPattern( HMat, SMat );
+				SMat.comm = gridPole.rowComm;
+				SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+				serialize( SMat.nzvalLocal, sstm, NO_MASK );
+			}
+
+
+			sstr.resize( Size( sstm ) );
+			sstm.read( &sstr[0], sstr.size() ); 	
+			sizeStm = sstr.size();
+		}
+
+		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
+
+#if ( _DEBUGlevel_ >= 0 )
+		statusOFS << "sizeStm = " << sizeStm << std::endl;
+#endif
+
+		if( MYROW( &gridPole ) != 0 ) sstr.resize( sizeStm );
+
+		MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
+
+		if( MYROW( &gridPole ) != 0 ){
+			std::stringstream sstm;
+			sstm.write( &sstr[0], sizeStm );
+			deserialize( HMat, sstm, NO_MASK );
+			// Communicator
+			HMat.comm = gridPole.rowComm;
+			if( isSIdentity ){
+				SMat.size = 0;
+				SMat.nnz  = 0;
+				SMat.nnzLocal = 0;
+			}
+			else{
+				CopyPattern( HMat, SMat );
+				SMat.comm = gridPole.rowComm;
+				deserialize( SMat.nzvalLocal, sstm, NO_MASK );
+			}
+		}
+		sstr.clear();
+
+
+#if ( _DEBUGlevel_ >= 0 )
+		statusOFS << "H.size     = " << HMat.size     << std::endl;
+		statusOFS << "H.nnzLocal = " << HMat.nnzLocal << std::endl;
+		statusOFS << "S.size     = " << SMat.size     << std::endl;
+		statusOFS << "S.nnzLocal = " << SMat.nnzLocal << std::endl;
+#endif
+
+
+		// Parameters
+		bool isFreeEnergyDensityMatrix = true;
+		bool isEnergyDensityMatrix     = true;
+		bool isDerivativeTMatrix       = false;
+		bool isConverged               = false; 	
+		std::string colPerm;
+		switch (ordering){
+			case 0:
+				colPerm = "PARMETIS";
+				break;
+			case 1:
+				colPerm = "METIS_AT_PLUS_A";
+				break;
+			case 2:
+				colPerm = "MMD_AT_PLUS_A";
+				break;
+			default:
+				throw std::logic_error("Unsupported ordering strategy.");
+		}
+
+		std::vector<Real>  muVec;
+		std::vector<Real>  numElectronVec;
+		std::vector<Real>  numElectronDrvVec;
+
+		Real timeSolveSta, timeSolveEnd;
+
+		Real muMin = muMin0; 
+		Real muMax = muMax0;
+		Real mu    = mu0;
+
+		GetTime( timeSolveSta );
+		pexsi.Solve( 
+				numPole,
+				temperature,
+				numElectronExact,
+				gap,
+				deltaE,
+				mu,
+				muMin,
+				muMax,
+				HMat,
+				SMat,
+				maxIter,
+				numElectronTolerance,
+				colPerm,
+				isFreeEnergyDensityMatrix,
+				isEnergyDensityMatrix,
+				isDerivativeTMatrix,
+				muVec,
+				numElectronVec,
+				numElectronDrvVec,
+				isConverged	);
+		GetTime( timeSolveEnd );
+
+		Int muIter = muVec.size();
+
+		PrintBlock( statusOFS, "Solve finished." );
+		if( isConverged ){
+			statusOFS << "PEXSI has converged with " << muIter << 
+				" iterations" << std::endl;
+		}
+		else {
+			statusOFS << "PEXSI did not converge with " << muIter << 
+				" iterations" << std::endl;
+		}
+
+
+
+		// Convert the internal variables to output parameters
+
+		// Update the density matrices for the first row processors (size: npPerPole) 
+		if( MYROW( &gridPole ) == 0 ){
+			blas::Copy( nnzLocal, pexsi.DensityMatrix().nzvalLocal.Data(), 
+					1, DMnzvalLocal, 1 );
+
+			blas::Copy( nnzLocal, pexsi.FreeEnergyDensityMatrix().nzvalLocal.Data(), 
+					1, FDMnzvalLocal, 1 );
+
+			blas::Copy( nnzLocal, pexsi.EnergyDensityMatrix().nzvalLocal.Data(), 
+					1, EDMnzvalLocal, 1 );
+		}
+
+		*muPEXSI          = *(muVec.rbegin());
+		*numElectronPEXSI = *(numElectronVec.rbegin());
+		*muMinPEXSI       = muMin;
+		*muMaxPEXSI       = muMax;
+		*numIter          = muIter;
+		for( Int i = 0; i < muIter; i++ ){
+			muList[i]               = muVec[i];
+			numElectronList[i]      = numElectronVec[i];
+			numElectronDrvList[i]   = numElectronDrvVec[i];
+		}
+
+
+		MPI_Barrier( comm );
+
+		// Compute the guess for T=0 chemical potential. Not used anymore
+		//	*muZeroT = pexsi.EstimateZeroTemperatureChemicalPotential(
+		//			temperature,
+		//			*mu,
+		//			SMat );
+		//
+		//	Print( statusOFS, "guess of mu(T=0) = ", 
+		//			*muZeroT );
+
+		Print( statusOFS, "Total time for PEXSI = ", 
+				timeSolveEnd - timeSolveSta );
+
+		*info = 0;
 	}
+	catch( std::exception& e ) {
+		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	// Synchronize the info among all processors. 
+	// If any processor gets error message, info = 1
+	Int infoAll = 0;
+	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+	*info = infoAll;
+
+	statusOFS.close();
+	return;
+}  // -----  end of function PPEXSISolveInterface ----- 
+
+/// @brief Interface between PPEXSI and C for computing the selected
+/// elements of the matrix (H - z S)^{-1} for a given shift z. 
+extern "C" 
+void PPEXSISelInvInterface (
+		// Input parameters
+		int           nrows,                        // Size of the matrix
+	  int           nnz,                          // Total number of nonzeros in H
+		int           nnzLocal,                     // Number of nonzeros in H on this proc
+		int           numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int           isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+		double*       zShift,                       // Shift. Real: zShift[0], Imag: zShift[1]    
+		int           ordering,                     // SuperLUDIST ordering
+	  MPI_Comm	    comm,                         // Overall MPI communicator
+		// Output parameters
+		double*       AinvnzvalLocal,               // Nonzero value of Ainv = (H - z S)^{-1}
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+	Int mpirank, mpisize;
+	MPI_Comm_rank( comm, &mpirank );
+	MPI_Comm_size( comm, &mpisize );
+	Real timeSta, timeEnd;
 
 	// log files
 	std::stringstream  ss;
@@ -572,207 +924,272 @@ void PPEXSISolveInterface (
 	// append to previous log files
 	statusOFS.open( ss.str().c_str(), std::ios_base::app );
 
-	Int nprow = iround( std::sqrt( (double)npPerPole) );
-	Int npcol = npPerPole / nprow;
+	try{
+	  Int nprow = iround( std::sqrt( (double)mpisize) );
+		Int npcol = mpisize / nprow;
+		if( mpisize != nprow * npcol || nprow != npcol ){
+			throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
+		}
 
-	Grid gridPole( comm, mpisize / npPerPole, npPerPole );
-	PPEXSIData pexsi( &gridPole, nprow, npcol );
+		SuperLUGrid g( comm, nprow, npcol );
 
-	// Convert into H and S matrices
-	DistSparseMatrix<Real> HMat, SMat;
+		// Convert into H and S matrices
+		DistSparseMatrix<Real> HMat, SMat;
 
-	// The first row processors (size: npPerPole) read the matrix, and
-	// then distribute the matrix to the rest of the processors.
-	//
-	// NOTE: The first row processor must have data for H/S.
-	std::vector<char> sstr;
-	Int sizeStm;
-	if( MYROW( &gridPole ) == 0 ){
-		std::stringstream sstm;
+		// The first row processors (size: npPerPole) read the matrix, and
+		// then distribute the matrix to the rest of the processors.
+		//
+		// NOTE: The first row processor must have data for H/S.
+		{
+			HMat.size        = nrows;
+			HMat.nnz         = nnz;
+			HMat.nnzLocal    = nnzLocal;
+			// The first row processor does not need extra copies of the index /
+			// value of the matrix. 
+			HMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
+			HMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
+			// H value
+			HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
+			HMat.comm        = comm;
+			
+			// S value
+			if( isSIdentity ){
+				SMat.size = 0;
+				SMat.nnz  = 0;
+				SMat.nnzLocal = 0;
+			}
+			else{
+				CopyPattern( HMat, SMat );
+				SMat.comm = comm;
+				SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+			}
+		}
 
-		HMat.size        = nrows;
-		HMat.nnz         = nnz;
-		HMat.nnzLocal    = nnzLocal;
-		// The first row processor does not need extra copies of the index /
-		// value of the matrix. 
-		HMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
-		HMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
-		// H value
-		HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
-		HMat.comm = gridPole.rowComm;
+		// Get the diagonal indices for H and save it n diagIdxLocal
 
-		// Serialization will copy the values regardless of the ownership
-		serialize( HMat, sstm, NO_MASK );
+		std::vector<Int>  diagIdxLocal;
+		{ 
+			Int numColLocal      = HMat.colptrLocal.m() - 1;
+			Int numColLocalFirst = HMat.size / mpisize;
+			Int firstCol         = mpirank * numColLocalFirst;
 
-		// S value
-		if( isSIdentity ){
-			SMat.size = 0;
-			SMat.nnz  = 0;
-			SMat.nnzLocal = 0;
+			diagIdxLocal.clear();
+
+			for( Int j = 0; j < numColLocal; j++ ){
+				Int jcol = firstCol + j + 1;
+				for( Int i = HMat.colptrLocal(j)-1; 
+						i < HMat.colptrLocal(j+1)-1; i++ ){
+					Int irow = HMat.rowindLocal(i);
+					if( irow == jcol ){
+						diagIdxLocal.push_back( i );
+					}
+				}
+			} // for (j)
+		}
+
+
+		DistSparseMatrix<Complex>  AMat;
+		AMat.size          = HMat.size;
+		AMat.nnz           = HMat.nnz;
+		AMat.nnzLocal      = HMat.nnzLocal;
+		AMat.colptrLocal   = HMat.colptrLocal;
+		AMat.rowindLocal   = HMat.rowindLocal;
+		AMat.nzvalLocal.Resize( HMat.nnzLocal );
+		AMat.comm          = comm;
+
+		Complex *ptr0 = AMat.nzvalLocal.Data();
+		Real *ptr1 = HMat.nzvalLocal.Data();
+		Real *ptr2 = SMat.nzvalLocal.Data();
+		Complex zshift = Complex(zShift[0], zShift[1]);
+
+		if( SMat.size != 0 ){
+			// S is not an identity matrix
+			for( Int i = 0; i < HMat.nnzLocal; i++ ){
+				AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift * SMat.nzvalLocal(i);
+			}
 		}
 		else{
-			CopyPattern( HMat, SMat );
-			SMat.comm = gridPole.rowComm;
-			SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
-			serialize( SMat.nzvalLocal, sstm, NO_MASK );
+			// S is an identity matrix
+			for( Int i = 0; i < HMat.nnzLocal; i++ ){
+				AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+			}
+
+			for( Int i = 0; i < diagIdxLocal.size(); i++ ){
+				AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
+			}
+		} // if (SMat.size != 0 )
+
+		std::string colPerm;
+		switch (ordering){
+			case 0:
+				colPerm = "PARMETIS";
+				break;
+			case 1:
+				colPerm = "METIS_AT_PLUS_A";
+				break;
+			case 2:
+				colPerm = "MMD_AT_PLUS_A";
+				break;
+			default:
+				throw std::logic_error("Unsupported ordering strategy.");
 		}
-		
-		
-		sstr.resize( Size( sstm ) );
-		sstm.read( &sstr[0], sstr.size() ); 	
-		sizeStm = sstr.size();
+
+
+		// *********************************************************************
+		// Symbolic factorization 
+		// *********************************************************************
+
+		SuperLUOptions luOpt;
+		luOpt.ColPerm = colPerm;
+		SuperLUMatrix luMat( g, luOpt );
+		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+
+		luMat.SymbolicFactorize();
+		luMat.DestroyAOnly();
+		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+		luMat.Distribute();
+		luMat.NumericalFactorize();
+
+		// *********************************************************************
+		// Selected inversion
+		// *********************************************************************
+
+		Grid g1( comm, nprow, npcol );
+		SuperNode super;
+
+		luMat.SymbolicToSuperNode( super );
+		PMatrix PMloc( &g1, &super, &luOpt );
+		luMat.LUstructToPMatrix( PMloc );
+
+		PMloc.ConstructCommunicationPattern();
+		PMloc.PreSelInv();
+
+		// Main subroutine for selected inversion
+		PMloc.SelInv();
+
+		DistSparseMatrix<Complex>  AinvMat;       // A^{-1} in DistSparseMatrix format
+		PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+
+		// Convert the internal variables to output parameters
+
+		blas::Copy( nnzLocal*2, reinterpret_cast<double*>(AinvMat.nzvalLocal.Data()), 
+				1, AinvnzvalLocal, 1 );
+
+		*info = 0;
+	}
+	catch( std::exception& e ) {
+		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
 	}
 	
-	MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
-	
-#if ( _DEBUGlevel_ >= 0 )
-	statusOFS << "sizeStm = " << sizeStm << std::endl;
-#endif
-
-	if( MYROW( &gridPole ) != 0 ) sstr.resize( sizeStm );
-
-	MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
-
-	if( MYROW( &gridPole ) != 0 ){
-		std::stringstream sstm;
-		sstm.write( &sstr[0], sizeStm );
-		deserialize( HMat, sstm, NO_MASK );
-		// Communicator
-		HMat.comm = gridPole.rowComm;
-		if( isSIdentity ){
-			SMat.size = 0;
-			SMat.nnz  = 0;
-			SMat.nnzLocal = 0;
-		}
-		else{
-			CopyPattern( HMat, SMat );
-			SMat.comm = gridPole.rowComm;
-			deserialize( SMat.nzvalLocal, sstm, NO_MASK );
-		}
-	}
-	sstr.clear();
-
-
-#if ( _DEBUGlevel_ >= 0 )
-	statusOFS << "H.size     = " << HMat.size     << std::endl;
-	statusOFS << "H.nnzLocal = " << HMat.nnzLocal << std::endl;
-	statusOFS << "S.size     = " << SMat.size     << std::endl;
-	statusOFS << "S.nnzLocal = " << SMat.nnzLocal << std::endl;
-#endif
-
-
-	// Parameters
-	bool isFreeEnergyDensityMatrix = true;
-	bool isEnergyDensityMatrix     = true;
-	bool isDerivativeTMatrix       = false;
-	bool isConverged               = false; 	
-	std::string colPerm;
-	switch (ordering){
-		case 0:
-			colPerm = "PARMETIS";
-			break;
-		case 1:
-			colPerm = "METIS_AT_PLUS_A";
-			break;
-		case 2:
-			colPerm = "MMD_AT_PLUS_A";
-			break;
-		default:
-			throw std::logic_error("Unsupported ordering strategy.");
-	}
-
-	std::vector<Real>  muVec;
-	std::vector<Real>  numElectronVec;
-	std::vector<Real>  numElectronDrvVec;
-
-	Real timeSolveSta, timeSolveEnd;
-
-	Real muMin = muMin0; 
-	Real muMax = muMax0;
-	Real mu    = mu0;
-
-	GetTime( timeSolveSta );
-	pexsi.Solve( 
-			numPole,
-			temperature,
-			numElectronExact,
-			gap,
-			deltaE,
-			mu,
-			muMin,
-			muMax,
-			HMat,
-			SMat,
-			maxIter,
-			numElectronTolerance,
-			colPerm,
-			isFreeEnergyDensityMatrix,
-			isEnergyDensityMatrix,
-			isDerivativeTMatrix,
-			muVec,
-			numElectronVec,
-			numElectronDrvVec,
-			isConverged	);
-	GetTime( timeSolveEnd );
-
-	Int muIter = muVec.size();
-
-	PrintBlock( statusOFS, "Solve finished." );
-	if( isConverged ){
-		statusOFS << "PEXSI has converged with " << muIter << 
-			" iterations" << std::endl;
-	}
-	else {
-		statusOFS << "PEXSI did not converge with " << muIter << 
-			" iterations" << std::endl;
-	}
-
-
-
-	// Convert the internal variables to output parameters
-
-	// Update the density matrices for the first row processors (size: npPerPole) 
-	if( MYROW( &gridPole ) == 0 ){
-		blas::Copy( nnzLocal, pexsi.DensityMatrix().nzvalLocal.Data(), 
-				1, DMnzvalLocal, 1 );
-
-		blas::Copy( nnzLocal, pexsi.FreeEnergyDensityMatrix().nzvalLocal.Data(), 
-				1, FDMnzvalLocal, 1 );
-
-		blas::Copy( nnzLocal, pexsi.EnergyDensityMatrix().nzvalLocal.Data(), 
-				1, EDMnzvalLocal, 1 );
-	}
-
-	*muPEXSI          = *(muVec.rbegin());
-	*numElectronPEXSI = *(numElectronVec.rbegin());
-	*muMinPEXSI       = muMin;
-	*muMaxPEXSI       = muMax;
-	*numIter          = muIter;
-	for( Int i = 0; i < muIter; i++ ){
-		muList[i]               = muVec[i];
-		numElectronList[i]      = numElectronVec[i];
-		numElectronDrvList[i]   = numElectronDrvVec[i];
-	}
-
-
-	MPI_Barrier( comm );
-
-	// Compute the guess for T=0 chemical potential. Not used anymore
-//	*muZeroT = pexsi.EstimateZeroTemperatureChemicalPotential(
-//			temperature,
-//			*mu,
-//			SMat );
-//
-//	Print( statusOFS, "guess of mu(T=0) = ", 
-//			*muZeroT );
-
-	Print( statusOFS, "Total time for PEXSI = ", 
-			timeSolveEnd - timeSolveSta );
+	// Synchronize the info among all processors. 
+	// If any processor gets error message, info = 1
+	Int infoAll = 0;
+	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+	*info = infoAll;
 
 	statusOFS.close();
-	
 	return;
-}  // -----  end of function PPEXSISolveInterface ----- 
+}  // -----  end of function PPEXSISelInvInterface ----- 
+
+
+/// @brief Interface between PPEXSI and C for computing the local
+/// density of states, i.e.
+///   n(r;E) = lim_{eta->0+} Im 1/pi <r| (H-(E+i eta)I)^{-1} |r>
+/// This code returns the selected elements of the matrix
+///   
+///   1/pi Im ( H - (E+i eta) S )^{-1}
+///   
+extern "C" 
+void PPEXSILocalDOSInterface (
+		// Input parameters
+		int           nrows,                        // Size of the matrix
+	  int           nnz,                          // Total number of nonzeros in H
+		int           nnzLocal,                     // Number of nonzeros in H on this proc
+		int           numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int           isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+		double        Energy,                       // Real part of the shift
+		double        eta,                          // Broadening parameter
+		int           ordering,                     // SuperLUDIST ordering
+	  MPI_Comm	    comm,                         // Overall MPI communicator
+		// Output parameters
+		double*       localDOSnzvalLocal,           // Nonzero value of Im 1/pi (H - (E+ieta) S)^{-1}
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+	Int mpirank, mpisize;
+	MPI_Comm_rank( comm, &mpirank );
+	MPI_Comm_size( comm, &mpisize );
+	Real timeSta, timeEnd;
+
+	// log files
+	std::stringstream  ss;
+	ss << "logPEXSI" << mpirank;
+	// append to previous log files
+	statusOFS.open( ss.str().c_str(), std::ios_base::app );
+
+	try{
+		double zShift[2];
+		zShift[0] = Energy;
+		zShift[1] = eta;
+		DblNumVec Ainvnzval( 2 * nnzLocal );
+		SetValue( Ainvnzval, 0.0 );
+
+		PPEXSISelInvInterface(
+				nrows,
+				nnz,
+				nnzLocal,
+				numColLocal,
+				colptrLocal,
+				rowindLocal,
+				HnzvalLocal,
+				isSIdentity,
+				SnzvalLocal,
+				zShift,
+				ordering,
+				comm,	
+				Ainvnzval.Data(),
+				info );
+
+		if( *info ){
+			throw std::runtime_error("Error in SelInv!.");
+		}
+
+		// Get the imaginary part
+		blas::Copy( nnzLocal, Ainvnzval.Data()+1, 2, localDOSnzvalLocal, 1 );
+		// Scale the imaginary part by 1/pi
+		blas::Scal( nnzLocal, 1.0 / PI, localDOSnzvalLocal, 1 );
+	}
+	catch( std::exception& e ) {
+		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+	
+	// Synchronize the info among all processors. 
+	// If any processor gets error message, info = 1
+	Int infoAll = 0;
+	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+	*info = infoAll;
+
+	statusOFS.close();
+	return;
+}  // -----  end of function PPEXSILocalDOSInterface  ----- 
 
 // *********************************************************************
 // FORTRAN interface
@@ -887,7 +1304,8 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 		double*       muUpperEdge,                  // Ne(muUpperEdge) = Ne + eps. For band gapped system
 		int*          numIter,                      // Number of actual iterations for inertia count
 		double*       muList,                       // The list of shifts
-		double*       numElectronList               // The number of electrons corresponding to shifts (0K)
+		double*       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
+		int*          info                          // 0: successful exit.  1: unsuccessful
 		)
 {
 	PPEXSIInertiaCountInterface( 
@@ -916,7 +1334,8 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 			muUpperEdge,
 			numIter,
 			muList,
-			numElectronList );
+			numElectronList,
+		  info );
 
 	return;
 } // -----  end of function f_ppexsi_inertiacount_interface  ----- 
@@ -959,7 +1378,8 @@ void FORTRAN(f_ppexsi_solve_interface)(
 		int*          numIter,                      // Number of actual iterations for PEXSI
 		double*       muList,                       // The history of mu
 		double*       numElectronList,              // The history of number of electrons correspondig to mu
-		double*       numElectronDrvList            // The history of dN/dMu
+		double*       numElectronDrvList,           // The history of dN/dMu
+		int*          info                          // 0: successful exit.  1: unsuccessful
 		)
 {
 	PPEXSISolveInterface( 
@@ -995,7 +1415,94 @@ void FORTRAN(f_ppexsi_solve_interface)(
 			numIter,
 		  muList,
 	  	numElectronList,
-		  numElectronDrvList);
+		  numElectronDrvList,
+			info);
 
 	return;
 } // -----  end of function f_ppexsi_solve_interface  ----- 
+
+
+/// @brief Interface between PPEXSI and C for computing the selected
+/// elements of the matrix (H - z S)^{-1} for a given shift z. 
+extern "C" 
+void FORTRAN(f_ppexsi_selinv_interface)(
+		// Input parameters
+		int*          nrows,                        // Size of the matrix
+	  int*          nnz,                          // Total number of nonzeros in H
+		int*          nnzLocal,                     // Number of nonzeros in H on this proc
+		int*          numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int*          isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+		double*       zShift,                       // Shift. Real: zShift[0], Imag: zShift[1]    
+		int*          ordering,                     // SuperLUDIST ordering
+		int*    	    Fcomm,                        // Overall MPI communicator
+		// Output parameters
+		double*       AinvnzvalLocal,               // Nonzero value of Ainv = (H - z S)^{-1}
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+	PPEXSISelInvInterface(
+			*nrows,
+			*nnz,
+			*nnzLocal,
+			*numColLocal,
+			colptrLocal,
+			rowindLocal,
+			HnzvalLocal,
+			*isSIdentity,
+			SnzvalLocal,
+			zShift,
+			*ordering,
+			f2c_comm(Fcomm),
+			AinvnzvalLocal,
+			info );
+} // -----  end of function f_ppexsi_selinv_interface  ----- 
+
+/// @brief Interface between PPEXSI and C for computing the local
+/// density of states, i.e.
+///   n(r;E) = lim_{eta->0+} Im 1/pi <r| (H-(E+i eta)I)^{-1} |r>
+/// This code returns the selected elements of the matrix
+///   
+///   1/pi Im ( H - (E+i eta) S )^{-1}
+///   
+extern "C" 
+void FORTRAN(f_ppexsi_localdos_interface)(
+		// Input parameters
+		int*          nrows,                        // Size of the matrix
+	  int*          nnz,                          // Total number of nonzeros in H
+		int*          nnzLocal,                     // Number of nonzeros in H on this proc
+		int*          numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int*          isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+		double*       Energy,                       // Real part of the shift
+		double*       eta,                          // Broadening parameter
+		int*          ordering,                     // SuperLUDIST ordering
+		int*    	    Fcomm,                        // Overall MPI communicator
+		// Output parameters
+		double*       localDOSnzvalLocal,           // Nonzero value of Im 1/pi (H - (E+ieta) S)^{-1}
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+	PPEXSILocalDOSInterface(
+			*nrows,
+			*nnz,
+			*nnzLocal,
+			*numColLocal,
+			colptrLocal,
+			rowindLocal,
+			HnzvalLocal,
+			*isSIdentity,
+			SnzvalLocal,
+			*Energy,
+			*eta,
+			*ordering,
+			f2c_comm(Fcomm),
+			localDOSnzvalLocal,
+			info );
+} // -----  end of function f_ppexsi_localdos_interface  ----- 

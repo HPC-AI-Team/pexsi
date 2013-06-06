@@ -23,6 +23,21 @@ namespace PEXSI{
   /**********************************************************************
    * Basic PSelInv data structure
    **********************************************************************/
+/// @struct SuperLUOptions
+/// @brief A thin interface for setting the SuperLU options from
+/// outside.  
+///
+/// NOTE: Currently only the column permutation (the most frequently
+/// used one) is allowed to be specified from outside.
+struct SuperLUOptions{
+	std::string      ColPerm;
+
+	// Member functions to setup the default value
+	SuperLUOptions(): ColPerm("MMD_AT_PLUS_A") {}
+
+	~SuperLUOptions(){};
+};
+
 
   /// @struct Grid 
   ///
@@ -420,7 +435,9 @@ namespace PEXSI{
       //      std::vector<MPI_comm>         superNodeRowComm_;
 
       const SuperNode*      super_;
-      //SuperNode*      super_;
+
+      const SuperLUOptions * options_;
+
       std::vector<std::vector<LBlock> > L_;
       std::vector<std::vector<UBlock> > U_;
 
@@ -458,7 +475,7 @@ namespace PEXSI{
       // Public member functions 
       // *********************************************************************
 
-      PMatrix( const PEXSI::Grid* g, const PEXSI::SuperNode* s );
+      PMatrix( const PEXSI::Grid* g, const PEXSI::SuperNode* s, const PEXSI::SuperLUOptions * o );
 
       ~PMatrix();
 
@@ -502,6 +519,8 @@ namespace PEXSI{
       Int CountSendToRight(Int ksup) {  Int count= std::count (isSendToRight_.VecData(ksup), isSendToRight_.VecData(ksup) + grid_->numProcCol, true); return (isSendToRight_(MYCOL(grid_),ksup)?count-1:count); }
 
       Int CountRecvFromBelow(Int ksup) {  Int count= std::count (isRecvFromBelow_.VecData(ksup), isRecvFromBelow_.VecData(ksup) + grid_->numProcRow, true); return (isRecvFromBelow_(MYROW(grid_),ksup)?count-1:count); }
+
+      void PMatrix::GetEtree(std::vector<Int> & etree_supno );
 
       /// @brief ConstructCommunicationPattern constructs the communication
       /// pattern to be used later in the selected inversion stage.

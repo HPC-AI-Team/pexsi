@@ -274,13 +274,13 @@ int main(int argc, char **argv)
 			
 			GetTime( timeSta );
 			luMat.SymbolicToSuperNode( super );
-			PMatrix PMloc( &g1, &super );
+			PMatrix PMloc( &g1, &super, &luOpt );
 			luMat.LUstructToPMatrix( PMloc );
 			GetTime( timeEnd );
 #ifdef SANITY_CHECK
 			SuperNode superRef;
 			luMat.SymbolicToSuperNode( superRef );
-			PMatrix PMlocRef( &g1, &superRef );
+			PMatrix PMlocRef( &g1, &superRef, &luOpt  );
 			luMat.LUstructToPMatrix( PMlocRef );
 #endif
 			if( mpirank == 0 )
