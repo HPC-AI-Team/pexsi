@@ -475,18 +475,19 @@ void PPEXSIInertiaCountInterface(
 			const Real EPS = 1e-1;
 			Int idxMin = 0, idxMax = numShift-1;
 			for( Int i = 0; i < numShift; i++ ){
-				if( inertiaFTVec[i] < numElectronExact &&
-						inertiaVec[i]   < numElectronExact ){
+				if( ( inertiaFTVec[i] < numElectronExact ) &&
+						( inertiaVec[i]   < numElectronExact - EPS ) ){
 					idxMin = ( idxMin < i ) ? i : idxMin;
 				}
-				if( inertiaFTVec[i] > numElectronExact &&
-						inertiaVec[i]   > numElectronExact )
+				if( ( inertiaFTVec[i] > numElectronExact ) &&
+						( inertiaVec[i]   > numElectronExact + EPS ) ){
 					idxMax = ( idxMax > i ) ? i : idxMax;
+				}
 			}
 
 #if ( _DEBUGlevel_ >= 0 )
-			statusOFS << "idxMin = " << idxMin << std::endl;
-			statusOFS << "idxMax = " << idxMax << std::endl;
+			statusOFS << "idxMin = " << idxMin << "inertiaVec = " << inertiaVec[idxMin] << std::endl;
+			statusOFS << "idxMax = " << idxMax << "inertiaVec = " << inertiaVec[idxMax] << std::endl;
 #endif
 
 
