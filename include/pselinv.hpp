@@ -444,6 +444,7 @@ struct SuperLUOptions{
       // MJ
       std::vector<std::vector<Int> > workingSet_;
 
+
       // Communication variables
       NumMat<bool>                       isSendToBelow_;
       NumMat<bool>                       isSendToRight_;

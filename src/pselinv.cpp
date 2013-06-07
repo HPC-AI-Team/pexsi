@@ -102,90 +102,66 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 {
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrix::GetEtree");
+  PushCallStack("PMatrix::GetEtree");
+  double begin =  MPI_Wtime( );
 #endif
-      Int nsupers = this->NumSuper();
+  Int nsupers = this->NumSuper();
 
-      if( options_->ColPerm != "PARMETIS" ) {
-          /* Use the etree computed from serial symb. fact., and turn it
-             into supernodal tree.  */
-        /* look for the first off-diagonal blocks */
-      //	 std::vector<Int> etree_supno(nsupers,nsupers);
-      //	 Int lb,jb;
-      ////          for( Int i=0; i<nsupers; i++ ) etree_supno[i] = nsupers;
-      //          for( Int j=0, lb=0; lb<nsupers; lb++ ) {
-      //              for( Int k=0; k<SuperSize(lb,super_); k++ ) {
-      //                  jb = superNode->superIdx[superNode->etree[j+k]];
-      //                  if( jb != lb ) etree_supno[lb] = std::min( etree_supno[lb], jb );
-      //              }
-      //              j += SuperSize(lb,super_);
-      //          }
-      //        etree_supno[nsupers-1]=nsupers;
+  if( options_->ColPerm != "PARMETIS" ) {
+    /* Use the etree computed from serial symb. fact., and turn it
+       into supernodal tree.  */
+    const PEXSI::SuperNode * superNode = this->SuperNode();
 
 
-
-
-      const PEXSI::SuperNode * superNode = this->SuperNode();
-      statusOFS << std::endl << " Building snode list " << std::endl<<std::endl;
-
-      double begin =  MPI_Wtime( );
-
-      //translate from columns to supernodes etree using supIdx
-      etree_supno.resize(this->NumSuper());
-      for(Int i = 0; i < superNode->etree.m(); ++i){
-        Int curSnode = superNode->superIdx[i];
-        Int parentSnode = (superNode->etree[i]>= superNode->etree.m()) ?this->NumSuper():superNode->superIdx[superNode->etree[i]];
-        if( curSnode != parentSnode){
-          etree_supno[curSnode] = parentSnode;
-        }
+    //translate from columns to supernodes etree using supIdx
+    etree_supno.resize(this->NumSuper());
+    for(Int i = 0; i < superNode->etree.m(); ++i){
+      Int curSnode = superNode->superIdx[i];
+      Int parentSnode = (superNode->etree[i]>= superNode->etree.m()) ?this->NumSuper():superNode->superIdx[superNode->etree[i]];
+      if( curSnode != parentSnode){
+        etree_supno[curSnode] = parentSnode;
       }
+    }
 
-      double end =  MPI_Wtime( );
-      statusOFS<<"Building the list took "<<end-begin<<"s"<<std::endl;
- 
-
-
-
-
-      } else { /* ParSymbFACT==YES and SymPattern==YES  and RowPerm == NOROWPERM */
+  } else { /* ParSymbFACT==YES and SymPattern==YES  and RowPerm == NOROWPERM */
     /* Compute an "etree" based on struct(L), 
        assuming struct(U) = struct(L').   */
 
-      double begin =  MPI_Wtime( );
     /* find the first block in each supernodal-column of local L-factor */
     std::vector<Int> etree_supno_l( nsupers, nsupers  );
-      for( Int ksup = 0; ksup < nsupers; ksup++ ){
-        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-          // L part
-          std::vector<LBlock>& Lcol = this->L( LBj(ksup, grid_) );
-          if(Lcol.size()>0){
-            Int firstBlk = 0;
-            if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
-              firstBlk=1;
+    for( Int ksup = 0; ksup < nsupers; ksup++ ){
+      if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+        // L part
+        std::vector<LBlock>& Lcol = this->L( LBj(ksup, grid_) );
+        if(Lcol.size()>0){
+          Int firstBlk = 0;
+          if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+            firstBlk=1;
 
-            etree_supno_l[ksup] = Lcol[firstBlk].numRow;
-            for( Int ib = firstBlk+1; ib < Lcol.size(); ib++ ){
-              etree_supno_l[ksup] = std::min(etree_supno_l[ksup] , Lcol[ib].numRow);
+            for( Int ib = firstBlk; ib < Lcol.size(); ib++ ){
+              etree_supno_l[ksup] = std::min(etree_supno_l[ksup] , Lcol[ib].blockIdx);
             }
-          }
         }
-        }
+      }
+    }
 
-      statusOFS << std::endl << " etree_supno_l " << etree_supno_l << std::endl<<std::endl;
 
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl << " Local supernodal elimination tree is " << etree_supno_l <<std::endl<<std::endl;
+
+#endif
     /* form global e-tree */
     etree_supno.resize( nsupers );
-      statusOFS << std::endl << " etree_supno " << etree_supno << std::endl<<std::endl;
-      mpi::Allreduce( (Int*) &etree_supno_l[0],(Int *) &etree_supno[0], nsupers, MPI_MIN, grid_->comm );
-      statusOFS << std::endl << " etree_supno " << etree_supno << std::endl<<std::endl;
+    mpi::Allreduce( (Int*) &etree_supno_l[0],(Int *) &etree_supno[0], nsupers, MPI_MIN, grid_->comm );
     etree_supno[nsupers-1]=nsupers;
-
-      double end =  MPI_Wtime( );
-      statusOFS<<"Building the list took "<<end-begin<<"s"<<std::endl;
   }
 
 #ifndef _RELEASE_
-      PopCallStack();
+    double end =  MPI_Wtime( );
+    statusOFS<<"Building the list took "<<end-begin<<"s"<<std::endl;
+#endif
+#ifndef _RELEASE_
+  PopCallStack();
 #endif
 }
 
@@ -490,14 +466,17 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
       //Build the list of supernodes based on the elimination tree from SuperLU
       std::vector<std::vector<Int> > & WSet = this->WorkingSet();
 
-#if ( _DEBUGlevel_ >= 2 )
-#endif
       //do the real stuff with elimination trees
       //translate from columns to supernodes etree using supIdx
       std::vector<Int> snodeEtree(this->NumSuper());
       GetEtree(snodeEtree);
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl << " Supernodal elimination tree is " << snodeEtree <<std::endl<<std::endl;
+#endif
 
+#ifndef _RELEASE_
       double begin = MPI_Wtime();
+#endif
 
 
       //find roots in the supernode etree (it must be postordered)
@@ -515,7 +494,6 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
       Int nsupers = this->NumSuper();
       std::vector<Int> num_child;
       num_child.resize(nsupers,0);
-      //      for( i=0; i<nsupers; i++ ) num_child[i] = 0;
       for(Int i=0; i<nsupers; i++ ) if( snodeEtree[i] != nsupers ) num_child[snodeEtree[i]] ++;
 
       while(prevRoot.size()>0){
@@ -524,47 +502,16 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
         for(Int i = 0; i<prevRoot.size();++i){ totalChild += num_child[prevRoot[i]]; }
         WSet.back().reserve(totalChild);
 
-        //      statusOFS<<"prevRoot "<<prevRoot<<std::endl;
         for(Int i = 0; i<prevRoot.size();++i){
           rootParent = prevRoot[i];
           std::vector<Int>::iterator parentIt = snodeEtree.begin()+rootParent;
-          //        std::vector<Int>::iterator curRootIt = std::find (snodeEtree.begin() ,snodeEtree.end(), rootParent);
           std::vector<Int>::iterator curRootIt = std::find (snodeEtree.begin() ,parentIt, rootParent);
           while(curRootIt != parentIt){
-            //        while(curRootIt != snodeEtree.end()){
             Int curNode = curRootIt - snodeEtree.begin();
-            //if(curNode > rootParent)
-            //          statusOFS<<"NON POSTORDER curNode "<<curNode<<std::endl;
-            //          Int locidx = curRootIt - snodeEtree.begin();
-            //          curNode = indexes[locidx];
             WSet.back().push_back(curNode);
             //switch the sign to remove this root
             *curRootIt =-*curRootIt;
-
-            ////          Int lidx = locidx;
-            ////          while(indexes[lidx]!=lidx){
-            ////            statusOFS<<"lidx = "<<lidx<<std::endl;
-            ////            statusOFS<<"indexes[lidx] = "<<indexes[lidx]<<std::endl;
-            ////             lidx++;
-            ////          }
-            ////
-            ////          if(lidx<nsupers-1)
-            ////            indexes[locidx]= indexes[lidx];
-            //
-            //          if(indexes[locidx]!=locidx){
-            //            indexes[locidx] = indexes[indexes[locidx]]; 
-            //          }
-            //          else{
-            //            indexes[locidx]=indexes[locidx+1];
-            //          }
-            //
-            //
-            // 
-            ////          indexes.erase(indexes.begin()+locidx);
-            //          snodeEtree.erase(curRootIt);
-
             //look for next root
-            //          curRootIt = std::find (snodeEtree.begin() ,snodeEtree.end(), rootParent);
             curRootIt = std::find (snodeEtree.begin() ,parentIt, rootParent);
           }
           }
@@ -576,11 +523,10 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
         }
 
 
-        statusOFS << std::endl << " Done building the working set" <<std::endl<<std::endl;
-
-
+#ifndef _RELEASE_
         double end =  MPI_Wtime( );
         statusOFS<<std::endl<<"Time for building working set: "<<end-begin<<std::endl<<std::endl;
+#endif
 
 #if ( _DEBUGlevel_ >= 1 )
         for (Int lidx=0; lidx<WSet.size() ; lidx++){
