@@ -69,6 +69,17 @@ int main(int argc, char **argv)
 				<< std::endl << std::endl;
 		}
 
+    Int maxPipelineDepth = -1;
+		if( options.find("-P") != options.end() ){ 
+			maxPipelineDepth = atoi(options["-P"].c_str());
+		}
+		else{
+			statusOFS << "-P option is not given. " 
+				<< "Do not limit SelInv pipelining depth." 
+				<< std::endl << std::endl;
+		}
+
+
 		std::string ColPerm;
 		if( options.find("-colperm") != options.end() ){ 
 			ColPerm = options["-colperm"];
@@ -184,6 +195,7 @@ int main(int argc, char **argv)
 		GetTime( timeSta );
 		SuperLUOptions luOpt;
 		luOpt.ColPerm = ColPerm;
+		luOpt.MaxPipelineDepth = maxPipelineDepth;
 		SuperLUMatrix luMat( g, luOpt );
 		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
 		GetTime( timeEnd );

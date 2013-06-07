@@ -4,6 +4,13 @@
 /// @date 2012-11-20
 #include "pselinv.hpp"
 
+
+
+#define MAX_PIPELINE_DEPTH 4
+
+
+
+
 typedef struct {
   int id, key;
   void *next;
@@ -485,6 +492,9 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
       //look for roots in the forest
       std::vector< Int>  initialRootList(1,rootParent);
+      std::vector< Int>  mergeRootBuf;
+      bool needMerge = false;
+      Int prevRootIdx = -1;
       std::vector< Int> & prevRoot = initialRootList;
 
       //    std::vector<Int> indexes(nsupers);
@@ -508,27 +518,60 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
           std::vector<Int>::iterator curRootIt = std::find (snodeEtree.begin() ,parentIt, rootParent);
           while(curRootIt != parentIt){
             Int curNode = curRootIt - snodeEtree.begin();
+//            if(MAX_PIPELINE_DEPTH){
+//              if(WSet.back().size()>MAX_PIPELINE_DEPTH)
+//              {
+//                needMerge = true;
+//                Int remainChild = totalChild - WSet.back().size();
+//                WSet.push_back(std::vector<Int>());
+//                WSet.back().reserve(remainChild);
+//              }
+//            }
+
             WSet.back().push_back(curNode);
             //switch the sign to remove this root
             *curRootIt =-*curRootIt;
             //look for next root
             curRootIt = std::find (snodeEtree.begin() ,parentIt, rootParent);
           }
+        }
+        //No we have now several roots >> must maintain a vector of roots
+        if(needMerge){
+          mergeRootBuf.clear();
+          prevRootIdx++;
+          for(Int j=prevRootIdx;j<WSet.size();++j){
+            mergeRootBuf.insert(mergeRootBuf.end(),WSet[j].begin(),WSet[j].end());
           }
-          //No we have now several roots >> must maintain a vector of roots
-          prevRoot = WSet.back();
+          prevRoot = mergeRootBuf;
+          needMerge = false;
         }
-        if(WSet.back().size()==0){
-          WSet.pop_back();
+        else{
+          prevRootIdx++;
+          prevRoot = WSet[prevRootIdx];
         }
+      }
+      if(WSet.back().size()==0){
+        WSet.pop_back();
+      }
 
 
+      for (Int lidx=0; lidx<WSet.size() ; lidx++){
+            if(options_->MaxPipelineDepth){
+              if(WSet[lidx].size()>options_->MaxPipelineDepth)
+              {
+                std::vector<std::vector<Int> >::iterator pos = WSet.begin()+lidx+1;               
+                WSet.insert(pos,std::vector<Int>());
+                WSet[lidx+1].insert(WSet[lidx+1].begin(),WSet[lidx].begin() +options_->MaxPipelineDepth ,WSet[lidx].end());
+                WSet[lidx].erase(WSet[lidx].begin()+options_->MaxPipelineDepth,WSet[lidx].end());
+              }
+            }
+      }
 #ifndef _RELEASE_
         double end =  MPI_Wtime( );
         statusOFS<<std::endl<<"Time for building working set: "<<end-begin<<std::endl<<std::endl;
 #endif
 
-#if ( _DEBUGlevel_ >= 1 )
+#if ( _DEBUGlevel_ >= 0 )
         for (Int lidx=0; lidx<WSet.size() ; lidx++){
           statusOFS << std::endl << "L"<< lidx << " is: {";
           for (Int supidx=0; supidx<WSet[lidx].size() ; supidx++){
