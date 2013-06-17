@@ -20,13 +20,16 @@ DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F:.f=.d}
 	${FC} -c ${FFLAGS} $<
 
 
-all: libpexsi.a
+all: libpexsi.a 
 
 -include ${DEPS}
 
 libpexsi.a: ${OBJS}
-	$(AR) $(ARFLAGS) $@ ${OBJS}
-	$(RANLIB) $@
+	$(AR) $(ARFLAGS) $(shell basename $@ .a)_${MODE}.a ${OBJS}
+	$(RANLIB) $(shell basename $@ .a)_${MODE}.a
+ifeq (${MODE},release)
+	${CP} $(shell basename $@ .a)_${MODE}.a $@
+endif
 
 cleanall:
 	${RM} -f ${OBJS} ${DEPS} libpexsi.a *.d.*

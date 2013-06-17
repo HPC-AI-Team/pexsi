@@ -33,6 +33,7 @@ struct SuperLUOptions{
 	std::string      ColPerm;
 
   Int MaxPipelineDepth; 
+  Int MaxDomains;
 
 	// Member functions to setup the default value
 	SuperLUOptions(): ColPerm("MMD_AT_PLUS_A"), MaxPipelineDepth(-1) {}

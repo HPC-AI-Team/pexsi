@@ -10,7 +10,7 @@ extern "C"{
 void
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
 		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *info);
+		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *info, int maxDomains);
 }
 #else
 // TODO pdsymbfact
@@ -129,6 +129,8 @@ struct SuperLUMatrix::SuperLUData{
 	bool                isSuperMatrixFactorized;
 	bool                isScalePermstructAllocated;
 	bool                isLUstructAllocated;
+
+  Int maxDomains;
 };
 
 SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
@@ -143,6 +145,7 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 	ptrData->isSuperMatrixAllocated     = false;
 	ptrData->isScalePermstructAllocated = false;
 	ptrData->isLUstructAllocated        = false;
+  ptrData->maxDomains = opt.MaxDomains;
 
 	// Options
 	superlu_options_t& options = ptrData->options;
@@ -342,7 +345,7 @@ SuperLUMatrix::SymbolicFactorize	(  )
 	statusOFS << "Before symbfact subroutine." << std::endl;
 #endif
 	pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
-			&ptrData->LUstruct, &ptrData->stat, &ptrData->info);
+			&ptrData->LUstruct, &ptrData->stat, &ptrData->info, ptrData->maxDomains);
 	PStatFree(&ptrData->stat);
 
 	ptrData->isScalePermstructAllocated = true;
