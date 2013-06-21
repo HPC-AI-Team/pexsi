@@ -4,6 +4,16 @@
 /// @date 2013-04-15
 #include  "ppexsi.hpp"
 
+
+#ifdef USE_TAU
+  #include "TAU.h"
+#elif defined (PROFILE) || defined(PMPI)
+  #define TAU
+  #include "timer.h"
+#endif
+
+
+
 using namespace PEXSI;
 using namespace std;
 
@@ -19,6 +29,10 @@ int main(int argc, char **argv)
 		Usage();
 		return 0;
 	}
+
+#if defined(PROFILE) || defined(USE_TAU) || defined(PMPI)
+ TAU_PROFILE_INIT(argc, argv);
+#endif
 	
 	MPI_Init( &argc, &argv );
 	int mpirank, mpisize;
@@ -67,6 +81,13 @@ int main(int argc, char **argv)
       doSelInv= atoi(options["-Sinv"].c_str());
     }
 
+    int doSymbfact = true;
+    if( options.find("-Symb") != options.end() ){ 
+      doSymbfact= atoi(options["-Symb"].c_str());
+    }
+
+
+    doFacto = doFacto && doSymbfact;
 
 
     if( options.find("-H") != options.end() ){ 
@@ -230,6 +251,8 @@ int main(int argc, char **argv)
     if( mpirank == 0 )
       cout << "Time for converting to SuperLU format is " << timeEnd - timeSta << endl;
 
+
+    if(doSymbfact){
     GetTime( timeSta );
     luMat.SymbolicFactorize();
     luMat.DestroyAOnly();
@@ -237,7 +260,7 @@ int main(int argc, char **argv)
 
     if( mpirank == 0 )
       cout << "Time for performing the symbolic factorization is " << timeEnd - timeSta << endl;
-
+    }
 
     // *********************************************************************
     // Numerical factorization only 

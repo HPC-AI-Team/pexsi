@@ -635,7 +635,7 @@ LinearInterpolation (
 			yy[i] = y[numX-1];
 		}
 		else{
-			vi = lower_bound( x.begin(), x.end(), xx[i] );
+			vi = std::lower_bound( x.begin(), x.end(), xx[i] );
 			ix = vi - x.begin();
 
 			yy[i] = y[ix-1] + (y[ix] - y[ix-1]) / (x[ix] - x[ix-1]) 

@@ -48,7 +48,7 @@ MonotoneRootFinding (
 		throw std::runtime_error( msg.str().c_str() );
 	}
 
-	std::vector<Real>::const_iterator vi = lower_bound( 
+	std::vector<Real>::const_iterator vi = std::lower_bound( 
 			y.begin(), y.end(), val );
 
 	Int idx = vi - y.begin();

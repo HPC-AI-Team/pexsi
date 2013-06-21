@@ -26,13 +26,13 @@ all: run_pselinv run_pexsi run_ppexsi f_ppexsi
 
 
 run_pselinv: run_pselinv.o ${PEXSI_LIB} run_pselinv_ptscotch run_pselinv_parmetis
-	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS) )
+	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS_PTSCOTCH) )
 
 run_pselinv_parmetis: run_pselinv.o ${PEXSI_LIB} 
-	($(LOADER) -o $@_${MODE} run_pselinv.o  $(LOADOPTS_PARMETIS) )
+	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PARMETIS) )
 
 run_pselinv_ptscotch: run_pselinv.o ${PEXSI_LIB} 
-	($(LOADER) -o $@_${MODE} run_pselinv.o  $(LOADOPTS_PTSCOTCH) )
+	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PTSCOTCH) )
 
 
 run_pselinv.o: run_pselinv.cpp 

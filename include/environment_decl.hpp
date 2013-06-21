@@ -27,7 +27,7 @@
 #include <exception>
 
 // MPI
-#include "mpi.h"
+#include <mpi.h>
 
 // TODO Remove environment_impl.hpp. Move things to utility.hpp and only
 // keep environment.hpp
@@ -60,10 +60,15 @@ namespace PEXSI{
 
 // Basic data types
 
+#ifndef Add_
+#define FORTRAN(name) name
+#define BLAS(name) name
+#define LAPACK(name) name
+#else
 #define FORTRAN(name) name##_
 #define BLAS(name) name##_
 #define LAPACK(name) name##_
-
+#endif
 typedef    int                   Int;
 typedef    double                Real;
 typedef    std::complex<double>  Complex; // Must use elemental form of complex

@@ -2,7 +2,7 @@ include ../make.inc
 
 SRCS_C   = pzsymbfact.c get_perm_c_parmetis.c
 SRCS_CPP = interface.cpp ppexsi.cpp pexsi.cpp pole.cpp pselinv.cpp superlu_dist_interf.cpp \
-					 selinv_interf.cpp mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp 
+					 selinv_interf.cpp mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp 
 SRCS_F   = seekeig.f mpci.f
 
 OBJS     = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o} ${SRCS_F:.f=.o}
@@ -25,10 +25,12 @@ all: libpexsi.a
 -include ${DEPS}
 
 libpexsi.a: ${OBJS}
-	$(AR) $(ARFLAGS) $(shell basename $@ .a)_${MODE}.a ${OBJS}
-	$(RANLIB) $(shell basename $@ .a)_${MODE}.a
+	$(AR) $(ARFLAGS) $(shell basename $@ .a)_${SUFFIX}.a ${OBJS}
+	$(RANLIB) $(shell basename $@ .a)_${SUFFIX}.a
 ifeq (${MODE},release)
-	${CP} $(shell basename $@ .a)_${MODE}.a $@
+ifneq ($(USE_TAU),1)
+	${CP} $(shell basename $@ .a)_${SUFFIX}.a $@
+endif
 endif
 
 cleanall:

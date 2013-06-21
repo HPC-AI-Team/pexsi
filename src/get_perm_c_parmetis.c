@@ -213,17 +213,6 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 											 dist_order, l_sizes, metis_comm);
 
 #if ( PRNTlevel>=1 )
-    char strBuf [10*2*noDomains+1];
-    char * curPos = &strBuf[0];
-    curPos+= sprintf(curPos,"\nl_sizes is : ");
-    for(int i = 0; i<2*noDomains;++i){
-      curPos+= sprintf(curPos,"%d ",l_sizes[i]);
-    }
-    curPos+= sprintf(curPos,"\n");
-   fprintf(stdout,strBuf); 
-#endif
-
-#if ( PRNTlevel>=1 )
 		if ( !iam ) fprintf(stderr,"After actual ParMETIS.\n");
 #endif
 	}

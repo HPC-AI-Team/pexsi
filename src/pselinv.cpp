@@ -5,8 +5,13 @@
 #include "pselinv.hpp"
 
 
+#ifdef USE_TAU
+  #include "TAU.h"
+#elif defined (PROFILE) || defined(PMPI)
+  #define TAU
+  #include "timer.h"
+#endif
 
-#define MAX_PIPELINE_DEPTH 4
 
 
 
@@ -596,6 +601,9 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
         PMatrix::SelInv	(  )
         {
 
+
+
+
           //{
           //    int i = 0;
           //    char hostname[256];
@@ -607,16 +615,23 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
           //}
 
 #ifdef SELINV_MEMORY
+#ifdef USE_TAU
+    TAU_TRACK_MEMORY();
+    TAU_ENABLE_TRACKING_MEMORY();
+#else
             Real globalBufSize = 0;
+#endif
 #endif
 
 #ifdef SELINV_TIMING
-          Real begin_SinvLRecv, end_SinvLRecv, time_SinvLRecv = 0;
-          Real begin_SinvL, end_SinvL, time_SinvL = 0;
-          Real begin_SinvLGemm, end_SinvLGemm, time_SinvLGemm = 0;
-          Real begin_SendUL, end_SendUL, time_SendUL = 0;
-          Real begin_SendULWaitContent, end_SendULWaitContent, time_SendULWaitContent = 0;
           Real begin_SendULWaitContentFirst, end_SendULWaitContentFirst, time_SendULWaitContentFirst = 0;
+#if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
+    TAU_PROFILE_SET_CONTEXT(MPI_COMM_WORLD);
+#else
+          Real begin_SinvLRecv, end_SinvLRecv, time_SinvLRecv = 0;
+          Real begin_SinvLIdx, end_SinvLIdx, time_SinvLIdx = 0;
+          Real begin_SinvLGemm, end_SinvLGemm, time_SinvLGemm = 0;
+          Real begin_SendULWaitContent, end_SendULWaitContent, time_SendULWaitContent = 0;
           Real begin_SendULWaitContentBis, end_SendULWaitContentBis, time_SendULWaitContentBis = 0;
           Real begin_SendULWaitSize, end_SendULWaitSize, time_SendULWaitSize = 0;
           Real begin_SinvLRed, end_SinvLRed, time_SinvLRed = 0;
@@ -627,6 +642,19 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
           Real begin_AllocateBuf, end_AllocateBuf, time_AllocateBuf = 0;
           Real begin_Barrier, end_Barrier, time_Barrier = 0;
           Real begin_Total, end_Total, time_Total = 0;
+          Real begin_RecvCrossDiag, end_RecvCrossDiag, time_RecvCrossDiag = 0;
+          Real begin_SendCrossDiag, end_SendCrossDiag, time_SendCrossDiag = 0;
+#endif
+#endif
+
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("SelInv");
+#elif defined (PROFILE)
+    TAU_FSTART(SelInv);
+#else
+          begin_Total = MPI_Wtime();
+#endif
 #endif
 
 #ifndef _RELEASE_
@@ -634,9 +662,6 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 #endif
 
 
-#ifdef SELINV_TIMING
-          begin_Total = MPI_Wtime();
-#endif
 
           Int numSuper = this->NumSuper(); 
 
@@ -649,7 +674,13 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("AllocateBuffer");
+#elif defined(PROFILE)
+TAU_FSTART(AllocateBuffer);
+#else
             begin_AllocateBuf = MPI_Wtime();
+#endif
 #endif
 
             std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
@@ -699,11 +730,52 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
             arrSstrCrossDiag.resize(stepSuper);
             arrSstrSizeCrossDiag.resize(stepSuper,0);
 
+#ifdef USE_MPI_COLLECTIVES
 
+                          MPI_Comm * arrColComm = new MPI_Comm[2*stepSuper];
+                    
+                            for (Int supidx=0; supidx<stepSuper; supidx++){
+                              Int ksup = superList[lidx][supidx];
+            //                  MPI_Comm_split(grid_->colComm,( MYCOL(grid_) == PCOL(ksup,grid_)) && (( CountSendToRight(ksup)>0   ) || (MYROW(grid_) == PROW(ksup,grid_)))    ,MYROW(grid_) ,&arrColComm[supidx] );
+                              Int myRank = MYROW(grid_) % PROW(ksup, grid_);
+                              MPI_Comm_split(grid_->colComm,isSendToDiagonal_(ksup)  ,MYROW(grid_) % PROW(ksup, grid_)  ,&arrColComm[2*supidx] );
+                              Int tmpCnt = 0;
+                              MPI_Comm_size(arrColComm[2*supidx], &tmpCnt);
+                              MPI_Comm_rank(arrColComm[2*supidx], &myRank);
+                              if(isSendToDiagonal_(ksup))
+                                statusOFS << std::endl<<"<<"<<  ksup << ">> Column Communicator size  = " << tmpCnt << "ROW "<< MYROW(grid_) << "has rank " << myRank << "Root is "<< PROW(ksup,grid_)<< std::endl << std::endl; 
+                             
+                              if (CountRecvFromBelow(ksup) ){
+                                statusOFS << std::endl<<"<<"<<  ksup << ">> Column Communicator size should be  = " << CountRecvFromBelow(ksup) << std::endl << std::endl; 
+                              }
+
+
+                              MPI_Comm_split(grid_->rowComm, (CountSendToRight(ksup)>0) || isRecvFromLeft_(ksup)  ,MYCOL(grid_)  % PCOL(ksup,grid_),&arrColComm[2*supidx+1] );
+                              tmpCnt = 0;
+                              MPI_Comm_size(arrColComm[2*supidx+1], &tmpCnt);
+                              myRank = 0;
+                              MPI_Comm_rank(arrColComm[2*supidx+1], &myRank);
+                              statusOFS << std::endl<<"<<"<<  ksup << ">> Row Communicator size  = " << tmpCnt << "COL "<< MYCOL(grid_) << "has rank " << myRank << "Root is "<< PCOL(ksup,grid_)<<  std::endl << std::endl; 
+            
+                              if (CountSendToRight(ksup) ){
+                                statusOFS << std::endl<<"<<"<<  ksup << ">> Row Communicator size should be  = " << CountSendToRight(ksup) << std::endl << std::endl; 
+                              }
+
+                              //TODO do the same thing for send to below send to right
+                            }
+
+            
+#endif
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("AllocateBuffer");
+#elif defined(PROFILE)
+TAU_FSTOP(AllocateBuffer);
+#else
             end_AllocateBuf = MPI_Wtime();
             time_AllocateBuf += end_AllocateBuf - begin_AllocateBuf;
+#endif
 #endif
 
 
@@ -807,11 +879,6 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
               } // if I am the sender
             }
 
-
-#ifdef SELINV_TIMING
-            begin_SendUL = MPI_Wtime();
-#endif
-
             //TODO Ideally, we should not receive data in sequence but in any order with ksup packed with the data
             //Receive   
             for (Int supidx=0; supidx<stepSuper ; supidx++){
@@ -853,15 +920,27 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("WaitSize_UL");
+#elif defined(PROFILE)
+TAU_FSTART(WaitSize_UL);
+#else
             begin_SendULWaitSize = MPI_Wtime();
+#endif
 #endif
 
 
             mpi::Waitall(arrMpireqsRecvSizeFromAny);
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("WaitSize_UL");
+#elif defined(PROFILE)
+TAU_FSTOP(WaitSize_UL);
+#else
             end_SendULWaitSize = MPI_Wtime();
             time_SendULWaitSize+= end_SendULWaitSize-begin_SendULWaitSize;
+#endif
 #endif
 
 
@@ -903,7 +982,13 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Compute_Sinv_LT");
+#elif defined(PROFILE)
+TAU_FSTART(Compute_Sinv_LT);
+#else
             begin_SinvLRecv = MPI_Wtime();
+#endif
 #endif
 
             Int gemmProcessed = 0;
@@ -935,6 +1020,8 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 #endif
                 }
               }
+
+#ifndef USE_MPI_COLLECTIVES
               else if( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) )
                 {
                   //Dummy 0-b send If I was a receiver, I need to send my data to proc in column of ksup
@@ -946,7 +1033,7 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
                   statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar) << " bytes to " << PCOL(ksup,grid_) << std::endl;
 #endif
                 }//Sender
-
+#endif
             }
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -983,18 +1070,36 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("WaitContent_UL");
+//                if(begin_SendULWaitContentFirst==0){
+//                  TAU_START("WaitContent_UL_First");
+//                }
+#elif defined(PROFILE)
+TAU_FSTART(WaitContent_UL);
+                if(begin_SendULWaitContentFirst==0){
+TAU_FSTART(WaitContent_UL_First);
+}
+#else
                 begin_SendULWaitContent = MPI_Wtime();
                 if(begin_SendULWaitContentFirst==0){
                   begin_SendULWaitContentFirst = begin_SendULWaitContent; 
                 }
+#endif
 #endif
 
 
                 MPI_Waitany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, MPI_STATUS_IGNORE);
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("WaitContent_UL");
+#elif defined(PROFILE)
+TAU_FSTOP(WaitContent_UL);
+#else
                 end_SendULWaitContent = MPI_Wtime();
                 time_SendULWaitContent+= end_SendULWaitContent-begin_SendULWaitContent;
+#endif
 #endif
 
                 //I've received something
@@ -1012,10 +1117,20 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
                     readySupidx.push_back(supidx);
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+//                if(end_SendULWaitContentFirst==0){// && isReadyOriginal[supidx]==0){
+//    TAU_STOP("WaitContent_UL_First");
+//}
+#elif defined(PROFILE)
+                if(end_SendULWaitContentFirst==0){// && isReadyOriginal[supidx]==0){
+TAU_FSTOP(WaitContent_UL_First);
+                }
+#else
                 if(end_SendULWaitContentFirst==0){// && isReadyOriginal[supidx]==0){
                   end_SendULWaitContentFirst = MPI_Wtime();
                   time_SendULWaitContentFirst+= end_SendULWaitContentFirst-begin_SendULWaitContentFirst;
                 }
+#endif
 #endif
                     
                   }
@@ -1025,15 +1140,21 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
           
               if(readySupidx.size()>0){
 
-#ifdef SELINV_TIMING
-            begin_SinvL = MPI_Wtime();
-#endif
                 supidx = readySupidx.back();
                 readySupidx.pop_back();
 
                 ksup = superList[lidx][supidx];
 
 
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Compute_Sinv_LT_Lookup_Indexes");
+#elif defined(PROFILE)
+TAU_FSTART(Compute_Sinv_LT_Lookup_Indexes);
+#else
+            begin_SinvLIdx = MPI_Wtime();
+#endif
+#endif
 
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<ksup<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
@@ -1310,7 +1431,24 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 #endif
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Compute_Sinv_LT_Lookup_Indexes");
+#elif defined(PROFILE)
+TAU_FSTOP(Compute_Sinv_LT_Lookup_Indexes);
+#else
+            end_SinvLIdx = MPI_Wtime();
+            time_SinvLIdx += end_SinvLIdx - begin_SinvLIdx;
+#endif
+#endif
+
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Compute_Sinv_LT_GEMM");
+#elif defined(PROFILE)
+TAU_FSTART(Compute_Sinv_LT_GEMM);
+#else
                   begin_SinvLGemm = MPI_Wtime();
+#endif
 #endif
 
                   // Gemm for LUpdateBuf = -AinvBuf * UBuf^T
@@ -1319,8 +1457,14 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
                       UBuf.Data(), UBuf.m(), SCALAR_ZERO,
                       LUpdateBuf.Data(), LUpdateBuf.m() ); 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Compute_Sinv_LT_GEMM");
+#elif defined(PROFILE)
+TAU_FSTOP(Compute_Sinv_LT_GEMM);
+#else
                   end_SinvLGemm = MPI_Wtime();
                   time_SinvLGemm += end_SinvLGemm - begin_SinvLGemm;
+#endif
 #endif
 
 #if ( _DEBUGlevel_ >= 2 )
@@ -1328,6 +1472,8 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 #endif
                 } // if Gemm is to be done locally
 
+
+#ifndef USE_MPI_COLLECTIVES
                 //If I was a receiver, I need to send my data to proc in column of ksup
                 if( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) )
                   //              if( ( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) ) ||
@@ -1340,22 +1486,33 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
                   statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar) << " bytes to " << PCOL(ksup,grid_) << std::endl;
 #endif
                 }//Sender
+#endif
                 gemmProcessed++;
 
-#ifdef SELINV_TIMING
-            end_SinvL = MPI_Wtime();
-            time_SinvL += end_SinvL - begin_SinvL;
-#endif
+
               }
             }
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Compute_Sinv_LT");
+#elif defined(PROFILE)
+TAU_FSTOP(Compute_Sinv_LT);
+#else
             end_SinvLRecv = MPI_Wtime();
             time_SinvLRecv += end_SinvLRecv - begin_SinvLRecv;
 #endif
+#endif
 
+#ifndef USE_MPI_COLLECTIVES
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Reduce_Sinv_LT");
+#elif defined(PROFILE)
+TAU_FSTART(Reduce_Sinv_LT);
+#else
             begin_SinvLRed=MPI_Wtime();
+#endif
 #endif
             for (Int supidx=0; supidx<stepSuper; supidx++){
               Int ksup = superList[lidx][supidx];
@@ -1433,6 +1590,17 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
 
 #ifdef SEND_CROSSDIAG_ASYNC
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Send_L_CrossDiag");
+#elif defined(PROFILE)
+TAU_FSTART(Send_L_CrossDiag);
+#else
+            begin_SendCrossDiag = MPI_Wtime();
+#endif
+#endif
+
+
                 // Send LUpdateBufReduced to the cross diagonal blocks. 
                 // NOTE: This assumes square processor grid
                 if( isSendToCrossDiagonal_( ksup ) ){
@@ -1448,6 +1616,16 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
                     mpi::Isend( sstm, sstr, sizeStm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, mpireqsSendToBelow[0], mpireqsSendToBelow[1]);
                   }
                 } // sender to cross diagonal
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Send_L_CrossDiag");
+#elif defined(PROFILE)
+TAU_FSTOP(Send_L_CrossDiag);
+#else
+            end_SendCrossDiag = MPI_Wtime();
+            time_SendCrossDiag += end_SendCrossDiag - begin_SendCrossDiag;
+#endif
+#endif
 #endif
 
 
@@ -1455,9 +1633,95 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
             }
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Reduce_Sinv_LT");
+#elif defined(PROFILE)
+TAU_FSTOP(Reduce_Sinv_LT);
+#else
             end_SinvLRed = MPI_Wtime();
             time_SinvLRed += end_SinvLRed - begin_SinvLRed;
 #endif
+#endif
+
+#else
+
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Reduce_Sinv_LT");
+#elif defined(PROFILE)
+TAU_FSTART(Reduce_Sinv_LT);
+#else
+            begin_SinvLRed=MPI_Wtime();
+#endif
+#endif
+            for (Int supidx=0; supidx<stepSuper; supidx++){
+              Int ksup = superList[lidx][supidx];
+
+              NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
+
+                Int numRowLUpdateBuf;
+              if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+
+                //determine the number of rows in LUpdateBufReduced
+                std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
+                std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
+                std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+                if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+                  rowLocalPtr.resize( Lcol.size() + 1 );
+                  blockIdxLocal.resize( Lcol.size() );
+                  rowLocalPtr[0] = 0;
+                  for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                    rowLocalPtr[ib+1] = rowLocalPtr[ib] + Lcol[ib].numRow;
+                    blockIdxLocal[ib] = Lcol[ib].blockIdx;
+                  }
+                } // I do not own the diagonal block
+                else{
+                  rowLocalPtr.resize( Lcol.size() );
+                  blockIdxLocal.resize( Lcol.size() - 1 );
+                  rowLocalPtr[0] = 0;
+                  for( Int ib = 1; ib < Lcol.size(); ib++ ){
+                    rowLocalPtr[ib] = rowLocalPtr[ib-1] + Lcol[ib].numRow;
+                    blockIdxLocal[ib-1] = Lcol[ib].blockIdx;
+                  }
+                } // I own the diagonal block, skip the diagonal block
+                numRowLUpdateBuf = *rowLocalPtr.rbegin();
+
+              }
+
+              //Broadcast the size along the row
+              MPI_Bcast(&numRowLUpdateBuf, sizeof(numRowLUpdateBuf), MPI_BYTE, 0, arrColComm[2*supidx+1] );
+
+                NumMat<Scalar>  LUpdateBufReduced(numRowLUpdateBuf,SuperSize( ksup, super_ ) );
+                if( numRowLUpdateBuf > 0 ){
+                  if( LUpdateBuf.m() == 0 && LUpdateBuf.n() == 0 ){
+                    LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( ksup, super_ ) );
+                    // Fill zero is important
+                    SetValue( LUpdateBuf, SCALAR_ZERO );
+                  }
+                }
+
+            
+
+              //Use mpi_reduce  ROOT should be with local rank 0  to avoid index translation
+//              MPI_Reduce(LUpdateBuf.Data(), LUpdateBufReduced.Data(), LUpdateBuf.m()*LUpdateBuf.n(), MPI_REAL, MPI_SUM , 0, arrColComm[2*supidx+1]);
+            }
+
+
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Reduce_Sinv_LT");
+#elif defined(PROFILE)
+TAU_FSTOP(Reduce_Sinv_LT);
+#else
+            end_SinvLRed = MPI_Wtime();
+            time_SinvLRed += end_SinvLRed - begin_SinvLRed;
+#endif
+#endif
+
+#endif
+
+
+
 
             //        for (Int supidx=0; supidx<stepSuper; supidx++){
             //          Int ksup = superList[lidx][supidx];
@@ -1489,7 +1753,13 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Update_Diagonal");
+#elif defined(PROFILE)
+TAU_FSTART(Update_Diagonal);
+#else
             begin_UpdateDiag = MPI_Wtime();
+#endif
 #endif
             for (Int supidx=0; supidx<stepSuper; supidx++){
               Int ksup = superList[lidx][supidx];
@@ -1545,12 +1815,24 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
             }
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Update_Diagonal");
+#elif defined(PROFILE)
+TAU_FSTOP(Update_Diagonal);
+#else
             end_UpdateDiag = MPI_Wtime();
             time_UpdateDiag += end_UpdateDiag - begin_UpdateDiag;
 #endif
+#endif
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Reduce_Diagonal");
+#elif defined(PROFILE)
+TAU_FSTART(Reduce_Diagonal);
+#else
             begin_DiagbufRed = MPI_Wtime();
+#endif
 #endif
             for (Int supidx=0; supidx<stepSuper; supidx++){
               Int ksup = superList[lidx][supidx];
@@ -1615,15 +1897,23 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
             }
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Reduce_Diagonal");
+#elif defined(PROFILE)
+TAU_FSTOP(Reduce_Diagonal);
+#else
             end_DiagbufRed = MPI_Wtime();
             time_DiagbufRed += end_DiagbufRed - begin_DiagbufRed;
+#endif
 #endif
 
 
 
 
 #ifdef SELINV_TIMING
+#if not ( defined (USE_TAU) || defined (PROFILE) || defined(PMPI) )
             begin_Barrier = MPI_Wtime();
+#endif
 #endif
             for (Int supidx=0; supidx<stepSuper; supidx++){
               Int ksup = superList[lidx][supidx];
@@ -1639,8 +1929,10 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
             }
 
 #ifdef SELINV_TIMING
+#if not ( defined (USE_TAU) || defined (PROFILE) || defined(PMPI) )
             end_Barrier = MPI_Wtime();
             time_Barrier += end_Barrier - begin_Barrier;
+#endif
 #endif
 
 
@@ -1662,7 +1954,13 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 #endif
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Update_U");
+#elif defined(PROFILE)
+TAU_FSTART(Update_U);
+#else
             begin_UpdateU = MPI_Wtime();
+#endif
 #endif
             //TODO REPLACE THIS BY ASYNC SEND RECV
             for (Int supidx=0; supidx<stepSuper; supidx++){
@@ -1680,6 +1978,16 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
 
 #ifndef SEND_CROSSDIAG_ASYNC
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Send_L_CrossDiag");
+#elif defined(PROFILE)
+TAU_FSTART(Send_L_CrossDiag);
+#else
+            begin_SendCrossDiag = MPI_Wtime();
+#endif
+#endif
+
               if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_( ksup ) ){
                 Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
                 if( MYPROC( grid_ ) != dest	){
@@ -1690,6 +1998,16 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
                   mpi::Send( sstm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm );
                 }
               } // sender
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Send_L_CrossDiag");
+#elif defined(PROFILE)
+TAU_FSTOP(Send_L_CrossDiag);
+#else
+            end_SendCrossDiag = MPI_Wtime();
+            time_SendCrossDiag += end_SendCrossDiag - begin_SendCrossDiag;
+#endif
+#endif
 #endif
 
 
@@ -1698,6 +2016,15 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
                 std::vector<Int>  rowLocalPtrRecv;
                 std::vector<Int>  blockIdxLocalRecv;
                 NumMat<Scalar> UUpdateBuf;
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Recv_L_CrossDiag");
+#elif defined(PROFILE)
+TAU_FSTART(Recv_L_CrossDiag);
+#else
+            begin_RecvCrossDiag = MPI_Wtime();
+#endif
+#endif
 
                 //TODO This has to be replaced by a MPI_ANY source...
                 Int src = PNUM( MYCOL( grid_ ), PCOL( ksup, grid_ ), grid_ );
@@ -1714,6 +2041,18 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
                   blockIdxLocalRecv = blockIdxLocal;
                   UUpdateBuf = LUpdateBufReduced;
                 } // sender is the same as receiver
+
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Recv_L_CrossDiag");
+#elif defined(PROFILE)
+TAU_FSTOP(Recv_L_CrossDiag);
+#else
+            end_RecvCrossDiag = MPI_Wtime();
+            time_RecvCrossDiag += end_RecvCrossDiag - begin_RecvCrossDiag;
+#endif
+#endif
+
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << std::endl << "["<<ksup<<"] "<<   "rowLocalPtrRecv:" << rowLocalPtrRecv << std::endl << std::endl; 
                 statusOFS << std::endl << "["<<ksup<<"] "<<   "blockIdxLocalRecv:" << blockIdxLocalRecv << std::endl << std::endl; 
@@ -1753,8 +2092,14 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Update_U");
+#elif defined(PROFILE)
+TAU_FSTOP(Update_U);
+#else
             end_UpdateU = MPI_Wtime();
             time_UpdateU += end_UpdateU - begin_UpdateU;
+#endif
 #endif
 
 #ifndef _RELEASE_
@@ -1766,7 +2111,13 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 #endif
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Update_L");
+#elif defined(PROFILE)
+TAU_FSTART(Update_L);
+#else
             begin_UpdateL = MPI_Wtime();
+#endif
 #endif
             for (Int supidx=0; supidx<stepSuper; supidx++){
               Int ksup = superList[lidx][supidx];
@@ -1800,8 +2151,14 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Update_L");
+#elif defined(PROFILE)
+TAU_FSTOP(Update_L);
+#else
             end_UpdateL = MPI_Wtime();
             time_UpdateL += end_UpdateL - begin_UpdateL;
+#endif
 #endif
 
 #ifndef _RELEASE_
@@ -1810,7 +2167,13 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_START("Barrier");
+#elif defined(PROFILE)
+TAU_FSTART(Barrier);
+#else
             begin_Barrier = MPI_Wtime();
+#endif
 #endif
 //                    for (Int supidx=0; supidx<stepSuper; supidx++){
 //                      Int ksup = superList[lidx][supidx];
@@ -1840,13 +2203,20 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
             MPI_Barrier( grid_->comm );
 
 #ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("Barrier");
+#elif defined(PROFILE)
+TAU_FSTOP(Barrier);
+#else
             end_Barrier = MPI_Wtime();
             time_Barrier += end_Barrier - begin_Barrier;
+#endif
 #endif
 
 
 
 #ifdef SELINV_MEMORY
+#ifndef USE_TAU
             Real localBufSize = 0;
 
             localBufSize += sizeof(arrMpireqsSendToBelow) + arrMpireqsSendToBelow.capacity()*sizeof(std::vector<MPI_Request>);
@@ -1890,45 +2260,65 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
             }
             globalBufSize = std::max(globalBufSize,localBufSize);
 #endif
-          }
-
-#ifdef SELINV_TIMING
-          end_Total = MPI_Wtime();
-          time_Total += end_Total - begin_Total;
 #endif
+
+
+#ifdef USE_MPI_COLLECTIVES
+                        delete[] arrColComm;
+#endif
+
+
+          }
 
 #ifndef _RELEASE_
           PopCallStack();
 #endif
 
+#ifdef SELINV_TIMING
+#ifdef USE_TAU
+    TAU_STOP("SelInv");
+#elif defined(PROFILE)
+TAU_FSTOP(SelInv);
+#else
+          end_Total = MPI_Wtime();
+          time_Total += end_Total - begin_Total;
+#endif
+#endif
+
 
 #ifdef SELINV_TIMING
+#if not ( defined (USE_TAU) || defined (PROFILE) || defined(PMPI) )
           statusOFS<<std::endl<<"Timings are :"<<std::endl;
           statusOFS<<"Time for SelInv : "<< std::scientific<<time_Total<<std::endl;
           statusOFS<<"Time for allocating buffers : "<< std::scientific<<time_AllocateBuf<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_AllocateBuf/time_Total<< "%)"<<std::endl;
-//          statusOFS<<"Time for receiving L/U : "<< std::scientific<<time_SendUL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendUL/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for receiving L/U (Wait Size) : "<< std::scientific<<time_SendULWaitSize<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendULWaitSize/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for receiving L/U (Wait Content) : "<< std::scientific<<time_SendULWaitContent<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendULWaitContent/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for receiving L/U (Wait First Content) : "<< std::scientific<<time_SendULWaitContentFirst<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendULWaitContentFirst/time_Total<< "%)"<<std::endl;
-//          statusOFS<<"Time for receiving L/U (Wait Content (matching blocking)) : "<< std::scientific<<time_SendULWaitContentBis<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendULWaitContentBis/time_Total<< "%)"<<std::endl;
-          statusOFS<<"Time for computing SinvL : "<< std::scientific<<time_SinvL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvL/time_Total<< "%)"<<std::endl;
+          statusOFS<<"Time for computing SinvL (Lookup Indexes) : "<< std::scientific<<time_SinvLIdx<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvLIdx/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for computing SinvL (Gemm only) : "<< std::scientific<<time_SinvLGemm<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvLGemm/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for computing SinvL / Recv L/U : "<< std::scientific<<(time_SinvLRecv+time_SendULWaitSize)<< "("<<  std::fixed << std::setprecision(2)<< 100.0*(time_SinvLRecv + time_SendULWaitSize )/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for reducing SinvL : "<< std::scientific<<time_SinvLRed<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SinvLRed/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for computing local updates of Diag : "<< std::scientific<<time_UpdateDiag<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_UpdateDiag/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for reducing Diag : "<< std::scientific<<time_DiagbufRed<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_DiagbufRed/time_Total<< "%)"<<std::endl;
+          statusOFS<<"Time for sending L to cross Diag : "<< std::scientific<<time_SendCrossDiag<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_SendCrossDiag/time_Total<< "%)"<<std::endl;
+          statusOFS<<"Time for receiving L from cross Diag : "<< std::scientific<<time_RecvCrossDiag<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_RecvCrossDiag/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for updating L : "<< std::scientific<<time_UpdateL<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_UpdateL/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for updating U : "<< std::scientific<<time_UpdateU<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_UpdateU/time_Total<< "%)"<<std::endl;
           statusOFS<<"Time for MPI_barrier : "<< std::scientific<<time_Barrier<< "("<<  std::fixed << std::setprecision(2)<< 100.0*time_Barrier/time_Total<< "%)"<<std::endl<< std::scientific;
 #endif
+#endif
 
 
 #ifdef SELINV_MEMORY
+#ifdef USE_TAU
+    TAU_DISABLE_TRACKING_MEMORY();
+#else
           globalBufSize += sizeof(superList) + superList.capacity()*sizeof(std::vector<Int>);
           for (Int lidx=0; lidx<numSteps ; lidx++){
             globalBufSize += superList[lidx].capacity()*sizeof(Int);
           }
           statusOFS<<std::endl<<"Maximum allocated buffer size is : "<< globalBufSize << " Bytes" <<std::endl;
+#endif
 #endif
           //        MPI_Barrier( grid_-> comm );
           return ;
@@ -3528,7 +3918,7 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
             std::vector<Int>::iterator it;
             for( Int i = B.colptrLocal(j) - 1; 
                 i < B.colptrLocal(j+1) - 1; i++ ){
-              it = lower_bound( rowsCurSorted.begin(), rowsCurSorted.end(),
+              it = std::lower_bound( rowsCurSorted.begin(), rowsCurSorted.end(),
                   *(rowPtr++) );
               if( it == rowsCurSorted.end() ){
                 // Did not find the row, set it to zero
