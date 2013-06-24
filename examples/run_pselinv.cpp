@@ -86,6 +86,11 @@ int main(int argc, char **argv)
       doSymbfact= atoi(options["-Symb"].c_str());
     }
 
+    int doToDist = true;
+    if( options.find("-ToDist") != options.end() ){ 
+      doToDist= atoi(options["-ToDist"].c_str());
+    }
+
 
     doFacto = doFacto && doSymbfact;
 
@@ -425,7 +430,7 @@ int main(int argc, char **argv)
 
 
 
-
+        if(doToDist){
         // Convert to DistSparseMatrix and get the diagonal
         GetTime( timeSta );
         DistSparseMatrix<Scalar> Ainv;
@@ -485,7 +490,7 @@ int main(int argc, char **argv)
 
         if( mpirank == 0 )
           statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
-
+        }
 
       }
     }
