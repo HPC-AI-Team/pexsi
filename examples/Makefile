@@ -31,7 +31,7 @@ run_pselinv: run_pselinv.o ${PEXSI_LIB} run_pselinv_ptscotch run_pselinv_parmeti
 run_pselinv_parmetis: run_pselinv.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PARMETIS) )
 
-run_pselinv_ptscotch: run_pselinv.o ${PEXSI_LIB} 
+run_pselinv_ptscotch: run_pselinv.o   ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PTSCOTCH) )
 
 

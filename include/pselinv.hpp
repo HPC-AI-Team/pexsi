@@ -459,6 +459,11 @@ struct SuperLUOptions{
       NumVec<bool>                       isRecvFromLeft_;
       NumVec<bool>                       isRecvFromCrossDiagonal_;
 
+#ifdef USE_MPI_COLLECTIVES
+      NumVec<Int>                       countSendToBelow_;
+      NumVec<Int>                       countSendToRight_;
+      NumVec<Int>                       countRecvFromBelow_;
+#endif
       // This is the tag used for mpi communication for selinv
       enum{
         SELINV_TAG_U_SIZE,

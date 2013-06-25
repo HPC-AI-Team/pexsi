@@ -4,6 +4,14 @@
 /// @date 2012-11-03
 #include  "mpi_interf.hpp"
 
+#ifdef USE_TAU
+  #include "TAU.h"
+#elif defined (PROFILE) || defined(PMPI)
+  #define TAU
+  #include "timer.h"
+#endif
+
+
 namespace PEXSI{
 
 // *********************************************************************

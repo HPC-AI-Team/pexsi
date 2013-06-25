@@ -1,11 +1,10 @@
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
-#ifdef USE_TAU
-#ifdef PROFILE
-#define TAU
+#if defined (PROFILE) || defined(PMPI)
+  #define TAU
 #endif
-#endif
+
 
 
 #include "mpi.h"
