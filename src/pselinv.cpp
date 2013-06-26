@@ -370,11 +370,12 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
                 Int isup = *si;
                 Int isupProcRow = PROW( isup, grid_ );
                 if( isup > ksup ){
-                  if( MYROW( grid_ ) == isupProcRow ){
-                    isRecvFromAbove_(ksup) = true;
 #ifdef USE_MPI_COLLECTIVES
                   isSendToBelow_( isupProcRow, ksup ) = true;
 #endif
+
+                  if( MYROW( grid_ ) == isupProcRow ){
+                    isRecvFromAbove_(ksup) = true;
                   }
                   if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
                     isSendToBelow_( isupProcRow, ksup ) = true;
@@ -436,11 +437,12 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
                 Int jsup = *si;
                 Int jsupProcCol = PCOL( jsup, grid_ );
                 if( jsup > ksup ){
-                  if( MYCOL( grid_ ) == jsupProcCol ){
-                    isRecvFromLeft_(ksup) = true;
 #ifdef USE_MPI_COLLECTIVES
                   isSendToRight_( jsupProcCol, ksup ) = true;
 #endif
+
+                  if( MYCOL( grid_ ) == jsupProcCol ){
+                    isRecvFromLeft_(ksup) = true;
                   }
                   if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
                     isSendToRight_( jsupProcCol, ksup ) = true;
@@ -456,14 +458,15 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 #ifdef USE_MPI_COLLECTIVES
             isRecvFromBelow_(PROW(ksup,grid_),ksup) = true;
 #endif
+#ifdef USE_MPI_COLLECTIVES
+            isRecvFromBelow_(isupProcRow,ksup) = true;
+#endif
+
             if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){ 
               isRecvFromBelow_(isupProcRow,ksup) = true;
             }    
             else if (MYROW(grid_) == isupProcRow){
               isSendToDiagonal_(ksup)=true;
-#ifdef USE_MPI_COLLECTIVES
-            isRecvFromBelow_(isupProcRow,ksup) = true;
-#endif
             }    
           } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
 
@@ -488,7 +491,7 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
           }
           else{
             countSendToRight_(ksup) = 0;
-            std::fill(isSendToRight_.VecData(ksup), isSendToRight_.VecData(ksup) + isSendToRight_.n(), 0);
+//            std::fill(isSendToRight_.VecData(ksup), isSendToRight_.VecData(ksup) + isSendToRight_.n(), 0);
           }
 //            if(countSendToRight_(ksup)==0 && ksup==this->NumSuper()-2){ countSendToRight_(ksup) = 1; }
 
@@ -513,14 +516,26 @@ void PMatrix::GetEtree(std::vector<Int> & etree_supno )
 
       statusOFS << std::endl << "isRecvFromBelow " <<std::endl;
       for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
-      statusOFS << std::endl << "<<"<<ksup<<">>: " ;
+      statusOFS << "<<"<<ksup<<">>: " ;
         for( Int proc = 0; proc < grid_->numProcCol; proc++ ){
           statusOFS<< isRecvFromBelow_(proc,ksup) << " " ;
         }
-
         statusOFS << std::endl;
       }	 // for (ksup)
         statusOFS << std::endl;
+
+      statusOFS << std::endl << "isSendToRight " <<std::endl;
+      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+      statusOFS << "<<"<<ksup<<">>: " ;
+        for( Int proc = 0; proc < grid_->numProcCol; proc++ ){
+          statusOFS<< isSendToRight_(proc,ksup) << " " ;
+        }
+        statusOFS << std::endl;
+      }	 // for (ksup)
+        statusOFS << std::endl;
+
+
+
 
 #ifdef USE_MPI_COLLECTIVES
       statusOFS << std::endl << "countSendToRight:" << countSendToRight_ << std::endl;
@@ -841,14 +856,18 @@ TAU_FSTART(AllocateBuffer);
                                 statusOFS << std::endl<<"<<"<<  ksup << ">> Column To Diag Communicator rank  = " << myRank << " Root is "<< PROW(ksup,grid_)<< " size should be "<<  countRecvFromBelow_(ksup)  << std::endl << std::endl; 
                               }
 
-                              MPI_Comm_split(grid_->colComm,countRecvFromBelow_(ksup)  ,myRank ,&arrColComm[3*supidx] );
+//                              MPI_Comm_split(grid_->colComm,countRecvFromBelow_(ksup)  ,myRank ,&arrColComm[3*supidx] );
 
                               Int tmpCnt = 0;
-                              MPI_Comm_size(arrColComm[3*supidx], &tmpCnt);
-                              MPI_Comm_rank(arrColComm[3*supidx], &myRank);
-                              if (countRecvFromBelow_(ksup) ){
-                                statusOFS << std::endl<<"<<"<<  ksup << ">> Column To Diag Communicator size  = " << tmpCnt << " ROW "<< MYROW(grid_) << " has rank " << myRank << " Root is "<< PROW(ksup,grid_)<< std::endl << std::endl; 
-                              }
+//                              MPI_Comm_size(arrColComm[3*supidx], &tmpCnt);
+//                              MPI_Comm_rank(arrColComm[3*supidx], &myRank);
+//                              if (countRecvFromBelow_(ksup) ){
+//                                statusOFS << std::endl<<"<<"<<  ksup << ">> Column To Diag Communicator size  = " << tmpCnt << " ROW "<< MYROW(grid_) << " has rank " << myRank << " Root is "<< PROW(ksup,grid_)<< std::endl << std::endl; 
+//                              }
+
+
+
+
 //                             
 //                              if (CountRecvFromBelow(ksup) ){
 //                                statusOFS << std::endl<<"<<"<<  ksup << ">> Column Communicator size should be  = " << CountRecvFromBelow(ksup) << std::endl << std::endl; 
@@ -862,21 +881,21 @@ TAU_FSTART(AllocateBuffer);
 
 
 
-                              myRank = countSendToRight_(ksup) ? (MYCOL(grid_) + PCOL(ksup, grid_))/countSendToRight_(ksup) : MYCOL(grid_);
-                              if (countSendToRight_(ksup) ){
-                                statusOFS << std::endl<<"<<"<<  ksup << ">> Row Communicator rank  = " << myRank << " Root is "<< PCOL(ksup,grid_)<< " size should be "<<  countSendToRight_(ksup)  << std::endl << std::endl; 
-                              }
-
-                              MPI_Comm_split(grid_->rowComm,countSendToRight_(ksup)  ,myRank ,&arrColComm[3*supidx+1] );
-
-                              tmpCnt = 0;
-                              MPI_Comm_size(arrColComm[3*supidx+1], &tmpCnt);
-                              MPI_Comm_rank(arrColComm[3*supidx+1], &myRank);
-                              if (countSendToRight_(ksup) ){
-                                statusOFS << std::endl<<"<<"<<  ksup << ">> Row Communicator size  = " << tmpCnt << " COL "<< MYCOL(grid_) << " has rank " << myRank << " Root is "<< PCOL(ksup,grid_)<< std::endl << std::endl; 
-                              }
-
-
+//                              myRank = countSendToRight_(ksup) ? (MYCOL(grid_) + PCOL(ksup, grid_))/countSendToRight_(ksup) : MYCOL(grid_);
+//                              if (countSendToRight_(ksup) ){
+//                                statusOFS << std::endl<<"<<"<<  ksup << ">> Row Communicator rank  = " << myRank << " Root is "<< PCOL(ksup,grid_)<< " size should be "<<  countSendToRight_(ksup)  << std::endl << std::endl; 
+//                              }
+//
+//                              MPI_Comm_split(grid_->rowComm,countSendToRight_(ksup)  ,myRank ,&arrColComm[3*supidx+1] );
+//
+//                              tmpCnt = 0;
+//                              MPI_Comm_size(arrColComm[3*supidx+1], &tmpCnt);
+//                              MPI_Comm_rank(arrColComm[3*supidx+1], &myRank);
+//                              if (countSendToRight_(ksup) ){
+//                                statusOFS << std::endl<<"<<"<<  ksup << ">> Row Communicator size  = " << tmpCnt << " COL "<< MYCOL(grid_) << " has rank " << myRank << " Root is "<< PCOL(ksup,grid_)<< std::endl << std::endl; 
+//                              }
+//
+//
 
 
 
