@@ -191,7 +191,7 @@ inline Int LBi( Int bnum, const Grid* g )
 
 /// @brief LBj returns the local block number on the processor at
 /// processor column PCOL( bnum, g ).
-inline Int LBj( Int bnum, const Grid* g)
+inline Int LBj( Int bnum, const Grid* g )
 { return bnum / g->numProcCol; }
 
 /// @brief GBi returns the global block number from a local block number
@@ -216,6 +216,12 @@ inline Int BlockIdx( Int i, const SuperNode *s )
 /// @brief FirstBlockCol returns the first column of a block
 /// bnum.
 inline Int FirstBlockCol( Int bnum, const SuperNode *s )
+{ return s->superPtr[bnum]; }	
+
+/// @brief FirstBlockRow returns the first column of a block
+/// bnum. Note: the functionality of FirstBlockRow is exactly the same
+/// as in FirstBlockCol.
+inline Int FirstBlockRow( Int bnum, const SuperNode *s )
 { return s->superPtr[bnum]; }	
 
 /// @brief SuperSize returns the size of the block bnum.
@@ -665,6 +671,20 @@ public:
 	///
 	/// @param[out] B Output sparse matrix.
 	void PMatrixToDistSparseMatrix( 
+			const DistSparseMatrix<Scalar>& A,
+		  DistSparseMatrix<Scalar>& B	);
+
+	/// @brief PMatrixToDistSparseMatrix2 is a more efficient version
+	/// which performs the same job as PMatrixToDistSparseMatrix(A,B)
+	/// especially when A contains much less nonzero elements than the
+	/// current PMatrix.
+	///
+	/// The DistSparseMatrix follows the natural order.
+	///
+	/// @param[in]  A Input sparse matrix to provide the sparsity pattern.
+	///
+	/// @param[out] B Output sparse matrix.
+	void PMatrixToDistSparseMatrix2( 
 			const DistSparseMatrix<Scalar>& A,
 		  DistSparseMatrix<Scalar>& B	);
 

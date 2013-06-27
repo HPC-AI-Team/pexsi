@@ -1889,6 +1889,292 @@ PMatrix::PMatrixToDistSparseMatrix	(
 	return ;
 } 		// -----  end of method PMatrix::PMatrixToDistSparseMatrix  ----- 
 
+// A (maybe) more memory efficient way for converting the PMatrix to a
+// DistSparseMatrix structure.
+//
+// FIXME NOTE: This routine assumes the matrix to be symmetric!
+void
+PMatrix::PMatrixToDistSparseMatrix2	( 
+			const DistSparseMatrix<Scalar>& A,
+		  DistSparseMatrix<Scalar>& B	)
+{
+#ifndef _RELEASE_
+	PushCallStack("PMatrix::PMatrixToDistSparseMatrix2");
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+	statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
+#endif
+	Int mpirank = grid_->mpirank;
+	Int mpisize = grid_->mpisize;
+
+	std::vector<Int>     rowSend( mpisize );
+	std::vector<Int>     colSend( mpisize );
+	std::vector<Scalar>  valSend( mpisize );
+	std::vector<Int>     sizeSend( mpisize, 0 );
+	std::vector<Int>     displsSend( mpisize, 0 );
+	
+	std::vector<Int>     rowRecv( mpisize );
+	std::vector<Int>     colRecv( mpisize );
+	std::vector<Scalar>  valRecv( mpisize );
+	std::vector<Int>     sizeRecv( mpisize, 0 );
+	std::vector<Int>     displsRecv( mpisize, 0 );
+  
+	Int numSuper = this->NumSuper();
+	const IntNumVec& perm    = super_->perm;
+	const IntNumVec& permInv = super_->permInv;
+
+
+	// Count the sizes from the A matrix first
+	Int numColFirst = this->NumCol() / mpisize;
+	Int firstCol = mpirank * numColFirst;
+	Int numColLocal;
+	if( mpirank == mpisize-1 )
+		numColLocal = this->NumCol() - numColFirst * (mpisize-1);
+	else
+    numColLocal = numColFirst;
+	
+	Int*     rowPtr = A.rowindLocal.Data();
+	Int*     colPtr = A.colptrLocal.Data();
+
+	for( Int j = 0; j < numColLocal; j++ ){
+		Int col         = perm( firstCol + j );
+		Int blockColIdx = BlockIdx( col, super_ );
+		Int procCol     = PCOL( blockColIdx, grid_ );
+		for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+			Int row         = perm( *(rowPtr++) - 1 );
+			Int blockRowIdx = BlockIdx( row, super_ );
+			Int procRow     = PROW( blockRowIdx, grid_ );
+			Int dest = PNUM( procRow, procCol, grid_ );
+#if ( _DEBUGlevel_ >= 1 )
+			statusOFS << "BlockIdx = " << blockRowIdx << ", " <<blockColIdx << std::endl;
+			statusOFS << procRow << ", " << procCol << ", " 
+				<< dest << std::endl;
+#endif
+			sizeSend[dest]++;
+		} // for (i)
+	} // for (j)
+				
+	// All-to-all exchange of size information
+	MPI_Alltoall( 
+			&sizeSend[0], 1, MPI_INT,
+			&sizeRecv[0], 1, MPI_INT, grid_->comm );
+
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << std::endl << "sizeSend: " << sizeSend << std::endl;
+	statusOFS << std::endl << "sizeRecv: " << sizeRecv << std::endl;
+#endif
+
+
+
+	// Reserve the space
+	for( Int ip = 0; ip < mpisize; ip++ ){
+		if( ip == 0 ){
+			displsSend[ip] = 0;
+		}
+		else{
+			displsSend[ip] = displsSend[ip-1] + sizeSend[ip-1];
+		}
+		
+		if( ip == 0 ){
+			displsRecv[ip] = 0;
+		}
+		else{
+			displsRecv[ip] = displsRecv[ip-1] + sizeRecv[ip-1];
+		}
+	}
+	
+	Int sizeSendTotal = displsSend[mpisize-1] + sizeSend[mpisize-1];
+	Int sizeRecvTotal = displsRecv[mpisize-1] + sizeRecv[mpisize-1];
+
+	rowSend.resize( sizeSendTotal );
+	colSend.resize( sizeSendTotal );
+	valSend.resize( sizeSendTotal );
+
+	rowRecv.resize( sizeRecvTotal );
+	colRecv.resize( sizeRecvTotal );
+	valRecv.resize( sizeRecvTotal );
+
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "displsSend = " << displsSend << std::endl;
+	statusOFS << "displsRecv = " << displsRecv << std::endl;
+#endif
+
+	// Put (row, col) to the sending buffer
+	std::vector<Int>   cntSize( mpisize, 0 );
+
+	rowPtr = A.rowindLocal.Data();
+	colPtr = A.colptrLocal.Data();
+
+	for( Int j = 0; j < numColLocal; j++ ){
+		Int col         = perm( firstCol + j );
+		Int blockColIdx = BlockIdx( col, super_ );
+		Int procCol     = PCOL( blockColIdx, grid_ );
+		for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+			Int row         = perm( *(rowPtr++) - 1 );
+			Int blockRowIdx = BlockIdx( row, super_ );
+			Int procRow     = PROW( blockRowIdx, grid_ );
+			Int dest = PNUM( procRow, procCol, grid_ );
+			rowSend[displsSend[dest] + cntSize[dest]] = row;
+			colSend[displsSend[dest] + cntSize[dest]] = col;
+			cntSize[dest]++;
+		} // for (i)
+	} // for (j)
+
+
+	// Check sizes match
+	for( Int ip = 0; ip < mpisize; ip++ ){
+		if( cntSize[ip] != sizeSend[ip] )
+			throw std::runtime_error( "Sizes of the sending information do not match." );
+	}
+
+	// Alltoallv to exchange information
+	mpi::Alltoallv( 
+			&rowSend[0], &sizeSend[0], &displsSend[0],
+			&rowRecv[0], &sizeRecv[0], &displsRecv[0],
+			grid_->comm );
+	mpi::Alltoallv( 
+			&colSend[0], &sizeSend[0], &displsSend[0],
+			&colRecv[0], &sizeRecv[0], &displsRecv[0],
+			grid_->comm );
+
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "Alltoallv communication of nonzero indices finished." << std::endl;
+#endif
+
+
+#if ( _DEBUGlevel_ >= 1 )
+	for( Int ip = 0; ip < mpisize; ip++ ){
+		statusOFS << "rowSend[" << ip << "] = " << rowSend[ip] << std::endl;
+		statusOFS << "rowRecv[" << ip << "] = " << rowRecv[ip] << std::endl;
+		statusOFS << "colSend[" << ip << "] = " << colSend[ip] << std::endl;
+		statusOFS << "colRecv[" << ip << "] = " << colRecv[ip] << std::endl;
+	}
+#endif
+
+	// For each (row, col), fill the nonzero values to valRecv locally.
+	for( Int g = 0; g < sizeRecvTotal; g++ ){
+		Int row = rowRecv[g];
+		Int col = colRecv[g];
+		
+		Int blockRowIdx = BlockIdx( row, super_ );
+		Int blockColIdx = BlockIdx( col, super_ );
+	
+		// Search for the nzval
+		bool isFound = false;
+
+		if( blockColIdx <= blockRowIdx ){
+			// Data on the L side
+
+			std::vector<LBlock>&  Lcol = this->L( LBj( blockColIdx, grid_ ) );
+
+			for( Int ib = 0; ib < Lcol.size(); ib++ ){
+#if ( _DEBUGlevel_ >= 1 )
+				statusOFS << "blockRowIdx = " << blockRowIdx << ", Lcol[ib].blockIdx = " << Lcol[ib].blockIdx << ", blockColIdx = " << blockColIdx << std::endl;
+#endif
+				if( Lcol[ib].blockIdx == blockRowIdx ){
+					IntNumVec& rows = Lcol[ib].rows;
+					for( int iloc = 0; iloc < Lcol[ib].numRow; iloc++ ){
+						if( rows[iloc] == row ){
+							Int jloc = col - FirstBlockCol( blockColIdx, super_ );
+							valRecv[g] = Lcol[ib].nzval( iloc, jloc );
+							isFound = true;
+							break;
+						} // found the corresponding row
+					}
+				}
+				if( isFound == true ) break;	
+			} // for (ib)
+		} 
+		else{
+			// Data on the U side
+
+			std::vector<UBlock>&  Urow = this->U( LBi( blockRowIdx, grid_ ) );
+
+			for( Int jb = 0; jb < Urow.size(); jb++ ){
+				if( Urow[jb].blockIdx == blockColIdx ){
+					IntNumVec& cols = Urow[jb].cols;
+					for( int jloc = 0; jloc < Urow[jb].numCol; jloc++ ){
+						if( cols[jloc] == col ){
+							Int iloc = row - FirstBlockRow( blockRowIdx, super_ );
+							valRecv[g] = Urow[jb].nzval( iloc, jloc );
+							isFound = true;
+							break;
+						} // found the corresponding col
+					}
+				}
+				if( isFound == true ) break;	
+			} // for (jb)
+		} // if( blockColIdx <= blockRowIdx ) 
+
+		// Did not find the corresponding row, set the value to zero.
+		if( isFound == false ){
+			statusOFS << "In the permutated order, (" << row << ", " << col <<
+				") is not found in PMatrix." << std::endl;
+			valRecv[g] = SCALAR_ZERO;
+		}
+
+	} // for (g)
+
+
+	// Feed back valRecv to valSend through Alltoallv. NOTE: for the
+	// values, the roles of "send" and "recv" are swapped.
+	mpi::Alltoallv( 
+			&valRecv[0], &sizeRecv[0], &displsRecv[0],
+			&valSend[0], &sizeSend[0], &displsSend[0],
+			grid_->comm );
+
+#if ( _DEBUGlevel_ >= 0 )
+	statusOFS << "Alltoallv communication of nonzero values finished." << std::endl;
+#endif
+	
+	// Put the nonzero values from valSend to the matrix B.
+	B.size = A.size;
+	B.nnz  = A.nnz;
+	B.nnzLocal = A.nnzLocal;
+	B.colptrLocal = A.colptrLocal;
+	B.rowindLocal = A.rowindLocal;
+	B.nzvalLocal.Resize( B.nnzLocal );
+	SetValue( B.nzvalLocal, SCALAR_ZERO );
+	// Make sure that the communicator of A and B are the same.
+	if( grid_->comm != A.comm ){
+		throw std::runtime_error( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
+	}
+  B.comm = grid_->comm;
+
+	for( Int i = 0; i < mpisize; i++ )
+		cntSize[i] = 0;
+
+	rowPtr = B.rowindLocal.Data();
+	colPtr = B.colptrLocal.Data();
+	Scalar* valPtr = B.nzvalLocal.Data();
+
+	for( Int j = 0; j < numColLocal; j++ ){
+		Int col         = perm( firstCol + j );
+		Int blockColIdx = BlockIdx( col, super_ );
+		Int procCol     = PCOL( blockColIdx, grid_ );
+		for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+			Int row         = perm( *(rowPtr++) - 1 );
+			Int blockRowIdx = BlockIdx( row, super_ );
+			Int procRow     = PROW( blockRowIdx, grid_ );
+			Int dest = PNUM( procRow, procCol, grid_ );
+			*(valPtr++) = valSend[displsSend[dest] + cntSize[dest]];
+			cntSize[dest]++;
+		} // for (i)
+	} // for (j)
+
+	// Check sizes match
+	for( Int ip = 0; ip < mpisize; ip++ ){
+		if( cntSize[ip] != sizeSend[ip] )
+			throw std::runtime_error( "Sizes of the sending information do not match." );
+	}
+
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PMatrix::PMatrixToDistSparseMatrix2  ----- 
 
 Int
 PMatrix::NnzLocal	(  )
