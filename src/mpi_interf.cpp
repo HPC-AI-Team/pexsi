@@ -230,6 +230,39 @@ Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI
 	return ;
 }		// -----  end of function Reduce  ----- 
 
+#ifdef MPI_3
+void
+Ireduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm, MPI_Request & request )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Ireduce");
+#endif
+	MPI_Ireduce( sendbuf,  recvbuf, count, MPI_DOUBLE, op, root, comm , &request);
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Reduce  ----- 
+
+void
+Ireduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm, MPI_Request & request )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Reduce");
+#endif
+	MPI_Ireduce( (Real*)sendbuf,  (Real*)recvbuf, 2 * count, MPI_DOUBLE, op, root, comm , &request);
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function Reduce  ----- 
+#endif
+
+
+
+
 void
 Allreduce ( Int* sendbuf, Int* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
 {

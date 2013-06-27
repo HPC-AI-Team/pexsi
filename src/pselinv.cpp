@@ -14,6 +14,8 @@
 
 
 
+#define MOD(a,b) \
+  ( ((a)%(b)+(b))%(b))
 
 
 typedef struct {
@@ -801,6 +803,14 @@ TAU_FSTART(AllocateBuffer);
             std::vector<MPI_Request>   arrMpireqsRecvContentFromAny;
 
             std::vector<NumMat<Scalar> >  arrLUpdateBuf;
+#if defined(USE_MPI_COLLECTIVES) and defined (MPI_3)
+            std::vector<NumMat<Scalar> >  arrLUpdateBufReduced;
+            arrLUpdateBufReduced.resize(stepSuper,NumMat<Scalar>());
+#endif
+#ifdef MPI_COLLECTIVES_CHECK
+            std::vector<NumMat<Scalar> >  arrLUpdateBuf_CHECK;
+            arrLUpdateBuf_CHECK.resize(stepSuper,NumMat<Scalar>());
+#endif
             std::vector<NumMat<Scalar> >  arrDiagBuf;
 
             std::vector<std::vector<Int> >  arrRowLocalPtr;
@@ -848,35 +858,38 @@ TAU_FSTART(AllocateBuffer);
                     
                             for (Int supidx=0; supidx<stepSuper; supidx++){
                               Int ksup = superList[lidx][supidx];
-                              Int myRank = countRecvFromBelow_(ksup) ? (MYROW(grid_) + PROW(ksup, grid_)) % countRecvFromBelow_(ksup) : MYROW(grid_);
+                              Int myRank = countRecvFromBelow_(ksup) ? MOD(MYROW(grid_) +1, PROW(ksup, grid_) +1 ) : MYROW(grid_);
+#if ( _DEBUGlevel_ >= 1 )
                               if (countRecvFromBelow_(ksup) ){
                                 statusOFS << std::endl<<"<<"<<  ksup << ">> Column To Diag Communicator rank  = " << myRank << " Root is "<< PROW(ksup,grid_)<< " size should be "<<  countRecvFromBelow_(ksup)  << std::endl << std::endl; 
                               }
-
+#endif
                               MPI_Comm_split(grid_->colComm,countRecvFromBelow_(ksup)  ,myRank ,&arrColComm[3*supidx] );
 
+#if ( _DEBUGlevel_ >= 1 )
                               Int tmpCnt = 0;
                               MPI_Comm_size(arrColComm[3*supidx], &tmpCnt);
                               MPI_Comm_rank(arrColComm[3*supidx], &myRank);
                               if (countRecvFromBelow_(ksup) ){
                                 statusOFS << std::endl<<"<<"<<  ksup << ">> Column To Diag Communicator size  = " << tmpCnt << " ROW "<< MYROW(grid_) << " has rank " << myRank << " Root is "<< PROW(ksup,grid_)<< std::endl << std::endl; 
                               }
-
-
-                              myRank = countSendToRight_(ksup) ? (MYCOL(grid_) + PCOL(ksup, grid_)) % countSendToRight_(ksup) : MYCOL(grid_);
+#endif
+                              myRank = countSendToRight_(ksup) ? MOD(1 + MYCOL(grid_) ,  PCOL(ksup,grid_) +1  ): MYROW(grid_);
+#if ( _DEBUGlevel_ >= 1 )
                               if (countSendToRight_(ksup) ){
                                 statusOFS << std::endl<<"<<"<<  ksup << ">> Row Communicator rank  = " << myRank << " Root is "<< PCOL(ksup,grid_)<< " size should be "<<  countSendToRight_(ksup)  << std::endl << std::endl; 
                               }
-
+#endif
                               MPI_Comm_split(grid_->rowComm,countSendToRight_(ksup)  ,myRank ,&arrColComm[3*supidx+1] );
 
+#if ( _DEBUGlevel_ >= 1 )
                               tmpCnt = 0;
                               MPI_Comm_size(arrColComm[3*supidx+1], &tmpCnt);
                               MPI_Comm_rank(arrColComm[3*supidx+1], &myRank);
                               if (countSendToRight_(ksup) ){
                                 statusOFS << std::endl<<"<<"<<  ksup << ">> Row Communicator size  = " << tmpCnt << " COL "<< MYCOL(grid_) << " has rank " << myRank << " Root is "<< PCOL(ksup,grid_)<< std::endl << std::endl; 
                               }
-
+#endif
                               //TODO do the same thing for send to below send to right
                             }
 
@@ -1137,7 +1150,7 @@ TAU_FSTART(Compute_Sinv_LT);
                 }
               }
 
-#if not ( defined ( USE_MPI_COLLECTIVES)) // or defined(USE_MPI_COLLECTIVES)
+#if not ( defined ( USE_MPI_COLLECTIVES))  or defined(MPI_COLLECTIVES_CHECK)
               else if( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) )
                 {
                   //Dummy 0-b send If I was a receiver, I need to send my data to proc in column of ksup
@@ -1589,7 +1602,7 @@ TAU_FSTOP(Compute_Sinv_LT_GEMM);
                 } // if Gemm is to be done locally
 
 
-#ifndef USE_MPI_COLLECTIVES
+#if not ( defined ( USE_MPI_COLLECTIVES))  or defined(MPI_COLLECTIVES_CHECK)
                 //If I was a receiver, I need to send my data to proc in column of ksup
                 if( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) )
                   //              if( ( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) ) ||
@@ -1620,7 +1633,7 @@ TAU_FSTOP(Compute_Sinv_LT);
 #endif
 #endif
 
-#ifndef USE_MPI_COLLECTIVES
+#if not ( defined ( USE_MPI_COLLECTIVES))  or defined(MPI_COLLECTIVES_CHECK)
 #ifdef SELINV_TIMING
 #ifdef USE_TAU
     TAU_START("Reduce_Sinv_LT");
@@ -1635,6 +1648,10 @@ TAU_FSTART(Reduce_Sinv_LT);
 
               NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
 
+#ifdef MPI_COLLECTIVES_CHECK
+              statusOFS << std::endl << "["<<ksup<<"] "<<   "Before Reduction LUpdateBuf: " <<  LUpdateBuf << std::endl << std::endl; 
+              arrLUpdateBuf_CHECK[supidx] = arrLUpdateBuf[supidx];
+#endif
               if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 
                 //determine the number of rows in LUpdateBufReduced
@@ -1694,16 +1711,24 @@ TAU_FSTART(Reduce_Sinv_LT);
 #if ( _DEBUGlevel_ >= 2 )
                     statusOFS << std::endl << "["<<ksup<<"] "<<   "LUpdateBufRecv: " <<  LUpdateBufRecv << std::endl << std::endl; 
 #endif
+
+#ifdef MPI_COLLECTIVES_CHECK
+                statusOFS << std::endl << "["<<ksup<<"] "<<   "CHECK Received LUpdateBuf: " << LUpdateBufRecv << std::endl << std::endl; 
+#endif
+
+
                     //do the sum
                     blas::Axpy(numRowLUpdateBuf*SuperSize( ksup, super_ ), SCALAR_ONE, LUpdateBufRecv.Data(),
                         1, LUpdateBufReduced.Data(), 1 );
                   }
                 } // for (iProcCol)
 
-#if ( _DEBUGlevel_ >= 2 )
+#if ( _DEBUGlevel_ >= 2 ) 
                 statusOFS << std::endl << "["<<ksup<<"] "<<   "LUpdateBufReduced: " <<  LUpdateBufReduced << std::endl << std::endl; 
 #endif
-
+#ifdef MPI_COLLECTIVES_CHECK
+                statusOFS << std::endl << "["<<ksup<<"] "<<   "CHECK LUpdateBufReduced: " <<  LUpdateBufReduced << std::endl << std::endl; 
+#endif 
 
 #ifdef SEND_CROSSDIAG_ASYNC
 #ifdef SELINV_TIMING
@@ -1759,7 +1784,9 @@ TAU_FSTOP(Reduce_Sinv_LT);
 #endif
 #endif
 
-#else
+#endif
+
+#ifdef USE_MPI_COLLECTIVES
 
 #ifdef SELINV_TIMING
 #ifdef USE_TAU
@@ -1772,9 +1799,12 @@ TAU_FSTART(Reduce_Sinv_LT);
 #endif
             for (Int supidx=0; supidx<stepSuper; supidx++){
               Int ksup = superList[lidx][supidx];
-
+              if(countSendToRight_(ksup)>0){
+#ifdef MPI_COLLECTIVES_CHECK
+              NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf_CHECK[supidx];
+#else
               NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
-
+#endif
                 Int numRowLUpdateBuf;
               if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 
@@ -1805,23 +1835,72 @@ TAU_FSTART(Reduce_Sinv_LT);
               }
 
               //Broadcast the size along the row
-              MPI_Bcast(&numRowLUpdateBuf, sizeof(numRowLUpdateBuf), MPI_BYTE, 0, arrColComm[2*supidx+1] );
+              MPI_Bcast(&numRowLUpdateBuf, sizeof(numRowLUpdateBuf), MPI_BYTE, 0, arrColComm[3*supidx+1] );
+              
+              if( numRowLUpdateBuf > 0 ){
 
-                NumMat<Scalar>  LUpdateBufReduced(numRowLUpdateBuf,SuperSize( ksup, super_ ) );
-                if( numRowLUpdateBuf > 0 ){
-                  if( LUpdateBuf.m() == 0 && LUpdateBuf.n() == 0 ){
-                    LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( ksup, super_ ) );
-                    // Fill zero is important
-                    SetValue( LUpdateBuf, SCALAR_ZERO );
-                  }
+#if defined(USE_MPI_COLLECTIVES) and defined (MPI_3)
+                NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBufReduced[supidx];
+#else
+                NumMat<Scalar>  LUpdateBufReduced;//(numRowLUpdateBuf,SuperSize( ksup, super_ ) );
+#endif
+                if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+                  LUpdateBufReduced.Resize(numRowLUpdateBuf,SuperSize( ksup, super_ ) );
                 }
 
-            
+                if( LUpdateBuf.m() == 0 && LUpdateBuf.n() == 0 ){
+                  LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( ksup, super_ ) );
+                  // Fill zero is important
+                  SetValue( LUpdateBuf, SCALAR_ZERO );
+                }
 
-              //Use mpi_reduce  ROOT should be with local rank 0  to avoid index translation
-//              MPI_Reduce(LUpdateBuf.Data(), LUpdateBufReduced.Data(), LUpdateBuf.m()*LUpdateBuf.n(), MPI_REAL, MPI_SUM , 0, arrColComm[2*supidx+1]);
+                //Use mpi_reduce  ROOT should be with local rank 0  to avoid index translation
+                //statusOFS << std::endl << "["<<ksup<<"] "<<   "Before reduction LUpdateBuf: " << LUpdateBuf << std::endl << std::endl; 
+                        std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+                if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+                  Int myRank=-1;
+                  MPI_Comm_rank(arrColComm[3*supidx+1], &myRank);
+                  assert(myRank==0);
+#if defined(USE_MPI_COLLECTIVES) and defined (MPI_3)
+                  mpi::Ireduce( MPI_IN_PLACE, LUpdateBuf.Data(), numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 0, arrColComm[3*supidx+1] , mpireqsSendToRight[0]);
+#else
+                  mpi::Reduce( MPI_IN_PLACE, LUpdateBuf.Data(), numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 0, arrColComm[3*supidx+1] );
+#endif
+                }
+                else
+                {
+#if defined(USE_MPI_COLLECTIVES) and defined (MPI_3)
+                  mpi::Ireduce( LUpdateBuf.Data(), LUpdateBufReduced.Data(), numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 0, arrColComm[3*supidx+1] , mpireqsSendToRight[0]);
+#else
+                  mpi::Reduce( LUpdateBuf.Data(), LUpdateBufReduced.Data(), numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 0, arrColComm[3*supidx+1] );
+#endif
+                }
+              }
+              }
             }
 
+#ifdef MPI_COLLECTIVES_CHECK
+            for (Int supidx=0; supidx<stepSuper; supidx++){
+              Int ksup = superList[lidx][supidx];
+              NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBuf[supidx];
+              NumMat<Scalar> & LUpdateBufReduced_CHECK = arrLUpdateBuf_CHECK[supidx];
+              if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && LUpdateBufReduced.m() > 0 )
+                statusOFS << std::endl << "["<<ksup<<"] "<<   "LUpdateBufReduced_CHECK: " << LUpdateBufReduced_CHECK << std::endl << std::endl; 
+            }
+
+
+
+            for (Int supidx=0; supidx<stepSuper; supidx++){
+              Int ksup = superList[lidx][supidx];
+              NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBuf[supidx];
+              NumMat<Scalar> & LUpdateBufReduced_CHECK = arrLUpdateBuf_CHECK[supidx];
+            
+              if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && LUpdateBufReduced.m() > 0 )
+              {
+                arrLUpdateBuf[supidx] = arrLUpdateBuf_CHECK[supidx];
+              }
+            }
+#endif
 
 #ifdef SELINV_TIMING
 #ifdef USE_TAU
@@ -1838,20 +1917,21 @@ TAU_FSTOP(Reduce_Sinv_LT);
 
 
 
-
-            //        for (Int supidx=0; supidx<stepSuper; supidx++){
-            //          Int ksup = superList[lidx][supidx];
-            //          if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) && isRecvFromLeft_( ksup ) ){
-            //            // Now all the Isend / Irecv should have finished.
-            //            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            //            mpi::Wait( mpireqsSendToRight[0] );
-            //          }
-            //        }
+#if defined(USE_MPI_COLLECTIVES) and defined (MPI_3)
+                    for (Int supidx=0; supidx<stepSuper; supidx++){
+                      Int ksup = superList[lidx][supidx];
+                      //if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) && isRecvFromLeft_( ksup ) ){
+                      if(countSendToRight_(ksup)>0){
+                        // Now all the Isend / Irecv should have finished.
+                        std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+                        mpi::Wait( mpireqsSendToRight[0] );
+                      }
+                    }
             //--------------------- End of reduce of LUpdateBuf-------------------------
+#endif
 
 
-
-#if ( _DEBUGlevel_ >= 2 )
+#if ( _DEBUGlevel_ >= 1 )
             for (Int supidx=0; supidx<stepSuper; supidx++){
               Int ksup = superList[lidx][supidx];
               NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBuf[supidx];
@@ -1960,6 +2040,33 @@ TAU_FSTART(Reduce_Diagonal);
                 statusOFS << std::endl << "["<<ksup<<"] "<<   "DiagBuf: " << DiagBuf << std::endl << std::endl; 
 #endif
 
+
+#ifdef USE_MPI_COLLECTIVES
+              NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
+
+//              if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+//                SetValue( DiagBufReduced, SCALAR_ZERO );
+
+              if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+                mpi::Reduce( MPI_IN_PLACE, DiagBuf.Data(), SuperSize( ksup, super_ ) * SuperSize( ksup, super_ ), MPI_SUM, 0, arrColComm[3*supidx] );
+              else
+                mpi::Reduce( DiagBuf.Data(), DiagBufReduced.Data(), SuperSize( ksup, super_ ) * SuperSize( ksup, super_ ), MPI_SUM, 0, arrColComm[3*supidx] );
+
+              // Add DiagBufReduced to diagonal block.
+              if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+                LBlock&  LB = this->L( LBj( ksup, grid_ ) )[0];
+
+                // Symmetrize LB
+                blas::Axpy( LB.numRow * LB.numCol, SCALAR_ONE, DiagBuf.Data(),
+                    1, LB.nzval.Data(), 1 );
+
+                Symmetrize( LB.nzval );
+              }
+#endif
+
+
+
+#if not ( defined(USE_MPI_COLLECTIVES))
                 //TODO Replace this
                 if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
                   //receive from below
@@ -2008,7 +2115,7 @@ TAU_FSTART(Reduce_Diagonal);
                   statusOFS << std::endl << "["<<ksup<<"] "<<   "Diag of Ainv: " << LB.nzval << std::endl << std::endl; 
 #endif
                 }
-
+#endif
               } 
             }
 
@@ -2291,37 +2398,16 @@ TAU_FSTART(Barrier);
             begin_Barrier = MPI_Wtime();
 #endif
 #endif
-                    for (Int supidx=0; supidx<stepSuper; supidx++){
-                      Int ksup = superList[lidx][supidx];
-                        std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-                        std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-                        mpi::Waitall( mpireqsSendToRight );
-                        mpi::Waitall( mpireqsSendToBelow );
+//                    for (Int supidx=0; supidx<stepSuper; supidx++){
+//                      Int ksup = superList[lidx][supidx];
+//                        std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+//                        std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+//                        mpi::Waitall( mpireqsSendToRight );
+//                        mpi::Waitall( mpireqsSendToBelow );
+//                    }
 
 
-
-
-
-            //          if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) && isRecvFromLeft_( ksup ) ){
-            //            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            //            mpi::Wait( mpireqsSendToRight[0] );
-            //            }
-            //          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToDiagonal_(ksup) ){
-            //            // Now all the Isend / Irecv should have finished.
-            //            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            //            mpi::Wait( mpireqsSendToRight[0] );
-            //
-            //            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-            //            mpi::Wait( mpireqsSendToBelow[0] );
-            //            mpi::Wait( mpireqsSendToBelow[1] );
-            //#if ( _DEBUGlevel_ >= 1 )
-            //            statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" is done sending DiagBuf to P" << PROW(ksup,grid_) <<  std::endl;
-            //#endif
-            //          }
-                    }
-
-
-//            MPI_Barrier( grid_->comm );
+            MPI_Barrier( grid_->comm );
 
 #ifdef SELINV_TIMING
 #ifdef USE_TAU
