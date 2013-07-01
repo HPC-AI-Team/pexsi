@@ -23,23 +23,23 @@ namespace PEXSI{
   /**********************************************************************
    * Basic PSelInv data structure
    **********************************************************************/
-/// @struct SuperLUOptions
-/// @brief A thin interface for setting the SuperLU options from
-/// outside.  
-///
-/// NOTE: Currently only the column permutation (the most frequently
-/// used one) is allowed to be specified from outside.
-struct SuperLUOptions{
-	std::string      ColPerm;
+  /// @struct SuperLUOptions
+  /// @brief A thin interface for setting the SuperLU options from
+  /// outside.  
+  ///
+  /// NOTE: Currently only the column permutation (the most frequently
+  /// used one) is allowed to be specified from outside.
+  struct SuperLUOptions{
+    std::string      ColPerm;
 
-  Int MaxPipelineDepth; 
-  Int MaxDomains;
+    Int MaxPipelineDepth; 
+    Int MaxDomains;
 
-	// Member functions to setup the default value
-	SuperLUOptions(): ColPerm("MMD_AT_PLUS_A"), MaxPipelineDepth(-1) {}
+    // Member functions to setup the default value
+    SuperLUOptions(): ColPerm("MMD_AT_PLUS_A"), MaxPipelineDepth(-1) {}
 
-	~SuperLUOptions(){};
-};
+    ~SuperLUOptions(){};
+  };
 
 
   /// @struct Grid 
@@ -252,6 +252,14 @@ struct SuperLUOptions{
   inline Int FirstBlockCol( Int bnum, const SuperNode *s )
   { return s->superPtr[bnum]; }	
 
+
+  /// @brief FirstBlockRow returns the first column of a block
+  /// bnum. Note: the functionality of FirstBlockRow is exactly the same
+  /// as in FirstBlockCol.
+  inline Int FirstBlockRow( Int bnum, const SuperNode *s )
+  { return s->superPtr[bnum]; } 
+
+
   /// @brief SuperSize returns the size of the block bnum.
   inline Int SuperSize( Int bnum, const SuperNode *s )
   { return s->superPtr[bnum+1] - s->superPtr[bnum]; } 
@@ -435,7 +443,6 @@ struct SuperLUOptions{
       // Data variables
 
       const Grid*           grid_;
-      //      std::vector<MPI_comm>         superNodeRowComm_;
 
       const SuperNode*      super_;
 
@@ -444,7 +451,6 @@ struct SuperLUOptions{
       std::vector<std::vector<LBlock> > L_;
       std::vector<std::vector<UBlock> > U_;
 
-      // MJ
       std::vector<std::vector<Int> > workingSet_;
 
 
@@ -459,7 +465,7 @@ struct SuperLUOptions{
       NumVec<bool>                       isRecvFromLeft_;
       NumVec<bool>                       isRecvFromCrossDiagonal_;
 
-#ifdef USE_MPI_COLLECTIVES
+#if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT)
       NumVec<Int>                       countSendToBelow_;
       NumVec<Int>                       countSendToRight_;
       NumVec<Int>                       countRecvFromBelow_;
@@ -525,10 +531,16 @@ struct SuperLUOptions{
       /// be done in parallel.
       std::vector<std::vector<int> >& WorkingSet( ) { return workingSet_; } 	
 
+      /// @brief CountSendToRight returns the number of processors 
+      /// to the right of current processor with which it has to communicate
       Int CountSendToRight(Int ksup) {  Int count= std::count (isSendToRight_.VecData(ksup), isSendToRight_.VecData(ksup) + grid_->numProcCol, true); return (isSendToRight_(MYCOL(grid_),ksup)?count-1:count); }
 
+      /// @brief CountRecvFromBelow returns the number of processors 
+      /// below the current processor from which it receives data
       Int CountRecvFromBelow(Int ksup) {  Int count= std::count (isRecvFromBelow_.VecData(ksup), isRecvFromBelow_.VecData(ksup) + grid_->numProcRow, true); return (isRecvFromBelow_(MYROW(grid_),ksup)?count-1:count); }
 
+      /// @brief GetEtree computes the supernodal elimination tree
+      /// to be used later in the pipelined selected inversion stage.
       void PMatrix::GetEtree(std::vector<Int> & etree_supno );
 
       /// @brief ConstructCommunicationPattern constructs the communication
@@ -737,6 +749,22 @@ struct SuperLUOptions{
       void PMatrixToDistSparseMatrix( 
           const DistSparseMatrix<Scalar>& A,
           DistSparseMatrix<Scalar>& B	);
+
+
+      /// @brief PMatrixToDistSparseMatrix2 is a more efficient version
+      /// which performs the same job as PMatrixToDistSparseMatrix(A,B)
+      /// especially when A contains much less nonzero elements than the
+      /// current PMatrix.
+      ///
+      /// The DistSparseMatrix follows the natural order.
+      ///
+      /// @param[in]  A Input sparse matrix to provide the sparsity pattern.
+      ///
+      /// @param[out] B Output sparse matrix.
+      void PMatrixToDistSparseMatrix2( 
+          const DistSparseMatrix<Scalar>& A,
+          DistSparseMatrix<Scalar>& B );
+
 
       /// @brief NnzLocal computes the number of nonzero elements (L and U)
       /// saved locally.

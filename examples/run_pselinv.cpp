@@ -402,6 +402,27 @@ int main(int argc, char **argv)
 #endif
 
 
+#ifdef SANITY_CHECK
+      {
+        NumVec<Scalar> diagRef;
+
+        GetTime( timeSta );
+        PMlocRef.GetDiagonal( diagRef );
+        GetTime( timeEnd );
+
+
+        if( mpirank == 0 ){
+          statusOFS << std::endl << "Diagonal (original algorithm) of inverse in natural order: " << std::endl << diagRef << std::endl;
+          ofstream ofs("diag_original");
+          if( !ofs.good() ) 
+            throw std::runtime_error("file cannot be opened.");
+          serialize( diagRef, ofs, NO_MASK );
+          ofs.close();
+        }
+      }
+#endif
+
+
         NumVec<Scalar> diag;
 
         GetTime( timeSta );
@@ -427,7 +448,6 @@ int main(int argc, char **argv)
           serialize( diag, ofs, NO_MASK );
           ofs.close();
         }
-
 
 
         if(doToDist){
@@ -460,7 +480,7 @@ int main(int argc, char **argv)
         // Convert to DistSparseMatrix in the 2nd format and get the diagonal
         GetTime( timeSta );
         DistSparseMatrix<Scalar> Ainv2;
-        PMloc.PMatrixToDistSparseMatrix( AMat, Ainv2 );
+        PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
         GetTime( timeEnd );
 
         if( mpirank == 0 )

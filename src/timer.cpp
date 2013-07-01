@@ -187,7 +187,7 @@ void CTF_timer::exit(){
       } 
       sprintf(filename+strlen(filename), "-p%d.out", np);
       
-      
+printf("Starting to output the profile\n");      
       output =  fopen(filename, "w");
       printf("%s\n",filename);
       char heading[MAX_NAME_LENGTH+200];

@@ -27,11 +27,11 @@ all: libpexsi.a
 libpexsi.a: ${OBJS}
 	$(AR) $(ARFLAGS) $(PEXSI_LIB) ${OBJS}
 	$(RANLIB) $(shell basename $@ .a)_${SUFFIX}.a
-ifeq (${MODE},release)
-ifneq ($(USE_TAU),1)
-	${CP} $(shell basename $@ .a)_${SUFFIX}.a ${PEXSI_LIB}
-endif
-endif
+#ifeq (${MODE},release)
+#ifneq ($(USE_TAU),1)
+#	${CP} $(shell basename $@ .a)_${SUFFIX}.a ${PEXSI_LIB}
+#endif
+#endif
 
 cleanall:
 	${RM} -f ${OBJS} ${DEPS} libpexsi.a *.d.*
