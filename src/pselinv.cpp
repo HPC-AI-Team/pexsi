@@ -403,7 +403,7 @@ namespace PEXSI{
                 }
 #endif
         std::vector<bool> mask( sTB.Data(), sTB.Data() + sTB.m() );
-        std::vector<Int> snodeList = maskSendToBelow_[mask];
+        std::vector<Int> & snodeList = maskSendToBelow_[mask];
         snodeList.push_back(ksup);
         Int count= std::count(mask.begin(), mask.end(), true);
         countSendToBelow_(ksup) = count;
@@ -613,7 +613,7 @@ namespace PEXSI{
                 }
 #endif
         std::vector<bool> mask( sTR.Data(), sTR.Data() + sTR.m() );
-        std::vector<Int> snodeList = maskSendToRight_[mask];
+        std::vector<Int> & snodeList = maskSendToRight_[mask];
         snodeList.push_back(ksup);
         Int count= std::count(mask.begin(), mask.end(), true);
         countSendToRight_(ksup) = count;
