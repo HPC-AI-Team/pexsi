@@ -18,7 +18,17 @@
 #include	"blas.hpp"
 #include	"lapack.hpp"
 
+#if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT) or defined(USE_BCAST_UL)
+#include <bitset>
+#include <set>
+#endif
 namespace PEXSI{
+
+#if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT) or defined(USE_BCAST_UL)
+typedef std::set<std::vector<bool> > bitMaskSet;
+typedef std::map<std::vector<bool> * , std::vector<Int> > bitMaskSnodeIdx;
+#endif
+
 
   /**********************************************************************
    * Basic PSelInv data structure
@@ -465,10 +475,23 @@ namespace PEXSI{
       NumVec<bool>                       isRecvFromLeft_;
       NumVec<bool>                       isRecvFromCrossDiagonal_;
 
-#if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT)
+#if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT) or defined(USE_BCAST_UL)
       NumVec<Int>                       countSendToBelow_;
       NumVec<Int>                       countSendToRight_;
       NumVec<Int>                       countRecvFromBelow_;
+
+      bitMaskSet maskSendToBelow_;
+      bitMaskSnodeIdx maskSendToBelowIdx_;
+      std::vector<MPI_Comm>  commSendToBelow_;
+      std::vector<MPI_Comm*>  commSendToBelowPtr_;
+      std::vector<Int>  commSendToBelowRoot_;
+
+      bitMaskSet maskSendToRight_;
+      bitMaskSnodeIdx maskSendToRightIdx_;
+      std::vector<MPI_Comm>  commSendToRight_;
+      std::vector<MPI_Comm*>  commSendToRightPtr_;
+      std::vector<Int>  commSendToRightRoot_;
+      
 #endif
       // This is the tag used for mpi communication for selinv
       enum{
