@@ -402,11 +402,16 @@ namespace PEXSI{
                   statusOFS<<"DEBUGMAT ["<<ksup<<"] isSendToBelow_ is: "; for(int curi=0; curi<sTB.m();curi++){statusOFS<<isSendToBelow_(curi,ksup)<<" ";} statusOFS<<std::endl;
                 }
 #endif
-
-        std::pair< bitMaskSet::iterator, bool > res = maskSendToBelow_.insert(bitMaskSet::value_type(std::vector<bool>( sTB.Data(), sTB.Data() + sTB.m() )));
-        maskSendToBelowIdx_[&*(res.first)].push_back(ksup);
-        Int count= std::count(res.first->begin(), res.first->end(), true);
+        std::vector<bool> mask( sTB.Data(), sTB.Data() + sTB.m() );
+        std::vector<Int> snodeList = maskSendToBelow_[mask];
+        snodeList.push_back(ksup);
+        Int count= std::count(mask.begin(), mask.end(), true);
         countSendToBelow_(ksup) = count;
+
+//        std::pair< PEXSI::bitMaskSet::iterator, bool > res = maskSendToBelow_.insert(PEXSI::bitMaskSet::value_type(std::vector<bool>( sTB.Data(), sTB.Data() + sTB.m() )));
+//        maskSendToBelowIdx_[&*(res.first)].push_back(ksup);
+//        Int count= std::count(res.first->begin(), res.first->end(), true);
+//        countSendToBelow_(ksup) = count;
 #endif
     } // for(ksup)
 
@@ -431,19 +436,18 @@ namespace PEXSI{
 #if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT) or defined(USE_BCAST_UL)
   {
     statusOFS << std::endl << "countSendToBelow:" << countSendToBelow_ << std::endl;
-    statusOFS << std::endl << "DEBUGMAT maskSendToBelow_:" << maskSendToBelow_.size() <<std::endl; 
+//    statusOFS << std::endl << "DEBUGMAT maskSendToBelow_:" << maskSendToBelow_.size() <<std::endl; 
     bitMaskSet::iterator it;
     for(it = maskSendToBelow_.begin(); it != maskSendToBelow_.end(); it++){
       //print the involved processors
-      for(int curi = 0; curi < it->size(); curi++){
-        statusOFS << (*it)[curi] << " "; 
+      for(int curi = 0; curi < it->first.size(); curi++){
+        statusOFS << it->first[curi] << " "; 
       }
 
       statusOFS<< "    ( ";
       //print the involved supernode indexes
-      std::vector<Int> & snodeList = maskSendToBelowIdx_[&(*it)];
-      for(int curi = 0; curi < snodeList.size(); curi++){
-        statusOFS<<snodeList[curi]<<" ";
+      for(int curi = 0; curi < it->second.size(); curi++){
+        statusOFS<< it->second[curi]<<" ";
       }
 
         statusOFS << ")"<< std::endl;
@@ -466,64 +470,42 @@ namespace PEXSI{
 #ifndef _RELEASE_
     PushCallStack("Creating SendToBelow communicator");
 #endif
-{
-    MPI_Group colCommGroup;  
-    MPI_Comm_group(grid_->colComm,&colCommGroup);
+    {
+      MPI_Group colCommGroup;  
+      MPI_Comm_group(grid_->colComm,&colCommGroup);
 
-    commSendToBelow_.resize(maskSendToBelow_.size());
-    commSendToBelowRoot_.resize(numSuper);
-    commSendToBelowPtr_.resize(numSuper);
+      commSendToBelow_.resize(maskSendToBelow_.size());
+      commSendToBelowRoot_.resize(numSuper);
+      commSendToBelowPtr_.resize(numSuper);
 
       Int commIdx = 0;
       bitMaskSet::iterator it;
       for(it = maskSendToBelow_.begin(); it != maskSendToBelow_.end(); it++){
-        Int count= std::count(it->begin(), it->end(), true);
+        Int count= std::count(it->first.begin(), it->first.end(), true);
 
         if(count>1){
           MPI_Group commGroup;  
 
-          //print the involved processors
-//          statusOFS<<std::endl;
-//          for(int curi = 0; curi < it->size(); curi++){
-//            statusOFS << (*it)[curi] << " "; 
-//          }
-        Int color = (*it)[MYROW(grid_)];
-        //isRecvFromAbove_(ksup)=color;
-//          statusOFS<< " ["<<color<<"]"<<std::endl;
-
-
+          Int color = it->first[MYROW(grid_)];
 
           MPI_Comm_split(grid_->colComm, color  ,MYROW(grid_) , &commSendToBelow_[commIdx]);
           MPI_Comm_group(commSendToBelow_[commIdx],&commGroup);
-          //MPI_Barrier(grid_->colComm);
           //now for each supernode, we need to store the pointer to the communnicator and the rank of the root
-          std::vector<Int> & snodeList = maskSendToBelowIdx_[&(*it)];
+          std::vector<Int> & snodeList = it->second;
           for(int curi = 0; curi < snodeList.size(); curi++){
             commSendToBelowPtr_[snodeList[curi]] = &commSendToBelow_[commIdx];
             Int ksup = snodeList[curi];
             Int curRoot = PROW(snodeList[curi],grid_);
             Int newRank = -1;
             MPI_Group_translate_ranks(colCommGroup, 1,&curRoot,commGroup, &newRank);
-
-//if(newRank!=MPI_UNDEFINED)
-//  statusOFS<< "["<<ksup<<"] "<<"Rank of row "<< curRoot <<" is "<< newRank<<std::endl;
-//else
-//  statusOFS<<"Rank of row "<< curRoot <<" is undefined"<<std::endl;
-
             commSendToBelowRoot_[snodeList[curi]] = newRank;
           }
-
 
           commIdx++;
 
         }
       }
-
-//      statusOFS << std::endl << "DEBUGMAT commSendToBelowPtr_: "<< commSendToBelowPtr_ << std::endl;
-//      statusOFS << std::endl << "DEBUGMAT commSendToBelowRoot_: "<< commSendToBelowRoot_ << std::endl;
-
-      //MPI_Barrier(MPI_COMM_WORLD);
-}
+    }
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -630,11 +612,17 @@ namespace PEXSI{
                   statusOFS<<"DEBUGMAT ["<<ksup<<"] isSendToRight_ is: "; for(int curi=0; curi<sTR.m();curi++){statusOFS<<isSendToRight_(curi,ksup)<<" ";} statusOFS<<std::endl;
                 }
 #endif
-
-        std::pair< bitMaskSet::iterator, bool > res = maskSendToRight_.insert(bitMaskSet::value_type(std::vector<bool>( sTR.Data(), sTR.Data() + sTR.m() )));
-        maskSendToRightIdx_[&*(res.first)].push_back(ksup);
-        Int count= std::count(res.first->begin(), res.first->end(), true);
+        std::vector<bool> mask( sTR.Data(), sTR.Data() + sTR.m() );
+        std::vector<Int> snodeList = maskSendToRight_[mask];
+        snodeList.push_back(ksup);
+        Int count= std::count(mask.begin(), mask.end(), true);
         countSendToRight_(ksup) = count;
+
+
+//        std::pair< bitMaskSet::iterator, bool > res = maskSendToRight_.insert(bitMaskSet::value_type(std::vector<bool>( sTR.Data(), sTR.Data() + sTR.m() )));
+//        maskSendToRightIdx_[&*(res.first)].push_back(ksup);
+//        Int count= std::count(res.first->begin(), res.first->end(), true);
+//        countSendToRight_(ksup) = count;
 #endif
 
 
@@ -670,13 +658,13 @@ namespace PEXSI{
     bitMaskSet::iterator it;
     for(it = maskSendToRight_.begin(); it != maskSendToRight_.end(); it++){
       //print the involved processors
-      for(int curi = 0; curi < it->size(); curi++){
-        statusOFS << (*it)[curi] << " "; 
+      for(int curi = 0; curi < it->first.size(); curi++){
+        statusOFS << it->first[curi] << " "; 
       }
 
       statusOFS<< "    ( ";
       //print the involved supernode indexes
-      std::vector<Int> & snodeList = maskSendToRightIdx_[&(*it)];
+      std::vector<Int> & snodeList = it->second;
       for(int curi = 0; curi < snodeList.size(); curi++){
         statusOFS<<snodeList[curi]<<" ";
       }
@@ -699,64 +687,41 @@ namespace PEXSI{
 #ifndef _RELEASE_
     PushCallStack("Creating SendToRight communicator");
 #endif
-{
-    MPI_Group rowCommGroup;  
-    MPI_Comm_group(grid_->rowComm,&rowCommGroup);
+    {
+      MPI_Group rowCommGroup;  
+      MPI_Comm_group(grid_->rowComm,&rowCommGroup);
 
-    commSendToRight_.resize(maskSendToRight_.size());
-    commSendToRightRoot_.resize(numSuper);
-    commSendToRightPtr_.resize(numSuper);
+      commSendToRight_.resize(maskSendToRight_.size());
+      commSendToRightRoot_.resize(numSuper);
+      commSendToRightPtr_.resize(numSuper);
 
       Int commIdx = 0;
       bitMaskSet::iterator it;
       for(it = maskSendToRight_.begin(); it != maskSendToRight_.end(); it++){
-        Int count= std::count(it->begin(), it->end(), true);
+        Int count= std::count(it->first.begin(), it->first.end(), true);
 
         if(count>1){
           MPI_Group commGroup;  
 
-          //print the involved processors
-//          statusOFS<<std::endl;
-//          for(int curi = 0; curi < it->size(); curi++){
-//            statusOFS << (*it)[curi] << " "; 
-//          }
-        Int color = (*it)[MYCOL(grid_)];
-        //isRecvFromAbove_(ksup)=color;
-//          statusOFS<< " ["<<color<<"]"<<std::endl;
-
-
+          Int color = it->first[MYCOL(grid_)];
 
           MPI_Comm_split(grid_->rowComm, color  ,MYCOL(grid_) , &commSendToRight_[commIdx]);
           MPI_Comm_group(commSendToRight_[commIdx],&commGroup);
-          //MPI_Barrier(grid_->colComm);
           //now for each supernode, we need to store the pointer to the communnicator and the rank of the root
-          std::vector<Int> & snodeList = maskSendToRightIdx_[&(*it)];
+          std::vector<Int> & snodeList = it->second;
           for(int curi = 0; curi < snodeList.size(); curi++){
             commSendToRightPtr_[snodeList[curi]] = &commSendToRight_[commIdx];
             Int ksup = snodeList[curi];
             Int curRoot = PROW(snodeList[curi],grid_);
             Int newRank = -1;
             MPI_Group_translate_ranks(rowCommGroup, 1,&curRoot,commGroup, &newRank);
-
-//if(newRank!=MPI_UNDEFINED)
-//  statusOFS<< "["<<ksup<<"] "<<"Rank of col "<< curRoot <<" is "<< newRank<<std::endl;
-//else
-//  statusOFS<<"Rank of col "<< curRoot <<" is undefined"<<std::endl;
-
             commSendToRightRoot_[snodeList[curi]] = newRank;
           }
 
-
           commIdx++;
-
         }
       }
-
-//      statusOFS << std::endl << "DEBUGMAT commSendToRightPtr_: "<< commSendToRightPtr_ << std::endl;
-//      statusOFS << std::endl << "DEBUGMAT commSendToRightRoot_: "<< commSendToRightRoot_ << std::endl;
-
-      //MPI_Barrier(MPI_COMM_WORLD);
-}
+    }
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -1119,7 +1084,7 @@ namespace PEXSI{
           // Communication for the U part.
           if(countSendToBelow_(ksup)>1){
             MPI_Comm * colComm = commSendToBelowPtr_[ksup];
-            MPI_Comm root = commSendToBelowRoot_[ksup];
+            Int root = commSendToBelowRoot_[ksup];
             bool isRecvFromAbove =  isRecvFromAbove_( ksup );
             if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
               std::vector<char> & sstrUrowSend = arrSstrUrowSend[supidx];
@@ -1164,7 +1129,7 @@ namespace PEXSI{
           // Communication for the L part.
           if(countSendToRight_(ksup)>1){
             MPI_Comm * colComm = commSendToRightPtr_[ksup];
-            MPI_Comm root = commSendToRightRoot_[ksup];
+            Int root = commSendToRightRoot_[ksup];
             bool isRecvFromLeft =  isRecvFromLeft_( ksup );
             if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
               std::vector<char> & sstrLcolSend = arrSstrLcolSend[supidx];

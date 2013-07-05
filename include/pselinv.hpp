@@ -19,14 +19,14 @@
 #include	"lapack.hpp"
 
 #if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT) or defined(USE_BCAST_UL)
-#include <bitset>
 #include <set>
 #endif
 namespace PEXSI{
 
 #if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT) or defined(USE_BCAST_UL)
-typedef std::set<std::vector<bool> > bitMaskSet;
+//typedef std::set<std::vector<bool> > bitMaskSet;
 typedef std::map<std::vector<bool> * , std::vector<Int> > bitMaskSnodeIdx;
+typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
 #endif
 
 
