@@ -6,10 +6,10 @@
 
 
 #ifdef USE_TAU
-  #include "TAU.h"
+#include "TAU.h"
 #elif defined (PROFILE) || defined(PMPI)
-  #define TAU
-  #include "timer.h"
+#define TAU
+#include "timer.h"
 #endif
 
 
@@ -19,27 +19,27 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "Usage" << std::endl
-		<< "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm]" << std::endl;
+    << "Usage" << std::endl
+    << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm]" << std::endl;
 }
 
 int main(int argc, char **argv) 
 {
-	if( argc < 3 ) {
-		Usage();
-		return 0;
-	}
+  if( argc < 3 ) {
+    Usage();
+    return 0;
+  }
 
 #if defined(PROFILE) || defined(USE_TAU) || defined(PMPI)
- TAU_PROFILE_INIT(argc, argv);
+  TAU_PROFILE_INIT(argc, argv);
 #endif
-	
-	MPI_Init( &argc, &argv );
-	int mpirank, mpisize;
-	MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
-	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
-			
+  MPI_Init( &argc, &argv );
+  int mpirank, mpisize;
+  MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
+  MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
+
+
   try{
     stringstream  ss;
     ss << "logTest" << mpirank;
@@ -258,13 +258,13 @@ int main(int argc, char **argv)
 
 
     if(doSymbfact){
-    GetTime( timeSta );
-    luMat.SymbolicFactorize();
-    luMat.DestroyAOnly();
-    GetTime( timeEnd );
+      GetTime( timeSta );
+      luMat.SymbolicFactorize();
+      luMat.DestroyAOnly();
+      GetTime( timeEnd );
 
-    if( mpirank == 0 )
-      cout << "Time for performing the symbolic factorization is " << timeEnd - timeSta << endl;
+      if( mpirank == 0 )
+        cout << "Time for performing the symbolic factorization is " << timeEnd - timeSta << endl;
     }
 
     // *********************************************************************
@@ -332,8 +332,9 @@ int main(int argc, char **argv)
       // Selected inversion
       // *********************************************************************
 
-      if( doSelInv )
+      for(int i=1; i<= doSelInv; ++i )
       {
+
         Real timeTotalSelInvSta, timeTotalSelInvEnd;
         GetTime( timeTotalSelInvSta );
 
@@ -345,28 +346,21 @@ int main(int argc, char **argv)
         PMatrix PMloc( &g1, &super, &luOpt );
         luMat.LUstructToPMatrix( PMloc );
         GetTime( timeEnd );
-#ifdef SANITY_CHECK
-        SuperNode superRef;
-        luMat.SymbolicToSuperNode( superRef );
-        PMatrix PMlocRef( &g1, &superRef, &luOpt  );
-        luMat.LUstructToPMatrix( PMlocRef );
-#endif
+
         if( mpirank == 0 )
           cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
 
-        statusOFS << "perm: " << endl << super.perm << endl;
-        statusOFS << "permInv: " << endl << super.permInv << endl;
-        statusOFS << "superIdx:" << endl << super.superIdx << endl;
-        statusOFS << "superPtr:" << endl << super.superPtr << endl; 
+//        statusOFS << "perm: " << endl << super.perm << endl;
+//        statusOFS << "permInv: " << endl << super.permInv << endl;
+//        statusOFS << "superIdx:" << endl << super.superIdx << endl;
+//        statusOFS << "superPtr:" << endl << super.superPtr << endl; 
 
 
         // Preparation for the selected inversion
         GetTime( timeSta );
         PMloc.ConstructCommunicationPattern();
         GetTime( timeEnd );
-#ifdef SANITY_CHECK
-        PMlocRef.ConstructCommunicationPattern();
-#endif
+
         if( mpirank == 0 )
           cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
 
@@ -374,9 +368,7 @@ int main(int argc, char **argv)
         GetTime( timeSta );
         PMloc.PreSelInv();
         GetTime( timeEnd );
-#ifdef SANITY_CHECK
-        PMlocRef.PreSelInv();
-#endif
+
         if( mpirank == 0 )
           cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
@@ -392,34 +384,98 @@ int main(int argc, char **argv)
         if( mpirank == 0 )
           cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
+
+#ifdef USE_BCAST_UL
+        GetTime( timeTotalSelInvSta );
+
+        Grid g2( MPI_COMM_WORLD, nprow, npcol );
+        SuperNode superBcast;
+
+        GetTime( timeSta );
+        luMat.SymbolicToSuperNode( superBcast );
+        PMatrix PMlocBcast( &g2, &superBcast, &luOpt  );
+        luMat.LUstructToPMatrix( PMlocBcast );
+        GetTime( timeEnd );
+
+        if( mpirank == 0 )
+          cout << "Time for converting LUstruct to PMatrix (Bcast) is " << timeEnd  - timeSta << endl;
+
+        GetTime( timeSta );
+        PMlocBcast.ConstructCommunicationPattern_Bcast();
+        GetTime( timeEnd );
+        if( mpirank == 0 )
+          cout << "Time for constructing the communication pattern (Bcast) is " << timeEnd  - timeSta << endl;
+        PMlocBcast.PreSelInv();
+
+        GetTime( timeSta );
+        PMlocBcast.SelInv_Bcast();
+        GetTime( timeEnd );
+        if( mpirank == 0 )
+          cout << "Time for numerical selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
+
+        GetTime( timeTotalSelInvEnd );
+        if( mpirank == 0 )
+          cout << "Time for total selected inversion (Bcast) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+#endif
+
 #ifdef SANITY_CHECK
+
+        GetTime( timeTotalSelInvSta );
+
+        Grid g3( MPI_COMM_WORLD, nprow, npcol );
+        SuperNode superRef;
+
+        GetTime( timeSta );
+        luMat.SymbolicToSuperNode( superRef );
+        PMatrix PMlocRef( &g3, &superRef, &luOpt  );
+        luMat.LUstructToPMatrix( PMlocRef );
+        GetTime( timeEnd );
+
+        if( mpirank == 0 )
+          cout << "Time for converting LUstruct to PMatrix (Original) is " << timeEnd  - timeSta << endl;
+
+        GetTime( timeSta );
+        PMlocRef.ConstructCommunicationPatternOriginal();
+        GetTime( timeEnd );
+        if( mpirank == 0 )
+          cout << "Time for constructing the communication pattern (Original) is " << timeEnd  - timeSta << endl;
+
+
+        PMlocRef.PreSelInv();
+
         GetTime( timeSta );
         PMlocRef.SelInvOriginal();
         GetTime( timeEnd );
         GetTime( timeTotalSelInvEnd );
         if( mpirank == 0 )
-          cout << "Time for numerical selected inversion (original) is " << timeEnd  - timeSta << endl;
+          cout << "Time for numerical selected inversion (Original) is " << timeEnd  - timeSta << endl;
+
+
+        GetTime( timeTotalSelInvEnd );
+        if( mpirank == 0 )
+          cout << "Time for total selected inversion (Original) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+
 #endif
 
 
 #ifdef SANITY_CHECK
-      {
-        NumVec<Scalar> diagRef;
+        {
+          NumVec<Scalar> diagRef;
 
-        GetTime( timeSta );
-        PMlocRef.GetDiagonal( diagRef );
-        GetTime( timeEnd );
+          GetTime( timeSta );
+          PMlocRef.GetDiagonal( diagRef );
+          GetTime( timeEnd );
 
 
-        if( mpirank == 0 ){
-          statusOFS << std::endl << "Diagonal (original algorithm) of inverse in natural order: " << std::endl << diagRef << std::endl;
-          ofstream ofs("diag_original");
-          if( !ofs.good() ) 
-            throw std::runtime_error("file cannot be opened.");
-          serialize( diagRef, ofs, NO_MASK );
-          ofs.close();
+          if( mpirank == 0 ){
+            statusOFS << std::endl << "Diagonal (original algorithm) of inverse in natural order: " << std::endl << diagRef << std::endl;
+            ofstream ofs("diag_original");
+            if( !ofs.good() ) 
+              throw std::runtime_error("file cannot be opened.");
+            serialize( diagRef, ofs, NO_MASK );
+            ofs.close();
+          }
         }
-      }
 #endif
 
 
@@ -434,7 +490,7 @@ int main(int argc, char **argv)
         PMlocRef.CompareDiagonal( PMloc ,maxError);
 
         if( mpirank == 0 )
-          cout << "Max ||diag - diagRef||_2 = " << maxError << std::endl;
+          cout << "Max ||diag - diagRef||_2 // || diagRef||_2 = " << maxError << std::endl;
 #endif
 
         if( mpirank == 0 )
@@ -451,65 +507,68 @@ int main(int argc, char **argv)
 
 
         if(doToDist){
-        // Convert to DistSparseMatrix and get the diagonal
-        GetTime( timeSta );
-        DistSparseMatrix<Scalar> Ainv;
-        PMloc.PMatrixToDistSparseMatrix( Ainv );
-        GetTime( timeEnd );
+          // Convert to DistSparseMatrix and get the diagonal
+          GetTime( timeSta );
+          DistSparseMatrix<Scalar> Ainv;
+          PMloc.PMatrixToDistSparseMatrix( Ainv );
+          GetTime( timeEnd );
 
-        if( mpirank == 0 )
-          cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
+          if( mpirank == 0 )
+            cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-        NumVec<Scalar> diagDistSparse;
-        GetTime( timeSta );
-        GetDiagonal( Ainv, diagDistSparse );
-        GetTime( timeEnd );
-        if( mpirank == 0 )
-          cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+          NumVec<Scalar> diagDistSparse;
+          GetTime( timeSta );
+          GetDiagonal( Ainv, diagDistSparse );
+          GetTime( timeEnd );
+          if( mpirank == 0 )
+            cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-        if( mpirank == 0 ){
-          statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-          Real diffNorm = 0.0;;
-          for( Int i = 0; i < diag.m(); i++ ){
-            diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+          if( mpirank == 0 ){
+            statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+            Real diffNorm = 0.0;;
+            for( Int i = 0; i < diag.m(); i++ ){
+              diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+            }
+            diffNorm = std::sqrt( diffNorm );
+            statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
           }
-          diffNorm = std::sqrt( diffNorm );
-          statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-        }
 
-        // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-        GetTime( timeSta );
-        DistSparseMatrix<Scalar> Ainv2;
-        PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
-        GetTime( timeEnd );
+          // Convert to DistSparseMatrix in the 2nd format and get the diagonal
+          GetTime( timeSta );
+          DistSparseMatrix<Scalar> Ainv2;
+          PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
+          GetTime( timeEnd );
 
-        if( mpirank == 0 )
-          cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
+          if( mpirank == 0 )
+            cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
 
-        NumVec<Scalar> diagDistSparse2;
-        GetTime( timeSta );
-        GetDiagonal( Ainv2, diagDistSparse2 );
-        GetTime( timeEnd );
-        if( mpirank == 0 )
-          cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+          NumVec<Scalar> diagDistSparse2;
+          GetTime( timeSta );
+          GetDiagonal( Ainv2, diagDistSparse2 );
+          GetTime( timeEnd );
+          if( mpirank == 0 )
+            cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-        if( mpirank == 0 ){
-          statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-          Real diffNorm = 0.0;;
-          for( Int i = 0; i < diag.m(); i++ ){
-            diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
+          if( mpirank == 0 ){
+            statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+            Real diffNorm = 0.0;;
+            for( Int i = 0; i < diag.m(); i++ ){
+              diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
+            }
+            diffNorm = std::sqrt( diffNorm );
+            statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
           }
-          diffNorm = std::sqrt( diffNorm );
-          statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-        }
 
-        Complex traceLocal = blas::Dot( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1, 
-            Ainv2.nzvalLocal.Data(), 1 );
-        Complex trace = Z_ZERO;
-        mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, MPI_COMM_WORLD );
+          Complex traceLocal = blas::Dot( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1, 
+              Ainv2.nzvalLocal.Data(), 1 );
+          Complex trace = Z_ZERO;
+          mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, MPI_COMM_WORLD );
 
-        if( mpirank == 0 )
-          statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
+          if( mpirank == 0 ){
+
+            cout << std::endl << "Tr[Ainv2 * AMat] = " << std::scientific<< trace << std::endl;
+            statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
+          }
         }
 
       }
@@ -517,16 +576,16 @@ int main(int argc, char **argv)
 
     statusOFS.close();
   }
-	catch( std::exception& e )
-	{
-		std::cerr << "Processor " << mpirank << " caught exception with message: "
-			<< e.what() << std::endl;
+  catch( std::exception& e )
+  {
+    std::cerr << "Processor " << mpirank << " caught exception with message: "
+      << e.what() << std::endl;
 #ifndef _RELEASE_
-		DumpCallStack();
+    DumpCallStack();
 #endif
-	}
-	
-	MPI_Finalize();
+  }
 
-	return 0;
+  MPI_Finalize();
+
+  return 0;
 }

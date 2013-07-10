@@ -570,6 +570,21 @@ typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
       /// pattern to be used later in the selected inversion stage.
       void ConstructCommunicationPattern( );
 
+
+#if defined(USE_BCAST_UL)
+      /// @brief ConstructCommunicationPattern constructs the communication
+      /// pattern to be used later in the selected inversion stage.
+      void ConstructCommunicationPattern_Bcast( );
+#endif
+
+
+#ifdef SANITY_CHECK
+      /// @brief ConstructCommunicationPattern constructs the communication
+      /// pattern to be used later in the selected inversion stage.
+      void ConstructCommunicationPatternOriginal( );
+#endif
+
+
       /// @brief PreSelInv prepares the structure in L_ and U_ so that
       /// SelInv only involves matrix-matrix multiplication.
       ///
@@ -737,6 +752,9 @@ typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
       ///
       ///
       void SelInv( );
+#if defined(USE_BCAST_UL)
+      void SelInv_Bcast( );
+#endif
 #ifdef SANITY_CHECK
       void SelInvOriginal( );
 #endif

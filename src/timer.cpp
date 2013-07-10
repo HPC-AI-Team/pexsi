@@ -187,7 +187,6 @@ void CTF_timer::exit(){
       } 
       sprintf(filename+strlen(filename), "-p%d.out", np);
       
-printf("Starting to output the profile\n");      
       output =  fopen(filename, "w");
       printf("%s\n",filename);
       char heading[MAX_NAME_LENGTH+200];
@@ -216,6 +215,38 @@ printf("Starting to output the profile\n");
         sprintf(all_symbols+len_symbols, "%s", function_timers[i].name);
         len_symbols += strlen(function_timers[i].name)+1;
       }
+
+      fclose(output);
+
+      output =  stdout;
+      printf("%s\n",filename);
+      for (i=0; i<MAX_NAME_LENGTH; i++){
+        part[i] = ' ';
+      }
+      part[i] = '\0';
+      sprintf(heading,"%s",part);
+      //sprintf(part,"calls   total sec   exclusive sec\n");
+      sprintf(part,"       inclusive         exclusive\n");
+      strcat(heading,part);
+      fprintf(output, "%s", heading);
+      for (i=0; i<MAX_NAME_LENGTH; i++){
+        part[i] = ' ';
+      }
+      part[i] = '\0';
+      sprintf(heading,"%s",part);
+      sprintf(part, "calls        sec       %%"); 
+      strcat(heading,part);
+      sprintf(part, "       sec       %%\n"); 
+      strcat(heading,part);
+      fprintf(output, "%s", heading);
+
+      len_symbols = 0;
+      for (i=0; i<(int)function_timers.size(); i++){
+        sprintf(all_symbols+len_symbols, "%s", function_timers[i].name);
+        len_symbols += strlen(function_timers[i].name)+1;
+      }
+
+
     }
     if (np > 1){
       for (p=0; p<np; p++){
@@ -259,9 +290,6 @@ printf("Starting to output the profile\n");
       function_timers[i].print(output,comm,rank,np);
     }
     
-    if (rank == 0){
-      fclose(output);
-    } 
     function_timers.clear();
     
   }
