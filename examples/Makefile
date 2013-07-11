@@ -23,7 +23,7 @@ EXES = ${SRCS:.cpp=}
 all: run_pselinv run_pexsi run_ppexsi f_ppexsi
 
 run_pselinv: run_pselinv.o ${PEXSI_LIB} 
-	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS) )
+	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS) $(IPM) )
 
 run_pselinv.o: run_pselinv.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
