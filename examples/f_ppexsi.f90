@@ -24,7 +24,7 @@ integer:: ordering
 integer:: isInertiaCount
 double precision :: PEXSINumElectronTolerance, &
 	inertiaNumElectronTolerance
-integer:: npPerPole, nprow, npcol
+integer:: npPerPole, nprow, npcol, npSymbFact
 integer :: mpirank, mpisize, ierr
 double precision:: timeSta, timeEnd
 character*32 :: Hfile, Sfile
@@ -66,6 +66,10 @@ PEXSINumElectronTolerance = 1d-2
 ! Number of processors used for each pole. At the moment use mpisize.
 ! Later can be changed to 
 npPerPole        = 16
+! Number of processors used for paralle symbolic factorization. This is only
+! relevant if PARMETIS/PT-SCOTCH is used.
+npSymbFact       = 8
+
 Hfile            = "H.matrix"
 ! Empty Sfile means the overlap matrix is identity
 Sfile            = "S.matrix"
@@ -76,7 +80,7 @@ isSIdentity      = 0
 !   0   : PARMETIS
 !   1   : METIS_AT_PLUS_A
 !   2   : MMD_AT_PLUS_A
-ordering         = 1
+ordering         = 0
 
 
 ! Read and compute the size/local size of the arrays 
@@ -183,6 +187,7 @@ if( isProcRead == 1 ) then
 		Energy,&
 		eta,&
 		ordering,&
+		npSymbFact,&
 		readComm,&
 		localDOSnzvalLocal,&
 		info)
@@ -215,6 +220,7 @@ call f_ppexsi_inertiacount_interface(&
 	inertiaNumElectronTolerance,&
 	ordering,&
 	npPerPole,&
+	npSymbFact,&
 	MPI_COMM_WORLD,&
 	muMinInertia,&
 	muMaxInertia,&
@@ -255,6 +261,7 @@ call f_ppexsi_solve_interface(&
 	PEXSINumElectronTolerance,&
 	ordering,&
 	npPerPole,&
+	npSymbFact,&
 	MPI_COMM_WORLD,&
 	DMnzvalLocal,&
 	EDMnzvalLocal,&

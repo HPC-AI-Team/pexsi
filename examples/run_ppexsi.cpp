@@ -16,7 +16,7 @@ extern "C" {
 
 void Usage(){
   std::cout 
-		<< "run_ppexsi -temp [temp] -mu0 [mu0] -muMin [muMin] -muMax [muMax] -numel [numel] -numPole [numPole] -deltaE [deltaE] -gap [gap] -H [Hfile] -S [Sfile] -npPerPole [npPole] -colperm [colperm] -muiter [muiter]" << std::endl 
+		<< "run_ppexsi -temp [temp] -mu0 [mu0] -muMin [muMin] -muMax [muMax] -numel [numel] -numPole [numPole] -deltaE [deltaE] -gap [gap] -H [Hfile] -S [Sfile] -npPerPole [npPole] -npSymbFact [npsymbfact] -colperm [colperm] -muiter [muiter]" << std::endl 
 		<< "temp:    Temperature (unit: K)" << std::endl
 		<< "mu0:     Initial guess for chemical potential" << std::endl
 		<< "muMin:   Lower bound for chemical potential" << std::endl
@@ -28,6 +28,7 @@ void Usage(){
 		<< "H: Hamiltonian matrix " << std::endl
 		<< "S: Overlap     matrix. if omitted, the overlap matrix is treated as an identity matrix implicitly." << std::endl
 		<< "npPerPole: number of processors used for each pole" << std::endl
+		<< "npSymbFact: number of processors used for parallel symbolic factorization" << std::endl
 		<< "colperm: permutation method (for SuperLU_DIST)" << std::endl
 	  << "muiter:  number of iterations for the chemical potential" << std::endl
 		<< "formatted: whether the input of H/S matrices are formatted (1) or unformatted (csc format, 0)" << std::endl;
@@ -135,6 +136,14 @@ int main(int argc, char **argv)
 		}
 		else{
       throw std::logic_error("npPerPole must be provided.");
+		}
+
+		Int npSymbFact;
+    if( options.find("-npSymbFact") != options.end() ){
+			npSymbFact = std::atoi(options["-npSymbFact"].c_str());
+		}
+		else{
+      throw std::logic_error("npSymbFact must be provided.");
 		}
 
 		Int isFormatted;
@@ -328,6 +337,7 @@ int main(int argc, char **argv)
 		Print(statusOFS, "muMaxIter              = ", muMaxIter);
 		Print(statusOFS, "mpisize                = ", mpisize );
 		Print(statusOFS, "npPerPole              = ", npPerPole );
+		Print(statusOFS, "npSymbFact              = ", npSymbFact );
 		Print(statusOFS, "isFreeEnergyMatrix     = ", isFreeEnergyDensityMatrix );
 		Print(statusOFS, "isEnergyMatrix         = ", isEnergyDensityMatrix ); 
 		Print(statusOFS, "isInertiaCount         = ", isInertiaCount ); 
@@ -366,7 +376,8 @@ int main(int argc, char **argv)
 					inertiaVec,
 					HMat,
 					SMat,
-					ColPerm );
+					ColPerm,
+				  npSymbFact );
 
 			GetTime( timeEnd );
 
@@ -437,6 +448,7 @@ int main(int argc, char **argv)
 				muMaxIter,
 				numElectronTolerance,
 				ColPerm,
+				npSymbFact,
 				isFreeEnergyDensityMatrix,
 				isEnergyDensityMatrix,
 				isDerivativeTMatrix,
@@ -522,6 +534,7 @@ int main(int argc, char **argv)
 					muMaxIter,
 					numElectronTolerance,
 					ColPerm,
+					npSymbFact,
 					isFreeEnergyDensityMatrix,
 					isEnergyDensityMatrix,
 					isDerivativeTMatrix,

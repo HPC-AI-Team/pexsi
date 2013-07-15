@@ -117,6 +117,8 @@ public:
 	/// potential
 	/// @param[in] numElectronTolerance  Stopping criterion for the mu iteration 
 	/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+	/// @param[in] numProcSymbFact Number of processors used for parallel
+	/// symbolic factorization and PARMETIS/PT-SCOTCH.
 	/// @param[in] isFreeEnergyDensityMatrix Whether to compute the Helmholtz free energy matrix
 	/// @param[in] isEnergyDensityMatrix Whether to compute the energy density matrix for force
 	/// @param[in] isDerivativeTMatrix Whether to compute the derivative of the
@@ -141,6 +143,7 @@ public:
 		 	Int  muMaxIter,
 			Real numElectronTolerance,
 			std::string         ColPerm,
+			Int                 numProcSymbFact,
 			bool isFreeEnergyDensityMatrix, 
 			bool isEnergyDensityMatrix,
 			bool isDerivativeTMatrix,
@@ -267,12 +270,16 @@ public:
 	/// **Note**: If SMat.size == 0, SMat is treated as an identity matrix.
 	/// 
 	/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+	///
+	/// @param[in] numProcSymbFact Number of processors used for parallel
+	/// symbolic factorization and PARMETIS/PT-SCOTCH.
 	void CalculateNegativeInertia( 
 			const std::vector<Real>&       shiftVec, 
 			std::vector<Real>&             inertiaVec,
 			const DistSparseMatrix<Real>&  HMat,
 			const DistSparseMatrix<Real>&  SMat,
-			std::string                    ColPerm);
+			std::string                    ColPerm,
+			Int                            numProcSymbFact );
 
 };
 

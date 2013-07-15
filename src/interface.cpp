@@ -212,6 +212,7 @@ void PPEXSIInertiaCountInterface(
 		double        numElectronTolerance,         // Stopping criterion of inertia count
 		int           ordering,                     // SuperLUDIST ordering
 		int           npPerPole,                    // Number of processors for each shift, still called "Pole" for legacy reason
+		int           npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
 		MPI_Comm	    comm,                         // Overall MPI communicator
 		// Output parameters
 		double*       muMinInertia,                 // Lower bound for mu after inertia count
@@ -390,7 +391,8 @@ void PPEXSIInertiaCountInterface(
 					inertiaVec,
 					HMat,
 					SMat,
-					colPerm );
+					colPerm,
+					npSymbFact );
 
 			GetTime( timeEnd );
 
@@ -634,6 +636,7 @@ void PPEXSISolveInterface (
 		double        numElectronTolerance,         // Stopping criterion of PEXSI mu iteration.
 		int           ordering,                     // SuperLUDIST ordering
 	  int           npPerPole,                    // Number of processors for each pole
+		int           npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
 	  MPI_Comm	    comm,                         // Overall MPI communicator
 		// Output parameters
 		double*      DMnzvalLocal,                  // Nonzero value of density matrix in CSC format
@@ -806,6 +809,7 @@ void PPEXSISolveInterface (
 				maxIter,
 				numElectronTolerance,
 				colPerm,
+				npSymbFact,
 				isFreeEnergyDensityMatrix,
 				isEnergyDensityMatrix,
 				isDerivativeTMatrix,
@@ -908,6 +912,7 @@ void PPEXSISelInvInterface (
 		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
 		double*       zShift,                       // Shift. Real: zShift[0], Imag: zShift[1]    
 		int           ordering,                     // SuperLUDIST ordering
+		int           npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
 	  MPI_Comm	    comm,                         // Overall MPI communicator
 		// Output parameters
 		double*       AinvnzvalLocal,               // Nonzero value of Ainv = (H - z S)^{-1}
@@ -1042,6 +1047,8 @@ void PPEXSISelInvInterface (
 
 		SuperLUOptions luOpt;
 		luOpt.ColPerm = colPerm;
+		luOpt.numProcSymbFact = npSymbFact;
+
 		SuperLUMatrix luMat( g, luOpt );
 		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
 
@@ -1122,6 +1129,7 @@ void PPEXSILocalDOSInterface (
 		double        Energy,                       // Real part of the shift
 		double        eta,                          // Broadening parameter
 		int           ordering,                     // SuperLUDIST ordering
+		int           npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
 	  MPI_Comm	    comm,                         // Overall MPI communicator
 		// Output parameters
 		double*       localDOSnzvalLocal,           // Nonzero value of Im 1/pi (H - (E+ieta) S)^{-1}
@@ -1158,6 +1166,7 @@ void PPEXSILocalDOSInterface (
 				SnzvalLocal,
 				zShift,
 				ordering,
+				npSymbFact,
 				comm,	
 				Ainvnzval.Data(),
 				info );
@@ -1297,6 +1306,7 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 		double*       numElectronTolerance,         // Stopping criterion of inertia count
 		int*          ordering,                     // SuperLUDIST ordering
 		int*          npPerPole,                    // Number of processors for each shift, still called "Pole" for legacy reason
+		int*          npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
 		int*    	    Fcomm,                        // Overall MPI communicator
 		// Output parameters
 		double*       muMinInertia,                 // Lower bound for mu after inertia count
@@ -1328,6 +1338,7 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 			*numElectronTolerance,
 			*ordering,
 			*npPerPole,
+			*npSymbFact,
 			f2c_comm(Fcomm),
 			muMinInertia,
 			muMaxInertia,
@@ -1367,6 +1378,7 @@ void FORTRAN(f_ppexsi_solve_interface)(
 		double*       numElectronTolerance,         // Stopping criterion of PEXSI mu iteration.
 		int*          ordering,                     // SuperLUDIST ordering
 	  int*          npPerPole,                    // Number of processors for each pole
+		int*          npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
 		int*    	    Fcomm,                        // Overall MPI communicator
 		// Output parameters
 		double*      DMnzvalLocal,                  // Nonzero value of density matrix in CSC format
@@ -1405,6 +1417,7 @@ void FORTRAN(f_ppexsi_solve_interface)(
 			*numElectronTolerance,
 		  *ordering,
 			*npPerPole,
+			*npSymbFact,
 			f2c_comm(Fcomm),
 			DMnzvalLocal,
 			EDMnzvalLocal,
@@ -1439,6 +1452,7 @@ void FORTRAN(f_ppexsi_selinv_interface)(
 		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
 		double*       zShift,                       // Shift. Real: zShift[0], Imag: zShift[1]    
 		int*          ordering,                     // SuperLUDIST ordering
+		int*          npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
 		int*    	    Fcomm,                        // Overall MPI communicator
 		// Output parameters
 		double*       AinvnzvalLocal,               // Nonzero value of Ainv = (H - z S)^{-1}
@@ -1457,6 +1471,7 @@ void FORTRAN(f_ppexsi_selinv_interface)(
 			SnzvalLocal,
 			zShift,
 			*ordering,
+			*npSymbFact,
 			f2c_comm(Fcomm),
 			AinvnzvalLocal,
 			info );
@@ -1484,6 +1499,7 @@ void FORTRAN(f_ppexsi_localdos_interface)(
 		double*       Energy,                       // Real part of the shift
 		double*       eta,                          // Broadening parameter
 		int*          ordering,                     // SuperLUDIST ordering
+		int*          npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
 		int*    	    Fcomm,                        // Overall MPI communicator
 		// Output parameters
 		double*       localDOSnzvalLocal,           // Nonzero value of Im 1/pi (H - (E+ieta) S)^{-1}
@@ -1503,6 +1519,7 @@ void FORTRAN(f_ppexsi_localdos_interface)(
 			*Energy,
 			*eta,
 			*ordering,
+			*npSymbFact,
 			f2c_comm(Fcomm),
 			localDOSnzvalLocal,
 			info );

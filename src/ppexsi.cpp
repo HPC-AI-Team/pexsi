@@ -153,6 +153,7 @@ void PPEXSIData::Solve(
 		Int  muMaxIter,
 		Real numElectronTolerance,
 		std::string         ColPerm,
+		Int                 numProcSymbFact,
 		bool isFreeEnergyDensityMatrix, 
 		bool isEnergyDensityMatrix,
 		bool isDerivativeTMatrix,
@@ -236,6 +237,7 @@ void PPEXSIData::Solve(
 	SuperLUOptions   luOpt;
 
 	luOpt.ColPerm = ColPerm;
+	luOpt.numProcSymbFact = numProcSymbFact;
 
 	SuperLUMatrix    luMat( *gridSuperLU_, luOpt );  // SuperLU matrix.
 
@@ -1070,7 +1072,8 @@ void PPEXSIData::CalculateNegativeInertia(
 		std::vector<Real>&             inertiaVec,
 		const DistSparseMatrix<Real>&  HMat,
 		const DistSparseMatrix<Real>&  SMat,
-		std::string                    ColPerm
+		std::string                    ColPerm,
+		Int                            numProcSymbFact
 		){
 #ifndef _RELEASE_
 	PushCallStack("PPEXSIData::CalculateNegativeInertia");
@@ -1114,6 +1117,7 @@ void PPEXSIData::CalculateNegativeInertia(
 	SuperLUOptions   luOpt;
 
 	luOpt.ColPerm = ColPerm;
+	luOpt.numProcSymbFact = numProcSymbFact;
 
 	SuperLUMatrix    luMat( *gridSuperLU_, luOpt );  // SuperLU matrix.
 
