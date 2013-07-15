@@ -10,7 +10,8 @@ extern "C"{
 void
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
 		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *info);
+		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
+		int *info);
 }
 #else
 // TODO pdsymbfact
@@ -121,6 +122,10 @@ struct SuperLUMatrix::SuperLUData{
 	/// @brief SuperLU statistics
 	SuperLUStat_t       stat;
 
+	/// @brief Number of processors used for parallel symbolic
+	/// factorization and PARMETIS/PT-SCOTCH
+	Int                 numProcSymbFact;
+
 	/// @brief SuperLU information
 	Int                 info;
 
@@ -143,6 +148,7 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 	ptrData->isSuperMatrixAllocated     = false;
 	ptrData->isScalePermstructAllocated = false;
 	ptrData->isLUstructAllocated        = false;
+	ptrData->numProcSymbFact            = opt.numProcSymbFact;
 
 	// Options
 	superlu_options_t& options = ptrData->options;
@@ -182,6 +188,7 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 
 	// Setup grids
   ptrData->grid = &(g.ptrData->grid);
+
 
 #ifndef _RELEASE_
 	PopCallStack();
@@ -342,7 +349,7 @@ SuperLUMatrix::SymbolicFactorize	(  )
 	statusOFS << "Before symbfact subroutine." << std::endl;
 #endif
 	pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
-			&ptrData->LUstruct, &ptrData->stat, &ptrData->info);
+			&ptrData->LUstruct, &ptrData->stat, &ptrData->numProcSymbFact, &ptrData->info);
 	PStatFree(&ptrData->stat);
 
 	ptrData->isScalePermstructAllocated = true;

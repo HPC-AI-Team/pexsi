@@ -36,13 +36,13 @@ public:
 /// @brief A thin interface for setting the SuperLU options from
 /// outside.  
 ///
-/// NOTE: Currently only the column permutation (the most frequently
-/// used one) is allowed to be specified from outside.
 struct SuperLUOptions{
+	Int              numProcSymbFact;
+
 	std::string      ColPerm;
 
 	// Member functions to setup the default value
-	SuperLUOptions(): ColPerm("MMD_AT_PLUS_A") {}
+	SuperLUOptions(): numProcSymbFact(0), ColPerm("MMD_AT_PLUS_A") {}
 
 	~SuperLUOptions(){};
 };

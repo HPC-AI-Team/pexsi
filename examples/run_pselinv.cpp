@@ -10,7 +10,7 @@ using namespace std;
 void Usage(){
   std::cout 
 		<< "Usage" << std::endl
-		<< "run_pselinv -H <Hfile> -S [Sfile] -colperm [colperm]" << std::endl;
+		<< "run_pselinv -H <Hfile> -S [Sfile] -colperm [colperm] -npsymbfact [npsymbfact]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -73,6 +73,18 @@ int main(int argc, char **argv)
 				<< std::endl << std::endl;
 			ColPerm = "MMD_AT_PLUS_A";
 		}
+
+		Int numProcSymbFact;
+		if( options.find("-npsymbfact") != options.end() ){ 
+			numProcSymbFact = atoi( options["-npsymbfact"].c_str() );
+		}
+		else{
+			statusOFS << "-npsymbfact option is not given. " 
+				<< "Use default value (maximum number of procs)." 
+				<< std::endl << std::endl;
+			numProcSymbFact = 0;
+		}
+
 
 		// *********************************************************************
 		// Read input matrix
@@ -171,7 +183,8 @@ int main(int argc, char **argv)
 
 		GetTime( timeSta );
 		SuperLUOptions luOpt;
-		luOpt.ColPerm = ColPerm;
+		luOpt.ColPerm         = ColPerm;
+		luOpt.numProcSymbFact = numProcSymbFact;
 		SuperLUMatrix luMat( g, luOpt );
 		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
 		GetTime( timeEnd );
@@ -185,6 +198,7 @@ int main(int argc, char **argv)
 
 		if( mpirank == 0 )
 			cout << "Time for performing the symbolic factorization is " << timeEnd - timeSta << endl;
+
 
 
 		// *********************************************************************
@@ -204,7 +218,6 @@ int main(int argc, char **argv)
 		GetTime( timeEnd );
 		if( mpirank == 0 )
 			cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
-		
      		 
 
 		GetTime( timeSta );
@@ -223,7 +236,7 @@ int main(int argc, char **argv)
 		// Test the accuracy of factorization by solve
 		// *********************************************************************
 
-		if( 1 ) {
+		if( 0 ) {
 			SuperLUMatrix A1( g ), GA( g );
 			A1.DistSparseMatrixToSuperMatrixNRloc( AMat );
 			A1.ConvertNRlocToNC( GA );
@@ -269,10 +282,12 @@ int main(int argc, char **argv)
 			if( mpirank == 0 )
 				cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
 
-			statusOFS << "perm: " << endl << super.perm << endl;
-			statusOFS << "permInv: " << endl << super.permInv << endl;
-			statusOFS << "superIdx:" << endl << super.superIdx << endl;
-			statusOFS << "superPtr:" << endl << super.superPtr << endl; 
+			if( 0 ){
+				statusOFS << "perm: " << endl << super.perm << endl;
+				statusOFS << "permInv: " << endl << super.permInv << endl;
+				statusOFS << "superIdx:" << endl << super.superIdx << endl;
+				statusOFS << "superPtr:" << endl << super.superPtr << endl; 
+			}
 
 
 			// Preparation for the selected inversion
@@ -290,6 +305,7 @@ int main(int argc, char **argv)
 			if( mpirank == 0 )
 				cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
+
 			// Main subroutine for selected inversion
 			GetTime( timeSta );
 			PMloc.SelInv();
@@ -298,7 +314,7 @@ int main(int argc, char **argv)
 			if( mpirank == 0 )
 				cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 
-
+#if 0 
 			GetTime( timeTotalSelInvEnd );
 			if( mpirank == 0 )
 				cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
@@ -319,8 +335,6 @@ int main(int argc, char **argv)
 				serialize( diag, ofs, NO_MASK );
 				ofs.close();
 			}
-
-
 
 
 			// Convert to DistSparseMatrix and get the diagonal
@@ -349,15 +363,17 @@ int main(int argc, char **argv)
 				statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
 			}
 
+#endif
 			// Convert to DistSparseMatrix in the 2nd format and get the diagonal
 			GetTime( timeSta );
 			DistSparseMatrix<Scalar> Ainv2;
-			PMloc.PMatrixToDistSparseMatrix( AMat, Ainv2 );
+			PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
 			GetTime( timeEnd );
 			
 			if( mpirank == 0 )
 				cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
 
+#if 0
 			NumVec<Scalar> diagDistSparse2;
 			GetTime( timeSta );
 			GetDiagonal( Ainv2, diagDistSparse2 );
@@ -382,9 +398,10 @@ int main(int argc, char **argv)
 
 			if( mpirank == 0 )
 				statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
-
+#endif
 
 		}
+
 		
 		statusOFS.close();
 	}

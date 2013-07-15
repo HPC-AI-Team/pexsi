@@ -15,7 +15,8 @@
 void
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
 		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *info)
+		LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+		int *numProcSymbFact, int *info)
 {
 	NRformat_loc *Astore;
 	SuperMatrix GA;      /* Global A in NC format */
@@ -419,10 +420,14 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 
 		if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
 			nprocs_num = grid->nprow * grid->npcol;
-			noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
-			// FIXME for the strange problem in ParMETIS that no more than 64
-			// processors can be used for symbolic factorization.
-			if( noDomains > 16 ) noDomains = 16;
+			if( *numProcSymbFact == 0 ){
+				// Default value
+				noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
+			}
+			else{
+				// User-provided value
+				noDomains = *numProcSymbFact;
+			}
 #if ( PRNTlevel >= 1 )
 			if( !iam ) fprintf(stderr,"Using %d processors for ParMETIS.\n", noDomains);
 #endif
