@@ -336,6 +336,208 @@ int main(int argc, char **argv)
       {
 
         Real timeTotalSelInvSta, timeTotalSelInvEnd;
+
+
+
+
+
+
+#ifdef USE_BCAST_UL
+  NumVec<Scalar> diagBcast;
+#endif
+
+#ifdef SANITY_CHECK
+  NumVec<Scalar> diagRef;
+{
+  GetTime( timeTotalSelInvSta );
+
+  Grid g3( MPI_COMM_WORLD, nprow, npcol );
+  SuperNode superRef;
+
+  GetTime( timeSta );
+  luMat.SymbolicToSuperNode( superRef );
+  PMatrix PMlocRef( &g3, &superRef, &luOpt  );
+  luMat.LUstructToPMatrix( PMlocRef );
+  GetTime( timeEnd );
+
+  if( mpirank == 0 )
+    cout << "Time for converting LUstruct to PMatrix (Original) is " << timeEnd  - timeSta << endl;
+
+  GetTime( timeSta );
+  PMlocRef.ConstructCommunicationPatternOriginal();
+  GetTime( timeEnd );
+  if( mpirank == 0 )
+    cout << "Time for constructing the communication pattern (Original) is " << timeEnd  - timeSta << endl;
+
+
+  PMlocRef.PreSelInv();
+
+  GetTime( timeSta );
+  PMlocRef.SelInvOriginal();
+  GetTime( timeEnd );
+  GetTime( timeTotalSelInvEnd );
+  if( mpirank == 0 )
+    cout << "Time for numerical selected inversion (Original) is " << timeEnd  - timeSta << endl;
+
+
+  GetTime( timeTotalSelInvEnd );
+  if( mpirank == 0 )
+    cout << "Time for total selected inversion (Original) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+
+
+
+
+#ifdef USE_BCAST_UL
+  {
+    GetTime( timeTotalSelInvSta );
+
+    Grid g2( MPI_COMM_WORLD, nprow, npcol );
+    SuperNode superBcast;
+
+    GetTime( timeSta );
+    luMat.SymbolicToSuperNode( superBcast );
+    PMatrix PMlocBcast( &g2, &superBcast, &luOpt  );
+    luMat.LUstructToPMatrix( PMlocBcast );
+    GetTime( timeEnd );
+
+    if( mpirank == 0 )
+      cout << "Time for converting LUstruct to PMatrix (Bcast) is " << timeEnd  - timeSta << endl;
+
+    GetTime( timeSta );
+    PMlocBcast.ConstructCommunicationPattern_Bcast();
+    GetTime( timeEnd );
+    if( mpirank == 0 )
+      cout << "Time for constructing the communication pattern (Bcast) is " << timeEnd  - timeSta << endl;
+    PMlocBcast.PreSelInv();
+
+    GetTime( timeSta );
+    PMlocBcast.SelInv_Bcast();
+    GetTime( timeEnd );
+    if( mpirank == 0 )
+      cout << "Time for numerical selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
+
+    GetTime( timeTotalSelInvEnd );
+    if( mpirank == 0 )
+      cout << "Time for total selected inversion (Bcast) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+
+        Real maxError = 0.0;
+        PMlocRef.CompareOffDiagonal( PMlocBcast ,maxError);
+
+        if( mpirank == 0 )
+          cout << "Max ||OffdiagBcast - OffdiagRef||_2 // || OffdiagRef||_2 = " << maxError << std::endl;
+        maxError = 0.0;
+        PMlocRef.CompareDiagonal( PMlocBcast ,maxError);
+
+        if( mpirank == 0 )
+          cout << "Max ||diagBcast - diagRef||_2 // || diagRef||_2 = " << maxError << std::endl;
+
+
+    GetTime( timeSta );
+    PMlocBcast.GetDiagonal( diagBcast );
+    GetTime( timeEnd );
+
+
+    if( mpirank == 0 ){
+      statusOFS << std::endl << "Diagonal (Bcast) of inverse in natural order: " << std::endl << diagBcast << std::endl;
+      ofstream ofs("diag_bcast");
+      if( !ofs.good() ) 
+        throw std::runtime_error("file cannot be opened.");
+      serialize( diagBcast, ofs, NO_MASK );
+      ofs.close();
+    }
+
+//    PMlocBcast.DestructCommunicationPattern_Bcast( );
+
+  }
+
+#endif
+
+
+
+  GetTime( timeSta );
+  PMlocRef.GetDiagonal( diagRef );
+  GetTime( timeEnd );
+
+
+  if( mpirank == 0 ){
+    statusOFS << std::endl << "Diagonal (original algorithm) of inverse in natural order: " << std::endl << diagRef << std::endl;
+    ofstream ofs("diag_original");
+    if( !ofs.good() ) 
+      throw std::runtime_error("file cannot be opened.");
+    serialize( diagRef, ofs, NO_MASK );
+    ofs.close();
+  }
+
+
+
+
+}
+#endif
+
+
+#ifndef SANITY_CHECK
+#ifdef USE_BCAST_UL
+  {
+    GetTime( timeTotalSelInvSta );
+
+    Grid g2( MPI_COMM_WORLD, nprow, npcol );
+    SuperNode superBcast;
+
+    GetTime( timeSta );
+    luMat.SymbolicToSuperNode( superBcast );
+    PMatrix PMlocBcast( &g2, &superBcast, &luOpt  );
+    luMat.LUstructToPMatrix( PMlocBcast );
+    GetTime( timeEnd );
+
+    if( mpirank == 0 )
+      cout << "Time for converting LUstruct to PMatrix (Bcast) is " << timeEnd  - timeSta << endl;
+
+    GetTime( timeSta );
+    PMlocBcast.ConstructCommunicationPattern_Bcast();
+    GetTime( timeEnd );
+    if( mpirank == 0 )
+      cout << "Time for constructing the communication pattern (Bcast) is " << timeEnd  - timeSta << endl;
+    PMlocBcast.PreSelInv();
+
+    GetTime( timeSta );
+    PMlocBcast.SelInv_Bcast();
+    GetTime( timeEnd );
+    if( mpirank == 0 )
+      cout << "Time for numerical selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
+
+    GetTime( timeTotalSelInvEnd );
+    if( mpirank == 0 )
+      cout << "Time for total selected inversion (Bcast) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+
+
+
+    GetTime( timeSta );
+    PMlocBcast.GetDiagonal( diagBcast );
+    GetTime( timeEnd );
+
+
+    if( mpirank == 0 ){
+      statusOFS << std::endl << "Diagonal (Bcast) of inverse in natural order: " << std::endl << diagBcast << std::endl;
+      ofstream ofs("diag_bcast");
+      if( !ofs.good() ) 
+        throw std::runtime_error("file cannot be opened.");
+      serialize( diagBcast, ofs, NO_MASK );
+      ofs.close();
+    }
+
+
+//    PMlocBcast.DestructCommunicationPattern_Bcast( );
+
+  }
+#endif
+#endif
+
+
+
+
+
+
+
         GetTime( timeTotalSelInvSta );
 
         Grid g1( MPI_COMM_WORLD, nprow, npcol );
@@ -385,98 +587,6 @@ int main(int argc, char **argv)
           cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 
-#ifdef USE_BCAST_UL
-        GetTime( timeTotalSelInvSta );
-
-        Grid g2( MPI_COMM_WORLD, nprow, npcol );
-        SuperNode superBcast;
-
-        GetTime( timeSta );
-        luMat.SymbolicToSuperNode( superBcast );
-        PMatrix PMlocBcast( &g2, &superBcast, &luOpt  );
-        luMat.LUstructToPMatrix( PMlocBcast );
-        GetTime( timeEnd );
-
-        if( mpirank == 0 )
-          cout << "Time for converting LUstruct to PMatrix (Bcast) is " << timeEnd  - timeSta << endl;
-
-        GetTime( timeSta );
-        PMlocBcast.ConstructCommunicationPattern_Bcast();
-        GetTime( timeEnd );
-        if( mpirank == 0 )
-          cout << "Time for constructing the communication pattern (Bcast) is " << timeEnd  - timeSta << endl;
-        PMlocBcast.PreSelInv();
-
-        GetTime( timeSta );
-        PMlocBcast.SelInv_Bcast();
-        GetTime( timeEnd );
-        if( mpirank == 0 )
-          cout << "Time for numerical selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
-
-        GetTime( timeTotalSelInvEnd );
-        if( mpirank == 0 )
-          cout << "Time for total selected inversion (Bcast) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
-#endif
-
-#ifdef SANITY_CHECK
-
-        GetTime( timeTotalSelInvSta );
-
-        Grid g3( MPI_COMM_WORLD, nprow, npcol );
-        SuperNode superRef;
-
-        GetTime( timeSta );
-        luMat.SymbolicToSuperNode( superRef );
-        PMatrix PMlocRef( &g3, &superRef, &luOpt  );
-        luMat.LUstructToPMatrix( PMlocRef );
-        GetTime( timeEnd );
-
-        if( mpirank == 0 )
-          cout << "Time for converting LUstruct to PMatrix (Original) is " << timeEnd  - timeSta << endl;
-
-        GetTime( timeSta );
-        PMlocRef.ConstructCommunicationPatternOriginal();
-        GetTime( timeEnd );
-        if( mpirank == 0 )
-          cout << "Time for constructing the communication pattern (Original) is " << timeEnd  - timeSta << endl;
-
-
-        PMlocRef.PreSelInv();
-
-        GetTime( timeSta );
-        PMlocRef.SelInvOriginal();
-        GetTime( timeEnd );
-        GetTime( timeTotalSelInvEnd );
-        if( mpirank == 0 )
-          cout << "Time for numerical selected inversion (Original) is " << timeEnd  - timeSta << endl;
-
-
-        GetTime( timeTotalSelInvEnd );
-        if( mpirank == 0 )
-          cout << "Time for total selected inversion (Original) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
-
-#endif
-
-
-#ifdef SANITY_CHECK
-        {
-          NumVec<Scalar> diagRef;
-
-          GetTime( timeSta );
-          PMlocRef.GetDiagonal( diagRef );
-          GetTime( timeEnd );
-
-
-          if( mpirank == 0 ){
-            statusOFS << std::endl << "Diagonal (original algorithm) of inverse in natural order: " << std::endl << diagRef << std::endl;
-            ofstream ofs("diag_original");
-            if( !ofs.good() ) 
-              throw std::runtime_error("file cannot be opened.");
-            serialize( diagRef, ofs, NO_MASK );
-            ofs.close();
-          }
-        }
-#endif
 
 
         NumVec<Scalar> diag;
@@ -485,16 +595,48 @@ int main(int argc, char **argv)
         PMloc.GetDiagonal( diag );
         GetTime( timeEnd );
 
-#ifdef SANITY_CHECK
-        Real maxError = 0.0;
-        PMlocRef.CompareDiagonal( PMloc ,maxError);
-
-        if( mpirank == 0 )
-          cout << "Max ||diag - diagRef||_2 // || diagRef||_2 = " << maxError << std::endl;
-#endif
 
         if( mpirank == 0 )
           cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+
+
+
+#ifdef SANITY_CHECK
+{
+  Real maxError = 0.0;
+  if( mpirank == 0 ){
+    for( Int i = 0; i < diag.m(); i++ ){
+      std::stringstream msg;
+      Real error = abs(diag(i)-diagRef(i))/abs(diagRef(i));
+      msg<< "Row "<<i<<" is wrong : "<< diag(i) << " vs "<<diagRef(i)<< " error is "<< error <<std::endl; 
+      if( error > maxError){ maxError = error;}
+      if(error > SANITY_PRECISION){
+        statusOFS<<msg;
+      }
+    }
+      cout << "Max ||diag - diagRef||_2 // || diagRef||_2 = " << maxError << std::endl;
+  }
+
+#ifdef USE_BCAST_UL
+  maxError = 0.0;
+
+  if( mpirank == 0 ){
+    for( Int i = 0; i < diagBcast.m(); i++ ){
+      std::stringstream msg;
+      Real error = abs(diagBcast(i)-diagRef(i))/abs(diagRef(i));
+      msg<< "Row "<<i<<" is wrong : "<< diagBcast(i) << " vs "<<diagRef(i)<< " error is "<< error <<std::endl; 
+      if( error > maxError){ maxError = error;}
+      if(error > SANITY_PRECISION){
+        statusOFS<<msg;
+      }
+    }
+      cout << "Max ||diagBcast - diagRef||_2 // || diagRef||_2 = " << maxError << std::endl;
+  }
+#endif
+
+}
+#endif
+
 
         if( mpirank == 0 ){
           statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
@@ -566,8 +708,11 @@ int main(int argc, char **argv)
 
           if( mpirank == 0 ){
 
+            cout << "H.size = " << std::scientific << HMat.size << endl;
             cout << std::endl << "Tr[Ainv2 * AMat] = " << std::scientific<< trace << std::endl;
             statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
+
+
           }
         }
 

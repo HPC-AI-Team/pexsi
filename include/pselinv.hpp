@@ -575,6 +575,7 @@ typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
       /// @brief ConstructCommunicationPattern constructs the communication
       /// pattern to be used later in the selected inversion stage.
       void ConstructCommunicationPattern_Bcast( );
+      void DestructCommunicationPattern_Bcast	( );
 #endif
 
 
@@ -769,6 +770,7 @@ typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
 
 #ifdef SANITY_CHECK
       void CompareDiagonal( PMatrix & Ref, Real & globalMaxError );
+      void CompareOffDiagonal	( PMatrix & Ref, Real & globalMaxError );
 #endif
 
       /// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
