@@ -1066,7 +1066,6 @@ PPEXSIData::EstimateZeroTemperatureChemicalPotential	(
 	return mu0;
 } 		// -----  end of method PPEXSIData::EstimateZeroTemperatureChemicalPotential  ----- 
 
- 
 void PPEXSIData::CalculateNegativeInertia( 
 		const std::vector<Real>&       shiftVec, 
 		std::vector<Real>&             inertiaVec,
@@ -1275,6 +1274,7 @@ void PPEXSIData::CalculateNegativeInertia(
 
 	return ;
 } 		// -----  end of method PPEXSIData::CalculateNegativeInertia ----- 
+
 
 
 } //  namespace PEXSI

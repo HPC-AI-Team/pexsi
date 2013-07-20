@@ -281,6 +281,17 @@ public:
 			std::string                    ColPerm,
 			Int                            numProcSymbFact );
 
+
+	/// @brief Compute the negative inertia (the number of eigenvalues
+	/// below a shift) with real arithmetic which directly using SuperLU.
+	void CalculateNegativeInertiaReal( 
+			const std::vector<Real>&       shiftVec, 
+			std::vector<Real>&             inertiaVec,
+			const DistSparseMatrix<Real>&  HMat,
+			const DistSparseMatrix<Real>&  SMat,
+			std::string                    ColPerm,
+			Int                            numProcSymbFact );
+
 };
 
 

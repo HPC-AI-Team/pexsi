@@ -24,6 +24,9 @@ EXES = ${SRCS:.cpp=}	 ${SRCS_C:.c=}   ${SRCS_F:.f90=}
 %.o: %.F90
 	${FC} -c ${FFLAGS} $<
 
+ex25: ex25.o ${PEXSI_LIB} 
+	($(LOADER) -o $@ ex25.o  $(LOADOPTS) )
+
 ex24: ex24.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ ex24.o  $(LOADOPTS) )
 
