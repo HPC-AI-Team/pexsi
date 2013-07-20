@@ -371,7 +371,7 @@ int main(int argc, char **argv)
 			}
 
 			GetTime( timeSta );
-			pexsi.CalculateNegativeInertia( 
+			pexsi.CalculateNegativeInertiaReal( 
 					shiftVec,
 					inertiaVec,
 					HMat,

@@ -107,7 +107,6 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 		return;
 	}
 
-
 	factored = (Fact == FACTORED);
 	Equil = (!factored && options->Equil == YES);
 	notran = (options->Trans == NOTRANS);
@@ -432,7 +431,7 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 			if( !iam ) fprintf(stderr,"Using %d processors for ParMETIS.\n", noDomains);
 #endif
 
-			/* create a new communicator for the first noDomains processors in
+			/* create a new communicator for the first noDomains processes in
 				 grid->comm */
 			key = iam;
 			if (iam < noDomains) col = 0;
@@ -669,7 +668,7 @@ distribution routine. */
 	}
 
 #if ( DEBUGlevel>=1 )
-	CHECK_MALLOC(iam, "Exit pzgssvx()");
+	CHECK_MALLOC(iam, "Exit pzsymbfact()");
 #endif
 
 }

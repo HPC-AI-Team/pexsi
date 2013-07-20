@@ -72,6 +72,9 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 //	Int         numProcRow  = gridPole_->numProcRow;
 //	Int         numProcCol  = gridPole_->numProcCol;
 
+	std::cout << gridSelInv_->numProcRow << std::endl;
+	std::cout << gridSelInv_->numProcCol << std::endl;
+	grid = new gridinfo_t;
 	superlu_gridinit( gridSelInv_->comm, gridSelInv_->numProcRow, 
 			gridSelInv_->numProcCol, grid );
 
@@ -223,7 +226,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 			{
 				NRformat_loc *Astore = (NRformat_loc *) A.Store;
 				Astore = (NRformat_loc *) A.Store;
-				Real* AnzvalLocal  = (Real*)(Astore->nzval);
+				double* AnzvalLocal  = (double*)(Astore->nzval);
 				if( SMat.size != 0 ){
 					// S is not an identity matrix
 					for( Int i = 0; i < HMat.nnzLocal; i++ ){
@@ -261,6 +264,16 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 				NRformat_loc *Astore = (NRformat_loc *) A.Store;
 				Int* colind   = Astore->colind;
 				Int  nnzLocal = Astore->nnz_loc;
+
+				// Important: recompute the permuted colind
+				std::copy( HMat.rowindLocal.Data(), HMat.rowindLocal.Data() +
+						HMat.rowindLocal.m(), colind );
+
+				// Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
+				for(Int i = 0; i < HMat.rowindLocal.m(); i++){
+					colind[i]--;
+				}
+
 				// Apply column permutation to the original distributed A
 				for(Int j = 0; j < nnzLocal; j++)
 					colind[j] = perm_c[colind[j]];
@@ -370,6 +383,15 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 	mpi::Allreduce( &inertiaVecLocal[0], &inertiaVec[0], numShift, 
 			MPI_SUM, gridPole_->colComm );
 
+	// Free the data
+	Destroy_LU(A.ncol, grid, &LUstruct);
+	LUstructFree(&LUstruct); 
+	ScalePermstructFree(&ScalePermstruct);
+	Destroy_CompRowLoc_Matrix_dist(&A);
+	
+	MPI_Comm_free( &grid->rscp.comm );
+	MPI_Comm_free( &grid->cscp.comm );
+	delete grid;
 
 #ifndef _RELEASE_
 	PopCallStack();

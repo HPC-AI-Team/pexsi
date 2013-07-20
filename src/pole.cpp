@@ -230,7 +230,7 @@ void ellipjc(Complex* psn, Complex* pcn,
   double K, Kp; 
   double L = (*pL);
   double m;
-  double pi = atan(1.0)*4.0;
+  double pi = std::atan(1.0)*4.0;
   double eps = 1e-15;
   double x, kappa, mu;
   int high;
@@ -378,6 +378,7 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
   kr          = (sqrt(M2/m2)-1.0)/(sqrt(M2/m2)+1.0);
   L           = -log(kr)/pi;
   ellipkkp(&K, &Kp, &L);
+
 
   for( j = 0; j < Npolehalf; j++){
     t   = (-K + (0.5 + j) / Npolehalf * 2.0 * K) + Z_I * 0.5 * Kp;

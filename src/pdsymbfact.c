@@ -666,7 +666,7 @@ distribution routine. */
 	}
 
 #if ( DEBUGlevel>=1 )
-	CHECK_MALLOC(iam, "Exit pdgssvx()");
+	CHECK_MALLOC(iam, "Exit pdsymbfact()");
 #endif
 
 }
