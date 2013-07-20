@@ -211,7 +211,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 
 	for(Int l = 0; l < numShift; l++){
 		if( gridPole_->mpirank / gridPole_->numProcCol == 
-				l % gridPole_->numProcCol ){
+				l % gridPole_->numProcRow ){
 			//  MYROW( gridPole_ ) == PROW( l, gridPole_ )
 
 			GetTime( timeShiftSta );

@@ -386,7 +386,7 @@ void PPEXSIInertiaCountInterface(
 			}
 
 			GetTime( timeSta );
-			pexsi.CalculateNegativeInertia( 
+			pexsi.CalculateNegativeInertiaReal( 
 					shiftVec,
 					inertiaVec,
 					HMat,

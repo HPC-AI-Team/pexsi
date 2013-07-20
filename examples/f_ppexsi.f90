@@ -1,4 +1,4 @@
-!> @file ex22.f90
+!> @file f_ppexsi.f90
 !> @brief Test the new FORTRAN interface for PPEXSI.
 !> @author Lin Lin
 !> @date 2013-04-10
