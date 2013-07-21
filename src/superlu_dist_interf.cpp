@@ -57,23 +57,11 @@ SuperLUGrid::~SuperLUGrid	(  )
 #ifndef _RELEASE_
 	PushCallStack("SuperLUGrid::~SuperLUGrid");
 #endif
-	// NOTE: Do not call 
-	//
-	// superlu_gridexit(&ptrData->grid);
-	//
-	// Since this subroutine frees grid->comm.  This is not what you want
-	// to do when grid->comm is to be used by other subroutines.
-
-	// The following lines are taken from
-	// superlu_gridexit:SuperLU_DIST/SRC/superlu_grid.c 
-	MPI_Comm_free( &ptrData->grid.rscp.comm );
-	MPI_Comm_free( &ptrData->grid.cscp.comm );
-	// SuperLU defines this new  type in superlu_grid.c
-#ifdef _USE_COMPLEX_
-	if ( SuperLU_MPI_DOUBLE_COMPLEX != MPI_DATATYPE_NULL ) {
-		MPI_Type_free( &SuperLU_MPI_DOUBLE_COMPLEX );
-	}
-#endif
+	// NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
+	// communicator, it is legal to call superlu_gridexit even if
+	// grid->comm is a copy of MPI_COMM_WORLD.
+	
+	superlu_gridexit(&ptrData->grid);
 	
 	delete ptrData;
 

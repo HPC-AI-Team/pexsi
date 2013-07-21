@@ -67,11 +67,6 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 	// Here it assumes that gridSuperLU_ and gridSelInv_ follow the same
 	// distribution.
 
-//	Int         mpirank     = gridPole_->mpirank;
-//  Int         mpisize     = gridPole_->mpisize; 
-//	Int         numProcRow  = gridPole_->numProcRow;
-//	Int         numProcCol  = gridPole_->numProcCol;
-
 	std::cout << gridSelInv_->numProcRow << std::endl;
 	std::cout << gridSelInv_->numProcCol << std::endl;
 	grid = new gridinfo_t;
@@ -389,8 +384,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 	ScalePermstructFree(&ScalePermstruct);
 	Destroy_CompRowLoc_Matrix_dist(&A);
 	
-	MPI_Comm_free( &grid->rscp.comm );
-	MPI_Comm_free( &grid->cscp.comm );
+	superlu_gridexit(grid);
 	delete grid;
 
 #ifndef _RELEASE_
