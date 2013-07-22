@@ -67,8 +67,6 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 	// Here it assumes that gridSuperLU_ and gridSelInv_ follow the same
 	// distribution.
 
-	std::cout << gridSelInv_->numProcRow << std::endl;
-	std::cout << gridSelInv_->numProcCol << std::endl;
 	grid = new gridinfo_t;
 	superlu_gridinit( gridSelInv_->comm, gridSelInv_->numProcRow, 
 			gridSelInv_->numProcCol, grid );
