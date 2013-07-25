@@ -417,6 +417,54 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 		permc_spec = options->ColPerm;
 
 
+
+
+	if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
+	    nprocs_num = grid->nprow * grid->npcol;
+  	    noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
+
+	    /* create a new communicator for the first noDomains
+               processes in grid->comm */
+	    key = iam;
+    	    if (iam < noDomains) col = 0;
+	    else col = MPI_UNDEFINED;
+	    MPI_Comm_split (grid->comm, col, key, &symb_comm );
+
+//	    if ( permc_spec == NATURAL || permc_spec == MY_PERMC ) {
+//		if ( permc_spec == NATURAL ) {
+//		     for (j = 0; j < n; ++j) perm_c[j] = j;
+//                }
+//		if ( !(sizes = intMalloc_dist(2 * noDomains)) ) 
+//		     ABORT("SUPERLU_MALLOC fails for sizes.");
+//		if ( !(fstVtxSep = intMalloc_dist(2 * noDomains)) )
+//		    ABORT("SUPERLU_MALLOC fails for fstVtxSep.");
+//		for (i = 0; i < 2*noDomains - 2; ++i) {
+//		    sizes[i] = 0;
+//		    fstVtxSep[i] = 0;
+//		}
+//		sizes[2*noDomains - 2] = m;
+//		fstVtxSep[2*noDomains - 2] = 0;
+//	    } else if ( permc_spec != PARMETIS ) {   /* same as before */
+//		printf("{%4d,%4d}: pzgssvx: invalid ColPerm option when ParSymbfact is used\n",
+//		       MYROW(grid->iam, grid), MYCOL(grid->iam, grid));
+//	    }
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
 			nprocs_num = grid->nprow * grid->npcol;
 #ifdef PARMETIS_FIX
@@ -426,14 +474,124 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 			if( noDomains > 16 ) noDomains = 16;
 #else
       //OK FOR SCOTCH
-      noDomains = nprocs_num;
 			noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
 			if( noDomains > maxDomains ) noDomains = maxDomains;
+
+			noDomains = (int) ( pow(2, ((int) LOG2( noDomains ))));
+
+//{
+//	Astore  = (NRformat_loc *) A->Store;
+//  fst_row = Astore->fst_row;
+//  nnz_loc = Astore->nnz_loc;
+//  printf("TMP2 P%d has %d non zeros and fst_row is %d.\n",iam,nnz_loc,fst_row);
+// if(nnz_loc==0){
+//    fst_row = -1;
+//  }
+//}
+
+//  int_t k,p;
+//	/* determine first row on each processor */
+//	int_t * vtxdist_i = (int_t *) SUPERLU_MALLOC((nprocs_num+1) * sizeof(int_t));
+//	if ( !vtxdist_i ) ABORT("SUPERLU_MALLOC fails for vtxdist_i.");
+//	int_t * vtxdist_o = (int_t *) SUPERLU_MALLOC((nprocs_num+1) * sizeof(int_t));
+//	if ( !vtxdist_o ) ABORT("SUPERLU_MALLOC fails for vtxdist_o.");
+//
+// 	MPI_Allgather (&fst_row, 1, mpi_int_t, vtxdist_i, 1, mpi_int_t,
+//								 grid->comm);
+//	vtxdist_i[nprocs_num] = m;
+//
+//
+//
+//
+//
+//    int_t newDomains = noDomains;
+//		for (p = noDomains-1; p >= 0; --p){
+//if(!iam)
+//  printf("TMP vtxdist_i[%d] = %d\n",p,vtxdist_i[p]);
+//      if(vtxdist_i[p]==-1){
+//        newDomains--;
+//      }
+//    } 
+//if(!iam)
+//  printf("noDomains was %d ",noDomains);
+//			noDomains = (int) ( pow(2, ((int) LOG2( newDomains ))));
+//if(!iam)
+//  printf("and now is %d.\n",noDomains);
+
+
+
+
+//
+//
+//	if (noDomains == nprocs_num) {
+//		/* keep the same distribution of A */
+////		for (p = 0; p <= nprocs_num; p++){
+////			vtxdist_o[p] = vtxdist_i[p];
+////    }
+//
+//		i = n / noDomains;
+//		j = n % noDomains;
+//		for (k = 0, p = 0; p < noDomains; p++) {
+//			vtxdist_o[p] = k;
+//			k += i;
+//			if (p < j)  k++;
+//		}
+//
+//
+//
+//
+//	}
+//	else {
+//		i = n / noDomains;
+//		j = n % noDomains;
+//		for (k = 0, p = 0; p < noDomains; p++) {
+//			vtxdist_o[p] = k;
+//			k += i;
+//			if (p < j)  k++;
+//		}
+//
+//		/* The remaining non-participating processors get the same 
+//			 first-row-number as the last processor.   */
+//		for (p = noDomains; p <= nprocs_num; p++)
+//			vtxdist_o[p] = k;
+//	}
+//
+//
+//MPI_Barrier(MPI_COMM_WORLD);
+//if(!iam){
+//		for (p = 0; p < noDomains; p++) 
+//			printf("vtxdist_o[%d] = %d\n",p,vtxdist_o[p]);
+//}
+//MPI_Barrier(MPI_COMM_WORLD);
+//
+
+
+
+
+
+
+
+
+
+
+
 #endif
 
 #if ( PRNTlevel >= 1 )
 			if( !iam ) fprintf(stderr,"Using %d processors for ParMETIS.\n", noDomains);
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 			/* create a new communicator for the first noDomains processors in
 				 grid->comm */

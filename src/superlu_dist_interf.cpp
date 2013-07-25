@@ -133,6 +133,7 @@ struct SuperLUMatrix::SuperLUData{
   Int maxDomains;
 };
 
+
 SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 {
 #ifndef _RELEASE_
@@ -190,6 +191,11 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 	PopCallStack();
 #endif
 } 		// -----  end of method SuperLUMatrix::SuperLUMatrix  ----- 
+
+
+
+
+
 
 
 SuperLUMatrix::~SuperLUMatrix	(  )
@@ -518,6 +524,42 @@ SuperLUMatrix::DistributeGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sca
 
 	return ;
 } 		// -----  end of method SuperLUMatrix::DistributeGlobalMultiVector  ----- 
+
+
+void
+SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUMatrix::GatherDistributedMultiVector");
+#endif
+	SuperMatrix& A = ptrData->A;
+  if( ptrData->A.Stype != SLU_NR_loc ){
+		std::ostringstream msg;
+		msg << "GatherDistributedMultiVector requires SLU_NR_loc matrix with type " << SLU_NR_loc << std::endl
+			<< "The matrix is of type " << ptrData->A.Stype << std::endl;
+		throw std::runtime_error( msg.str().c_str() );
+	}	
+
+	NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
+	
+	Int numRowLocal = Astore->m_loc;
+	Int firstRow    = Astore->fst_row;
+	Int nrhs = xGlobal.n();
+
+  NumMat<Scalar> tmpLocal(xGlobal.m(),nrhs);
+	SetValue( tmpLocal, SCALAR_ZERO );
+	for( Int j = 0; j < nrhs; j++ ){
+		std::copy( xLocal.VecData(j), xLocal.VecData(j)+numRowLocal, tmpLocal.VecData(j)+firstRow );
+	}
+
+  MPI_Allreduce(tmpLocal.Data(),xGlobal.Data(),2*tmpLocal.m()*tmpLocal.n(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method SuperLUMatrix::GatherDistributedMultiVector  ----- 
 
 
 void

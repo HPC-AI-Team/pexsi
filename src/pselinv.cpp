@@ -12,6 +12,39 @@
 #include "timer.h"
 #endif
 
+#define VAL(str) #str
+#define TOSTRING(str) VAL(str)
+
+#ifdef SELINV_TIMING 
+
+#ifdef USE_TAU 
+#define TIMER_START(a) \
+    TAU_START(TOSTRING(a));
+
+#elif defined (PROFILE)
+#define TIMER_START(a) \
+    TAU_FSTART(a);
+
+#endif
+#else
+#define TIMER_START(a)
+#endif
+
+
+#ifdef SELINV_TIMING 
+
+#ifdef USE_TAU 
+#define TIMER_STOP(a) \
+    TAU_STOP(TOSTRING(a));
+
+#elif defined (PROFILE)
+#define TIMER_STOP(a) \
+    TAU_FSTOP(a);
+
+#endif
+#else
+#define TIMER_STOP(a)
+#endif
 
 
 #define MOD(a,b) \
@@ -645,13 +678,7 @@ namespace PEXSI{
 #endif
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-    TAU_START("SelInv");
-#elif defined (PROFILE)
-    TAU_FSTART(SelInv);
-#endif
-#endif
+    TIMER_START(SelInv);
 
 #ifndef _RELEASE_
     PushCallStack("PMatrix::SelInv");
@@ -669,13 +696,7 @@ namespace PEXSI{
       Int stepSuper = superList[lidx].size(); 
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("AllocateBuffer");
-#elif defined(PROFILE)
-      TAU_FSTART(AllocateBuffer);
-#endif
-#endif
+      TIMER_START(AllocateBuffer);
 
       std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
       std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
@@ -720,13 +741,8 @@ namespace PEXSI{
       arrMpireqsSendToRight.assign(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
       arrMpireqsRecvSizeFromAny.assign(stepSuper*2 , MPI_REQUEST_NULL );
       arrMpireqsRecvContentFromAny.assign(stepSuper*2 , MPI_REQUEST_NULL );
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("AllocateBuffer");
-#elif defined(PROFILE)
-      TAU_FSTOP(AllocateBuffer);
-#endif
-#endif
+
+      TIMER_STOP(AllocateBuffer);
 
 
 #ifndef _RELEASE_
@@ -865,21 +881,9 @@ namespace PEXSI{
 
       //Wait to receive all the sizes
       {
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_START("WaitSize_UL");
-#elif defined(PROFILE)
-        TAU_FSTART(WaitSize_UL);
-#endif
-#endif
+        TIMER_START(WaitSize_UL);
         mpi::Waitall(arrMpireqsRecvSizeFromAny);
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_STOP("WaitSize_UL");
-#elif defined(PROFILE)
-        TAU_FSTOP(WaitSize_UL);
-#endif
-#endif
+        TIMER_STOP(WaitSize_UL);
       }
 
 
@@ -925,13 +929,7 @@ namespace PEXSI{
       }
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Compute_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTART(Compute_Sinv_LT);
-#endif
-#endif
+      TIMER_START(Compute_Sinv_LT);
 
       Int gemmProcessed = 0;
       Int gemmToDo = 0;
@@ -997,26 +995,16 @@ namespace PEXSI{
         while(readySupidx.size()==0){
           //then process with the remote ones
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("WaitContent_UL");
-#elif defined(PROFILE)
-          TAU_FSTART(WaitContent_UL);
+          TIMER_START(WaitContent_UL);
+#if defined(SELINV_TIMING) && defined(PROFILE)
           if(begin_SendULWaitContentFirst==0){
-            TAU_FSTART(WaitContent_UL_First);
+            TIMER_START(WaitContent_UL_First);
           }
-#endif
 #endif
 
           MPI_Waitany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, MPI_STATUS_IGNORE);
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("WaitContent_UL");
-#elif defined(PROFILE)
-          TAU_FSTOP(WaitContent_UL);
-#endif
-#endif
+          TIMER_STOP(WaitContent_UL);
 
           //I've received something
           if(reqidx!=MPI_UNDEFINED)
@@ -1032,12 +1020,10 @@ namespace PEXSI{
             if(isReady[supidx]==2){
               readySupidx.push_back(supidx);
 
-#ifdef SELINV_TIMING
-#if defined(PROFILE)
+#if defined(SELINV_TIMING) && defined(PROFILE)
               if(end_SendULWaitContentFirst==0){
-                TAU_FSTOP(WaitContent_UL_First);
+                TIMER_STOP(WaitContent_UL_First);
               }
-#endif
 #endif
             }
           }
@@ -1050,13 +1036,7 @@ namespace PEXSI{
           readySupidx.pop_back();
           ksup = superList[lidx][supidx];
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("Compute_Sinv_LT_Lookup_Indexes");
-#elif defined(PROFILE)
-          TAU_FSTART(Compute_Sinv_LT_Lookup_Indexes);
-#endif
-#endif
+          TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
 
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl << "["<<ksup<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
@@ -1328,34 +1308,17 @@ namespace PEXSI{
             statusOFS << std::endl << "["<<ksup<<"] "<<  "UBuf   : " << UBuf << std::endl;
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-            TAU_STOP("Compute_Sinv_LT_Lookup_Indexes");
-#elif defined(PROFILE)
-            TAU_FSTOP(Compute_Sinv_LT_Lookup_Indexes);
-#endif
-#endif
+            TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-            TAU_START("Compute_Sinv_LT_GEMM");
-#elif defined(PROFILE)
-            TAU_FSTART(Compute_Sinv_LT_GEMM);
-#endif
-#endif
+            TIMER_START(Compute_Sinv_LT_GEMM);
 
             // Gemm for LUpdateBuf = -AinvBuf * UBuf^T
             blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
                 AinvBuf.Data(), AinvBuf.m(), 
                 UBuf.Data(), UBuf.m(), SCALAR_ZERO,
                 LUpdateBuf.Data(), LUpdateBuf.m() ); 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-            TAU_STOP("Compute_Sinv_LT_GEMM");
-#elif defined(PROFILE)
-            TAU_FSTOP(Compute_Sinv_LT_GEMM);
-#endif
-#endif
+
+            TIMER_STOP(Compute_Sinv_LT_GEMM);
 
 #if ( _DEBUGlevel_ >= 2 )
             statusOFS << std::endl << "["<<ksup<<"] "<<  "LUpdateBuf: " << LUpdateBuf << std::endl;
@@ -1377,25 +1340,14 @@ namespace PEXSI{
         }
       }
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Compute_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTOP(Compute_Sinv_LT);
-#endif
-#endif
+      TIMER_STOP(Compute_Sinv_LT);
 
 
 
 
       //Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Reduce_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTART(Reduce_Sinv_LT);
-#endif
-#endif
+      TIMER_START(Reduce_Sinv_LT);
+
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
 
@@ -1474,13 +1426,7 @@ namespace PEXSI{
 #endif
 
 #ifdef SEND_CROSSDIAG_ASYNC
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("Send_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTART(Send_L_CrossDiag);
-#endif
-#endif
+          TIMER_START(Send_L_CrossDiag);
 
 
           // Send LUpdateBufReduced to the cross diagonal blocks. 
@@ -1498,24 +1444,12 @@ namespace PEXSI{
               mpi::Isend( sstm, sstr, sizeStm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, mpireqsSendToBelow[0], mpireqsSendToBelow[1]);
             }
           } // sender to cross diagonal
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("Send_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTOP(Send_L_CrossDiag);
-#endif
-#endif
+          TIMER_STOP(Send_L_CrossDiag);
 #endif
         } // Receiver
       }
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Reduce_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTOP(Reduce_Sinv_LT);
-#endif
-#endif
+      TIMER_STOP(Reduce_Sinv_LT);
 
 
 
@@ -1534,13 +1468,7 @@ namespace PEXSI{
       PushCallStack("PMatrix::SelInv::UpdateD");
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Update_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTART(Update_Diagonal);
-#endif
-#endif
+      TIMER_START(Update_Diagonal);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
 
@@ -1594,21 +1522,10 @@ namespace PEXSI{
         }
       }
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Update_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTOP(Update_Diagonal);
-#endif
-#endif
+      TIMER_STOP(Update_Diagonal);
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Reduce_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTART(Reduce_Diagonal);
-#endif
-#endif
+      TIMER_START(Reduce_Diagonal);
+
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
@@ -1669,21 +1586,11 @@ namespace PEXSI{
         } 
       }
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Reduce_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTOP(Reduce_Diagonal);
-#endif
-#endif
+      TIMER_STOP(Reduce_Diagonal);
 
 
 
 
-#ifdef SELINV_TIMING
-#if not ( defined (USE_TAU) || defined (PROFILE) || defined(PMPI) )
-#endif
-#endif
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
         //              if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
@@ -1703,10 +1610,6 @@ namespace PEXSI{
         }
       }
 
-#ifdef SELINV_TIMING
-#if not ( defined (USE_TAU) || defined (PROFILE) || defined(PMPI) )
-#endif
-#endif
 
 
 
@@ -1720,13 +1623,7 @@ namespace PEXSI{
       PushCallStack("PMatrix::SelInv::UpdateU");
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Update_U");
-#elif defined(PROFILE)
-      TAU_FSTART(Update_U);
-#endif
-#endif
+      TIMER_START(Update_U);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
 
@@ -1741,13 +1638,7 @@ namespace PEXSI{
         Int numRowLUpdateBuf = LUpdateBufReduced.m();
 
 #if not (defined(SEND_CROSSDIAG_ASYNC)) 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_START("Send_L_CrossDiag");
-#elif defined(PROFILE)
-        TAU_FSTART(Send_L_CrossDiag);
-#endif
-#endif
+        TIMER_START(Send_L_CrossDiag);
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_( ksup ) ){
           Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
           if( MYPROC( grid_ ) != dest	){
@@ -1758,26 +1649,14 @@ namespace PEXSI{
             mpi::Send( sstm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm );
           }
         } // sender
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_STOP("Send_L_CrossDiag");
-#elif defined(PROFILE)
-        TAU_FSTOP(Send_L_CrossDiag);
-#endif
-#endif
+        TIMER_STOP(Send_L_CrossDiag);
 #endif
 
         if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_( ksup ) ){
           std::vector<Int>  rowLocalPtrRecv;
           std::vector<Int>  blockIdxLocalRecv;
           NumMat<Scalar> UUpdateBuf;
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("Recv_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTART(Recv_L_CrossDiag);
-#endif
-#endif
+          TIMER_START(Recv_L_CrossDiag);
 
           Int src = PNUM( MYCOL( grid_ ), PCOL( ksup, grid_ ), grid_ );
           if( MYPROC( grid_ ) != src ){
@@ -1794,13 +1673,7 @@ namespace PEXSI{
             UUpdateBuf = LUpdateBufReduced;
           } // sender is the same as receiver
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("Recv_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTOP(Recv_L_CrossDiag);
-#endif
-#endif
+          TIMER_STOP(Recv_L_CrossDiag);
 
 #if ( _DEBUGlevel_ >= 2 )
           statusOFS << std::endl << "["<<ksup<<"] "<<   "rowLocalPtrRecv:" << rowLocalPtrRecv << std::endl << std::endl; 
@@ -1840,13 +1713,7 @@ namespace PEXSI{
       }
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Update_U");
-#elif defined(PROFILE)
-      TAU_FSTOP(Update_U);
-#endif
-#endif
+      TIMER_STOP(Update_U);
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -1856,13 +1723,7 @@ namespace PEXSI{
       PushCallStack("PMatrix::SelInv::UpdateLFinal");
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Update_L");
-#elif defined(PROFILE)
-      TAU_FSTART(Update_L);
-#endif
-#endif
+      TIMER_START(Update_L);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
 
@@ -1894,26 +1755,14 @@ namespace PEXSI{
       } // for (ksup) : Main loop
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Update_L");
-#elif defined(PROFILE)
-      TAU_FSTOP(Update_L);
-#endif
-#endif
+      TIMER_STOP(Update_L);
 
 #ifndef _RELEASE_
       PopCallStack();
 #endif
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Barrier");
-#elif defined(PROFILE)
-      TAU_FSTART(Barrier);
-#endif
-#endif
+      TIMER_START(Barrier);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
         std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
@@ -1934,13 +1783,7 @@ namespace PEXSI{
       mpi::Waitall( arrMpireqsRecvSizeFromAny );
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Barrier");
-#elif defined(PROFILE)
-      TAU_FSTOP(Barrier);
-#endif
-#endif
+      TIMER_STOP(Barrier);
 
 
 
@@ -2000,13 +1843,7 @@ namespace PEXSI{
     PopCallStack();
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-    TAU_STOP("SelInv");
-#elif defined(PROFILE)
-    TAU_FSTOP(SelInv);
-#endif
-#endif
+    TIMER_STOP(SelInv);
 
 
 
@@ -2028,8 +1865,6 @@ namespace PEXSI{
 
 
 #ifdef USE_BCAST_UL
-
-
   void PMatrix::DestructCommunicationPattern_Bcast	(  )
   {
 #ifndef _RELEASE_
@@ -2038,6 +1873,10 @@ namespace PEXSI{
     {
       for(int i = 0; i< commSendToBelow_.size(); ++i){
         MPI_Comm_free(&commSendToBelow_[i]);
+      }
+
+      for(int i = 0; i< commRecvFromBelow_.size(); ++i){
+        MPI_Comm_free(&commRecvFromBelow_[i]);
       }
 
       for(int i = 0; i< commSendToRight_.size(); ++i){
@@ -2393,8 +2232,11 @@ statusOFS<<std::endl<<"commSendToBelowRoot: "<<commSendToBelowRoot_<<std::endl;
     for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
       // Loop over all the supernodes below ksup
 
-      NumVec<bool> sTR(grid_->numProcCol);
-      SetValue(sTR,false);
+      vector<bool> sTR(grid_->numProcCol,false);
+//      SetValue(sTR,false);
+
+      vector<bool> rFB(grid_->numProcRow,false);
+//      SetValue(rFB,false);
 
 
 
@@ -2421,14 +2263,14 @@ statusOFS<<std::endl<<"commSendToBelowRoot: "<<commSendToBelowRoot_<<std::endl;
           } // if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 )
 
 
-          sTR( PCOL(ksup,grid_) ) = true;
+          sTR[ PCOL(ksup,grid_) ] = true;
           if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
             for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
                 si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
               Int jsup = *si;
               Int jsupProcCol = PCOL( jsup, grid_ );
               if( jsup > ksup ){
-                sTR( jsupProcCol ) = true;
+                sTR[ jsupProcCol ] = true;
               } // if( jsup > ksup )
             } // for (si)
           }
@@ -2438,7 +2280,9 @@ statusOFS<<std::endl<<"commSendToBelowRoot: "<<commSendToBelowRoot_<<std::endl;
         } // if( MYROW( grid_ ) == isupProcRow )
 
 
+        rFB[ PROW(ksup,grid_) ] = true;
         if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
+          rFB[ isupProcRow ] = true;
 
           if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){ 
             isRecvFromBelow_(isupProcRow,ksup) = true;
@@ -2454,23 +2298,37 @@ statusOFS<<std::endl<<"commSendToBelowRoot: "<<commSendToBelowRoot_<<std::endl;
       } // for (isup)
 #if ( _DEBUGlevel_ >= 1 )
       if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-        statusOFS<<"DEBUGMAT ["<<ksup<<"] sTR is: "; for(int curi=0; curi<sTR.m();curi++){statusOFS<<sTR(curi)<<" ";} statusOFS<<std::endl;
-        statusOFS<<"DEBUGMAT ["<<ksup<<"] isSendToRight_ is: "; for(int curi=0; curi<sTR.m();curi++){statusOFS<<isSendToRight_(curi,ksup)<<" ";} statusOFS<<std::endl;
+        statusOFS<<"DEBUGMAT ["<<ksup<<"] sTR is: "; for(int curi=0; curi<sTR.size();curi++){statusOFS<<sTR[curi]<<" ";} statusOFS<<std::endl;
+        statusOFS<<"DEBUGMAT ["<<ksup<<"] isSendToRight_ is: "; for(int curi=0; curi<sTR.size();curi++){statusOFS<<isSendToRight_(curi,ksup)<<" ";} statusOFS<<std::endl;
+
+        statusOFS<<"DEBUGMAT ["<<ksup<<"] rFB is: "; for(int curi=0; curi<rFB.size();curi++){statusOFS<<rFB[curi]<<" ";} statusOFS<<std::endl;
+        statusOFS<<"DEBUGMAT ["<<ksup<<"] isRecvFromBelow_ is: "; for(int curi=0; curi<rFB.size();curi++){statusOFS<<isRecvFromBelow_(curi,ksup)<<" ";} statusOFS<<std::endl;
       }
 #endif
-      std::vector<bool> mask( sTR.Data(), sTR.Data() + sTR.m() );
-      Int count= std::count(mask.begin(), mask.end(), true);
-      Int color = mask[MYCOL(grid_)];
+//      std::vector<bool> mask( sTR.Data(), sTR.Data() + sTR.m() );
+      Int count= std::count(sTR.begin(), sTR.end(), true);
+      Int color = sTR[MYCOL(grid_)];
       if(count>1){
-        std::vector<Int> & snodeList = maskSendToRight_[mask];
+        std::vector<Int> & snodeList = maskSendToRight_[sTR];
         snodeList.push_back(ksup);
       }
       countSendToRight_(ksup) = count * color;
+
+
+
+      count= std::count(rFB.begin(), rFB.end(), true);
+      color = rFB[MYCOL(grid_)];
+      if(count>1){
+        std::vector<Int> & snodeList = maskRecvFromBelow_[rFB];
+        snodeList.push_back(ksup);
+      }
+      countRecvFromBelow_(ksup) = count * color;
+
     }	 // for (ksup)
 
 
 #if ( _DEBUGlevel_ >= 1 )
-    statusOFS << std::endl << "isSendToRight:" << isSendToRight_ << std::endl;
+//    statusOFS << std::endl << "isSendToRight:" << isSendToRight_ << std::endl;
 
     statusOFS << std::endl << "isSendToRight:" << std::endl;
     for(int j = 0;j< isSendToRight_.n();j++){
@@ -2482,7 +2340,16 @@ statusOFS<<std::endl<<"commSendToBelowRoot: "<<commSendToBelowRoot_<<std::endl;
     }
 
     statusOFS << std::endl << "isRecvFromLeft:" << isRecvFromLeft_ << std::endl;
-    statusOFS << std::endl << "isRecvFromBelow:" << isRecvFromBelow_ << std::endl;
+//    statusOFS << std::endl << "isRecvFromBelow:" << isRecvFromBelow_ << std::endl;
+    for(int j = 0;j< isRecvFromBelow_.n();j++){
+      statusOFS << "["<<j<<"] ";
+      for(int i =0; i < isRecvFromBelow_.m();i++){
+        statusOFS<< isRecvFromBelow_(i,j) << " ";
+      }
+      statusOFS<<std::endl;
+    }
+
+
 #endif
 #ifdef PRINT_COMMUNICATOR_STAT
     {
@@ -2490,6 +2357,25 @@ statusOFS<<std::endl<<"commSendToBelowRoot: "<<commSendToBelowRoot_<<std::endl;
       statusOFS << std::endl << "DEBUGMAT maskSendToRight_:" << maskSendToRight_.size() <<std::endl; 
       bitMaskSet::iterator it;
       for(it = maskSendToRight_.begin(); it != maskSendToRight_.end(); it++){
+        //print the involved processors
+        for(int curi = 0; curi < it->first.size(); curi++){
+          statusOFS << it->first[curi] << " "; 
+        }
+
+        statusOFS<< "    ( ";
+        //print the involved supernode indexes
+        std::vector<Int> & snodeList = it->second;
+        for(int curi = 0; curi < snodeList.size(); curi++){
+          statusOFS<<snodeList[curi]<<" ";
+        }
+
+        statusOFS << ")"<< std::endl;
+      }
+
+
+      statusOFS << std::endl << "countRecvFromBelow:" << countRecvFromBelow_ << std::endl;
+      statusOFS << std::endl << "DEBUGMAT maskRecvFromBelow_:" << maskRecvFromBelow_.size() <<std::endl; 
+      for(it = maskRecvFromBelow_.begin(); it != maskRecvFromBelow_.end(); it++){
         //print the involved processors
         for(int curi = 0; curi < it->first.size(); curi++){
           statusOFS << it->first[curi] << " "; 
@@ -2561,12 +2447,64 @@ statusOFS<<std::endl<<"commSendToBelowRoot: "<<commSendToBelowRoot_<<std::endl;
       }
     }
 
-statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
+//statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
 
 #ifndef _RELEASE_
     PopCallStack();
 #endif
 
+
+#ifndef _RELEASE_
+    PushCallStack("Creating RecvFromBelow communicator");
+#endif
+    {
+      MPI_Group colCommGroup;  
+      MPI_Comm_group(grid_->colComm,&colCommGroup);
+
+      commRecvFromBelow_.resize(maskRecvFromBelow_.size());
+      commRecvFromBelowRoot_.resize(numSuper);
+      commRecvFromBelowPtr_.resize(numSuper);
+
+      Int commIdx = 0;
+      bitMaskSet::iterator it;
+      for(it = maskRecvFromBelow_.begin(); it != maskRecvFromBelow_.end(); it++){
+        Int count= std::count(it->first.begin(), it->first.end(), true);
+
+        if(count>1){
+          MPI_Group commGroup;  
+
+          Int color = it->first[MYROW(grid_)];
+
+          MPI_Comm_split(grid_->colComm, color  ,MYROW(grid_) , &commRecvFromBelow_[commIdx]);
+          MPI_Comm_group(commRecvFromBelow_[commIdx],&commGroup);
+          //now for each supernode, we need to store the pointer to the communnicator and the rank of the root
+          std::vector<Int> & snodeList = it->second;
+          for(int curi = 0; curi < snodeList.size(); curi++){
+            commRecvFromBelowPtr_[snodeList[curi]] = &commRecvFromBelow_[commIdx];
+            Int ksup = snodeList[curi];
+            Int curRoot = PROW(snodeList[curi],grid_);
+            Int newRank = -1;
+            if(color>0){
+              MPI_Group_translate_ranks(colCommGroup, 1,&curRoot,commGroup, &newRank);
+
+              if(newRank==MPI_UNDEFINED){
+                statusOFS<<"["<<ksup<<"] Root ROW "<<curRoot<<" has no matching rank"<<std::endl;
+              }
+            }
+
+            commRecvFromBelowRoot_[snodeList[curi]] = newRank;
+          }
+
+          commIdx++;
+        }
+      }
+    }
+
+//statusOFS<<std::endl<<"commRecvFromBelowRoot: "<<commRecvFromBelowRoot_<<std::endl;
+
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
 
 
 
@@ -2767,13 +2705,7 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
 #endif
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-    TAU_START("SelInvBcast");
-#elif defined (PROFILE)
-    TAU_FSTART(SelInvBcast);
-#endif
-#endif
+TIMER_START(SelInvBcast);
 
 #ifndef _RELEASE_
     PushCallStack("PMatrix::SelInv");
@@ -2791,13 +2723,7 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
       Int stepSuper = superList[lidx].size(); 
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("AllocateBuffer");
-#elif defined(PROFILE)
-      TAU_FSTART(AllocateBuffer);
-#endif
-#endif
+      TIMER_START(AllocateBuffer);
 
       std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
       std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
@@ -2848,21 +2774,12 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
       arrMpireqsRecvContentFromAny.assign(stepSuper*2 , MPI_REQUEST_NULL );
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("AllocateBuffer");
-#elif defined(PROFILE)
-      TAU_FSTOP(AllocateBuffer);
-#endif
-#endif
+      TIMER_STOP(AllocateBuffer);
 
 
 #ifndef _RELEASE_
       PushCallStack("PMatrix::SelInv::UpdateL");
 #endif
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
-#endif
 
 
 
@@ -2870,20 +2787,22 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
 
 
 
+      TIMER_START(WaitContent_UL_BCAST);
 
-#ifdef SELINV_TIMING
-#if defined(PROFILE)
-      TAU_FSTART(WaitContent_UL_BCAST);
-#endif
-#endif
       for (Int supidx=0; supidx<stepSuper ; supidx++){
         Int ksup = superList[lidx][supidx];
+
+
         // Communication for the U part.
         if(countSendToBelow_(ksup)>1){
           MPI_Comm * colComm = commSendToBelowPtr_[ksup];
           Int root = commSendToBelowRoot_[ksup];
           bool isRecvFromAbove =  isRecvFromAbove_( ksup );
           if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl <<"BCAST ["<<ksup<<"] Communication to the Schur complement. (Sending)" << std::endl << std::endl; 
+#endif
             std::vector<char> & sstrUrowSend = arrSstrUrowSend[supidx];
 
             // Pack the data in U
@@ -2906,6 +2825,10 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
           }
           else if( isRecvFromAbove && 
               MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl <<"BCAST ["<<ksup<<"] Communication to the Schur complement. (Receiving)" << std::endl << std::endl; 
+#endif
             //size
             MPI_Bcast(&arrSizeStmFromAbove[supidx], 1 , MPI_INT, root, *colComm );
             //content
@@ -2923,6 +2846,9 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
           if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
             std::vector<char> & sstrLcolSend = arrSstrLcolSend[supidx];
 
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl <<"BCAST ["<<ksup<<"] Communication to the Schur complement. (Sending)" << std::endl << std::endl; 
+#endif
             // Pack the data in L 
             std::stringstream sstm;
             std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
@@ -2950,6 +2876,9 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
           }
           else if( isRecvFromLeft && 
               MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl <<"BCAST ["<<ksup<<"] Communication to the Schur complement. (Receiving)" << std::endl << std::endl; 
+#endif
             //size
             MPI_Bcast(&arrSizeStmFromLeft[supidx], 1 , MPI_INT, root, *colComm );
             //content
@@ -2961,38 +2890,19 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
         }
 
       }
-#ifdef SELINV_TIMING
-#if defined(PROFILE)
-      TAU_FSTOP(WaitContent_UL_BCAST);
-#endif
+#if defined(SELINV_TIMING) && defined(PROFILE)
+      TIMER_STOP(WaitContent_UL_BCAST);
 #endif
 
 
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Compute_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTART(Compute_Sinv_LT);
-#endif
-#endif
+      TIMER_START(Compute_Sinv_LT);
 
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
         // Overlap the communication with computation.  All processors move
         // to Gemm phase when ready 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_START("Compute_Sinv_LT_Lookup_Indexes");
-#elif defined(PROFILE)
-        TAU_FSTART(Compute_Sinv_LT_Lookup_Indexes);
-#endif
-#endif
-
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<ksup<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
-#endif
 
         std::vector<char> & sstrUrowRecv = arrSstrUrowRecv[supidx];
         std::vector<char> & sstrLcolRecv = arrSstrLcolRecv[supidx];
@@ -3004,6 +2914,11 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
         std::vector<LBlock> LcolRecv;
         std::vector<UBlock> UrowRecv;
         if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
+#endif
+
           // U part
           if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
             std::stringstream sstm;
@@ -3022,6 +2937,10 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
             UrowRecv = this->U( LBi( ksup, grid_ ) );
           } // sender is the same as receiver
 
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<  "UrowRecv: " <<UrowRecv.size()<< std::endl << std::endl; 
+          for(Int jb=0;jb<UrowRecv.size();jb++){ statusOFS<<"jb="<<jb<<" " << UrowRecv[jb] << std::endl; }
+#endif
 
           //L part
           if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
@@ -3053,18 +2972,28 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
               }
             }
           } // sender is the same as receiver
-        } // if I am a receiver
 
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<ksup<<"] "<<  "Main work: Gemm" << std::endl << std::endl; 
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<  "LcolRecv: " <<LcolRecv.size()<< std::endl << std::endl; 
+          for(Int ib=0;ib<LcolRecv.size();ib++){ statusOFS<<"ib="<<ib<<" " << LcolRecv[ib] << std::endl; }
 #endif
+
+        } // if I am a receiver
+
 
         // Save all the data to be updated for { L( isup, ksup ) | isup > ksup }.
         // The size will be updated in the Gemm phase and the reduce phase
 
         // Only the processors received information participate in the Gemm 
         if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<  "Main work: Gemm" << std::endl << std::endl; 
+#endif
+
+        TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
+
           // rowPtr[ib] gives the row index in LUpdateBuf for the first
           // nonzero row in LcolRecv[ib]. The total number of rows in
           // LUpdateBuf is given by rowPtr[end]-1
@@ -3086,11 +3015,6 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
           Int numRowAinvBuf = *rowPtr.rbegin();
           Int numColAinvBuf = *colPtr.rbegin();
 
-#if ( _DEBUGlevel_ >= 2 )
-          statusOFS << "["<<ksup<<"] "<<  "AinvBuf ~ " << numRowAinvBuf << " x " << numColAinvBuf << std::endl;
-          statusOFS << "["<<ksup<<"] "<<  "rowPtr:" << std::endl << rowPtr << std::endl;
-          statusOFS << "["<<ksup<<"] "<<  "colPtr:" << std::endl << colPtr << std::endl;
-#endif
           // Allocate for the computational storage
           NumMat<Scalar> AinvBuf( numRowAinvBuf, numColAinvBuf );
 
@@ -3161,6 +3085,9 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
                       relCols[j] = UB.cols[j] - SinvColsSta;
                     }
 
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<  "1 SinvB: " << SinvB << std::endl;
+#endif
                     // Transfer the values from Sinv to AinvBlock
                     Scalar* nzvalSinv = SinvB.nzval.Data();
                     Int     ldSinv    = SinvB.numRow;
@@ -3220,6 +3147,11 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
                       }
                     }
 
+                 //PRINT SINV HERE 
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<  "2 SinvB: " << SinvB << std::endl;
+#endif
+
                     // Transfer the values from Sinv to AinvBlock
                     Scalar* nzvalSinv = SinvB.nzval.Data();
                     Int     ldSinv    = SinvB.numRow;
@@ -3245,42 +3177,26 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
             } // for( ib )
           } // for ( jb )
 
-#if ( _DEBUGlevel_ >= 2 )
-          statusOFS << std::endl << "["<<ksup<<"] "<<  "AinvBuf: " << AinvBuf << std::endl;
-          statusOFS << std::endl << "["<<ksup<<"] "<<  "UBuf   : " << UBuf << std::endl;
-#endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("Compute_Sinv_LT_Lookup_Indexes");
-#elif defined(PROFILE)
-          TAU_FSTOP(Compute_Sinv_LT_Lookup_Indexes);
-#endif
-#endif
+          TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("Compute_Sinv_LT_GEMM");
-#elif defined(PROFILE)
-          TAU_FSTART(Compute_Sinv_LT_GEMM);
-#endif
-#endif
+          TIMER_START(Compute_Sinv_LT_GEMM);
 
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<  "AinvBuf: " << AinvBuf << std::endl;
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<  "UBuf: " << UBuf << std::endl;
+#endif
           // Gemm for LUpdateBuf = -AinvBuf * UBuf^T
           blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
               AinvBuf.Data(), AinvBuf.m(), 
               UBuf.Data(), UBuf.m(), SCALAR_ZERO,
               LUpdateBuf.Data(), LUpdateBuf.m() ); 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("Compute_Sinv_LT_GEMM");
-#elif defined(PROFILE)
-          TAU_FSTOP(Compute_Sinv_LT_GEMM);
-#endif
-#endif
 
-#if ( _DEBUGlevel_ >= 2 )
-          statusOFS << std::endl << "["<<ksup<<"] "<<  "LUpdateBuf: " << LUpdateBuf << std::endl;
+          TIMER_STOP(Compute_Sinv_LT_GEMM);
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<  "LUpdateBuf: " << LUpdateBuf << std::endl;
 #endif
         } // if Gemm is to be done locally
 
@@ -3295,30 +3211,18 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
           MPI_Isend( LUpdateBuf.Data(), LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar), MPI_BYTE, PCOL(ksup,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_REDUCE, grid_->rowComm, &mpireqsSendToRight[0] );
 
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar) << " bytes to " << PCOL(ksup,grid_) << std::endl;
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar) << " bytes to " << PCOL(ksup,grid_) << std::endl;
 #endif
         }//Sender
 #endif
 
       }
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Compute_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTOP(Compute_Sinv_LT);
-#endif
-#endif
+      TIMER_STOP(Compute_Sinv_LT);
 
 
       //Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Reduce_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTART(Reduce_Sinv_LT);
-#endif
-#endif
+      TIMER_START(Reduce_Sinv_LT);
 
 #ifndef USE_REDUCE_L
       for (Int supidx=0; supidx<stepSuper; supidx++){
@@ -3365,7 +3269,7 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
           }
 
 #if ( _DEBUGlevel_ >= 2 )
-          statusOFS << std::endl << "["<<ksup<<"] "<<   "LUpdateBuf Before Reduction: " <<  LUpdateBufReduced << std::endl << std::endl; 
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "LUpdateBuf Before Reduction: " <<  LUpdateBufReduced << std::endl << std::endl; 
 #endif
 
           Int totCountRecv = 0;
@@ -3380,10 +3284,10 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
             if(size>0){
 
 #if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYCOL(grid_)<<" has received "<< size << " bytes from " << stat.MPI_SOURCE << std::endl;
+              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<< " P"<<MYCOL(grid_)<<" has received "<< size << " bytes from " << stat.MPI_SOURCE << std::endl;
 #endif
 #if ( _DEBUGlevel_ >= 2 )
-              statusOFS << std::endl << "["<<ksup<<"] "<<   "LUpdateBufRecv: " <<  LUpdateBufRecv << std::endl << std::endl; 
+              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "LUpdateBufRecv: " <<  LUpdateBufRecv << std::endl << std::endl; 
 #endif
 
               //do the sum
@@ -3392,17 +3296,13 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
             }
           } // for (iProcCol)
 
-#if ( _DEBUGlevel_ >= 2 ) 
-          statusOFS << std::endl << "["<<ksup<<"] "<<   "LUpdateBufReduced: " <<  LUpdateBufReduced << std::endl << std::endl; 
+#if ( _DEBUGlevel_ >= 1 ) 
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "LUpdateBufReduced: " <<  LUpdateBufReduced << std::endl << std::endl; 
 #endif
+
 #ifdef SEND_CROSSDIAG_ASYNC
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("Send_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTART(Send_L_CrossDiag);
-#endif
-#endif
+{
+          TIMER_START(Send_L_CrossDiag);
 
 
           // Send LUpdateBufReduced to the cross diagonal blocks. 
@@ -3420,181 +3320,124 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
               mpi::Isend( sstm, sstr, sizeStm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, mpireqsSendToBelow[0], mpireqsSendToBelow[1]);
             }
           } // sender to cross diagonal
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("Send_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTOP(Send_L_CrossDiag);
+          TIMER_STOP(Send_L_CrossDiag);
+}
 #endif
-#endif
-#endif
+
         } // Receiver
       }
 
 #endif
+
 #ifdef USE_REDUCE_L
-      for (Int supidx=0; supidx<stepSuper; supidx++){
-        Int ksup = superList[lidx][supidx];
+for (Int supidx=0; supidx<stepSuper; supidx++){
+  Int ksup = superList[lidx][supidx];
 
-        NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
+  NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
 
-        // Processor column of ksup collects the symbolic data for LUpdateBuf.
-        std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
-        std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
-        Int numRowLUpdateBuf;
+  // Processor column of ksup collects the symbolic data for LUpdateBuf.
+  std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
+  std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
+  Int numRowLUpdateBuf;
 
-        NumMat<Scalar> LUpdateBufReduced; 
+  NumMat<Scalar> LUpdateBufReduced; 
 
-        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-          std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
-          if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-            rowLocalPtr.resize( Lcol.size() + 1 );
-            blockIdxLocal.resize( Lcol.size() );
-            rowLocalPtr[0] = 0;
-            for( Int ib = 0; ib < Lcol.size(); ib++ ){
-              rowLocalPtr[ib+1] = rowLocalPtr[ib] + Lcol[ib].numRow;
-              blockIdxLocal[ib] = Lcol[ib].blockIdx;
-            }
-          } // I do not own the diaogonal block
-          else{
-            rowLocalPtr.resize( Lcol.size() );
-            blockIdxLocal.resize( Lcol.size() - 1 );
-            rowLocalPtr[0] = 0;
-            for( Int ib = 1; ib < Lcol.size(); ib++ ){
-              rowLocalPtr[ib] = rowLocalPtr[ib-1] + Lcol[ib].numRow;
-              blockIdxLocal[ib-1] = Lcol[ib].blockIdx;
-            }
-          } // I owns the diagonal block, skip the diagonal block
-          numRowLUpdateBuf = *rowLocalPtr.rbegin();
-          if( numRowLUpdateBuf > 0 ){
-            LUpdateBufReduced.Resize( numRowLUpdateBuf, SuperSize( ksup, super_ ) );
-            SetValue( LUpdateBufReduced, SCALAR_ZERO );
-            //              if( LUpdateBuf.m() == 0 && LUpdateBuf.n() == 0 ){
-            //                LUpdateBuf.Resize( numRowLUpdateBuf, SuperSize( ksup, super_ ) );
-            //                // Fill zero is important
-            //                SetValue( LUpdateBuf, SCALAR_ZERO );
-            //              }
-          }
-        } 
+  if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+    std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+    if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+      rowLocalPtr.resize( Lcol.size() + 1 );
+      blockIdxLocal.resize( Lcol.size() );
+      rowLocalPtr[0] = 0;
+      for( Int ib = 0; ib < Lcol.size(); ib++ ){
+        rowLocalPtr[ib+1] = rowLocalPtr[ib] + Lcol[ib].numRow;
+        blockIdxLocal[ib] = Lcol[ib].blockIdx;
+      }
+    } // I do not own the diaogonal block
+    else{
+      rowLocalPtr.resize( Lcol.size() );
+      blockIdxLocal.resize( Lcol.size() - 1 );
+      rowLocalPtr[0] = 0;
+      for( Int ib = 1; ib < Lcol.size(); ib++ ){
+        rowLocalPtr[ib] = rowLocalPtr[ib-1] + Lcol[ib].numRow;
+        blockIdxLocal[ib-1] = Lcol[ib].blockIdx;
+      }
+    } // I owns the diagonal block, skip the diagonal block
+    numRowLUpdateBuf = *rowLocalPtr.rbegin();
+    if( numRowLUpdateBuf > 0 ){
+      LUpdateBufReduced.Resize( numRowLUpdateBuf, SuperSize( ksup, super_ ) );
+      SetValue( LUpdateBufReduced, SCALAR_ZERO );
+    }
+  } 
 
 
-        if(countSendToRight_(ksup)>1){
+  if(countSendToRight_(ksup)>1){
 
-          MPI_Comm * rowComm = commSendToRightPtr_[ksup];
-          Int root = commSendToRightRoot_[ksup];
+    MPI_Comm * rowComm = commSendToRightPtr_[ksup];
+    Int root = commSendToRightRoot_[ksup];
 
 
 
-          // Processor column sends the total row dimension to all processors
-          // in the same row to prepare for reduce
-          MPI_Bcast( &numRowLUpdateBuf, 1, MPI_INT, root, *rowComm );
+    // Processor column sends the total row dimension to all processors
+    // in the same row to prepare for reduce
+    MPI_Bcast( &numRowLUpdateBuf, 1, MPI_INT, root, *rowComm );
 
-          // If LUpdatebuf has not been constructed, resize and fill with zero
-          if( numRowLUpdateBuf > 0 ){
-            if( LUpdateBuf.m() == 0 && LUpdateBuf.n() == 0 ){
-              LUpdateBuf.Resize( numRowLUpdateBuf, SuperSize( ksup, super_ ) );
-              // Fill zero is important
-              SetValue( LUpdateBuf, SCALAR_ZERO );
-            }
+    // If LUpdatebuf has not been constructed, resize and fill with zero
+    if( numRowLUpdateBuf > 0 ){
+      if( LUpdateBuf.m() == 0 && LUpdateBuf.n() == 0 ){
+        LUpdateBuf.Resize( numRowLUpdateBuf, SuperSize( ksup, super_ ) );
+        // Fill zero is important
+        SetValue( LUpdateBuf, SCALAR_ZERO );
+      }
 
-            //          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-            //            mpi::Reduce( (Scalar *) MPI_IN_PLACE, LUpdateBuf.Data(),
-            //                numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 
-            //                root, *rowComm );
-            //          }
-            //          else{
-            mpi::Reduce( LUpdateBuf.Data(), LUpdateBufReduced.Data(),
-                numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 
-                root, *rowComm );
-            //          }
+      mpi::Reduce( LUpdateBuf.Data(), LUpdateBufReduced.Data(),
+          numRowLUpdateBuf * SuperSize( ksup, super_ ), MPI_SUM, 
+          root, *rowComm );
 
 
-            if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-              LUpdateBuf = LUpdateBufReduced;
+      if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+        LUpdateBuf = LUpdateBufReduced;
 
 #if ( _DEBUGlevel_ >= 1 ) 
-              statusOFS << std::endl << "["<<ksup<<"] "<<   "LUpdateBufReduced: " <<  LUpdateBufReduced << std::endl << std::endl; 
-              statusOFS << std::endl << "["<<ksup<<"] "<<   "LUpdateBuf: " <<  LUpdateBuf << std::endl << std::endl; 
+        statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "LUpdateBufReduced: " <<  LUpdateBuf << std::endl << std::endl; 
 #endif
 
-            }
+      }
 
-          } // Perform reduce for nonzero block rows in the column of ksup
+    } // Perform reduce for nonzero block rows in the column of ksup
 
-        }
-
-        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 
 #ifdef SEND_CROSSDIAG_ASYNC
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("Send_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTART(Send_L_CrossDiag);
-#endif
-#endif
+    if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+      TIMER_START(Send_L_CrossDiag);
 
 
-          // Send LUpdateBufReduced to the cross diagonal blocks. 
-          // NOTE: This assumes square processor grid
-          if( isSendToCrossDiagonal_( ksup ) ){
-            Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
-            if( MYPROC( grid_ ) != dest	){
-              std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-              std::stringstream sstm;
-              std::vector<char> & sstr = arrSstrCrossDiag[supidx];
-              Int & sizeStm = arrSstrSizeCrossDiag[supidx];
-              serialize( rowLocalPtr, sstm, NO_MASK );
-              serialize( blockIdxLocal, sstm, NO_MASK );
-              serialize( LUpdateBufReduced, sstm, NO_MASK );
-              mpi::Isend( sstm, sstr, sizeStm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, mpireqsSendToBelow[0], mpireqsSendToBelow[1]);
-            }
-          } // sender to cross diagonal
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("Send_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTOP(Send_L_CrossDiag);
-#endif
-#endif
-#endif
-
-
-
-
-
-
-
-
+      // Send LUpdateBufReduced to the cross diagonal blocks. 
+      // NOTE: This assumes square processor grid
+      if( isSendToCrossDiagonal_( ksup ) ){
+        Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+        if( MYPROC( grid_ ) != dest	){
+          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+          std::stringstream sstm;
+          std::vector<char> & sstr = arrSstrCrossDiag[supidx];
+          Int & sizeStm = arrSstrSizeCrossDiag[supidx];
+          serialize( rowLocalPtr, sstm, NO_MASK );
+          serialize( blockIdxLocal, sstm, NO_MASK );
+          serialize( LUpdateBufReduced, sstm, NO_MASK );
+          mpi::Isend( sstm, sstr, sizeStm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, mpireqsSendToBelow[0], mpireqsSendToBelow[1]);
         }
-
-
-
-
-      }
-#endif
-
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Reduce_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTOP(Reduce_Sinv_LT);
-#endif
+      } // sender to cross diagonal
+      TIMER_STOP(Send_L_CrossDiag);
+    }
 #endif
 
 
+  }
 
+
+}
+#endif
+      TIMER_STOP(Reduce_Sinv_LT);
       //--------------------- End of reduce of LUpdateBuf-------------------------
-
-#if ( _DEBUGlevel_ >= 1 )
-      for (Int supidx=0; supidx<stepSuper; supidx++){
-        Int ksup = superList[lidx][supidx];
-        NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBuf[supidx];
-        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && LUpdateBufReduced.m() > 0 )
-          statusOFS << std::endl << "["<<ksup<<"] "<<   "LUpdateBufReduced: " << LUpdateBufReduced << std::endl << std::endl; 
-      }
-#endif
-
 
 
 
@@ -3604,21 +3447,15 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
       PushCallStack("PMatrix::SelInv::UpdateD");
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Update_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTART(Update_Diagonal);
-#endif
-#endif
+      TIMER_START(Update_Diagonal);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
 
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<ksup<<"] "<<   "Update the diagonal block" << std::endl << std::endl; 
-#endif
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "Update the diagonal block" << std::endl << std::endl; 
+#endif
           //---------Computing  Diagonal block, all processors in the column are participating to all pipelined supernodes
 
           std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
@@ -3650,7 +3487,7 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
               MPI_Isend( DiagBuf.Data(),  SuperSize( ksup, super_ )*SuperSize( ksup, super_ )*sizeof(Scalar), MPI_BYTE, PROW(ksup,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_D_REDUCE, grid_->colComm, &mpireqsSendToRight[0] );
 
 #if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" has sent "<< DiagBuf.m()*DiagBuf.n()*sizeof(Scalar) << " bytes of DiagBuf to " << PROW(ksup,grid_) << " isSendToDiagonal = "<< isSendToDiagonal_(ksup) <<  std::endl;
+              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" has sent "<< DiagBuf.m()*DiagBuf.n()*sizeof(Scalar) << " bytes of DiagBuf to " << PROW(ksup,grid_) << " isSendToDiagonal = "<< isSendToDiagonal_(ksup) <<  std::endl;
 #endif
             }
 #endif
@@ -3664,6 +3501,10 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
                   SCALAR_ONE, DiagBuf.Data(), SuperSize( ksup, super_ ) );
             }
           } // I own the diagonal block, skip the diagonal block
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "DiagBuf: " <<  DiagBuf << std::endl << std::endl; 
+#endif
         }
       }
 
@@ -3671,21 +3512,9 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
 
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Update_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTOP(Update_Diagonal);
-#endif
-#endif
+      TIMER_STOP(Update_Diagonal);
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Reduce_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTART(Reduce_Diagonal);
-#endif
-#endif
+      TIMER_START(Reduce_Diagonal);
 
 #ifdef USE_REDUCE_DIAG
       for (Int supidx=0; supidx<stepSuper; supidx++){
@@ -3697,9 +3526,9 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
 
 
           NumMat<Scalar> & DiagBuf = arrDiagBuf[supidx];
-//#if ( _DEBUGlevel_ >= 2 )
-          statusOFS << std::endl << "["<<ksup<<"] "<<   "DiagBuf: " << DiagBuf << std::endl << std::endl; 
-//#endif
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "DiagBuf: " << DiagBuf << std::endl << std::endl; 
+#endif
 
           NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
 
@@ -3745,7 +3574,7 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
 
           NumMat<Scalar> & DiagBuf = arrDiagBuf[supidx];
 #if ( _DEBUGlevel_ >= 2 )
-          statusOFS << std::endl << "["<<ksup<<"] "<<   "DiagBuf: " << DiagBuf << std::endl << std::endl; 
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "DiagBuf: " << DiagBuf << std::endl << std::endl; 
 #endif
 
 
@@ -3755,7 +3584,7 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
             Int numRecv = CountRecvFromBelow(ksup);
 
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<ksup<<"] "<< "P"<<MYROW(grid_)<<" should receive DiagBuf from "<< numRecv << " processors" << std::endl;
+            statusOFS << std::endl << "BCAST ["<<ksup<<"] "<< "P"<<MYROW(grid_)<<" should receive DiagBuf from "<< numRecv << " processors" << std::endl;
 #endif
 
 
@@ -3763,12 +3592,37 @@ statusOFS<<std::endl<<"commSendToRightRoot: "<<commSendToRightRoot_<<std::endl;
               DiagBuf.Resize( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ));
               SetValue(DiagBuf, SCALAR_ZERO);
             }
-            else{
-statusOFS<<"["<<ksup<<"] BCAST PROW "<<MYROW(grid_)<<" participates"<<std::endl;
-            }
 
             NumMat<Scalar>  DiagBufRecv(DiagBuf.m(),DiagBuf.n());
 
+#if ( _DEBUGlevel_ >= 1 ) && BLOCK_REDUCE
+        
+
+
+        for( Int iProcRow = grid_->numProcRow-1; iProcRow >=0 ; iProcRow-- ){
+//        for( Int iProcRow = 0; iProcRow < grid_->numProcRow ; iProcRow++ ){
+          if( MYROW( grid_ ) != iProcRow &&
+              isRecvFromBelow_( iProcRow, ksup ) == true ){
+              MPI_Status stat;
+              Int size = 0;
+              MPI_Recv(DiagBufRecv.Data(), SuperSize( ksup, super_ )*SuperSize( ksup, super_ )*sizeof(Scalar), MPI_BYTE, iProcRow,SELINV_TAG_COUNT*supidx+SELINV_TAG_D_REDUCE, grid_->colComm,&stat);
+              MPI_Get_count(&stat, MPI_BYTE, &size);
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<< "P"<<MYROW(grid_)<<" has received "<< size << " bytes of DiagBuf from " << stat.MPI_SOURCE << std::endl;
+#endif
+              //if the processor contributes
+              if(size>0){
+#if ( _DEBUGlevel_ >= 2 )
+                statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "DiagBufRecv: " <<  DiagBufRecv << std::endl << std::endl; 
+#endif
+
+                //do the sum
+                blas::Axpy(SuperSize( ksup, super_ )*SuperSize( ksup, super_ ), SCALAR_ONE, DiagBufRecv.Data(), 1, DiagBuf.Data(), 1 );
+              }
+
+          }
+        }
+#else
             for( Int countRecv = 0; countRecv < numRecv ; ++countRecv ){
               //Do the blocking recv
               MPI_Status stat;
@@ -3776,22 +3630,23 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<MYROW(grid_)<<" participates"<<std::endl;
               MPI_Recv(DiagBufRecv.Data(), SuperSize( ksup, super_ )*SuperSize( ksup, super_ )*sizeof(Scalar), MPI_BYTE, MPI_ANY_SOURCE,SELINV_TAG_COUNT*supidx+SELINV_TAG_D_REDUCE, grid_->colComm,&stat);
               MPI_Get_count(&stat, MPI_BYTE, &size);
 #if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl << "["<<ksup<<"] "<< "P"<<MYROW(grid_)<<" has received "<< size << " bytes of DiagBuf from " << stat.MPI_SOURCE << std::endl;
+              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<< "P"<<MYROW(grid_)<<" has received "<< size << " bytes of DiagBuf from " << stat.MPI_SOURCE << std::endl;
 #endif
-statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::endl;
               //if the processor contributes
               if(size>0){
 #if ( _DEBUGlevel_ >= 2 )
-                statusOFS << std::endl << "["<<ksup<<"] "<<   "DiagBufRecv: " <<  DiagBufRecv << std::endl << std::endl; 
+                statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "DiagBufRecv: " <<  DiagBufRecv << std::endl << std::endl; 
 #endif
 
                 //do the sum
                 blas::Axpy(SuperSize( ksup, super_ )*SuperSize( ksup, super_ ), SCALAR_ONE, DiagBufRecv.Data(), 1, DiagBuf.Data(), 1 );
               }
             }
+#endif
+
             // Add DiagBufReduced to diagonal block.
-#if ( _DEBUGlevel_ >= 2 )
-            statusOFS << std::endl << "["<<ksup<<"] "<<   "DiagBufReduced: " << DiagBuf << std::endl << std::endl; 
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "DiagBufReduced: " << DiagBuf << std::endl << std::endl; 
 #endif
 
             LBlock&  LB = this->L( LBj( ksup, grid_ ) )[0];
@@ -3800,21 +3655,15 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
                 1, LB.nzval.Data(), 1 );
             Symmetrize( LB.nzval );
 
-#if ( _DEBUGlevel_ >= 2 )
-            statusOFS << std::endl << "["<<ksup<<"] "<<   "Diag of Ainv: " << LB.nzval << std::endl << std::endl; 
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "Diag of Ainv: " << LB.nzval << std::endl << std::endl; 
 #endif
           }
         } 
       }
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Reduce_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTOP(Reduce_Diagonal);
-#endif
-#endif
+      TIMER_STOP(Reduce_Diagonal);
 
 
 #ifndef USE_REDUCE_DIAG
@@ -3828,7 +3677,7 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
           mpi::Wait( mpireqsSendToRight[0] );
 
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" is done sending DiagBuf to P" << PROW(ksup,grid_) <<  std::endl;
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" is done sending DiagBuf to P" << PROW(ksup,grid_) <<  std::endl;
 #endif
         }
       }
@@ -3845,19 +3694,10 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
       PushCallStack("PMatrix::SelInv::UpdateU");
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Update_U");
-#elif defined(PROFILE)
-      TAU_FSTART(Update_U);
-#endif
-#endif
+      TIMER_START(Update_U);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
 
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl <<  "["<<ksup<<"] "<<  "Update the upper triangular block" << std::endl << std::endl; 
-#endif
         // Send LUpdateBufReduced to the cross diagonal blocks. 
         // NOTE: This assumes square processor grid
         std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
@@ -3866,13 +3706,7 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
         Int numRowLUpdateBuf = LUpdateBufReduced.m();
 
 #if not (defined(SEND_CROSSDIAG_ASYNC)) 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_START("Send_L_CrossDiag");
-#elif defined(PROFILE)
-        TAU_FSTART(Send_L_CrossDiag);
-#endif
-#endif
+        TIMER_START(Send_L_CrossDiag);
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_( ksup ) ){
           Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
           if( MYPROC( grid_ ) != dest	){
@@ -3883,26 +3717,18 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
             mpi::Send( sstm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm );
           }
         } // sender
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_STOP("Send_L_CrossDiag");
-#elif defined(PROFILE)
-        TAU_FSTOP(Send_L_CrossDiag);
-#endif
-#endif
+        TIMER_STOP(Send_L_CrossDiag);
 #endif
 
         if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_( ksup ) ){
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl <<  "BCAST ["<<ksup<<"] "<<  "Update the upper triangular block" << std::endl << std::endl; 
+#endif
           std::vector<Int>  rowLocalPtrRecv;
           std::vector<Int>  blockIdxLocalRecv;
           NumMat<Scalar> UUpdateBuf;
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("Recv_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTART(Recv_L_CrossDiag);
-#endif
-#endif
+          TIMER_START(Recv_L_CrossDiag);
 
           Int src = PNUM( MYCOL( grid_ ), PCOL( ksup, grid_ ), grid_ );
           if( MYPROC( grid_ ) != src ){
@@ -3919,18 +3745,12 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
             UUpdateBuf = LUpdateBufReduced;
           } // sender is the same as receiver
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("Recv_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTOP(Recv_L_CrossDiag);
-#endif
-#endif
+          TIMER_STOP(Recv_L_CrossDiag);
 
 #if ( _DEBUGlevel_ >= 2 )
-          statusOFS << std::endl << "["<<ksup<<"] "<<   "rowLocalPtrRecv:" << rowLocalPtrRecv << std::endl << std::endl; 
-          statusOFS << std::endl << "["<<ksup<<"] "<<   "blockIdxLocalRecv:" << blockIdxLocalRecv << std::endl << std::endl; 
-          statusOFS << std::endl << "["<<ksup<<"] "<<   "UUpdateBuf:" << UUpdateBuf << std::endl << std::endl; 
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtrRecv:" << rowLocalPtrRecv << std::endl << std::endl; 
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocalRecv:" << blockIdxLocalRecv << std::endl << std::endl; 
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "UUpdateBuf:" << UUpdateBuf << std::endl << std::endl; 
 #endif
 
           // Update U
@@ -3965,13 +3785,7 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
       }
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Update_U");
-#elif defined(PROFILE)
-      TAU_FSTOP(Update_U);
-#endif
-#endif
+      TIMER_STOP(Update_U);
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -3982,25 +3796,23 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
       PushCallStack("PMatrix::SelInv::UpdateLFinal");
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Update_L");
-#elif defined(PROFILE)
-      TAU_FSTART(Update_L);
-#endif
-#endif
+      TIMER_START(Update_L);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
 
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<ksup<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
-#endif
         std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
         std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
         NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBuf[supidx];
         Int numRowLUpdateBuf = LUpdateBufReduced.m();
 
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && numRowLUpdateBuf > 0 ){
+#ifndef _RELEASE_
+      PushCallStack("PMatrix::SelInv::UpdateLFinal");
+#endif
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
+#endif
           std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
           if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
             for( Int ib = 0; ib < Lcol.size(); ib++ ){
@@ -4020,26 +3832,14 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
       } // for (ksup) : Main loop
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Update_L");
-#elif defined(PROFILE)
-      TAU_FSTOP(Update_L);
-#endif
-#endif
+      TIMER_STOP(Update_L);
 
 #ifndef _RELEASE_
       PopCallStack();
 #endif
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Barrier");
-#elif defined(PROFILE)
-      TAU_FSTART(Barrier);
-#endif
-#endif
+      TIMER_START(Barrier);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
         std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
@@ -4057,13 +3857,7 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
       mpi::Waitall( arrMpireqsRecvSizeFromAny );
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Barrier");
-#elif defined(PROFILE)
-      TAU_FSTOP(Barrier);
-#endif
-#endif
+      TIMER_STOP(Barrier);
 
 
 
@@ -4073,13 +3867,7 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
     PopCallStack();
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-    TAU_STOP("SelInvBcast");
-#elif defined(PROFILE)
-    TAU_FSTOP(SelInvBcast);
-#endif
-#endif
+    TIMER_STOP(SelInvBcast);
 
 
 
@@ -4476,13 +4264,7 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
 #endif
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-    TAU_START("SelInvOriginal");
-#elif defined (PROFILE)
-    TAU_FSTART(SelInvOriginal);
-#endif
-#endif
+    TIMER_START(SelInvOriginal);
 
 
     for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
@@ -4490,12 +4272,17 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
       PushCallStack("PMatrix::SelInvOriginal::UpdateL");
 #endif
 
+
       // Communication for the U part.
       std::vector<MPI_Request> mpireqsSendToBelow( 2 * grid_->numProcRow, MPI_REQUEST_NULL );
       std::vector<char> sstrUrowSend;
 
       // Senders
       if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl <<"ORIGINAL ["<<ksup<<"] Communication to the Schur complement. (Sending)" << std::endl << std::endl; 
+#endif
         // Pack the data in U
         std::stringstream sstm;
         std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
@@ -4579,6 +4366,9 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
             SELINV_TAG_U_SIZE,
             grid_->colComm, &mpireqsRecvFromAbove[0] );
 
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl <<"ORIGINAL ["<<ksup<<"] Communication to the Schur complement. (Receiving)" << std::endl << std::endl; 
+#endif
       } // if I need to receive from up
 
 
@@ -4587,30 +4377,22 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
         MPI_Irecv( &sizeStmFromLeft, 1, MPI_INT, PCOL( ksup, grid_ ), 
             SELINV_TAG_L_SIZE,
             grid_->rowComm, &mpireqsRecvFromLeft[0] );
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl <<"ORIGINAL ["<<ksup<<"] Communication to the Schur complement. (Receiving)" << std::endl << std::endl; 
+#endif
       } // if I need to receive from left
 
 
 
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("WaitSize_UL");
-#elif defined(PROFILE)
-          TAU_FSTART(WaitSize_UL);
-#endif
-#endif
+          TIMER_START(WaitSize_UL);
       // Wait to obtain size information
       mpi::Wait( mpireqsRecvFromAbove[0] );
       mpi::Wait( mpireqsRecvFromLeft[0] );
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("WaitSize_UL");
-#elif defined(PROFILE)
-          TAU_FSTOP(WaitSize_UL);
-#endif
-#endif
+          TIMER_STOP(WaitSize_UL);
 
       if( isRecvFromAbove_( ksup ) && 
           MYROW( grid_ ) != PROW( ksup, grid_ ) ){
@@ -4633,42 +4415,31 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
 
       // Wait for all communication to finish
       // Wait to obtain packed information in a string and then write into stringstream
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("WaitContent_UL");
-#elif defined(PROFILE)
-          TAU_FSTART(WaitContent_UL);
-#endif
-#endif
+          TIMER_START(WaitContent_UL);
 
       mpi::Wait( mpireqsRecvFromAbove[1] );
       mpi::Wait( mpireqsRecvFromLeft[1] );
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("WaitContent_UL");
-#elif defined(PROFILE)
-          TAU_FSTOP(WaitContent_UL);
-#endif
-#endif
+          TIMER_STOP(WaitContent_UL);
 
 
 
 
       // Overlap the communication with computation.  All processors move
       // to Gemm phase when ready 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Compute_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTART(Compute_Sinv_LT);
-#endif
-#endif
+      TIMER_START(Compute_Sinv_LT);
 
 
 
       std::vector<LBlock>   LcolRecv;
       std::vector<UBlock>   UrowRecv;
+
+
       if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
+#endif
+
         // U part
         if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
           std::stringstream sstm;
@@ -4686,6 +4457,11 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
           // (there is no diagonal block)
           UrowRecv = this->U( LBi( ksup, grid_ ) );
         } // sender is the same as receiver
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<  "UrowRecv: " <<UrowRecv.size()<< std::endl << std::endl; 
+          for(Int jb=0;jb<UrowRecv.size();jb++){ statusOFS<<"jb="<<jb<<" " << UrowRecv[jb] << std::endl; }
+#endif
 
         if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
           std::stringstream     sstm;
@@ -4716,6 +4492,11 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
             }
           }
         } // sender is the same as receiver
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<  "LcolRecv: " <<LcolRecv.size()<< std::endl << std::endl; 
+          for(Int ib=0;ib<LcolRecv.size();ib++){ statusOFS<<"ib="<<ib<<" " << LcolRecv[ib] << std::endl; }
+#endif
       } // if I am a receiver
 
       // Save all the data to be updated for { L( isup, ksup ) | isup > ksup }.
@@ -4725,13 +4506,11 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
       // Only the processors received information participate in the Gemm 
       if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_START("Compute_Sinv_LT_Lookup_Indexes");
-#elif defined(PROFILE)
-        TAU_FSTART(Compute_Sinv_LT_Lookup_Indexes);
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<  "Main work: Gemm" << std::endl << std::endl; 
 #endif
-#endif
+
+        TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
 
 
         // rowPtr[ib] gives the row index in LUpdateBuf for the first
@@ -4824,6 +4603,9 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
                     relCols[j] = UB.cols[j] - SinvColsSta;
                   }
 
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<  "1 SinvB: " << SinvB << std::endl;
+#endif
                   // Transfer the values from Sinv to AinvBlock
                   Scalar* nzvalSinv = SinvB.nzval.Data();
                   Int     ldSinv    = SinvB.numRow;
@@ -4886,6 +4668,12 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
                   // Trasnfer the values from Sinv to AinvBlock
                   Scalar* nzvalSinv = SinvB.nzval.Data();
                   Int     ldSinv    = SinvB.numRow;
+
+                 //PRINT SINV HERE 
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<  "2 SinvB: " << SinvB << std::endl;
+#endif
+
                   for( Int j = 0; j < UB.numCol; j++ ){
                     for( Int i = 0; i < LB.numRow; i++ ){
                       nzvalAinv[i+j*ldAinv] =
@@ -4907,23 +4695,15 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
 
           } // for( ib )
         } // for ( jb )
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_STOP("Compute_Sinv_LT_Lookup_Indexes");
-#elif defined(PROFILE)
-        TAU_FSTOP(Compute_Sinv_LT_Lookup_Indexes);
-#endif
-#endif
+        TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("Compute_Sinv_LT_GEMM");
-#elif defined(PROFILE)
-          TAU_FSTART(Compute_Sinv_LT_GEMM);
-#endif
-#endif
+          TIMER_START(Compute_Sinv_LT_GEMM);
 
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<  "AinvBuf: " << AinvBuf << std::endl;
+          statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<  "UBuf: " << UBuf << std::endl;
+#endif
         // Gemm for LUpdateBuf = AinvBuf * UBuf^T
         blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
             AinvBuf.Data(), AinvBuf.m(), 
@@ -4931,24 +4711,15 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
             LUpdateBuf.Data(), LUpdateBuf.m() ); 
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("Compute_Sinv_LT_GEMM");
-#elif defined(PROFILE)
-          TAU_FSTOP(Compute_Sinv_LT_GEMM);
-#endif
-#endif
+          TIMER_STOP(Compute_Sinv_LT_GEMM);
 
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<  "LUpdateBuf: " << LUpdateBuf << std::endl;
+#endif
 
 
       } // if Gemm is to be done locally
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Compute_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTOP(Compute_Sinv_LT);
-#endif
-#endif
+      TIMER_STOP(Compute_Sinv_LT);
 
 
 
@@ -4960,13 +4731,7 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
 
       // Reduce LUpdateBuf across all the processors in the same processor row.
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Reduce_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTART(Reduce_Sinv_LT);
-#endif
-#endif
+      TIMER_START(Reduce_Sinv_LT);
       NumMat<Scalar> LUpdateBufReduced;
 
       // Processor column of ksup collects the symbolic data for LUpdateBuf.
@@ -5021,12 +4786,16 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
       } // Perform reduce for nonzero block rows in the column of ksup
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Reduce_Sinv_LT");
-#elif defined(PROFILE)
-      TAU_FSTOP(Reduce_Sinv_LT);
-#endif
+      TIMER_STOP(Reduce_Sinv_LT);
+
+
+
+#if ( _DEBUGlevel_ >= 1 ) 
+    if( numRowLUpdateBuf > 0 ){
+      if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+          statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<   "LUpdateBufReduced: " <<  LUpdateBufReduced << std::endl << std::endl; 
+      }
+    }
 #endif
 
 #ifndef _RELEASE_
@@ -5040,13 +4809,11 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
 
 
       if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Update_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTART(Update_Diagonal);
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<   "Update the diagonal block" << std::endl << std::endl; 
 #endif
-#endif
+      TIMER_START(Update_Diagonal);
         NumMat<Scalar> DiagBuf( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
         SetValue( DiagBuf, SCALAR_ZERO );
         std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
@@ -5056,37 +4823,27 @@ statusOFS<<"["<<ksup<<"] BCAST PROW "<<stat.MPI_SOURCE<<" participates"<<std::en
                 SCALAR_MINUS_ONE, &LUpdateBufReduced( rowLocalPtr[ib], 0 ), LUpdateBufReduced.m(),
                 Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
                 SCALAR_ONE, DiagBuf.Data(), DiagBuf.m() );
-statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
           }
-        } // I do not own the diaogonal block
+        } // I do not own the diagonal block
         else{
           for( Int ib = 1; ib < Lcol.size(); ib++ ){
             blas::Gemm( 'T', 'N', SuperSize( ksup, super_ ), SuperSize( ksup, super_ ), Lcol[ib].numRow, 
                 SCALAR_MINUS_ONE, &LUpdateBufReduced( rowLocalPtr[ib-1], 0 ), LUpdateBufReduced.m(),	
                 Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
                 SCALAR_ONE, DiagBuf.Data(), DiagBuf.m() );
-statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
           }
-        } // I owns the diagonal block, skip the diagonal block
+        } // I own the diagonal block, skip the diagonal block
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Update_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTOP(Update_Diagonal);
-#endif
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<   "DiagBuf: " <<  DiagBuf << std::endl << std::endl; 
 #endif
 
+      TIMER_STOP(Update_Diagonal);
 
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Reduce_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTART(Reduce_Diagonal);
-#endif
-#endif
+
+      TIMER_START(Reduce_Diagonal);
         NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
 
         if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
@@ -5101,20 +4858,21 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
         if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
           LBlock&  LB = this->L( LBj( ksup, grid_ ) )[0];
 
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<< std::endl << "ORIGINAL ["<<ksup<<"] "<<   "DiagBufReduced: " << DiagBufReduced << std::endl << std::endl; 
+#endif
           // Symmetrize LB
           blas::Axpy( LB.numRow * LB.numCol, SCALAR_ONE, DiagBufReduced.Data(),
               1, LB.nzval.Data(), 1 );
 
           Symmetrize( LB.nzval );
+
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "ORIGINAL ["<<ksup<<"] "<<   "Diag of Ainv: " << LB.nzval << std::endl << std::endl; 
+#endif
         }
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Reduce_Diagonal");
-#elif defined(PROFILE)
-      TAU_FSTOP(Reduce_Diagonal);
-#endif
-#endif
+      TIMER_STOP(Reduce_Diagonal);
       } // Update the diagonal in the processor column of ksup. All processors participate
 
 
@@ -5129,22 +4887,11 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
 #endif
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Update_U");
-#elif defined(PROFILE)
-      TAU_FSTART(Update_U);
-#endif
-#endif
+      TIMER_START(Update_U);
+
       // Send LUpdateBufReduced to the cross diagonal blocks. 
       // NOTE: This assumes square processor grid
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_START("Send_L_CrossDiag");
-#elif defined(PROFILE)
-        TAU_FSTART(Send_L_CrossDiag);
-#endif
-#endif
+        TIMER_START(Send_L_CrossDiag);
 
       if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_( ksup ) ){
         Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
@@ -5156,28 +4903,19 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
           mpi::Send( sstm, dest, SELINV_TAG_D_SIZE, SELINV_TAG_D_CONTENT, grid_->comm );
         }
       } // sender
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-        TAU_STOP("Send_L_CrossDiag");
-#elif defined(PROFILE)
-        TAU_FSTOP(Send_L_CrossDiag);
-#endif
-#endif
-
+      
+        TIMER_STOP(Send_L_CrossDiag);
       std::vector<Int>  rowLocalPtrRecv;
       std::vector<Int>  blockIdxLocalRecv;
       if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_( ksup ) ){
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl <<  "ORIGINAL ["<<ksup<<"] "<<  "Update the upper triangular block" << std::endl << std::endl; 
+#endif
         Int src = PNUM( MYCOL( grid_ ), PCOL( ksup, grid_ ), grid_ );
         NumMat<Scalar> UUpdateBuf;
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_START("Recv_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTART(Recv_L_CrossDiag);
-#endif
-#endif
-
+          TIMER_START(Recv_L_CrossDiag);
 
 
         if( MYPROC( grid_ ) != src ){
@@ -5194,13 +4932,7 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
           UUpdateBuf = LUpdateBufReduced;
         } // sender is the same as receiver
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-          TAU_STOP("Recv_L_CrossDiag");
-#elif defined(PROFILE)
-          TAU_FSTOP(Recv_L_CrossDiag);
-#endif
-#endif
+          TIMER_STOP(Recv_L_CrossDiag);
 
 
         // Update U
@@ -5233,13 +4965,7 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
         }
       } // receiver
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Update_U");
-#elif defined(PROFILE)
-      TAU_FSTOP(Update_U);
-#endif
-#endif
+      TIMER_STOP(Update_U);
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -5248,13 +4974,7 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
       PushCallStack("PMatrix::SelInvOriginal::UpdateLFinal");
 #endif
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_START("Update_L");
-#elif defined(PROFILE)
-      TAU_FSTART(Update_L);
-#endif
-#endif
+      TIMER_START(Update_L);
 
 
 
@@ -5277,13 +4997,7 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
       } // Finish updating L	
 
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-      TAU_STOP("Update_L");
-#elif defined(PROFILE)
-      TAU_FSTOP(Update_L);
-#endif
-#endif
+      TIMER_STOP(Update_L);
 
 
 #ifndef _RELEASE_
@@ -5294,13 +5008,7 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
 
     } // for (ksup) : Main loop
 
-#ifdef SELINV_TIMING
-#ifdef USE_TAU
-    TAU_STOP("SelInvOriginal");
-#elif defined (PROFILE)
-    TAU_FSTOP(SelInvOriginal);
-#endif
-#endif
+    TIMER_STOP(SelInvOriginal);
 
 
 #ifndef _RELEASE_
@@ -5538,6 +5246,56 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
   } 		// -----  end of method PMatrix::PreSelInv  ----- 
 
 
+  void PMatrix::GetColumn	( Int colIdx,  NumVec<Scalar>& col )
+  {
+#ifndef _RELEASE_
+    PushCallStack("PMatrix::GetColumn");
+#endif
+    Int numSuper = this->NumSuper(); 
+
+    Int numRow = this->NumCol();
+    const IntNumVec& permInv = super_->permInv;
+//    const IntNumVec& perm = super_->perm;
+//
+    NumVec<Scalar> colLocal( numRow );
+    SetValue( colLocal, SCALAR_ZERO );
+
+    col.Resize( numRow );
+    SetValue( col, SCALAR_ZERO );
+
+    //find the supernode containing colIdx
+//    colIdx=perm(colIdx);
+    Int ksup = BlockIdx(colIdx,super_);
+
+    Int localColIdx = colIdx - FirstBlockCol( ksup, super_ );
+
+    statusOFS<<"DEBUGMAT colIdx "<<colIdx<<" is in snode "<<ksup<<" proc "<<PNUM(PROW(ksup,grid_),PCOL(ksup,grid_),grid_)<<" and its local col idx is "<<localColIdx<<std::endl;
+        if ( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+          std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+            for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                    statusOFS<<Lcol[ib]<<std::endl;
+                Int j = localColIdx;
+              for( Int i = 0; i < Lcol[ib].numRow; i++ ){
+                    statusOFS<<"Lcol[ib].rows(i)="<<Lcol[ib].rows(i)<<" permInv(Lcol[ib].rows(i))="<<permInv(Lcol[ib].rows(i))<<std::endl;
+                    colLocal( permInv( Lcol[ib].rows(i) ) ) = Lcol[ib].nzval( i, j );
+              }         
+            }
+        }
+
+    mpi::Allreduce( colLocal.Data(), col.Data(), numRow, MPI_SUM, grid_->comm );
+
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
+
+    return ;
+  } 		// -----  end of method PMatrix::GetColumn  ----- 
+
+
+
+
+
+
   void PMatrix::GetDiagonal	( NumVec<Scalar>& diag )
   {
 #ifndef _RELEASE_
@@ -5578,7 +5336,7 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
 
 
 #ifdef SANITY_CHECK
-  void PMatrix::CompareDiagonal	( PMatrix & Ref, Real & globalMaxError )
+  void PMatrix::CompareDiagonal	( PMatrix & Ref, SelInvErrors & errors)
   {
 #ifndef _RELEASE_
     PushCallStack("PMatrix::CompareDiagonal");
@@ -5586,31 +5344,160 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
     Int numSuper = this->NumSuper(); 
 
     Int numCol = this->NumCol();
-    Real maxError = 0;
+
+    SelInvErrors localErrors;
+
+    Int maxIb, maxI, maxJ, maxK =0;
+
 
     for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
         // I own the diagonal block	
         if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
             MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-          LBlock& LB = this->L( LBj( ksup, grid_ ) )[0];
-          LBlock& LBRef = Ref.L( LBj( ksup, grid_ ) )[0];
 
-          for( Int i = 0; i < LB.numRow; i++ ){
-            std::stringstream msg;
-            Real error = abs(LB.nzval(i,i)-LBRef.nzval(i,i))/abs(LBRef.nzval(i,i));
-            msg<< "["<<ksup<< "] Row "<<i<<" is wrong : "<< LB.nzval(i,i) << " vs "<<LBRef.nzval(i,i)<< " error is "<< error <<std::endl; 
-            if( error > maxError){ maxError = error;}
-            if(error > SANITY_PRECISION){
-              statusOFS<<msg;
+
+
+          std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+          std::vector<LBlock>&  LcolRef = Ref.L( LBj( ksup, grid_ ) );
+
+          if( MYROW( grid_ ) == PROW( ksup, grid_ )){
+            for( Int ib = 0; ib < std::min(1,(int)Lcol.size()); ib++ ){
+              Real fNormRef = 0.0;
+              Real fNorm = 0.0;
+
+              
+              for( Int j = 0; j < Lcol[ib].numCol; j++ ){
+                Real colNorm = 0.0;
+                Real colNormRef = 0.0;
+                
+
+                for( Int i = 0; i < Lcol[ib].numRow; i++ ){
+                  //Compute the 2-norm of current columns 
+                  colNorm += abs( pow(Lcol[ib].nzval(i,j),2) );
+                  colNormRef += abs( pow(LcolRef[ib].nzval(i,j),2) );
+                }
+
+              Int gj = FirstBlockCol(ksup,super_) + j;
+//              Int gj = Lcol[ib].rows[j];
+
+
+              //Compute max row-wise errors
+              Real cwiseAbsError = abs(colNorm - colNormRef);
+              Real cwiseRelError = cwiseAbsError / abs(colNormRef);
+              if( cwiseRelError > localErrors.MaxCwiseRelError.Value){localErrors.MaxCwiseRelError.Set(cwiseRelError,ksup,ib,-1,gj); localErrors.CorrCwiseAbsError.Set(cwiseAbsError,ksup,ib,-1,gj); }
+              if( cwiseAbsError > localErrors.MaxCwiseAbsError.Value){localErrors.MaxCwiseAbsError.Set(cwiseAbsError,ksup,ib,-1,gj); }
+
+
+
+              }
+              for( Int i = 0; i < Lcol[ib].numRow; i++ ){
+                Real rowNorm = 0.0;
+                Real rowNormRef = 0.0;
+              Int gi = FirstBlockRow(ksup,super_) + i;
+//              Int gi = Lcol[ib].rows[i];
+              
+                for( Int j = 0; j < Lcol[ib].numCol; j++ ){
+               
+              Int gj = FirstBlockCol(ksup,super_) + j;
+//              Int gj = Lcol[ib].rows[j];
+                  //Compute the 2-norm of current row      
+                  rowNorm += abs( pow(Lcol[ib].nzval(i,j),2) );
+                  rowNormRef += abs( pow(LcolRef[ib].nzval(i,j),2) );
+
+                  std::stringstream msg;
+                  Real absError = abs(Lcol[ib].nzval(i,j)-LcolRef[ib].nzval(i,j));
+                  Real relError = absError/abs(LcolRef[ib].nzval(i,j));
+                  msg<< "["<<ksup<< "] D Block "<<ib<< " Row "<<i<<" Col "<<j<<" is wrong : "<< Lcol[ib].nzval(i,j) << " vs "<<LcolRef[ib].nzval(i,j)<< " relative error is "<< relError <<std::endl; 
+
+              if( relError > localErrors.MaxRelError.Value){localErrors.MaxRelError.Set(relError,ksup,ib,gi,gj); localErrors.CorrAbsError.Set(absError,ksup,ib,gi,gj); }
+              if( absError > localErrors.MaxAbsError.Value){localErrors.MaxAbsError.Set(absError,ksup,ib,gi,gj); }
+
+                  if(relError > SANITY_PRECISION){
+                    statusOFS<<msg;
+                  }
+                }
+
+              //Compute max row-wise errors
+              Real rwiseAbsError = abs(rowNorm - rowNormRef);
+              Real rwiseRelError = rwiseAbsError / abs(rowNormRef);
+
+              if( rwiseRelError > localErrors.MaxRwiseRelError.Value){localErrors.MaxRwiseRelError.Set(rwiseRelError,ksup,ib,gi,-1); localErrors.CorrRwiseAbsError.Set(rwiseAbsError,ksup,ib,gi,-1); }
+              if( rwiseAbsError > localErrors.MaxRwiseAbsError.Value){localErrors.MaxRwiseAbsError.Set(rwiseAbsError,ksup,ib,gi,-1); }
+                  //Compute the Frobenius norm
+                  fNorm += rowNorm;
+                  fNormRef += rowNormRef;
+              }
+
+
+              Real nwiseAbsError = abs(fNorm - fNormRef);
+              Real nwiseRelError = nwiseAbsError / abs(fNormRef);
+
+              if( nwiseRelError > localErrors.MaxNwiseRelError.Value){localErrors.MaxNwiseRelError.Set(nwiseRelError,ksup,ib,-1,-1); localErrors.CorrNwiseAbsError.Set(nwiseAbsError,ksup,ib,-1,-1); }
+              if( nwiseAbsError > localErrors.MaxNwiseAbsError.Value){localErrors.MaxNwiseAbsError.Set(nwiseAbsError,ksup,ib,-1,-1); }
             }
-
-            //            if(abs(LB.nzval(i,i)-LBRef.nzval(i,i))>SANITY_PRECISION){throw std::runtime_error(msg.str());}
           }
         }
     }
 
-    globalMaxError = 0;
-    mpi::Allreduce( &maxError, &globalMaxError, 1, MPI_MAX, grid_->comm );
+    struct{ double val; int rank; } lmaxRelError,gmaxRelError;
+
+    //Get max element-wise errors
+    lmaxRelError.val = localErrors.MaxRelError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.CorrAbsError = localErrors.CorrAbsError; errors.MaxRelError = localErrors.MaxRelError; }
+    MPI_Bcast(&errors.CorrAbsError, sizeof(errors.CorrAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+    MPI_Bcast(&errors.MaxRelError, sizeof(errors.MaxRelError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    lmaxRelError.val = localErrors.MaxAbsError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.MaxAbsError = localErrors.MaxAbsError; }
+    MPI_Bcast(&errors.MaxAbsError, sizeof(errors.MaxAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+
+    //Get max norm-wise errors
+    lmaxRelError.val = localErrors.MaxNwiseRelError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.CorrNwiseAbsError = localErrors.CorrNwiseAbsError; errors.MaxNwiseRelError = localErrors.MaxNwiseRelError; }
+    MPI_Bcast(&errors.CorrNwiseAbsError, sizeof(errors.CorrNwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+    MPI_Bcast(&errors.MaxNwiseRelError, sizeof(errors.MaxNwiseRelError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    lmaxRelError.val = localErrors.MaxNwiseAbsError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.MaxNwiseAbsError = localErrors.MaxNwiseAbsError; }
+    MPI_Bcast(&errors.MaxNwiseAbsError, sizeof(errors.MaxNwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    //Get max row-wise errors
+    lmaxRelError.val = localErrors.MaxRwiseRelError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.CorrRwiseAbsError = localErrors.CorrRwiseAbsError; errors.MaxRwiseRelError = localErrors.MaxRwiseRelError; }
+    MPI_Bcast(&errors.CorrRwiseAbsError, sizeof(errors.CorrRwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+    MPI_Bcast(&errors.MaxRwiseRelError, sizeof(errors.MaxRwiseRelError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    lmaxRelError.val = localErrors.MaxRwiseAbsError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.MaxRwiseAbsError = localErrors.MaxRwiseAbsError; }
+    MPI_Bcast(&errors.MaxRwiseAbsError, sizeof(errors.MaxRwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    //Get max column-wise errors
+    lmaxRelError.val = localErrors.MaxCwiseRelError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.CorrCwiseAbsError = localErrors.CorrCwiseAbsError; errors.MaxCwiseRelError = localErrors.MaxCwiseRelError; }
+    MPI_Bcast(&errors.CorrCwiseAbsError, sizeof(errors.CorrCwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+    MPI_Bcast(&errors.MaxCwiseRelError, sizeof(errors.MaxCwiseRelError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    lmaxRelError.val = localErrors.MaxCwiseAbsError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.MaxCwiseAbsError = localErrors.MaxCwiseAbsError; }
+    MPI_Bcast(&errors.MaxCwiseAbsError, sizeof(errors.MaxCwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
 
 #ifndef _RELEASE_
     PopCallStack();
@@ -5626,7 +5513,7 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
 
 
 
-  void PMatrix::CompareOffDiagonal	( PMatrix & Ref, Real & globalMaxError )
+  void PMatrix::CompareOffDiagonal	( PMatrix & Ref,SelInvErrors & errors)
   {
 #ifndef _RELEASE_
     PushCallStack("PMatrix::CompareOffDiagonal");
@@ -5634,69 +5521,241 @@ statusOFS<<"["<<ksup<<"] PROW "<<MYROW(grid_)<<" participates"<<std::endl;
     Int numSuper = this->NumSuper(); 
 
     Int numCol = this->NumCol();
-    Real maxError = 0;
+    Real maxRelError = 0;
+    Real corrAbsError = 0;
+    Real maxAbsError = 0;
 
+    SelInvErrors localErrors;
 
+    Int maxIb, maxI, maxJ, maxK =0;
+    
 
     for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
-        if( MYROW( grid_ ) == PROW( ksup, grid_ )){
-          std::vector<UBlock>&  Urow = this->U( LBi( ksup, grid_ ) );
-          std::vector<UBlock>&  UrowRef = Ref.U( LBi( ksup, grid_ ) );
-            for( Int ib = 0; ib < Urow.size(); ib++ ){
-              for( Int i = 0; i < Urow[ib].numRow; i++ ){
-                for( Int j = 0; j < Urow[ib].numCol; j++ ){
-                  std::stringstream msg;
-                  Real error = abs(Urow[ib].nzval(i,j)-UrowRef[ib].nzval(i,j))/abs(UrowRef[ib].nzval(i,j));
-                  msg<< "["<<ksup<< "] U Block "<<ib<< " Row "<<i<<" Col "<<j<<" is wrong : "<< Urow[ib].nzval(i,j) << " vs "<<UrowRef[ib].nzval(i,j)<< " error is "<< error <<std::endl; 
-                  if( error > maxError){ maxError = error;}
-                  if(error > SANITY_PRECISION){
-                    statusOFS<<msg;
-                  }
-                }
-              }         
+      if( MYROW( grid_ ) == PROW( ksup, grid_ )){
+        std::vector<UBlock>&  Urow = this->U( LBi( ksup, grid_ ) );
+        std::vector<UBlock>&  UrowRef = Ref.U( LBi( ksup, grid_ ) );
+        for( Int ib = 0; ib < Urow.size(); ib++ ){
+          Real fNormRef = 0.0;
+          Real fNorm = 0.0;
+          for( Int j = 0; j < Urow[ib].numCol; j++ ){
+            Int gj = FirstBlockCol(ksup,super_) + j;
+            Real colNorm = 0.0;
+            Real colNormRef = 0.0;
+
+            for( Int i = 0; i < Urow[ib].numRow; i++ ){
+              //Compute the 2-norm of current columns 
+              colNorm += abs( pow(Urow[ib].nzval(i,j),2) );
+              colNormRef += abs( pow(UrowRef[ib].nzval(i,j),2) );
             }
-        }
 
-        if ( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-
-          std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
-          std::vector<LBlock>&  LcolRef = Ref.L( LBj( ksup, grid_ ) );
-
-          if( MYROW( grid_ ) == PROW( ksup, grid_ )){
-            for( Int ib = 1; ib < Lcol.size(); ib++ ){
-              for( Int i = 0; i < Lcol[ib].numRow; i++ ){
-                for( Int j = 0; j < Lcol[ib].numCol; j++ ){
-                  std::stringstream msg;
-                  Real error = abs(Lcol[ib].nzval(i,j)-LcolRef[ib].nzval(i,j))/abs(LcolRef[ib].nzval(i,j));
-                  msg<< "["<<ksup<< "] L Block "<<ib<< " Row "<<i<<" Col "<<j<<" is wrong : "<< Lcol[ib].nzval(i,j) << " vs "<<LcolRef[ib].nzval(i,j)<< " error is "<< error <<std::endl; 
-                  if( error > maxError){ maxError = error;}
-                  if(error > SANITY_PRECISION){
-                    statusOFS<<msg;
-                  }
-                }
-              }         
+            //Compute max row-wise errors
+            Real cwiseAbsError = abs(colNorm - colNormRef);
+            Real cwiseRelError = cwiseAbsError / abs(colNormRef);
+            if( cwiseRelError > localErrors.MaxCwiseRelError.Value){
+              localErrors.MaxCwiseRelError.Set(cwiseRelError,ksup,ib,-1,gj);
+              localErrors.CorrCwiseAbsError.Set(cwiseAbsError,ksup,ib,-1,gj);
+            }
+            if( cwiseAbsError > localErrors.MaxCwiseAbsError.Value){
+              localErrors.MaxCwiseAbsError.Set(cwiseAbsError,ksup,ib,-1,gj);
             }
           }
-          else{
-            for( Int ib = 0; ib < Lcol.size(); ib++ ){
-              for( Int i = 0; i < Lcol[ib].numRow; i++ ){
-                for( Int j = 0; j < Lcol[ib].numCol; j++ ){
-                  std::stringstream msg;
-                  Real error = abs(Lcol[ib].nzval(i,j)-LcolRef[ib].nzval(i,j))/abs(LcolRef[ib].nzval(i,j));
-                  msg<< "["<<ksup<< "] L Block "<<ib<< " Row "<<i<<" Col "<<j<<" is wrong : "<< Lcol[ib].nzval(i,j) << " vs "<<LcolRef[ib].nzval(i,j)<< " error is "<< error <<std::endl; 
-                  if( error > maxError){ maxError = error;}
-                  if(error > SANITY_PRECISION){
-                    statusOFS<<msg;
-                 }
-                }
-              }         
+
+          for( Int i = 0; i < Urow[ib].numRow; i++ ){
+            Int gi = FirstBlockRow(ksup,super_) + i;
+            Real rowNorm = 0.0;
+            Real rowNormRef = 0.0;
+            for( Int j = 0; j < Urow[ib].numCol; j++ ){
+              Int gj = FirstBlockCol(ksup,super_) + j;
+              //Compute the 2-norm of current row      
+              rowNorm += abs( pow(Urow[ib].nzval(i,j),2) );
+              rowNormRef += abs( pow(UrowRef[ib].nzval(i,j),2) );
+              std::stringstream msg;
+              Real absError = abs(Urow[ib].nzval(i,j)-UrowRef[ib].nzval(i,j));
+              Real relError = absError/abs(UrowRef[ib].nzval(i,j));
+
+              msg<< "["<<ksup<< "] U Block "<<ib<< " Row "<<i<<" Col "<<j<<" is wrong : "<< Urow[ib].nzval(i,j) << " vs "<<UrowRef[ib].nzval(i,j)<< " relative error is "<< relError <<std::endl; 
+              if( relError > localErrors.MaxRelError.Value){
+                localErrors.MaxRelError.Set(relError,ksup,ib,gi,gj); 
+                localErrors.CorrAbsError.Set(absError,ksup,ib,gi,gj); 
+              }
+              if( absError > localErrors.MaxAbsError.Value){
+                localErrors.MaxAbsError.Set(absError,ksup,ib,gi,gj); 
+              }
+              if(relError > SANITY_PRECISION){
+                statusOFS<<msg;
+              }
             }
+            //Compute max row-wise errors
+            Real rwiseAbsError = abs(rowNorm - rowNormRef);
+            Real rwiseRelError = rwiseAbsError / abs(rowNormRef);
+            if( rwiseRelError > localErrors.MaxRwiseRelError.Value){
+              localErrors.MaxRwiseRelError.Set(rwiseRelError,ksup,ib,gi,-1);
+              localErrors.CorrRwiseAbsError.Set(rwiseAbsError,ksup,ib,gi,-1); 
+            }
+            if( rwiseAbsError > localErrors.MaxRwiseAbsError.Value){
+              localErrors.MaxRwiseAbsError.Set(rwiseAbsError,ksup,ib,gi,-1); 
+            }
+            //Compute the Frobenius norm
+            fNorm += rowNorm;
+            fNormRef += rowNormRef;
+          }         
+          //Compute max norm-wise errors
+          Real nwiseAbsError = abs(fNorm - fNormRef);
+          Real nwiseRelError = nwiseAbsError / abs(fNormRef);
+          if( nwiseRelError > localErrors.MaxNwiseRelError.Value){
+            localErrors.MaxNwiseRelError.Set(nwiseRelError,ksup,ib,-1,-1); 
+            localErrors.CorrNwiseAbsError.Set(nwiseAbsError,ksup,ib,-1,-1);
+          }
+          if( nwiseAbsError > localErrors.MaxNwiseAbsError.Value){
+            localErrors.MaxNwiseAbsError.Set(nwiseAbsError,ksup,ib,-1,-1); 
           }
         }
+      }
+
+      if ( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+        std::vector<LBlock>&  Lcol = this->L( LBj( ksup, grid_ ) );
+        std::vector<LBlock>&  LcolRef = Ref.L( LBj( ksup, grid_ ) );
+        Int firstBlk = ( MYROW( grid_ ) == PROW( ksup, grid_ )) ? 1:0;
+        for( Int ib = firstBlk; ib < Lcol.size(); ib++ ){
+          Real fNormRef = 0.0;
+          Real fNorm = 0.0;
+
+          for( Int j = 0; j < Lcol[ib].numCol; j++ ){
+            Int gj = FirstBlockCol(ksup,super_) + j;
+            Real colNorm = 0.0;
+            Real colNormRef = 0.0;
+
+            for( Int i = 0; i < Lcol[ib].numRow; i++ ){
+              //Compute the 2-norm of current columns 
+              colNorm += abs( pow(Lcol[ib].nzval(i,j),2) );
+              colNormRef += abs( pow(LcolRef[ib].nzval(i,j),2) );
+            }
+
+            //Compute max row-wise errors
+            Real cwiseAbsError = abs(colNorm - colNormRef);
+            Real cwiseRelError = cwiseAbsError / abs(colNormRef);
+            if( cwiseRelError > localErrors.MaxCwiseRelError.Value){
+              localErrors.MaxCwiseRelError.Set(cwiseRelError,ksup,ib,-1,gj);
+              localErrors.CorrCwiseAbsError.Set(cwiseAbsError,ksup,ib,-1,gj);
+            }
+            if( cwiseAbsError > localErrors.MaxCwiseAbsError.Value){
+              localErrors.MaxCwiseAbsError.Set(cwiseAbsError,ksup,ib,-1,gj);
+            }
+          }
+
+          for( Int i = 0; i < Lcol[ib].numRow; i++ ){
+            Int gi = FirstBlockRow(ksup,super_) + i;
+            Real rowNorm = 0.0;
+            Real rowNormRef = 0.0;
+            for( Int j = 0; j < Lcol[ib].numCol; j++ ){
+              Int gj = FirstBlockCol(ksup,super_) + j;
+              //Compute the 2-norm of current row      
+              rowNorm += abs( pow(Lcol[ib].nzval(i,j),2) );
+              rowNormRef += abs( pow(LcolRef[ib].nzval(i,j),2) );
+              std::stringstream msg;
+              Real absError = abs(Lcol[ib].nzval(i,j)-LcolRef[ib].nzval(i,j));
+              Real relError = absError/abs(LcolRef[ib].nzval(i,j));
+
+              msg<< "["<<ksup<< "] L Block "<<ib<< " Row "<<i<<" Col "<<j<<" is wrong : "<< Lcol[ib].nzval(i,j) << " vs "<<LcolRef[ib].nzval(i,j)<< " relative error is "<< relError <<std::endl; 
+              if( relError > localErrors.MaxRelError.Value){
+                localErrors.MaxRelError.Set(relError,ksup,ib,gi,gj); 
+                localErrors.CorrAbsError.Set(absError,ksup,ib,gi,gj); 
+              }
+              if( absError > localErrors.MaxAbsError.Value){
+                localErrors.MaxAbsError.Set(absError,ksup,ib,gi,gj); 
+              }
+              if(relError > SANITY_PRECISION){
+                statusOFS<<msg;
+              }
+            }
+            //Compute max row-wise errors
+            Real rwiseAbsError = abs(rowNorm - rowNormRef);
+            Real rwiseRelError = rwiseAbsError / abs(rowNormRef);
+            if( rwiseRelError > localErrors.MaxRwiseRelError.Value){
+              localErrors.MaxRwiseRelError.Set(rwiseRelError,ksup,ib,gi,-1);
+              localErrors.CorrRwiseAbsError.Set(rwiseAbsError,ksup,ib,gi,-1); 
+            }
+            if( rwiseAbsError > localErrors.MaxRwiseAbsError.Value){
+              localErrors.MaxRwiseAbsError.Set(rwiseAbsError,ksup,ib,gi,-1); 
+            }
+            //Compute the Frobenius norm
+            fNorm += rowNorm;
+            fNormRef += rowNormRef;
+          }         
+          //Compute max norm-wise errors
+          Real nwiseAbsError = abs(fNorm - fNormRef);
+          Real nwiseRelError = nwiseAbsError / abs(fNormRef);
+          if( nwiseRelError > localErrors.MaxNwiseRelError.Value){
+            localErrors.MaxNwiseRelError.Set(nwiseRelError,ksup,ib,-1,-1); 
+            localErrors.CorrNwiseAbsError.Set(nwiseAbsError,ksup,ib,-1,-1);
+          }
+          if( nwiseAbsError > localErrors.MaxNwiseAbsError.Value){
+            localErrors.MaxNwiseAbsError.Set(nwiseAbsError,ksup,ib,-1,-1); 
+          }
+
+        }
+      }
     }
 
-    globalMaxError = 0;
-    mpi::Allreduce( &maxError, &globalMaxError, 1, MPI_MAX, grid_->comm );
+    struct{ double val; int rank; } lmaxRelError,gmaxRelError;
+
+    //Get max element-wise errors
+    lmaxRelError.val = localErrors.MaxRelError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.CorrAbsError = localErrors.CorrAbsError; errors.MaxRelError = localErrors.MaxRelError; }
+    MPI_Bcast(&errors.CorrAbsError, sizeof(errors.CorrAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+    MPI_Bcast(&errors.MaxRelError, sizeof(errors.MaxRelError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    lmaxRelError.val = localErrors.MaxAbsError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.MaxAbsError = localErrors.MaxAbsError; }
+    MPI_Bcast(&errors.MaxAbsError, sizeof(errors.MaxAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+
+    //Get max norm-wise errors
+    lmaxRelError.val = localErrors.MaxNwiseRelError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.CorrNwiseAbsError = localErrors.CorrNwiseAbsError; errors.MaxNwiseRelError = localErrors.MaxNwiseRelError; }
+    MPI_Bcast(&errors.CorrNwiseAbsError, sizeof(errors.CorrNwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+    MPI_Bcast(&errors.MaxNwiseRelError, sizeof(errors.MaxNwiseRelError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    lmaxRelError.val = localErrors.MaxNwiseAbsError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.MaxNwiseAbsError = localErrors.MaxNwiseAbsError; }
+    MPI_Bcast(&errors.MaxNwiseAbsError, sizeof(errors.MaxNwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    //Get max row-wise errors
+    lmaxRelError.val = localErrors.MaxRwiseRelError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.CorrRwiseAbsError = localErrors.CorrRwiseAbsError; errors.MaxRwiseRelError = localErrors.MaxRwiseRelError; }
+    MPI_Bcast(&errors.CorrRwiseAbsError, sizeof(errors.CorrRwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+    MPI_Bcast(&errors.MaxRwiseRelError, sizeof(errors.MaxRwiseRelError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    lmaxRelError.val = localErrors.MaxRwiseAbsError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.MaxRwiseAbsError = localErrors.MaxRwiseAbsError; }
+    MPI_Bcast(&errors.MaxRwiseAbsError, sizeof(errors.MaxRwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    //Get max column-wise errors
+    lmaxRelError.val = localErrors.MaxCwiseRelError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.CorrCwiseAbsError = localErrors.CorrCwiseAbsError; errors.MaxCwiseRelError = localErrors.MaxCwiseRelError; }
+    MPI_Bcast(&errors.CorrCwiseAbsError, sizeof(errors.CorrCwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+    MPI_Bcast(&errors.MaxCwiseRelError, sizeof(errors.MaxCwiseRelError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
+    lmaxRelError.val = localErrors.MaxCwiseAbsError.Value;
+    lmaxRelError.rank = MYPROC(grid_);
+    MPI_Allreduce( &lmaxRelError, &gmaxRelError, 1, MPI_DOUBLE_INT, MPI_MAXLOC, grid_->comm );
+    if(MYPROC(grid_) == gmaxRelError.rank){ errors.MaxCwiseAbsError = localErrors.MaxCwiseAbsError; }
+    MPI_Bcast(&errors.MaxCwiseAbsError, sizeof(errors.MaxCwiseAbsError) , MPI_BYTE, gmaxRelError.rank, grid_->comm );
+
 
 #ifndef _RELEASE_
     PopCallStack();

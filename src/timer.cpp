@@ -164,7 +164,6 @@ void CTF_timer::exit(){
     MPI_Comm_size(comm, &np);
 
     FILE * output;
-    FILE * output2;
 
     char all_symbols[10000];
 
@@ -188,7 +187,7 @@ void CTF_timer::exit(){
       } 
       sprintf(filename+strlen(filename), "-p%d.out", np);
       
-      output =  fopen(filename, "w");
+      output =  stdout;//fopen(filename, "w");
       char heading[MAX_NAME_LENGTH+200];
       for (i=0; i<MAX_NAME_LENGTH; i++){
         part[i] = ' ';
@@ -216,40 +215,8 @@ void CTF_timer::exit(){
         len_symbols += strlen(function_timers[i].name)+1;
       }
 
-      fclose(output);
+//      fclose(output);
 
-
-
-
-
-
-
-      output2 =  stdout;
-      for (i=0; i<MAX_NAME_LENGTH; i++){
-        part[i] = ' ';
-      }
-      part[i] = '\0';
-      sprintf(heading,"%s",part);
-      //sprintf(part,"calls   total sec   exclusive sec\n");
-      sprintf(part,"       inclusive         exclusive\n");
-      strcat(heading,part);
-      fprintf(output2, "%s", heading);
-      for (i=0; i<MAX_NAME_LENGTH; i++){
-        part[i] = ' ';
-      }
-      part[i] = '\0';
-      sprintf(heading,"%s",part);
-      sprintf(part, "calls        sec       %%"); 
-      strcat(heading,part);
-      sprintf(part, "       sec       %%\n"); 
-      strcat(heading,part);
-      fprintf(output2, "%s", heading);
-
-      len_symbols = 0;
-      for (i=0; i<(int)function_timers.size(); i++){
-        sprintf(all_symbols+len_symbols, "%s", function_timers[i].name);
-        len_symbols += strlen(function_timers[i].name)+1;
-      }
 
 
     }
@@ -293,7 +260,6 @@ void CTF_timer::exit(){
     complete_time = function_timers[0].total_time;
     for (i=0; i<(int)function_timers.size(); i++){
       function_timers[i].print(output,comm,rank,np);
-      function_timers[i].print(output2,comm,rank,np);
     }
     
     function_timers.clear();

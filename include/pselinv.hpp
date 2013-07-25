@@ -29,6 +29,142 @@ typedef std::map<std::vector<bool> * , std::vector<Int> > bitMaskSnodeIdx;
 typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
 #endif
 
+#ifdef SANITY_CHECK
+  struct SelInvError{
+    Real Value;
+    Int ksup;
+    Int ib;
+    Int i;
+    Int j;
+
+    SelInvError(Real val):Value(val), ksup(-1),ib(-1),i(-1),j(-1){}
+    SelInvError(Real val, Int pksup, Int pib, Int pi, Int pj):Value(val), ksup(pksup),ib(pib),i(pi),j(pj){}
+    inline void Set(Real val, Int pksup, Int pib, Int pi, Int pj) {Value = val;ksup=pksup;ib=pib;i=pi;j=pj;}
+
+std::ostream& print(std::ostream &o) const
+{
+    return o << "Value = " << Value << " (ksup="<<ksup<<", ib="<<ib<<", i="<<i<<", j="<<j<<")";
+}
+
+  };
+
+
+inline std::ostream& operator << (std::ostream &o,const SelInvError &a){
+  return a.print(o);
+}
+
+struct SelInvErrors{
+    SelInvError MaxRelError;
+    SelInvError CorrAbsError;
+    SelInvError MaxAbsError;
+
+  
+    SelInvError MaxNwiseRelError;
+    SelInvError CorrNwiseAbsError;
+    SelInvError MaxNwiseAbsError;
+
+    SelInvError MaxRwiseRelError;
+    SelInvError CorrRwiseAbsError;
+    SelInvError MaxRwiseAbsError;
+
+    SelInvError MaxCwiseRelError ;
+    SelInvError CorrCwiseAbsError;
+    SelInvError MaxCwiseAbsError;
+
+
+
+    // Member functions to setup the default value
+    SelInvErrors(): MaxRelError(0),CorrAbsError(0),MaxAbsError(0),
+                    MaxNwiseRelError(0), CorrNwiseAbsError(0), MaxNwiseAbsError(0),
+                    MaxRwiseRelError(0), CorrRwiseAbsError(0), MaxRwiseAbsError(0),
+                    MaxCwiseRelError (0), CorrCwiseAbsError(0), MaxCwiseAbsError(0) {}
+
+    std::ostream & print(std::ostream & output) const
+    {
+          output <<std::endl<< "Element-wise errors:"<<std::endl;
+          output << "Max relative error = " << MaxRelError << std::endl;
+          output << "Corresp. absolute error = " << CorrAbsError << std::endl;
+          output << "Max absolute = " << MaxAbsError << std::endl;
+
+          output <<std::endl<< "Norm-wise errors:"<<std::endl;
+          output << "Max relative error = " << MaxNwiseRelError << std::endl;
+          output << "Corresp. absolute error = " << CorrNwiseAbsError << std::endl;
+          output << "Max absolute = " << MaxNwiseAbsError << std::endl;
+
+          output <<std::endl<< "Row-wise errors:"<<std::endl;
+          output << "Max relative error = " << MaxRwiseRelError << std::endl;
+          output << "Corresp. absolute error = " << CorrRwiseAbsError << std::endl;
+          output << "Max absolute = " << MaxRwiseAbsError << std::endl;
+
+          output <<std::endl<< "Column-wise errors:"<<std::endl;
+          output << "Max relative error = " << MaxCwiseRelError << std::endl;
+          output << "Corresp. absolute error = " << CorrCwiseAbsError << std::endl;
+          output << "Max absolute = " << MaxCwiseAbsError << std::endl;
+          return output;
+    }
+
+  };
+
+
+inline std::ostream& operator << (std::ostream &o,const SelInvErrors &a){
+  return a.print(o);
+}
+
+
+
+
+//
+//  struct SelInvErrors2{
+//    Real MaxRelError;
+//    Real CorrAbsError;
+//    Real MaxAbsError;
+//
+//  
+//    Real MaxNwiseRelError;
+//    Real CorrNwiseAbsError;
+//    Real MaxNwiseAbsError;
+//
+//    Real MaxRwiseRelError;
+//    Real CorrRwiseAbsError;
+//    Real MaxRwiseAbsError;
+//
+//    Real MaxCwiseRelError ;
+//    Real CorrCwiseAbsError;
+//    Real MaxCwiseAbsError;
+//
+//
+//
+//    // Member functions to setup the default value
+//    SelInvErrors(): MaxRelError(0),CorrAbsError(0),MaxAbsError(0),
+//                    MaxNwiseRelError(0), CorrNwiseAbsError(0), MaxNwiseAbsError(0),
+//                    MaxRwiseRelError(0), CorrRwiseAbsError(0), MaxRwiseAbsError(0),
+//                    MaxCwiseRelError (0), CorrCwiseAbsError(0), MaxCwiseAbsError(0) {}
+//
+//    print(std::ostream & output){
+//          output <<std::endl<< "Element-wise errors:"<<std::endl;
+//          output << "Max relative error = " << MaxRelError << std::endl;
+//          output << "Corresp. absolute error = " << CorrAbsError << std::endl;
+//          output << "Max absolute = " << MaxAbsError << std::endl;
+//
+//          output <<std::endl<< "Norm-wise errors:"<<std::endl;
+//          output << "Max relative error = " << MaxNwiseRelError << std::endl;
+//          output << "Corresp. absolute error = " << CorrNwiseAbsError << std::endl;
+//          output << "Max absolute = " << MaxNwiseAbsError << std::endl;
+//
+//          output <<std::endl<< "Row-wise errors:"<<std::endl;
+//          output << "Max relative error = " << MaxRwiseRelError << std::endl;
+//          output << "Corresp. absolute error = " << CorrRwiseAbsError << std::endl;
+//          output << "Max absolute = " << MaxRwiseAbsError << std::endl;
+//
+//          output <<std::endl<< "Column-wise errors:"<<std::endl;
+//          output << "Max relative error = " << MaxCwiseRelError << std::endl;
+//          output << "Corresp. absolute error = " << CorrCwiseAbsError << std::endl;
+//          output << "Max absolute = " << MaxCwiseAbsError << std::endl;
+//    }
+//
+//  };
+//
+#endif
 
   /**********************************************************************
    * Basic PSelInv data structure
@@ -476,16 +612,22 @@ typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
       NumVec<bool>                       isRecvFromCrossDiagonal_;
 
 #if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT) or defined(USE_BCAST_UL)
-      NumVec<Int>                       countSendToBelow_;
-      NumVec<Int>                       countSendToRight_;
-      NumVec<Int>                       countRecvFromBelow_;
 
+      NumVec<Int>                       countSendToBelow_;
       bitMaskSet maskSendToBelow_;
       bitMaskSnodeIdx maskSendToBelowIdx_;
       std::vector<MPI_Comm>  commSendToBelow_;
       std::vector<MPI_Comm*>  commSendToBelowPtr_;
       std::vector<Int>  commSendToBelowRoot_;
 
+      NumVec<Int>                       countRecvFromBelow_;
+      bitMaskSet maskRecvFromBelow_;
+      bitMaskSnodeIdx maskRecvFromBelowIdx_;
+      std::vector<MPI_Comm>  commRecvFromBelow_;
+      std::vector<MPI_Comm*>  commRecvFromBelowPtr_;
+      std::vector<Int>  commRecvFromBelowRoot_;
+
+      NumVec<Int>                       countSendToRight_;
       bitMaskSet maskSendToRight_;
       bitMaskSnodeIdx maskSendToRightIdx_;
       std::vector<MPI_Comm>  commSendToRight_;
@@ -769,8 +911,10 @@ typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
       void GetDiagonal( NumVec<Scalar>& diag );
 
 #ifdef SANITY_CHECK
-      void CompareDiagonal( PMatrix & Ref, Real & globalMaxError );
-      void CompareOffDiagonal	( PMatrix & Ref, Real & globalMaxError );
+
+      void GetColumn	( Int colIdx,  NumVec<Scalar>& col );
+      void CompareDiagonal	( PMatrix & Ref, SelInvErrors & errors);
+      void CompareOffDiagonal	( PMatrix & Ref,SelInvErrors & errors);
 #endif
 
       /// @brief PMatrixToDistSparseMatrix converts the PMatrix into a

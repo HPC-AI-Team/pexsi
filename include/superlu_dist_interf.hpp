@@ -137,7 +137,6 @@ private:
 public:
 	
 	SuperLUMatrix( const SuperLUGrid& g, const SuperLUOptions& opt = SuperLUOptions() );
-
 	~SuperLUMatrix();
 
 	Int m() const;
@@ -194,6 +193,7 @@ public:
 	/// @param[in] xGlobal
 	/// @param[out] xLocal
 	void DistributeGlobalMultiVector( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal );
+
 
 	/// @brief SolveDistMultiVector A x = b with b overwritten by x for
 	/// distributed multivector.
