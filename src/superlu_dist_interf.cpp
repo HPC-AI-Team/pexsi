@@ -525,7 +525,7 @@ SuperLUMatrix::DistributeGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sca
 	return ;
 } 		// -----  end of method SuperLUMatrix::DistributeGlobalMultiVector  ----- 
 
-
+/*
 void
 SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal )
 {
@@ -560,7 +560,7 @@ SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sc
 
 	return ;
 } 		// -----  end of method SuperLUMatrix::GatherDistributedMultiVector  ----- 
-
+*/
 
 void
 SuperLUMatrix::SolveDistMultiVector	( NumMat<Scalar>& bLocal, DblNumVec& berr )
