@@ -1432,7 +1432,8 @@ namespace PEXSI{
           // Send LUpdateBufReduced to the cross diagonal blocks. 
           // NOTE: This assumes square processor grid
           if( isSendToCrossDiagonal_( ksup ) ){
-            Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+          //  Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+          Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ )%grid_->numProcCol , grid_ );
             if( MYPROC( grid_ ) != dest	){
               std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
               std::stringstream sstm;
@@ -1640,7 +1641,8 @@ namespace PEXSI{
 #if not (defined(SEND_CROSSDIAG_ASYNC)) 
         TIMER_START(Send_L_CrossDiag);
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_( ksup ) ){
-          Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+          //Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+          Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ )%grid_->numProcCol , grid_ );
           if( MYPROC( grid_ ) != dest	){
             std::stringstream sstm;
             serialize( rowLocalPtr, sstm, NO_MASK );
@@ -1939,7 +1941,6 @@ namespace PEXSI{
     // The nonzero block indices including contribution from both L and U.
     // Dimension: numLocalBlockCol x numNonzeroBlock
     std::vector<std::set<Int> >   localColBlockRowIdx;
-
     localColBlockRowIdx.resize( this->NumLocalBlockCol() );
 
     for( Int ksup = 0; ksup < numSuper; ksup++ ){
@@ -2730,10 +2731,6 @@ TIMER_START(SelInvBcast);
       std::vector<MPI_Request>   arrMpireqsRecvSizeFromAny;
       std::vector<MPI_Request>   arrMpireqsRecvContentFromAny;
       std::vector<NumMat<Scalar> >  arrLUpdateBuf;
-#ifdef USE_REDUCE_L
-//      std::vector<NumMat<Scalar> >  arrLUpdateBufReduced;
-//      arrLUpdateBufReduced.resize(stepSuper,NumMat<Scalar>());
-#endif
       std::vector<NumMat<Scalar> >  arrDiagBuf;
       std::vector<std::vector<Int> >  arrRowLocalPtr;
       std::vector<std::vector<Int> >  arrBlockIdxLocal;
@@ -3308,7 +3305,8 @@ TIMER_START(SelInvBcast);
           // Send LUpdateBufReduced to the cross diagonal blocks. 
           // NOTE: This assumes square processor grid
           if( isSendToCrossDiagonal_( ksup ) ){
-            Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+          //  Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+          Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ )%grid_->numProcCol , grid_ );
             if( MYPROC( grid_ ) != dest	){
               std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
               std::stringstream sstm;
@@ -3326,7 +3324,6 @@ TIMER_START(SelInvBcast);
 
         } // Receiver
       }
-
 #endif
 
 #ifdef USE_REDUCE_L
@@ -3414,7 +3411,8 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
       // Send LUpdateBufReduced to the cross diagonal blocks. 
       // NOTE: This assumes square processor grid
       if( isSendToCrossDiagonal_( ksup ) ){
-        Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+        //Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+          Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ )%grid_->numProcCol , grid_ );
         if( MYPROC( grid_ ) != dest	){
           std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
           std::stringstream sstm;
@@ -3523,8 +3521,6 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 
 
-
-
           NumMat<Scalar> & DiagBuf = arrDiagBuf[supidx];
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "DiagBuf: " << DiagBuf << std::endl << std::endl; 
@@ -3535,11 +3531,10 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
           if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
             SetValue( DiagBufReduced, SCALAR_ZERO );
 
-          if(countSendToBelow_(ksup)>1)
-//          if(isSendToDiagonal_(ksup) || MYROW( grid_ ) == PROW( ksup, grid_ ) )
+          if(countRecvFromBelow_(ksup)>1)
           {
-            MPI_Comm * colComm = commSendToBelowPtr_[ksup];
-            Int root = commSendToBelowRoot_[ksup];
+            MPI_Comm * colComm = commRecvFromBelowPtr_[ksup];
+            Int root = commRecvFromBelowRoot_[ksup];
 
             if(DiagBuf.m()==0 && DiagBuf.n()==0){
               DiagBuf.Resize( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ));
@@ -3708,7 +3703,7 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
 #if not (defined(SEND_CROSSDIAG_ASYNC)) 
         TIMER_START(Send_L_CrossDiag);
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_( ksup ) ){
-          Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ ), grid_ );
+          Int dest = PNUM( PROW( ksup, grid_ ), MYROW( grid_ )%grid_->numProcCol , grid_ );
           if( MYPROC( grid_ ) != dest	){
             std::stringstream sstm;
             serialize( rowLocalPtr, sstm, NO_MASK );

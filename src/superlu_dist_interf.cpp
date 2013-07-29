@@ -525,9 +525,8 @@ SuperLUMatrix::DistributeGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sca
 	return ;
 } 		// -----  end of method SuperLUMatrix::DistributeGlobalMultiVector  ----- 
 
-/*
-void
-SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal )
+
+void SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal )
 {
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix::GatherDistributedMultiVector");
@@ -546,6 +545,13 @@ SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sc
 	Int firstRow    = Astore->fst_row;
 	Int nrhs = xGlobal.n();
 
+  Int maxRows = 0;
+  Int localRows = xLocal.m();
+
+  MPI_Allreduce(&localRows,&maxRows,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+
+  
+
   NumMat<Scalar> tmpLocal(xGlobal.m(),nrhs);
 	SetValue( tmpLocal, SCALAR_ZERO );
 	for( Int j = 0; j < nrhs; j++ ){
@@ -560,7 +566,7 @@ SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sc
 
 	return ;
 } 		// -----  end of method SuperLUMatrix::GatherDistributedMultiVector  ----- 
-*/
+
 
 void
 SuperLUMatrix::SolveDistMultiVector	( NumMat<Scalar>& bLocal, DblNumVec& berr )

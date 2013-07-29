@@ -1281,31 +1281,39 @@ inline void IdentityCol( Int col, NumVec<Complex>& vec )
 		vec(i) = Complex(0.0,0.0);
 }
 
-inline void IdentityCol( Int col, NumMat<Real>& mat )
+
+
+inline void IdentityCol( IntNumVec & cols, NumMat<Real>& mat )
 {
-	for(Int i=0; i<std::min(col,mat.m()); i++)
-		mat(i,0) = 0.0;
-  
-  if(col<mat.m())
-    mat(col,0) = 1.0;
+  for(Int j=0;j<cols.m();j++){
+    Int col= cols(j);
+    for(Int i=0; i<std::min(col,mat.m()); i++)
+      mat(i,j) = 0.0;
+
+    if(col<mat.m())
+      mat(col,j) = 1.0;
 
 
-	for(Int i=col+1; i<mat.m(); i++)
-		mat(i,0) = 0.0;
+    for(Int i=col+1; i<mat.m(); i++)
+      mat(i,j) = 0.0;
+  }
 }
 
 
-inline void IdentityCol( Int col, NumMat<Complex>& mat )
+inline void IdentityCol( IntNumVec & cols, NumMat<Complex>& mat )
 {
+  for(Int j=0;j<cols.m();j++){
+    Int col= cols(j);
 	for(Int i=0; i<std::min(col,mat.m()); i++)
-		mat(i,0) = Complex(0.0,0.0);
+		mat(i,j) = Complex(0.0,0.0);
   
   if(col<mat.m())
-    mat(col,0) = Complex(1.0,0.0);
+    mat(col,j) = Complex(1.0,0.0);
 
 
 	for(Int i=col+1; i<mat.m(); i++)
-		mat(i,0) = Complex(0.0,0.0);
+		mat(i,j) = Complex(0.0,0.0);
+}
 }
 
 
@@ -1409,6 +1417,9 @@ public:
 void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat );
 
 void ReadDistSparseMatrix( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
+
+void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
+void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
 
 void ReadDistSparseMatrixFormatted( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
 

@@ -194,6 +194,7 @@ public:
 	/// @param[out] xLocal
 	void DistributeGlobalMultiVector( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal );
 
+  void GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal );
 
 	/// @brief SolveDistMultiVector A x = b with b overwritten by x for
 	/// distributed multivector.
