@@ -2233,10 +2233,10 @@ statusOFS<<std::endl<<"commSendToBelowRoot: "<<commSendToBelowRoot_<<std::endl;
     for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
       // Loop over all the supernodes below ksup
 
-      vector<bool> sTR(grid_->numProcCol,false);
+			std::vector<bool> sTR(grid_->numProcCol,false);
 //      SetValue(sTR,false);
 
-      vector<bool> rFB(grid_->numProcRow,false);
+			std::vector<bool> rFB(grid_->numProcRow,false);
 //      SetValue(rFB,false);
 
 
