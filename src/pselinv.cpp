@@ -2318,7 +2318,7 @@ statusOFS<<std::endl<<"commSendToBelowRoot: "<<commSendToBelowRoot_<<std::endl;
 
 
       count= std::count(rFB.begin(), rFB.end(), true);
-      color = rFB[MYCOL(grid_)];
+      color = rFB[MYROW(grid_)];
       if(count>1){
         std::vector<Int> & snodeList = maskRecvFromBelow_[rFB];
         snodeList.push_back(ksup);
@@ -3526,13 +3526,16 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
           statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "DiagBuf: " << DiagBuf << std::endl << std::endl; 
 #endif
 
-          NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
 
-          if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
-            SetValue( DiagBufReduced, SCALAR_ZERO );
+          NumMat<Scalar> DiagBufReduced;
+          NumMat<Scalar> * DiagBufReducedPtr = NULL;
 
           if(countRecvFromBelow_(ksup)>1)
           {
+            DiagBufReduced.Resize( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
+            if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+              SetValue( DiagBufReduced, SCALAR_ZERO );
+
             MPI_Comm * colComm = commRecvFromBelowPtr_[ksup];
             Int root = commRecvFromBelowRoot_[ksup];
 
@@ -3541,21 +3544,26 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
               SetValue(DiagBuf, SCALAR_ZERO);
             }
 
-
-
             mpi::Reduce( DiagBuf.Data(), DiagBufReduced.Data(), 
                 SuperSize( ksup, super_ ) * SuperSize( ksup, super_ ),
                 MPI_SUM, root, *colComm );
+
+            DiagBufReducedPtr = &DiagBufReduced;
+          }
+          else{
+            DiagBufReducedPtr = &DiagBuf;
           }
 
           // Add DiagBufReduced to diagonal block.
           if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
 
-            LBlock&  LB = this->L( LBj( ksup, grid_ ) )[0];
-            // Symmetrize LB
-            blas::Axpy( LB.numRow * LB.numCol, SCALAR_ONE, DiagBufReduced.Data(),
-                1, LB.nzval.Data(), 1 );
-            Symmetrize( LB.nzval );
+            if(DiagBufReducedPtr->m()>0 && DiagBufReducedPtr->n()>0){
+              LBlock&  LB = this->L( LBj( ksup, grid_ ) )[0];
+              // Symmetrize LB
+              blas::Axpy( LB.numRow * LB.numCol, SCALAR_ONE, DiagBufReducedPtr->Data(),
+                  1, LB.nzval.Data(), 1 );
+              Symmetrize( LB.nzval );
+            }
           }
         } 
       }

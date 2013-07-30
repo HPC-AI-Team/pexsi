@@ -429,15 +429,15 @@ void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& p
   // Compute the number of columns on each processor
   Int numColLocal = pspmat.colptrLocal.m()-1;
   Int numColFirst = pspmat.size / mpisize;
-  IntNumVec  colptrChunk(numColLocal);
+  IntNumVec  colptrChunk(numColLocal+1);
 
   Int prev_nz = 0;
   MPI_Exscan(&pspmat.nnzLocal, &prev_nz, 1, MPI_INT, MPI_SUM, comm);
 
   for( Int i = 0; i < numColLocal + 1; i++ ){
+//  for( Int i = 0; i < pspmat.colptrLocal.m(); i++ ){
     colptrChunk[i] = pspmat.colptrLocal[i] + prev_nz;
   }
-
 
 
   MPI_Datatype memtype, filetype;
