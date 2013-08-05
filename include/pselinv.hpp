@@ -1,7 +1,7 @@
 /// @file pselinv.hpp
 /// @brief Main file for parallel selected inversion.
-/// @author Lin Lin
-/// @date 2012-11-14
+/// @author Lin Lin and Mathias Jacquelin
+/// @date 2013-08-05
 #ifndef _PSELINV_HPP_
 #define _PSELINV_HPP_
 
@@ -17,17 +17,12 @@
 #include	"utility.hpp"
 #include	"blas.hpp"
 #include	"lapack.hpp"
-
-#if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT) or defined(USE_BCAST_UL)
 #include <set>
-#endif
+
 namespace PEXSI{
 
-#if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT) or defined(USE_BCAST_UL)
-//typedef std::set<std::vector<bool> > bitMaskSet;
-typedef std::map<std::vector<bool> * , std::vector<Int> > bitMaskSnodeIdx;
-typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
-#endif
+  typedef std::map<std::vector<bool> * , std::vector<Int> > bitMaskSnodeIdx;
+  typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
 
 #ifdef SANITY_CHECK
   struct SelInvError{
@@ -41,24 +36,24 @@ typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
     SelInvError(Real val, Int pksup, Int pib, Int pi, Int pj):Value(val), ksup(pksup),ib(pib),i(pi),j(pj){}
     inline void Set(Real val, Int pksup, Int pib, Int pi, Int pj) {Value = val;ksup=pksup;ib=pib;i=pi;j=pj;}
 
-std::ostream& print(std::ostream &o) const
-{
-    return o << "Value = " << Value << " (ksup="<<ksup<<", ib="<<ib<<", i="<<i<<", j="<<j<<")";
-}
+    std::ostream& print(std::ostream &o) const
+    {
+      return o << "Value = " << Value << " (ksup="<<ksup<<", ib="<<ib<<", i="<<i<<", j="<<j<<")";
+    }
 
   };
 
 
-inline std::ostream& operator << (std::ostream &o,const SelInvError &a){
-  return a.print(o);
-}
+  inline std::ostream& operator << (std::ostream &o,const SelInvError &a){
+    return a.print(o);
+  }
 
-struct SelInvErrors{
+  struct SelInvErrors{
     SelInvError MaxRelError;
     SelInvError CorrAbsError;
     SelInvError MaxAbsError;
 
-  
+
     SelInvError MaxNwiseRelError;
     SelInvError CorrNwiseAbsError;
     SelInvError MaxNwiseAbsError;
@@ -75,95 +70,40 @@ struct SelInvErrors{
 
     // Member functions to setup the default value
     SelInvErrors(): MaxRelError(0),CorrAbsError(0),MaxAbsError(0),
-                    MaxNwiseRelError(0), CorrNwiseAbsError(0), MaxNwiseAbsError(0),
-                    MaxRwiseRelError(0), CorrRwiseAbsError(0), MaxRwiseAbsError(0),
-                    MaxCwiseRelError (0), CorrCwiseAbsError(0), MaxCwiseAbsError(0) {}
+    MaxNwiseRelError(0), CorrNwiseAbsError(0), MaxNwiseAbsError(0),
+    MaxRwiseRelError(0), CorrRwiseAbsError(0), MaxRwiseAbsError(0),
+    MaxCwiseRelError (0), CorrCwiseAbsError(0), MaxCwiseAbsError(0) {}
 
     std::ostream & print(std::ostream & output) const
     {
-          output <<std::endl<< "Element-wise errors:"<<std::endl;
-          output << "Max relative error = " << MaxRelError << std::endl;
-          output << "Corresp. absolute error = " << CorrAbsError << std::endl;
-          output << "Max absolute = " << MaxAbsError << std::endl;
+      output <<std::endl<< "Element-wise errors:"<<std::endl;
+      output << "Max relative error = " << MaxRelError << std::endl;
+      output << "Corresp. absolute error = " << CorrAbsError << std::endl;
+      output << "Max absolute = " << MaxAbsError << std::endl;
 
-          output <<std::endl<< "Norm-wise errors:"<<std::endl;
-          output << "Max relative error = " << MaxNwiseRelError << std::endl;
-          output << "Corresp. absolute error = " << CorrNwiseAbsError << std::endl;
-          output << "Max absolute = " << MaxNwiseAbsError << std::endl;
+      output <<std::endl<< "Norm-wise errors:"<<std::endl;
+      output << "Max relative error = " << MaxNwiseRelError << std::endl;
+      output << "Corresp. absolute error = " << CorrNwiseAbsError << std::endl;
+      output << "Max absolute = " << MaxNwiseAbsError << std::endl;
 
-          output <<std::endl<< "Row-wise errors:"<<std::endl;
-          output << "Max relative error = " << MaxRwiseRelError << std::endl;
-          output << "Corresp. absolute error = " << CorrRwiseAbsError << std::endl;
-          output << "Max absolute = " << MaxRwiseAbsError << std::endl;
+      output <<std::endl<< "Row-wise errors:"<<std::endl;
+      output << "Max relative error = " << MaxRwiseRelError << std::endl;
+      output << "Corresp. absolute error = " << CorrRwiseAbsError << std::endl;
+      output << "Max absolute = " << MaxRwiseAbsError << std::endl;
 
-          output <<std::endl<< "Column-wise errors:"<<std::endl;
-          output << "Max relative error = " << MaxCwiseRelError << std::endl;
-          output << "Corresp. absolute error = " << CorrCwiseAbsError << std::endl;
-          output << "Max absolute = " << MaxCwiseAbsError << std::endl;
-          return output;
+      output <<std::endl<< "Column-wise errors:"<<std::endl;
+      output << "Max relative error = " << MaxCwiseRelError << std::endl;
+      output << "Corresp. absolute error = " << CorrCwiseAbsError << std::endl;
+      output << "Max absolute = " << MaxCwiseAbsError << std::endl;
+      return output;
     }
 
   };
 
 
-inline std::ostream& operator << (std::ostream &o,const SelInvErrors &a){
-  return a.print(o);
-}
-
-
-
-
-//
-//  struct SelInvErrors2{
-//    Real MaxRelError;
-//    Real CorrAbsError;
-//    Real MaxAbsError;
-//
-//  
-//    Real MaxNwiseRelError;
-//    Real CorrNwiseAbsError;
-//    Real MaxNwiseAbsError;
-//
-//    Real MaxRwiseRelError;
-//    Real CorrRwiseAbsError;
-//    Real MaxRwiseAbsError;
-//
-//    Real MaxCwiseRelError ;
-//    Real CorrCwiseAbsError;
-//    Real MaxCwiseAbsError;
-//
-//
-//
-//    // Member functions to setup the default value
-//    SelInvErrors(): MaxRelError(0),CorrAbsError(0),MaxAbsError(0),
-//                    MaxNwiseRelError(0), CorrNwiseAbsError(0), MaxNwiseAbsError(0),
-//                    MaxRwiseRelError(0), CorrRwiseAbsError(0), MaxRwiseAbsError(0),
-//                    MaxCwiseRelError (0), CorrCwiseAbsError(0), MaxCwiseAbsError(0) {}
-//
-//    print(std::ostream & output){
-//          output <<std::endl<< "Element-wise errors:"<<std::endl;
-//          output << "Max relative error = " << MaxRelError << std::endl;
-//          output << "Corresp. absolute error = " << CorrAbsError << std::endl;
-//          output << "Max absolute = " << MaxAbsError << std::endl;
-//
-//          output <<std::endl<< "Norm-wise errors:"<<std::endl;
-//          output << "Max relative error = " << MaxNwiseRelError << std::endl;
-//          output << "Corresp. absolute error = " << CorrNwiseAbsError << std::endl;
-//          output << "Max absolute = " << MaxNwiseAbsError << std::endl;
-//
-//          output <<std::endl<< "Row-wise errors:"<<std::endl;
-//          output << "Max relative error = " << MaxRwiseRelError << std::endl;
-//          output << "Corresp. absolute error = " << CorrRwiseAbsError << std::endl;
-//          output << "Max absolute = " << MaxRwiseAbsError << std::endl;
-//
-//          output <<std::endl<< "Column-wise errors:"<<std::endl;
-//          output << "Max relative error = " << MaxCwiseRelError << std::endl;
-//          output << "Corresp. absolute error = " << CorrCwiseAbsError << std::endl;
-//          output << "Max absolute = " << MaxCwiseAbsError << std::endl;
-//    }
-//
-//  };
-//
+  inline std::ostream& operator << (std::ostream &o,const SelInvErrors &a){
+    return a.print(o);
+  }
 #endif
 
   /**********************************************************************
@@ -362,7 +302,7 @@ inline std::ostream& operator << (std::ostream &o,const SelInvErrors &a){
   /// @brief PNUM returns the processor rank that the bnum-th block
   /// (supernode) belongs to.
   inline Int PNUM( Int i, Int j, const Grid* g )
-  { return i * g->numProcCol + j; }
+  { return  (i%g->numProcRow) * g->numProcCol + j%g->numProcCol; }
 
   /// @brief LBi returns the local block number on the processor at
   /// processor row PROW( bnum, g ).
@@ -604,37 +544,35 @@ inline std::ostream& operator << (std::ostream &o,const SelInvErrors &a){
       NumMat<bool>                       isSendToBelow_;
       NumMat<bool>                       isSendToRight_;
       NumVec<bool>                       isSendToDiagonal_;
-      NumVec<bool>                       isSendToCrossDiagonal_;
+      NumMat<bool>                       isSendToCrossDiagonal_;
 
       NumVec<bool>                       isRecvFromAbove_;
       NumMat<bool>                       isRecvFromBelow_;
       NumVec<bool>                       isRecvFromLeft_;
-      NumVec<bool>                       isRecvFromCrossDiagonal_;
+      NumMat<bool>                       isRecvFromCrossDiagonal_;
 
-#if defined(USE_MPI_COLLECTIVES) or defined(PRINT_COMMUNICATOR_STAT) or defined(USE_BCAST_UL)
-
+      //Communicators for the Bcast variant
       NumVec<Int>                       countSendToBelow_;
-      bitMaskSet maskSendToBelow_;
-      bitMaskSnodeIdx maskSendToBelowIdx_;
-      std::vector<MPI_Comm>  commSendToBelow_;
-      std::vector<MPI_Comm*>  commSendToBelowPtr_;
-      std::vector<Int>  commSendToBelowRoot_;
+      bitMaskSet                        maskSendToBelow_;
+      bitMaskSnodeIdx                   maskSendToBelowIdx_;
+      std::vector<MPI_Comm>             commSendToBelow_;
+      std::vector<MPI_Comm*>            commSendToBelowPtr_;
+      std::vector<Int>                  commSendToBelowRoot_;
 
       NumVec<Int>                       countRecvFromBelow_;
-      bitMaskSet maskRecvFromBelow_;
-      bitMaskSnodeIdx maskRecvFromBelowIdx_;
-      std::vector<MPI_Comm>  commRecvFromBelow_;
-      std::vector<MPI_Comm*>  commRecvFromBelowPtr_;
-      std::vector<Int>  commRecvFromBelowRoot_;
+      bitMaskSet                        maskRecvFromBelow_;
+      bitMaskSnodeIdx                   maskRecvFromBelowIdx_;
+      std::vector<MPI_Comm>             commRecvFromBelow_;
+      std::vector<MPI_Comm*>            commRecvFromBelowPtr_;
+      std::vector<Int>                  commRecvFromBelowRoot_;
 
       NumVec<Int>                       countSendToRight_;
-      bitMaskSet maskSendToRight_;
-      bitMaskSnodeIdx maskSendToRightIdx_;
-      std::vector<MPI_Comm>  commSendToRight_;
-      std::vector<MPI_Comm*>  commSendToRightPtr_;
-      std::vector<Int>  commSendToRightRoot_;
-      
-#endif
+      bitMaskSet                        maskSendToRight_;
+      bitMaskSnodeIdx                   maskSendToRightIdx_;
+      std::vector<MPI_Comm>             commSendToRight_;
+      std::vector<MPI_Comm*>            commSendToRightPtr_;
+      std::vector<Int>                  commSendToRightRoot_;
+
       // This is the tag used for mpi communication for selinv
       enum{
         SELINV_TAG_U_SIZE,
@@ -708,24 +646,24 @@ inline std::ostream& operator << (std::ostream &o,const SelInvErrors &a){
       /// to be used later in the pipelined selected inversion stage.
       void PMatrix::GetEtree(std::vector<Int> & etree_supno );
 
+      /// @brief ConstructCommunicationPattern_Pipeline constructs the communication
+      /// pattern to be used later in the selected inversion stage.
+      /// The supernodal elimination tree is used to schedule the pipelined supernodes.
+      void ConstructCommunicationPattern_Pipeline( );
+
+      /// @brief ConstructCommunicationPattern_Bcast constructs the communication
+      /// pattern to be used later in the selected inversion stage with the Bcast variant.
+      /// The supernodal elimination tree is used to schedule the pipelined supernodes.
+      void ConstructCommunicationPattern_Bcast( );
+
+      /// @brief DestructCommunicationPattern_Bcast frees the MPI communicators allocated
+      /// by ConstructCommunicationPattern_Bcast.
+      void DestructCommunicationPattern_Bcast	( );
+
+
       /// @brief ConstructCommunicationPattern constructs the communication
       /// pattern to be used later in the selected inversion stage.
       void ConstructCommunicationPattern( );
-
-
-#if defined(USE_BCAST_UL)
-      /// @brief ConstructCommunicationPattern constructs the communication
-      /// pattern to be used later in the selected inversion stage.
-      void ConstructCommunicationPattern_Bcast( );
-      void DestructCommunicationPattern_Bcast	( );
-#endif
-
-
-#ifdef SANITY_CHECK
-      /// @brief ConstructCommunicationPattern constructs the communication
-      /// pattern to be used later in the selected inversion stage.
-      void ConstructCommunicationPatternOriginal( );
-#endif
 
 
       /// @brief PreSelInv prepares the structure in L_ and U_ so that
@@ -895,12 +833,8 @@ inline std::ostream& operator << (std::ostream &o,const SelInvErrors &a){
       ///
       ///
       void SelInv( );
-#if defined(USE_BCAST_UL)
       void SelInv_Bcast( );
-#endif
-#ifdef SANITY_CHECK
-      void SelInvOriginal( );
-#endif
+      void SelInv_Pipeline( );
 
       /// @brief GetDiagonal extracts the diagonal elements of the PMatrix.
       ///
@@ -911,7 +845,6 @@ inline std::ostream& operator << (std::ostream &o,const SelInvErrors &a){
       void GetDiagonal( NumVec<Scalar>& diag );
 
 #ifdef SANITY_CHECK
-
       void GetColumn	( Int colIdx,  NumVec<Scalar>& col );
       void CompareDiagonal	( PMatrix & Ref, SelInvErrors & errors);
       void CompareOffDiagonal	( PMatrix & Ref,SelInvErrors & errors);

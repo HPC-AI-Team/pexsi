@@ -172,13 +172,13 @@ int main(int argc, char **argv)
           << std::endl << std::endl;
       }
 
-      Int doSinvOriginal = -1;
+      Int doSinv_Original = 0;
       if( options.find("-SinvOriginal") != options.end() ){ 
-        doSinvOriginal = atoi(options["-SinvOriginal"].c_str());
+        doSinv_Original = atoi(options["-SinvOriginal"].c_str());
       }
-      Int doSinvBcast = -1;
+      Int doSinv_Bcast = 0;
       if( options.find("-SinvBcast") != options.end() ){ 
-        doSinvBcast = atoi(options["-SinvBcast"].c_str());
+        doSinv_Bcast = atoi(options["-SinvBcast"].c_str());
       }
 
       Int doSinvPipeline = 1;
@@ -403,13 +403,12 @@ int main(int argc, char **argv)
 
 
 
-#ifdef USE_BCAST_UL
           NumVec<Scalar> diagBcast;
           PMatrix * PMlocBcastPtr;
           SuperNode * superBcastPtr;
           Grid * g2Ptr;
 
-          if(doSinvBcast)
+          if(doSinv_Bcast)
           {
             GetTime( timeTotalSelInvSta );
 
@@ -468,7 +467,6 @@ int main(int argc, char **argv)
 
           }
 
-#endif
 
 #ifdef SANITY_CHECK
 
@@ -479,7 +477,7 @@ int main(int argc, char **argv)
           SuperNode * superRefPtr;
           Grid * g3Ptr;
 
-          if(doSinvOriginal)
+          if(doSinv_Original)
           {
             GetTime( timeTotalSelInvSta );
 
@@ -499,28 +497,28 @@ int main(int argc, char **argv)
             GetTime( timeEnd );
 
             if( mpirank == 0 )
-              cout << "Time for converting LUstruct to PMatrix (Original) is " << timeEnd  - timeSta << endl;
+              cout << "Time for converting LUstruct to PMatrix (_Original) is " << timeEnd  - timeSta << endl;
 
             GetTime( timeSta );
-            PMlocRef.ConstructCommunicationPatternOriginal();
+            PMlocRef.ConstructCommunicationPattern_Original();
             GetTime( timeEnd );
             if( mpirank == 0 )
-              cout << "Time for constructing the communication pattern (Original) is " << timeEnd  - timeSta << endl;
+              cout << "Time for constructing the communication pattern (_Original) is " << timeEnd  - timeSta << endl;
 
 
             PMlocRef.PreSelInv();
 
             GetTime( timeSta );
-            PMlocRef.SelInvOriginal();
+            PMlocRef.SelInv_Original();
             GetTime( timeEnd );
             GetTime( timeTotalSelInvEnd );
             if( mpirank == 0 )
-              cout << "Time for numerical selected inversion (Original) is " << timeEnd  - timeSta << endl;
+              cout << "Time for numerical selected inversion (_Original) is " << timeEnd  - timeSta << endl;
 
 
             GetTime( timeTotalSelInvEnd );
             if( mpirank == 0 )
-              cout << "Time for total selected inversion (Original) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+              cout << "Time for total selected inversion (_Original) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 
 
@@ -634,7 +632,7 @@ int main(int argc, char **argv)
 
 
 #ifdef SANITY_CHECK
-          if(doSinvOriginal)
+          if(doSinv_Original)
           {
 
             //sanity check for SelInvPipeline
@@ -659,20 +657,19 @@ int main(int argc, char **argv)
 
 
 
-              SelInvError & error = (errorsDiag.MaxRelError.Value>errorsOffDiag.MaxRelError.Value)?errorsDiag.MaxRelError:errorsOffDiag.MaxRelError;
+              //SelInvError & error = (errorsDiag.MaxRelError.Value>errorsOffDiag.MaxRelError.Value)?errorsDiag.MaxRelError:errorsOffDiag.MaxRelError;
+              SelInvError & error = (errorsDiag.MaxAbsError.Value>errorsOffDiag.MaxAbsError.Value)?errorsDiag.MaxAbsError:errorsOffDiag.MaxAbsError;
 
               if(error.Value>0)
               {
-                NumVec<Scalar> col,colOriginal;
+                NumVec<Scalar> col,col_Original;
                 PMloc.GetColumn( error.j, col );
-                PMlocRef.GetColumn( error.j, colOriginal );
-#ifdef USE_BCAST_UL
+                PMlocRef.GetColumn( error.j, col_Original );
                 NumVec<Scalar> colBcast;
-                if(doSinvBcast){
+                if(doSinv_Bcast){
                   PMatrix & PMlocBcast = *PMlocBcastPtr;
                   PMlocBcast.GetColumn( error.j, colBcast );
                 }
-#endif
 
                 const IntNumVec& permInv = super.permInv;
                 const IntNumVec& perm = super.perm;
@@ -722,44 +719,31 @@ int main(int argc, char **argv)
 
                   if( mpirank == 0 ){
 
-                    Real absError = abs(col(gi) - xTrueGlobal(gi,0));
-                    Real relError = abs(absError/xTrueGlobal(gi,0));
+                    Real absErrorOriginal, absErrorBcast, absErrorPipeline;
+                    Real relErrorOriginal, relErrorBcast, relErrorPipeline;
 
-                    cout<<"Solve gives: "<<xTrueGlobal(gi,0)<<std::endl;
-                    cout<<"SelInvPipeline gives: "<<col(gi)<<std::endl;
-                    cout<<"Relative SelInvPipeline error: "<<relError<<std::endl;
-                    cout<<"Absolute SelInvPipeline error: "<<absError<<std::endl;
+                    absErrorPipeline = abs(col(gi) - xTrueGlobal(gi,0));
+                    relErrorPipeline = abs(absErrorPipeline/xTrueGlobal(gi,0));
 
-                    absError = abs(colOriginal(gi) - xTrueGlobal(gi,0));
-                    relError = abs(absError/xTrueGlobal(gi,0));
-                    cout<<"SelInvOriginal gives: "<<colOriginal(gi)<<std::endl;
-                    cout<<"Relative SelInvOriginal error: "<<relError<<std::endl;
-                    cout<<"Absolute SelInvOriginal error: "<<absError<<std::endl;
+                    absErrorOriginal = abs(col_Original(gi) - xTrueGlobal(gi,0));
+                    relErrorOriginal = abs(absErrorOriginal/xTrueGlobal(gi,0));
 
 
-#ifdef USE_BCAST_UL
-
-                    if(doSinvBcast){
-                      absError = abs(colBcast(gi) - xTrueGlobal(gi,0));
-                      relError = abs(absError/xTrueGlobal(gi,0));
-                      cout<<"SelInvBcast gives: "<<colBcast(gi)<<std::endl;
-                      cout<<"Relative SelInvBcast error: "<<relError<<std::endl;
-                      cout<<"Absolute SelInvBcast error: "<<absError<<std::endl;
-
-                      statusOFS<<std::endl<< "\tSolve \t SelInvOriginal \t SelInvPipeline \t SelInvBcast"<<std::endl;
-                      for(Int i = 0; i<xTrueGlobal.m();++i){
-                        statusOFS<< i<<"\t"<<xTrueGlobal(i,0)<<"\t"<< colOriginal(i)<<"\t"<< col(i)<< "\t" << colBcast(i)<<std::endl;
-                      }
+                    if(doSinv_Bcast){
+                      absErrorBcast = abs(colBcast(gi) - xTrueGlobal(gi,0));
+                      relErrorBcast = abs(absErrorBcast/xTrueGlobal(gi,0));
+                    cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInvPipeline \t SelInv_Bcast"<<std::endl;
+                    cout<< "Value \t\t"<<xTrueGlobal(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< "\t" << colBcast(gi)<<std::endl;
+                    cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<< relErrorPipeline<< "\t" << relErrorBcast<<std::endl;
+                    cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<< absErrorPipeline<< "\t" << absErrorBcast<<std::endl<<std::endl;
                     }
                     else{
-#endif
-                      statusOFS<<std::endl<< "\tSolve \t SelInvOriginal \t SelInvPipeline"<<std::endl;
-                      for(Int i = 0; i<xTrueGlobal.m();++i){
-                        statusOFS<< i<<"\t"<<xTrueGlobal(i,0)<<"\t"<< colOriginal(i)<<"\t"<< col(i)<<std::endl;
-                      }
-#ifdef USE_BCAST_UL
+
+                    cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInvPipeline"<<std::endl;
+                    cout<< "Value \t\t"<<xTrueGlobal(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< std::endl;
+                    cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<< relErrorPipeline<< std::endl;
+                    cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<< absErrorPipeline<< std::endl<<std::endl;
                     }
-#endif
                   }     
                 }
               }
@@ -767,8 +751,7 @@ int main(int argc, char **argv)
 
 
 
-#ifdef USE_BCAST_UL
-            if(doSinvBcast){
+            if(doSinv_Bcast){
               SelInvErrors errorsOffDiag;
               SelInvErrors errorsDiag;
 
@@ -786,25 +769,26 @@ int main(int argc, char **argv)
               } 
 
 
-              SelInvError & error = (errorsDiag.MaxRelError.Value>errorsOffDiag.MaxRelError.Value)?errorsDiag.MaxRelError:errorsOffDiag.MaxRelError;
+              //SelInvError & error = (errorsDiag.MaxRelError.Value>errorsOffDiag.MaxRelError.Value)?errorsDiag.MaxRelError:errorsOffDiag.MaxRelError;
+              SelInvError & error = (errorsDiag.MaxAbsError.Value>errorsOffDiag.MaxAbsError.Value)?errorsDiag.MaxAbsError:errorsOffDiag.MaxAbsError;
 
               if(error.Value>0)
               {
-                NumVec<Scalar> col,colOriginal,colBcast;
+                NumVec<Scalar> col,col_Original,colBcast;
                 PMlocBcast.GetColumn( error.j, colBcast );
-                PMlocRef.GetColumn( error.j, colOriginal );
+                PMlocRef.GetColumn( error.j, col_Original );
 
                 if(doSinvPipeline){
                   PMatrix & PMloc = *PMlocPtr;
                   PMloc.GetColumn( error.j, col );
                 }
 
-                const IntNumVec& permInvBcast = superBcastPtr->permInv;
+                const IntNumVec& permInv_Bcast = superBcastPtr->permInv;
                 const IntNumVec& permBcast = superBcastPtr->perm;
 
                 //get the indices in NATURAL ordering
-                Int gi = permInvBcast(error.i);
-                Int gj = permInvBcast(error.j);
+                Int gi = permInv_Bcast(error.i);
+                Int gj = permInv_Bcast(error.j);
 
                 if( mpirank == 0 ){
                   cout<<"Permuted indices are ("<<error.i<<","<<error.j<<")"<<std::endl;
@@ -846,37 +830,54 @@ int main(int argc, char **argv)
 
                   if( mpirank == 0 ){
 
-                    Real absError;
-                    Real relError;
+                    Real absErrorOriginal, absErrorBcast, absErrorPipeline;
+                    Real relErrorOriginal, relErrorBcast, relErrorPipeline;
 
-                    cout<<"Solve gives: "<<xTrueGlobal(gi,0)<<std::endl;
+//                    cout<<"Solve gives: "<<xTrueGlobal(gi,0)<<std::endl;
+                    
+                    if(doSinvPipeline){
+                      absErrorPipeline = abs(col(gi) - xTrueGlobal(gi,0));
+                      relErrorPipeline = abs(absErrorPipeline/xTrueGlobal(gi,0));
+//                      cout<<"SelInvPipeline gives: "<<col(gi)<<std::endl;
+//                      cout<<"Relative SelInvPipeline error: "<<relErrorPipeline<<std::endl;
+//                      cout<<"Absolute SelInvPipeline error: "<<absErrorPipeline<<std::endl;
+                    }
+
+                    absErrorOriginal = abs(col_Original(gi) - xTrueGlobal(gi,0));
+                    relErrorOriginal = abs(absErrorOriginal/xTrueGlobal(gi,0));
+//                    cout<<"SelInv_Original gives: "<<col_Original(gi)<<std::endl;
+//                    cout<<"Relative SelInv_Original error: "<<relErrorOriginal<<std::endl;
+//                    cout<<"Absolute SelInv_Original error: "<<absErrorOriginal<<std::endl;
+
+
+                    absErrorBcast = abs(colBcast(gi) - xTrueGlobal(gi,0));
+                    relErrorBcast = abs(absErrorBcast/xTrueGlobal(gi,0));
+//                    cout<<"SelInv_Bcast gives: "<<colBcast(gi)<<std::endl;
+//                    cout<<"Relative SelInv_Bcast error: "<<relErrorBcast<<std::endl;
+//                    cout<<"Absolute SelInv_Bcast error: "<<absErrorBcast<<std::endl;
 
                     if(doSinvPipeline){
-                      absError = abs(col(gi) - xTrueGlobal(gi,0));
-                      relError = abs(absError/xTrueGlobal(gi,0));
-                      cout<<"SelInvPipeline gives: "<<col(gi)<<std::endl;
-                      cout<<"Relative SelInvPipeline error: "<<relError<<std::endl;
-                      cout<<"Absolute SelInvPipeline error: "<<absError<<std::endl;
+//                    statusOFS<<std::endl<< "\tSolve \t SelInv_Original \t SelInvPipeline \t SelInv_Bcast"<<std::endl;
+//                    for(Int i = 0; i<xTrueGlobal.m();++i){
+//                      statusOFS<< i<<"\t"<<xTrueGlobal(i,0)<<"\t"<< col_Original(i)<<"\t"<< col(i)<< "\t" << colBcast(i)<<std::endl;
+//                    }
+
+                    cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInvPipeline \t SelInv_Bcast"<<std::endl;
+                    cout<< "Value \t\t"<<xTrueGlobal(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< "\t" << colBcast(gi)<<std::endl;
+                    cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<< relErrorPipeline<< "\t" << relErrorBcast<<std::endl;
+                    cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<< absErrorPipeline<< "\t" << absErrorBcast<<std::endl<<std::endl;
                     }
+                    else{
+ //                   statusOFS<<std::endl<< "\tSolve \t SelInv_Original \t SelInv_Bcast"<<std::endl;
+ //                   for(Int i = 0; i<xTrueGlobal.m();++i){
+ //                     statusOFS<< i<<"\t"<<xTrueGlobal(i,0)<<"\t"<< col_Original(i)<<"\t"<< colBcast(i)<<std::endl;
+ //                   }
 
-                    absError = abs(colOriginal(gi) - xTrueGlobal(gi,0));
-                    relError = abs(absError/xTrueGlobal(gi,0));
-                    cout<<"SelInvOriginal gives: "<<colOriginal(gi)<<std::endl;
-                    cout<<"Relative SelInvOriginal error: "<<relError<<std::endl;
-                    cout<<"Absolute SelInvOriginal error: "<<absError<<std::endl;
-
-
-                    absError = abs(colBcast(gi) - xTrueGlobal(gi,0));
-                    relError = abs(absError/xTrueGlobal(gi,0));
-                    cout<<"SelInvBcast gives: "<<colBcast(gi)<<std::endl;
-                    cout<<"Relative SelInvBcast error: "<<relError<<std::endl;
-                    cout<<"Absolute SelInvBcast error: "<<absError<<std::endl;
-
-                    statusOFS<<std::endl<< "\tSolve \t SelInvOriginal \t SelInvPipeline \t SelInvBcast"<<std::endl;
-                    for(Int i = 0; i<xTrueGlobal.m();++i){
-                      statusOFS<< i<<"\t"<<xTrueGlobal(i,0)<<"\t"<< colOriginal(i)<<"\t"<< col(i)<< "\t" << colBcast(i)<<std::endl;
+                    cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInv_Bcast"<<std::endl;
+                    cout<< "Value \t\t"<<xTrueGlobal(gi,0)<<"\t"<< col_Original(gi)<<"\t" << colBcast(gi)<<std::endl;
+                    cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<<  relErrorBcast<<std::endl;
+                    cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<<  absErrorBcast<<std::endl<<std::endl;
                     }
-
 
 
                   }     
@@ -886,13 +887,12 @@ int main(int argc, char **argv)
 
 
             }
-#endif
 
           }
 #endif
 
 #ifdef SANITY_CHECK
-          if(doSinvOriginal){
+          if(doSinv_Original){
             delete PMlocRefPtr;
             delete superRefPtr;
             delete g3Ptr;
@@ -902,15 +902,15 @@ int main(int argc, char **argv)
 
 
 
-          if(doSinvPipeline || doSinvBcast){
+          if(doSinvPipeline || doSinv_Bcast){
 
-            PMatrix & PMloc = doSinvPipeline?*PMlocPtr:*PMlocBcastPtr;
+            PMatrix * PMloc = doSinvPipeline?PMlocPtr:PMlocBcastPtr;
 
             if(doToDist){
               // Convert to DistSparseMatrix and get the diagonal
               GetTime( timeSta );
               DistSparseMatrix<Scalar> Ainv;
-              PMloc.PMatrixToDistSparseMatrix( Ainv );
+              PMloc->PMatrixToDistSparseMatrix( Ainv );
               GetTime( timeEnd );
 
               if( mpirank == 0 )
@@ -936,7 +936,7 @@ int main(int argc, char **argv)
               // Convert to DistSparseMatrix in the 2nd format and get the diagonal
               GetTime( timeSta );
               DistSparseMatrix<Scalar> Ainv2;
-              PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
+              PMloc->PMatrixToDistSparseMatrix2( AMat, Ainv2 );
               GetTime( timeEnd );
 
               if( mpirank == 0 )
@@ -977,13 +977,11 @@ int main(int argc, char **argv)
             }
 
           }
-#ifdef USE_BCAST_UL
-          if(doSinvBcast){
+          if(doSinv_Bcast){
             delete PMlocBcastPtr;
             delete superBcastPtr;
             delete g2Ptr;
           }
-#endif
 
 
 

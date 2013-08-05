@@ -347,7 +347,7 @@ SuperLUMatrix::SymbolicFactorize	(  )
 	LUstructInit(A.nrow, A.ncol, &ptrData->LUstruct);
 
 	PStatInit(&ptrData->stat);
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 	statusOFS << "Before symbfact subroutine." << std::endl;
 #endif
 	pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
