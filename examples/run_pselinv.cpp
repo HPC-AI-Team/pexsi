@@ -468,10 +468,6 @@ int main(int argc, char **argv)
           }
 
 
-#ifdef SANITY_CHECK
-
-
-
           NumVec<Scalar> diagRef;
           PMatrix * PMlocRefPtr;
           SuperNode * superRefPtr;
@@ -500,7 +496,7 @@ int main(int argc, char **argv)
               cout << "Time for converting LUstruct to PMatrix (_Original) is " << timeEnd  - timeSta << endl;
 
             GetTime( timeSta );
-            PMlocRef.ConstructCommunicationPattern_Original();
+            PMlocRef.ConstructCommunicationPattern();
             GetTime( timeEnd );
             if( mpirank == 0 )
               cout << "Time for constructing the communication pattern (_Original) is " << timeEnd  - timeSta << endl;
@@ -509,7 +505,7 @@ int main(int argc, char **argv)
             PMlocRef.PreSelInv();
 
             GetTime( timeSta );
-            PMlocRef.SelInv_Original();
+            PMlocRef.SelInv();
             GetTime( timeEnd );
             GetTime( timeTotalSelInvEnd );
             if( mpirank == 0 )
@@ -540,7 +536,6 @@ int main(int argc, char **argv)
 
 
           }
-#endif
 
           NumVec<Scalar> diag;
           PMatrix * PMlocPtr;
@@ -577,7 +572,7 @@ int main(int argc, char **argv)
 
             // Preparation for the selected inversion
             GetTime( timeSta );
-            PMloc.ConstructCommunicationPattern();
+            PMloc.ConstructCommunicationPattern_Pipeline();
             GetTime( timeEnd );
 
             if( mpirank == 0 )
@@ -593,7 +588,7 @@ int main(int argc, char **argv)
 
             // Main subroutine for selected inversion
             GetTime( timeSta );
-            PMloc.SelInv();
+            PMloc.SelInv_Pipeline();
             GetTime( timeEnd );
             if( mpirank == 0 )
               cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
@@ -891,13 +886,11 @@ int main(int argc, char **argv)
           }
 #endif
 
-#ifdef SANITY_CHECK
           if(doSinv_Original){
             delete PMlocRefPtr;
             delete superRefPtr;
             delete g3Ptr;
           }
-#endif
 
 
 
