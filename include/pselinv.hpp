@@ -573,6 +573,8 @@ namespace PEXSI{
       std::vector<MPI_Comm*>            commSendToRightPtr_;
       std::vector<Int>                  commSendToRightRoot_;
 
+      //NumVec<Int>                       countCrossDiag_;
+
       // This is the tag used for mpi communication for selinv
       enum{
         SELINV_TAG_U_SIZE,
@@ -641,6 +643,17 @@ namespace PEXSI{
       /// @brief CountRecvFromBelow returns the number of processors 
       /// below the current processor from which it receives data
       Int CountRecvFromBelow(Int ksup) {  Int count= std::count (isRecvFromBelow_.VecData(ksup), isRecvFromBelow_.VecData(ksup) + grid_->numProcRow, true); return (isRecvFromBelow_(MYROW(grid_),ksup)?count-1:count); }
+
+      /// @brief CountSendToCrossDiagonal returns the number of cross diagonal
+      /// processors with which current processor has to communicate
+      Int CountSendToCrossDiagonal(Int ksup) {  Int count= std::count (isSendToCrossDiagonal_.VecData(ksup), isSendToCrossDiagonal_.VecData(ksup) + grid_->numProcCol, true);  return ((isSendToCrossDiagonal_(MYCOL(grid_),ksup) && MYROW(grid_)==PROW(ksup,grid_))?count-1:count); }
+
+      /// @brief CountRecvFromCrossDiagonal returns the number of cross diagonal
+      /// processors with which current processor has to communicate
+      Int CountRecvFromCrossDiagonal(Int ksup) {  Int count= std::count (isRecvFromCrossDiagonal_.VecData(ksup), isRecvFromCrossDiagonal_.VecData(ksup) + grid_->numProcRow, true);  return ((isRecvFromCrossDiagonal_(MYROW(grid_),ksup) && MYCOL(grid_)==PCOL(ksup,grid_))?count-1:count); }
+
+
+
 
       /// @brief GetEtree computes the supernodal elimination tree
       /// to be used later in the pipelined selected inversion stage.

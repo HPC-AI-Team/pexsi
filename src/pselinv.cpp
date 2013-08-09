@@ -205,7 +205,7 @@ namespace PEXSI{
 #ifndef _RELEASE_
     PopCallStack();
 #endif
-  }
+  } 		// -----  end of method PMatrix::GetEtree  ----- 
 
 
   void PMatrix::ConstructCommunicationPattern_Pipeline	(  )
@@ -410,12 +410,8 @@ namespace PEXSI{
     }
 
     statusOFS << std::endl << "isRecvFromAbove:" << std::endl;
-    for(int j = 0;j< isRecvFromAbove_.n();j++){
-      statusOFS << "["<<j<<"] ";
-      for(int i =0; i < isRecvFromAbove_.m();i++){
-        statusOFS<< isRecvFromAbove_(i,j) << " ";
-      }
-      statusOFS<<std::endl;
+    for(int j = 0;j< isRecvFromAbove_.m();j++){
+      statusOFS << "["<<j<<"] "<< isRecvFromAbove_(j)<<std::endl;
     }
 #endif
 
@@ -489,12 +485,8 @@ namespace PEXSI{
     }
 
     statusOFS << std::endl << "isRecvFromLeft:" << std::endl;
-    for(int j = 0;j< isRecvFromLeft_.n();j++){
-      statusOFS << "["<<j<<"] ";
-      for(int i =0; i < isRecvFromLeft_.m();i++){
-        statusOFS<< isRecvFromLeft_(i,j) << " ";
-      }
-      statusOFS<<std::endl;
+    for(int j = 0;j< isRecvFromLeft_.m();j++){
+      statusOFS << "["<<j<<"] "<< isRecvFromLeft_(j)<<std::endl;
     }
 
     statusOFS << std::endl << "isRecvFromBelow:" << std::endl;
@@ -695,13 +687,6 @@ namespace PEXSI{
 
   void PMatrix::SelInv_Pipeline	(  )
   {
-#ifdef SELINV_MEMORY
-#ifdef USE_TAU
-    TAU_TRACK_MEMORY();
-    TAU_ENABLE_TRACKING_MEMORY();
-#endif
-#endif
-
 #ifdef SELINV_TIMING
     Real begin_SendULWaitContentFirst, end_SendULWaitContentFirst, time_SendULWaitContentFirst = 0;
 #if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
@@ -1610,13 +1595,36 @@ namespace PEXSI{
       PushCallStack("PMatrix::SelInv_Pipeline::UpdateU");
 #endif
 
+
+      //compute the number of requests
+      Int sendCount = 0;
+      Int recvCount = 0;
+      Int sendOffset[stepSuper];
+      Int recvOffset[stepSuper];
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        Int ksup = superList[lidx][supidx];
+        sendOffset[supidx]=sendCount;
+        recvOffset[supidx]=recvCount;
+        sendCount+= CountSendToCrossDiagonal(ksup);
+        recvCount+= CountRecvFromCrossDiagonal(ksup);
+      }
+
+
+      std::vector<MPI_Request > arrMpiReqsSendCD(sendCount, MPI_REQUEST_NULL );
+      std::vector<MPI_Request > arrMpiReqsSizeSendCD(sendCount, MPI_REQUEST_NULL );
+      std::vector<std::vector<char> > arrSstrLcolSendCD(sendCount);
+      std::vector<int > arrSstrLcolSizeSendCD(sendCount);
+
+      std::vector<MPI_Request > arrMpiReqsRecvCD(recvCount, MPI_REQUEST_NULL );
+      std::vector<MPI_Request > arrMpiReqsSizeRecvCD(recvCount, MPI_REQUEST_NULL );
+      std::vector<std::vector<char> > arrSstrLcolRecvCD(recvCount);
+      std::vector<int > arrSstrLcolSizeRecvCD(recvCount);
+
+
       TIMER_START(Update_U);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
 
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl <<  "["<<ksup<<"] "<<  "Update the upper triangular block" << std::endl << std::endl; 
-#endif
         // Send LUpdateBufReduced to the cross diagonal blocks. 
         // NOTE: This assumes square processor grid
         std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
@@ -1624,42 +1632,130 @@ namespace PEXSI{
         NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBuf[supidx];
         Int numRowLUpdateBuf = LUpdateBufReduced.m();
 
+        TIMER_START(Send_L_CrossDiag);
+
+
+
+
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_(grid_->numProcCol, ksup ) ){
+
+          Int sendIdx = 0;
           for(Int dstCol = 0; dstCol<grid_->numProcCol; dstCol++){
             if(isSendToCrossDiagonal_(dstCol,ksup) ){
               Int dest = PNUM(PROW(ksup,grid_),dstCol,grid_);
 
               if( MYPROC( grid_ ) != dest	){
                 std::stringstream sstm;
-                serialize( rowLocalPtr, sstm, NO_MASK );
-                serialize( blockIdxLocal, sstm, NO_MASK );
-                serialize( LUpdateBufReduced, sstm, NO_MASK );
+              std::vector<char> & sstrLcolSend = arrSstrLcolSendCD[sendOffset[supidx]+sendIdx];
+              Int & sstrSize = arrSstrLcolSizeSendCD[sendOffset[supidx]+sendIdx];
+              MPI_Request & mpiReqSizeSend = arrMpiReqsSizeSendCD[sendOffset[supidx]+sendIdx];
+              MPI_Request & mpiReqSend = arrMpiReqsSendCD[sendOffset[supidx]+sendIdx];
+
+
+              serialize( rowLocalPtr, sstm, NO_MASK );
+              serialize( blockIdxLocal, sstm, NO_MASK );
+              serialize( LUpdateBufReduced, sstm, NO_MASK );
+
+              sstrLcolSend.resize( Size(sstm) );
+              sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
+              sstrSize = sstrLcolSend.size();
+
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"BCAST ["<<ksup<<"] P"<<MYPROC(grid_)<<" ("<<MYROW(grid_)<<","<<MYCOL(grid_)<<") ---> LBj("<<ksup<<") ---> P"<<dest<<std::endl;
-                statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtr:" << rowLocalPtr << std::endl << std::endl; 
-                statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocal:" << blockIdxLocal << std::endl << std::endl; 
+                statusOFS<<" ["<<ksup<<"] P"<<MYPROC(grid_)<<" ("<<MYROW(grid_)<<","<<MYCOL(grid_)<<") ---> LBj("<<ksup<<") ---> P"<<dest<<std::endl;
+                statusOFS << std::endl << " ["<<ksup<<"] "<<   "rowLocalPtr:" << rowLocalPtr << std::endl << std::endl; 
+                statusOFS << std::endl << " ["<<ksup<<"] "<<   "blockIdxLocal:" << blockIdxLocal << std::endl << std::endl; 
 #endif
-                mpi::Send( sstm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm );
+            //    mpi::Send( sstm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm );
+            MPI_Isend( &sstrSize, 1, MPI_INT, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, grid_->comm, &mpiReqSizeSend );
+            MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, &mpiReqSend );
+
+
+              sendIdx++;
               }
             }
           }
+
+
         } // sender
-
-
         TIMER_STOP(Send_L_CrossDiag);
+      }
 
+
+      //Do Irecv for sizes
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        Int ksup = superList[lidx][supidx];
+        //If I'm a receiver
+        if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) ){
+          Int recvIdx=0;
+          for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
+            if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
+              Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
+              if( MYPROC( grid_ ) != src ){
+                Int & sstrSize = arrSstrLcolSizeRecvCD[recvOffset[supidx]+recvIdx];
+                MPI_Request & mpiReqSizeRecv = arrMpiReqsSizeRecvCD[recvOffset[supidx]+recvIdx];
+                MPI_Irecv( &sstrSize, 1, MPI_INT, src, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, grid_->comm, &mpiReqSizeRecv );
+                recvIdx++;
+              }
+            }
+          }
+        }//end if I'm a receiver
+      }
+
+      //waitall sizes
+      mpi::Waitall(arrMpiReqsSizeRecvCD);
+
+      //Allocate content and do Irecv
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        Int ksup = superList[lidx][supidx];
+        //If I'm a receiver
+        if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) ){
+          Int recvIdx=0;
+          for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
+            if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
+              Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
+              if( MYPROC( grid_ ) != src ){
+                Int & sstrSize = arrSstrLcolSizeRecvCD[recvOffset[supidx]+recvIdx];
+                std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvOffset[supidx]+recvIdx];
+                MPI_Request & mpiReqRecv = arrMpiReqsRecvCD[recvOffset[supidx]+recvIdx];
+                sstrLcolRecv.resize( sstrSize);
+                MPI_Irecv( (void*)&sstrLcolRecv[0], sstrSize, MPI_BYTE, src, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, &mpiReqRecv );
+                recvIdx++;
+              }
+            }
+          }
+        }//end if I'm a receiver
+      }
+
+
+      //waitall content
+      mpi::Waitall(arrMpiReqsRecvCD);
+
+
+      //Do the work
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        Int ksup = superList[lidx][supidx];
+
+        // Send LUpdateBufReduced to the cross diagonal blocks. 
+        // NOTE: This assumes square processor grid
+        std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
+        std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
+        NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBuf[supidx];
+        Int numRowLUpdateBuf = LUpdateBufReduced.m();
+
+ 
         if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) ){
 
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl <<  "BCAST ["<<ksup<<"] "<<  "Update the upper triangular block" << std::endl << std::endl; 
-          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocal:" << blockIdxLocal << std::endl << std::endl; 
-          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtr:" << rowLocalPtr << std::endl << std::endl; 
+          statusOFS << std::endl <<  " ["<<ksup<<"] "<<  "Update the upper triangular block" << std::endl << std::endl; 
+          statusOFS << std::endl << " ["<<ksup<<"] "<<   "blockIdxLocal:" << blockIdxLocal << std::endl << std::endl; 
+          statusOFS << std::endl << " ["<<ksup<<"] "<<   "rowLocalPtr:" << rowLocalPtr << std::endl << std::endl; 
 #endif
 
 
           std::vector<UBlock>&  Urow = this->U( LBi( ksup, grid_ ) );
           std::vector<bool> isBlockFound(Urow.size(),false);
 
+          Int recvIdx=0;
           for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
             if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
               Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
@@ -1671,11 +1767,14 @@ namespace PEXSI{
 
               if( MYPROC( grid_ ) != src ){
                 std::stringstream sstm;
-                mpi::Recv( sstm, src, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm );
+                Int & sstrSize = arrSstrLcolSizeRecvCD[recvOffset[supidx]+recvIdx];
+                std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvOffset[supidx]+recvIdx];
+                sstm.write( &sstrLcolRecv[0], sstrSize );
 
                 deserialize( rowLocalPtrRecv, sstm, NO_MASK );
                 deserialize( blockIdxLocalRecv, sstm, NO_MASK );
                 deserialize( UUpdateBuf, sstm, NO_MASK );	
+                recvIdx++;
               } // sender is not the same as receiver
               else{
                 rowLocalPtrRecv   = rowLocalPtr;
@@ -1688,10 +1787,10 @@ namespace PEXSI{
               TIMER_STOP(Recv_L_CrossDiag);
 
 #if ( _DEBUGlevel_ >= 1 )
-              statusOFS<<"BCAST ["<<ksup<<"] P"<<MYPROC(grid_)<<" ("<<MYROW(grid_)<<","<<MYCOL(grid_)<<") <--- LBj("<<ksup<<") <--- P"<<src<<std::endl;
-              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtrRecv:" << rowLocalPtrRecv << std::endl << std::endl; 
-              //              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "UUpdateBuf:" << UUpdateBuf << std::endl << std::endl; 
-              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocalRecv:" << blockIdxLocalRecv << std::endl << std::endl; 
+              statusOFS<<" ["<<ksup<<"] P"<<MYPROC(grid_)<<" ("<<MYROW(grid_)<<","<<MYCOL(grid_)<<") <--- LBj("<<ksup<<") <--- P"<<src<<std::endl;
+              statusOFS << std::endl << " ["<<ksup<<"] "<<   "rowLocalPtrRecv:" << rowLocalPtrRecv << std::endl << std::endl; 
+              //              statusOFS << std::endl << " ["<<ksup<<"] "<<   "UUpdateBuf:" << UUpdateBuf << std::endl << std::endl; 
+              statusOFS << std::endl << " ["<<ksup<<"] "<<   "blockIdxLocalRecv:" << blockIdxLocalRecv << std::endl << std::endl; 
 #endif
 
 
@@ -1712,10 +1811,6 @@ namespace PEXSI{
                   }
                 }
               }
-
-
-
-
             }
           }
 
@@ -1727,13 +1822,11 @@ namespace PEXSI{
             }
           }
         } // receiver
-
-
       }
-
-
       TIMER_STOP(Update_U);
 
+      mpi::Waitall(arrMpiReqsSizeSendCD);
+      mpi::Waitall(arrMpiReqsSendCD);
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -1813,11 +1906,6 @@ namespace PEXSI{
 
 
 
-#ifdef SELINV_MEMORY
-#ifdef USE_TAU
-    TAU_DISABLE_TRACKING_MEMORY();
-#endif
-#endif
     return ;
   } 		// -----  end of method PMatrix::SelInv_Pipeline  ----- 
 
@@ -1847,7 +1935,7 @@ namespace PEXSI{
 #endif
 
 
-  }
+  } 		// -----  end of method PMatrix::DestructCommunicationPattern_Bcast  ----- 
 
   void PMatrix::ConstructCommunicationPattern_Bcast	(  )
   {
@@ -2081,12 +2169,8 @@ namespace PEXSI{
     }
 
     statusOFS << std::endl << "isRecvFromAbove:" << std::endl;
-    for(int j = 0;j< isRecvFromAbove_.n();j++){
-      statusOFS << "["<<j<<"] ";
-      for(int i =0; i < isRecvFromAbove_.m();i++){
-        statusOFS<< isRecvFromAbove_(i,j) << " ";
-      }
-      statusOFS<<std::endl;
+    for(int j = 0;j< isRecvFromAbove_.m();j++){
+      statusOFS << "["<<j<<"] "<< isRecvFromAbove_(j)<<std::endl;
     }
 #endif
 #ifdef PRINT_COMMUNICATOR_STAT
@@ -2263,12 +2347,8 @@ namespace PEXSI{
     }
 
     statusOFS << std::endl << "isRecvFromLeft:" << std::endl;
-    for(int j = 0;j< isRecvFromLeft_.n();j++){
-      statusOFS << "["<<j<<"] ";
-      for(int i =0; i < isRecvFromLeft_.m();i++){
-        statusOFS<< isRecvFromLeft_(i,j) << " ";
-      }
-      statusOFS<<std::endl;
+    for(int j = 0;j< isRecvFromLeft_.m();j++){
+      statusOFS << "["<<j<<"] "<< isRecvFromLeft_(j)<<std::endl;
     }
 
     statusOFS << std::endl << "isRecvFromBelow:" << std::endl;
@@ -2439,41 +2519,50 @@ namespace PEXSI{
 #ifndef _RELEASE_
     PushCallStack("SendToCrossDiagonal / RecvFromCrossDiagonal");
 #endif
-    for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
-      if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-        for( std::set<Int>::iterator si = localColBlockRowIdx[LBj( ksup, grid_ )].begin();
-            si != localColBlockRowIdx[LBj( ksup, grid_ )].end(); si++ ){
-          Int isup = *si;
-          Int isupProcRow = PROW( isup, grid_ );
-          Int isupProcCol = PCOL( isup, grid_ );
-          if( isup > ksup && MYROW( grid_ ) == isupProcRow ){
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS<<"["<<ksup<<"] should send "<<isup<<" to "<<PNUM(PROW(ksup,grid_),isupProcCol,grid_)<<std::endl;
-#endif
-            isSendToCrossDiagonal_(grid_->numProcCol, ksup ) = true;
-            isSendToCrossDiagonal_(isupProcCol, ksup ) = true;
-          }
-        } // for (si)
-      } // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
-    } // for (ksup)
 
-    for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
-      if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
-        for( std::set<Int>::iterator si = localRowBlockColIdx[ LBi(ksup, grid_) ].begin();
-            si != localRowBlockColIdx[ LBi(ksup, grid_) ].end(); si++ ){
-          Int jsup = *si;
-          Int jsupProcCol = PCOL( jsup, grid_ );
-          Int jsupProcRow = PROW( jsup, grid_ );
-          if( jsup > ksup && MYCOL(grid_) == jsupProcCol ){
+
+for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+  if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+    for( std::set<Int>::iterator si = localColBlockRowIdx[LBj( ksup, grid_ )].begin();
+        si != localColBlockRowIdx[LBj( ksup, grid_ )].end(); si++ ){
+      Int isup = *si;
+      Int isupProcRow = PROW( isup, grid_ );
+      Int isupProcCol = PCOL( isup, grid_ );
+      if( isup > ksup ){
+        if( MYROW( grid_ ) == isupProcRow){ 
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS<<"["<<ksup<<"] should receive "<<jsup<<" from "<<PNUM(jsupProcRow,PCOL(ksup,grid_),grid_)<<std::endl;
+          statusOFS<<"["<<ksup<<"] should send "<<isup<<" to "<<PNUM(PROW(ksup,grid_),isupProcCol,grid_)<<std::endl;
 #endif
-            isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) = true;
-            isRecvFromCrossDiagonal_(jsupProcRow, ksup ) = true;
-          }
-        } // for (si)
-      } // if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
-    } // for (ksup)
+          isSendToCrossDiagonal_(grid_->numProcCol, ksup ) = true;
+          isSendToCrossDiagonal_(isupProcCol, ksup ) = true;
+        }
+      }
+    } // for (si)
+  } // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
+
+  if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+    for( std::set<Int>::iterator si = localRowBlockColIdx[ LBi(ksup, grid_) ].begin();
+        si != localRowBlockColIdx[ LBi(ksup, grid_) ].end(); si++ ){
+      Int jsup = *si;
+      Int jsupProcCol = PCOL( jsup, grid_ );
+      Int jsupProcRow = PROW( jsup, grid_ );
+      if( jsup > ksup){
+        if( MYCOL(grid_) == jsupProcCol ){
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS<<"["<<ksup<<"] should receive "<<jsup<<" from "<<PNUM(jsupProcRow,PCOL(ksup,grid_),grid_)<<std::endl;
+#endif
+          isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) = true;
+          isRecvFromCrossDiagonal_(jsupProcRow, ksup ) = true;
+        }
+      }
+    } // for (si)
+  } // if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+
+} // for (ksup)
+
+
+
+
 #if ( _DEBUGlevel_ >= 1 )
     statusOFS << std::endl << "isSendToCrossDiagonal:" << std::endl;
     for(int j =0; j < isSendToCrossDiagonal_.n();j++){
@@ -2504,6 +2593,8 @@ namespace PEXSI{
     }
 #endif
 
+
+
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -2524,10 +2615,6 @@ namespace PEXSI{
       GetEtree(snodeEtree);
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << " Supernodal elimination tree is " << snodeEtree <<std::endl<<std::endl;
-#endif
-
-#ifndef _RELEASE_
-      double begin = MPI_Wtime();
 #endif
 
 
@@ -2598,10 +2685,7 @@ namespace PEXSI{
           }
         }
       }
-#ifndef _RELEASE_
-      double end =  MPI_Wtime( );
-      statusOFS<<std::endl<<"Time for building working set: "<<end-begin<<std::endl<<std::endl;
-#endif
+
 #if ( _DEBUGlevel_ >= 1 )
       for (Int lidx=0; lidx<WSet.size() ; lidx++){
         statusOFS << std::endl << "L"<< lidx << " is: {";
@@ -2641,12 +2725,6 @@ namespace PEXSI{
 
   void PMatrix::SelInv_Bcast	(  )
   {
-#ifdef SELINV_MEMORY
-#ifdef USE_TAU
-    TAU_TRACK_MEMORY();
-    TAU_ENABLE_TRACKING_MEMORY();
-#endif
-#endif
 
 #ifdef SELINV_TIMING
     Real begin_SendULWaitContentFirst, end_SendULWaitContentFirst, time_SendULWaitContentFirst = 0;
@@ -3327,6 +3405,31 @@ namespace PEXSI{
       PushCallStack("PMatrix::SelInv_Bcast::UpdateU");
 #endif
 
+      //compute the number of requests
+      Int sendCount = 0;
+      Int recvCount = 0;
+      Int sendOffset[stepSuper];
+      Int recvOffset[stepSuper];
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        Int ksup = superList[lidx][supidx];
+        sendOffset[supidx]=sendCount;
+        recvOffset[supidx]=recvCount;
+        sendCount+= CountSendToCrossDiagonal(ksup);
+        recvCount+= CountRecvFromCrossDiagonal(ksup);
+      }
+
+
+      std::vector<MPI_Request > arrMpiReqsSendCD(sendCount, MPI_REQUEST_NULL );
+      std::vector<MPI_Request > arrMpiReqsSizeSendCD(sendCount, MPI_REQUEST_NULL );
+      std::vector<std::vector<char> > arrSstrLcolSendCD(sendCount);
+      std::vector<int > arrSstrLcolSizeSendCD(sendCount);
+
+      std::vector<MPI_Request > arrMpiReqsRecvCD(recvCount, MPI_REQUEST_NULL );
+      std::vector<MPI_Request > arrMpiReqsSizeRecvCD(recvCount, MPI_REQUEST_NULL );
+      std::vector<std::vector<char> > arrSstrLcolRecvCD(recvCount);
+      std::vector<int > arrSstrLcolSizeRecvCD(recvCount);
+
+
       TIMER_START(Update_U);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
@@ -3339,26 +3442,44 @@ namespace PEXSI{
         Int numRowLUpdateBuf = LUpdateBufReduced.m();
 
         TIMER_START(Send_L_CrossDiag);
+
+
+
+
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_(grid_->numProcCol, ksup ) ){
 
-
+          Int sendIdx = 0;
           for(Int dstCol = 0; dstCol<grid_->numProcCol; dstCol++){
             if(isSendToCrossDiagonal_(dstCol,ksup) ){
               Int dest = PNUM(PROW(ksup,grid_),dstCol,grid_);
 
               if( MYPROC( grid_ ) != dest	){
                 std::stringstream sstm;
-                serialize( rowLocalPtr, sstm, NO_MASK );
-                serialize( blockIdxLocal, sstm, NO_MASK );
-                serialize( LUpdateBufReduced, sstm, NO_MASK );
+              std::vector<char> & sstrLcolSend = arrSstrLcolSendCD[sendOffset[supidx]+sendIdx];
+              Int & sstrSize = arrSstrLcolSizeSendCD[sendOffset[supidx]+sendIdx];
+              MPI_Request & mpiReqSizeSend = arrMpiReqsSizeSendCD[sendOffset[supidx]+sendIdx];
+              MPI_Request & mpiReqSend = arrMpiReqsSendCD[sendOffset[supidx]+sendIdx];
 
+
+              serialize( rowLocalPtr, sstm, NO_MASK );
+              serialize( blockIdxLocal, sstm, NO_MASK );
+              serialize( LUpdateBufReduced, sstm, NO_MASK );
+
+              sstrLcolSend.resize( Size(sstm) );
+              sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
+              sstrSize = sstrLcolSend.size();
 
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS<<"BCAST ["<<ksup<<"] P"<<MYPROC(grid_)<<" ("<<MYROW(grid_)<<","<<MYCOL(grid_)<<") ---> LBj("<<ksup<<") ---> P"<<dest<<std::endl;
                 statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtr:" << rowLocalPtr << std::endl << std::endl; 
                 statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocal:" << blockIdxLocal << std::endl << std::endl; 
 #endif
-                mpi::Send( sstm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm );
+            //    mpi::Send( sstm, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm );
+            MPI_Isend( &sstrSize, 1, MPI_INT, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, grid_->comm, &mpiReqSizeSend );
+            MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, &mpiReqSend );
+
+
+              sendIdx++;
               }
             }
           }
@@ -3366,7 +3487,71 @@ namespace PEXSI{
 
         } // sender
         TIMER_STOP(Send_L_CrossDiag);
+      }
 
+
+      //Do Irecv for sizes
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        Int ksup = superList[lidx][supidx];
+        //If I'm a receiver
+        if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) ){
+          Int recvIdx=0;
+          for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
+            if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
+              Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
+              if( MYPROC( grid_ ) != src ){
+                Int & sstrSize = arrSstrLcolSizeRecvCD[recvOffset[supidx]+recvIdx];
+                MPI_Request & mpiReqSizeRecv = arrMpiReqsSizeRecvCD[recvOffset[supidx]+recvIdx];
+                MPI_Irecv( &sstrSize, 1, MPI_INT, src, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, grid_->comm, &mpiReqSizeRecv );
+                recvIdx++;
+              }
+            }
+          }
+        }//end if I'm a receiver
+      }
+
+      //waitall sizes
+      mpi::Waitall(arrMpiReqsSizeRecvCD);
+
+      //Allocate content and do Irecv
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        Int ksup = superList[lidx][supidx];
+        //If I'm a receiver
+        if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) ){
+          Int recvIdx=0;
+          for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
+            if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
+              Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
+              if( MYPROC( grid_ ) != src ){
+                Int & sstrSize = arrSstrLcolSizeRecvCD[recvOffset[supidx]+recvIdx];
+                std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvOffset[supidx]+recvIdx];
+                MPI_Request & mpiReqRecv = arrMpiReqsRecvCD[recvOffset[supidx]+recvIdx];
+                sstrLcolRecv.resize( sstrSize);
+                MPI_Irecv( (void*)&sstrLcolRecv[0], sstrSize, MPI_BYTE, src, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, &mpiReqRecv );
+                recvIdx++;
+              }
+            }
+          }
+        }//end if I'm a receiver
+      }
+
+
+      //waitall content
+      mpi::Waitall(arrMpiReqsRecvCD);
+
+
+      //Do the work
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        Int ksup = superList[lidx][supidx];
+
+        // Send LUpdateBufReduced to the cross diagonal blocks. 
+        // NOTE: This assumes square processor grid
+        std::vector<Int> & rowLocalPtr = arrRowLocalPtr[supidx];
+        std::vector<Int> & blockIdxLocal = arrBlockIdxLocal[supidx];
+        NumMat<Scalar> & LUpdateBufReduced = arrLUpdateBuf[supidx];
+        Int numRowLUpdateBuf = LUpdateBufReduced.m();
+
+ 
         if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) ){
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -3379,6 +3564,7 @@ namespace PEXSI{
           std::vector<UBlock>&  Urow = this->U( LBi( ksup, grid_ ) );
           std::vector<bool> isBlockFound(Urow.size(),false);
 
+          Int recvIdx=0;
           for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
             if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
               Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
@@ -3390,11 +3576,14 @@ namespace PEXSI{
 
               if( MYPROC( grid_ ) != src ){
                 std::stringstream sstm;
-                mpi::Recv( sstm, src, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm );
+                Int & sstrSize = arrSstrLcolSizeRecvCD[recvOffset[supidx]+recvIdx];
+                std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvOffset[supidx]+recvIdx];
+                sstm.write( &sstrLcolRecv[0], sstrSize );
 
                 deserialize( rowLocalPtrRecv, sstm, NO_MASK );
                 deserialize( blockIdxLocalRecv, sstm, NO_MASK );
                 deserialize( UUpdateBuf, sstm, NO_MASK );	
+                recvIdx++;
               } // sender is not the same as receiver
               else{
                 rowLocalPtrRecv   = rowLocalPtr;
@@ -3445,6 +3634,8 @@ namespace PEXSI{
       }
       TIMER_STOP(Update_U);
 
+      mpi::Waitall(arrMpiReqsSizeSendCD);
+      mpi::Waitall(arrMpiReqsSendCD);
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -3507,13 +3698,7 @@ namespace PEXSI{
 #endif
 #endif
     return ;
-  }
-
-
-
-
-
-
+  } 		// -----  end of method PMatrix::SelInv_Bcast  ----- 
 
 
   void PMatrix::ConstructCommunicationPattern	(  )
@@ -3714,12 +3899,8 @@ namespace PEXSI{
     }
 
     statusOFS << std::endl << "isRecvFromAbove:" << std::endl;
-    for(int j = 0;j< isRecvFromAbove_.n();j++){
-      statusOFS << "["<<j<<"] ";
-      for(int i =0; i < isRecvFromAbove_.m();i++){
-        statusOFS<< isRecvFromAbove_(i,j) << " ";
-      }
-      statusOFS<<std::endl;
+    for(int j = 0;j< isRecvFromAbove_.m();j++){
+      statusOFS << "["<<j<<"] "<< isRecvFromAbove_(j)<<std::endl;
     }
 #endif
 
@@ -3769,12 +3950,8 @@ namespace PEXSI{
     }
 
     statusOFS << std::endl << "isRecvFromLeft:" << std::endl;
-    for(int j = 0;j< isRecvFromLeft_.n();j++){
-      statusOFS << "["<<j<<"] ";
-      for(int i =0; i < isRecvFromLeft_.m();i++){
-        statusOFS<< isRecvFromLeft_(i,j) << " ";
-      }
-      statusOFS<<std::endl;
+    for(int j = 0;j< isRecvFromLeft_.m();j++){
+      statusOFS << "["<<j<<"] "<< isRecvFromLeft_(j)<<std::endl;
     }
 #endif
 
@@ -3858,12 +4035,6 @@ namespace PEXSI{
 
     return ;
   } 		// -----  end of method PMatrix::ConstructCommunicationPattern  ----- 
-
-
-
-
-
-
 
 
 
@@ -4399,7 +4570,6 @@ namespace PEXSI{
       TIMER_STOP(Reduce_Sinv_LT);
 
 
-
 #if ( _DEBUGlevel_ >= 1 ) 
       if( numRowLUpdateBuf > 0 ){
         if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
@@ -4451,8 +4621,6 @@ namespace PEXSI{
         TIMER_STOP(Update_Diagonal);
 
 
-
-
         TIMER_START(Reduce_Diagonal);
         NumMat<Scalar> DiagBufReduced( SuperSize( ksup, super_ ), SuperSize( ksup, super_ ) );
 
@@ -4497,122 +4665,202 @@ namespace PEXSI{
 #endif
 
 
+      //compute the number of requests
+      Int sendCount= CountSendToCrossDiagonal(ksup);
+      Int recvCount= CountRecvFromCrossDiagonal(ksup);
+
+      std::vector<MPI_Request > mpiReqsSendCD(sendCount, MPI_REQUEST_NULL );
+      std::vector<MPI_Request > mpiReqsSizeSendCD(sendCount, MPI_REQUEST_NULL );
+      std::vector<std::vector<char> > sstrLcolSendCD(sendCount);
+      std::vector<int > sstrLcolSizeSendCD(sendCount);
+
+      std::vector<MPI_Request > mpiReqsRecvCD(recvCount, MPI_REQUEST_NULL );
+      std::vector<MPI_Request > mpiReqsSizeRecvCD(recvCount, MPI_REQUEST_NULL );
+      std::vector<std::vector<char> > sstrLcolRecvCD(recvCount);
+      std::vector<int > sstrLcolSizeRecvCD(recvCount);
+
+
       TIMER_START(Update_U);
 
       // Send LUpdateBufReduced to the cross diagonal blocks. 
       // NOTE: This assumes square processor grid
       TIMER_START(Send_L_CrossDiag);
 
+        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_(grid_->numProcCol, ksup ) ){
 
-      if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) && isSendToCrossDiagonal_(grid_->numProcCol, ksup ) ){
-        for(Int dstCol = 0; dstCol<grid_->numProcCol; dstCol++){
-          if(isSendToCrossDiagonal_(dstCol,ksup) ){
-            Int dest = PNUM(PROW(ksup,grid_),dstCol,grid_);
+          Int sendIdx = 0;
+          for(Int dstCol = 0; dstCol<grid_->numProcCol; dstCol++){
+            if(isSendToCrossDiagonal_(dstCol,ksup) ){
+              Int dest = PNUM(PROW(ksup,grid_),dstCol,grid_);
 
-            if( MYPROC( grid_ ) != dest	){
-              std::stringstream sstm;
+              if( MYPROC( grid_ ) != dest	){
+                std::stringstream sstm;
+              std::vector<char> & sstrLcolSend = sstrLcolSendCD[sendIdx];
+              Int & sstrSize = sstrLcolSizeSendCD[sendIdx];
+              MPI_Request & mpiReqSizeSend = mpiReqsSizeSendCD[sendIdx];
+              MPI_Request & mpiReqSend = mpiReqsSendCD[sendIdx];
+
+
               serialize( rowLocalPtr, sstm, NO_MASK );
               serialize( blockIdxLocal, sstm, NO_MASK );
               serialize( LUpdateBufReduced, sstm, NO_MASK );
+
+              sstrLcolSend.resize( Size(sstm) );
+              sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
+              sstrSize = sstrLcolSend.size();
+
 #if ( _DEBUGlevel_ >= 1 )
-              statusOFS<<"BCAST ["<<ksup<<"] P"<<MYPROC(grid_)<<" ("<<MYROW(grid_)<<","<<MYCOL(grid_)<<") ---> LBj("<<ksup<<") ---> P"<<dest<<std::endl;
-              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtr:" << rowLocalPtr << std::endl << std::endl; 
-              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocal:" << blockIdxLocal << std::endl << std::endl; 
+                statusOFS<<"BCAST ["<<ksup<<"] P"<<MYPROC(grid_)<<" ("<<MYROW(grid_)<<","<<MYCOL(grid_)<<") ---> LBj("<<ksup<<") ---> P"<<dest<<std::endl;
+                statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtr:" << rowLocalPtr << std::endl << std::endl; 
+                statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocal:" << blockIdxLocal << std::endl << std::endl; 
 #endif
-              mpi::Send( sstm, dest, SELINV_TAG_L_SIZE, SELINV_TAG_L_CONTENT, grid_->comm );
+            MPI_Isend( &sstrSize, 1, MPI_INT, dest, SELINV_TAG_L_SIZE, grid_->comm, &mpiReqSizeSend );
+            MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dest, SELINV_TAG_L_CONTENT, grid_->comm, &mpiReqSend );
+
+
+              sendIdx++;
+              }
             }
           }
-        }
-      } // sender     
-      TIMER_STOP(Send_L_CrossDiag);
 
-      std::vector<Int>  rowLocalPtrRecv;
-      std::vector<Int>  blockIdxLocalRecv;
+        } // sender
+        TIMER_STOP(Send_L_CrossDiag);
 
-      if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) ){
+
+
+
+
+
+      //Do Irecv for sizes
+        //If I'm a receiver
+        if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) ){
+          Int recvIdx=0;
+          for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
+            if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
+              Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
+              if( MYPROC( grid_ ) != src ){
+                Int & sstrSize = sstrLcolSizeRecvCD[recvIdx];
+                MPI_Request & mpiReqSizeRecv = mpiReqsSizeRecvCD[recvIdx];
+                MPI_Irecv( &sstrSize, 1, MPI_INT, src, SELINV_TAG_L_SIZE, grid_->comm, &mpiReqSizeRecv );
+                recvIdx++;
+              }
+            }
+          }
+        }//end if I'm a receiver
+
+      //waitall sizes
+      mpi::Waitall(mpiReqsSizeRecvCD);
+
+      //Allocate content and do Irecv
+        //If I'm a receiver
+        if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) ){
+          Int recvIdx=0;
+          for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
+            if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
+              Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
+              if( MYPROC( grid_ ) != src ){
+                Int & sstrSize = sstrLcolSizeRecvCD[recvIdx];
+                std::vector<char> & sstrLcolRecv = sstrLcolRecvCD[recvIdx];
+                MPI_Request & mpiReqRecv = mpiReqsRecvCD[recvIdx];
+                sstrLcolRecv.resize( sstrSize);
+                MPI_Irecv( (void*)&sstrLcolRecv[0], sstrSize, MPI_BYTE, src, SELINV_TAG_L_CONTENT, grid_->comm, &mpiReqRecv );
+                recvIdx++;
+              }
+            }
+          }
+        }//end if I'm a receiver
+
+
+      //waitall content
+      mpi::Waitall(mpiReqsRecvCD);
+
+
+      //Do the work
+        if( MYROW( grid_ ) == PROW( ksup, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) ){
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl <<  "BCAST ["<<ksup<<"] "<<  "Update the upper triangular block" << std::endl << std::endl; 
-        statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocal:" << blockIdxLocal << std::endl << std::endl; 
-        statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtr:" << rowLocalPtr << std::endl << std::endl; 
+          statusOFS << std::endl <<  "BCAST ["<<ksup<<"] "<<  "Update the upper triangular block" << std::endl << std::endl; 
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocal:" << blockIdxLocal << std::endl << std::endl; 
+          statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtr:" << rowLocalPtr << std::endl << std::endl; 
 #endif
 
 
-        std::vector<UBlock>&  Urow = this->U( LBi( ksup, grid_ ) );
-        std::vector<bool> isBlockFound(Urow.size(),false);
+          std::vector<UBlock>&  Urow = this->U( LBi( ksup, grid_ ) );
+          std::vector<bool> isBlockFound(Urow.size(),false);
 
-        for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
-          if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
-            Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
-            TIMER_START(Recv_L_CrossDiag);
-            std::vector<Int> rowLocalPtrRecv;
-            std::vector<Int> blockIdxLocalRecv;
-            NumMat<Scalar> UUpdateBuf;
-
-
-            if( MYPROC( grid_ ) != src ){
-              std::stringstream sstm;
-              mpi::Recv( sstm, src, SELINV_TAG_L_SIZE, SELINV_TAG_L_CONTENT, grid_->comm );
-
-              deserialize( rowLocalPtrRecv, sstm, NO_MASK );
-              deserialize( blockIdxLocalRecv, sstm, NO_MASK );
-              deserialize( UUpdateBuf, sstm, NO_MASK );	
-            } // sender is not the same as receiver
-            else{
-              rowLocalPtrRecv   = rowLocalPtr;
-              blockIdxLocalRecv = blockIdxLocal;
-              UUpdateBuf = LUpdateBufReduced;
-            } // sender is the same as receiver
+          Int recvIdx=0;
+          for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
+            if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
+              Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
+              TIMER_START(Recv_L_CrossDiag);
+              std::vector<Int> rowLocalPtrRecv;
+              std::vector<Int> blockIdxLocalRecv;
+              NumMat<Scalar> UUpdateBuf;
 
 
+              if( MYPROC( grid_ ) != src ){
+                std::stringstream sstm;
+                Int & sstrSize = sstrLcolSizeRecvCD[recvIdx];
+                std::vector<char> & sstrLcolRecv = sstrLcolRecvCD[recvIdx];
+                sstm.write( &sstrLcolRecv[0], sstrSize );
 
-            TIMER_STOP(Recv_L_CrossDiag);
+                deserialize( rowLocalPtrRecv, sstm, NO_MASK );
+                deserialize( blockIdxLocalRecv, sstm, NO_MASK );
+                deserialize( UUpdateBuf, sstm, NO_MASK );	
+                recvIdx++;
+              } // sender is not the same as receiver
+              else{
+                rowLocalPtrRecv   = rowLocalPtr;
+                blockIdxLocalRecv = blockIdxLocal;
+                UUpdateBuf = LUpdateBufReduced;
+              } // sender is the same as receiver
+
+
+
+              TIMER_STOP(Recv_L_CrossDiag);
 
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS<<"BCAST ["<<ksup<<"] P"<<MYPROC(grid_)<<" ("<<MYROW(grid_)<<","<<MYCOL(grid_)<<") <--- LBj("<<ksup<<") <--- P"<<src<<std::endl;
-            statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtrRecv:" << rowLocalPtrRecv << std::endl << std::endl; 
-            //              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "UUpdateBuf:" << UUpdateBuf << std::endl << std::endl; 
-            statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocalRecv:" << blockIdxLocalRecv << std::endl << std::endl; 
+              statusOFS<<"BCAST ["<<ksup<<"] P"<<MYPROC(grid_)<<" ("<<MYROW(grid_)<<","<<MYCOL(grid_)<<") <--- LBj("<<ksup<<") <--- P"<<src<<std::endl;
+              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "rowLocalPtrRecv:" << rowLocalPtrRecv << std::endl << std::endl; 
+              //              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "UUpdateBuf:" << UUpdateBuf << std::endl << std::endl; 
+              statusOFS << std::endl << "BCAST ["<<ksup<<"] "<<   "blockIdxLocalRecv:" << blockIdxLocalRecv << std::endl << std::endl; 
 #endif
 
 
 
 
-            // Update U
-            for( Int ib = 0; ib < blockIdxLocalRecv.size(); ib++ ){
-              for( Int jb = 0; jb < Urow.size(); jb++ ){
-                UBlock& UB = Urow[jb];
-                if( UB.blockIdx == blockIdxLocalRecv[ib] ){
-                  NumMat<Scalar> Ltmp ( UB.numCol, UB.numRow );
-                  lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
-                      &UUpdateBuf( rowLocalPtrRecv[ib], 0 ),
-                      UUpdateBuf.m(), Ltmp.Data(), Ltmp.m() );
-                  isBlockFound[jb] = true;
-                  Transpose( Ltmp, UB.nzval );
-                  break;
+              // Update U
+              for( Int ib = 0; ib < blockIdxLocalRecv.size(); ib++ ){
+                for( Int jb = 0; jb < Urow.size(); jb++ ){
+                  UBlock& UB = Urow[jb];
+                  if( UB.blockIdx == blockIdxLocalRecv[ib] ){
+                    NumMat<Scalar> Ltmp ( UB.numCol, UB.numRow );
+                    lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
+                        &UUpdateBuf( rowLocalPtrRecv[ib], 0 ),
+                        UUpdateBuf.m(), Ltmp.Data(), Ltmp.m() );
+                    isBlockFound[jb] = true;
+                    Transpose( Ltmp, UB.nzval );
+                    break;
+                  }
                 }
               }
             }
-
-
-
-
           }
-        }
 
 
-        for( Int jb = 0; jb < Urow.size(); jb++ ){
-          UBlock& UB = Urow[jb];
-          if( !isBlockFound[jb] ){
-            throw std::logic_error( "UBlock cannot find its update. Something is seriously wrong." );
+          for( Int jb = 0; jb < Urow.size(); jb++ ){
+            UBlock& UB = Urow[jb];
+            if( !isBlockFound[jb] ){
+              throw std::logic_error( "UBlock cannot find its update. Something is seriously wrong." );
+            }
           }
-        }
-      } // receiver
-
-
-
-
+        } // receiver
       TIMER_STOP(Update_U);
+
+      mpi::Waitall(mpiReqsSizeSendCD);
+      mpi::Waitall(mpiReqsSendCD);
+
+
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -4740,25 +4988,66 @@ namespace PEXSI{
       Int ksupProcRow = PROW( ksup, grid_ );
       Int ksupProcCol = PCOL( ksup, grid_ );
 
+      Int sendCount = CountSendToCrossDiagonal(ksup);
+      Int recvCount = CountRecvFromCrossDiagonal(ksup);
+
+      std::vector<MPI_Request > arrMpiReqsSend(sendCount, MPI_REQUEST_NULL );
+      std::vector<MPI_Request > arrMpiReqsSizeSend(sendCount, MPI_REQUEST_NULL );
+      std::vector<std::vector<char> > arrSstrLcolSend(sendCount);
+      std::vector<Int > arrSstrLcolSizeSend(sendCount);
+
+      std::vector<MPI_Request > arrMpiReqsRecv(recvCount, MPI_REQUEST_NULL );
+      std::vector<MPI_Request > arrMpiReqsSizeRecv(recvCount, MPI_REQUEST_NULL );
+      std::vector<std::vector<char> > arrSstrLcolRecv(recvCount);
+      std::vector<Int > arrSstrLcolSizeRecv(recvCount);
+
+
+
       // Sender
       if( isSendToCrossDiagonal_(grid_->numProcCol,ksup) ){
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<"["<<ksup<<"] P"<<MYPROC(grid_)<<" should send to "<<CountSendToCrossDiagonal(ksup)<<" processors"<<std::endl;
+#endif
+
+        Int sendIdx = 0;
         for(Int dstCol = 0; dstCol<grid_->numProcCol; dstCol++){
           if(isSendToCrossDiagonal_(dstCol,ksup) ){
             Int dst = PNUM(PROW(ksup,grid_),dstCol,grid_);
             if(MYPROC(grid_)!= dst){
               // Pack L data
               std::stringstream sstm;
+              std::vector<char> & sstrLcolSend = arrSstrLcolSend[sendIdx];
+              Int & sstrSize = arrSstrLcolSizeSend[sendIdx];
+              MPI_Request & mpiReqSend = arrMpiReqsSend[sendIdx];
+              MPI_Request & mpiReqSizeSend = arrMpiReqsSizeSend[sendIdx];
+
               std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
               std::vector<LBlock>&  Lcol = this->L( LBj(ksup, grid_) );
               // All blocks except for the diagonal block are to be sent right
+              //TODO not true > this is a scatter operation ! Can we know the destination ?
 
-              if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
-                serialize( (Int)Lcol.size() - 1, sstm, NO_MASK );
-              else
-                serialize( (Int)Lcol.size(), sstm, NO_MASK );
+              Int count = 0;
+              if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+                for( Int ib = 1; ib < Lcol.size(); ib++ ){
+                  if( Lcol[ib].blockIdx > ksup &&  (Lcol[ib].blockIdx % grid_->numProcCol) == dstCol  ){
+                    count++;
+                  }
+                }
+              }
+              else{
+
+                for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                  if( Lcol[ib].blockIdx > ksup &&  (Lcol[ib].blockIdx % grid_->numProcCol) == dstCol  ){
+                    count++;
+                  }
+                }
+              }
+
+              serialize( (Int)count, sstm, NO_MASK );
 
               for( Int ib = 0; ib < Lcol.size(); ib++ ){
-                if( Lcol[ib].blockIdx > ksup ){ 
+                if( Lcol[ib].blockIdx > ksup &&  (Lcol[ib].blockIdx % grid_->numProcCol) == dstCol  ){ 
+//                if( Lcol[ib].blockIdx > ksup ){ 
 #if ( _DEBUGlevel_ >= 1 )
                   statusOFS<<"["<<ksup<<"] SEND contains "<<Lcol[ib].blockIdx<< " which corresponds to "<<GBj(ib,grid_)<<std::endl;
 #endif
@@ -4766,9 +5055,11 @@ namespace PEXSI{
                 }
               }
 
+              sstrLcolSend.resize( Size(sstm) );
+              sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
+              sstrSize = sstrLcolSend.size();
+              
 
-
-              //TODO REWORK THIS
 
               // Send/Recv is possible here due to the one to one correspondence
               // in the case of square processor grid
@@ -4776,8 +5067,11 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS<<"["<<ksup<<"] P"<<MYPROC(grid_)<<" ("<<MYROW(grid_)<<","<<MYCOL(grid_)<<") ---> LBj("<<ksup<<")="<<LBj(ksup,grid_)<<" ---> P"<<dst<<" ("<<ksupProcRow<<","<<dstCol<<")"<<std::endl;
 #endif
+            MPI_Isend( &sstrSize, 1, MPI_INT, dst, SELINV_TAG_D_SIZE, grid_->comm, &mpiReqSizeSend );
+            MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dst, SELINV_TAG_D_CONTENT, grid_->comm, &mpiReqSend );
+              //mpi::Send( sstm, dst,SELINV_TAG_D_SIZE, SELINV_TAG_D_CONTENT, grid_->comm );
 
-              mpi::Send( sstm, dst,SELINV_TAG_D_SIZE, SELINV_TAG_D_CONTENT, grid_->comm );
+              sendIdx++;
             } // if I am a sender
           }
         }
@@ -4787,20 +5081,73 @@ namespace PEXSI{
 
 
 
-
       // Receiver
       if( isRecvFromCrossDiagonal_(grid_->numProcRow,ksup) ){
+
+
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<"["<<ksup<<"] P"<<MYPROC(grid_)<<" should receive from "<<CountRecvFromCrossDiagonal(ksup)<<" processors"<<std::endl;
+#endif
+
 
         std::vector<UBlock>& Urow = this->U( LBi( ksup, grid_ ) );
         std::vector<bool> isBlockFound(Urow.size(),false);
 
+
+        Int recvIdx = 0;
+        //receive size first
+        for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
+          if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
+            std::vector<LBlock> LcolRecv;
+            Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
+            if(MYPROC(grid_)!= src){
+              MPI_Request & mpiReqSizeRecv = arrMpiReqsSizeRecv[recvIdx];
+              Int & sstrSize = arrSstrLcolSizeRecv[recvIdx];
+
+              MPI_Irecv( &sstrSize, 1, MPI_INT, src, SELINV_TAG_D_SIZE, grid_->comm, &mpiReqSizeRecv );
+              
+              recvIdx++;
+            }
+          }
+        }
+
+        mpi::Waitall(arrMpiReqsSizeRecv);
+
+
+
+        //receive content
+        recvIdx = 0;
+        for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
+          if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
+            std::vector<LBlock> LcolRecv;
+            Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
+            if(MYPROC(grid_)!= src){
+              MPI_Request & mpiReqRecv = arrMpiReqsRecv[recvIdx];
+              Int & sstrSize = arrSstrLcolSizeRecv[recvIdx];
+              std::vector<char> & sstrLcolRecv = arrSstrLcolRecv[recvIdx];
+              sstrLcolRecv.resize(sstrSize);
+
+              MPI_Irecv( &sstrLcolRecv[0], sstrSize, MPI_BYTE, src, SELINV_TAG_D_CONTENT, grid_->comm, &mpiReqRecv );
+              
+              recvIdx++;
+            }
+          }
+        }
+
+        mpi::Waitall(arrMpiReqsRecv);
+
+
+
+        //Process the content
+        recvIdx = 0;
         for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
           if(isRecvFromCrossDiagonal_(srcRow,ksup) ){
             std::vector<LBlock> LcolRecv;
             Int src = PNUM(srcRow,PCOL(ksup,grid_),grid_);
             if(MYPROC(grid_)!= src){
 
-
+              Int & sstrSize = arrSstrLcolSizeRecv[recvIdx];
+              std::vector<char> & sstrLcolRecv = arrSstrLcolRecv[recvIdx];
               std::stringstream sstm;
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -4808,8 +5155,7 @@ namespace PEXSI{
 #endif
 
 
-
-              mpi::Recv( sstm, src, SELINV_TAG_D_SIZE, SELINV_TAG_D_CONTENT, grid_->comm );
+              sstm.write( &sstrLcolRecv[0], sstrSize );
 
               // Unpack L data.  
               Int numLBlock;
@@ -4819,9 +5165,15 @@ namespace PEXSI{
               for( Int ib = 0; ib < numLBlock; ib++ ){
                 deserialize( LcolRecv[ib], sstm, mask );
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"["<<ksup<<"] RECV contains "<<LcolRecv[ib].blockIdx<< " which corresponds to "<<GBj(ib,grid_)<<std::endl;
+                  statusOFS<<"["<<ksup<<"] RECV contains "<<LcolRecv[ib].blockIdx<< " which corresponds to "<< ib * grid_->numProcRow + srcRow; // <<std::endl;
+//                  statusOFS<<" L is on row "<< srcRow <<" whereas U is on col "<<((ib * grid_->numProcRow + srcRow)/grid_->numProcCol)%grid_->numProcCol <<std::endl;
+                  statusOFS<<" L is on row "<< srcRow <<" whereas U is on col "<< LcolRecv[ib].blockIdx % grid_->numProcCol <<std::endl;
 #endif
               }
+
+
+              recvIdx++;
+
             } // sender is not the same as receiver
             else{
               // L is obtained locally, just make a copy. Do not include the diagonal block
@@ -4866,6 +5218,9 @@ namespace PEXSI{
                   UB.cols = LB.rows;
                   Transpose( LB.nzval, UB.nzval );
 
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<<"["<<ksup<<"] USING "<<LB.blockIdx<< std::endl;
+#endif
                   isBlockFound[jb] = true;
                   break;
                 } // if( LB.blockIdx == UB.blockIdx )
@@ -4884,6 +5239,13 @@ namespace PEXSI{
 
 
       } // if I am a receiver
+
+
+        //Wait until every receiver is done
+        mpi::Waitall(arrMpiReqsSizeSend);
+        mpi::Waitall(arrMpiReqsSend);
+  
+
     } // for (ksup)
 
 #ifndef _RELEASE_

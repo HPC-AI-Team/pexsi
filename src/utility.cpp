@@ -383,15 +383,6 @@ void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat
 }		// -----  end of function ReadDistSparseMatrix  ----- 
 
 
-
-
-
-
-
-
-
-
-
 void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
 {
 #ifndef _RELEASE_
@@ -435,7 +426,6 @@ void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& p
   MPI_Exscan(&pspmat.nnzLocal, &prev_nz, 1, MPI_INT, MPI_SUM, comm);
 
   for( Int i = 0; i < numColLocal + 1; i++ ){
-//  for( Int i = 0; i < pspmat.colptrLocal.m(); i++ ){
     colptrChunk[i] = pspmat.colptrLocal[i] + prev_nz;
   }
 

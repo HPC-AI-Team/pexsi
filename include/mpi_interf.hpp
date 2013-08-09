@@ -41,9 +41,6 @@ void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
 void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
 		MPI_Comm comm );
 
-void Isend( std::stringstream& sstm,std::vector<char> & sstr, Int & sizeStm,  Int dest, Int tagSize, Int tagContent, 
-		MPI_Comm comm, MPI_Request & reqSize, MPI_Request & reqContent);
-
 // *********************************************************************
 // Waitall
 // *********************************************************************
@@ -66,14 +63,6 @@ Reduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm 
 
 void
 Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm );
-
-#ifdef MPI_3
-void
-Ireduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm, MPI_Request & request );
-
-void
-Ireduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm, MPI_Request & request );
-#endif
 
 void
 Allreduce ( Int* sendbuf, Int* recvbuf, Int count, MPI_Op op, MPI_Comm comm );

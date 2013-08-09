@@ -124,24 +124,6 @@ Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
 }		// -----  end of function Recv  ----- 
 
 
-void Isend( std::stringstream& sstm,std::vector<char> & sstr, Int & sizeStm,  Int dest, Int tagSize, Int tagContent, 
-		MPI_Comm comm, MPI_Request & reqSize, MPI_Request & reqContent){
-#ifndef _RELEASE_
-	PushCallStack("mpi::Isend");
-#endif
-	sstr.resize( Size( sstm ) );
-	sizeStm = sstr.size();
-	sstm.read( &sstr[0], sizeStm );
-	MPI_Isend( &sizeStm, 1, MPI_INT,  dest, tagSize, comm , &reqSize);
-	MPI_Isend( (void*)&sstr[0], sizeStm, MPI_BYTE, dest, tagContent, comm, &reqContent );
-
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-	return; 
-} // -----  end of function Isend ----- 
-
-
 // *********************************************************************
 // Wait
 // *********************************************************************
@@ -229,38 +211,6 @@ Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI
 
 	return ;
 }		// -----  end of function Reduce  ----- 
-
-#ifdef MPI_3
-void
-Ireduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm, MPI_Request & request )
-{
-#ifndef _RELEASE_
-	PushCallStack("mpi::Ireduce");
-#endif
-	MPI_Ireduce( sendbuf,  recvbuf, count, MPI_DOUBLE, op, root, comm , &request);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-
-	return ;
-}		// -----  end of function Reduce  ----- 
-
-void
-Ireduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm, MPI_Request & request )
-{
-#ifndef _RELEASE_
-	PushCallStack("mpi::Reduce");
-#endif
-	MPI_Ireduce( (Real*)sendbuf,  (Real*)recvbuf, 2 * count, MPI_DOUBLE, op, root, comm , &request);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-
-	return ;
-}		// -----  end of function Reduce  ----- 
-#endif
-
-
 
 
 void

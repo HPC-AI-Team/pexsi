@@ -435,7 +435,12 @@ int main(int argc, char **argv)
             GetTime( timeEnd );
             if( mpirank == 0 )
               cout << "Time for constructing the communication pattern (Bcast) is " << timeEnd  - timeSta << endl;
+
+            GetTime( timeSta );
             PMlocBcast.PreSelInv();
+            GetTime( timeEnd );
+            if( mpirank == 0 )
+              cout << "Time for pre selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
 
             GetTime( timeSta );
             PMlocBcast.SelInv_Bcast();
@@ -501,8 +506,11 @@ int main(int argc, char **argv)
             if( mpirank == 0 )
               cout << "Time for constructing the communication pattern (_Original) is " << timeEnd  - timeSta << endl;
 
-
+            GetTime( timeSta );
             PMlocRef.PreSelInv();
+            GetTime( timeEnd );
+            if( mpirank == 0 )
+              cout << "Time for pre selected inversion (_Original) is " << timeEnd  - timeSta << endl;
 
             GetTime( timeSta );
             PMlocRef.SelInv();
