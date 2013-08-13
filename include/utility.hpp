@@ -417,6 +417,7 @@ template <class F> inline std::ostream& operator<<( std::ostream& os, const NumM
 {
   os<<mat.m()<<" "<<mat.n()<<std::endl;
   os.setf(std::ios_base::scientific, std::ios_base::floatfield);
+  os << std::setprecision(16);
   for(Int i=0; i<mat.m(); i++) {
     for(Int j=0; j<mat.n(); j++)
       os<<" "<<mat(i,j);
@@ -1251,6 +1252,72 @@ Int SharedRead(std::string name, std::istringstream& is);
 
 Int SharedWrite(std::string name, std::ostringstream& os);
 
+// *********************************************************************
+// Ej
+// *********************************************************************
+inline void IdentityCol( Int col, NumVec<Real>& vec )
+{
+	for(Int i=0; i<std::min(col,vec.m()); i++)
+		vec(i) = 0.0;
+  
+  if(col<vec.m())
+    vec(col) = 1.0;
+
+
+	for(Int i=col+1; i<vec.m(); i++)
+		vec(i) = 0.0;
+}
+
+inline void IdentityCol( Int col, NumVec<Complex>& vec )
+{
+	for(Int i=0; i<std::min(col,vec.m()); i++)
+		vec(i) = Complex(0.0,0.0);
+  
+  if(col<vec.m())
+    vec(col) = Complex(1.0,0.0);
+
+
+	for(Int i=col+1; i<vec.m(); i++)
+		vec(i) = Complex(0.0,0.0);
+}
+
+
+
+inline void IdentityCol( IntNumVec & cols, NumMat<Real>& mat )
+{
+  for(Int j=0;j<cols.m();j++){
+    Int col= cols(j);
+    for(Int i=0; i<std::min(col,mat.m()); i++)
+      mat(i,j) = 0.0;
+
+    if(col<mat.m())
+      mat(col,j) = 1.0;
+
+
+    for(Int i=col+1; i<mat.m(); i++)
+      mat(i,j) = 0.0;
+  }
+}
+
+
+inline void IdentityCol( IntNumVec & cols, NumMat<Complex>& mat )
+{
+  for(Int j=0;j<cols.m();j++){
+    Int col= cols(j);
+	for(Int i=0; i<std::min(col,mat.m()); i++)
+		mat(i,j) = Complex(0.0,0.0);
+  
+  if(col<mat.m())
+    mat(col,j) = Complex(1.0,0.0);
+
+
+	for(Int i=col+1; i<mat.m(); i++)
+		mat(i,j) = Complex(0.0,0.0);
+}
+}
+
+
+
 
 // *********************************************************************
 // Random numbers
@@ -1350,6 +1417,10 @@ public:
 void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat );
 
 void ReadDistSparseMatrix( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
+
+void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
+
+void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
 
 void ReadDistSparseMatrixFormatted( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
 

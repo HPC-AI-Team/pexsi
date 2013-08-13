@@ -58,6 +58,22 @@ public:
       if(m_>0 && n_>0) { delete[] data_; data_ = NULL; }
     }
   }
+
+  NumMat& Copy(const NumMat& C) {
+    if(owndata_) {
+      if(m_>0 && n_>0) { delete[] data_; data_ = NULL; }
+    }
+    m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
+    if(owndata_) {
+      if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
+      if(m_>0 && n_>0) { for(Int i=0; i<m_*n_; i++) data_[i] = C.data_[i]; }
+    } else {
+      data_ = C.data_;
+    }
+    return *this;
+  }
+
+
   NumMat& operator=(const NumMat& C) {
     if(owndata_) {
       if(m_>0 && n_>0) { delete[] data_; data_ = NULL; }

@@ -3,7 +3,7 @@
 
 include ../make.inc
 
-SRCS  = run_pexsi.cpp run_ppexsi.cpp run_pselinv.cpp 
+SRCS  = run_pexsi.cpp run_ppexsi.cpp run_pselinv.cpp run_error_selinv.cpp
 
 OBJS = ${SRCS:.cpp=.o}
 DEPS = ${SRCS:.cpp=.d}
@@ -22,12 +22,23 @@ EXES = ${SRCS:.cpp=}
 
 all: run_pselinv run_pexsi run_ppexsi f_ppexsi
 
-run_pselinv: run_pselinv.o ${PEXSI_LIB} 
-	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS) $(IPM) )
+run_pselinv: run_pselinv.o ${PEXSI_LIB} run_pselinv_ptscotch run_pselinv_parmetis
+	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS_PTSCOTCH) $(IPM) )
+
+run_pselinv_parmetis: run_pselinv.o ${PEXSI_LIB} 
+	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PARMETIS) $(IPM) )
+
+run_pselinv_ptscotch: run_pselinv.o   ${PEXSI_LIB} 
+	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PTSCOTCH) $(IPM) )
+
+run_error_selinv: run_error_selinv.o   ${PEXSI_LIB} 
+	($(LOADER) -o $@_${SUFFIX} run_error_selinv.o  $(LOADOPTS_PTSCOTCH) $(IPM) )
+
+run_error_selinv.o: run_error_selinv.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 run_pselinv.o: run_pselinv.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
-
 
 f_ppexsi: f_ppexsi.o ${PEXSI_LIB} 
 	  ($(FC) -o $@ f_ppexsi.o  $(FLOADOPTS) )

@@ -268,7 +268,7 @@ void PPEXSIData::Solve(
 
 	// Compute the number of nonzeros from PMatrix
 	{
-		PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
+		PMatrix PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
 		luMat.LUstructToPMatrix( PMloc );
 #if ( _DEBUGlevel_ >= 0 )
 		Int nnzLocal = PMloc.NnzLocal();
@@ -583,7 +583,7 @@ void PPEXSIData::Solve(
 					Real timeTotalSelInvSta, timeTotalSelInvEnd;
 					GetTime( timeTotalSelInvSta );
 
-					PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
+					PMatrix PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
 
 					luMat.LUstructToPMatrix( PMloc );
 					
@@ -1147,7 +1147,7 @@ void PPEXSIData::CalculateNegativeInertia(
 
 	// Compute the number of nonzeros from PMatrix
 	{
-		PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
+		PMatrix PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
 		luMat.LUstructToPMatrix( PMloc );
 #if ( _DEBUGlevel_ >= 0 )
 		Int nnzLocal = PMloc.NnzLocal();
@@ -1247,7 +1247,7 @@ void PPEXSIData::CalculateNegativeInertia(
 			Real timeInertiaSta, timeInertiaEnd;
 			GetTime( timeInertiaSta );
 
-			PMatrix PMloc( gridSelInv_, &super_ ); // A^{-1} in PMatrix format
+			PMatrix PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
 
 			luMat.LUstructToPMatrix( PMloc );
 

@@ -48,7 +48,7 @@ MonotoneRootFinding (
 		throw std::runtime_error( msg.str().c_str() );
 	}
 
-	std::vector<Real>::const_iterator vi = lower_bound( 
+	std::vector<Real>::const_iterator vi = std::lower_bound( 
 			y.begin(), y.end(), val );
 
 	Int idx = vi - y.begin();
@@ -528,6 +528,7 @@ void PPEXSIInertiaCountInterface(
 			Real NeUpper = numElectronExact + EPS;
 
 
+
 			muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower );
 			muUpp = MonotoneRootFinding( shiftVec, inertiaFTVec, NeUpper );
 
@@ -551,6 +552,7 @@ void PPEXSIInertiaCountInterface(
 				Print( statusOFS, "muMax         = ", muMax );
 				statusOFS << std::endl;
 			}
+
 
 			if( inertiaFTVec[numShift-1] - inertiaFTVec[0] < numElectronTolerance ){
 				isConverged = true;
@@ -861,6 +863,7 @@ void PPEXSISolveInterface (
 
 		MPI_Barrier( comm );
 
+
 		// Compute the guess for T=0 chemical potential. Not used anymore
 		//	*muZeroT = pexsi.EstimateZeroTemperatureChemicalPotential(
 		//			temperature,
@@ -1066,8 +1069,9 @@ void PPEXSISelInvInterface (
 		SuperNode super;
 
 		luMat.SymbolicToSuperNode( super );
-		PMatrix PMloc( &g1, &super );
+		PMatrix PMloc( &g1, &super, &luOpt );
 		luMat.LUstructToPMatrix( PMloc );
+
 
 		PMloc.ConstructCommunicationPattern();
 		PMloc.PreSelInv();

@@ -4,6 +4,14 @@
 /// @date 2012-11-03
 #include  "mpi_interf.hpp"
 
+#ifdef USE_TAU
+  #include "TAU.h"
+#elif defined (PROFILE) || defined(PMPI)
+  #define TAU
+  #include "timer.h"
+#endif
+
+
 namespace PEXSI{
 
 // *********************************************************************
@@ -116,7 +124,6 @@ Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
 }		// -----  end of function Recv  ----- 
 
 
-
 // *********************************************************************
 // Wait
 // *********************************************************************
@@ -204,6 +211,7 @@ Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI
 
 	return ;
 }		// -----  end of function Reduce  ----- 
+
 
 void
 Allreduce ( Int* sendbuf, Int* recvbuf, Int count, MPI_Op op, MPI_Comm comm )

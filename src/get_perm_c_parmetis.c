@@ -134,6 +134,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 	rowptr = Astore->rowptr;   /* pointer to rows and column indices */
 	colind = Astore->colind;
 
+
 #if ( PRNTlevel>=1 )
 	if ( !iam ) printf(".. Use parMETIS ordering on A'+A with %d sub-domains.\n",
 										 noDomains);
@@ -150,10 +151,12 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 								 grid->comm);
 	vtxdist_i[nprocs_i] = m;
 
+
 	if (noDomains == nprocs_i) {
 		/* keep the same distribution of A */
-		for (p = 0; p <= nprocs_i; p++)
+		for (p = 0; p <= nprocs_i; p++){
 			vtxdist_o[p] = vtxdist_i[p];
+    }
 	}
 	else {
 		i = n / noDomains;
@@ -183,6 +186,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 														 n, rowptr, colind, noDomains, vtxdist_o,
 														 &bnz, &b_rowptr, &b_colind, grid)) > 0)
 		return (apat_mem_l);
+
 	mem += -apat_mem_l;
 #if ( PRNTlevel>=1 )
 	if ( !iam ) fprintf(stderr,"After computing A + A'.\n");
@@ -211,6 +215,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 		ParMETIS_V3_NodeND(vtxdist_o, b_rowptr, b_colind, 
 											 &numflag, options,
 											 dist_order, l_sizes, metis_comm);
+
 #if ( PRNTlevel>=1 )
 		if ( !iam ) fprintf(stderr,"After actual ParMETIS.\n");
 #endif
@@ -297,6 +302,8 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 	return (-mem);
 
 } /* get_perm_c_parmetis */
+
+
 
 /*! \brief
  *

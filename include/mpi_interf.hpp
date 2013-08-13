@@ -41,7 +41,6 @@ void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
 void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
 		MPI_Comm comm );
 
-
 // *********************************************************************
 // Waitall
 // *********************************************************************

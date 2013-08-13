@@ -1,0 +1,90 @@
+#/usr/bin/bash
+
+PEXSI_DIR     = /global/homes/m/mjac/pexsi/pexsi_pipeline
+DSUPERLU_DIR  = /global/homes/m/mjac/software/SuperLU_DIST_3.3
+PARMETIS_DIR  = /global/homes/m/mjac/software/lib
+METIS_DIR     = /global/homes/m/mjac/software/lib
+SCOTCH_DIR    = /global/homes/m/mjac/software/scotch_6.0.0
+# inclues
+
+PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
+DSUPERLU_INCLUDE = -I${DSUPERLU_DIR}/SRC
+INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} 
+
+# Libraries
+#METIS_LIB        = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libmetis.a 
+#PARMETISLIB	     = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libparmetis.a 
+METIS_LIB        = ${METIS_DIR}/libmetis.a
+PARMETISLIB	     = ${PARMETIS_DIR}/libparmetis.a
+#SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch 
+SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotchmetis -lscotch
+SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
+# DSUPERLU_LIB     = ${DSUPERLU_DIR}/craypgi-xe6_O/lib/libsuperlu_dist_2.5.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_3.3.a
+PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi.a
+
+#LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB}
+#LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETISLIB} ${METIS_LIB} ${IPM} 
+LIBS            = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${SCOTCH_LIB}  ${IPM}
+#LIBS            = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${SCOTCH_LIB}  ${METIS_LIB} ${IPM}
+#LIBS            = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${SCOTCH_LIB} #${PARMETISLIB} ${METIS_LIB}
+
+CC           = cc
+CXX          = CC
+FC           = ftn
+LOADER       = CC
+
+AR           = ar 
+ARFLAGS      = rvcu
+# For System V based machine without ranlib, like Cray and SGI,
+# use touch instead.
+#RANLIB      = touch
+RANLIB       = ranlib
+
+RM           = rm
+RMFLAGS      = -f
+
+# Different compiling and linking options.
+#
+MODE	         = release
+#MODE	         = debug
+
+ifeq ($(MODE), debug)
+	COMMONDEFS   = -DDEBUG=1 
+  CFLAGS       = -O0 -g -w ${INCLUDES}
+  FFLAGS       = -O0 -g -w ${INCLUDES}
+  CXXFLAGS     = -fast -w ${INCLUDES} -DSANITY_CHECK -DSANITY_PRECISION=1e-5
+	CCDEFS       = ${COMMONDEFS}
+	CPPDEFS      = ${COMMONDEFS}
+  LOADOPTS     = ${LIBS}
+  FLOADOPTS    = ${LIBS}
+endif
+
+ifeq ($(MODE), release)
+	COMMONDEFS   = -DRELEASE 
+  CFLAGS       = -fast -w ${INCLUDES}
+  FFLAGS       = -fast -w ${INCLUDES}
+#  CXXFLAGS     = -fast -Mipa=fast -w ${INCLUDES}  
+#  CXXFLAGS     = -fast -w ${INCLUDES}  -DSEND_CROSSDIAG_ASYNC -DSELINV_TIMING -DSELINV_MEMORY
+  CXXFLAGS     = -fast -w ${INCLUDES}  -DSELINV_TIMING -DSELINV_MEMORY -DNO_PARMETIS_FIX
+#  CXXFLAGS     = -fast -w ${INCLUDES}  -DSANITY_CHECK -DSANITY_PRECISION=1e-5 -DSEND_CROSSDIAG_ASYNC -DSELINV_TIMING
+#  CXXFLAGS     = -fast -w ${INCLUDES}  -DSANITY_CHECK -DSANITY_PRECISION=1e-5  -DSELINV_TIMING
+	CCDEFS       = ${COMMONDEFS}
+	CPPDEFS      = ${COMMONDEFS}
+  LOADOPTS     = ${LIBS}
+  FLOADOPTS    = ${LIBS}
+endif
+
+
+# Generate auto-dependencies 
+%.d: %.c
+	@set -e; rm -f $@; \
+	$(CC) -M $(CCDEFS) $(CFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
+	rm -f $@.$$$$
+
+%.d: %.cpp
+	@set -e; rm -f $@; \
+	$(CXX) -M $(CPPDEFS) $(CXXFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
+	rm -f $@.$$$$

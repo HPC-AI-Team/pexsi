@@ -122,7 +122,10 @@ struct SuperLUMatrix::SuperLUData{
 	bool                isSuperMatrixFactorized;
 	bool                isScalePermstructAllocated;
 	bool                isLUstructAllocated;
+
+  Int maxDomains;
 };
+
 
 SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 {
@@ -182,6 +185,11 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 	PopCallStack();
 #endif
 } 		// -----  end of method SuperLUMatrix::SuperLUMatrix  ----- 
+
+
+
+
+
 
 
 SuperLUMatrix::~SuperLUMatrix	(  )
@@ -333,7 +341,7 @@ SuperLUMatrix::SymbolicFactorize	(  )
 	LUstructInit(A.nrow, A.ncol, &ptrData->LUstruct);
 
 	PStatInit(&ptrData->stat);
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 	statusOFS << "Before symbfact subroutine." << std::endl;
 #endif
 	pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
@@ -512,6 +520,48 @@ SuperLUMatrix::DistributeGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sca
 } 		// -----  end of method SuperLUMatrix::DistributeGlobalMultiVector  ----- 
 
 
+void SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUMatrix::GatherDistributedMultiVector");
+#endif
+	SuperMatrix& A = ptrData->A;
+  if( ptrData->A.Stype != SLU_NR_loc ){
+		std::ostringstream msg;
+		msg << "GatherDistributedMultiVector requires SLU_NR_loc matrix with type " << SLU_NR_loc << std::endl
+			<< "The matrix is of type " << ptrData->A.Stype << std::endl;
+		throw std::runtime_error( msg.str().c_str() );
+	}	
+
+	NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
+	
+	Int numRowLocal = Astore->m_loc;
+	Int firstRow    = Astore->fst_row;
+	Int nrhs = xGlobal.n();
+
+  Int maxRows = 0;
+  Int localRows = xLocal.m();
+
+  MPI_Allreduce(&localRows,&maxRows,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+
+  
+
+  NumMat<Scalar> tmpLocal(xGlobal.m(),nrhs);
+	SetValue( tmpLocal, SCALAR_ZERO );
+	for( Int j = 0; j < nrhs; j++ ){
+		std::copy( xLocal.VecData(j), xLocal.VecData(j)+numRowLocal, tmpLocal.VecData(j)+firstRow );
+	}
+
+  MPI_Allreduce(tmpLocal.Data(),xGlobal.Data(),2*tmpLocal.m()*tmpLocal.n(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method SuperLUMatrix::GatherDistributedMultiVector  ----- 
+
+
 void
 SuperLUMatrix::SolveDistMultiVector	( NumMat<Scalar>& bLocal, DblNumVec& berr )
 {
@@ -589,6 +639,91 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 #if ( _DEBUGlevel_ >= 1 )
 	statusOFS << std::endl << "LUstructToPMatrix::L part" << std::endl;
 #endif
+
+
+//  if(ptrData->options.ColPerm == PARMETIS)
+//  {
+//    /* Compute an "etree" based on struct(L), 
+//       assuming struct(U) = struct(L').   */
+//    /* find the first block in each supernodal-column of local L-factor */
+//    Int nsupers = numSuper;
+//    Int myrow = grid->mpirank / grid->numProcCol;
+//    Int mycol = grid->mpirank % grid->numProcCol;
+//
+//    Int ncb = numSuper / grid->numProcCol;
+//    Int lb,jb,i,j,k,krow;
+//    const Int * index;
+//    std::vector<Int> etree_supno_l( nsupers, nsupers  );
+//    for( lb=0; lb<ncb; lb++ ) {
+//      jb = lb * grid->numProcCol + mycol;
+//      index = Llu->Lrowind_bc_ptr[lb];
+//      if ( index ) { /* Not an empty column */
+//        i = index[0];
+//        k = BC_HEADER; 
+//        krow = jb % grid->numProcRow; // PROW( jb, grid );
+//        if( krow == myrow ) { /* skip the diagonal block */
+//          k += LB_DESCRIPTOR + index[k+1];
+//          i--;
+//        }
+//
+//        if( i > 0 ) {
+//          etree_supno_l[jb] = index[k];
+//          k += LB_DESCRIPTOR + index[k+1];
+//          i --;
+//        }
+//  statusOFS<<"jb= "<< jb << " i = "<<i<< " blkidx = "<< (k-BC_HEADER)/LB_DESCRIPTOR;
+//
+//        for( j=0; j<i; j++ ) {
+//          etree_supno_l[jb] = std::min( etree_supno_l[jb], index[k] );
+//          k += LB_DESCRIPTOR + index[k+1];
+//        }
+//  statusOFS<<" parent = "<< etree_supno_l[jb]<<std::endl;
+//      }
+//    }
+//    if( mycol < nsupers % grid->numProcCol ) {
+//      jb = ncb * grid->numProcCol + mycol;
+//      index = Llu->Lrowind_bc_ptr[ncb];
+//      if ( index ) { /* Not an empty column */
+//        i = index[0];
+//        k = BC_HEADER; 
+//        krow = jb % grid->numProcRow; // PROW( jb, grid );
+//        if( krow == myrow ) { /* skip the diagonal block */
+//          k += LB_DESCRIPTOR + index[k+1];
+//          i--;
+//        }
+//        if( i > 0 ) {
+//          etree_supno_l[jb] = index[k];
+//          k += LB_DESCRIPTOR + index[k+1];
+//          i --;
+//        }
+//        for( j=0; j<i; j++ ) {
+//          etree_supno_l[jb] = std::min( etree_supno_l[jb], index[k] );
+//          k += LB_DESCRIPTOR + index[k+1];
+//        }
+//      }
+//    }
+//
+//#if ( _DEBUGlevel_ >= 1 )
+//      statusOFS << std::endl << " Local supernodal elimination tree is " << etree_supno_l <<std::endl<<std::endl;
+//#endif
+//    /* form global e-tree */
+//    std::vector<Int> etree_supno( nsupers, nsupers  );
+//    MPI_Allreduce( &etree_supno_l[0], &etree_supno[0], nsupers, MPI_INT, MPI_MIN, grid->comm );
+//
+//#if ( _DEBUGlevel_ >= 1 )
+//      statusOFS << std::endl << " Supernodal elimination tree is " << etree_supno <<std::endl<<std::endl;
+//#endif
+//
+//
+//
+//  }
+
+
+
+
+
+
+
 	for( Int jb = 0; jb < PMloc.NumLocalBlockCol(); jb++ ){
 		Int bnum = GBj( jb, grid );
 		if( bnum >= numSuper ) continue;
@@ -745,11 +880,15 @@ SuperLUMatrix::SymbolicToSuperNode	( SuperNode& super )
 
 	Int *xsup    = ptrData -> LUstruct.Glu_persist -> xsup;
 	Int *superno = ptrData -> LUstruct.Glu_persist -> supno;
+  Int *etree = ptrData -> LUstruct.etree;
+
 	Int numSuper = superno[ n-1 ] + 1;
   super.superPtr.Resize( numSuper + 1 );
 	std::copy( xsup, xsup + numSuper + 1, super.superPtr.Data() );
 	super.superIdx.Resize( n );
 	std::copy( superno, superno + n, super.superIdx.Data() );
+  super.etree.Resize( n );
+	std::copy( etree, etree + n, super.etree.Data() );
   
 #ifndef _RELEASE_
 	PopCallStack();

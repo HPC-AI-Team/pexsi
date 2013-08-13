@@ -417,6 +417,22 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 		permc_spec = options->ColPerm;
 
 
+
+
+	if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
+	    nprocs_num = grid->nprow * grid->npcol;
+  	    noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
+
+	    /* create a new communicator for the first noDomains
+               processes in grid->comm */
+	    key = iam;
+    	    if (iam < noDomains) col = 0;
+	    else col = MPI_UNDEFINED;
+	    MPI_Comm_split (grid->comm, col, key, &symb_comm );
+
+        }
+
+
 		if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
 			nprocs_num = grid->nprow * grid->npcol;
 			if( *numProcSymbFact == 0 ){

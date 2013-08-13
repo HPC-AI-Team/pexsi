@@ -15,6 +15,8 @@
 #include  "lapack.hpp"
 
 namespace PEXSI{
+  struct SuperNode;
+  class PMatrix;
 
 /// @class SuperLUGrid
 /// @brief A thin interface for the gridinfo_t strucutre in SuperLU.
@@ -38,13 +40,12 @@ public:
 ///
 struct SuperLUOptions{
 	Int              numProcSymbFact;
+  Int              maxPipelineDepth; 
 
 	std::string      ColPerm;
 
 	// Member functions to setup the default value
-	SuperLUOptions(): numProcSymbFact(0), ColPerm("MMD_AT_PLUS_A") {}
-
-	~SuperLUOptions(){};
+	SuperLUOptions(): numProcSymbFact(0), maxPipelineDepth(0), ColPerm("MMD_AT_PLUS_A") {}
 };
 
 /// @class SuperLUMatrix
@@ -150,7 +151,6 @@ private:
 public:
 	
 	SuperLUMatrix( const SuperLUGrid& g, const SuperLUOptions& opt = SuperLUOptions() );
-
 	~SuperLUMatrix();
 
 	Int m() const;
@@ -207,6 +207,8 @@ public:
 	/// @param[in] xGlobal
 	/// @param[out] xLocal
 	void DistributeGlobalMultiVector( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal );
+
+  void GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal );
 
 	/// @brief SolveDistMultiVector A x = b with b overwritten by x for
 	/// distributed multivector.
