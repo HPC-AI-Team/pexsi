@@ -3,7 +3,7 @@
 
 include ../make.inc
 
-SRCS  = run_pexsi.cpp run_ppexsi.cpp run_pselinv.cpp run_error_selinv.cpp
+SRCS  = run_pexsi.cpp run_ppexsi.cpp run_pselinv.cpp 
 
 OBJS = ${SRCS:.cpp=.o}
 DEPS = ${SRCS:.cpp=.d}
@@ -31,11 +31,6 @@ run_pselinv_parmetis: run_pselinv.o ${PEXSI_LIB}
 run_pselinv_ptscotch: run_pselinv.o   ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PTSCOTCH) $(IPM) )
 
-run_error_selinv: run_error_selinv.o   ${PEXSI_LIB} 
-	($(LOADER) -o $@_${SUFFIX} run_error_selinv.o  $(LOADOPTS_PTSCOTCH) $(IPM) )
-
-run_error_selinv.o: run_error_selinv.cpp 
-	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 run_pselinv.o: run_pselinv.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
