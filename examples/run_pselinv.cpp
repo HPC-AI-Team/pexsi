@@ -320,8 +320,7 @@ int main(int argc, char **argv)
       luOpt.ColPerm = ColPerm;
       luOpt.maxPipelineDepth = maxPipelineDepth;
       luOpt.numProcSymbFact = numProcSymbFact;
-      SuperLUMatrix * luMatPtr = new SuperLUMatrix( g, luOpt );
-      SuperLUMatrix & luMat = *luMatPtr;
+      SuperLUMatrix luMat(g, luOpt );
       luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
       GetTime( timeEnd );
       if( mpirank == 0 )
@@ -394,14 +393,7 @@ int main(int argc, char **argv)
           A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
 
           luMat.SolveDistMultiVector( bLocal, berr );
-
-          A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
-          luMat.SolveDistMultiVector( bLocal, berr );
-          A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
-          luMat.SolveDistMultiVector( bLocal, berr );
-          A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
-          luMat.SolveDistMultiVector( bLocal, berr );
-          //          luMat.CheckErrorDistMultiVector( bLocal, xTrueLocal );
+          luMat.CheckErrorDistMultiVector( bLocal, xTrueLocal );
         }
 
         // *********************************************************************
@@ -650,7 +642,7 @@ int main(int argc, char **argv)
 
 
 #ifdef SANITY_CHECK
-          if(doSinv_Original && !checkAccuracy)
+          if(doSinv_Original) 
           {
 
             //sanity check for SelInvPipeline
@@ -701,11 +693,9 @@ int main(int argc, char **argv)
                   cout<<"Permuted indices are ("<<error.i<<","<<error.j<<")"<<std::endl;
                   cout<<"Unpermuted indices are ("<<gi<<","<<gj<<")"<<std::endl;
                 }
-                SuperLUMatrix * AExplicitPtr = new SuperLUMatrix( g );
-                SuperLUMatrix & AExplicit = *AExplicitPtr;
 
-                SuperLUMatrix * GAPtr = new SuperLUMatrix( g );
-                SuperLUMatrix & GA = *GAPtr;
+                SuperLUMatrix AExplicit(g),GA(g);
+
                 AExplicit.DistSparseMatrixToSuperMatrixNRloc( AMat );
                 AExplicit.ConvertNRlocToNC( GA );
 
@@ -714,20 +704,15 @@ int main(int argc, char **argv)
                 IntNumVec cols(1);
                 cols(0)=gj;
 
+if(!mpirank) cout << "i'm alive"<<std::endl;
 
-                NumMat<Scalar>  * xTrueGlobal,* bGlobal;
-                xTrueGlobal= new NumMat<Scalar>(n,1);
-                bGlobal= new NumMat<Scalar>(n,1);
-                CpxNumMat * xTrueLocal, *bLocal;
-                xTrueLocal = new NumMat<Scalar>();
-                bLocal = new NumMat<Scalar>();
-                DblNumVec *  berr = new DblNumVec();
+                NumMat<Scalar>  xTrueGlobal(n,1), bGlobal(n,1);
+                CpxNumMat  xTrueLocal, bLocal;
+                DblNumVec  berr;
 
-
-
-                IdentityCol(cols, *bGlobal );
-                AExplicit.DistributeGlobalMultiVector( *bGlobal,     *bLocal );
-                luMat.SolveDistMultiVector( *bLocal, *berr );
+                IdentityCol(cols, bGlobal );
+                AExplicit.DistributeGlobalMultiVector( bGlobal,     bLocal );
+                luMat.SolveDistMultiVector( bLocal, berr );
 
 
                 Int displs[g1Ptr->mpisize];
@@ -742,47 +727,37 @@ int main(int argc, char **argv)
                 displs[g1Ptr->mpisize-1]=(g1Ptr->mpisize-1)*avgSize*sizeof(Scalar);
 
 
-                MPI_Gatherv(bLocal->Data(), bLocal->m()*sizeof(Scalar), MPI_BYTE, xTrueGlobal->Data(),  rcounts,displs, MPI_BYTE, 0, world_comm);
+                MPI_Gatherv(bLocal.Data(), bLocal.m()*sizeof(Scalar), MPI_BYTE, xTrueGlobal.Data(),  rcounts,displs, MPI_BYTE, 0, world_comm);
 
                 if( mpirank == 0 ){
 
                   Real absErrorOriginal, absErrorBcast, absErrorPipeline;
                   Real relErrorOriginal, relErrorBcast, relErrorPipeline;
 
-                  absErrorPipeline = abs(col(gi) - (*xTrueGlobal)(gi,0));
-                  relErrorPipeline = abs(absErrorPipeline/ (*xTrueGlobal)(gi,0));
+                  absErrorPipeline = abs(col(gi) - (xTrueGlobal)(gi,0));
+                  relErrorPipeline = abs(absErrorPipeline/ (xTrueGlobal)(gi,0));
 
-                  absErrorOriginal = abs(col_Original(gi) - (*xTrueGlobal)(gi,0));
-                  relErrorOriginal = abs(absErrorOriginal/(*xTrueGlobal)(gi,0));
+                  absErrorOriginal = abs(col_Original(gi) - (xTrueGlobal)(gi,0));
+                  relErrorOriginal = abs(absErrorOriginal/(xTrueGlobal)(gi,0));
 
 
                   if(doSinv_Bcast){
-                    absErrorBcast = abs(colBcast(gi) - (*xTrueGlobal)(gi,0));
-                    relErrorBcast = abs(absErrorBcast/(*xTrueGlobal)(gi,0));
+                    absErrorBcast = abs(colBcast(gi) - (xTrueGlobal)(gi,0));
+                    relErrorBcast = abs(absErrorBcast/(xTrueGlobal)(gi,0));
                     cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInvPipeline \t SelInv_Bcast"<<std::endl;
-                    cout<< "Value \t\t"<<(*xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< "\t" << colBcast(gi)<<std::endl;
+                    cout<< "Value \t\t"<<(xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< "\t" << colBcast(gi)<<std::endl;
                     cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<< relErrorPipeline<< "\t" << relErrorBcast<<std::endl;
                     cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<< absErrorPipeline<< "\t" << absErrorBcast<<std::endl<<std::endl;
                   }
                   else{
 
                     cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInvPipeline"<<std::endl;
-                    cout<< "Value \t\t"<<(*xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< std::endl;
+                    cout<< "Value \t\t"<<(xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< std::endl;
                     cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<< relErrorPipeline<< std::endl;
                     cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<< absErrorPipeline<< std::endl<<std::endl;
                   }
                 }     
 
-                delete bGlobal;
-                delete xTrueGlobal;
-                delete xTrueLocal;
-                delete bLocal;
-                delete berr;
-
-
-
-                delete GAPtr;
-                delete AExplicitPtr;
               }
             }
 
@@ -831,11 +806,7 @@ int main(int argc, char **argv)
                   cout<<"Unpermuted indices are ("<<gi<<","<<gj<<")"<<std::endl;
                 }
 
-                SuperLUMatrix * AExplicitPtr = new SuperLUMatrix( g );
-                SuperLUMatrix & AExplicit = *AExplicitPtr;
-
-                SuperLUMatrix * GAPtr = new SuperLUMatrix( g );
-                SuperLUMatrix & GA = *GAPtr;
+                SuperLUMatrix AExplicit( g ), GA( g );
                 AExplicit.DistSparseMatrixToSuperMatrixNRloc( AMat );
                 AExplicit.ConvertNRlocToNC( GA );
 
@@ -844,17 +815,13 @@ int main(int argc, char **argv)
                 IntNumVec cols(1);
                 cols(0)=gj;
 
-                NumMat<Scalar>  * xTrueGlobal,* bGlobal;
-                xTrueGlobal= new NumMat<Scalar>(n,1);
-                bGlobal= new NumMat<Scalar>(n,1);
-                CpxNumMat * xTrueLocal, *bLocal;
-                xTrueLocal = new NumMat<Scalar>();
-                bLocal = new NumMat<Scalar>();
-                DblNumVec *  berr = new DblNumVec();
+                NumMat<Scalar>  xTrueGlobal(n,1), bGlobal(n,1);
+                CpxNumMat  xTrueLocal, bLocal;
+                DblNumVec berr;
 
-                IdentityCol(cols, *bGlobal );
-                AExplicit.DistributeGlobalMultiVector( *bGlobal,     *bLocal );
-                luMat.SolveDistMultiVector( *bLocal, *berr );
+                IdentityCol(cols, bGlobal );
+                AExplicit.DistributeGlobalMultiVector( bGlobal,     bLocal );
+                luMat.SolveDistMultiVector( bLocal, berr );
 
                 Int displs[g2Ptr->mpisize];
                 Int rcounts[g2Ptr->mpisize];
@@ -868,7 +835,7 @@ int main(int argc, char **argv)
                 displs[g2Ptr->mpisize-1]=(g2Ptr->mpisize-1)*avgSize*sizeof(Scalar);
 
 
-                MPI_Gatherv(bLocal->Data(), bLocal->m()*sizeof(Scalar), MPI_BYTE, xTrueGlobal->Data(),  rcounts,displs, MPI_BYTE, 0, world_comm);
+                MPI_Gatherv(bLocal.Data(), bLocal.m()*sizeof(Scalar), MPI_BYTE, xTrueGlobal.Data(),  rcounts,displs, MPI_BYTE, 0, world_comm);
 
                 if( mpirank == 0 ){
 
@@ -876,28 +843,28 @@ int main(int argc, char **argv)
                   Real relErrorOriginal, relErrorBcast, relErrorPipeline;
 
                   if(doSinvPipeline){
-                    absErrorPipeline = abs(col(gi) - (*xTrueGlobal)(gi,0));
-                    relErrorPipeline = abs(absErrorPipeline/(*xTrueGlobal)(gi,0));
+                    absErrorPipeline = abs(col(gi) - (xTrueGlobal)(gi,0));
+                    relErrorPipeline = abs(absErrorPipeline/(xTrueGlobal)(gi,0));
                   }
 
-                  absErrorOriginal = abs(col_Original(gi) - (*xTrueGlobal)(gi,0));
-                  relErrorOriginal = abs(absErrorOriginal/(*xTrueGlobal)(gi,0));
+                  absErrorOriginal = abs(col_Original(gi) - (xTrueGlobal)(gi,0));
+                  relErrorOriginal = abs(absErrorOriginal/(xTrueGlobal)(gi,0));
 
 
-                  absErrorBcast = abs(colBcast(gi) - (*xTrueGlobal)(gi,0));
-                  relErrorBcast = abs(absErrorBcast/(*xTrueGlobal)(gi,0));
+                  absErrorBcast = abs(colBcast(gi) - (xTrueGlobal)(gi,0));
+                  relErrorBcast = abs(absErrorBcast/(xTrueGlobal)(gi,0));
 
                   if(doSinvPipeline){
 
                     cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInvPipeline \t SelInv_Bcast"<<std::endl;
-                    cout<< "Value \t\t"<<(*xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< "\t" << colBcast(gi)<<std::endl;
+                    cout<< "Value \t\t"<<(xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< "\t" << colBcast(gi)<<std::endl;
                     cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<< relErrorPipeline<< "\t" << relErrorBcast<<std::endl;
                     cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<< absErrorPipeline<< "\t" << absErrorBcast<<std::endl<<std::endl;
                   }
                   else{
 
                     cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInv_Bcast"<<std::endl;
-                    cout<< "Value \t\t"<<(*xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t" << colBcast(gi)<<std::endl;
+                    cout<< "Value \t\t"<<(xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t" << colBcast(gi)<<std::endl;
                     cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<<  relErrorBcast<<std::endl;
                     cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<<  absErrorBcast<<std::endl<<std::endl;
                   }
@@ -905,16 +872,7 @@ int main(int argc, char **argv)
 
                 }     
 
-                delete bGlobal;
-                delete xTrueGlobal;
-                delete xTrueLocal;
-                delete bLocal;
-                delete berr;
 
-
-
-                delete GAPtr;
-                delete AExplicitPtr;
               }
 
 
@@ -1027,7 +985,6 @@ int main(int argc, char **argv)
 
       }
 
-      delete luMatPtr;
 
       statusOFS.close();
     }

@@ -584,11 +584,17 @@ SuperLUMatrix::SolveDistMultiVector	( NumMat<Scalar>& bLocal, DblNumVec& berr )
 			&ptrData->stat, &ptrData->info);
 	PStatFree(&ptrData->stat); 
 
+  if ( ptrData->options.SolveInitialized ) {
+    zSolveFinalize(&ptrData->options, &ptrData->SOLVEstruct);
+  }
+
 	if( ptrData->info ){
 		std::ostringstream msg;
 		msg << "Numerical solve error, info =  " << ptrData->info << std::endl;
 		throw std::runtime_error( msg.str().c_str() );
 	}
+
+
 
 
 #ifndef _RELEASE_

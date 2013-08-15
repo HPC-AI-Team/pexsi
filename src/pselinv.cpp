@@ -5298,6 +5298,7 @@ for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
   } 		// -----  end of method PMatrix::PreSelInv  ----- 
 
 
+#ifdef SANITY_CHECK
   void PMatrix::GetColumn	( Int colIdx,  NumVec<Scalar>& col )
   {
 #ifndef _RELEASE_
@@ -5337,7 +5338,7 @@ for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
 
     return ;
   } 		// -----  end of method PMatrix::GetColumn  ----- 
-
+#endif
 
 
 
@@ -5807,15 +5808,6 @@ for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
 
     return ;
   } 		// -----  end of method PMatrix::CompareDiagonal  ----- 
-
-
-
-
-
-
-
-
-
 
 #endif
 
