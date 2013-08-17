@@ -238,6 +238,8 @@ void PPEXSIData::Solve(
 
 	luOpt.ColPerm = ColPerm;
 	luOpt.numProcSymbFact = numProcSymbFact;
+	// TODO Introduce maxPipelineDepth as an adjustable parameter when needed.
+	luOpt.maxPipelineDepth = -1;
 
 	SuperLUMatrix    luMat( *gridSuperLU_, luOpt );  // SuperLU matrix.
 
@@ -591,7 +593,9 @@ void PPEXSIData::Solve(
 
 					PMloc.PreSelInv();
 
-					PMloc.SelInv();
+					// Main subroutine for selected inversion
+					// Use the broadcast pipelined version of SelInv.
+					PMloc.SelInv_Bcast();
 
 					GetTime( timeTotalSelInvEnd );
 

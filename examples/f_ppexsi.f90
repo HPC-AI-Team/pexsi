@@ -65,7 +65,7 @@ inertiaNumElectronTolerance = 100
 PEXSINumElectronTolerance = 1d-2
 ! Number of processors used for each pole. At the moment use mpisize.
 ! Later can be changed to 
-npPerPole        = 16
+npPerPole        = 64
 ! Number of processors used for paralle symbolic factorization. This is only
 ! relevant if PARMETIS/PT-SCOTCH is used.
 npSymbFact       = 8
