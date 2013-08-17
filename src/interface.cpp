@@ -1051,6 +1051,8 @@ void PPEXSISelInvInterface (
 		SuperLUOptions luOpt;
 		luOpt.ColPerm = colPerm;
 		luOpt.numProcSymbFact = npSymbFact;
+		// TODO Introduce maxPipelineDepth as an adjustable parameter when needed.
+		luOpt.maxPipelineDepth = -1;
 
 		SuperLUMatrix luMat( g, luOpt );
 		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
@@ -1077,7 +1079,8 @@ void PPEXSISelInvInterface (
 		PMloc.PreSelInv();
 
 		// Main subroutine for selected inversion
-		PMloc.SelInv();
+		// Use the broadcast pipelined version of SelInv.
+		PMloc.SelInv_Bcast();
 
 		DistSparseMatrix<Complex>  AinvMat;       // A^{-1} in DistSparseMatrix format
 		PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );

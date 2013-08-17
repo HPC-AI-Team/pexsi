@@ -49,10 +49,9 @@ int main(int argc, char **argv)
 
     OptionsCreate(argc, argv, options);
 
-    //set the processor grid size at the highest possible square root.
-    Int nprow = iround( std::sqrt( (double)mpisize) );
-    Int npcol = mpisize / nprow;
-    nprow = npcol;
+    // Default processor number
+    Int nprow = 1;
+    Int npcol = mpisize;
 
     if( options.find("-r") != options.end() ){
       if( options.find("-c") != options.end() ){
