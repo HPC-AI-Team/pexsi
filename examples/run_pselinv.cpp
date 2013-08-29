@@ -258,8 +258,8 @@ int main(int argc, char **argv)
           ParaReadDistSparseMatrix( Sfile.c_str(), SMat, world_comm ); 
         else{
           ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, world_comm ); 
-          ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
-        }
+					ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
+				}
       }
 
       GetTime( timeEnd );

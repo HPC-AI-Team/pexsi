@@ -4,7 +4,7 @@
 /// @date 2013-07-20
 #include <math.h>
 #include "superlu_ddefs.h"
-#define  PRNTlevel 1
+#define  PRNTlevel 0
 
 /// @brief pdsymbfact performs symbolic factorization that can be
 /// reused.

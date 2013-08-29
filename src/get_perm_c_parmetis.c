@@ -15,7 +15,7 @@
 #include <limits.h>
 #include <math.h>
 #include "superlu_ddefs.h"
-#define PRNTlevel 1
+#define PRNTlevel 0
 
 /*
  * Internal protypes
