@@ -589,7 +589,8 @@ void PPEXSIData::Solve(
 
 					luMat.LUstructToPMatrix( PMloc );
 					
-					PMloc.ConstructCommunicationPattern();
+					// Use the broadcast pipelined version of SelInv.
+					PMloc.ConstructCommunicationPattern_Bcast();
 
 					PMloc.PreSelInv();
 
@@ -671,6 +672,10 @@ void PPEXSIData::Solve(
 
 					statusOFS << "Time for postprocessing is " <<
 						timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
+
+
+					// Use the broadcast pipelined version of SelInv.
+					PMloc.DestructCommunicationPattern_Bcast( );
 				}
 				GetTime( timePoleEnd );
 

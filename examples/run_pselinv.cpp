@@ -105,7 +105,7 @@ int main(int argc, char **argv)
         isCSC= ! atoi(options["-T"].c_str());
       }
 
-      int checkAccuracy = true;
+      int checkAccuracy = false;
       if( options.find("-E") != options.end() ){ 
         checkAccuracy= atoi(options["-E"].c_str());
       }
@@ -238,9 +238,10 @@ int main(int argc, char **argv)
       else{
         if(isCSC)
           ParaReadDistSparseMatrix( Sfile.c_str(), SMat, world_comm ); 
-        else
+        else{
           ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, world_comm ); 
-        ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
+					ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
+				}
       }
 
       GetTime( timeEnd );

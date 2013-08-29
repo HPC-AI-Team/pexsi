@@ -1179,7 +1179,7 @@ void PPEXSISelInvInterface (
 		luMat.LUstructToPMatrix( PMloc );
 
 
-		PMloc.ConstructCommunicationPattern();
+		PMloc.ConstructCommunicationPattern_Bcast();
 		PMloc.PreSelInv();
 
 		// Main subroutine for selected inversion
