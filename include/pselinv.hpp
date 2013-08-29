@@ -25,7 +25,6 @@ namespace PEXSI{
   struct SuperLUOptions;
 
 
-  typedef std::map<std::vector<bool> * , std::vector<Int> > bitMaskSnodeIdx;
   typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
 
 #ifdef SANITY_CHECK
@@ -543,21 +542,18 @@ namespace PEXSI{
       //Communicators for the Bcast variant
       NumVec<Int>                       countSendToBelow_;
       bitMaskSet                        maskSendToBelow_;
-      bitMaskSnodeIdx                   maskSendToBelowIdx_;
       std::vector<MPI_Comm>             commSendToBelow_;
       std::vector<MPI_Comm*>            commSendToBelowPtr_;
       std::vector<Int>                  commSendToBelowRoot_;
 
       NumVec<Int>                       countRecvFromBelow_;
       bitMaskSet                        maskRecvFromBelow_;
-      bitMaskSnodeIdx                   maskRecvFromBelowIdx_;
       std::vector<MPI_Comm>             commRecvFromBelow_;
       std::vector<MPI_Comm*>            commRecvFromBelowPtr_;
       std::vector<Int>                  commRecvFromBelowRoot_;
 
       NumVec<Int>                       countSendToRight_;
       bitMaskSet                        maskSendToRight_;
-      bitMaskSnodeIdx                   maskSendToRightIdx_;
       std::vector<MPI_Comm>             commSendToRight_;
       std::vector<MPI_Comm*>            commSendToRightPtr_;
       std::vector<Int>                  commSendToRightRoot_;
@@ -845,9 +841,9 @@ namespace PEXSI{
       /// 2) diag is shared by all processors in grid_->comm through a
       /// Allreduce procedure.
       void GetDiagonal( NumVec<Scalar>& diag );
+      void GetColumn	( Int colIdx,  NumVec<Scalar>& col );
 
 #ifdef SANITY_CHECK
-      void GetColumn	( Int colIdx,  NumVec<Scalar>& col );
       void CompareDiagonal	( PMatrix & Ref, SelInvErrors & errors);
       void CompareOffDiagonal	( PMatrix & Ref,SelInvErrors & errors);
 #endif
