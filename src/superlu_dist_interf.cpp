@@ -153,7 +153,9 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 	options.ParSymbFact       = NO;
 	options.Equil             = NO; 
 	options.ReplaceTinyPivot  = NO;
-	options.PrintStat         = YES;
+	// For output information such as # of nonzeros in L and U
+	// and the memory cost, set PrintStat = YES
+	options.PrintStat         = NO;
 	options.SolveInitialized  = NO;
 
 	if ( opt.ColPerm == "NATURAL" ){

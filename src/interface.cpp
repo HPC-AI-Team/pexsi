@@ -2,7 +2,7 @@
 /// @brief Interface subroutines of PPEXSI that can be called by both C and FORTRAN.
 /// @author Lin Lin
 /// @date 2013-02-03
-// TODO
+// TODO Add a C interface
 //#include "c_pexsi_interface.h"
 #include "ppexsi.hpp"
 #include "blas.hpp"
@@ -12,7 +12,7 @@
 #define iC(fun)  { int ierr=fun; if(ierr!=0) exit(1); }
 #define iA(expr) { if((expr)==0) { std::cerr<<"wrong "<<__LINE__<<" in " <<__FILE__<<std::endl; std::cerr.flush(); exit(1); } }
 
-// FIXME
+// FIXME Force to output basic debug information.
 #define _DEBUGlevel_ 0
 
 using namespace PEXSI;
@@ -95,8 +95,8 @@ void DummyInterface( MPI_Comm comm, int a )
 	return;
 }  // -----  end of function DummyInterface  ----- 
 
-/// @brief Read the sizes of a DistSparseMatrix for allocating memory in
-/// C.
+/// @brief Read the sizes of a DistSparseMatrix in formatted form (txt)
+/// for allocating memory in C.
 extern "C"
 void ReadDistSparseMatrixFormattedHeadInterface (
 		char*    filename,
@@ -187,6 +187,110 @@ void ReadDistSparseMatrixFormattedInterface(
 	return;
 }  
 // -----  end of function ReadDistSparseMatrixFormattedInterface  
+
+
+/// @brief Read the sizes of a DistSparseMatrix in unformatted form
+/// (csc) for allocating memory in C.
+extern "C"
+void ReadDistSparseMatrixHeadInterface (
+		char*    filename,
+		int*     size,
+		int*     nnz,
+		int*     nnzLocal,
+		int*     numColLocal,
+		MPI_Comm comm )
+{
+  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+	std::ifstream fin;
+	if( mpirank == 0 ){
+		fin.open(filename);
+		if( !fin.good() ){
+			throw std::logic_error( "File cannot be openeded!" );
+		}
+		fin.read((char*)size, sizeof(int));
+		fin.read((char*)nnz,  sizeof(int));
+	}
+	
+	MPI_Bcast( &(*size), 1, MPI_INT, 0, comm);
+	MPI_Bcast( &(*nnz),  1, MPI_INT, 0, comm);
+
+	IntNumVec  colptr(*size+1);
+	if( mpirank == 0 ){
+		Int tmp;
+		fin.read((char*)&tmp, sizeof(int));  
+
+		if( tmp != (*size)+1 ){
+			throw std::logic_error( "colptr is not of the right size." );
+		}
+
+		Int* ptr = colptr.Data();
+		fin.read((char*)ptr, (*size+1) * sizeof(int));  
+	}
+
+	MPI_Bcast(colptr.Data(), *size+1, MPI_INT, 0, comm);
+
+	// Compute the number of columns on each processor
+	IntNumVec numColLocalVec(mpisize);
+	Int numColFirst;
+	numColFirst = *size / mpisize;
+  SetValue( numColLocalVec, numColFirst );
+  numColLocalVec[mpisize-1] = *size - numColFirst * (mpisize-1);  
+	// Modify the last entry	
+
+	*numColLocal = numColLocalVec[mpirank];
+
+	*nnzLocal = colptr[mpirank * numColFirst + (*numColLocal)] - 
+		colptr[mpirank * numColFirst];
+	
+	// Close the file
+	if( mpirank == 0 ){
+    fin.close();
+	}
+
+	return;
+}  
+// -----  end of function ReadDistSparseMatrixHeadInterface
+
+/// @brief Actual reading the data of a DistSparseMatrix using MPI-IO,
+/// assuming that the arrays have been allocated outside this
+/// subroutine.
+///
+/// This routine can be much faster than the sequential reading of a
+/// DistSparseMatrix in the presence of a large number of processors.
+extern "C"
+void ParaReadDistSparseMatrixInterface(
+		char*     filename,
+		int       size,
+		int       nnz,
+		int       nnzLocal,
+		int       numColLocal,
+		int*      colptrLocal,
+		int*      rowindLocal,
+		double*   nzvalLocal,
+		MPI_Comm  comm )
+{
+	DistSparseMatrix<Real> A;
+	ParaReadDistSparseMatrix( filename, A, comm );
+	iA( size == A.size );
+	iA( nnz  == A.nnz  );
+	iA( nnzLocal == A.nnzLocal );
+	iA( numColLocal + 1 == A.colptrLocal.m() );
+	
+	blas::Copy( numColLocal+1, A.colptrLocal.Data(), 1,
+			colptrLocal, 1 );
+
+	blas::Copy( nnzLocal, A.rowindLocal.Data(), 1,
+			rowindLocal, 1 );
+
+	blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
+			nzvalLocal, 1 );
+
+	return;
+}  
+// -----  end of function ReadDistSparseMatrixFormattedInterface  
+
+
 
 /// @brief Interface between PPEXSI and C for computing the cumulative
 /// density of states using inertia counts.
@@ -593,8 +697,8 @@ void PPEXSIInertiaCountInterface(
 	{
 		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
-		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
+//		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+//			<< std::endl << e.what() << std::endl;
 		*info = 1;
 #ifndef _RELEASE_
 		DumpCallStack();
@@ -881,8 +985,8 @@ void PPEXSISolveInterface (
 	catch( std::exception& e ) {
 		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
-		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
+//		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+//			<< std::endl << e.what() << std::endl;
 		*info = 1;
 #ifndef _RELEASE_
 		DumpCallStack();
@@ -1095,8 +1199,8 @@ void PPEXSISelInvInterface (
 	catch( std::exception& e ) {
 		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
-		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
+//		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+//			<< std::endl << e.what() << std::endl;
 		*info = 1;
 #ifndef _RELEASE_
 		DumpCallStack();
@@ -1190,8 +1294,8 @@ void PPEXSILocalDOSInterface (
 	catch( std::exception& e ) {
 		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
-		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
+//		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+//			<< std::endl << e.what() << std::endl;
 		*info = 1;
 #ifndef _RELEASE_
 		DumpCallStack();
@@ -1291,6 +1395,61 @@ void FORTRAN(f_read_distsparsematrix_formatted) (
 			f2c_comm( Fcomm ) );
 	return;
 } // -----  end of function f_read_distsparsematrix_formatted  ----- 
+
+/// @brief Read the sizes of a DistSparseMatrix in unformatted form
+/// (csc) for allocating memory in FORTRAN.
+extern "C"
+void FORTRAN(f_read_distsparsematrix_head) (
+		char*    filename,
+		int*     size,
+		int*     nnz,
+		int*     nnzLocal,
+		int*     numColLocal,
+		int*     Fcomm )
+{
+  ReadDistSparseMatrixHeadInterface(
+			filename,
+			size,
+			nnz,
+			nnzLocal,
+			numColLocal,
+			f2c_comm( Fcomm ) );
+
+	return;
+}  // -----  end of function f_read_distsparsematrix_head  
+
+/// @brief Actual reading the data of a DistSparseMatrix using MPI-IO,
+/// assuming that the arrays have been allocated outside this
+/// subroutine.
+///
+/// This routine can be much faster than the sequential reading of a
+/// DistSparseMatrix in the presence of a large number of processors.
+extern "C"
+void FORTRAN(f_para_read_distsparsematrix) (
+		char*    filename,
+		int*     size,
+		int*     nnz,
+		int*     nnzLocal,
+		int*     numColLocal,
+		int*     colptrLocal,
+		int*     rowindLocal,
+		double*  nzvalLocal,
+		int*     Fcomm )
+{
+	ParaReadDistSparseMatrixInterface(
+			filename,
+			*size,
+			*nnz,
+			*nnzLocal,
+			*numColLocal,
+			colptrLocal,
+			rowindLocal,
+			nzvalLocal,
+			f2c_comm( Fcomm ) );
+	return;
+} // -----  end of function f_para_read_distsparsematrix  ----- 
+
+
 
 extern "C" 
 void FORTRAN(f_ppexsi_inertiacount_interface)(
