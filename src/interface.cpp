@@ -1193,6 +1193,9 @@ void PPEXSISelInvInterface (
 
 		blas::Copy( nnzLocal*2, reinterpret_cast<double*>(AinvMat.nzvalLocal.Data()), 
 				1, AinvnzvalLocal, 1 );
+		
+		// Use the broadcast pipelined version of SelInv.
+		PMloc.DestructCommunicationPattern_Bcast( );
 
 		*info = 0;
 	}
