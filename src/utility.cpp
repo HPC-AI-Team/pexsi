@@ -460,7 +460,7 @@ void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& p
 
 
 
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
   char msg[200];
   char * tmp = msg;
   tmp += sprintf(tmp,"P%d ",mpirank);

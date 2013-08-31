@@ -18,13 +18,9 @@
 #ifdef SELINV_TIMING 
 
 #ifdef USE_TAU 
-#define TIMER_START(a) \
-  TAU_START(TOSTRING(a));
-
+#define TIMER_START(a) TAU_START(TOSTRING(a));
 #elif defined (PROFILE)
-#define TIMER_START(a) \
-  TAU_FSTART(a);
-
+#define TIMER_START(a) TAU_FSTART(a);
 #endif
 #else
 #define TIMER_START(a)
@@ -34,13 +30,9 @@
 #ifdef SELINV_TIMING 
 
 #ifdef USE_TAU 
-#define TIMER_STOP(a) \
-  TAU_STOP(TOSTRING(a));
-
+#define TIMER_STOP(a) TAU_STOP(TOSTRING(a));
 #elif defined (PROFILE)
-#define TIMER_STOP(a) \
-  TAU_FSTOP(a);
-
+#define TIMER_STOP(a) TAU_FSTOP(a);
 #endif
 #else
 #define TIMER_STOP(a)
@@ -2241,6 +2233,12 @@ namespace PEXSI{
 
 				}
 			}
+
+#ifdef CLEAR_MASKS
+      //reduce memory usage
+      maskSendToBelow_.clear();
+#endif
+
 		}
 #ifndef _RELEASE_
 		PopCallStack();
@@ -2453,6 +2451,11 @@ namespace PEXSI{
 					commIdx++;
 				}
 			}
+
+#ifdef CLEAR_MASKS
+      //reduce memory usage
+      maskSendToRight_.clear();
+#endif
 		}
 #ifndef _RELEASE_
 		PopCallStack();
@@ -2503,6 +2506,13 @@ namespace PEXSI{
 					commIdx++;
 				}
 			}
+
+
+#ifdef CLEAR_MASKS
+      //reduce memory usage
+      maskRecvFromBelow_.clear();
+#endif
+
 		}
 #ifndef _RELEASE_
 		PopCallStack();
@@ -2730,6 +2740,18 @@ namespace PEXSI{
 		TAU_PROFILE_SET_CONTEXT(grid_->comm);
 #endif
 #endif
+
+
+
+#ifdef SELINV_MEMORY
+#ifdef USE_TAU
+    TAU_TRACK_MEMORY();
+    TAU_TRACK_MEMORY_HEADROOM();
+		TAU_ENABLE_TRACKING_MEMORY();
+		TAU_ENABLE_TRACKING_MEMORY_HEADROOM();
+#endif
+#endif
+
 
 		TIMER_START(SelInvBcast);
 
@@ -3676,6 +3698,31 @@ namespace PEXSI{
 			} // for (ksup) : Main loop
 			TIMER_STOP(Update_L);
 
+
+
+#ifdef CLEAR_BUFFERS
+			arrSstrUrowSend.clear();
+			arrSstrLcolSend.clear();
+			arrSstrUrowSizeSend.clear();
+			arrSstrLcolSizeSend.clear();
+			arrSstrUrowRecv.clear();
+			arrSstrLcolRecv.clear();
+			arrSizeStmFromLeft.clear();
+			arrSizeStmFromAbove.clear();
+			arrLUpdateBuf.clear();
+			arrRowLocalPtr.clear();
+			arrBlockIdxLocal.clear();
+			arrDiagBuf.clear();
+#endif
+
+
+
+
+
+
+
+
+
 #ifndef _RELEASE_
 			PopCallStack();
 #endif
@@ -3692,6 +3739,7 @@ namespace PEXSI{
 
 #ifdef SELINV_MEMORY
 #ifdef USE_TAU
+		TAU_DISABLE_TRACKING_MEMORY_HEADROOM();
 		TAU_DISABLE_TRACKING_MEMORY();
 #endif
 #endif

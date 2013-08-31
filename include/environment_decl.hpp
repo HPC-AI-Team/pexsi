@@ -29,6 +29,7 @@
 // MPI
 #include <mpi.h>
 
+
 // TODO Remove environment_impl.hpp. Move things to utility.hpp and only
 // keep environment.hpp
 // Update numXXX_*.hpp and tinyvec*.hpp

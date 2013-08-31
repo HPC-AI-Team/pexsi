@@ -115,7 +115,7 @@ int main(int argc, char **argv)
         doFacto= atoi(options["-F"].c_str());
       }
 
-      int doSelInv = true;
+      int doSelInv = 1;
       if( options.find("-Sinv") != options.end() ){ 
         doSelInv= atoi(options["-Sinv"].c_str());
       }
@@ -182,15 +182,33 @@ int main(int argc, char **argv)
       if( options.find("-SinvOriginal") != options.end() ){ 
         doSinv_Original = atoi(options["-SinvOriginal"].c_str());
       }
-      Int doSinv_Bcast = 0;
+      Int doSinv_Bcast = 1;
       if( options.find("-SinvBcast") != options.end() ){ 
         doSinv_Bcast = atoi(options["-SinvBcast"].c_str());
       }
 
-      Int doSinvPipeline = 1;
+      Int doSinvPipeline = 0;
       if( options.find("-SinvPipeline") != options.end() ){ 
         doSinvPipeline = atoi(options["-SinvPipeline"].c_str());
       }
+
+
+
+      Int doConstructPattern = 1;
+      if( options.find("-Pattern") != options.end() ){ 
+        doConstructPattern = atoi(options["-Pattern"].c_str());
+      }
+
+      Int doPreSelinv = 1;
+      if( options.find("-PreSelinv") != options.end() ){ 
+        doPreSelinv = atoi(options["-PreSelinv"].c_str());
+      }
+
+      Int doSelinv = 1;
+      if( options.find("-Selinv") != options.end() ){ 
+        doSelinv = atoi(options["-Selinv"].c_str());
+      }
+
 
       Real cshift = 0;
       if( options.find("-Shift") != options.end() ){ 
@@ -436,19 +454,22 @@ int main(int argc, char **argv)
 
             if( mpirank == 0 )
               cout << "Time for converting LUstruct to PMatrix (Bcast) is " << timeEnd  - timeSta << endl;
-
+            
+            if(doConstructPattern){
             GetTime( timeSta );
             PMlocBcast.ConstructCommunicationPattern_Bcast();
             GetTime( timeEnd );
             if( mpirank == 0 )
               cout << "Time for constructing the communication pattern (Bcast) is " << timeEnd  - timeSta << endl;
 
+            if(doPreSelinv){
             GetTime( timeSta );
             PMlocBcast.PreSelInv();
             GetTime( timeEnd );
             if( mpirank == 0 )
               cout << "Time for pre selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
 
+            if(doSelinv){
             GetTime( timeSta );
             PMlocBcast.SelInv_Bcast();
             GetTime( timeEnd );
@@ -473,9 +494,14 @@ int main(int argc, char **argv)
               serialize( diagBcast, ofs, NO_MASK );
               ofs.close();
             }
+            }
+
+            }
+
 
 
             PMlocBcast.DestructCommunicationPattern_Bcast( );
+            }
 
           }
 
@@ -505,31 +531,31 @@ int main(int argc, char **argv)
             GetTime( timeEnd );
 
             if( mpirank == 0 )
-              cout << "Time for converting LUstruct to PMatrix (_Original) is " << timeEnd  - timeSta << endl;
+              cout << "Time for converting LUstruct to PMatrix (Original) is " << timeEnd  - timeSta << endl;
 
             GetTime( timeSta );
             PMlocRef.ConstructCommunicationPattern();
             GetTime( timeEnd );
             if( mpirank == 0 )
-              cout << "Time for constructing the communication pattern (_Original) is " << timeEnd  - timeSta << endl;
+              cout << "Time for constructing the communication pattern (Original) is " << timeEnd  - timeSta << endl;
 
             GetTime( timeSta );
             PMlocRef.PreSelInv();
             GetTime( timeEnd );
             if( mpirank == 0 )
-              cout << "Time for pre selected inversion (_Original) is " << timeEnd  - timeSta << endl;
+              cout << "Time for pre selected inversion (Original) is " << timeEnd  - timeSta << endl;
 
             GetTime( timeSta );
             PMlocRef.SelInv();
             GetTime( timeEnd );
             GetTime( timeTotalSelInvEnd );
             if( mpirank == 0 )
-              cout << "Time for numerical selected inversion (_Original) is " << timeEnd  - timeSta << endl;
+              cout << "Time for numerical selected inversion (Original) is " << timeEnd  - timeSta << endl;
 
 
             GetTime( timeTotalSelInvEnd );
             if( mpirank == 0 )
-              cout << "Time for total selected inversion (_Original) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+              cout << "Time for total selected inversion (Original) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 
 
@@ -882,18 +908,11 @@ if(!mpirank) cout << "i'm alive"<<std::endl;
           }
 #endif
 
-          if(doSinv_Original){
-            delete PMlocRefPtr;
-            delete superRefPtr;
-            delete g3Ptr;
-          }
 
 
+          if(doSinvPipeline || doSinv_Bcast || doSinv_Original){
 
-
-          if(doSinvPipeline || doSinv_Bcast){
-
-            PMatrix * PMloc = doSinvPipeline?PMlocPtr:PMlocBcastPtr;
+            PMatrix * PMloc = doSinvPipeline?PMlocPtr:(doSinv_Bcast?PMlocBcastPtr:PMlocRefPtr);
 
             if(doToDist){
               // Convert to DistSparseMatrix and get the diagonal
@@ -966,6 +985,16 @@ if(!mpirank) cout << "i'm alive"<<std::endl;
             }
 
           }
+
+          if(doSinv_Original){
+            delete PMlocRefPtr;
+            delete superRefPtr;
+            delete g3Ptr;
+          }
+
+
+
+
           if(doSinv_Bcast){
             delete PMlocBcastPtr;
             delete superBcastPtr;
