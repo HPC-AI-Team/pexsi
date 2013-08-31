@@ -165,7 +165,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 				SLU_NR_loc, SLU_D, SLU_GE);
 	}
 	GetTime( timeEnd );
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 	statusOFS << "SuperMatrix is constructed." << std::endl;
 	statusOFS << "Time for SuperMatrix construction is " <<
 		timeEnd - timeSta << " [s]" << std::endl << std::endl;
@@ -177,7 +177,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 		LUstructInit(A.nrow, A.ncol, &LUstruct);
 
 		PStatInit(&stat);
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 		statusOFS << "Before symbfact subroutine." << std::endl;
 #endif
 		pdsymbfact(&options, &A, &ScalePermstruct, grid, 
@@ -185,11 +185,11 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 		PStatFree(&stat);
 	}
 	GetTime( timeEnd );
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 	statusOFS << "Symbolic factorization is finished." << std::endl;
+#endif
 	statusOFS << "Time for symbolic factorization is " <<
 		timeEnd - timeSta << " [s]" << std::endl << std::endl;
-#endif
 	
 	// NOTE: A does not need to be destroyed.  The values of A can
 	// be reused in later factorization.
@@ -251,7 +251,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 			GetTime( timeTotalFactorizationSta );
 
 			// Data redistribution
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 			statusOFS << "Before Distribute." << std::endl;
 #endif
 			{
@@ -279,12 +279,12 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 						&A, &ScalePermstruct, NULL, &LUstruct, grid);
 				statusOFS << "Memory usage = " << dist_mem_use << std::endl;
 			}
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 			statusOFS << "After Distribute." << std::endl;
 #endif
 
 			// Numerical factorization
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 			statusOFS << "Before NumericalFactorize." << std::endl;
 #endif
 			{
@@ -302,7 +302,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 					throw std::runtime_error( msg.str().c_str() );
 				}
 			}
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
 			statusOFS << "After NumericalFactorize." << std::endl;
 #endif
 
