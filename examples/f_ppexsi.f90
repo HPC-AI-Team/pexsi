@@ -46,7 +46,7 @@ K2au             = 3.1668152d-6
 temperature      = 300.0d0 * K2au
 
 numElectronExact = 2442.0d0
-numPole          = 64
+numPole          = 40
 gap              = 0.0d0
 ! deltaE is in theory the spectrum width, but in practice can be much smaller
 ! than | E_max - mu |.  It is found that deltaE that is slightly bigger
@@ -56,7 +56,7 @@ deltaE           = 30.0d0
 muMin0           = -1.0d0
 muMax0           =  0.0d0
 ! Maximum number of iterations for computing the inertia
-inertiaMaxIter   = 3
+inertiaMaxIter   = 1
 ! Maximum number of iterations for PEXSI iteration
 muMaxIter        = 3
 ! Stop inertia count if Ne(muMax) - Ne(muMin) < inertiaNumElectronTolerance
@@ -65,14 +65,14 @@ inertiaNumElectronTolerance = 100
 PEXSINumElectronTolerance = 1d-2
 ! Number of processors used for each pole. At the moment use mpisize.
 ! Later can be changed to 
-npPerPole        = 64
+npPerPole        = 16
 ! Number of processors used for paralle symbolic factorization. This is only
 ! relevant if PARMETIS/PT-SCOTCH is used.
-npSymbFact       = 8
+npSymbFact       = 4
 
-Hfile            = "H.matrix"
+Hfile            = "../H.matrix"
 ! Empty Sfile means the overlap matrix is identity
-Sfile            = "S.matrix"
+Sfile            = "../S.matrix"
 ! Whether S is an identity matrix
 isSIdentity      = 0
 

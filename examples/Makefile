@@ -36,7 +36,7 @@ run_pselinv.o: run_pselinv.cpp
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 f_ppexsi: f_ppexsi.o ${PEXSI_LIB} 
-	  ($(FC) -o $@ f_ppexsi.o  $(FLOADOPTS) )
+	  ($(FC) -o $@_${SUFFIX} f_ppexsi.o  $(FLOADOPTS) )
 
 f_ppexsi.o: f_ppexsi.f90
 	  ${FC} -c ${FFLAGS} $<

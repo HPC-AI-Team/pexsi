@@ -4,6 +4,8 @@
 /// @date 2012-11-20
 #include "ppexsi.hpp"
 
+#define _DEBUGlevel_ 0
+
 namespace PEXSI{
 
 PPEXSIData::PPEXSIData	( const PEXSI::Grid* g, Int nprow, Int npcol ): gridPole_(g)
