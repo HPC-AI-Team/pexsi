@@ -28,6 +28,7 @@ integer:: npPerPole, nprow, npcol, npSymbFact
 integer :: mpirank, mpisize, ierr
 double precision:: timeSta, timeEnd
 character*32 :: Hfile, Sfile
+integer:: isFormatted
 integer:: isSIdentity
 ! Communicator for reading the matrix, with size npPerPole
 integer:: readComm
@@ -35,12 +36,33 @@ integer:: isProcRead
 integer:: info
 integer:: i
 
+
+namelist/InputVars/ &
+	numElectronExact    ,&
+	numPole             ,&
+	gap                 ,&
+	deltaE              ,&
+	muMin0              ,&
+	muMax0              ,&
+	inertiaMaxIter      ,&
+	muMaxIter           ,&
+	inertiaNumElectronTolerance ,&
+	PEXSINumElectronTolerance   ,&
+	npPerPole           ,&
+	npSymbFact          ,&
+	Hfile               ,&
+	Sfile               ,&
+  isFormatted         ,&
+	isSIdentity         ,&
+	ordering            
+
+
 call mpi_init( ierr )
 call mpi_comm_rank( MPI_COMM_WORLD, mpirank, ierr )
 call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 
-! Data is for the DNA matrix.
+! Below are the default parameters which are obtained from the DNA matrix
 K2au             = 3.1668152d-6
 ! Temperature should be in the same unit as the H matrix. Here it is Hartree.
 temperature      = 300.0d0 * K2au
@@ -65,22 +87,49 @@ inertiaNumElectronTolerance = 100
 PEXSINumElectronTolerance = 1d-2
 ! Number of processors used for each pole. At the moment use mpisize.
 ! Later can be changed to 
-npPerPole        = 16
+npPerPole        = 4
 ! Number of processors used for paralle symbolic factorization. This is only
 ! relevant if PARMETIS/PT-SCOTCH is used.
-npSymbFact       = 4
+npSymbFact       = 1
 
-Hfile            = "../H.matrix"
+Hfile            = "H.matrix"
 ! Empty Sfile means the overlap matrix is identity
-Sfile            = "../S.matrix"
+Sfile            = "S.matrix"
 ! Whether S is an identity matrix
-isSIdentity      = 0
+isSIdentity      = 1
+! Whether the H and S files are formatted
+isFormatted      = 1
 
 ! Ordering 
 !   0   : PARMETIS
 !   1   : METIS_AT_PLUS_A
 !   2   : MMD_AT_PLUS_A
-ordering         = 0
+ordering         = 2
+
+! Read the actual input parameters from standard input
+if( mpirank  == 0 ) then
+	read(unit=*, nml=InputVars)
+endif
+
+! Broadcast the input parameters
+
+call MPI_BCAST( numElectronExact, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( numPole, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( gap, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( deltaE, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( muMin0, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( muMax0, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( inertiaMaxIter, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( muMaxIter, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr ) 
+call MPI_BCAST( inertiaNumElectronTolerance, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( PEXSINumElectronTolerance, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( npPerPole, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr ) 
+call MPI_BCAST( npSymbFact, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr ) 
+call MPI_BCAST( Hfile, len(Hfile), MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( Sfile, len(Sfile), MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr )
+call MPI_BCAST( isFormatted, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr ) 
+call MPI_BCAST( isSIdentity, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr ) 
+call MPI_BCAST( ordering, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr ) 
 
 
 ! Read and compute the size/local size of the arrays 
@@ -106,13 +155,23 @@ allocate( inertiaList( numPole ) )
 
 if( isProcRead == 1 ) then
 	write(*,*) "Proc ", mpirank, " is reading file..."
-	call f_read_distsparsematrix_formatted_head( &
-		trim(Hfile)//char(0),&
-		nrows,&
-		nnz,&
-		nnzLocal,&
-		numColLocal,&
-		readComm )
+  if( isFormatted == 1 ) then
+		call f_read_distsparsematrix_formatted_head( &
+			trim(Hfile)//char(0),&
+			nrows,&
+			nnz,&
+			nnzLocal,&
+			numColLocal,&
+			readComm )
+	else
+		call f_read_distsparsematrix_head( &
+			trim(Hfile)//char(0),&
+			nrows,&
+			nnz,&
+			nnzLocal,&
+			numColLocal,&
+			readComm )
+	endif
 
 	if( mpirank .eq. 0 ) then
 		write(*,*) "Matrix size (local data on proc 0):" 
@@ -134,28 +193,54 @@ if( isProcRead == 1 ) then
 
 	timeSta = mpi_wtime()
 
-	call f_read_distsparsematrix_formatted (&
-		trim(Hfile)//char(0),&
-		nrows,&
-		nnz,&
-		nnzLocal,&
-		numColLocal,&
-		colptrLocal,&
-		rowindLocal,&
-		HnzvalLocal,&
-		readComm )
-
-	if( isSIdentity == 0 ) then
+	if( isFormatted == 1 ) then
 		call f_read_distsparsematrix_formatted (&
-			trim(Sfile)//char(0),&
+			trim(Hfile)//char(0),&
 			nrows,&
 			nnz,&
 			nnzLocal,&
 			numColLocal,&
 			colptrLocal,&
 			rowindLocal,&
-			SnzvalLocal,&
-			readComm )	
+			HnzvalLocal,&
+			readComm )
+	else
+		call f_para_read_distsparsematrix (&
+			trim(Hfile)//char(0),&
+			nrows,&
+			nnz,&
+			nnzLocal,&
+			numColLocal,&
+			colptrLocal,&
+			rowindLocal,&
+			HnzvalLocal,&
+			readComm )
+	endif
+
+	if( isSIdentity == 0 ) then
+		if( isFormatted == 1 ) then
+			call f_read_distsparsematrix_formatted (&
+				trim(Sfile)//char(0),&
+				nrows,&
+				nnz,&
+				nnzLocal,&
+				numColLocal,&
+				colptrLocal,&
+				rowindLocal,&
+				SnzvalLocal,&
+				readComm )	
+		else
+			call f_para_read_distsparsematrix (&
+				trim(Sfile)//char(0),&
+				nrows,&
+				nnz,&
+				nnzLocal,&
+				numColLocal,&
+				colptrLocal,&
+				rowindLocal,&
+				SnzvalLocal,&
+				readComm )	
+		endif
 	endif
 
 	timeEnd = mpi_wtime()
@@ -169,8 +254,8 @@ if( mpirank == 0 ) then
 		timeEnd - timeSta, " [s]"
 endif
 
-! Only the first pole group participates in the computation of the selected
-! inversion for a single shift.
+!Only the first pole group participates in the computation of the selected
+!inversion for a single shift.
 if( isProcRead == 1 ) then
 	Energy = 1.0;
 	eta    = 0.001;

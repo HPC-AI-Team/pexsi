@@ -30,7 +30,7 @@ Int SeparateRead(std::string name, std::istringstream& is)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);  //cerr<<filename<<endl;
   ifstream fin(filename);
 	if( !fin.good() ){
-		throw std::logic_error( "File cannot be openeded!" );
+		throw std::logic_error( "File cannot be opened!" );
 	}
  
  	is.str( std::string(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>()) );
@@ -57,7 +57,7 @@ Int SeparateWrite(std::string name, std::ostringstream& os)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);
   ofstream fout(filename);
 	if( !fout.good() ){
-		throw std::logic_error( "File cannot be openeded!" );
+		throw std::logic_error( "File cannot be opened!" );
 	}
   fout<<os.str();
   fout.close();
@@ -83,7 +83,7 @@ Int SharedRead(std::string name, std::istringstream& is)
   if(mpirank==0) {
     ifstream fin(name.c_str());
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be openeded!" );
+			throw std::logic_error( "File cannot be opened!" );
 		}
     //std::string str(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>());
     //tmpstr.insert(tmpstr.end(), str.begin(), str.end());
@@ -120,7 +120,7 @@ Int SharedWrite(std::string name, std::ostringstream& os)
   if(mpirank==0) {
     ofstream fout(name.c_str());
 		if( !fout.good() ){
-			throw std::logic_error( "File cannot be openeded!" );
+			throw std::logic_error( "File cannot be opened!" );
 		}
     fout<<os.str();
     fout.close();
@@ -232,7 +232,7 @@ void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be openeded!" );
+			throw std::logic_error( "File cannot be opened!" );
 		}
 		fin.read((char*)&pspmat.size, sizeof(Int));
 		fin.read((char*)&pspmat.nnz,  sizeof(Int));
@@ -407,7 +407,7 @@ void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& p
   err = MPI_File_open(comm,(char*) filename, filemode, MPI_INFO_NULL,  &fout);
 
   if (err != MPI_SUCCESS) {
-    throw std::logic_error( "File cannot be openeded!" );
+    throw std::logic_error( "File cannot be opened!" );
   }
 
   // Write header
@@ -551,7 +551,7 @@ void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& ps
   err = MPI_File_open(comm,(char*) filename, filemode, MPI_INFO_NULL,  &fin);
 
   if (err != MPI_SUCCESS) {
-    throw std::logic_error( "File cannot be openeded!" );
+    throw std::logic_error( "File cannot be opened!" );
   }
 
   // Read header
@@ -691,7 +691,7 @@ void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatrix<Real
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be openeded!" );
+			throw std::logic_error( "File cannot be opened!" );
 		}
 		Int dummy;
 		fin >> pspmat.size >> dummy;
