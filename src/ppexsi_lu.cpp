@@ -189,7 +189,8 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 		PStatFree(&stat);
 
 		statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
-		statusOFS << std::setprecision(2) << "Total: " << totalMemory << ", Average: " << 
+		statusOFS << std::resetiosflags(std::ios::scientific) <<
+			std::setprecision(4) << "Total: " << totalMemory << ", Average: " << 
 			totalMemory / ( grid->nprow * grid->npcol )
 			<< ", Max: " << maxMemory << std::endl << std::endl;
 
@@ -286,9 +287,8 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 				// Distribute Pc*Pr*diag(R)*A*diag(C)*Pc' into L and U storage.  
 				// NOTE: the row permutation Pc*Pr is applied internally in the
 				// distribution routine. 
-				float dist_mem_use = pddistribute(SamePattern_SameRowPerm, A.nrow, 
+				pddistribute(SamePattern_SameRowPerm, A.nrow, 
 						&A, &ScalePermstruct, NULL, &LUstruct, grid);
-				statusOFS << "Memory usage = " << dist_mem_use << std::endl;
 			}
 #if ( _DEBUGlevel_ >= 1 )
 			statusOFS << "After Distribute." << std::endl;

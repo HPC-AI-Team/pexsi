@@ -357,7 +357,8 @@ SuperLUMatrix::SymbolicFactorize	(  )
 	PStatFree(&ptrData->stat);
 
 	statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
-  statusOFS << std::setprecision(2) << "Total: " << totalMemory << ", Average: " << 
+	statusOFS << std::resetiosflags(std::ios::scientific) <<
+		std::setprecision(4) << "Total: " << totalMemory << ", Average: " << 
 		totalMemory / ( ptrData->grid->nprow * ptrData->grid->npcol )
 		<< ", Max: " << maxMemory << std::endl << std::endl;
 
