@@ -11,16 +11,16 @@ void
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
 		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
 		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
-		int *info);
+		int *info, double *totalMemory, double *maxMemory );
 }
 #else
-// TODO pdsymbfact
 #include "superlu_ddefs.h"
 #include "Cnames.h"
 extern "C"{ void
 pdsymbfact(superlu_options_t *options, SuperMatrix *A, 
 		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *info);
+		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
+		int *info, double *totalMemory, double *maxMemory );
 }
 #endif
 
@@ -124,6 +124,7 @@ struct SuperLUMatrix::SuperLUData{
 	bool                isLUstructAllocated;
 
   Int maxDomains;
+
 };
 
 
@@ -346,9 +347,21 @@ SuperLUMatrix::SymbolicFactorize	(  )
 #if ( _DEBUGlevel_ >= 1 )
 	statusOFS << "Before symbfact subroutine." << std::endl;
 #endif
+
+	double totalMemory, maxMemory;
+
+
 	pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
-			&ptrData->LUstruct, &ptrData->stat, &ptrData->numProcSymbFact, &ptrData->info);
+			&ptrData->LUstruct, &ptrData->stat, &ptrData->numProcSymbFact, &ptrData->info,
+			&totalMemory, &maxMemory);
 	PStatFree(&ptrData->stat);
+
+	statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
+  statusOFS << std::setprecision(2) << "Total: " << totalMemory << ", Average: " << 
+		totalMemory / ( ptrData->grid->nprow * ptrData->grid->npcol )
+		<< ", Max: " << maxMemory << std::endl << std::endl;
+
+
 
 	ptrData->isScalePermstructAllocated = true;
   ptrData->isLUstructAllocated        = true; 

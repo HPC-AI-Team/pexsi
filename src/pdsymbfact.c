@@ -16,7 +16,8 @@ void
 pdsymbfact(superlu_options_t *options, SuperMatrix *A, 
 		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
 		LUstruct_t *LUstruct, SuperLUStat_t *stat, 
-		int *numProcSymbFact, int *info)
+		int *numProcSymbFact, int *info, double *totalMemory,
+		double *maxMemory)
 {
 	NRformat_loc *Astore;
 	SuperMatrix GA;      /* Global A in NC format */
@@ -596,7 +597,8 @@ distribution routine. */
 		// pdgstrf(options, m, n, anorm, LUstruct, grid, stat, info);
 		stat->utime[FACT] = SuperLU_timer_() - t;
 
-		if ( options->PrintStat ) {
+		// LL: The memory output is modified.
+		{
 			int_t TinyPivots;
 			float for_lu, total, max, avg, temp;
 
@@ -633,12 +635,18 @@ distribution routine. */
 			MPI_Reduce( &num_mem_usage.total, &total,
 					1, MPI_FLOAT, MPI_SUM, 0, grid->comm );
 
-			if ( !iam ) {
-				printf("\tNUMfact space (MB) sum(procs):  L\\U\t%.2f\tall\t%.2f\n",
-						for_lu*1e-6, total*1e-6);
-				printf("\tTotal highmark (MB):  "
-						"All\t%.2f\tAvg\t%.2f\tMax\t%.2f\n",
-						avg*1e-6, avg/grid->nprow/grid->npcol*1e-6, max*1e-6);
+			*totalMemory = avg * 1e-6;
+			*maxMemory   = max * 1e-6;
+
+
+			if ( options->PrintStat ) {
+				if ( !iam ) {
+					printf("\tNUMfact space (MB) sum(procs):  L\\U\t%.2f\tall\t%.2f\n",
+							for_lu*1e-6, total*1e-6);
+					printf("\tTotal highmark (MB):  "
+							"All\t%.2f\tAvg\t%.2f\tMax\t%.2f\n",
+							avg*1e-6, avg/grid->nprow/grid->npcol*1e-6, max*1e-6);
+				}
 			}
 		}
 
