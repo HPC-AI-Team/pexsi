@@ -189,8 +189,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 		PStatFree(&stat);
 
 		statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
-		statusOFS << std::resetiosflags(std::ios::scientific) <<
-			std::setprecision(4) << "Total: " << totalMemory << ", Average: " << 
+		statusOFS << "Total: " << totalMemory << ", Average: " << 
 			totalMemory / ( grid->nprow * grid->npcol )
 			<< ", Max: " << maxMemory << std::endl << std::endl;
 
