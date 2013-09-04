@@ -1,6 +1,6 @@
 /// @file run_pselinv.cpp
 /// @brief Test for the interface of SuperLU_DIST and SelInv.
-/// @author Lin Lin
+/// @author Lin Lin and Mathias Jacquelin
 /// @date 2013-04-15
 #include  "ppexsi.hpp"
 

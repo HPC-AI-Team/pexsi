@@ -12,12 +12,12 @@
 /// pzsymbfact is a simplified version of the driver subroutine pzgssvx
 /// from SuperLU_DIST. For its use see SuperLUMatrix for more
 /// information.
-void
+	void
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
-		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-		LUstruct_t *LUstruct, SuperLUStat_t *stat, 
-		int *numProcSymbFact, int *info, double *totalMemory,
-		double *maxMemory)
+					 ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+					 LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+					 int *numProcSymbFact, int *info, double *totalMemory,
+					 double *maxMemory)
 {
 	NRformat_loc *Astore;
 	SuperMatrix GA;      /* Global A in NC format */
@@ -100,7 +100,7 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 		*info = -1;
 		fprintf(stderr, "Extra precise iterative refinement yet to support.");
 	} else if ( A->nrow != A->ncol || A->nrow < 0 || A->Stype != SLU_NR_loc
-			|| A->Dtype != SLU_Z || A->Mtype != SLU_GE )
+							|| A->Dtype != SLU_Z || A->Mtype != SLU_GE )
 		*info = -2;
 	if ( *info ) {
 		i = -(*info);
@@ -244,7 +244,7 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 		 * for large diagonal is sought after.
 		 */
 		if ( Fact != SamePattern_SameRowPerm &&
-				(parSymbFact == NO || options->RowPerm != NO) ) {
+				 (parSymbFact == NO || options->RowPerm != NO) ) {
 
 			need_value = (options->RowPerm == LargeDiag);
 
@@ -287,7 +287,7 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 					if ( !iam ) {
 						/* Process 0 finds a row permutation */
 						zldperm(job, m, nnz, colptr, rowind, a_GA,
-								perm_r, R1, C1);
+										perm_r, R1, C1);
 
 						MPI_Bcast( perm_r, m, mpi_int_t, 0, grid->comm );
 						if ( job == 5 && Equil ) {
@@ -418,22 +418,6 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 		permc_spec = options->ColPerm;
 
 
-
-
-	if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
-	    nprocs_num = grid->nprow * grid->npcol;
-  	    noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
-
-	    /* create a new communicator for the first noDomains
-               processes in grid->comm */
-	    key = iam;
-    	    if (iam < noDomains) col = 0;
-	    else col = MPI_UNDEFINED;
-	    MPI_Comm_split (grid->comm, col, key, &symb_comm );
-
-        }
-
-
 		if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
 			nprocs_num = grid->nprow * grid->npcol;
 			if( *numProcSymbFact == 0 ){
@@ -469,8 +453,8 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 				if( !iam ) fprintf(stderr,"Before get_perm_c_parmetis.");
 #endif
 				flinfo = get_perm_c_parmetis(A, perm_r, perm_c, nprocs_num,
-						noDomains, &sizes, &fstVtxSep,
-						grid, &symb_comm);
+																		 noDomains, &sizes, &fstVtxSep,
+																		 grid, &symb_comm);
 #if ( PRNTlevel >= 1 )
 				if( !iam ) fprintf(stderr,"After get_perm_c_parmetis.");
 #endif
@@ -510,16 +494,16 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 #if ( PRNTlevel>=1 ) 
 				if ( !iam )
 					printf(".. symbfact(): relax %4d, maxsuper %4d, fill %4d\n",
-							sp_ienv_dist(2), sp_ienv_dist(3), sp_ienv_dist(6));
+								 sp_ienv_dist(2), sp_ienv_dist(3), sp_ienv_dist(6));
 #endif
 				t = SuperLU_timer_();
 				if ( !(Glu_freeable = (Glu_freeable_t *)
-							SUPERLU_MALLOC(sizeof(Glu_freeable_t))) )
+							 SUPERLU_MALLOC(sizeof(Glu_freeable_t))) )
 					ABORT("Malloc fails for Glu_freeable.");
 
 				/* Every process does this. */
 				iinfo = symbfact(options, iam, &GAC, perm_c, etree, 
-						Glu_persist, Glu_freeable);
+												 Glu_persist, Glu_freeable);
 
 				stat->utime[SYMBFAC] = SuperLU_timer_() - t;
 				if ( iinfo < 0 ) { /* Successful return */
@@ -530,12 +514,12 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 						printf("\tSize of G(L) %ld\n", Glu_freeable->xlsub[n]);
 						printf("\tSize of G(U) %ld\n", Glu_freeable->xusub[n]);
 						printf("\tint %d, short %d, float %d, double %d\n", 
-								sizeof(int_t), sizeof(short), sizeof(float),
-								sizeof(double));
+									 sizeof(int_t), sizeof(short), sizeof(float),
+									 sizeof(double));
 						printf("\tSYMBfact (MB):\tL\\U %.2f\ttotal %.2f\texpansions %d\n",
-								symb_mem_usage.for_lu*1e-6, 
-								symb_mem_usage.total*1e-6,
-								symb_mem_usage.expansions);
+									 symb_mem_usage.for_lu*1e-6, 
+									 symb_mem_usage.total*1e-6,
+									 symb_mem_usage.expansions);
 					}
 #endif
 				} else {
@@ -551,9 +535,9 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 				if( !iam ) fprintf(stderr,"Before symbfact_dist.");
 #endif
 				flinfo = symbfact_dist(nprocs_num, noDomains, A, perm_c, perm_r,
-						sizes, fstVtxSep, &Pslu_freeable, 
-						&(grid->comm), &symb_comm,
-						&symb_mem_usage); 
+															 sizes, fstVtxSep, &Pslu_freeable, 
+															 &(grid->comm), &symb_comm,
+															 &symb_mem_usage); 
 #if ( PRNTlevel >= 1 )
 				if( !iam ) fprintf(stderr,"After symbfact_dist.");
 #endif
@@ -584,7 +568,7 @@ NOTE: the row permutation Pc*Pr is applied internally in the
 distribution routine. */
 			t = SuperLU_timer_();
 			dist_mem_use = pzdistribute(Fact, n, A, ScalePermstruct,
-					Glu_freeable, LUstruct, grid);
+																	Glu_freeable, LUstruct, grid);
 			stat->utime[DIST] = SuperLU_timer_() - t;
 
 			/* Deallocate storage used in symbolic factorization. */
@@ -601,7 +585,7 @@ distribution routine. */
 
 			t = SuperLU_timer_();
 			dist_mem_use = zdist_psymbtonum(Fact, n, A, ScalePermstruct,
-					&Pslu_freeable, LUstruct, grid);
+																			&Pslu_freeable, LUstruct, grid);
 			if (dist_mem_use > 0)
 				ABORT ("Not enough memory available for dist_psymbtonum\n");
 
@@ -632,26 +616,26 @@ distribution routine. */
 					temp = SUPERLU_MAX(temp, GA_mem_use);
 			} else {
 				temp = SUPERLU_MAX (
-						symb_mem_usage.total + GA_mem_use, /* symbfact step */
-						symb_mem_usage.for_lu + dist_mem_use +
-						num_mem_usage.for_lu  /* distribution step */
-						);
+														symb_mem_usage.total + GA_mem_use, /* symbfact step */
+														symb_mem_usage.for_lu + dist_mem_use +
+														num_mem_usage.for_lu  /* distribution step */
+													 );
 			}
 
 			temp = SUPERLU_MAX(temp, num_mem_usage.total);
 
 			MPI_Reduce( &temp, &max,
-					1, MPI_FLOAT, MPI_MAX, 0, grid->comm );
+									1, MPI_FLOAT, MPI_MAX, 0, grid->comm );
 			MPI_Reduce( &temp, &avg,
-					1, MPI_FLOAT, MPI_SUM, 0, grid->comm );
+									1, MPI_FLOAT, MPI_SUM, 0, grid->comm );
 			MPI_Allreduce( &stat->TinyPivots, &TinyPivots, 1, mpi_int_t,
-					MPI_SUM, grid->comm );
+										 MPI_SUM, grid->comm );
 			stat->TinyPivots = TinyPivots;
 
 			MPI_Reduce( &num_mem_usage.for_lu, &for_lu,
-					1, MPI_FLOAT, MPI_SUM, 0, grid->comm );
+									1, MPI_FLOAT, MPI_SUM, 0, grid->comm );
 			MPI_Reduce( &num_mem_usage.total, &total,
-					1, MPI_FLOAT, MPI_SUM, 0, grid->comm );
+									1, MPI_FLOAT, MPI_SUM, 0, grid->comm );
 
 			*totalMemory = avg * 1e-6;
 			*maxMemory   = max * 1e-6;
@@ -660,10 +644,10 @@ distribution routine. */
 			if ( options->PrintStat ) {
 				if ( !iam ) {
 					printf("\tNUMfact space (MB) sum(procs):  L\\U\t%.2f\tall\t%.2f\n",
-							for_lu*1e-6, total*1e-6);
+								 for_lu*1e-6, total*1e-6);
 					printf("\tTotal highmark (MB):  "
-							"All\t%.2f\tAvg\t%.2f\tMax\t%.2f\n",
-							avg*1e-6, avg/grid->nprow/grid->npcol*1e-6, max*1e-6);
+								 "All\t%.2f\tAvg\t%.2f\tMax\t%.2f\n",
+								 avg*1e-6, avg/grid->nprow/grid->npcol*1e-6, max*1e-6);
 				}
 			}
 		}
