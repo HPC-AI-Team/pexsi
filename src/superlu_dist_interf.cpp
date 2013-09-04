@@ -158,6 +158,9 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 	// and the memory cost, set PrintStat = YES
 	options.PrintStat         = NO;
 	options.SolveInitialized  = NO;
+	// Necessary to invoke static scheduling of SuperLU
+	options.lookahead_etree   = YES;
+	options.SymPattern        = YES;
 
 	if ( opt.ColPerm == "NATURAL" ){
 		options.ColPerm = NATURAL;
