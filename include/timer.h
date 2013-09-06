@@ -1,3 +1,6 @@
+/// @file timer.h
+/// @brief Profiling and timing using TAU
+/// @date 2013-09-06
 #ifndef __TIMER_H__
 #define __TIMER_H__
 

@@ -1,3 +1,8 @@
+/* NOTE: 
+ * It is not necessary to include this file in the final package of PEXSI.  
+ * However, including this file can facilitate the debugging process. 
+ */
+
 /*! @file
  * \brief Gets matrix permutation
  *

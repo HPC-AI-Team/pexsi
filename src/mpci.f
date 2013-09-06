@@ -1,3 +1,6 @@
+      ! NOTE: This function is superceded by the MonotoneRootFinding
+      ! routine in interface.cpp.
+
       real*8 function mpci(t, n, x, y)
       implicit none
       real*8, intent(in) :: t

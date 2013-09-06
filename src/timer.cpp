@@ -1,3 +1,6 @@
+/// @file timer.cpp
+/// @brief Profiling and timing using TAU
+/// @date 2013-09-06
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>

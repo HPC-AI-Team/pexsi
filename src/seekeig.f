@@ -1,3 +1,5 @@
+      ! NOTE: This function is superceded by the MonotoneRootFinding
+      ! routine in interface.cpp.
       real*8 function seekeig(cdf, n, x, y, mu)
       implicit none
 !
