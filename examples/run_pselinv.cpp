@@ -70,7 +70,7 @@ int main(int argc, char **argv)
     return 0;
   }
 
-#if defined(PROFILE) || defined(USE_TAU) || defined(PMPI)
+#if defined(PROFILE) || defined(PMPI)
   TAU_PROFILE_INIT(argc, argv);
 #endif
 

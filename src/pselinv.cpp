@@ -45,8 +45,9 @@
 /// @date 2013-08-05
 #include "pselinv.hpp"
 
-
+#define MIN_WORKSIZE omp_get_num_threads()
 #ifdef USE_TAU
+#define PROFILING_ON
 #include "TAU.h"
 #elif defined (PROFILE) || defined(PMPI)
 #define TAU
@@ -56,28 +57,19 @@
 #define VAL(str) #str
 #define TOSTRING(str) VAL(str)
 
-#ifdef SELINV_TIMING 
 
 #ifdef USE_TAU 
 #define TIMER_START(a) TAU_START(TOSTRING(a));
-#elif defined (PROFILE)
-#define TIMER_START(a) TAU_FSTART(a);
-#endif
-#else
-#define TIMER_START(a)
-#endif
-
-
-#ifdef SELINV_TIMING 
-
-#ifdef USE_TAU 
 #define TIMER_STOP(a) TAU_STOP(TOSTRING(a));
 #elif defined (PROFILE)
+#define TIMER_START(a) TAU_FSTART(a);
 #define TIMER_STOP(a) TAU_FSTOP(a);
-#endif
 #else
+#define TIMER_START(a)
 #define TIMER_STOP(a)
 #endif
+
+#include <omp.h>
 
 
 #define MOD(a,b) \
@@ -722,7 +714,7 @@ namespace PEXSI{
 	{
 #ifdef SELINV_TIMING
 		Real begin_SendULWaitContentFirst, end_SendULWaitContentFirst, time_SendULWaitContentFirst = 0;
-#if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
+#if defined (PROFILE) || defined(PMPI) 
 		TAU_PROFILE_SET_CONTEXT(grid_->comm);
 #endif
 #endif
@@ -797,6 +789,7 @@ namespace PEXSI{
 
 
 			// Senders
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -892,6 +885,7 @@ namespace PEXSI{
 
 			//TODO Ideally, we should not receive data in sequence but in any order with ksup packed with the data
 			// Receivers (Size)
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper ; supidx++){
 				Int ksup = superList[lidx][supidx];
 				MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvSizeFromAny[supidx*2];
@@ -935,6 +929,7 @@ namespace PEXSI{
 
 
 			// Receivers (Content)
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper ; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -1035,7 +1030,8 @@ namespace PEXSI{
 #endif
 
 				//while I don't have anything to do, wait for data to arrive 
-				while(readySupidx.size()==0){
+        while(readySupidx.size()<std::min(gemmToDo-gemmProcessed,MIN_WORKSIZE)){
+//				while(readySupidx.size()==0){
 					//then process with the remote ones
 
 					TIMER_START(WaitContent_UL);
@@ -1074,304 +1070,317 @@ namespace PEXSI{
 				}
 
 				//If I have some work to do 
-				if(readySupidx.size()>0){
-					supidx = readySupidx.back();
-					readySupidx.pop_back();
-					ksup = superList[lidx][supidx];
+        if(readySupidx.size()>=std::min(gemmToDo-gemmProcessed,MIN_WORKSIZE)){
+          #pragma omp parallel for schedule(dynamic)
+          for(Int sidx = 0; sidx < readySupidx.size(); sidx++)
+            //				if(readySupidx.size()>0)
+          {
+            //					supidx = readySupidx.back();
+            //					readySupidx.pop_back();
+            Int supidx = readySupidx[sidx];
+            Int ksup = superList[lidx][supidx];
 
-					TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
-
-#if ( _DEBUGlevel_ >= 1 )
-					statusOFS << std::endl << "["<<ksup<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
-#endif
-
-					std::vector<char> & sstrUrowRecv = arrSstrUrowRecv[supidx];
-					std::vector<char> & sstrLcolRecv = arrSstrLcolRecv[supidx];
-					Int & sizeStmFromLeft = arrSizeStmFromLeft[supidx];
-					Int & sizeStmFromAbove = arrSizeStmFromAbove[supidx];
-					NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
-
-
-					std::vector<LBlock> LcolRecv;
-					std::vector<UBlock> UrowRecv;
-					if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
-						// U part
-						if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-							std::stringstream sstm;
-							sstm.write( &sstrUrowRecv[0], sizeStmFromAbove );
-							std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
-							Int numUBlock;
-							deserialize( numUBlock, sstm, NO_MASK );
-							UrowRecv.resize( numUBlock );
-							for( Int jb = 0; jb < numUBlock; jb++ ){
-								deserialize( UrowRecv[jb], sstm, mask );
-							} 
-						} // sender is not the same as receiver
-						else{
-							// U is obtained locally, just make a copy. Include everything
-							// (there is no diagonal block)
-							UrowRecv = this->U( LBi( ksup, grid_ ) );
-						} // sender is the same as receiver
-
-
-						//L part
-						if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
-							std::stringstream     sstm;
-							sstm.write( &sstrLcolRecv[0], sizeStmFromLeft );
-							std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-							mask[LBlockMask::NZVAL] = 0; // nzval is excluded
-							Int numLBlock;
-							deserialize( numLBlock, sstm, NO_MASK );
-							LcolRecv.resize( numLBlock );
-							for( Int ib = 0; ib < numLBlock; ib++ ){
-								deserialize( LcolRecv[ib], sstm, mask );
-							}
-						} // sender is not the same as receiver
-						else{
-							// L is obtained locally, just make a copy. 
-							// Do not include the diagonal block
-							std::vector<LBlock>& Lcol =  this->L( LBj( ksup, grid_ ) );
-							if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-								LcolRecv.resize( Lcol.size() );
-								for( Int ib = 0; ib < Lcol.size(); ib++ ){
-									LcolRecv[ib] = Lcol[ib];
-								}
-							}
-							else{
-								LcolRecv.resize( Lcol.size() - 1 );
-								for( Int ib = 0; ib < Lcol.size() - 1; ib++ ){
-									LcolRecv[ib] = Lcol[ib+1];
-								}
-							}
-						} // sender is the same as receiver
-					} // if I am a receiver
-
+            TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
 
 #if ( _DEBUGlevel_ >= 1 )
-					statusOFS << std::endl << "["<<ksup<<"] "<<  "Main work: Gemm" << std::endl << std::endl; 
+            #pragma omp critical
+            statusOFS << std::endl << "["<<ksup<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
 #endif
 
-					// Save all the data to be updated for { L( isup, ksup ) | isup > ksup }.
-					// The size will be updated in the Gemm phase and the reduce phase
-
-					// Only the processors received information participate in the Gemm 
-					if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
-						// rowPtr[ib] gives the row index in LUpdateBuf for the first
-						// nonzero row in LcolRecv[ib]. The total number of rows in
-						// LUpdateBuf is given by rowPtr[end]-1
-						std::vector<Int> rowPtr(LcolRecv.size() + 1);
-						// colPtr[jb] gives the column index in UBuf for the first
-						// nonzero column in UrowRecv[jb]. The total number of rows in
-						// UBuf is given by colPtr[end]-1
-						std::vector<Int> colPtr(UrowRecv.size() + 1);
-
-						rowPtr[0] = 0;
-						for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
-							rowPtr[ib+1] = rowPtr[ib] + LcolRecv[ib].numRow;
-						}
-						colPtr[0] = 0;
-						for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-							colPtr[jb+1] = colPtr[jb] + UrowRecv[jb].numCol;
-						}
-
-						Int numRowAinvBuf = *rowPtr.rbegin();
-						Int numColAinvBuf = *colPtr.rbegin();
-
-#if ( _DEBUGlevel_ >= 2 )
-						statusOFS << "["<<ksup<<"] "<<  "AinvBuf ~ " << numRowAinvBuf << " x " << numColAinvBuf << std::endl;
-						statusOFS << "["<<ksup<<"] "<<  "rowPtr:" << std::endl << rowPtr << std::endl;
-						statusOFS << "["<<ksup<<"] "<<  "colPtr:" << std::endl << colPtr << std::endl;
-#endif
-						// Allocate for the computational storage
-						NumMat<Scalar> AinvBuf( numRowAinvBuf, numColAinvBuf );
+            std::vector<char> & sstrUrowRecv = arrSstrUrowRecv[supidx];
+            std::vector<char> & sstrLcolRecv = arrSstrLcolRecv[supidx];
+            Int & sizeStmFromLeft = arrSizeStmFromLeft[supidx];
+            Int & sizeStmFromAbove = arrSizeStmFromAbove[supidx];
+            NumMat<Scalar> & LUpdateBuf = arrLUpdateBuf[supidx];
 
 
-						LUpdateBuf.Resize( numRowAinvBuf, SuperSize( ksup, super_ ) );
-						NumMat<Scalar> UBuf( SuperSize( ksup, super_ ), numColAinvBuf );
-						SetValue( AinvBuf, SCALAR_ZERO );
-						SetValue( LUpdateBuf, SCALAR_ZERO );
-						SetValue( UBuf, SCALAR_ZERO );
-
-						// Fill UBuf first.  Make the transpose later in the Gemm phase.
-						for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-							UBlock& UB = UrowRecv[jb];
-							if( UB.numRow != SuperSize(ksup, super_) ){
-								throw std::logic_error( "The size of UB is not right.  Something is seriously wrong." );
-							}
-							lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
-									UB.numRow, UBuf.VecData( colPtr[jb] ), UBuf.m() );	
-						}
-
-						// Calculate the relative indices for (isup, jsup)
-						// Fill AinvBuf with the information in L or U block.
-						for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-							for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
-								LBlock& LB = LcolRecv[ib];
-								UBlock& UB = UrowRecv[jb];
-								Int isup = LB.blockIdx;
-								Int jsup = UB.blockIdx;
-								Scalar* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
-								Int     ldAinv    = AinvBuf.m();
-
-								// Pin down the corresponding block in the part of Sinv.
-								if( isup >= jsup ){
-									std::vector<LBlock>&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-									bool isBlockFound = false;
-									for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
-										// Found the (isup, jsup) block in Sinv
-										if( LcolSinv[ibSinv].blockIdx == isup ){
-											LBlock& SinvB = LcolSinv[ibSinv];
-
-											// Row relative indices
-											std::vector<Int> relRows( LB.numRow );
-											Int* rowsLBPtr    = LB.rows.Data();
-											Int* rowsSinvBPtr = SinvB.rows.Data();
-											for( Int i = 0; i < LB.numRow; i++ ){
-												bool isRowFound = false;
-												for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
-													if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
-														isRowFound = true;
-														relRows[i] = i1;
-														break;
-													}
-												}
-												if( isRowFound == false ){
-													std::ostringstream msg;
-													msg << "Row " << rowsLBPtr[i] << 
-														" in LB cannot find the corresponding row in SinvB" << std::endl
-														<< "LB.rows    = " << LB.rows << std::endl
-														<< "SinvB.rows = " << SinvB.rows << std::endl;
-													throw std::runtime_error( msg.str().c_str() );
-												}
-											}
-
-											// Column relative indicies
-											std::vector<Int> relCols( UB.numCol );
-											Int SinvColsSta = FirstBlockCol( jsup, super_ );
-											for( Int j = 0; j < UB.numCol; j++ ){
-												relCols[j] = UB.cols[j] - SinvColsSta;
-											}
-
-											// Transfer the values from Sinv to AinvBlock
-											Scalar* nzvalSinv = SinvB.nzval.Data();
-											Int     ldSinv    = SinvB.numRow;
-											for( Int j = 0; j < UB.numCol; j++ ){
-												for( Int i = 0; i < LB.numRow; i++ ){
-													nzvalAinv[i+j*ldAinv] =
-														nzvalSinv[relRows[i] + relCols[j] * ldSinv];
-												}
-											}
-
-											isBlockFound = true;
-											break;
-										}	
-									} // for (ibSinv )
-									if( isBlockFound == false ){
-										std::ostringstream msg;
-										msg << "Block(" << isup << ", " << jsup 
-											<< ") did not find a matching block in Sinv." << std::endl;
-										throw std::runtime_error( msg.str().c_str() );
-									}
-								} // if (isup, jsup) is in L
-								else{
-									std::vector<UBlock>&   UrowSinv = this->U( LBi( isup, grid_ ) );
-									bool isBlockFound = false;
-									for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
-										// Found the (isup, jsup) block in Sinv
-										if( UrowSinv[jbSinv].blockIdx == jsup ){
-											UBlock& SinvB = UrowSinv[jbSinv];
-
-											// Row relative indices
-											std::vector<Int> relRows( LB.numRow );
-											Int SinvRowsSta = FirstBlockCol( isup, super_ );
-											for( Int i = 0; i < LB.numRow; i++ ){
-												relRows[i] = LB.rows[i] - SinvRowsSta;
-											}
-
-											// Column relative indices
-											std::vector<Int> relCols( UB.numCol );
-											Int* colsUBPtr    = UB.cols.Data();
-											Int* colsSinvBPtr = SinvB.cols.Data();
-											for( Int j = 0; j < UB.numCol; j++ ){
-												bool isColFound = false;
-												for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
-													if( colsUBPtr[j] == colsSinvBPtr[j1] ){
-														isColFound = true;
-														relCols[j] = j1;
-														break;
-													}
-												}
-												if( isColFound == false ){
-													std::ostringstream msg;
-													msg << "Col " << colsUBPtr[j] << 
-														" in UB cannot find the corresponding row in SinvB" << std::endl
-														<< "UB.cols    = " << UB.cols << std::endl
-														<< "UinvB.cols = " << SinvB.cols << std::endl;
-													throw std::runtime_error( msg.str().c_str() );
-												}
-											}
-
-											// Transfer the values from Sinv to AinvBlock
-											Scalar* nzvalSinv = SinvB.nzval.Data();
-											Int     ldSinv    = SinvB.numRow;
-											for( Int j = 0; j < UB.numCol; j++ ){
-												for( Int i = 0; i < LB.numRow; i++ ){
-													nzvalAinv[i+j*ldAinv] =
-														nzvalSinv[relRows[i] + relCols[j] * ldSinv];
-												}
-											}
-
-											isBlockFound = true;
-											break;
-										}
-									} // for (jbSinv)
-									if( isBlockFound == false ){
-										std::ostringstream msg;
-										msg << "Block(" << isup << ", " << jsup 
-											<< ") did not find a matching block in Sinv." << std::endl;
-										throw std::runtime_error( msg.str().c_str() );
-									}
-								} // if (isup, jsup) is in U
-
-							} // for( ib )
-						} // for ( jb )
-
-#if ( _DEBUGlevel_ >= 2 )
-						statusOFS << std::endl << "["<<ksup<<"] "<<  "AinvBuf: " << AinvBuf << std::endl;
-						statusOFS << std::endl << "["<<ksup<<"] "<<  "UBuf   : " << UBuf << std::endl;
-#endif
-
-						TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
-
-						TIMER_START(Compute_Sinv_LT_GEMM);
-
-						// Gemm for LUpdateBuf = -AinvBuf * UBuf^T
-						blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
-								AinvBuf.Data(), AinvBuf.m(), 
-								UBuf.Data(), UBuf.m(), SCALAR_ZERO,
-								LUpdateBuf.Data(), LUpdateBuf.m() ); 
-
-						TIMER_STOP(Compute_Sinv_LT_GEMM);
-
-#if ( _DEBUGlevel_ >= 2 )
-						statusOFS << std::endl << "["<<ksup<<"] "<<  "LUpdateBuf: " << LUpdateBuf << std::endl;
-#endif
-					} // if Gemm is to be done locally
+            std::vector<LBlock> LcolRecv;
+            std::vector<UBlock> UrowRecv;
+            if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
+              // U part
+              if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+                std::stringstream sstm;
+                sstm.write( &sstrUrowRecv[0], sizeStmFromAbove );
+                std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+                Int numUBlock;
+                deserialize( numUBlock, sstm, NO_MASK );
+                UrowRecv.resize( numUBlock );
+                for( Int jb = 0; jb < numUBlock; jb++ ){
+                  deserialize( UrowRecv[jb], sstm, mask );
+                } 
+              } // sender is not the same as receiver
+              else{
+                // U is obtained locally, just make a copy. Include everything
+                // (there is no diagonal block)
+                UrowRecv = this->U( LBi( ksup, grid_ ) );
+              } // sender is the same as receiver
 
 
-					//If I was a receiver, I need to send my data to proc in column of ksup
-					if( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) )
-					{
-						std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-						MPI_Isend( LUpdateBuf.Data(), LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar), MPI_BYTE, PCOL(ksup,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_REDUCE, grid_->rowComm, &mpireqsSendToRight[0] );
+              //L part
+              if( MYCOL( grid_ ) != PCOL( ksup, grid_ ) ){
+                std::stringstream     sstm;
+                sstm.write( &sstrLcolRecv[0], sizeStmFromLeft );
+                std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+                mask[LBlockMask::NZVAL] = 0; // nzval is excluded
+                Int numLBlock;
+                deserialize( numLBlock, sstm, NO_MASK );
+                LcolRecv.resize( numLBlock );
+                for( Int ib = 0; ib < numLBlock; ib++ ){
+                  deserialize( LcolRecv[ib], sstm, mask );
+                }
+              } // sender is not the same as receiver
+              else{
+                // L is obtained locally, just make a copy. 
+                // Do not include the diagonal block
+                std::vector<LBlock>& Lcol =  this->L( LBj( ksup, grid_ ) );
+                if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+                  LcolRecv.resize( Lcol.size() );
+                  for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                    LcolRecv[ib] = Lcol[ib];
+                  }
+                }
+                else{
+                  LcolRecv.resize( Lcol.size() - 1 );
+                  for( Int ib = 0; ib < Lcol.size() - 1; ib++ ){
+                    LcolRecv[ib] = Lcol[ib+1];
+                  }
+                }
+              } // sender is the same as receiver
+            } // if I am a receiver
+
 
 #if ( _DEBUGlevel_ >= 1 )
-						statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar) << " bytes to " << PCOL(ksup,grid_) << std::endl;
+            #pragma omp critical
+            statusOFS << std::endl << "["<<ksup<<"] "<<  "Main work: Gemm" << std::endl << std::endl; 
 #endif
-					}//Sender
-					gemmProcessed++;
-				}
-			}
+
+            // Save all the data to be updated for { L( isup, ksup ) | isup > ksup }.
+            // The size will be updated in the Gemm phase and the reduce phase
+
+            // Only the processors received information participate in the Gemm 
+            if( isRecvFromAbove_( ksup ) && isRecvFromLeft_( ksup ) ){
+              // rowPtr[ib] gives the row index in LUpdateBuf for the first
+              // nonzero row in LcolRecv[ib]. The total number of rows in
+              // LUpdateBuf is given by rowPtr[end]-1
+              std::vector<Int> rowPtr(LcolRecv.size() + 1);
+              // colPtr[jb] gives the column index in UBuf for the first
+              // nonzero column in UrowRecv[jb]. The total number of rows in
+              // UBuf is given by colPtr[end]-1
+              std::vector<Int> colPtr(UrowRecv.size() + 1);
+
+              rowPtr[0] = 0;
+              for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+                rowPtr[ib+1] = rowPtr[ib] + LcolRecv[ib].numRow;
+              }
+              colPtr[0] = 0;
+              for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+                colPtr[jb+1] = colPtr[jb] + UrowRecv[jb].numCol;
+              }
+
+              Int numRowAinvBuf = *rowPtr.rbegin();
+              Int numColAinvBuf = *colPtr.rbegin();
+
+#if ( _DEBUGlevel_ >= 2 )
+              statusOFS << "["<<ksup<<"] "<<  "AinvBuf ~ " << numRowAinvBuf << " x " << numColAinvBuf << std::endl;
+              statusOFS << "["<<ksup<<"] "<<  "rowPtr:" << std::endl << rowPtr << std::endl;
+              statusOFS << "["<<ksup<<"] "<<  "colPtr:" << std::endl << colPtr << std::endl;
+#endif
+              // Allocate for the computational storage
+              NumMat<Scalar> AinvBuf( numRowAinvBuf, numColAinvBuf );
+
+
+              LUpdateBuf.Resize( numRowAinvBuf, SuperSize( ksup, super_ ) );
+              NumMat<Scalar> UBuf( SuperSize( ksup, super_ ), numColAinvBuf );
+              SetValue( AinvBuf, SCALAR_ZERO );
+              SetValue( LUpdateBuf, SCALAR_ZERO );
+              SetValue( UBuf, SCALAR_ZERO );
+
+              // Fill UBuf first.  Make the transpose later in the Gemm phase.
+              for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+                UBlock& UB = UrowRecv[jb];
+                if( UB.numRow != SuperSize(ksup, super_) ){
+                  statusOFS<<"UB : "<<UB<<std::endl;
+                  statusOFS<<"supersize = "<<SuperSize(ksup, super_)<<std::endl;
+                  throw std::logic_error( "The size of UB is not right.  Something is seriously wrong." );
+                }
+                lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
+                    UB.numRow, UBuf.VecData( colPtr[jb] ), UBuf.m() );	
+              }
+
+              // Calculate the relative indices for (isup, jsup)
+              // Fill AinvBuf with the information in L or U block.
+              for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+                for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+                  LBlock& LB = LcolRecv[ib];
+                  UBlock& UB = UrowRecv[jb];
+                  Int isup = LB.blockIdx;
+                  Int jsup = UB.blockIdx;
+                  Scalar* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
+                  Int     ldAinv    = AinvBuf.m();
+
+                  // Pin down the corresponding block in the part of Sinv.
+                  if( isup >= jsup ){
+                    std::vector<LBlock>&  LcolSinv = this->L( LBj(jsup, grid_ ) );
+                    bool isBlockFound = false;
+                    for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+                      // Found the (isup, jsup) block in Sinv
+                      if( LcolSinv[ibSinv].blockIdx == isup ){
+                        LBlock& SinvB = LcolSinv[ibSinv];
+
+                        // Row relative indices
+                        std::vector<Int> relRows( LB.numRow );
+                        Int* rowsLBPtr    = LB.rows.Data();
+                        Int* rowsSinvBPtr = SinvB.rows.Data();
+                        for( Int i = 0; i < LB.numRow; i++ ){
+                          bool isRowFound = false;
+                          for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
+                            if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
+                              isRowFound = true;
+                              relRows[i] = i1;
+                              break;
+                            }
+                          }
+                          if( isRowFound == false ){
+                            std::ostringstream msg;
+                            msg << "Row " << rowsLBPtr[i] << 
+                              " in LB cannot find the corresponding row in SinvB" << std::endl
+                              << "LB.rows    = " << LB.rows << std::endl
+                              << "SinvB.rows = " << SinvB.rows << std::endl;
+                            throw std::runtime_error( msg.str().c_str() );
+                          }
+                        }
+
+                        // Column relative indicies
+                        std::vector<Int> relCols( UB.numCol );
+                        Int SinvColsSta = FirstBlockCol( jsup, super_ );
+                        for( Int j = 0; j < UB.numCol; j++ ){
+                          relCols[j] = UB.cols[j] - SinvColsSta;
+                        }
+
+                        // Transfer the values from Sinv to AinvBlock
+                        Scalar* nzvalSinv = SinvB.nzval.Data();
+                        Int     ldSinv    = SinvB.numRow;
+                        for( Int j = 0; j < UB.numCol; j++ ){
+                          for( Int i = 0; i < LB.numRow; i++ ){
+                            nzvalAinv[i+j*ldAinv] =
+                              nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                          }
+                        }
+
+                        isBlockFound = true;
+                        break;
+                      }	
+                    } // for (ibSinv )
+                    if( isBlockFound == false ){
+                      std::ostringstream msg;
+                      msg << "Block(" << isup << ", " << jsup 
+                        << ") did not find a matching block in Sinv." << std::endl;
+                      throw std::runtime_error( msg.str().c_str() );
+                    }
+                  } // if (isup, jsup) is in L
+                  else{
+                    std::vector<UBlock>&   UrowSinv = this->U( LBi( isup, grid_ ) );
+                    bool isBlockFound = false;
+                    for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
+                      // Found the (isup, jsup) block in Sinv
+                      if( UrowSinv[jbSinv].blockIdx == jsup ){
+                        UBlock& SinvB = UrowSinv[jbSinv];
+
+                        // Row relative indices
+                        std::vector<Int> relRows( LB.numRow );
+                        Int SinvRowsSta = FirstBlockCol( isup, super_ );
+                        for( Int i = 0; i < LB.numRow; i++ ){
+                          relRows[i] = LB.rows[i] - SinvRowsSta;
+                        }
+
+                        // Column relative indices
+                        std::vector<Int> relCols( UB.numCol );
+                        Int* colsUBPtr    = UB.cols.Data();
+                        Int* colsSinvBPtr = SinvB.cols.Data();
+                        for( Int j = 0; j < UB.numCol; j++ ){
+                          bool isColFound = false;
+                          for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
+                            if( colsUBPtr[j] == colsSinvBPtr[j1] ){
+                              isColFound = true;
+                              relCols[j] = j1;
+                              break;
+                            }
+                          }
+                          if( isColFound == false ){
+                            std::ostringstream msg;
+                            msg << "Col " << colsUBPtr[j] << 
+                              " in UB cannot find the corresponding row in SinvB" << std::endl
+                              << "UB.cols    = " << UB.cols << std::endl
+                              << "UinvB.cols = " << SinvB.cols << std::endl;
+                            throw std::runtime_error( msg.str().c_str() );
+                          }
+                        }
+
+                        // Transfer the values from Sinv to AinvBlock
+                        Scalar* nzvalSinv = SinvB.nzval.Data();
+                        Int     ldSinv    = SinvB.numRow;
+                        for( Int j = 0; j < UB.numCol; j++ ){
+                          for( Int i = 0; i < LB.numRow; i++ ){
+                            nzvalAinv[i+j*ldAinv] =
+                              nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                          }
+                        }
+
+                        isBlockFound = true;
+                        break;
+                      }
+                    } // for (jbSinv)
+                    if( isBlockFound == false ){
+                      std::ostringstream msg;
+                      msg << "Block(" << isup << ", " << jsup 
+                        << ") did not find a matching block in Sinv." << std::endl;
+                      throw std::runtime_error( msg.str().c_str() );
+                    }
+                  } // if (isup, jsup) is in U
+
+                } // for( ib )
+              } // for ( jb )
+
+#if ( _DEBUGlevel_ >= 2 )
+              statusOFS << std::endl << "["<<ksup<<"] "<<  "AinvBuf: " << AinvBuf << std::endl;
+              statusOFS << std::endl << "["<<ksup<<"] "<<  "UBuf   : " << UBuf << std::endl;
+#endif
+
+              TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
+
+              TIMER_START(Compute_Sinv_LT_GEMM);
+
+
+              // Gemm for LUpdateBuf = -AinvBuf * UBuf^T
+              blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
+                  AinvBuf.Data(), AinvBuf.m(), 
+                  UBuf.Data(), UBuf.m(), SCALAR_ZERO,
+                  LUpdateBuf.Data(), LUpdateBuf.m() ); 
+
+              TIMER_STOP(Compute_Sinv_LT_GEMM);
+
+#if ( _DEBUGlevel_ >= 2 )
+              statusOFS << std::endl << "["<<ksup<<"] "<<  "LUpdateBuf: " << LUpdateBuf << std::endl;
+#endif
+            } // if Gemm is to be done locally
+
+
+            //If I was a receiver, I need to send my data to proc in column of ksup
+            if( isRecvFromLeft_( ksup ) && MYCOL( grid_ ) != PCOL( ksup, grid_ ) )
+            {
+              std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+              MPI_Isend( LUpdateBuf.Data(), LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar), MPI_BYTE, PCOL(ksup,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_REDUCE, grid_->rowComm, &mpireqsSendToRight[0] );
+
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< LUpdateBuf.m()*LUpdateBuf.n()*sizeof(Scalar) << " bytes to " << PCOL(ksup,grid_) << std::endl;
+#endif
+            }//Sender
+          }
+        gemmProcessed+=readySupidx.size();
+        readySupidx.clear();
+        }
+      }
+      
 
 			TIMER_STOP(Compute_Sinv_LT);
 
@@ -1381,6 +1390,7 @@ namespace PEXSI{
 			//Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
 			TIMER_START(Reduce_Sinv_LT);
 
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -1480,6 +1490,7 @@ namespace PEXSI{
 #endif
 
 			TIMER_START(Update_Diagonal);
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -1537,6 +1548,7 @@ namespace PEXSI{
 
 			TIMER_START(Reduce_Diagonal);
 
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 				if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
@@ -1655,6 +1667,7 @@ namespace PEXSI{
 
 
 			TIMER_START(Update_U);
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -1715,6 +1728,7 @@ namespace PEXSI{
 
 
 			//Do Irecv for sizes
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 				//If I'm a receiver
@@ -1738,6 +1752,7 @@ namespace PEXSI{
 			mpi::Waitall(arrMpiReqsSizeRecvCD);
 
 			//Allocate content and do Irecv
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 				//If I'm a receiver
@@ -1765,6 +1780,7 @@ namespace PEXSI{
 
 
 			//Do the work
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -1869,6 +1885,7 @@ namespace PEXSI{
 #endif
 
 			TIMER_START(Update_L);
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -2777,7 +2794,7 @@ namespace PEXSI{
 
 #ifdef SELINV_TIMING
 		Real begin_SendULWaitContentFirst, end_SendULWaitContentFirst, time_SendULWaitContentFirst = 0;
-#if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
+#if defined (PROFILE) || defined(PMPI) 
 		TAU_PROFILE_SET_CONTEXT(grid_->comm);
 #endif
 #endif
@@ -2964,6 +2981,7 @@ namespace PEXSI{
 
 			TIMER_START(Compute_Sinv_LT);
 
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 				// Overlap the communication with computation.  All processors move
@@ -3266,6 +3284,7 @@ namespace PEXSI{
 			//Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
 			TIMER_START(Reduce_Sinv_LT);
 
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -3356,6 +3375,7 @@ namespace PEXSI{
 #endif
 
 			TIMER_START(Update_Diagonal);
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -3403,6 +3423,7 @@ namespace PEXSI{
 			TIMER_STOP(Update_Diagonal);
 
 			TIMER_START(Reduce_Diagonal);
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -3492,6 +3513,7 @@ namespace PEXSI{
 
 
 			TIMER_START(Update_U);
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -3602,6 +3624,7 @@ namespace PEXSI{
 
 
 			//Do the work
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -3707,6 +3730,7 @@ namespace PEXSI{
 #endif
 
 			TIMER_START(Update_L);
+      #pragma omp parallel for schedule(dynamic)
 			for (Int supidx=0; supidx<stepSuper; supidx++){
 				Int ksup = superList[lidx][supidx];
 
@@ -4134,7 +4158,7 @@ namespace PEXSI{
 
 
 #ifdef SELINV_TIMING
-#if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
+#if defined (PROFILE) || defined(PMPI) 
 		TAU_PROFILE_SET_CONTEXT(grid_->comm);
 #endif
 #endif

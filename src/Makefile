@@ -34,5 +34,9 @@ libpexsi.a: ${OBJS}
 #endif
 #endif
 
+clean:
+	${RM} -f ${OBJS} ${DEPS} *.d.*
+
 cleanall:
 	${RM} -f ${OBJS} ${DEPS} libpexsi.a *.d.*
+

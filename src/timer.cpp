@@ -12,6 +12,8 @@
 #include <vector>
 #include "timer.h"
 
+#include <omp.h>
+
 #define MAX_NAME_LENGTH 38
 
 int main_argc = 0;
@@ -262,7 +264,7 @@ void CTF_timer::exit(){
     std::sort(function_timers.begin(), function_timers.end());
     complete_time = function_timers[0].total_time;
     for (i=0; i<(int)function_timers.size(); i++){
-      function_timers[i].print(output,comm,rank,np);
+      function_timers[i].print(output,comm,rank,np*omp_get_num_threads());
     }
     
     function_timers.clear();
