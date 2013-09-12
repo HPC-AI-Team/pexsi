@@ -2,9 +2,9 @@
 !	 Copyright (c) 2012 The Regents of the University of California,
 !	 through Lawrence Berkeley National Laboratory.  
 !
-!   Author: Lin Lin
+!  Author: Lin Lin
 !	 
-!   This file is part of PEXSI. All rights reserved.
+!  This file is part of PEXSI. All rights reserved.
 !
 !	 Redistribution and use in source and binary forms, with or without
 !	 modification, are permitted provided that the following conditions are met:
@@ -79,6 +79,7 @@ integer:: i
 
 
 namelist/InputVars/ &
+	temperature         ,&
 	numElectronExact    ,&
 	numPole             ,&
 	gap                 ,&
@@ -105,8 +106,8 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 ! Below are the default parameters which are obtained from the DNA matrix
 K2au             = 3.1668152d-6
-! Temperature should be in the same unit as the H matrix. Here it is Hartree.
-temperature      = 300.0d0 * K2au
+! Temperature should be in the same unit as the H matrix. Here it is Rydberg.
+temperature      = 0.0019
 
 numElectronExact = 2442.0d0
 numPole          = 40
@@ -154,6 +155,7 @@ endif
 
 ! Broadcast the input parameters
 
+call MPI_BCAST( temperature,      1, MPI_DOUBLE, 0, MPI_COMM_WORLD, ierr )
 call MPI_BCAST( numElectronExact, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD, ierr )
 call MPI_BCAST( numPole, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr )
 call MPI_BCAST( gap, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD, ierr )
