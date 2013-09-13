@@ -1,4 +1,4 @@
-function A = ReadSparseMatrix(filename)
+function A = ReadSparseMatrixFormatted(filename)
 % Read a sparse matrix in compressed column storage as produced by
 % SIESTA.
 
