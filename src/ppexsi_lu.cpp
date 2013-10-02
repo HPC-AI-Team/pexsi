@@ -229,19 +229,24 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 				&totalMemory, &maxMemory);
 		PStatFree(&stat);
 
+#if ( _DEBUGlevel_ >= 0 )
 		statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
 		statusOFS << "Total: " << totalMemory << ", Average: " << 
 			totalMemory / ( grid->nprow * grid->npcol )
 			<< ", Max: " << maxMemory << std::endl << std::endl;
+#endif
 
 
 	}
-	GetTime( timeEnd );
 #if ( _DEBUGlevel_ >= 1 )
 	statusOFS << "Symbolic factorization is finished." << std::endl;
 #endif
+
+	GetTime( timeEnd );
+#if ( _DEBUGlevel_ >= 0 )
 	statusOFS << "Time for symbolic factorization is " <<
 		timeEnd - timeSta << " [s]" << std::endl << std::endl;
+#endif
 	
 	// NOTE: A does not need to be destroyed.  The values of A can
 	// be reused in later factorization.
@@ -263,8 +268,10 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 
 			GetTime( timeShiftSta );
 
+#if ( _DEBUGlevel_ >= 0 )
 			statusOFS << "Shift " << l << " = " << shiftVec[l] 
 				<< " processing..." << std::endl;
+#endif
 
 			// *********************************************************************
 			// Data conversion
@@ -359,7 +366,9 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 
 			GetTime( timeTotalFactorizationEnd );
 
+#if ( _DEBUGlevel_ >= 0 )
 			statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+#endif
 
 			// *********************************************************************
 			// Compute inertia

@@ -53,16 +53,7 @@
 #define iC(fun)  { int ierr=fun; if(ierr!=0) exit(1); }
 #define iA(expr) { if((expr)==0) { std::cerr<<"wrong "<<__LINE__<<" in " <<__FILE__<<std::endl; std::cerr.flush(); exit(1); } }
 
-// FIXME Force to output basic debug information.
-#define _DEBUGlevel_ 0
-
 using namespace PEXSI;
-
-
-// FIXME
-// complex data structure used for interfacing with FORTRAN
-// struct C_Complex {double r; double i;};
-
 
 
 /// @brief Find the root using linear interpolation.
@@ -689,6 +680,7 @@ void PPEXSIInertiaCountInterface(
 
 			// Output some information after EACH STEP for dynamical adjustament.
 			{
+#if ( _DEBUGlevel_ >= 0 )
 				statusOFS << std::endl << "After inertia count iteration " << iter
 					<< std::endl;
 				Print( statusOFS, "muLowerEdge   = ", muLow );
@@ -696,6 +688,7 @@ void PPEXSIInertiaCountInterface(
 				Print( statusOFS, "muMin         = ", muMin );
 				Print( statusOFS, "muMax         = ", muMax );
 				statusOFS << std::endl;
+#endif
 			}
 
 
@@ -707,6 +700,7 @@ void PPEXSIInertiaCountInterface(
 		} // for (iter)
 
 
+#if ( _DEBUGlevel_ >= 0 )
 		if( isConverged ){
 			statusOFS << std::endl << "Inertia count converged with " << iter
 				<< " iterations. N(muMax) - N(muMin) = " <<
@@ -717,7 +711,7 @@ void PPEXSIInertiaCountInterface(
 				<< " iterations. N(muMax) - N(muMin) = " <<
 				inertiaFTVec[numShift-1] - inertiaFTVec[0] << std::endl;
 		}
-
+#endif
 
 		// Convert the internal variables to output parameters
 		*muMinInertia = muMin;
@@ -968,6 +962,7 @@ void PPEXSISolveInterface (
 
 		Int muIter = muVec.size();
 
+#if ( _DEBUGlevel_ >= 0 )
 		PrintBlock( statusOFS, "Solve finished." );
 		if( isConverged ){
 			statusOFS << "PEXSI has converged with " << muIter << 
@@ -977,7 +972,7 @@ void PPEXSISolveInterface (
 			statusOFS << "PEXSI did not converge with " << muIter << 
 				" iterations" << std::endl;
 		}
-
+#endif
 
 
 		// Convert the internal variables to output parameters
@@ -1018,8 +1013,10 @@ void PPEXSISolveInterface (
 		//	Print( statusOFS, "guess of mu(T=0) = ", 
 		//			*muZeroT );
 
+#if ( _DEBUGlevel_ >= 0 )
 		Print( statusOFS, "Total time for PEXSI = ", 
 				timeSolveEnd - timeSolveSta );
+#endif
 
 		*info = 0;
 	}

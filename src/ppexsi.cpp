@@ -45,8 +45,6 @@
 /// @date 2012-11-20
 #include "ppexsi.hpp"
 
-#define _DEBUGlevel_ 0
-
 namespace PEXSI{
 
 PPEXSIData::PPEXSIData	( const PEXSI::Grid* g, Int nprow, Int npcol ): gridPole_(g)
@@ -117,7 +115,9 @@ Real PPEXSIData::CalculateChemicalPotentialNewtonFD (
 	else{
 		if( std::abs(numElectronList[iter] -  numElectronList[iter-1])
 		    < numElectronTolerance ){
+#if ( _DEBUGlevel_ >= 0 )
 			statusOFS << "The number of electrons did not change." << std::endl;
+#endif
 			if( numElectronExact > numElectronList[iter] ){
 				muNew = muList[iter] + muMinStep;
 			}
@@ -130,8 +130,10 @@ Real PPEXSIData::CalculateChemicalPotentialNewtonFD (
 				( numElectronList[iter] - numElectronList[iter-1] ) *
 				( numElectronExact - numElectronList[iter] );
 			if( muNew < muMin || muNew > muMax ){
+#if ( _DEBUGlevel_ >= 0 )
 				statusOFS << "muNew = " << muNew << " is out of bound ["
 					<< muMin << ", " << muMax << "]" << std::endl;
+#endif
 				if( numElectronExact > numElectronList[iter] ){
 					muNew = muList[iter] + muMinStep;
 				}
@@ -340,11 +342,13 @@ void PPEXSIData::Solve(
 	for(Int iter = 0; iter < muMaxIter; iter++){
 		GetTime( timeMuSta );
 
+#if ( _DEBUGlevel_ >= 0 )
 		{
 			std::ostringstream msg;
 			msg << "Iteration " << iter << ", mu = " << muNow;
 			PrintBlock( statusOFS, msg.str() );
 		}
+#endif
 
 		// Reinitialize the variables
 		SetValue( rhoMat.nzvalLocal, 0.0 );
@@ -487,6 +491,7 @@ void PPEXSIData::Solve(
 
 			errorTotal = errorRelMax * numElectronExact + errorAbsMax * HMat.size;
 
+#if ( _DEBUGlevel_ >= 0 )
 			statusOFS << "Pole expansion indicates that the error "
 				<< "of numElectron is bounded by "
 				<< errorTotal << std::endl;
@@ -501,6 +506,7 @@ void PPEXSIData::Solve(
 			}
 			statusOFS << "numPoleInput =" << numPoleInput << std::endl;
 			statusOFS << "numPoleSignificant = " << numPoleSignificant << std::endl;
+#endif
 		}
 
 
@@ -549,8 +555,8 @@ void PPEXSIData::Solve(
 				Int l = poleIdx[lidx];
 
 				GetTime( timePoleSta );
-				statusOFS << "Pole " << lidx << " processing..." << std::endl;
 #if ( _DEBUGlevel_ >= 0 )
+				statusOFS << "Pole " << lidx << " processing..." << std::endl;
 				statusOFS << "zshift           = " << zshift_[l] << std::endl;
 				statusOFS	<< "zweightRho       = " << zweightRho_[l] << std::endl;
 				statusOFS	<< "zweightRhoDrvMu  = " << zweightRhoDrvMu_[l] << std::endl;
@@ -620,7 +626,9 @@ void PPEXSIData::Solve(
 
 					GetTime( timeTotalFactorizationEnd );
 
+#if ( _DEBUGlevel_ >= 0 )
 					statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+#endif
 
 					// *********************************************************************
 					// Selected inversion
@@ -643,8 +651,10 @@ void PPEXSIData::Solve(
 
 					GetTime( timeTotalSelInvEnd );
 
+#if ( _DEBUGlevel_ >= 0 )
 					statusOFS << "Time for total selected inversion is " <<
 						timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
+#endif
 
 					// *********************************************************************
 					// Postprocessing
@@ -713,8 +723,10 @@ void PPEXSIData::Solve(
 					// Update the free energy density matrix and energy density matrix similarly
 					GetTime( timePostProcessingEnd );
 
+#if ( _DEBUGlevel_ >= 0 )
 					statusOFS << "Time for postprocessing is " <<
 						timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
+#endif
 
 
 					// Use the broadcast pipelined version of SelInv.
@@ -722,8 +734,10 @@ void PPEXSIData::Solve(
 				}
 				GetTime( timePoleEnd );
 
+#if ( _DEBUGlevel_ >= 0 )
 				statusOFS << "Time for pole " << lidx << " is " <<
 					timePoleEnd - timePoleSta << " [s]" << std::endl << std::endl;
+#endif
 
 			} // if I am in charge of this pole
 #if ( _DEBUGlevel_ >= 0 )
@@ -738,9 +752,11 @@ void PPEXSIData::Solve(
 				Real numElec;
 				mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, gridPole_->comm ); 
 
+#if ( _DEBUGlevel_ >= 0 )
 				statusOFS << std::endl << "No parallelization of poles, output the number of electrons up to this pole." << std::endl;
 				statusOFS << "numElecLocal = " << numElecLocal << std::endl;
 				statusOFS << "numElecTotal = " << numElec << std::endl << std::endl;
+#endif
 				
 			}
 #endif
@@ -802,8 +818,10 @@ void PPEXSIData::Solve(
 
     Real totalEnergy = CalculateTotalEnergy( HMat );
 
+#if ( _DEBUGlevel_ >= 0 )
 		statusOFS<< "muNow = " << muNow << std::endl; 
 		statusOFS<< "numElectronNow = " << numElectronNow << std::endl;
+#endif
 
 		Real totalFreeEnergy;
 		if( isFreeEnergyDensityMatrix )
@@ -819,10 +837,13 @@ void PPEXSIData::Solve(
 
 		GetTime( timeMuEnd );
 
+#if ( _DEBUGlevel_ >= 0 )
 		statusOFS << std::endl << "Time for mu iteration " << iter << " is " <<
 			timeMuEnd - timeMuSta << " [s]" << std::endl << std::endl;
+#endif
 
 
+#if ( _DEBUGlevel_ >= 0 )
 		// Output status 
 		statusOFS << std::endl;
 		Print( statusOFS, "mu                          = ", muList[iter] );
@@ -837,6 +858,7 @@ void PPEXSIData::Solve(
 			Print( statusOFS, "Total free energy           = ", totalFreeEnergy );
 		if( isDerivativeTMatrix )
 			Print( statusOFS, "d Ne / d T                  = ", numElectronDrvT );
+#endif
 
 		// Check convergence
 		if( std::abs( numElectronExact - numElectronList[iter] ) <
@@ -1232,8 +1254,10 @@ void PPEXSIData::CalculateNegativeInertia(
 
 			GetTime( timeShiftSta );
 
+#if ( _DEBUGlevel_ >= 0 )
 			statusOFS << "Shift " << l << " = " << shiftVec[l] 
 				<< " processing..." << std::endl;
+#endif
 
 			if( SMat.size != 0 ){
 				// S is not an identity matrix
@@ -1291,7 +1315,9 @@ void PPEXSIData::CalculateNegativeInertia(
 
 			GetTime( timeTotalFactorizationEnd );
 
+#if ( _DEBUGlevel_ >= 0 )
 			statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+#endif
 
 			// *********************************************************************
 			// Compute inertia
@@ -1308,8 +1334,10 @@ void PPEXSIData::CalculateNegativeInertia(
 
 			GetTime( timeInertiaEnd );
 
+#if ( _DEBUGlevel_ >= 0 )
 			statusOFS << "Time for computing the inertia is " <<
 				timeInertiaEnd  - timeInertiaSta << " [s]" << std::endl;
+#endif
 
 
 		} // if I am in charge of this shift
