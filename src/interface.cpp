@@ -751,6 +751,222 @@ void PPEXSIInertiaCountInterface(
 }  // -----  end of function PPEXSIInertiaCountInterface ----- 
 
 
+/// @brief A simplified version of PPEXSIInertiaCountInterface that only
+/// computes and outputs the "raw" inertia count, without extra
+/// post-processing or iterating refinement.
+///
+extern "C"
+void PPEXSIRawInertiaCountInterface(
+		// Input parameters
+		int           nrows,                        // Size of the matrix
+		int           nnz,                          // Total number of nonzeros in H
+		int           nnzLocal,                     // Number of nonzeros in H on this proc
+		int           numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int           isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+		double        muMin0,                       // Initial guess of lower bound for mu
+		double        muMax0,                       // Initial guess of upper bound for mu
+		int           numPole,                      // Number of shifts in computing the inertia, still called "Pole" for legacy reason
+		int           ordering,                     // SuperLUDIST ordering
+		int           npPerPole,                    // Number of processors for each shift, still called "Pole" for legacy reason
+		int           npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
+		MPI_Comm	    comm,                         // Overall MPI communicator
+		// Output parameters
+		double*       muList,                       // The list of shifts
+		double*       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+	Int mpirank, mpisize;
+	MPI_Comm_rank( comm, &mpirank );
+	MPI_Comm_size( comm, &mpisize );
+	Real timeSta, timeEnd;
+	// log files
+	std::stringstream  ss;
+	ss << "logPEXSI" << mpirank;
+	// append to previous log files
+	statusOFS.open( ss.str().c_str(), std::ios_base::app );
+
+	try{
+
+		if( mpisize % npPerPole != 0 ){
+			std::ostringstream msg;
+			msg 
+				<< "mpisize    = " << mpisize << std::endl
+				<< "npPerPole = " << npPerPole << std::endl
+				<< "mpisize is not divisible by npPerPole!" << std::endl;
+			throw std::runtime_error( msg.str().c_str() );
+		}
+
+		Int nprow = iround( std::sqrt( (double)npPerPole) );
+		Int npcol = npPerPole / nprow;
+
+		Grid gridPole( comm, mpisize / npPerPole, npPerPole );
+		PPEXSIData pexsi( &gridPole, nprow, npcol );
+
+		// Convert into H and S matrices
+		DistSparseMatrix<Real> HMat, SMat;
+
+		// The first row processors (size: npPerPole) read the matrix, and
+		// then distribute the matrix to the rest of the processors.
+		//
+		// NOTE: The first row processor must have data for H/S.
+		std::vector<char> sstr;
+		Int sizeStm;
+		if( MYROW( &gridPole ) == 0 ){
+			std::stringstream sstm;
+
+			HMat.size        = nrows;
+			HMat.nnz         = nnz;
+			HMat.nnzLocal    = nnzLocal;
+			// The first row processor does not need extra copies of the index /
+			// value of the matrix. 
+			HMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
+			HMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
+			// H value
+			HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
+			HMat.comm = gridPole.rowComm;
+
+			// Serialization will copy the values regardless of the ownership
+			serialize( HMat, sstm, NO_MASK );
+
+			// S value
+			if( isSIdentity ){
+				SMat.size = 0;
+				SMat.nnz  = 0;
+				SMat.nnzLocal = 0;
+			}
+			else{
+				CopyPattern( HMat, SMat );
+				SMat.comm = gridPole.rowComm;
+				SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+				serialize( SMat.nzvalLocal, sstm, NO_MASK );
+			}
+
+
+			sstr.resize( Size( sstm ) );
+			sstm.read( &sstr[0], sstr.size() ); 	
+			sizeStm = sstr.size();
+		}
+
+		MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole.colComm );
+
+#if ( _DEBUGlevel_ >= 0 )
+		statusOFS << "sizeStm = " << sizeStm << std::endl;
+#endif
+
+		if( MYROW( &gridPole ) != 0 ) sstr.resize( sizeStm );
+
+		MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole.colComm );
+
+		if( MYROW( &gridPole ) != 0 ){
+			std::stringstream sstm;
+			sstm.write( &sstr[0], sizeStm );
+			deserialize( HMat, sstm, NO_MASK );
+			// Communicator
+			HMat.comm = gridPole.rowComm;
+			if( isSIdentity ){
+				SMat.size = 0;
+				SMat.nnz  = 0;
+				SMat.nnzLocal = 0;
+			}
+			else{
+				CopyPattern( HMat, SMat );
+				SMat.comm = gridPole.rowComm;
+				deserialize( SMat.nzvalLocal, sstm, NO_MASK );
+			}
+		}
+		sstr.clear();
+
+
+#if ( _DEBUGlevel_ >= 0 )
+		statusOFS << "H.size     = " << HMat.size     << std::endl;
+		statusOFS << "H.nnzLocal = " << HMat.nnzLocal << std::endl;
+		statusOFS << "S.size     = " << SMat.size     << std::endl;
+		statusOFS << "S.nnzLocal = " << SMat.nnzLocal << std::endl;
+#endif
+
+
+		// Parameters
+		std::string colPerm;
+		switch (ordering){
+			case 0:
+				colPerm = "PARMETIS";
+				break;
+			case 1:
+				colPerm = "METIS_AT_PLUS_A";
+				break;
+			case 2:
+				colPerm = "MMD_AT_PLUS_A";
+				break;
+			default:
+				throw std::logic_error("Unsupported ordering strategy.");
+		}
+
+		Int  numShift = numPole;
+		std::vector<Real>  shiftVec( numShift );
+		std::vector<Real>  inertiaVec( numShift );
+
+		for( Int l = 0; l < numShift; l++ ){
+			shiftVec[l] = muMin0 + l * (muMax0 - muMin0) / (numShift-1);
+		}
+
+		GetTime( timeSta );
+		pexsi.CalculateNegativeInertiaReal( 
+				shiftVec,
+				inertiaVec,
+				HMat,
+				SMat,
+				colPerm,
+				npSymbFact );
+
+		GetTime( timeEnd );
+
+		// Inertia is multiplied by 2.0 to reflect the doubly occupied
+		// orbitals.
+		for( Int l = 0; l < numShift; l++ ){
+			inertiaVec[l] *= 2.0;
+		}
+
+#if ( _DEBUGlevel_ >= 0 )
+		statusOFS << std::endl << "Time for the inertia count is " <<
+			timeEnd - timeSta << std::endl;
+#endif
+
+		// Convert the internal variables to output parameters
+		for( Int l = 0; l < numShift; l++ ){
+			muList[l]          = shiftVec[l];
+			numElectronList[l] = inertiaVec[l];
+		}
+
+		*info = 0;
+	}
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+//		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+//			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	// Synchronize the info among all processors. 
+	// If any processor gets error message, info = 1
+	Int infoAll = 0;
+	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+	*info = infoAll;
+
+	statusOFS.close(); 
+	return;
+}  // -----  end of function PPEXSIRawInertiaCountInterface ----- 
+
+
 /// @brief Interface between PPEXSI and C for the PPEXSI solve
 /// procedure.
 extern "C" 
@@ -1558,6 +1774,56 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 
 	return;
 } // -----  end of function f_ppexsi_inertiacount_interface  ----- 
+
+
+extern "C" 
+void FORTRAN(f_ppexsi_raw_inertiacount_interface)(
+		// Input parameters
+		int*          nrows,                        // Size of the matrix
+		int*          nnz,                          // Total number of nonzeros in H
+		int*          nnzLocal,                     // Number of nonzeros in H on this proc
+		int*          numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+		int*          isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+		double*       muMin0,                       // Initial guess of lower bound for mu
+		double*       muMax0,                       // Initial guess of upper bound for mu
+		int*          numPole,                      // Number of shifts in computing the inertia, still called "Pole" for legacy reason
+		int*          ordering,                     // SuperLUDIST ordering
+		int*          npPerPole,                    // Number of processors for each shift, still called "Pole" for legacy reason
+		int*          npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
+		int*    	    Fcomm,                        // Overall MPI communicator
+		// Output parameters
+		double*       muList,                       // The list of shifts
+		double*       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+	PPEXSIRawInertiaCountInterface( 
+			*nrows,
+			*nnz,
+			*nnzLocal,
+			*numColLocal,
+			colptrLocal,
+			rowindLocal,
+			HnzvalLocal,
+			*isSIdentity,
+			SnzvalLocal,
+			*muMin0,
+			*muMax0,
+			*numPole,
+			*ordering,
+			*npPerPole,
+			*npSymbFact,
+			f2c_comm(Fcomm),
+			muList,
+			numElectronList,
+		  info );
+
+	return;
+} // -----  end of function f_ppexsi_raw_inertiacount_interface  ----- 
 
 
 /// @brief Interface between PPEXSI and FORTRAN for the solve procedure.

@@ -366,6 +366,14 @@ endif
 
 muInertia = (muLowerEdge + muUpperEdge)/2.0;
 
+if( mpirank == 0 ) then
+	write(*,*) "The computed finite temperature inertia = "
+	do i = 1, numPole
+		write(*,*) "Shift = ", shiftList(i), "inertia = ", inertiaList(i)
+	enddo
+endif
+
+! PEXSI Solve procedure
 
 call f_ppexsi_solve_interface(&
 	nrows,&
@@ -407,6 +415,46 @@ call f_ppexsi_solve_interface(&
 if( info .ne. 0 ) then
 	call mpi_finalize( ierr )
 	call exit(info)
+endif
+
+if( mpirank == 0 ) then
+	write(*,*) "PEXSI Solve finished."
+endif
+
+! Compute the "raw inertia" after the calculation
+
+call f_ppexsi_raw_inertiacount_interface(&
+	nrows,&
+	nnz,&
+	nnzLocal,&
+	numColLocal,&
+	colptrLocal,&
+	rowindLocal,&
+	HnzvalLocal,&
+	isSIdentity,&
+	SnzvalLocal,&
+	muMinInertia,&
+	muMaxInertia,&
+	numPole,&
+	ordering,&
+	npPerPole,&
+	npSymbFact,&
+	MPI_COMM_WORLD,&
+	shiftList,&
+	inertiaList,&
+	info)
+
+if( info .ne. 0 ) then
+	call mpi_finalize( ierr )
+	call exit(info)
+endif
+
+
+if( mpirank == 0 ) then
+	write(*,*) "The computed zero temperature RAW inertia = "
+	do i = 1, numPole
+		write(*,*) "Shift = ", shiftList(i), "inertia = ", inertiaList(i)
+	enddo
 endif
 
 if( mpirank == 0 ) then
