@@ -23,13 +23,13 @@ EXES = ${SRCS:.cpp=}
 all: run_pselinv run_pexsi run_ppexsi f_ppexsi
 
 run_pselinv: run_pselinv.o ${PEXSI_LIB} run_pselinv_ptscotch run_pselinv_parmetis
-	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS_PTSCOTCH) $(IPM) )
+	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS_PTSCOTCH) )
 
 run_pselinv_parmetis: run_pselinv.o ${PEXSI_LIB} 
-	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PARMETIS) $(IPM) )
+	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PARMETIS) )
 
 run_pselinv_ptscotch: run_pselinv.o   ${PEXSI_LIB} 
-	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PTSCOTCH) $(IPM) )
+	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PTSCOTCH) )
 
 
 run_pselinv.o: run_pselinv.cpp 
@@ -48,7 +48,7 @@ run_pexsi.o: run_pexsi.cpp
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 run_ppexsi: run_ppexsi.o ${PEXSI_LIB} 
-	($(LOADER) -o $@ run_ppexsi.o  $(LOADOPTS) $(IPM))
+	($(LOADER) -o $@ run_ppexsi.o  $(LOADOPTS) )
 
 run_ppexsi.o: run_ppexsi.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 

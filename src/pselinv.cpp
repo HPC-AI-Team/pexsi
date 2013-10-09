@@ -96,7 +96,11 @@ namespace PEXSI{
 		if( !info ){
 			throw std::logic_error( "MPI has not been initialized." );
 		}
-		comm = Bcomm;
+		MPI_Group  comm_group;
+		MPI_Comm_group( Bcomm, &comm_group );
+		MPI_Comm_create( Bcomm, comm_group, &comm );
+//		comm = Bcomm;
+
 		MPI_Comm_rank( comm, &mpirank );
 		MPI_Comm_size( comm, &mpisize );
 		if( mpisize != nprow * npcol ){
@@ -112,6 +116,7 @@ namespace PEXSI{
 		MPI_Comm_split( comm, myrow, mycol, &rowComm );
 		MPI_Comm_split( comm, mycol, myrow, &colComm );
 
+		MPI_Group_free( &comm_group );
 
 #ifndef _RELEASE_
 		PopCallStack();
@@ -130,6 +135,7 @@ namespace PEXSI{
 
 		MPI_Comm_free( &rowComm );
 		MPI_Comm_free( &colComm ); 
+		MPI_Comm_free( &comm );
 
 #ifndef _RELEASE_
 		PopCallStack();
@@ -6401,9 +6407,10 @@ namespace PEXSI{
 			B.nzvalLocal.Resize( B.nnzLocal );
 			SetValue( B.nzvalLocal, SCALAR_ZERO );
 			// Make sure that the communicator of A and B are the same.
-			if( grid_->comm != A.comm ){
-				throw std::runtime_error( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
-			}
+			// FIXME Find a better way to compare the communicators
+//			if( grid_->comm != A.comm ){
+//				throw std::runtime_error( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
+//			}
 			B.comm = grid_->comm;
 
 			Int*     rowPtr = B.rowindLocal.Data();
@@ -6695,9 +6702,10 @@ namespace PEXSI{
 			B.nzvalLocal.Resize( B.nnzLocal );
 			SetValue( B.nzvalLocal, SCALAR_ZERO );
 			// Make sure that the communicator of A and B are the same.
-			if( grid_->comm != A.comm ){
-				throw std::runtime_error( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
-			}
+			// FIXME Find a better way to compare the communicators
+//			if( grid_->comm != A.comm ){
+//				throw std::runtime_error( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
+//			}
 			B.comm = grid_->comm;
 
 			for( Int i = 0; i < mpisize; i++ )

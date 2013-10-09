@@ -1284,12 +1284,14 @@ void PPEXSISelInvInterface (
 	MPI_Comm_rank( comm, &mpirank );
 	MPI_Comm_size( comm, &mpisize );
 	Real timeSta, timeEnd;
+	
 
 	// log files
 	std::stringstream  ss;
 	ss << "logPEXSI" << mpirank;
 	// append to previous log files
 	statusOFS.open( ss.str().c_str(), std::ios_base::app );
+		
 
 	try{
 	  Int nprow = iround( std::sqrt( (double)mpisize) );
@@ -1299,6 +1301,7 @@ void PPEXSISelInvInterface (
 		}
 
 		SuperLUGrid g( comm, nprow, npcol );
+		
 
 		// Convert into H and S matrices
 		DistSparseMatrix<Real> HMat, SMat;
@@ -1425,6 +1428,7 @@ void PPEXSISelInvInterface (
 		// Selected inversion
 		// *********************************************************************
 
+
 		Grid g1( comm, nprow, npcol );
 		SuperNode super;
 
@@ -1522,6 +1526,9 @@ void PPEXSILocalDOSInterface (
 		DblNumVec Ainvnzval( 2 * nnzLocal );
 		SetValue( Ainvnzval, 0.0 );
 
+		
+		statusOFS.close();
+
 		PPEXSISelInvInterface(
 				nrows,
 				nnz,
@@ -1538,6 +1545,9 @@ void PPEXSILocalDOSInterface (
 				comm,	
 				Ainvnzval.Data(),
 				info );
+
+		statusOFS.open( ss.str().c_str(), std::ios_base::app );
+
 
 		if( *info ){
 			throw std::runtime_error("Error in SelInv!.");
