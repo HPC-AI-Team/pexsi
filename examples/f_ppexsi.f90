@@ -49,6 +49,7 @@ include 'mpif.h'
 
 integer :: nrows, nnz, nnzLocal, numColLocal
 integer, allocatable, dimension(:) ::  colptrLocal, rowindLocal
+integer, allocatable, dimension(:) ::  inertiaListInt
 double precision, allocatable, dimension(:) :: &
 	HnzvalLocal, SnzvalLocal, DMnzvalLocal, EDMnzvalLocal, &
 	FDMnzvalLocal, muList, numElectronList, numElectronDrvList,&
@@ -194,7 +195,6 @@ allocate( numElectronDrvList( muMaxIter ) )
 
 allocate( shiftList( numPole ) )
 allocate( inertiaList( numPole ) )
-
 
 if( isProcRead == 1 ) then
 	write(*,*) "Proc ", mpirank, " is reading file..."
@@ -423,6 +423,8 @@ endif
 
 ! Compute the "raw inertia" after the calculation
 
+allocate( inertiaListInt( numPole ) ) 
+
 call f_ppexsi_raw_inertiacount_interface(&
 	nrows,&
 	nnz,&
@@ -441,7 +443,7 @@ call f_ppexsi_raw_inertiacount_interface(&
 	npSymbFact,&
 	MPI_COMM_WORLD,&
 	shiftList,&
-	inertiaList,&
+	inertiaListInt,&
 	info)
 
 if( info .ne. 0 ) then
@@ -453,7 +455,7 @@ endif
 if( mpirank == 0 ) then
 	write(*,*) "The computed zero temperature RAW inertia = "
 	do i = 1, numPole
-		write(*,*) "Shift = ", shiftList(i), "inertia = ", inertiaList(i)
+		write(*,*) "Shift = ", shiftList(i), "inertia = ", inertiaListInt(i)
 	enddo
 endif
 
@@ -483,6 +485,7 @@ deallocate( numElectronDrvList )
 
 deallocate( shiftList )
 deallocate( inertiaList )
+deallocate( inertiaListInt )
 
 if( isProcRead == 1 ) then
 	deallocate( colptrLocal )

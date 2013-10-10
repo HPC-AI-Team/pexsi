@@ -776,7 +776,7 @@ void PPEXSIRawInertiaCountInterface(
 		MPI_Comm	    comm,                         // Overall MPI communicator
 		// Output parameters
 		double*       muList,                       // The list of shifts
-		double*       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
+		int   *       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
 		int*          info                          // 0: successful exit.  1: unsuccessful
 		)
 {
@@ -1807,7 +1807,7 @@ void FORTRAN(f_ppexsi_raw_inertiacount_interface)(
 		int*    	    Fcomm,                        // Overall MPI communicator
 		// Output parameters
 		double*       muList,                       // The list of shifts
-		double*       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
+		int*          numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
 		int*          info                          // 0: successful exit.  1: unsuccessful
 		)
 {
