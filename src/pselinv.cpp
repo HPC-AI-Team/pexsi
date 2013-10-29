@@ -2308,9 +2308,9 @@ namespace PEXSI{
 				if( MYROW( grid_ ) == isupProcRow ){
 					// SendToRight / RecvFromLeft only if (isup, ksup) is nonzero.
 					if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
-						for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
-								si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
-							Int jsup = *si;
+						for( std::set<Int>::iterator sj = localRowBlockColIdx[isupLocalBlockRow].begin();
+								sj != localRowBlockColIdx[isupLocalBlockRow].end(); sj++ ){
+							Int jsup = *sj;
 							Int jsupProcCol = PCOL( jsup, grid_ );
 							if( jsup > ksup ){
 
@@ -2321,20 +2321,20 @@ namespace PEXSI{
 									isSendToRight_( jsupProcCol, ksup ) = true;
 								}
 							}
-						} // for (si)
+						} // for (sj)
 					} // if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 )
 
 
 					sTR[ PCOL(ksup,grid_) ] = true;
 					if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
-						for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
-								si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
-							Int jsup = *si;
+						for( std::set<Int>::iterator sj = localRowBlockColIdx[isupLocalBlockRow].begin();
+								sj != localRowBlockColIdx[isupLocalBlockRow].end(); sj++ ){
+							Int jsup = *sj;
 							Int jsupProcCol = PCOL( jsup, grid_ );
 							if( jsup > ksup ){
 								sTR[ jsupProcCol ] = true;
 							} // if( jsup > ksup )
-						} // for (si)
+						} // for (sj)
 					}
 
 
