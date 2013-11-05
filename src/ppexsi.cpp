@@ -47,7 +47,7 @@
 
 namespace PEXSI{
 
-PPEXSIData::PPEXSIData	( const PEXSI::Grid* g, Int nprow, Int npcol ): gridPole_(g)
+PPEXSIData::PPEXSIData	( const GridType* g, Int nprow, Int npcol ): gridPole_(g)
 {
 #ifndef _RELEASE_
 	PushCallStack("PPEXSIData::PPEXSIData");
@@ -59,7 +59,7 @@ PPEXSIData::PPEXSIData	( const PEXSI::Grid* g, Int nprow, Int npcol ): gridPole_
 		throw std::runtime_error( "The number of processors numProcCol do not match nprow * npcol." );
 	}
 	gridSuperLU_  = new SuperLUGrid( gridPole_->rowComm, nprow, npcol );
-	gridSelInv_   = new Grid( gridPole_->rowComm, nprow, npcol );
+	gridSelInv_   = new GridType( gridPole_->rowComm, nprow, npcol );
 
   
 #ifndef _RELEASE_

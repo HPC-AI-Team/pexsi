@@ -50,71 +50,71 @@
 
 namespace PEXSI{
 
-// Template for tiny vectors of dimension 3.
+	// Template for tiny vectors of dimension 3.
 
-template <class F> 
-	inline F&
-	Vec3T<F>::operator() ( Int i ) 
-	{
+	template <class F> 
+		inline F&
+		Vec3T<F>::operator() ( Int i ) 
+		{
 #ifndef _RELEASE_
-		PushCallStack("Vec3T::operator()");
+			PushCallStack("Vec3T::operator()");
 #endif  // ifndef _RELEASE_
-		if( i < 0 || i > 2 ){
-			throw std::logic_error( "Index is out of bound." );
-		}
+			if( i < 0 || i > 2 ){
+				throw std::logic_error( "Index is out of bound." );
+			}
 #ifndef _RELEASE_
-		PopCallStack();
+			PopCallStack();
 #endif  // ifndef _RELEASE_
-		return v_[i];
-	} 		// -----  end of method Vec3T::operator()  ----- 
+			return v_[i];
+		} 		// -----  end of method Vec3T::operator()  ----- 
 
-template <class F> 
-	inline const F&
-	Vec3T<F>::operator() ( Int i ) const
-	{
+	template <class F> 
+		inline const F&
+		Vec3T<F>::operator() ( Int i ) const
+		{
 #ifndef _RELEASE_
-		PushCallStack("Vec3T::operator()");
+			PushCallStack("Vec3T::operator()");
 #endif  // ifndef _RELEASE_
-		if( i < 0 || i > 2 ){
-			throw std::logic_error( "Index is out of bound." );
-		}
+			if( i < 0 || i > 2 ){
+				throw std::logic_error( "Index is out of bound." );
+			}
 #ifndef _RELEASE_
-		PopCallStack();
+			PopCallStack();
 #endif  // ifndef _RELEASE_
-		return v_[i];
-	} 		// -----  end of method Vec3T::operator()  ----- 
+			return v_[i];
+		} 		// -----  end of method Vec3T::operator()  ----- 
 
-template <class F> 
-	inline F&
-	Vec3T<F>::operator[] ( Int i ) 
-	{
+	template <class F> 
+		inline F&
+		Vec3T<F>::operator[] ( Int i ) 
+		{
 #ifndef _RELEASE_
-		PushCallStack("Vec3T::operator[]");
+			PushCallStack("Vec3T::operator[]");
 #endif  // ifndef _RELEASE_
-		if( i < 0 || i > 2 ){
-			throw std::logic_error( "Index is out of bound." );
-		}
+			if( i < 0 || i > 2 ){
+				throw std::logic_error( "Index is out of bound." );
+			}
 #ifndef _RELEASE_
-		PopCallStack();
+			PopCallStack();
 #endif  // ifndef _RELEASE_
-		return v_[i];
-	} 		// -----  end of method Vec3T::operator[]  ----- 
+			return v_[i];
+		} 		// -----  end of method Vec3T::operator[]  ----- 
 
-template <class F> 
-	inline const F&
-	Vec3T<F>::operator[] ( Int i ) const
-	{
+	template <class F> 
+		inline const F&
+		Vec3T<F>::operator[] ( Int i ) const
+		{
 #ifndef _RELEASE_
-		PushCallStack("Vec3T::operator[]");
+			PushCallStack("Vec3T::operator[]");
 #endif  // ifndef _RELEASE_
-		if( i < 0 || i > 2 ){
-			throw std::logic_error( "Index is out of bound." );
-		}
+			if( i < 0 || i > 2 ){
+				throw std::logic_error( "Index is out of bound." );
+			}
 #ifndef _RELEASE_
-		PopCallStack();
+			PopCallStack();
 #endif  // ifndef _RELEASE_
-		return v_[i];
-	} 		// -----  end of method Vec3T::operator[]  ----- 
+			return v_[i];
+		} 		// -----  end of method Vec3T::operator[]  ----- 
 
 
 } // namespace PEXSI

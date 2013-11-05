@@ -399,7 +399,7 @@ void PPEXSIInertiaCountInterface(
 		Int nprow = iround( std::sqrt( (double)npPerPole) );
 		Int npcol = npPerPole / nprow;
 
-		Grid gridPole( comm, mpisize / npPerPole, npPerPole );
+		GridType gridPole( comm, mpisize / npPerPole, npPerPole );
 		PPEXSIData pexsi( &gridPole, nprow, npcol );
 
 		// Convert into H and S matrices
@@ -804,7 +804,7 @@ void PPEXSIRawInertiaCountInterface(
 		Int nprow = iround( std::sqrt( (double)npPerPole) );
 		Int npcol = npPerPole / nprow;
 
-		Grid gridPole( comm, mpisize / npPerPole, npPerPole );
+		GridType gridPole( comm, mpisize / npPerPole, npPerPole );
 		PPEXSIData pexsi( &gridPole, nprow, npcol );
 
 		// Convert into H and S matrices
@@ -1035,7 +1035,7 @@ void PPEXSISolveInterface (
 		Int nprow = iround( std::sqrt( (double)npPerPole) );
 		Int npcol = npPerPole / nprow;
 
-		Grid gridPole( comm, mpisize / npPerPole, npPerPole );
+		GridType gridPole( comm, mpisize / npPerPole, npPerPole );
 		PPEXSIData pexsi( &gridPole, nprow, npcol );
 
 		// Convert into H and S matrices
@@ -1429,8 +1429,8 @@ void PPEXSISelInvInterface (
 		// *********************************************************************
 
 
-		Grid g1( comm, nprow, npcol );
-		SuperNode super;
+		GridType g1( comm, nprow, npcol );
+		SuperNodeType super;
 
 		luMat.SymbolicToSuperNode( super );
 		PMatrix PMloc( &g1, &super, &luOpt );

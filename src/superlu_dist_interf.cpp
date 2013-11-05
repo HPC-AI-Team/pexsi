@@ -696,8 +696,8 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 	PushCallStack("SuperLUMatrix::LUstructToPMatrix");
 #endif
 	const LocalLU_t* Llu   = ptrData->LUstruct.Llu;
-	const Grid* grid       = PMloc.Grid();
-	const SuperNode* super = PMloc.SuperNode();
+	const GridType* grid   = PMloc.Grid();
+	const SuperNodeType* super = PMloc.SuperNode();
 	Int numSuper = PMloc.NumSuper();
 
   // L part   
@@ -840,7 +840,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 
 
 void
-SuperLUMatrix::SymbolicToSuperNode	( SuperNode& super )
+SuperLUMatrix::SymbolicToSuperNode	( SuperNodeType& super )
 {
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix::SymbolicToSuperNode");

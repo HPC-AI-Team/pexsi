@@ -471,18 +471,18 @@ int main(int argc, char **argv)
 
           NumVec<Scalar> diagBcast;
           PMatrix * PMlocBcastPtr;
-          SuperNode * superBcastPtr;
-          Grid * g2Ptr;
+          SuperNodeType * superBcastPtr;
+          GridType * g2Ptr;
 
           if(doSinv_Bcast)
           {
             GetTime( timeTotalSelInvSta );
 
-            g2Ptr = new Grid( world_comm, nprow, npcol );
-            Grid &g2 = *g2Ptr;
+            g2Ptr = new GridType( world_comm, nprow, npcol );
+            GridType &g2 = *g2Ptr;
 
-            superBcastPtr = new SuperNode();
-            SuperNode & superBcast = *superBcastPtr;
+            superBcastPtr = new SuperNodeType();
+            SuperNodeType & superBcast = *superBcastPtr;
 
             GetTime( timeSta );
             luMat.SymbolicToSuperNode( superBcast );
@@ -549,18 +549,18 @@ int main(int argc, char **argv)
 
           NumVec<Scalar> diagRef;
           PMatrix * PMlocRefPtr;
-          SuperNode * superRefPtr;
-          Grid * g3Ptr;
+          SuperNodeType * superRefPtr;
+          GridType * g3Ptr;
 
           if(doSinv_Original)
           {
             GetTime( timeTotalSelInvSta );
 
-            g3Ptr = new Grid( world_comm, nprow, npcol );
-            Grid &g3 = *g3Ptr;
+            g3Ptr = new GridType( world_comm, nprow, npcol );
+            GridType &g3 = *g3Ptr;
 
-            superRefPtr = new SuperNode();
-            SuperNode & superRef = *superRefPtr;
+            superRefPtr = new SuperNodeType();
+            SuperNodeType & superRef = *superRefPtr;
 
             GetTime( timeSta );
             luMat.SymbolicToSuperNode( superRef );
@@ -621,18 +621,18 @@ int main(int argc, char **argv)
 
           NumVec<Scalar> diag;
           PMatrix * PMlocPtr;
-          SuperNode * superPtr;
-          Grid * g1Ptr;
+          SuperNodeType * superPtr;
+          GridType * g1Ptr;
 
           if(doSinvPipeline)
           {
             GetTime( timeTotalSelInvSta );
 
-            g1Ptr = new Grid( world_comm, nprow, npcol );
-            Grid &g1 = *g1Ptr;
+            g1Ptr = new GridType( world_comm, nprow, npcol );
+            GridType &g1 = *g1Ptr;
 
-            superPtr = new SuperNode();
-            SuperNode & super = *superPtr;
+            superPtr = new SuperNodeType();
+            SuperNodeType & super = *superPtr;
 
             GetTime( timeSta );
             luMat.SymbolicToSuperNode( super );
@@ -718,7 +718,7 @@ int main(int argc, char **argv)
               SelInvErrors errorsOffDiag;
               SelInvErrors errorsDiag;
 
-              SuperNode & super = *superPtr;
+              SuperNodeType & super = *superPtr;
               PMatrix & PMlocRef = *PMlocRefPtr;
               PMatrix & PMloc = *PMlocPtr;
               PMloc.CompareOffDiagonal( PMlocRef ,errorsOffDiag);

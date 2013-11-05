@@ -54,7 +54,7 @@
  */
 #ifndef _C_PEXSI_INTERFACE_H_ 
 #define _C_PEXSI_INTERFACE_H_
-#include <mpi.h>
+#include "mpi.h"
 
 // FIXME This file is to be updated in the end when the interface is fixed, and when C linkage with PEXSI is needed.
 
