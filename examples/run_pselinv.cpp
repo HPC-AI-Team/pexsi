@@ -1,44 +1,44 @@
 /*
-	 Copyright (c) 2012 The Regents of the University of California,
-	 through Lawrence Berkeley National Laboratory.  
+   Copyright (c) 2012 The Regents of the University of California,
+   through Lawrence Berkeley National Laboratory.  
 
    Authors: Lin Lin and Mathias Jacquelin
-	 
+
    This file is part of PEXSI. All rights reserved.
 
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
 
-	 (1) Redistributions of source code must retain the above copyright notice, this
-	 list of conditions and the following disclaimer.
-	 (2) Redistributions in binary form must reproduce the above copyright notice,
-	 this list of conditions and the following disclaimer in the documentation
-	 and/or other materials provided with the distribution.
-	 (3) Neither the name of the University of California, Lawrence Berkeley
-	 National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-	 be used to endorse or promote products derived from this software without
-	 specific prior written permission.
+   (1) Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+   (2) Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+   (3) Neither the name of the University of California, Lawrence Berkeley
+   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+   be used to endorse or promote products derived from this software without
+   specific prior written permission.
 
-	 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-	 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-	 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-	 DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-	 ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-	 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-	 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-	 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-	 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-	 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-	 You are under no obligation whatsoever to provide any bug fixes, patches, or
-	 upgrades to the features, functionality or performance of the source code
-	 ("Enhancements") to anyone; however, if you choose to make your Enhancements
-	 available either publicly, or directly to Lawrence Berkeley National
-	 Laboratory, without imposing a separate written license agreement for such
-	 Enhancements, then you hereby grant the following license: a non-exclusive,
-	 royalty-free perpetual license to install, use, modify, prepare derivative
-	 works, incorporate into other computer software, distribute, and sublicense
-	 such enhancements or derivative works thereof, in binary and source code form.
+   You are under no obligation whatsoever to provide any bug fixes, patches, or
+   upgrades to the features, functionality or performance of the source code
+   ("Enhancements") to anyone; however, if you choose to make your Enhancements
+   available either publicly, or directly to Lawrence Berkeley National
+   Laboratory, without imposing a separate written license agreement for such
+   Enhancements, then you hereby grant the following license: a non-exclusive,
+   royalty-free perpetual license to install, use, modify, prepare derivative
+   works, incorporate into other computer software, distribute, and sublicense
+   such enhancements or derivative works thereof, in binary and source code form.
 */
 /// @file run_pselinv.cpp
 /// @brief Test for the interface of SuperLU_DIST and SelInv.
@@ -59,7 +59,7 @@ using namespace PEXSI;
 using namespace std;
 
 void Usage(){
-  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvOriginal [doSelInvOriginal] -Shift [imaginary shift] " << std::endl;
+  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvOriginal [doSelInvOriginal] -Shift [imaginary shift] -ToDist [doToDist] -Diag [doDiag]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -171,6 +171,10 @@ int main(int argc, char **argv)
         doToDist= atoi(options["-ToDist"].c_str());
       }
 
+      int doDiag = false;
+      if( options.find("-Diag") != options.end() ){ 
+        doDiag = atoi(options["-Diag"].c_str());
+      }
 
       doFacto = doFacto && doSymbfact;
 
@@ -299,8 +303,8 @@ int main(int argc, char **argv)
           ParaReadDistSparseMatrix( Sfile.c_str(), SMat, world_comm ); 
         else{
           ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, world_comm ); 
-					ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
-				}
+          ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
+        }
       }
 
       GetTime( timeEnd );
@@ -364,6 +368,11 @@ int main(int argc, char **argv)
           AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
         }
       } // if (SMat.size != 0 )
+
+      if( mpirank == 0 ){
+        cout << "nonzero in A (DistSparseMatrix format) = " << AMat.nnz << endl;
+      }
+
 
       GetTime( timeEnd );
       if( mpirank == 0 )
@@ -464,11 +473,6 @@ int main(int argc, char **argv)
 
           Real timeTotalSelInvSta, timeTotalSelInvEnd;
 
-
-
-
-
-
           NumVec<Scalar> diagBcast;
           PMatrix * PMlocBcastPtr;
           SuperNodeType * superBcastPtr;
@@ -487,61 +491,73 @@ int main(int argc, char **argv)
             GetTime( timeSta );
             luMat.SymbolicToSuperNode( superBcast );
 
+            
+
             PMlocBcastPtr = new PMatrix( &g2, &superBcast, &luOpt  );
             PMatrix & PMlocBcast = *PMlocBcastPtr;
 
             luMat.LUstructToPMatrix( PMlocBcast );
             GetTime( timeEnd );
 
+            LongInt nnzLU = PMlocBcast.Nnz();
+            if( mpirank == 0 ){
+              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
+            }
+
+
+
             if( mpirank == 0 )
               cout << "Time for converting LUstruct to PMatrix (Bcast) is " << timeEnd  - timeSta << endl;
-            
+
             if(doConstructPattern){
-            GetTime( timeSta );
-            PMlocBcast.ConstructCommunicationPattern_Bcast();
-            GetTime( timeEnd );
-            if( mpirank == 0 )
-              cout << "Time for constructing the communication pattern (Bcast) is " << timeEnd  - timeSta << endl;
+              GetTime( timeSta );
+              PMlocBcast.ConstructCommunicationPattern_Bcast();
+              GetTime( timeEnd );
+              if( mpirank == 0 )
+                cout << "Time for constructing the communication pattern (Bcast) is " << timeEnd  - timeSta << endl;
 
-            if(doPreSelinv){
-            GetTime( timeSta );
-            PMlocBcast.PreSelInv();
-            GetTime( timeEnd );
-            if( mpirank == 0 )
-              cout << "Time for pre selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
+              if(doPreSelinv){
+                GetTime( timeSta );
+                PMlocBcast.PreSelInv();
+                GetTime( timeEnd );
+                if( mpirank == 0 )
+                  cout << "Time for pre selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
 
-            if(doSelinv){
-            GetTime( timeSta );
-            PMlocBcast.SelInv_Bcast();
-            GetTime( timeEnd );
-            if( mpirank == 0 )
-              cout << "Time for numerical selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
+                if(doSelinv){
+                  GetTime( timeSta );
+                  PMlocBcast.SelInv_Bcast();
+                  GetTime( timeEnd );
+                  if( mpirank == 0 )
+                    cout << "Time for numerical selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
 
-            GetTime( timeTotalSelInvEnd );
-            if( mpirank == 0 )
-              cout << "Time for total selected inversion (Bcast) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
-
-
-            GetTime( timeSta );
-            PMlocBcast.GetDiagonal( diagBcast );
-            GetTime( timeEnd );
+                  GetTime( timeTotalSelInvEnd );
+                  if( mpirank == 0 )
+                    cout << "Time for total selected inversion (Bcast) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 
-            if( mpirank == 0 ){
-              statusOFS << std::endl << "Diagonal (Bcast) of inverse in natural order: " << std::endl << diagBcast << std::endl;
-              ofstream ofs("diag_bcast");
-              if( !ofs.good() ) 
-                throw std::runtime_error("file cannot be opened.");
-              serialize( diagBcast, ofs, NO_MASK );
-              ofs.close();
-            }
-            }
-
-            }
+                  // Output the diagonal elements
+                  if( doDiag ){
+                    GetTime( timeSta );
+                    PMlocBcast.GetDiagonal( diagBcast );
+                    GetTime( timeEnd );
 
 
+                    if( mpirank == 0 ){
+                      statusOFS << std::endl << "Diagonal (Bcast) of inverse in natural order: " << std::endl << diagBcast << std::endl;
+                      ofstream ofs("diag_bcast");
+                      if( !ofs.good() ) 
+                        throw std::runtime_error("file cannot be opened.");
+                      serialize( diagBcast, ofs, NO_MASK );
+                      ofs.close();
+                    }
+                  }
+                }
 
-            PMlocBcast.DestructCommunicationPattern_Bcast( );
+              }
+
+
+
+              PMlocBcast.DestructCommunicationPattern_Bcast( );
             }
 
           }
@@ -570,6 +586,12 @@ int main(int argc, char **argv)
 
             luMat.LUstructToPMatrix( PMlocRef );
             GetTime( timeEnd );
+
+            LongInt nnzLU = PMlocRef.Nnz();
+            if( mpirank == 0 ){
+              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
+            }
+
 
             if( mpirank == 0 )
               cout << "Time for converting LUstruct to PMatrix (Original) is " << timeEnd  - timeSta << endl;
@@ -602,18 +624,21 @@ int main(int argc, char **argv)
 
 
 
-            GetTime( timeSta );
-            PMlocRef.GetDiagonal( diagRef );
-            GetTime( timeEnd );
+            // Output the diagonal elements
+            if( doDiag ){
+              GetTime( timeSta );
+              PMlocRef.GetDiagonal( diagRef );
+              GetTime( timeEnd );
 
 
-            if( mpirank == 0 ){
-              statusOFS << std::endl << "Diagonal (original algorithm) of inverse in natural order: " << std::endl << diagRef << std::endl;
-              ofstream ofs("diag_original");
-              if( !ofs.good() ) 
-                throw std::runtime_error("file cannot be opened.");
-              serialize( diagRef, ofs, NO_MASK );
-              ofs.close();
+              if( mpirank == 0 ){
+                statusOFS << std::endl << "Diagonal (original algorithm) of inverse in natural order: " << std::endl << diagRef << std::endl;
+                ofstream ofs("diag_original");
+                if( !ofs.good() ) 
+                  throw std::runtime_error("file cannot be opened.");
+                serialize( diagRef, ofs, NO_MASK );
+                ofs.close();
+              }
             }
 
 
@@ -642,6 +667,12 @@ int main(int argc, char **argv)
 
             luMat.LUstructToPMatrix( PMloc );
             GetTime( timeEnd );
+
+            LongInt nnzLU = PMloc.Nnz();
+            if( mpirank == 0 ){
+              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
+            }
+
 
             if( mpirank == 0 )
               cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
@@ -683,24 +714,27 @@ int main(int argc, char **argv)
 
 
 
-            NumVec<Scalar> diag;
+            // Output the diagonal elements
+            if( doDiag ){
+              NumVec<Scalar> diag;
 
-            GetTime( timeSta );
-            PMloc.GetDiagonal( diag );
-            GetTime( timeEnd );
-
-
-            if( mpirank == 0 )
-              cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+              GetTime( timeSta );
+              PMloc.GetDiagonal( diag );
+              GetTime( timeEnd );
 
 
-            if( mpirank == 0 ){
-              statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
-              ofstream ofs("diag");
-              if( !ofs.good() ) 
-                throw std::runtime_error("file cannot be opened.");
-              serialize( diag, ofs, NO_MASK );
-              ofs.close();
+              if( mpirank == 0 )
+                cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+
+
+              if( mpirank == 0 ){
+                statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
+                ofstream ofs("diag");
+                if( !ofs.good() ) 
+                  throw std::runtime_error("file cannot be opened.");
+                serialize( diag, ofs, NO_MASK );
+                ofs.close();
+              }
             }
 
 
@@ -771,7 +805,7 @@ int main(int argc, char **argv)
                 IntNumVec cols(1);
                 cols(0)=gj;
 
-if(!mpirank) cout << "i'm alive"<<std::endl;
+                if(!mpirank) cout << "i'm alive"<<std::endl;
 
                 NumMat<Scalar>  xTrueGlobal(n,1), bGlobal(n,1);
                 CpxNumMat  xTrueLocal, bLocal;

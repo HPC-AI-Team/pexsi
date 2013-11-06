@@ -931,7 +931,7 @@ namespace PEXSI{
 
 		/// @brief Nnz computes the total number of nonzero elements in the
 		/// PMatrix.
-		Int  Nnz();
+		LongInt  Nnz();
 
 		/// @brief GetNegativeInertia computes the negative inertia of a
 		/// PMatrix.  This can be used to estimate e.g. the number of

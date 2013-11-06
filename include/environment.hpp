@@ -71,6 +71,9 @@
 //#include <signal.h>
 #include <exception>
 
+// For 32-bit and 64-bit integers
+#include <stdint.h>
+
 // MPI
 #include "mpi.h"
 
@@ -116,6 +119,7 @@ namespace PEXSI{
 #define LAPACK(name) name##_
 #endif
 typedef    int                   Int;
+typedef    int64_t               LongInt;
 typedef    double                Real;
 typedef    std::complex<double>  Complex; // Must use elemental form of complex
 #ifdef _USE_COMPLEX_

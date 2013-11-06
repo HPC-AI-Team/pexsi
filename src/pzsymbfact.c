@@ -625,7 +625,7 @@ distribution routine. */
 
 			temp = SUPERLU_MAX(temp, num_mem_usage.total);
 
-			MPI_Alleeduce( &temp, &max,
+			MPI_Allreduce( &temp, &max,
 									1, MPI_FLOAT, MPI_MAX, grid->comm );
 			MPI_Allreduce( &temp, &avg,
 									1, MPI_FLOAT, MPI_SUM, grid->comm );

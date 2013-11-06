@@ -6776,16 +6776,16 @@ namespace PEXSI{
 		} 		// -----  end of method PMatrix::NnzLocal  ----- 
 
 
-		// TODO Make nnz using long format
-		Int PMatrix::Nnz	(  )
+		LongInt PMatrix::Nnz	(  )
 		{
 #ifndef _RELEASE_
 			PushCallStack("PMatrix::Nnz");
 #endif
-			Int nnzLocal = this->NnzLocal();
-			Int nnz;
+			LongInt nnzLocal = LongInt( this->NnzLocal() );
+			LongInt nnz;
 
-			mpi::Allreduce( &nnzLocal, &nnz, 1, MPI_SUM, grid_->comm );
+      MPI_Allreduce( &nnzLocal, &nnz, 1, MPI_LONG_LONG, MPI_SUM, 
+          grid_->comm );
 
 #ifndef _RELEASE_
 			PopCallStack();
