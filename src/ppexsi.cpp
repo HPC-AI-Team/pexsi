@@ -276,7 +276,7 @@ void PPEXSIData::Solve(
 
 #if ( _DEBUGlevel_ >= 0 )
 	statusOFS << "AMat.nnzLocal = " << AMat.nnzLocal << std::endl;
-	statusOFS << "AMat.nnz      = " << AMat.nnz      << std::endl;
+	statusOFS << "AMat.nnz      = " << AMat.Nnz()    << std::endl;
 #endif
 
 	SuperLUOptions   luOpt;
@@ -320,8 +320,8 @@ void PPEXSIData::Solve(
 #if ( _DEBUGlevel_ >= 0 )
 		Int nnzLocal = PMloc.NnzLocal();
 		statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
-//		Int nnz      = PMloc.Nnz();
-//		statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+		LongInt nnz  = PMloc.Nnz();
+		statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
 #endif
 	}
 
@@ -1226,8 +1226,8 @@ void PPEXSIData::CalculateNegativeInertia(
 #if ( _DEBUGlevel_ >= 0 )
 		Int nnzLocal = PMloc.NnzLocal();
 		statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
-//		Int nnz      = PMloc.Nnz();
-//		statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+		LongInt nnz  = PMloc.Nnz();
+		statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
 #endif
 	}
 

@@ -269,6 +269,9 @@ void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat
 	MPI_Status mpistat;
 	std::ifstream fin;
 
+  // FIXME Maybe change to MPI_Comm_Dup.
+  pspmat.comm = comm;
+
   // Read basic information
 	if( mpirank == 0 ){
 		fin.open(filename);
@@ -278,7 +281,9 @@ void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat
 		fin.read((char*)&pspmat.size, sizeof(Int));
 		fin.read((char*)&pspmat.nnz,  sizeof(Int));
 	}
-	
+
+  // FIXME Maybe need LongInt format to read the number of nonzeros later
+
 	MPI_Bcast(&pspmat.size, 1, MPI_INT, 0, comm);
 	MPI_Bcast(&pspmat.nnz,  1, MPI_INT, 0, comm);
 
@@ -451,6 +456,7 @@ void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& p
     throw std::logic_error( "File cannot be opened!" );
   }
 
+  // FIXME Note that nnz uses the Int data type for consistency of writing / reading
   // Write header
   if( mpirank == 0 ){
     err = MPI_File_write_at(fout, 0,(char*)&pspmat.size, 1, MPI_INT, &status);
@@ -581,13 +587,13 @@ void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& ps
   MPI_Datatype types[3];
   Int err = 0;
 
-
-
   int filemode = MPI_MODE_RDONLY | MPI_MODE_UNIQUE_OPEN;
 
   MPI_File fin;
   MPI_Status status;
 
+  // FIXME Maybe change to MPI_Comm_Dup.
+  pspmat.comm = comm;
 
   err = MPI_File_open(comm,(char*) filename, filemode, MPI_INFO_NULL,  &fin);
 
@@ -595,6 +601,7 @@ void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& ps
     throw std::logic_error( "File cannot be opened!" );
   }
 
+  // FIXME Note that nnz uses the Int data type for consistency of writing / reading
   // Read header
   if( mpirank == 0 ){
     err = MPI_File_read_at(fin, 0,(char*)&pspmat.size, 1, MPI_INT, &status);
@@ -611,6 +618,7 @@ void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& ps
   types[1] = MPI_INT;
   MPI_Type_struct(2, lens, disps, types, &type);
   MPI_Type_commit(&type);
+
 
   /* broadcast the header data to everyone */
   MPI_Bcast(MPI_BOTTOM, 1, type, 0, comm);
@@ -728,6 +736,11 @@ void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatrix<Real
 	MPI_Status mpistat;
 	std::ifstream fin;
 
+  // FIXME Maybe change to MPI_Comm_Dup.
+  pspmat.comm = comm;
+
+  // FIXME Maybe need LongInt format to read the number of nonzeros later
+
   // Read basic information
 	if( mpirank == 0 ){
 		fin.open(filename);
@@ -735,6 +748,7 @@ void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatrix<Real
 			throw std::logic_error( "File cannot be opened!" );
 		}
 		Int dummy;
+
 		fin >> pspmat.size >> dummy;
 		fin >> pspmat.nnz;
 		// FIXME this is temporary and only applies to 4*4 matrix.

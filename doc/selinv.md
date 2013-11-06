@@ -17,7 +17,7 @@ The class PMatrix contains the following subroutines in PEXSI.
 
 @ref PEXSI::PMatrix "PMatrix"
 
-void @ref PEXSI::PMatrix::PMatrixToDistSparseMatrix2 "PMatrix::PMatrixToDistSparseMatrix2"
+void @ref PEXSI::PMatrix::PMatrixToDistSparseMatrix2 "PMatrixToDistSparseMatrix2"
 ( const @ref PEXSI::DistSparseMatrix "DistSparseMatrix"<Scalar>& A, @ref PEXSI::DistSparseMatrix "DistSparseMatrix"<Scalar>& B )
 
 PEXSI::NumMat structure

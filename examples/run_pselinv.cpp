@@ -308,10 +308,11 @@ int main(int argc, char **argv)
       }
 
       GetTime( timeEnd );
+      LongInt nnzH = HMat.Nnz();
       if( mpirank == 0 ){
         cout << "Time for reading H and S is " << timeEnd - timeSta << endl;
         cout << "H.size = " << HMat.size << endl;
-        cout << "H.nnz  = " << HMat.nnz  << endl;
+        cout << "H.nnz  = " << nnzH  << endl;
       }
 
       // Get the diagonal indices for H and save it n diagIdxLocal_
@@ -369,8 +370,9 @@ int main(int argc, char **argv)
         }
       } // if (SMat.size != 0 )
 
+      LongInt nnzA = AMat.Nnz();
       if( mpirank == 0 ){
-        cout << "nonzero in A (DistSparseMatrix format) = " << AMat.nnz << endl;
+        cout << "nonzero in A (DistSparseMatrix format) = " << nnzA << endl;
       }
 
 

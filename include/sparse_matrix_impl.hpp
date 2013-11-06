@@ -50,6 +50,23 @@
 
 namespace  PEXSI{
 
+template <class F> inline LongInt DistSparseMatrix<F>::Nnz ( )
+{
+#ifndef _RELEASE_
+	PushCallStack("DistSparseMatrix<F>::Nnz");
+#endif  
+  LongInt nnzLocalLong = nnzLocal;
+  LongInt nnz;
+
+  MPI_Allreduce( &nnzLocalLong, &nnz, 1, MPI_LONG_LONG, MPI_SUM,
+      comm );
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif  
+
+  return nnz;
+} 		// -----  end of method DistSparseMatrix<F>::Nnz  ----- 
 
 } // namespace PEXSI
 
