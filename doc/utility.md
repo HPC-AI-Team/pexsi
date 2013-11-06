@@ -1,5 +1,8 @@
-\page pag_utility Utilities
-\tableofcontents
+Utility Routines          {#PageUtility}
+================
 
-Utility functions.
+Core Linear Algebra Routines
+============================
 
+Wrappers Routines
+=================

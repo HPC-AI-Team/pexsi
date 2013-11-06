@@ -13,6 +13,6 @@ Welcome to the documentation of %PEXSI    {#mainpage}
   + @ref SecDependency
   + @ref SecBuild
     -->
-- @ref PagePoleExpansion
-- @ref PageSelectedInversion
-- @ref PageFORTRANInterface
+- @ref PageSelInv
+- @ref PageElectronicStructure
+- @ref PageUtility
