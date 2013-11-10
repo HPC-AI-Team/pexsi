@@ -877,7 +877,7 @@ namespace PEXSI{
 
 
 
-      void PMatrix::SelInv_lookup_indexes(const Int ksup, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf,NumMat<Scalar> & LUpdateBuf);
+      void SelInv_lookup_indexes(const Int ksup, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf,NumMat<Scalar> & LUpdateBuf);
 
 
       /// @brief GetDiagonal extracts the diagonal elements of the PMatrix.

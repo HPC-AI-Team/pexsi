@@ -3,11 +3,12 @@
 
 include ../make.inc
 
-SRCS  = run_pexsi.cpp run_ppexsi.cpp run_pselinv.cpp 
+SRCS_CPP  = run_pexsi.cpp run_ppexsi.cpp run_pselinv.cpp 
+SRCS_C    = driver_pselinv.c
 
-OBJS = ${SRCS:.cpp=.o}
-DEPS = ${SRCS:.cpp=.d}
-EXES = ${SRCS:.cpp=}	
+OBJS = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o}
+DEPS = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d}
+EXES = ${SRCS_CPP:.cpp=} ${SRCS_C:.c=}
 
 # Compilation replacement rules
 
@@ -20,7 +21,10 @@ EXES = ${SRCS:.cpp=}
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
 
-all: run_pselinv run_pexsi run_ppexsi f_ppexsi
+all: run_pselinv run_pexsi run_ppexsi f_ppexsi driver_pselinv
+
+driver_pselinv: driver_pselinv.o ${PEXSI_LIB} 
+	($(LOADER) -o $@ driver_pselinv.o  $(LOADOPTS_PTSCOTCH) )
 
 run_pselinv: run_pselinv.o ${PEXSI_LIB} run_pselinv_ptscotch run_pselinv_parmetis
 	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS_PTSCOTCH) )

@@ -42,11 +42,12 @@
 */
 /**
  * @file c_pexsi_interface.h
- * @brief Interface subroutines of %PEXSI that can be called by C/FORTRAN
- * 
- * This file is NOT needed for FORTRAN interface. All subroutines for
- * the FORTRAN interface is contained in src/interface.cpp. 
+ * @brief Interface subroutines of %PEXSI that can be called by C.
  *
+ * The FORTRAN interface are wrappers of the C interface.  The header
+ * file is not needed here, and the interface routines are given
+ * directly in interface.cpp.
+ * 
  * @date 2013-01-31
  */
 #ifndef _C_PEXSI_INTERFACE_H_ 
@@ -59,36 +60,108 @@
 extern "C"{
 #endif
 
+
+/**
+ * @brief Read the sizes of a DistSparseMatrix in formatted form (txt)
+ * for allocating memory in C.
+ *
+ * @param[in] filename (global) Filename for the input matrix.
+ * @param[out] size (global) Number of rows and columns of the matrix.
+ * @param[out] nnz (global) Total number of nonzeros.
+ * @param[out] nnzLocal (local) Number of local nonzeros.
+ * @param[out] numColLocal (local) Number of local columns.
+ * @param[in]  comm (global) MPI communicator.
+ */
+void ReadDistSparseMatrixFormattedHeadInterface ( 
+    char*    filename,
+    int*     size,
+    int*     nnz,
+    int*     nnzLocal,
+    int*     numColLocal,
+    MPI_Comm comm );
+
+/**
+ * @brief Reading the data of a formatted DistSparseMatrix. 
+ *
+ * This routine assumes that the arrays have been allocated outside this
+ * subroutine.
+ *
+ * @param[in] filename (global) Filename for the input matrix.
+ * @param[in] size (global) Number of rows and columns of the matrix.
+ * @param[in] nnz (global) Total number of nonzeros.
+ * @param[in] nnzLocal (local) Number of local nonzeros.
+ * @param[in] numColLocal (local) Number of local columns.
+ * @param[out] colptrLocal (local) Dimension: numColLocal+1. Local column
+ * pointer in CSC format.
+ * @param[out] rowindLocal (local) Dimension: nnzLocal. Local row index
+ * pointer in CSC format.
+ * @param[out] nzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values in CSC format.
+ * @param[in]  comm (global) MPI communicator.
+ */
+void ReadDistSparseMatrixFormattedInterface(
+		char*     filename,
+		int       size,
+		int       nnz,
+		int       nnzLocal,
+		int       numColLocal,
+		int*      colptrLocal,
+		int*      rowindLocal,
+		double*   nzvalLocal,
+		MPI_Comm  comm );
+
+
 /**
  * @brief Read the sizes of a DistSparseMatrix in unformatted form
  * (csc) for allocating memory in C.
+ *
+ * @param[in] filename (global) Filename for the input matrix.
+ * @param[out] size (global) Number of rows and columns of the matrix.
+ * @param[out] nnz (global) Total number of nonzeros.
+ * @param[out] nnzLocal (local) Number of local nonzeros.
+ * @param[out] numColLocal (local) Number of local columns.
+ * @param[in]  comm (global) MPI communicator.
  */
-void ReadDistSparseMatrixHeadInterface (
-                                        char*    filename,
-                                        int*     size,
-                                        int*     nnz,
-                                        int*     nnzLocal,
-                                        int*     numColLocal,
-                                        MPI_Comm comm );
+void ReadDistSparseMatrixHeadInterface ( 
+    char*    filename,
+    int*     size,
+    int*     nnz,
+    int*     nnzLocal,
+    int*     numColLocal,
+    MPI_Comm comm );
 
 /**
  * @brief Actual reading the data of a DistSparseMatrix using MPI-IO,
  * assuming that the arrays have been allocated outside this
  * subroutine.
  *
- * This routine can be much faster than the sequential reading of a
- * DistSparseMatrix in the presence of a large number of processors.
+ * This routine can be much faster than reading a DistSparseMatrix
+ * sequentially, especially compared to the version using formatted
+ * input @ref ReadDistSparseMatrixFormattedInterface.
+ *
+ * @param[in] filename (global) Filename for the input matrix.
+ * @param[in] size (global) Number of rows and columns of the matrix.
+ * @param[in] nnz (global) Total number of nonzeros.
+ * @param[in] nnzLocal (local) Number of local nonzeros.
+ * @param[in] numColLocal (local) Number of local columns.
+ * @param[out] colptrLocal (local) Dimension: numColLocal+1. Local column
+ * pointer in CSC format.
+ * @param[out] rowindLocal (local) Dimension: nnzLocal. Local row index
+ * pointer in CSC format.
+ * @param[out] nzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values in CSC format.
+ * @param[in]  comm (global) MPI communicator.
  */
-void ParaReadDistSparseMatrixInterface(
-                                       char*     filename,
-                                       int       size,
-                                       int       nnz,
-                                       int       nnzLocal,
-                                       int       numColLocal,
-                                       int*      colptrLocal,
-                                       int*      rowindLocal,
-                                       double*   nzvalLocal,
-                                       MPI_Comm  comm );
+void ParaReadDistSparseMatrixInterface ( 
+    char*     filename,
+    int       size,
+    int       nnz,
+    int       nnzLocal,
+    int       numColLocal,
+    int*      colptrLocal,
+    int*      rowindLocal,
+    double*   nzvalLocal,
+    MPI_Comm  comm );
 
 
 
@@ -134,29 +207,33 @@ void ParaReadDistSparseMatrixInterface(
  *   option in SuperLU_DIST).
  * @param[in] npSymbFact (global) Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
  * @param[in] comm (global) MPI communicator.
- * @param[out] AinvnzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * @param[out] AinvnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
  * values of the selected elements of of \f$(H - z S)^{-1}\f$.
+ * - Use 2 double for one complex number. This ensures the compatibility with FORTRAN.
+ * - Real part: AinvnzvalLocal[2*k]. Imag part: AinvnzvalLocal[2*k+1].
  * @param[out] info 
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PPEXSISelInvInterface (
-		int           nrows,                        
-	  int           nnz,                          
-		int           nnzLocal,                     
-		int           numColLocal,                  
-		int*          colptrLocal,                  
-		int*          rowindLocal,                  
-		double*       HnzvalLocal,                  
-		int           isSIdentity,                  
-		double*       SnzvalLocal,                  
-		double*       zShift,                       
-		int           ordering,                
-		int           npSymbFact,                   
-	  MPI_Comm	    comm,                         
-		double*       AinvnzvalLocal,               // Nonzero value of Ainv = (H - z S)^{-1}
-		int*          info                          // 0: successful exit.  1: unsuccessful
-		);
+void PPEXSISelInvInterface ( 
+    int           nrows,                        
+    int           nnz,                          
+    int           nnzLocal,                     
+    int           numColLocal,                  
+    int*          colptrLocal,                  
+    int*          rowindLocal,                  
+    double*       HnzvalLocal,                  
+    int           isSIdentity,                  
+    double*       SnzvalLocal,                  
+    double*       zShift,                       
+    int           ordering,                
+    int           npSymbFact,                   
+    MPI_Comm	    comm,                         
+    double*       AinvnzvalLocal,
+    int*          info
+    );
+
+
 
 
 #ifdef __cplusplus

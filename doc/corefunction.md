@@ -1,9 +1,10 @@
 Core Functionality     {#pageCoreFunction}
 ==================
 
+- @subpage pagePole
+- @subpage pageSelInv
 
-Pole expansion         {#pagePole}
-==============
+@page pagePole Pole expansion   
 \tableofcontents
 
 See page @ref pagePselinvComplex for more examples.
@@ -28,8 +29,8 @@ Expand the function
 \f]
 
 
-Selected Inversion                 {#pageSelInv}
-==================
+
+@page pageSelInv Selected Inversion
 \tableofcontents
 
 

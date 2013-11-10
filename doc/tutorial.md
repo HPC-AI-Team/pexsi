@@ -1,4 +1,5 @@
-@page pageTutorial Tutorial 
+Tutorial              {#pageTutorial}
+========
 
 - @subpage pagePselinvComplex
 - @subpage pagePEXSISolve

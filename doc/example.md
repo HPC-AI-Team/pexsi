@@ -1,4 +1,5 @@
-\page pag:example Example
+Example
+=======
 \tableofcontents
 
 \section sec_lap2d_seq Sequential example: 2D Laplacian

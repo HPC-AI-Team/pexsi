@@ -127,8 +127,6 @@ void DummyInterface( MPI_Comm comm, int a )
 	return;
 }  // -----  end of function DummyInterface  ----- 
 
-/// @brief Read the sizes of a DistSparseMatrix in formatted form (txt)
-/// for allocating memory in C.
 extern "C"
 void ReadDistSparseMatrixFormattedHeadInterface (
 		char*    filename,
@@ -186,8 +184,6 @@ void ReadDistSparseMatrixFormattedHeadInterface (
 // -----  end of function ReadDistSparseMatrixFormattedHeadInterface
 
 
-/// @brief Actual reading the data of a DistSparseMatrix, assuming that
-/// the arrays have been allocated outside this subroutine.
 extern "C"
 void ReadDistSparseMatrixFormattedInterface(
 		char*     filename,
@@ -221,8 +217,6 @@ void ReadDistSparseMatrixFormattedInterface(
 // -----  end of function ReadDistSparseMatrixFormattedInterface  
 
 
-/// @brief Read the sizes of a DistSparseMatrix in unformatted form
-/// (csc) for allocating memory in C.
 extern "C"
 void ReadDistSparseMatrixHeadInterface (
 		char*    filename,
@@ -284,12 +278,6 @@ void ReadDistSparseMatrixHeadInterface (
 }  
 // -----  end of function ReadDistSparseMatrixHeadInterface
 
-/// @brief Actual reading the data of a DistSparseMatrix using MPI-IO,
-/// assuming that the arrays have been allocated outside this
-/// subroutine.
-///
-/// This routine can be much faster than the sequential reading of a
-/// DistSparseMatrix in the presence of a large number of processors.
 extern "C"
 void ParaReadDistSparseMatrixInterface(
 		char*     filename,
@@ -1428,6 +1416,9 @@ void PPEXSISelInvInterface (
 		// Selected inversion
 		// *********************************************************************
 
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << "After numerical factorization." << std::endl;
+#endif
 
 		GridType g1( comm, nprow, npcol );
 		SuperNodeType super;
@@ -1443,17 +1434,30 @@ void PPEXSISelInvInterface (
 		// Main subroutine for selected inversion
 		// Use the broadcast pipelined version of SelInv.
 		PMloc.SelInv_Bcast();
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << "After selected inversion." << std::endl;
+#endif
 
 		DistSparseMatrix<Complex>  AinvMat;       // A^{-1} in DistSparseMatrix format
-		PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+
+		PMloc.PMatrixToDistSparseMatrix2( AMat, AinvMat );
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << "After conversion to DistSparseMatrix." << std::endl;
+#endif
 
 		// Convert the internal variables to output parameters
 
 		blas::Copy( nnzLocal*2, reinterpret_cast<double*>(AinvMat.nzvalLocal.Data()), 
 				1, AinvnzvalLocal, 1 );
-		
+
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << "After copying the matrix of Ainv." << std::endl;
+#endif
+
+
 		// Use the broadcast pipelined version of SelInv.
 		PMloc.DestructCommunicationPattern_Bcast( );
+
 
 		*info = 0;
 	}
@@ -1579,7 +1583,8 @@ void PPEXSILocalDOSInterface (
 	return;
 }  // -----  end of function PPEXSILocalDOSInterface  ----- 
 
-// *********************************************************************
+
+// ********************************************************************* 
 // FORTRAN interface
 // 
 // All FORTRAN interfaces call the C-interface subroutines above for
@@ -1596,6 +1601,10 @@ void PPEXSILocalDOSInterface (
 // in FORTRAN.
 //
 // *********************************************************************
+
+
+
+
 /// @brief Internal subroutine to convert FORTRAN communicator to C
 extern "C" 
 MPI_Comm f2c_comm(int *Fcomm)
@@ -1919,8 +1928,10 @@ void FORTRAN(f_ppexsi_solve_interface)(
 } // -----  end of function f_ppexsi_solve_interface  ----- 
 
 
-/// @brief Interface between PPEXSI and C for computing the selected
-/// elements of the matrix (H - z S)^{-1} for a given shift z. 
+/**
+ * @brief FORTRAN Interface for @ref PPEXSISelInvInterface.
+ * 
+ */
 extern "C" 
 void FORTRAN(f_ppexsi_selinv_interface)(
 		// Input parameters
