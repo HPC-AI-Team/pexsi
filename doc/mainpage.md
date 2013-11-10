@@ -1,18 +1,25 @@
-Welcome to the documentation of %PEXSI    {#mainpage}
-====================================== 
+Main            {#mainpage}
+====
+
+**Welcome to the documentation of %PEXSI 1.0**
+
 <!-- TODO Add the secondary directory structure -->
 
-- @ref PageIntro
-<!--  + @ref SecOverView
-  + @ref SecDependencies
-  + @ref SecLicense
-    -->
-- @ref PageInstall
+- @subpage pageIntro
+<!--  
+  + @subpage secOverView
+  + @subpage secDependencies
+  + @subpage secLicense
+-->
+- @subpage pageInstall
 <!--
-  + @ref Sec
-  + @ref SecDependency
-  + @ref SecBuild
-    -->
-- @ref PageSelInv
-- @ref PageElectronicStructure
-- @ref PageUtility
+  + @subpage sec
+  + @subpage secDependency
+  + @subpage secBuild
+-->
+- @subpage pageTutorial
+  - @subpage pagePselinvComplex
+  - @subpage pagePEXSISolve
+
+- @subpage pageCoreFunction
+- @subpage pageUtility

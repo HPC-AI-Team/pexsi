@@ -42,11 +42,8 @@
 */
 /**
  * @file c_pexsi_interface.h
- * @brief Interface subroutines of PEXSI that can be called by C/FORTRAN
+ * @brief Interface subroutines of %PEXSI that can be called by C/FORTRAN
  * 
- * This file is to be updated in the end when the interface is fixed,
- * and when C linkage with PEXSI is needed.
- *
  * This file is NOT needed for FORTRAN interface. All subroutines for
  * the FORTRAN interface is contained in src/interface.cpp. 
  *
@@ -62,8 +59,10 @@
 extern "C"{
 #endif
 
-/// @brief Read the sizes of a DistSparseMatrix in unformatted form
-/// (csc) for allocating memory in C.
+/**
+ * @brief Read the sizes of a DistSparseMatrix in unformatted form
+ * (csc) for allocating memory in C.
+ */
 void ReadDistSparseMatrixHeadInterface (
                                         char*    filename,
                                         int*     size,
@@ -72,12 +71,14 @@ void ReadDistSparseMatrixHeadInterface (
                                         int*     numColLocal,
                                         MPI_Comm comm );
 
-/// @brief Actual reading the data of a DistSparseMatrix using MPI-IO,
-/// assuming that the arrays have been allocated outside this
-/// subroutine.
-///
-/// This routine can be much faster than the sequential reading of a
-/// DistSparseMatrix in the presence of a large number of processors.
+/**
+ * @brief Actual reading the data of a DistSparseMatrix using MPI-IO,
+ * assuming that the arrays have been allocated outside this
+ * subroutine.
+ *
+ * This routine can be much faster than the sequential reading of a
+ * DistSparseMatrix in the presence of a large number of processors.
+ */
 void ParaReadDistSparseMatrixInterface(
                                        char*     filename,
                                        int       size,
@@ -88,6 +89,74 @@ void ParaReadDistSparseMatrixInterface(
                                        int*      rowindLocal,
                                        double*   nzvalLocal,
                                        MPI_Comm  comm );
+
+
+
+/**
+ * @brief Driver interface for computing the selected  elements of a matrix.  
+ *
+ * Evaluate the selected elements of 
+ * \f$(H - z S)^{-1}\f$ for a shift \f$z\in\mathbb{C}\f$.
+ * 
+ * **Note** 
+ * - H and S are always real symmetric matrices, are saved in the
+ *   compressed sparse column (CSC) format, and have the same sparsity
+ *   pattern.
+ * - Complex arithmetic operation is used for the factorization
+ *   and selected inversion even if z is real.
+ * - The input of S is optional, and the shift z can be 0.
+ *
+ * @param[in] nrows (global) Number of rows and columns of the matrix.
+ * @param[in] nnz (global) Total number of nonzeros of H.
+ * @param[in] nnzLocal (local) Number of local nonzeros of H.
+ * @param[in] numColLocal (local) Number of local columns for H.
+ * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
+ * pointer in CSC format.
+ * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
+ * pointer in CSC format.
+ * @param[in] HnzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values of H in CSC format.
+ * @param[in] isSIdentity (global) Whether S is an identity matrix. 
+ * If so, the variable SnzvalLocal is omitted.
+ * @param[in] SnzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * value of S in CSC format.
+ * @param[in] zShift  (global) Dimension: 2. Use 2 real numbers to
+ * denote a complex shift. 
+ * - Real part: zShift[0]
+ * - Imag part: zShift[1]    
+ * @param[in] ordering (global) Ordering strategy for factorization and selected
+ * inversion.  
+ * - = 0   : Parall ordering using ParMETIS/PT-SCOTCH (PARMETIS
+ *   option in SuperLU_DIST).
+ * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
+ *   option in SuperLU_DIST).
+ * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
+ *   option in SuperLU_DIST).
+ * @param[in] npSymbFact (global) Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
+ * @param[in] comm (global) MPI communicator.
+ * @param[out] AinvnzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values of the selected elements of of \f$(H - z S)^{-1}\f$.
+ * @param[out] info 
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISelInvInterface (
+		int           nrows,                        
+	  int           nnz,                          
+		int           nnzLocal,                     
+		int           numColLocal,                  
+		int*          colptrLocal,                  
+		int*          rowindLocal,                  
+		double*       HnzvalLocal,                  
+		int           isSIdentity,                  
+		double*       SnzvalLocal,                  
+		double*       zShift,                       
+		int           ordering,                
+		int           npSymbFact,                   
+	  MPI_Comm	    comm,                         
+		double*       AinvnzvalLocal,               // Nonzero value of Ainv = (H - z S)^{-1}
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		);
 
 
 #ifdef __cplusplus

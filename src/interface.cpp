@@ -1259,8 +1259,6 @@ void PPEXSISolveInterface (
 	return;
 }  // -----  end of function PPEXSISolveInterface ----- 
 
-/// @brief Interface between PPEXSI and C for computing the selected
-/// elements of the matrix (H - z S)^{-1} for a given shift z. 
 extern "C" 
 void PPEXSISelInvInterface (
 		// Input parameters

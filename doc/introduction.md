@@ -1,9 +1,9 @@
-Introduction      {#PageIntro}
+Introduction      {#pageIntro}
 ============
 
 \tableofcontents
 
-Overview          {#SecOverview}
+Overview          {#secOverview}
 ======== 
 
 Pole EXpansion and Selected Inversion for solving Kohn-Sham density
@@ -12,16 +12,16 @@ functional theory.
 The main function is described in the PEXSI::PMatrix::SelInv
 function in the class PEXSI::PMatrix.
 
-The section @ref PageIntro says the following about 
+The section @ref pageIntro says the following about 
 
 
 
-Dependencies      {#SecDependencies}
+Dependencies      {#secDependencies}
 ============ 
 
 PEXSI uses 
 
-License and copyright      {#SecLicense}
+License and copyright      {#secLicense}
 =====================
 
     Copyright (c) 2012 The Regents of the University of California,

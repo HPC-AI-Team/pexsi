@@ -1,9 +1,9 @@
-Installation       {#PageInstall}
+Installation       {#pageInstall}
 ============
 \tableofcontents
 
 
-Dependencies       {#SecDependency}
+Dependencies       {#secDependency}
 ============
 
 %PEXSI is built on top of SelInv (for sequential LDLT factorization
@@ -43,7 +43,7 @@ http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_3.2.tar.gz
 
 \attention SuperLU_DIST is **NOT** guaranteed to work on OSX system.
 
-Build PEXSI      {#SecBuild}
+Build PEXSI      {#secBuild}
 ===========
 
 Edit make.inc

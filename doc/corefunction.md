@@ -1,14 +1,44 @@
-For Selected Inversion Only         {#PageSelInv}
-===========================
+Core Functionality     {#pageCoreFunction}
+==================
+
+
+Pole expansion         {#pagePole}
+==============
+\tableofcontents
+
+See page @ref pagePselinvComplex for more examples.
+
+The pole expansion is used to expand Fermi-Dirac functions and other
+derived quantities using a number of Green's functions (poles).
+
+int @ref PEXSI::GetPoleDensity "GetPoleDensity" (Complex* zshift, Complex* zweight, 
+    int Npole, double temp, double gap, double deltaE,
+    double mu);
+
+~~~~{.cpp}
+int GetPoleDensity (Complex* zshift, Complex* zweight, 
+    int Npole, double temp, double gap, double deltaE,
+    double mu);
+~~~~
+
+Expand the function
+\f[
+  f_{\beta} (z) = \frac{2}{1+e^{\beta z}} \approx 
+  \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{\rho}_l}{z-z_l}
+\f]
+
+
+Selected Inversion                 {#pageSelInv}
+==================
 \tableofcontents
 
 
 
 
-GridType    {#SecGridType}
+GridType    {#secGridType}
 ========
 
-PMatrix     {#SecPMatrix}
+PMatrix     {#secPMatrix}
 =======
 
 The class PMatrix contains the following subroutines in PEXSI.

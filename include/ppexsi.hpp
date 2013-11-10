@@ -53,6 +53,7 @@
 #include	"mpi_interf.hpp"
 #include  "superlu_dist_interf.hpp"
 #include	"pselinv.hpp"
+#include  "c_pexsi_interface.h"
 
 namespace PEXSI{
 

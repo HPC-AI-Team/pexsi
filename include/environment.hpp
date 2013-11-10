@@ -40,11 +40,11 @@
 	 works, incorporate into other computer software, distribute, and sublicense
 	 such enhancements or derivative works thereof, in binary and source code form.
 */
-/// @file environment_decl.hpp
+/// @file environment.hpp
 /// @brief Environmental variables.
 /// @date 2012-08-10
-#ifndef _ENVIRONMENT_DECL_HPP_
-#define _ENVIRONMENT_DECL_HPP_
+#ifndef _ENVIRONMENT_HPP_
+#define _ENVIRONMENT_HPP_
 
 // STL libraries
 #include <iostream> 
@@ -241,4 +241,4 @@ namespace PEXSI{
 } // namespace PEXSI
 
 
-#endif // _ENVIRONMENT_DECL_HPP_
+#endif // _ENVIRONMENT_HPP_

@@ -1,4 +1,4 @@
-Utility Routines          {#PageUtility}
+Utility Routines          {#pageUtility}
 ================
 
 Core Linear Algebra Routines
