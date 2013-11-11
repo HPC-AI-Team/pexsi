@@ -1,9 +1,28 @@
 Core Functionality     {#pageCoreFunction}
 ==================
 
+- @subpage pageDataType
 - @subpage pagePole
 - @subpage pageSelInv
 
+<!-- ************************************************************ -->
+@page pageDataType Data type
+\tableofcontents
+
+Basic data type    {#secBasicDataType}
+===============
+
+Compressed sparse column format    {#secCSC}
+===============================
+
+
+Distributed compressed sparse column format    {#secDistCSC}
+===========================================
+
+The columns are partitioned.
+
+
+<!-- ************************************************************ -->
 @page pagePole Pole expansion   
 \tableofcontents
 
@@ -30,6 +49,7 @@ Expand the function
 
 
 
+<!-- ************************************************************ -->
 @page pageSelInv Selected Inversion
 \tableofcontents
 

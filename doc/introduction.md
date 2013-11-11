@@ -16,10 +16,28 @@ The section @ref pageIntro says the following about
 
 
 
+<!--
+@anchor defSelectedElem 
+**Selected elements** are the elements
+-->
+
 Dependencies      {#secDependencies}
 ============ 
 
-PEXSI uses 
+PEXSI uses SuperLU_DIST.
+
+Nomenclature
+============
+
+Selected elements     {#defSelectedElem}
+-----------------
+
+The selected elements of a matrix \f$B\f$ with respect to a matrix
+\f$A\f$ are defined to be the set \f$\{B_{i,j}\vert A_{i,j}\ne 0\}\f$.
+
+A particularly commonly used case in %PEXSI is the selected elements of
+\f$A^{-1}\f$, which corresponds to the set \f$\{A^{-1}_{i,j}\vert A_{i,j}\ne 0\}\f$.
+
 
 License and copyright      {#secLicense}
 =====================

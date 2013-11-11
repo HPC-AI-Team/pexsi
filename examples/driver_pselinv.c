@@ -121,22 +121,22 @@ int main(int argc, char **argv)
   zShift[1]   = 0.0;
   npSymbFact  = 1;
 
-	PPEXSISelInvInterface(
-			nrows,
-			nnz,
-			nnzLocal,
-			numColLocal,
-			colptrLocal,
-			rowindLocal,
-			HnzvalLocal,
-			isSIdentity,
-			SnzvalLocal,
-			zShift,
-			ordering,
-			npSymbFact,
-			MPI_COMM_WORLD,
-			AinvnzvalLocal,
-			&info );
+  PPEXSISelInvInterface(
+      nrows,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      HnzvalLocal,
+      isSIdentity,
+      SnzvalLocal,
+      zShift,
+      ordering,
+      npSymbFact,
+      MPI_COMM_WORLD,
+      AinvnzvalLocal,
+      &info );
 
   /* The first processor output the diagonal elements in natural order
    */
