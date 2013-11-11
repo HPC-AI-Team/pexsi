@@ -107,7 +107,7 @@ namespace  PEXSI{
 		/// (FORTRAN-convention), i.e.  colptrLocal[0] = 1. 
 		IntNumVec    colptrLocal;                     
 
-		/// @brief Dimension nnzLocal, storing the nonzero indices.
+		/// @brief Dimension nnzLocal, storing the nonzero row indices.
 		/// The indices are 1-based (FORTRAN-convention), i.e. the first row
 		/// index is 1. 
 		IntNumVec    rowindLocal;                    

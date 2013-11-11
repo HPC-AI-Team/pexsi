@@ -50,44 +50,199 @@
 
 namespace PEXSI{
 
-  /// @brief Shift and weights of poles for calculating the density
-  /// matrix, the total energy, and the Hellman-Feynman force. This is
-  /// the most commonly used subroutine.
+  /// @brief Pole expansion for the Fermi-Dirac operator.
+  /// 
+  /// This is the most commonly used subroutine for the pole expansion,
+  /// and can be used to compute the shifts and weights for calculating
+  /// the density matrix, the total energy, and the Hellman-Feynman
+  /// force. 
   ///
-  /// Expand the function 
+  /// This routine obtains the expansion
   ///
   /// \f[
   ///    f_{\beta} (z) = \frac{2}{1+e^{\beta z}} \approx 
   ///    \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{\rho}_l}{z-z_l}
   /// \f]
   ///
-  /// @param[in]  zshift Npole * 1, the shifts \f$\{z_l\}\f$.
+  /// @note
+  /// The unit of `temp`,`gap`,`deltaE`,`mu` must be the same.
+  ///
+  ///
+  /// @param[out]  zshift Dimension: Npole. The shifts \f$\{z_l\}\f$.
+  /// @param[out]  zweight Dimension: Npole. The weights \f$\{\omega^{\rho}_l\}\f$.
+  /// @param[in]   Npole   Number of poles. **Must be an even number**.
+  /// @param[in]   temp    Temperature. Temperature equals to
+  /// \f$1/\beta\f$.
+  /// @param[in]   gap     The spectral gap, defined as
+  /// \f$\min_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   deltaE  The spectral range, defined as
+  /// \f$\max_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   mu      The chemical potential.
+  ///
+  /// @return 
+  /// - = 0: successful exit.  
+  /// - > 0: unsuccessful.
+  ///  
   int GetPoleDensity(Complex* zshift, Complex* zweight, 
       int Npole, double temp, double gap, double deltaE,
       double mu);
 
-  /// @brief Shift and weights of poles for calculating the derivative of
-  /// the Fermi-Dirac distribution with respect to mu.
+  /// @brief Pole expansion for the derivative of the Fermi-Dirac
+  /// operator with respect to the chemical potential mu.
+  /// 
+  /// This routine can be used to evaluate the derivative of the number
+  /// of electrons with respect to the chemical potential for the
+  /// Newton step for updating the chemical potential.
+  ///
+  /// Note that \f$f_{\beta}\f$ does not explicitly contain \f$\mu\f$,
+  /// so this routine actually computes the expansion
+  ///
+  /// \f[
+  ///    -\frac{\partial f_{\beta}}{\partial z} (z) =
+  ///    2\beta \frac{e^{\beta z}}{(1+e^{\beta z})^2} 
+  ///    \approx \mathrm{Im} \sum_{l=1}^{P}
+  ///    \frac{\omega^{\mu}_l}{z-z_l}
+  /// \f]
+  ///
+  /// @note
+  /// The unit of `temp`,`gap`,`deltaE`,`mu` must be the same.
+  ///
+  ///
+  /// @param[out]  zshift Dimension: Npole. The shifts \f$\{z_l\}\f$.
+  /// @param[out]  zweight Dimension: Npole. The weights \f$\{\omega^{\mu}_l\}\f$.
+  /// @param[in]   Npole   Number of poles. **Must be an even number**.
+  /// @param[in]   temp    Temperature. Temperature equals to
+  /// \f$1/\beta\f$.
+  /// @param[in]   gap     The spectral gap, defined as
+  /// \f$\min_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   deltaE  The spectral range, defined as
+  /// \f$\max_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   mu      The chemical potential.
+  ///
+  /// @return 
+  /// - = 0: successful exit.  
+  /// - > 0: unsuccessful.
   int GetPoleDensityDrvMu(Complex* zshift, Complex* zweight, 
       int Npole, double temp, double gap, double deltaE,
       double mu);
 
-  /// @brief Shift and weights of poles for calculating the derivative of
-  /// the Fermi-Dirac distribution with respect to T.
+  /// @brief Pole expansion for the derivative of the Fermi-Dirac
+  /// operator with respect to the temperature T \f$(1/\beta)\f$.
+  /// 
+  /// This routine can be used to extrapolate the number of electrons
+  /// from a finite temperature calculation to a zero temperature
+  /// calculation, using the derivative information.  However, this
+  /// functionality is not used anymore in the current version of
+  /// %PEXSI.
+  ///
+  ///
+  /// \f[
+  ///    \frac{\partial f_{\beta}}{\partial (1/\beta)} (z) =
+  ///    2 \beta^2 z \frac{e^{\beta z}}{(1+e^{\beta z})^2} 
+  ///    \approx \mathrm{Im} \sum_{l=1}^{P}
+  ///    \frac{\omega^{T}_l}{z-z_l}
+  /// \f]
+  ///
+  /// @note
+  /// The unit of `temp`,`gap`,`deltaE`,`mu` must be the same.
+  ///
+  ///
+  /// @param[out]  zshift Dimension: Npole. The shifts \f$\{z_l\}\f$.
+  /// @param[out]  zweight Dimension: Npole. The weights \f$\{\omega^{T}_l\}\f$.
+  /// @param[in]   Npole   Number of poles. **Must be an even number**.
+  /// @param[in]   temp    Temperature. Temperature equals to
+  /// \f$1/\beta\f$.
+  /// @param[in]   gap     The spectral gap, defined as
+  /// \f$\min_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   deltaE  The spectral range, defined as
+  /// \f$\max_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   mu      The chemical potential.
+  ///
+  /// @return 
+  /// - = 0: successful exit.  
+  /// - > 0: unsuccessful.
   int GetPoleDensityDrvT(Complex* zshift, Complex* zweight, 
       int Npole, double temp, double gap, double deltaE,
       double mu);
 
-  /// @brief Shift and weights of poles for calculating the Helmholtz free energy
-  /// density matrix, and the Helmholtz free energy using the formula by
-  /// Alavi et al.
+  /// @brief Pole expansion for the Helmholtz free energy function.
+  /// 
+  /// This routine can be used to compute the (Helmholtz) free energy
+  /// when finite temperature effect exists. This is especially
+  /// important for metallic system and other small gapped systems. 
+  /// This routine expands the free energy function
+  ///
+  /// \f[
+  ///    f^{\mathcal{F}}_{\beta}(z) = -\frac{2}{\beta} \log 
+  ///    (1 + e^{-\beta z}) \approx \mathrm{Im} \sum_{l=1}^{P}
+  ///    \frac{\omega^{\mathcal{F}}_l}{z-z_l}
+  /// \f]
+  ///
+  /// @note
+  /// The unit of `temp`,`gap`,`deltaE`,`mu` must be the same.
+  ///
+  ///
+  /// @param[out]  zshift Dimension: Npole. The shifts \f$\{z_l\}\f$.
+  /// @param[out]  zweight Dimension: Npole. The weights \f$\{\omega^{\mathcal{F}}_l\}\f$.
+  /// @param[in]   Npole   Number of poles. **Must be an even number**.
+  /// @param[in]   temp    Temperature. Temperature equals to
+  /// \f$1/\beta\f$.
+  /// @param[in]   gap     The spectral gap, defined as
+  /// \f$\min_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   deltaE  The spectral range, defined as
+  /// \f$\max_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   mu      The chemical potential.
+  ///
+  /// @return 
+  /// - = 0: successful exit.  
+  /// - > 0: unsuccessful.
   int GetPoleHelmholtz(Complex* zshift, Complex* zweight, 
       int Npole, double temp, double gap, double deltaE,
       double mu);
 
 
-  /// @brief Shift and weights of poles for calculating the energy energy density
-  /// matrix, and the Pulay force.
+  /// @brief Pole expansion for the energy density function.
+  /// 
+  /// This routine can be used to compute the Pulay contribution of the
+  /// atomic force in electronic structure calculations.  This term is
+  /// especially important when basis set is not complete and changes
+  /// with atomic positions.
+  /// This routine expands the free energy function
+  ///
+  /// \f[
+  ///    f^{E}_{\beta}(z) = (z+\mu) f_{\beta}(z) 
+  ///    \approx \mathrm{Im} \sum_{l=1}^{P}
+  ///    \frac{\omega^{E}_l}{z-z_l}
+  /// \f]
+  ///
+  /// @note
+  /// The unit of `temp`,`gap`,`deltaE`,`mu` must be the same.
+  ///
+  ///
+  /// @param[out]  zshift Dimension: Npole. The shifts \f$\{z_l\}\f$.
+  /// @param[out]  zweight Dimension: Npole. The weights \f$\{\omega^{E}_l\}\f$.
+  /// @param[in]   Npole   Number of poles. **Must be an even number**.
+  /// @param[in]   temp    Temperature. Temperature equals to
+  /// \f$1/\beta\f$.
+  /// @param[in]   gap     The spectral gap, defined as
+  /// \f$\min_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   deltaE  The spectral range, defined as
+  /// \f$\max_{\varepsilon} |\varepsilon-\mu|\f$, where
+  /// \f$\varepsilon\f$ is an eigenvalue.
+  /// @param[in]   mu      The chemical potential.
+  ///
+  /// @return 
+  /// - = 0: successful exit.  
+  /// - > 0: unsuccessful.
   int GetPoleForce(Complex* zshift, Complex* zweight, 
       int Npole, double temp, double gap, double deltaE,
       double mu);
