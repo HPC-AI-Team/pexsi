@@ -41,7 +41,7 @@
    such enhancements or derivative works thereof, in binary and source code form.
 */
 /// @file superlu_dist_interf.cpp
-/// @brief Interface to SuperLU_Dist (v3.2).
+/// @brief Interface to SuperLU_Dist (v3.3).
 /// @author Lin Lin
 /// @date 2012-11-15
 #include "superlu_dist_interf.hpp"

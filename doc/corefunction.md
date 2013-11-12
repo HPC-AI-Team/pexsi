@@ -23,6 +23,7 @@ For C++ and usage beyond the driver routines, include the following file
 
 - @subpage pageDataType
 - @subpage pagePole
+- @subpage pageFactor
 - @subpage pageSelInv
 - @subpage pageFORTRAN
 
@@ -33,6 +34,7 @@ For C++ and usage beyond the driver routines, include the following file
 
 Basic data type    {#secBasicDataType}
 ===============
+
 
 The basic data types `int` and `double` are redefined as `Int` and
 `Real`, in order to improve compatibility for different architecture
@@ -135,7 +137,10 @@ memory CSC format matrix is @ref PEXSI::DistSparseMatrix
   `Complex`) `NumVec` of dimension `nnzLocal`, stores the nonzero values
   in each column.
 
-  
+2D block cyclic format    {#secCyclic}
+======================
+
+**TBD**  
 
 <!-- ************************************************************ -->
 @page pagePole Pole expansion   
@@ -144,7 +149,7 @@ memory CSC format matrix is @ref PEXSI::DistSparseMatrix
 The pole expansion is used to expand Fermi-Dirac functions and other
 derived quantities using a number of Green's functions (poles).
 
-@ref PEXSI::GetPoleDensity "GetPoleDensity" 
+> @ref PEXSI::GetPoleDensity "GetPoleDensity" 
 
 Pole expansion for the Fermi-Dirac operator.
 This is the most commonly used subroutine for the pole expansion,
@@ -158,7 +163,7 @@ force.  This routine obtains the expansion
 \f]
 
 
-@ref PEXSI::GetPoleDensityDrvMu "GetPoleDensityDrvMu" 
+> @ref PEXSI::GetPoleDensityDrvMu "GetPoleDensityDrvMu" 
 
 Pole expansion for the derivative of the Fermi-Dirac
 operator with respect to the chemical potential mu.
@@ -177,7 +182,7 @@ so this routine actually computes the expansion
 \f]
 
 
-@ref PEXSI::GetPoleDensityDrvMu "GetPoleDensityDrvMu" 
+> @ref PEXSI::GetPoleDensityDrvMu "GetPoleDensityDrvMu" 
 
 Pole expansion for the derivative of the Fermi-Dirac
 operator with respect to the temperature T \f$(1/\beta)\f$.
@@ -198,7 +203,7 @@ functionality is not used anymore in the current version of
 
 
 
-@ref PEXSI::GetPoleHelmholtz "GetPoleHelmholtz" 
+> @ref PEXSI::GetPoleHelmholtz "GetPoleHelmholtz" 
 
 Pole expansion for the Helmholtz free energy function.
 
@@ -213,7 +218,7 @@ This routine expands the free energy function
    \frac{\omega^{\mathcal{F}}_l}{z-z_l}
 \f]
 
-@ref PEXSI::GetPoleForce "GetPoleForce" 
+> @ref PEXSI::GetPoleForce "GetPoleForce" 
 
 This routine can be used to compute the Pulay contribution of the
 atomic force in electronic structure calculations.  This term is
@@ -229,10 +234,321 @@ This routine expands the free energy function
 
 
 <!-- ************************************************************ -->
+@page pageFactor Factorization
+\tableofcontents
+
+
+
+Procedure for factorization       {#secProcedureFactor}
+===========================
+
+Before the selected inversion step, the matrix saved in 
+[DistSparseMatrix](@ref PEXSI::DistSparseMatrix) format must first be
+factorized.  In principle this can be done with any \f$LDL^T\f$
+factorization or \f$LU\f$ factorization routines.  In the current
+version of %PEXSI, [SuperLU_DIST
+v3.3](http://crd-legacy.lbl.gov/~xiaoye/SuperLU/) is used for the
+\f$LU\f$ factorization.  
+
+@note
+To avoid conflict with other routines in %PEXSI, the SuperLU_DIST
+routines are encapsulated in superlu_dist_interf.cpp. Access to
+SuperLU_DIST routines are made through a wrapper class
+[SuperLUMatrix](@ref PEXSI::SuperLUMatrix).
+
+The basic steps for factorization include:
+
+- Convert a `DistSparseMatrix` into the native format (`SuperMatrix` in
+  SuperLU_DIST) of the factorization routine.
+  
+- Symbolic factorization.
+
+- Numerical factorization.
+
+Related structures and subroutines
+----------------------------------
+
+> @ref PEXSI::SuperLUGrid "SuperLUGrid"
+
+A thin interface for the mpi grid strucutre in SuperLU.
+
+> @ref PEXSI::SuperLUOptions "SuperLUOptions"
+
+A thin interface for passing parameters to set the SuperLU
+options.
+
+> @ref PEXSI::SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc "SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc"
+
+Convert a distributed sparse matrix in compressed sparse
+column format into the SuperLU compressed row format.  The output is
+saved in the current %SuperLUMatrix.
+
+@note
+Although LU factorization is used, the routine
+assumes that the matrix is strictly symmetric, and therefore the
+compressed sparse row (CSR) format, used by SuperLU_DIST, gives
+exactly the same matrix as formed by the compresed sparse column
+format (CSC).
+
+> @ref PEXSI::SuperLUMatrix::SymbolicFactorize "SuperLUMatrix::SymbolicFactorize"
+
+This routine factorizes the superlu matrix symbolically.  Symbolic
+factorization contains three steps.
+
+- Permute the matrix to reduce fill-in.
+- Symbolic factorize the matrix.
+- Distribute the matrix into 2D block cyclic format.
+
+This routine is controlled via 
+[SuperLUOptions](@ref PEXSI::SuperLUOptions). In particular, the permutation strategy is
+controlled by 
+[SuperLUOptions::ColPerm](@ref PEXSI::SuperLUOptions::ColPerm).
+ 
+> @ref PEXSI::SuperLUMatrix::NumericalFactorize "SuperLUMatrix::NumericalFactorize"
+
+Performs LU factorization numerically. 
+
+
+Example
+-------
+
+
+~~~~~~~~~~{.cpp}
+#include "ppexsi.hpp"
+{
+  ...;
+  // Construct AMat
+  DistSparseMatrix<Complex>  AMat;
+  ...;
+
+  // Setup SuperLU
+  SuperLUGrid g( comm, nprow, npcol );
+  SuperLUOptions luOpt;
+  luOpt.ColPerm = "MMD_AT_PLUS_A";
+  SuperLUMatrix luMat( g );
+
+  // Matrix conversion
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+
+  // Symbolic factorization
+  luMat.SymbolicFactorize();
+
+  // Numerical factorization
+  luMat.NumericalFactorize();
+
+  ...;
+}
+~~~~~~~~~~
+
+Reuse symbolic factorization      {#secSymbolicReuse}
+============================
+
+In SuperLU_DIST, the same symbolic factorization can be reused for
+factorizing different matrices.  To reuse the symbolic factorization,
+one should follow the steps below.
+
+(After symbolic factorization)
+- Destroy the `SuperMatrix`.
+- Convert another `DistSparseMatrix` into the native format (`SuperMatrix` in
+  SuperLU_DIST) of the factorization routine.
+- Redistribute the matrix into 2D block cyclic format.
+- Numerical factorization.
+
+Related structures and subroutines
+----------------------------------
+
+> @ref PEXSI::SuperLUMatrix::DestroyAOnly "SuperLUMatrix::DestroyAOnly"
+
+Releases the data in A but keeps other data, such as LUstruct. 
+
+This allows one to perform factorization of
+matrices of the same pattern, such as the option
+
+`fact = SamePattern_SameRowPerm`
+
+in SuperLU_DIST.
+
+> @ref PEXSI::SuperLUMatrix::Distribute "SuperLUMatrix::Distribute"
+
+Distribute redistrbutes the SuperMatrix in parallel so that it is ready
+for the numerical factorization.
+
+Example
+-------
+
+~~~~~~~~~~{.cpp}
+#include "ppexsi.hpp"
+{
+  ...;
+  // Construct AMat
+  DistSparseMatrix<Complex>  AMat;
+  ...;
+
+  // Setup SuperLU
+  SuperLUGrid g( comm, nprow, npcol );
+  SuperLUOptions luOpt;
+  luOpt.ColPerm = "MMD_AT_PLUS_A";
+  SuperLUMatrix luMat( g );
+
+  // Matrix conversion
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+
+  // Symbolic factorization
+  luMat.SymbolicFactorize();
+
+  // Destroy the SuperMatrix saved in luMat.
+  luMat.DestroyAOnly();
+
+
+  // Construct another matrix BMat with the same sparsity pattern as A.
+  DistSparseMatrix<Complex>  BMat; 
+  ...;
+  // Matrix conversion
+  luMat.DistSparseMatrixToSuperMatrixNRloc( BMat );
+  // Redistribute into 2D block cyclic format.
+  luMat.Distribute();
+
+
+  // Numerical factorization
+  luMat.NumericalFactorize();
+
+  ...;
+}
+~~~~~~~~~~
+
+Triangular solve and accuracy check    {#secTriangularSolve}
+===================================
+
+The triangular solve routines provided by SuperLU_DIST can be used to
+check the accuracy of the factorization as well as the selected
+inversion.
+
+(After numericl factorization)
+- Construct the distributed right hand sides.
+- Solve \f$Ax=b\f$. Multiple right hand sides can be solved
+  simultaneously.
+
+Related structures and subroutines
+----------------------------------
+
+> @ref PEXSI::SuperLUMatrix::SolveDistMultiVector "SuperLUMatrix::SolveDistMultiVector"
+
+Solve A x = b with b overwritten by x for distributed multivector.
+
+> @ref PEXSI::SuperLUMatrix::CheckErrorDistMultiVector "SuperLUMatrix::CheckErrorDistMultiVector"
+
+Print out the error by direct comparison with the true solution in
+distributed format.
+
+Example
+-------
+
+The following example performs factorization, solves for a series of
+right hand sides and compare the accuracy.
+
+~~~~~~~~~~{.cpp}
+#include "ppexsi.hpp"
+{
+  ...;
+  // Construct AMat
+  DistSparseMatrix<Complex>  AMat;
+  ...;
+
+  // Setup SuperLU
+  SuperLUGrid g( comm, nprow, npcol );
+  SuperLUOptions luOpt;
+  luOpt.ColPerm = "MMD_AT_PLUS_A";
+  SuperLUMatrix luMat( g );
+
+  // Matrix conversion
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+
+  // Symbolic factorization
+  luMat.SymbolicFactorize();
+
+  // Numerical factorization
+  luMat.NumericalFactorize();
+  
+  // Construct a global matrix (for error checking)
+  SuperLUMatrix A1( g ), GA( g );
+  A1.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  A1.ConvertNRlocToNC( GA );
+  
+  // Construct the distributed right hand sides and the exact solution.
+  CpxNumMat xTrueGlobal(n, nrhs), bGlobal(n, nrhs);
+  CpxNumMat xTrueLocal, bLocal;
+  UniformRandom( xTrueGlobal );
+  GA.MultiplyGlobalMultiVector( xTrueGlobal, bGlobal );
+  A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
+  A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
+
+
+  // Solve and check the error.
+  luMat.SolveDistMultiVector( bLocal, berr );
+  luMat.CheckErrorDistMultiVector( bLocal, xTrueLocal );
+
+  ...;
+}
+~~~~~~~~~~
+
+
+<!-- ************************************************************ -->
 @page pageSelInv Selected Inversion
 \tableofcontents
 
 
+<!--
+Procedure for Selected Inversion     {#secProcedureSelInv}
+================================
+
+
+After factorizing a SuperLUMatrix luMat (See SuperLUMatrix for
+information on how to perform factorization), perform the following
+steps for parallel selected inversion.
+
+- Conversion from SuperLU_DIST.
+  
+  Symbolic information
+
+      SuperNodeType super; 
+      PMatrix PMloc;
+      luMat.SymbolicToSuperNode( super );  
+  
+  Numerical information, both L and U.
+
+      luMat.LUstructToPMatrix( PMloc ); 
+
+- Preparation.
+
+  Construct the communication pattern for SelInv.
+
+      PMloc.ConstructCommunicationPattern(); 
+  
+  Numerical preparation so that SelInv only involves Gemm.
+
+      PMloc.PreSelInv();  
+
+- Selected inversion.
+
+      PMloc.SelInv();
+
+- Postprocessing.
+
+  Get the information in DistSparseMatrix format 
+
+      DistSparseMatrix<Scalar> Ainv;
+      PMloc.PMatrixToDistSparseMatrix( Ainv );  
+
+Note
+----
+
+- All major operations of PMatrix, including the selected inversion
+are defined directly as the member function of PMatrix.
+
+- In the current version of PMatrix, square grid is assumed.  This
+assumption is only used when sending the information to
+cross-diagonal blocks, i.e. from L(isup, ksup) to U(ksup, isup).
+This assumption can be relaxed later.
 
 
 GridType    {#secGridType}
@@ -241,29 +557,8 @@ GridType    {#secGridType}
 PMatrix     {#secPMatrix}
 =======
 
-The class PMatrix contains the following subroutines in PEXSI.
 
-@ref PEXSI::PMatrix 
-
-@ref PEXSI::PMatrix "PMatrix"
-
-void @ref PEXSI::PMatrix::PMatrixToDistSparseMatrix2 "PMatrixToDistSparseMatrix2"
-( const @ref PEXSI::DistSparseMatrix "DistSparseMatrix"<Scalar>& A, @ref PEXSI::DistSparseMatrix "DistSparseMatrix"<Scalar>& B )
-
-PEXSI::NumMat structure
-
-PEXSI::PMatrix::ConstructCommunicationPattern\_Bcast
-
-`void PMatrixToDistSparseMatrix2( const DistSparseMatrix<Scalar>& A, DistSparseMatrix<Scalar>& B );`
-
-void PMatrixToDistSparseMatrix2( const DistSparseMatrix<Scalar>& A, DistSparseMatrix<Scalar>& B );
-
-void PEXSI::PMatrix::PMatrixToDistSparseMatrix2( const DistSparseMatrix<Scalar>& A, DistSparseMatrix<Scalar>& B );
-
-~~~~~~~~~~{.cpp}
-void PEXSI::PMatrix::PMatrixToDistSparseMatrix2( const PEXSI::DistSparseMatrix<Scalar>& A, PEXSI::DistSparseMatrix<Scalar>& B );
-~~~~~~~~~~
-    Convert a matrix    
+-->
 
 <!-- ************************************************************ -->
 @page pageFORTRAN FORTRAN interface

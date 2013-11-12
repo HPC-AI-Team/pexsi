@@ -38,4 +38,3 @@ clean:
 
 cleanall:
 	${RM} -f ${OBJS} ${DEPS} libpexsi.a *.d.*
-

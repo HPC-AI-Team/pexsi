@@ -199,7 +199,7 @@ void ParaReadDistSparseMatrixInterface (
  * - Imag part: zShift[1]    
  * @param[in] ordering (global) Ordering strategy for factorization and selected
  * inversion.  
- * - = 0   : Parall ordering using ParMETIS/PT-SCOTCH (PARMETIS
+ * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
  *   option in SuperLU_DIST).
  * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
  *   option in SuperLU_DIST).

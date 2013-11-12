@@ -1,44 +1,44 @@
 /*
-	 Copyright (c) 2012 The Regents of the University of California,
-	 through Lawrence Berkeley National Laboratory.  
+   Copyright (c) 2012 The Regents of the University of California,
+   through Lawrence Berkeley National Laboratory.  
 
    Author: Lin Lin
-	 
+
    This file is part of PEXSI. All rights reserved.
 
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
 
-	 (1) Redistributions of source code must retain the above copyright notice, this
-	 list of conditions and the following disclaimer.
-	 (2) Redistributions in binary form must reproduce the above copyright notice,
-	 this list of conditions and the following disclaimer in the documentation
-	 and/or other materials provided with the distribution.
-	 (3) Neither the name of the University of California, Lawrence Berkeley
-	 National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-	 be used to endorse or promote products derived from this software without
-	 specific prior written permission.
+   (1) Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+   (2) Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+   (3) Neither the name of the University of California, Lawrence Berkeley
+   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+   be used to endorse or promote products derived from this software without
+   specific prior written permission.
 
-	 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-	 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-	 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-	 DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-	 ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-	 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-	 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-	 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-	 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-	 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-	 You are under no obligation whatsoever to provide any bug fixes, patches, or
-	 upgrades to the features, functionality or performance of the source code
-	 ("Enhancements") to anyone; however, if you choose to make your Enhancements
-	 available either publicly, or directly to Lawrence Berkeley National
-	 Laboratory, without imposing a separate written license agreement for such
-	 Enhancements, then you hereby grant the following license: a non-exclusive,
-	 royalty-free perpetual license to install, use, modify, prepare derivative
-	 works, incorporate into other computer software, distribute, and sublicense
-	 such enhancements or derivative works thereof, in binary and source code form.
+   You are under no obligation whatsoever to provide any bug fixes, patches, or
+   upgrades to the features, functionality or performance of the source code
+   ("Enhancements") to anyone; however, if you choose to make your Enhancements
+   available either publicly, or directly to Lawrence Berkeley National
+   Laboratory, without imposing a separate written license agreement for such
+   Enhancements, then you hereby grant the following license: a non-exclusive,
+   royalty-free perpetual license to install, use, modify, prepare derivative
+   works, incorporate into other computer software, distribute, and sublicense
+   such enhancements or derivative works thereof, in binary and source code form.
 */
 /// @file superlu_dist_interf.hpp
 /// @brief Inteface with SuperLU_Dist (version 3.0 and later)
@@ -76,13 +76,34 @@ namespace PEXSI{
 
 
 	/// @struct SuperLUOptions
-	/// @brief A thin interface for setting the SuperLU options from
-	/// outside.  
+  /// @brief A thin interface for passing parameters to set the SuperLU
+  /// options.  
 	///
 	struct SuperLUOptions{
+    /// @brief Number of processors for parallel symbolic factorization.
+    ///
+    /// numProcSymbFact should be a power of 2, and is only useful when
+    ///
+    /// ColPerm = "PARMETIS"
 		Int              numProcSymbFact;
+    /// @brief The maximum pipeline depth. 
+    ///
+    /// @todo
+    /// This option should not be here and should be moved into PMatrix.
 		Int              maxPipelineDepth; 
 
+    /// @brief Option of matrix permutation strategy.
+    ///
+    /// The following options of permutation strategy is available (case
+    /// sensitive):
+    ///
+    /// - "MMD_AT_PLUS_A": Multiple minimum degree ordering. This is the
+    /// default option.
+    /// - "METIS_AT_PLUS_A": Sequential ordering using METIS. This
+    /// requires the usage of METIS package.
+    /// - "PARMETIS": Parallel ordering. This requires the usage of
+    /// ParMETIS/PT-SCOTCH package.
+    ///
 		std::string      ColPerm;
 
 		// Member functions to setup the default value
@@ -92,90 +113,6 @@ namespace PEXSI{
 	/// @class SuperLUMatrix
 	/// @brief An thin interface to keep the main code insulated from
 	/// the source code of SuperLU. 
-	///
-	///
-	/// Procedure for factorization
-	/// ---------------------------
-	///
-	/// - Construct a distributed compressed sparse column format matrix
-	/// (complex arithmetic for example).
-	///  
-	///   \code{.cpp}
-	///   DistSparseMatrix<Complex>  AMat;
-	///   ...(Construct AMat)
-	///   \endcode
-	///
-	/// - Create a SuperMatrix from a DistSparseMatrix.
-	///   
-	///   \code{.cpp}
-	///   SuperLUMatrix luMat( g );
-	///   luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
-	///   \endcode
-	///
-	/// - Symbolic factorization.
-	///
-	///   \code{.cpp}
-	///   luMat.SymbolicFactorize();
-	///   luMat.DestroyAOnly();
-	///		\endcode
-	///
-	///		<b> NOTE: </b> Destroy the SuperMatrix by DestroyAOnly is
-	///		important if the symbolic factorization is to be reused for
-	///		factorizing matrices of the same pattern.
-	///
-	/// - Redistribute and factorize a matrix of the same sparsity pattern
-	/// as AMat.
-	///
-	///   \code{.cpp}
-	///   DistSparseMatrix<Complex>  BMat;
-	///   ...(Construct BMat)
-	///   luMat.DistSparseMatrixToSuperMatrixNRloc( BMat );
-	///   luMat.Distribute();
-	///		\endcode
-	///
-	/// - Numerical factorization
-	///
-	///   \code{.cpp}
-	///   luMat.NumericalFactorize();
-	///   \endcode
-	///
-	/// - (Optional) Solve multivectors (for consistency check).
-	///
-	///   Construct a global matrix.
-	///
-	///   \code{.cpp}
-	///   SuperLUMatrix A1( g ), GA( g );
-	///   A1.DistSparseMatrixToSuperMatrixNRloc( AMat );
-	///   A1.ConvertNRlocToNC( GA );
-	///   \endcode
-	///
-	///   Construct the distributed right hand sides and the exact
-	///   solution.
-	///
-	///   \code{.cpp}
-	///   CpxNumMat xTrueGlobal(n, nrhs), bGlobal(n, nrhs);
-	///   CpxNumMat xTrueLocal, bLocal;
-	///   UniformRandom( xTrueGlobal );
-	///   GA.MultiplyGlobalMultiVector( xTrueGlobal, bGlobal );
-	///   A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
-	///   A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
-	///   \endcode
-	///   
-	///   Solve and check the error.
-	///
-	///   \code{.cpp}
-	///   luMat.SolveDistMultiVector( bLocal, berr );
-	///   luMat.CheckErrorDistMultiVector( bLocal, xTrueLocal );
-	///   \endcode
-	///
-	///
-	/// Note
-	/// ----
-	///
-	/// - The memory allocation etc does not need to be managed explicitly
-	///	using the SuperLUMatrix class.
-	///
-	/// - For parallel selected inversion, see PMatrix.
 	///
 	class SuperLUMatrix{
 	private:
@@ -198,34 +135,61 @@ namespace PEXSI{
 
 		Int n() const;
 
-		/// @brief DistSparseMatrixToSuperMatrixNRloc converts a distributed
-		/// sparse matrix in compressed sparse column format into the SuperLU
-		/// compressed row format. 
+    /// @brief Convert a distributed sparse matrix in compressed sparse
+    /// column format into the SuperLU compressed row format. 
+    /// 
+    /// The output is saved in the current %SuperLUMatrix.
+    ///
+    /// @note
+    /// Although LU factorization is used, the routine
+    /// assumes that the matrix is strictly symmetric, and therefore the
+    /// compressed sparse row (CSR) format, used by SuperLU_DIST, gives
+    /// exactly the same matrix as formed by the compresed sparse column
+    /// format (CSC).
+    ///
+    ///
+    /// @param[in] sparseA Matrix A saved in distributed compressed
+    /// sparse column format.
 		///
-		/// TODO real arithmetic
-		/// FIXME: IntNumVec convention.  Assumes a symmetric matrix
+    /// @todo 
+    /// Better way to incorporate both real and complex arithmetic.
 		void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>& sparseA );
 
-		/// @brief DestroyAOnly releases the data in A but keeps other data,
-		/// such as LUstruct. This allows one to perform factorization of
+		/// @brief Releases the data in A but keeps other data,
+		/// such as LUstruct. 
+    ///
+    /// This allows one to perform factorization of
 		/// matrices of the same pattern, such as the option
-		/// fact = SamePattern_SameRowPerm in SuperLU_DIST.
+    ///
+		/// fact = SamePattern_SameRowPerm
+    ///
+    /// in SuperLU_DIST.
 		void DestroyAOnly();
 
-		/// @brief SymbolicFactorize factorizes the superlu matrix symbolically.
+		/// @brief Factorizes the superlu matrix symbolically.
+    ///
+    /// Symbolic factorization contains three steps.
+    ///
+    /// - Permute the matrix to reduce fill-in.
+    /// - Symbolic factorize the matrix.
+    /// - Distribute the matrix into 2D block cyclic format.
+    ///
+    /// This routine is controlled via SuperLUOptions.
 		void SymbolicFactorize();
 
 		/// @brief Distribute redistrbutes the SuperMatrix in parallel so that
 		/// it is ready for the numerical factorization.
 		///
-		/// TODO Real arithmetic
+    /// @todo 
+    /// Better way to incorporate both real and complex arithmetic.
 		void Distribute();
 
-		/// @brief NumericalFactorize performs LU factorization numerically.  
+		/// @brief Performs LU factorization numerically.  
 		///
-		/// The matrix should have been permuted and distributed.  
+		/// The %SuperLUMatrix should have been permuted and distributed.  
 		///
-		/// TODO Real arithmetic. 
+    /// @todo 
+    /// Better way to incorporate both real and complex arithmetic.
 		void NumericalFactorize();
 
 		/// @brief ConvertNRlocToNC converts a distributed compressed sparse
@@ -251,7 +215,7 @@ namespace PEXSI{
 
 		void GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal );
 
-		/// @brief SolveDistMultiVector A x = b with b overwritten by x for
+		/// @brief Solve A x = b with b overwritten by x for
 		/// distributed multivector.
 		///
 		/// @param[in,out] bLocal Right hand side savd in the distributed format.
@@ -259,7 +223,7 @@ namespace PEXSI{
 		void SolveDistMultiVector( NumMat<Scalar>& bLocal, DblNumVec& berr );
 
 
-		/// @brief CheckErrorDistMultiVector prints out the error by direct
+		/// @brief Prints out the error by direct
 		/// comparison with the true solution in distributed format.
 		///
 		/// @param[in] xLocal The computed solution.

@@ -1,5 +1,5 @@
-Main            {#mainpage}
-====
+Main Page           {#mainpage}
+=========
 
 **Welcome to the documentation of %PEXSI 1.0**
 
@@ -13,8 +13,10 @@ Main            {#mainpage}
 - @subpage pageCoreFunction
   - @ref pageDataType
   - @ref pagePole
+  - @ref pageFactor
   - @ref pageSelInv
   - @ref pageFORTRAN
 - @subpage pageUtility
   - @ref pageDataIO
   - @ref pageConvert
+- @subpage pageTODO
