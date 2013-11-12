@@ -1,10 +1,19 @@
 Installation       {#pageInstall}
 ============
-\tableofcontents
 
+- @subpage pageSource
+- @subpage pageDependency
+- @subpage pageBuild
+- @subpage pageTrouble
 
-Dependencies       {#secDependency}
-============
+<!-- ************************************************************ -->
+@page pageSource Obtaining the source code
+
+**TBD**
+
+<!-- ************************************************************ -->
+@page pageDependency Dependencies
+
 
 %PEXSI is built on top of SelInv (for sequential LDLT factorization
 and selected inversion), and SuperLU\_DIST (for distributed memory
@@ -43,8 +52,9 @@ http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_3.2.tar.gz
 
 \attention SuperLU_DIST is **NOT** guaranteed to work on OSX system.
 
-Build PEXSI      {#secBuild}
-===========
+
+<!-- ************************************************************ -->
+@page pageBuild Build %PEXSI
 
 Edit make.inc
 -------------
@@ -101,3 +111,9 @@ For running the test examples, see \ref pag_example.
 
 \attention The `tests` folder are for developing purpose, and not
 all test subroutines are readily to be compiled.
+
+
+<!-- ************************************************************ -->
+@page pageTrouble Troubleshooting
+
+**TBD**

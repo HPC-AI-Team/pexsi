@@ -1,36 +1,19 @@
 Introduction      {#pageIntro}
 ============
 
-\tableofcontents
+- @subpage pageOverview
+- @subpage pageLicense
 
-Overview          {#secOverview}
-======== 
 
-Pole EXpansion and Selected Inversion for solving Kohn-Sham density
-functional theory.
+<!-- ************************************************************ -->
+@page pageOverview Overview
 
-The main function is described in the PEXSI::PMatrix::SelInv
-function in the class PEXSI::PMatrix.
-
-The section @ref pageIntro says the following about 
+Pole EXpansion and Selected Inversion.
 
 
 
-<!--
 @anchor defSelectedElem 
-**Selected elements** are the elements
--->
-
-Dependencies      {#secDependencies}
-============ 
-
-PEXSI uses SuperLU_DIST.
-
-Nomenclature
-============
-
-Selected elements     {#defSelectedElem}
------------------
+**Selected elements** 
 
 The selected elements of a matrix \f$B\f$ with respect to a matrix
 \f$A\f$ are defined to be the set \f$\{B_{i,j}\vert A_{i,j}\ne 0\}\f$.
@@ -39,8 +22,11 @@ A particularly commonly used case in %PEXSI is the selected elements of
 \f$A^{-1}\f$, which corresponds to the set \f$\{A^{-1}_{i,j}\vert A_{i,j}\ne 0\}\f$.
 
 
-License and copyright      {#secLicense}
-=====================
+<!-- ************************************************************ -->
+@page pageLicense License
+
+%PEXSI is distributed under BSD license (modified by Lawrence Berkeley
+National Laboratory).
 
     Copyright (c) 2012 The Regents of the University of California,
     through Lawrence Berkeley National Laboratory.  

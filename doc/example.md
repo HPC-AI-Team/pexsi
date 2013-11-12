@@ -2,6 +2,8 @@ Example
 =======
 \tableofcontents
 
+**THIS IS OUT-OF-DATE and will be removed later**
+
 \section sec_lap2d_seq Sequential example: 2D Laplacian
 
 Description

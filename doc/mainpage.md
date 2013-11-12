@@ -6,7 +6,13 @@ Main Page           {#mainpage}
 <!-- TODO Add the remaining secondary directory structure -->
 
 - @subpage pageIntro
+  - @ref pageOverview
+  - @ref pageLicense
 - @subpage pageInstall
+  - @ref pageSource
+  - @ref pageDependency
+  - @ref pageBuild
+  - @ref pageTrouble
 - @subpage pageTutorial
   - @ref pagePselinvComplex
   - @ref pagePEXSISolve
