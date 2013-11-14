@@ -237,6 +237,11 @@ int main(int argc, char **argv)
         doSinvPipeline = atoi(options["-SinvPipeline"].c_str());
       }
 
+      Int doSinv_Hybrid = 0;
+      if( options.find("-SinvHybrid") != options.end() ){ 
+        doSinv_Hybrid = atoi(options["-SinvHybrid"].c_str());
+      }
+
 
 
       Int doConstructPattern = 1;
@@ -509,32 +514,32 @@ int main(int argc, char **argv)
 
 
             if( mpirank == 0 )
-              cout << "Time for converting LUstruct to PMatrix (Bcast) is " << timeEnd  - timeSta << endl;
+              cout << "Time for converting LUstruct to PMatrix (Collectives) is " << timeEnd  - timeSta << endl;
 
             if(doConstructPattern){
               GetTime( timeSta );
-              PMlocBcast.ConstructCommunicationPattern_Bcast();
+              PMlocBcast.ConstructCommunicationPattern_Collectives();
               GetTime( timeEnd );
               if( mpirank == 0 )
-                cout << "Time for constructing the communication pattern (Bcast) is " << timeEnd  - timeSta << endl;
+                cout << "Time for constructing the communication pattern (Collectives) is " << timeEnd  - timeSta << endl;
 
               if(doPreSelinv){
                 GetTime( timeSta );
                 PMlocBcast.PreSelInv();
                 GetTime( timeEnd );
                 if( mpirank == 0 )
-                  cout << "Time for pre selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
+                  cout << "Time for pre selected inversion (Collectives) is " << timeEnd  - timeSta << endl;
 
                 if(doSelinv){
                   GetTime( timeSta );
-                  PMlocBcast.SelInv_Bcast();
+                  PMlocBcast.SelInv_Collectives();
                   GetTime( timeEnd );
                   if( mpirank == 0 )
-                    cout << "Time for numerical selected inversion (Bcast) is " << timeEnd  - timeSta << endl;
+                    cout << "Time for numerical selected inversion (Collectives) is " << timeEnd  - timeSta << endl;
 
                   GetTime( timeTotalSelInvEnd );
                   if( mpirank == 0 )
-                    cout << "Time for total selected inversion (Bcast) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+                    cout << "Time for total selected inversion (Collectives) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 
                   // Output the diagonal elements
@@ -545,7 +550,7 @@ int main(int argc, char **argv)
 
 
                     if( mpirank == 0 ){
-                      statusOFS << std::endl << "Diagonal (Bcast) of inverse in natural order: " << std::endl << diagBcast << std::endl;
+                      statusOFS << std::endl << "Diagonal (Collectives) of inverse in natural order: " << std::endl << diagBcast << std::endl;
                       ofstream ofs("diag_bcast");
                       if( !ofs.good() ) 
                         throw std::runtime_error("file cannot be opened.");
@@ -559,10 +564,110 @@ int main(int argc, char **argv)
 
 
 
-              PMlocBcast.DestructCommunicationPattern_Bcast( );
+//              PMlocBcast.DestructCommunicators_Collectives( );
             }
 
           }
+
+
+
+
+
+          NumVec<Scalar> diagHybrid;
+          PMatrix * PMlocHybridPtr;
+          SuperNodeType * superHybridPtr;
+          GridType * gHybridPtr;
+
+          if(doSinv_Hybrid)
+          {
+            GetTime( timeTotalSelInvSta );
+
+            gHybridPtr = new GridType( world_comm, nprow, npcol );
+            GridType &gHybrid = *gHybridPtr;
+
+            superHybridPtr = new SuperNodeType();
+            SuperNodeType & superHybrid = *superHybridPtr;
+
+            GetTime( timeSta );
+            luMat.SymbolicToSuperNode( superHybrid );
+
+            
+
+            PMlocHybridPtr = new PMatrix( &gHybrid, &superHybrid, &luOpt  );
+            PMatrix & PMlocHybrid = *PMlocHybridPtr;
+
+            luMat.LUstructToPMatrix( PMlocHybrid );
+            GetTime( timeEnd );
+
+            LongInt nnzLU = PMlocHybrid.Nnz();
+            if( mpirank == 0 ){
+              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
+            }
+
+
+
+            if( mpirank == 0 )
+              cout << "Time for converting LUstruct to PMatrix (Hybrid) is " << timeEnd  - timeSta << endl;
+
+            if(doConstructPattern){
+              GetTime( timeSta );
+              PMlocHybrid.ConstructCommunicationPattern_Collectives();
+              GetTime( timeEnd );
+              if( mpirank == 0 )
+                cout << "Time for constructing the communication pattern (Hybrid) is " << timeEnd  - timeSta << endl;
+
+              if(doPreSelinv){
+                GetTime( timeSta );
+                PMlocHybrid.PreSelInv();
+                GetTime( timeEnd );
+                if( mpirank == 0 )
+                  cout << "Time for pre selected inversion (Hybrid) is " << timeEnd  - timeSta << endl;
+
+                if(doSelinv){
+                  GetTime( timeSta );
+                  PMlocHybrid.SelInv_Hybrid(doSinv_Hybrid);
+                  GetTime( timeEnd );
+                  if( mpirank == 0 )
+                    cout << "Time for numerical selected inversion (Hybrid) is " << timeEnd  - timeSta << endl;
+
+                  GetTime( timeTotalSelInvEnd );
+                  if( mpirank == 0 )
+                    cout << "Time for total selected inversion (Hybrid) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+
+
+                  // Output the diagonal elements
+                  if( doDiag ){
+                    GetTime( timeSta );
+                    PMlocHybrid.GetDiagonal( diagHybrid );
+                    GetTime( timeEnd );
+
+
+                    if( mpirank == 0 ){
+                      statusOFS << std::endl << "Diagonal (Hybrid) of inverse in natural order: " << std::endl << diagHybrid << std::endl;
+                      ofstream ofs("diag_hybrid");
+                      if( !ofs.good() ) 
+                        throw std::runtime_error("file cannot be opened.");
+                      serialize( diagHybrid, ofs, NO_MASK );
+                      ofs.close();
+                    }
+                  }
+                }
+
+              }
+            }
+
+          }
+
+
+
+
+
+
+
+
+
+
+
 
 
           NumVec<Scalar> diagRef;
@@ -687,7 +792,7 @@ int main(int argc, char **argv)
 
             // Preparation for the selected inversion
             GetTime( timeSta );
-            PMloc.ConstructCommunicationPattern_Pipeline();
+            PMloc.ConstructCommunicationPattern_P2p();
             GetTime( timeEnd );
 
             if( mpirank == 0 )
@@ -703,7 +808,7 @@ int main(int argc, char **argv)
 
             // Main subroutine for selected inversion
             GetTime( timeSta );
-            PMloc.SelInv_Pipeline();
+            PMloc.SelInv_P2p();
             GetTime( timeEnd );
             if( mpirank == 0 )
               cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
@@ -987,9 +1092,9 @@ int main(int argc, char **argv)
 
 
 
-          if(doSinvPipeline || doSinv_Bcast || doSinv_Original){
+          if(doSinvPipeline || doSinv_Bcast || doSinv_Original || doSinv_Hybrid){
 
-            PMatrix * PMloc = doSinvPipeline?PMlocPtr:(doSinv_Bcast?PMlocBcastPtr:PMlocRefPtr);
+            PMatrix * PMloc = doSinvPipeline?PMlocPtr:(doSinv_Bcast?PMlocBcastPtr:(doSinv_Hybrid?PMlocHybridPtr:PMlocRefPtr));
 
             if(doToDist){
               // Convert to DistSparseMatrix and get the diagonal
@@ -1076,6 +1181,12 @@ int main(int argc, char **argv)
             delete PMlocBcastPtr;
             delete superBcastPtr;
             delete g2Ptr;
+          }
+
+          if(doSinv_Hybrid){
+            delete PMlocHybridPtr;
+            delete superHybridPtr;
+            delete gHybridPtr;
           }
 
 

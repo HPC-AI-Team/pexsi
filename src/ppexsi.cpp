@@ -641,13 +641,13 @@ void PPEXSIData::Solve(
 					luMat.LUstructToPMatrix( PMloc );
 					
 					// Use the broadcast pipelined version of SelInv.
-					PMloc.ConstructCommunicationPattern_Bcast();
+					PMloc.ConstructCommunicationPattern_Collectives();
 
 					PMloc.PreSelInv();
 
 					// Main subroutine for selected inversion
 					// Use the broadcast pipelined version of SelInv.
-					PMloc.SelInv_Bcast();
+					PMloc.SelInv_Collectives();
 
 					GetTime( timeTotalSelInvEnd );
 
@@ -730,7 +730,7 @@ void PPEXSIData::Solve(
 
 
 					// Use the broadcast pipelined version of SelInv.
-					PMloc.DestructCommunicationPattern_Bcast( );
+					PMloc.DestructCommunicators_Collectives( );
 				}
 				GetTime( timePoleEnd );
 

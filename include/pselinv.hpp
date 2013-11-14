@@ -65,8 +65,8 @@ namespace PEXSI{
 
   struct SuperLUOptions;
 
-
-  typedef std::map<std::vector<bool> , std::vector<Int> > bitMaskSet;
+  typedef std::vector<bool> bitMask;
+  typedef std::map<bitMask , std::vector<Int> > bitMaskSet;
 
 #ifdef SANITY_CHECK
   struct SelInvError{
@@ -581,11 +581,16 @@ namespace PEXSI{
       NumMat<bool>                       isRecvFromCrossDiagonal_;
 
       //Communicators for the Bcast variant
+
+      IntNumVec maxCommSizes_;
+
       NumVec<Int>                       countSendToBelow_;
       bitMaskSet                        maskSendToBelow_;
       std::vector<MPI_Comm>             commSendToBelow_;
       std::vector<MPI_Comm*>            commSendToBelowPtr_;
       std::vector<Int>                  commSendToBelowRoot_;
+      std::vector<bitMask *>         commSendToBelowMaskPtr_;
+      std::vector<bitMask>         commSendToBelowMask_;
 
       NumVec<Int>                       countRecvFromBelow_;
       bitMaskSet                        maskRecvFromBelow_;
@@ -593,11 +598,17 @@ namespace PEXSI{
       std::vector<MPI_Comm*>            commRecvFromBelowPtr_;
       std::vector<Int>                  commRecvFromBelowRoot_;
 
+      std::vector<bitMask *>         commRecvFromBelowMaskPtr_;
+      std::vector<bitMask>         commRecvFromBelowMask_;
+      
+
       NumVec<Int>                       countSendToRight_;
       bitMaskSet                        maskSendToRight_;
       std::vector<MPI_Comm>             commSendToRight_;
       std::vector<MPI_Comm*>            commSendToRightPtr_;
       std::vector<Int>                  commSendToRightRoot_;
+      std::vector<bitMask *>         commSendToRightMaskPtr_;
+      std::vector<bitMask>         commSendToRightMask_;
 
       //NumVec<Int>                       countCrossDiag_;
 
@@ -613,6 +624,73 @@ namespace PEXSI{
         SELINV_TAG_D_REDUCE,
         SELINV_TAG_COUNT
       };
+
+
+
+
+
+      struct SuperNodeBufferType{
+        NumMat<Scalar>    LUpdateBuf;
+        NumMat<Scalar>    DiagBuf;
+        std::vector<Int>  RowLocalPtr;
+        std::vector<Int>  BlockIdxLocal;
+        std::vector<char> SstrLcolSend;
+        std::vector<char> SstrUrowSend;
+        std::vector<char> SstrLcolRecv;
+        std::vector<char> SstrUrowRecv;
+        Int               SizeSstrLcolSend;
+        Int               SizeSstrUrowSend;
+        Int               SizeSstrLcolRecv;
+        Int               SizeSstrUrowRecv;
+        Int               Index;
+        Int               isReady;
+
+        SuperNodeBufferType():
+          SizeSstrLcolSend(0),
+          SizeSstrUrowSend(0),
+          SizeSstrLcolRecv(0),
+          SizeSstrUrowRecv(0),
+          Index(0), 
+          isReady(0){}
+
+        SuperNodeBufferType(Int &pIndex) :
+          SizeSstrLcolSend(0),
+          SizeSstrUrowSend(0),
+          SizeSstrLcolRecv(0),
+          SizeSstrUrowRecv(0),
+          Index(pIndex),
+          isReady(0) {}
+
+      };
+
+      inline void PMatrix::SelInvIntra_Collectives(Int lidx);
+
+      inline void PMatrix::SelInvIntra_P2p(Int lidx);
+
+      inline void PMatrix::SelInv_lookup_indexes(const Int ksup, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf,NumMat<Scalar> & LUpdateBuf);
+
+      inline void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf);
+
+      inline void PMatrix::GetWorkSet(std::vector<Int> & snodeEtree, std::vector<std::vector<Int> > & WSet);
+
+      inline void PMatrix::UnpackData(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv);
+
+      inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode);
+
+      inline void PMatrix::SendRecvCD_UpdateU(std::vector<SuperNodeBufferType> & arrSuperNodes, Int stepSuper);
+
+      void PMatrix::getMaxCommunicatorSizes();
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -685,20 +763,21 @@ namespace PEXSI{
       /// to be used later in the pipelined selected inversion stage.
       void GetEtree(std::vector<Int> & etree_supno );
 
-      /// @brief ConstructCommunicationPattern_Pipeline constructs the communication
+      /// @brief ConstructCommunicationPattern_P2p constructs the communication
       /// pattern to be used later in the selected inversion stage.
       /// The supernodal elimination tree is used to schedule the pipelined supernodes.
-      void ConstructCommunicationPattern_Pipeline( );
+      void ConstructCommunicationPattern_P2p( );
 
-      /// @brief ConstructCommunicationPattern_Bcast constructs the communication
+      /// @brief ConstructCommunicationPattern_Collectives constructs the communication
       /// pattern to be used later in the selected inversion stage with the Bcast variant.
       /// The supernodal elimination tree is used to schedule the pipelined supernodes.
-      void ConstructCommunicationPattern_Bcast( );
+      void ConstructCommunicationPattern_Collectives( );
 
-      /// @brief DestructCommunicationPattern_Bcast frees the MPI communicators allocated
-      /// by ConstructCommunicationPattern_Bcast.
-      void DestructCommunicationPattern_Bcast	( );
+      /// @brief DestructCommunicators_Collectives frees the MPI communicators allocated
+      /// by CreateCommunicators_Collectives.
+      void DestructCommunicators_Collectives( );
 
+      void PMatrix::ConstructCommunicators_Collectives(Int lidx);
 
       /// @brief ConstructCommunicationPattern constructs the communication
       /// pattern to be used later in the selected inversion stage.
@@ -872,12 +951,9 @@ namespace PEXSI{
       ///
       ///
       void SelInv( );
-      void SelInv_Bcast( );
-      void SelInv_Pipeline( );
-
-
-
-      void SelInv_lookup_indexes(const Int ksup, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf,NumMat<Scalar> & LUpdateBuf);
+      void SelInv_Collectives( );
+      void SelInv_P2p( );
+      void SelInv_Hybrid(Int threshold);
 
 
       /// @brief GetDiagonal extracts the diagonal elements of the PMatrix.

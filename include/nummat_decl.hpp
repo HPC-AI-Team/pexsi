@@ -164,6 +164,10 @@ namespace  PEXSI{
 			}
 			Int m() const { return m_; }
 			Int n() const { return n_; }
+
+      Int Size() const {return m()*n();}
+      Int ByteSize() const { return m()*n()*sizeof(F);}
+
 		};
 
 	// Commonly used
