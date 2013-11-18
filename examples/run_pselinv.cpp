@@ -126,8 +126,9 @@ int main(int argc, char **argv)
 
       MPI_Comm_rank(world_comm, &mpirank );
       MPI_Comm_size(world_comm, &mpisize );
-
-
+#if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
+     TAU_PROFILE_SET_CONTEXT(world_comm);
+#endif
 
       stringstream  ss;
       ss << "logTest" << mpirank;

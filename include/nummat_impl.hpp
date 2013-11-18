@@ -56,7 +56,9 @@ namespace  PEXSI{
 template <class F> inline void SetValue(NumMat<F>& M, F val)
 {
 	F *ptr = M.data_;
-	for (Int i=0; i < M.m()*M.n(); i++) *(ptr++) = val;
+	F *end = M.data_+M.m()*M.n();
+//	for (Int i=0; i < M.m()*M.n(); i++) *(ptr++) = val;
+  std::fill(ptr,end,val);
 }
 
 template <class F> inline Real Energy(const NumMat<F>& M)

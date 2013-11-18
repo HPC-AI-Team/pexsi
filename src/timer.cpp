@@ -12,7 +12,7 @@
 #include <vector>
 #include "timer.h"
 
-#define MAX_NAME_LENGTH 38
+#define MAX_NAME_LENGTH 64
 
 int main_argc = 0;
 char * const * main_argv;
