@@ -66,9 +66,11 @@ namespace  PEXSI{
 		public:
 			/// @brief The size of the first dimension.
 			Int m_; 
+			Int bufsize_; 
 
 			/// @brief The size of second dimension.
 			Int n_;
+
 
 			/// @brief Whether it owns the data.
 			bool owndata_;
@@ -78,6 +80,7 @@ namespace  PEXSI{
 		public:
 			NumMat(Int m=0, Int n=0): m_(m), n_(n), owndata_(true) {
 				if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
+        bufsize_ = m_*n_;
 			}
 			NumMat(Int m, Int n, bool owndata, F* data): m_(m), n_(n), owndata_(owndata) {
 				if(owndata_) {
@@ -86,6 +89,7 @@ namespace  PEXSI{
 				} else {
 					data_ = data;
 				}
+        bufsize_ = m_*n_;
 			}
 			NumMat(const NumMat& C): m_(C.m_), n_(C.n_), owndata_(C.owndata_) {
 				if(owndata_) {
@@ -94,6 +98,7 @@ namespace  PEXSI{
 				} else {
 					data_ = C.data_;
 				}
+        bufsize_ = m_*n_;
 			}
 			~NumMat() {
 				if(owndata_) {
@@ -112,6 +117,7 @@ namespace  PEXSI{
 				} else {
 					data_ = C.data_;
 				}
+        bufsize_ = m_*n_;
 				return *this;
 			}
 
@@ -127,17 +133,29 @@ namespace  PEXSI{
 				} else {
 					data_ = C.data_;
 				}
+        bufsize_ = m_*n_;
 				return *this;
 			}
 			void Resize(Int m, Int n)  {
 				if( owndata_ == false ){
 					throw std::logic_error("Matrix being resized must own data.");
 				}
-				if(m_!=m || n_!=n) {
-					if(m_>0 && n_>0) { delete[] data_; data_ = NULL; }
+				if(m*n > bufsize_) {
+					if(bufsize_>0) { delete[] data_; data_ = NULL; }
 					m_ = m; n_ = n;
 					if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
-				}
+          bufsize_ = m_*n_;
+        }
+				m_ = m; n_ = n;
+
+//				if(m_!=m || n_!=n) {
+//          
+//					if(m_>0 && n_>0) { delete[] data_; data_ = NULL; }
+//					if(bufsize_>0) { delete[] data_; data_ = NULL; }
+//					m_ = m; n_ = n;
+//					if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
+//          bufsize_ = m_*n_;
+//				}
 			}
 			const F& operator()(Int i, Int j) const  { 
 				if( i < 0 || i >= m_ ||
@@ -165,8 +183,11 @@ namespace  PEXSI{
 			Int m() const { return m_; }
 			Int n() const { return n_; }
 
+			void Setm(Int m) { m_=m; }
+			void Setn(Int n) { n_=n; }
       Int Size() const {return m()*n();}
       Int ByteSize() const { return m()*n()*sizeof(F);}
+      Int TotSize() const {return bufsize_;}
 
 		};
 

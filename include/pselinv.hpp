@@ -663,23 +663,22 @@ namespace PEXSI{
 
       };
 
-      inline void PMatrix::SelInvIntra_Collectives(Int lidx);
+      inline void SelInvIntra_Collectives(Int lidx);
 
-      inline void PMatrix::SelInvIntra_P2p(Int lidx);
+      inline void SelInvIntra_P2p(Int lidx);
 
-      inline void PMatrix::SelInv_lookup_indexes(const Int ksup, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf,NumMat<Scalar> & LUpdateBuf);
+      inline void SelInv_lookup_indexes(const Int ksup, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf,NumMat<Scalar> & LUpdateBuf);
+      inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf);
 
-      inline void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf);
+      inline void GetWorkSet(std::vector<Int> & snodeEtree, std::vector<std::vector<Int> > & WSet);
 
-      inline void PMatrix::GetWorkSet(std::vector<Int> & snodeEtree, std::vector<std::vector<Int> > & WSet);
+      inline void UnpackData(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv);
 
-      inline void PMatrix::UnpackData(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv);
+      inline void ComputeDiagUpdate(SuperNodeBufferType & snode);
 
-      inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode);
+      inline void SendRecvCD_UpdateU(std::vector<SuperNodeBufferType> & arrSuperNodes, Int stepSuper);
 
-      inline void PMatrix::SendRecvCD_UpdateU(std::vector<SuperNodeBufferType> & arrSuperNodes, Int stepSuper);
-
-      void PMatrix::getMaxCommunicatorSizes();
+      void getMaxCommunicatorSizes();
 
 
 

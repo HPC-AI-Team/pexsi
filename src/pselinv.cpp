@@ -2429,14 +2429,14 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
 
     TIMER_START(Allocate_lookup);
     // Allocate for the computational storage
-    AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
     snode.LUpdateBuf.Resize( numRowAinvBuf, SuperSize( snode.Index, super_ ) );
-    UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
-    TIMER_START(SetValue_lookup);
-    SetValue( AinvBuf, SCALAR_ZERO );
+      AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
+      UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
+//    TIMER_START(SetValue_lookup);
+//    SetValue( AinvBuf, SCALAR_ZERO );
     //SetValue( snode.LUpdateBuf, SCALAR_ZERO );
-    SetValue( UBuf, SCALAR_ZERO );
-    TIMER_STOP(SetValue_lookup);
+//    SetValue( UBuf, SCALAR_ZERO );
+//    TIMER_STOP(SetValue_lookup);
     TIMER_STOP(Allocate_lookup);
 
     TIMER_START(Fill_UBuf);
@@ -2447,7 +2447,7 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
         throw std::logic_error( "The size of UB is not right.  Something is seriously wrong." );
       }
       lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
-          UB.numRow, UBuf.VecData( colPtr[jb] ), UBuf.m() );	
+          UB.numRow, UBuf.VecData( colPtr[jb] ), SuperSize( snode.Index, super_ ) );	
     }
     TIMER_STOP(Fill_UBuf);
 
@@ -2464,7 +2464,7 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
         Int isup = LB.blockIdx;
         Int SinvRowsSta = FirstBlockCol( isup, super_ );
         Scalar* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
-        Int     ldAinv    = AinvBuf.m();
+        Int     ldAinv    = numRowAinvBuf;
 
         // Pin down the corresponding block in the part of Sinv.
         if( isup >= jsup ){
@@ -2679,7 +2679,6 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
 
     TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
   }
-
 
 
       inline void PMatrix::SendRecvCD_UpdateU(std::vector<SuperNodeBufferType> & arrSuperNodes, Int stepSuper){
@@ -3018,6 +3017,7 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
       }
 
 
+      NumMat<Scalar> AinvBuf, UBuf;
 
 
 
@@ -3320,12 +3320,10 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 
             UnpackData(snode, LcolRecv, UrowRecv);
 
-            NumMat<Scalar> AinvBuf, UBuf;
             SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,AinvBuf,UBuf);
 
             TIMER_START(Compute_Sinv_LT_GEMM);
 
-            // Gemm for snode.LUpdateBuf = -AinvBuf * UBuf^T
             blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
                 AinvBuf.Data(), AinvBuf.m(), 
                 UBuf.Data(), UBuf.m(), SCALAR_ZERO,
