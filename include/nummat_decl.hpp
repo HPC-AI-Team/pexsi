@@ -51,7 +51,37 @@
 
 // TODO Move the things from decl to impl
 
+//#ifdef _NUMMAT_VECTOR_
+//#define bool char
+//#endif
+
+
 namespace  PEXSI{
+
+
+#ifdef _NUMMAT_VECTOR_
+//	template <typename F>
+//		struct NumMatType
+//		{
+//      using type = F;
+//    };
+//
+//
+//	template <>
+//		struct NumMatType<bool>
+//		{
+//      using type = char;
+//    };
+//
+//template<typename t, typename... p>
+//using fixed_vector = std::vector<typename NumMatType<F>::type, p...>;
+
+
+	//template <class F>class NumMat;
+  //typedef NumMat<bool> NumMat<char>;
+
+#endif
+  
 
 	/// @class NumMat
 	///
@@ -76,86 +106,96 @@ namespace  PEXSI{
 			bool owndata_;
 
 			/// @brief The pointer for the actual data.
+
+#ifdef _NUMMAT_VECTOR_
+			std::vector<F> * container_;
+      F* data_;
+#else
 			F* data_;
+#endif
+
+
+      inline void allocate(F* data=NULL) {
+        if(owndata_) {
+#ifdef _NUMMAT_VECTOR_
+          container_ = new std::vector<F>(m_*n_);
+          if(data!=NULL){std::copy(data,data+m_*n_,container_->begin());}
+          data_=&(*container_)[0];
+#else
+          if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
+          if(data!=NULL){std::copy(data,data+m_*n_,data_);}
+#endif
+        } else {
+          data_ = data;
+        }
+#ifndef _NUMMAT_VECTOR_
+        bufsize_ = m_*n_;
+#endif
+      }
+      inline void deallocate(){
+				if(owndata_) {
+#ifdef _NUMMAT_VECTOR_
+          delete container_;
+#else
+					if(bufsize_>0) { delete[] data_; data_ = NULL; }
+#endif
+				}
+      }
+
 		public:
 			NumMat(Int m=0, Int n=0): m_(m), n_(n), owndata_(true) {
-				if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
-        bufsize_ = m_*n_;
+        this->allocate();
 			}
+
 			NumMat(Int m, Int n, bool owndata, F* data): m_(m), n_(n), owndata_(owndata) {
-				if(owndata_) {
-					if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
-					if(m_>0 && n_>0) { for(Int i=0; i<m_*n_; i++) data_[i] = data[i]; }
-				} else {
-					data_ = data;
-				}
-        bufsize_ = m_*n_;
+        this->allocate(data);
 			}
+
 			NumMat(const NumMat& C): m_(C.m_), n_(C.n_), owndata_(C.owndata_) {
-				if(owndata_) {
-					if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
-					if(m_>0 && n_>0) { for(Int i=0; i<m_*n_; i++) data_[i] = C.data_[i]; }
-				} else {
-					data_ = C.data_;
-				}
-        bufsize_ = m_*n_;
+        this->allocate(C.data_);
 			}
 			~NumMat() {
-				if(owndata_) {
-					if(m_>0 && n_>0) { delete[] data_; data_ = NULL; }
-				}
+        this->deallocate();
 			}
 
 			NumMat& Copy(const NumMat& C) {
-				if(owndata_) {
-					if(m_>0 && n_>0) { delete[] data_; data_ = NULL; }
-				}
+        this->deallocate();
 				m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
-				if(owndata_) {
-					if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
-					if(m_>0 && n_>0) { for(Int i=0; i<m_*n_; i++) data_[i] = C.data_[i]; }
-				} else {
-					data_ = C.data_;
-				}
-        bufsize_ = m_*n_;
+        this->allocate(C.data_);
 				return *this;
 			}
-
 
 			NumMat& operator=(const NumMat& C) {
-				if(owndata_) {
-					if(m_>0 && n_>0) { delete[] data_; data_ = NULL; }
-				}
+        this->deallocate();
 				m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
-				if(owndata_) {
-					if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
-					if(m_>0 && n_>0) { for(Int i=0; i<m_*n_; i++) data_[i] = C.data_[i]; }
-				} else {
-					data_ = C.data_;
-				}
-        bufsize_ = m_*n_;
+        this->allocate(C.data_);
 				return *this;
 			}
+
+
 			void Resize(Int m, Int n)  {
 				if( owndata_ == false ){
 					throw std::logic_error("Matrix being resized must own data.");
 				}
-				if(m*n > bufsize_) {
-					if(bufsize_>0) { delete[] data_; data_ = NULL; }
-					m_ = m; n_ = n;
-					if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
-          bufsize_ = m_*n_;
+
+        
+#ifdef _NUMMAT_VECTOR_
+        if(container_->size()<m*n)
+        {
+          container_->resize(m*n);
+          data_=&(*container_)[0];
         }
 				m_ = m; n_ = n;
-
-//				if(m_!=m || n_!=n) {
-//          
-//					if(m_>0 && n_>0) { delete[] data_; data_ = NULL; }
-//					if(bufsize_>0) { delete[] data_; data_ = NULL; }
-//					m_ = m; n_ = n;
-//					if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
-//          bufsize_ = m_*n_;
-//				}
+#else
+				if(m*n > bufsize_) {
+          this->deallocate();
+				  m_ = m; n_ = n;
+					this->allocate();
+        }
+        else{
+				  m_ = m; n_ = n;
+        }
+#endif
 			}
 			const F& operator()(Int i, Int j) const  { 
 				if( i < 0 || i >= m_ ||
@@ -164,6 +204,7 @@ namespace  PEXSI{
 				}
 				return data_[i+j*m_];
 			}
+
 			F& operator()(Int i, Int j)  { 
 				if( i < 0 || i >= m_ ||
 						j < 0 || j >= n_ ) {
@@ -172,7 +213,11 @@ namespace  PEXSI{
 				return data_[i+j*m_];
 			}
 
+#ifdef _NUMMAT_VECTOR_
+			std::vector<F> * Container() const { return container_; }
+#endif
 			F* Data() const { return data_; }
+
 			F* VecData(Int j)  const 
 			{ 
 				if( j < 0 || j >= n_ ) {
@@ -180,19 +225,26 @@ namespace  PEXSI{
 				}
 				return &(data_[j*m_]); 
 			}
+
 			Int m() const { return m_; }
 			Int n() const { return n_; }
 
-			void Setm(Int m) { m_=m; }
-			void Setn(Int n) { n_=n; }
-      Int Size() const {return m()*n();}
-      Int ByteSize() const { return m()*n()*sizeof(F);}
-      Int TotSize() const {return bufsize_;}
+      Int Size() const {return m_*n_;}
+      Int ByteSize() const { return m_*n_*sizeof(F);}
+#ifdef _NUMMAT_VECTOR_
+      Int AllocatedSize() const {return container_->capacity();}
+#else
+      Int AllocatedSize() const {return bufsize_;}
+#endif
 
 		};
 
 	// Commonly used
+#ifdef _NUMMAT_VECTOR_
+	typedef NumMat<char>     BolNumMat;
+#else
 	typedef NumMat<bool>     BolNumMat;
+#endif
 	typedef NumMat<Int>      IntNumMat;
 	typedef NumMat<Real>     DblNumMat;
 	typedef NumMat<Complex>  CpxNumMat;

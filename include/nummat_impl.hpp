@@ -51,20 +51,26 @@
 namespace  PEXSI{
 
 // TODO Move the things from decl to impl
-
+#ifdef _NUMMAT_VECTOR_
+inline void SetValue(BolNumMat& M, bool val)
+{
+  std::fill(M.Container()->begin(),M.Container()->end(),(char)val);
+}
+#endif
 
 template <class F> inline void SetValue(NumMat<F>& M, F val)
 {
-	F *ptr = M.data_;
-	F *end = M.data_+M.m()*M.n();
-//	for (Int i=0; i < M.m()*M.n(); i++) *(ptr++) = val;
-  std::fill(ptr,end,val);
+#ifdef _NUMMAT_VECTOR_
+  std::fill(M.Container()->begin(),M.Container()->end(),val);
+#else
+  std::fill(M.Data(),M.Data()+M.m()*M.n(),val);
+#endif
 }
 
 template <class F> inline Real Energy(const NumMat<F>& M)
 {
   Real sum = 0;
-	F *ptr = M.data_;
+	F *ptr = M.Data();
 	for (Int i=0; i < M.m()*M.n(); i++) 
 		sum += abs(ptr[i]) * abs(ptr[i]);
   return sum;
