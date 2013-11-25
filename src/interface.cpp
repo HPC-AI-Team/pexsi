@@ -43,11 +43,11 @@
 /// @file interface.cpp
 /// @brief Interface subroutines of PPEXSI that can be called by both C and FORTRAN.
 /// @date 2013-02-03
-// TODO Add a C interface
-//#include "c_pexsi_interface.h"
+#include "c_pexsi_interface.h"
 #include "ppexsi.hpp"
 #include "blas.hpp"
 
+// FIXME
 // Error handling used in the C interface that is different from the
 // throw/catch system.
 #define iC(fun)  { int ierr=fun; if(ierr!=0) exit(1); }
@@ -56,10 +56,19 @@
 using namespace PEXSI;
 
 
-/// @brief Find the root using linear interpolation.
+/// @brief Root finding for monotonic non-decreasing functions.
 ///
-/// It assumes that the function y(x) is a monotonically increasing
-/// function.
+/// Find the solution to \f$y(x) = val\f$ through a set of tabulated
+/// values \f$\{(x_i,y_i)\}\f$. Both \f$\{x_i\}\f$ and \f$\{y_i\}\f$
+/// follow non-decreasing order. The solution is obtained via linear
+/// interpolation.
+///
+/// This is an internal routine used for searching the chemical potential.  
+///
+/// @param[in] x Dimension: N. 
+/// @param[in] y Dimension: N. 
+/// @param[in] val Real scalar.
+/// @return Root of \f$y(x) = val\f$.
 inline Real
 MonotoneRootFinding ( 
 		const std::vector<Real>&  x,
@@ -85,8 +94,15 @@ MonotoneRootFinding (
 
 	Int idx = vi - y.begin();
 
-	Real root = x[idx-1] + ( x[idx] - x[idx-1] ) / ( y[idx] - y[idx-1] ) 
-		* ( val - y[idx-1] );
+  Real root;
+  if( y[idx] == y[idx-1] ){
+    root = x[idx-1];
+  }
+  else{
+    // Linear interpolation
+    root = x[idx-1] + ( x[idx] - x[idx-1] ) / ( y[idx] - y[idx-1] ) 
+      * ( val - y[idx-1] );
+  }
 
 #ifndef _RELEASE_
 	PopCallStack();
@@ -111,7 +127,9 @@ inline Real fdDrvMu( Real x, double beta, double mu ){
 // *********************************************************************
 // C interface
 // *********************************************************************
-/// @brief Dummy interface for the purpose of testing the C interface.
+
+// Dummy interface for the purpose of testing the C interface.
+// Not used in practice.
 extern "C" 
 void DummyInterface( MPI_Comm comm, int a )
 {
@@ -312,42 +330,39 @@ void ParaReadDistSparseMatrixInterface(
 
 
 
-/// @brief Interface between PPEXSI and C for computing the cumulative
-/// density of states using inertia counts.
-///
 extern "C"
 void PPEXSIInertiaCountInterface(
-		// Input parameters
-		int           nrows,                        // Size of the matrix
-		int           nnz,                          // Total number of nonzeros in H
-		int           nnzLocal,                     // Number of nonzeros in H on this proc
-		int           numColLocal,                  // Number of local columns for H
-		int*          colptrLocal,                  // Colomn pointer in CSC format
-		int*          rowindLocal,                  // Row index pointer in CSC format
-		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
-		int           isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
-		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
-		double        temperature,                  // Temperature, in the same unit as H
-		double        numElectronExact,             // Exact number of electrons
-		double        muMin0,                       // Initial guess of lower bound for mu
-		double        muMax0,                       // Initial guess of upper bound for mu
-		int           numPole,                      // Number of shifts in computing the inertia, still called "Pole" for legacy reason
-		int           maxIter,                      // Maximum number of iterations for computing the inertia
-		double        numElectronTolerance,         // Stopping criterion of inertia count
-		int           ordering,                     // SuperLUDIST ordering
-		int           npPerPole,                    // Number of processors for each shift, still called "Pole" for legacy reason
-		int           npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
-		MPI_Comm	    comm,                         // Overall MPI communicator
-		// Output parameters
-		double*       muMinInertia,                 // Lower bound for mu after inertia count
-		double*       muMaxInertia,                 // Upper bound for mu after inertia count
-		double*       muLowerEdge,                  // Ne(muLowerEdge) = Ne - eps. For band gapped system
-		double*       muUpperEdge,                  // Ne(muUpperEdge) = Ne + eps. For band gapped system
-		int*          numIter,                      // Number of actual iterations for inertia count
-		double*       muList,                       // The list of shifts
-		double*       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
-		int*          info                          // 0: successful exit.  1: unsuccessful
-		)
+    // Input parameters
+    int           nrows,                        // Size of the matrix
+    int           nnz,                          // Total number of nonzeros in H
+    int           nnzLocal,                     // Number of nonzeros in H on this proc
+    int           numColLocal,                  // Number of local columns for H
+    int*          colptrLocal,                  // Colomn pointer in CSC format
+    int*          rowindLocal,                  // Row index pointer in CSC format
+    double*       HnzvalLocal,                  // Nonzero value of H in CSC format
+    int           isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
+    double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
+    double        temperature,                  // Temperature, in the same unit as H
+    double        numElectronExact,             // Exact number of electrons
+    double        muMin0,                       // Initial guess of lower bound for mu
+    double        muMax0,                       // Initial guess of upper bound for mu
+    int           numPole,                      // Number of shifts in computing the inertia, still called "Pole" for legacy reason
+    int           maxIter,                      // Maximum number of iterations for computing the inertia
+    double        numElectronTolerance,         // Stopping criterion of inertia count
+    int           ordering,                     // SuperLUDIST ordering
+    int           npPerPole,                    // Number of processors for each shift, still called "Pole" for legacy reason
+    int           npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
+    MPI_Comm	    comm,                         // Overall MPI communicator
+    // Output parameters
+    double*       muMinInertia,                 // Lower bound for mu after inertia count
+    double*       muMaxInertia,                 // Upper bound for mu after inertia count
+    double*       muLowerEdge,                  // Ne(muLowerEdge) = Ne - eps. For band gapped system
+    double*       muUpperEdge,                  // Ne(muUpperEdge) = Ne + eps. For band gapped system
+    int*          numIter,                      // Number of actual iterations for inertia count
+    double*       muList,                       // The list of shifts
+    double*       numElectronList,              // The number of electrons (finite temperature) corresponding to shifts
+    int*          info                          // 0: successful exit.  1: unsuccessful
+    )
 {
 	Int mpirank, mpisize;
 	MPI_Comm_rank( comm, &mpirank );
@@ -741,10 +756,6 @@ void PPEXSIInertiaCountInterface(
 }  // -----  end of function PPEXSIInertiaCountInterface ----- 
 
 
-/// @brief A simplified version of PPEXSIInertiaCountInterface that only
-/// computes and outputs the "raw" inertia count, without extra
-/// post-processing or iterating refinement.
-///
 extern "C"
 void PPEXSIRawInertiaCountInterface(
 		// Input parameters
@@ -957,8 +968,6 @@ void PPEXSIRawInertiaCountInterface(
 }  // -----  end of function PPEXSIRawInertiaCountInterface ----- 
 
 
-/// @brief Interface between PPEXSI and C for the PPEXSI solve
-/// procedure.
 extern "C" 
 void PPEXSISolveInterface (
 		// Input parameters
@@ -1483,13 +1492,6 @@ void PPEXSISelInvInterface (
 }  // -----  end of function PPEXSISelInvInterface ----- 
 
 
-/// @brief Interface between PPEXSI and C for computing the local
-/// density of states, i.e.
-///   n(r;E) = lim_{eta->0+} Im 1/pi <r| (H-(E+i eta)I)^{-1} |r>
-/// This code returns the selected elements of the matrix
-///   
-///   1/pi Im ( H - (E+i eta) S )^{-1}
-///   
 extern "C" 
 void PPEXSILocalDOSInterface (
 		// Input parameters
@@ -1602,9 +1604,6 @@ void PPEXSILocalDOSInterface (
 //
 // *********************************************************************
 
-
-
-
 /// @brief Internal subroutine to convert FORTRAN communicator to C
 extern "C" 
 MPI_Comm f2c_comm(int *Fcomm)
@@ -1614,16 +1613,17 @@ MPI_Comm f2c_comm(int *Fcomm)
 
 
 
-/// @brief Dummy interface for the purpose of testing the FORTRAN
-/// interface.
+// Dummy interface for the purpose of testing the FORTRAN
+// interface.
+
+// Not used in practice.
 extern "C" 
 void FORTRAN(f_dummy_interface)( int* Fcomm, int* a ){
 	DummyInterface( f2c_comm(Fcomm), *a );
 	return;
 }  // -----  end of function f_dummy_interface  ----- 
 
-/// @brief Read the sizes of a DistSparseMatrix for allocating memory in
-/// FORTRAN.
+/// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedHeadInterface.
 extern "C"
 void FORTRAN(f_read_distsparsematrix_formatted_head) (
 		char*    filename,
@@ -1645,8 +1645,7 @@ void FORTRAN(f_read_distsparsematrix_formatted_head) (
 }  // -----  end of function f_read_distsparsematrix_formatted_head  
 
 
-/// @brief Actual reading the data of a DistSparseMatrix, assuming that
-/// the arrays have been allocated in FORTRAN.
+/// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedInterface.
 extern "C"
 void FORTRAN(f_read_distsparsematrix_formatted) (
 		char*    filename,
@@ -1672,8 +1671,7 @@ void FORTRAN(f_read_distsparsematrix_formatted) (
 	return;
 } // -----  end of function f_read_distsparsematrix_formatted  ----- 
 
-/// @brief Read the sizes of a DistSparseMatrix in unformatted form
-/// (csc) for allocating memory in FORTRAN.
+/// @brief FORTRAN interface for @ref ReadDistSparseMatrixHeadInterface.
 extern "C"
 void FORTRAN(f_read_distsparsematrix_head) (
 		char*    filename,
@@ -1694,12 +1692,7 @@ void FORTRAN(f_read_distsparsematrix_head) (
 	return;
 }  // -----  end of function f_read_distsparsematrix_head  
 
-/// @brief Actual reading the data of a DistSparseMatrix using MPI-IO,
-/// assuming that the arrays have been allocated outside this
-/// subroutine.
-///
-/// This routine can be much faster than the sequential reading of a
-/// DistSparseMatrix in the presence of a large number of processors.
+/// @brief FORTRAN interface for @ref ParaReadDistSparseMatrixInterface.
 extern "C"
 void FORTRAN(f_para_read_distsparsematrix) (
 		char*    filename,
@@ -1727,6 +1720,7 @@ void FORTRAN(f_para_read_distsparsematrix) (
 
 
 
+/// @brief FORTRAN interface for @ref PPEXSIInertiaCountInterface.
 extern "C" 
 void FORTRAN(f_ppexsi_inertiacount_interface)(
 		// Input parameters
@@ -1795,6 +1789,7 @@ void FORTRAN(f_ppexsi_inertiacount_interface)(
 } // -----  end of function f_ppexsi_inertiacount_interface  ----- 
 
 
+/// @brief FORTRAN interface for @ref PPEXSIRawInertiaCountInterface.
 extern "C" 
 void FORTRAN(f_ppexsi_raw_inertiacount_interface)(
 		// Input parameters
@@ -1845,7 +1840,7 @@ void FORTRAN(f_ppexsi_raw_inertiacount_interface)(
 } // -----  end of function f_ppexsi_raw_inertiacount_interface  ----- 
 
 
-/// @brief Interface between PPEXSI and FORTRAN for the solve procedure.
+/// @brief FORTRAN interface for @ref PPEXSISolveInterface.
 extern "C" 
 void FORTRAN(f_ppexsi_solve_interface)(
 		// Input parameters
@@ -1928,10 +1923,7 @@ void FORTRAN(f_ppexsi_solve_interface)(
 } // -----  end of function f_ppexsi_solve_interface  ----- 
 
 
-/**
- * @brief FORTRAN Interface for @ref PPEXSISelInvInterface.
- * 
- */
+/// @brief FORTRAN interface for @ref PPEXSISelInvInterface.
 extern "C" 
 void FORTRAN(f_ppexsi_selinv_interface)(
 		// Input parameters
@@ -1971,13 +1963,7 @@ void FORTRAN(f_ppexsi_selinv_interface)(
 			info );
 } // -----  end of function f_ppexsi_selinv_interface  ----- 
 
-/// @brief Interface between PPEXSI and C for computing the local
-/// density of states, i.e.
-///   n(r;E) = lim_{eta->0+} Im 1/pi <r| (H-(E+i eta)I)^{-1} |r>
-/// This code returns the selected elements of the matrix
-///   
-///   1/pi Im ( H - (E+i eta) S )^{-1}
-///   
+/// @brief FORTRAN interface for @ref PPEXSILocalDOSInterface.
 extern "C" 
 void FORTRAN(f_ppexsi_localdos_interface)(
 		// Input parameters

@@ -41,7 +41,7 @@
 	 such enhancements or derivative works thereof, in binary and source code form.
 */
 /// @file mpi_interf.cpp
-/// @brief Inerface with MPI to facilitate communication.
+/// @brief Interface with MPI to facilitate communication.
 /// @date 2012-11-03
 #include  "mpi_interf.hpp"
 

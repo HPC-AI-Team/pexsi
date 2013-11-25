@@ -9,9 +9,10 @@ Tutorial              {#pageTutorial}
 @page pagePselinvComplex Parallel selected inversion for a complex matrix
 \tableofcontents
 
-The computation of @ref defSelectedElem "selected elements" selected elements of an inverse matrix is a
-standalone functionality of %PEXSI. If you are a C/C++ programmer, the
-parallel selected inversion routine can be used as follows.
+The computation of @ref defSelectedElem "selected elements" of an
+inverse matrix is a standalone functionality of %PEXSI. If you are a
+C/C++ programmer, the parallel selected inversion routine can be used as
+follows.
 
 ~~~~~~~~~~{.c}
 #include  "c_pexsi_interface.h"
@@ -59,6 +60,80 @@ PPEXSISelInvInterface for detailed information of its usage.
 
 
 <!-- ************************************************************ -->
-@page pagePEXSISolve Electronic structure calculation using PEXSI
+@page pagePEXSISolve Solving Kohn-Sham density functional theory
 
-**TBD** 
+%PEXSI provides the following interface routines for electronic
+structure calculation based on the Kohn-Sham density functional theory.
+An example routine is given in driver_ksdft.c.
+
+1) Estimate the range of chemical potential
+----------------------------------------
+
+Starting from a rough estimate of the chemical potential \f$\mu\f$,
+[muMin0, muMax0], obtain a refined interval for the chemical potential
+[muMinInertia, muMaxInertia].
+
+~~~~~~~~~~{.c}
+#include  "c_pexsi_interface.h"
+...
+{
+  /* Setup the input matrix in distributed compressed sparse column (CSC) format */ 
+  ...;
+  /* Estimate the range of the chemical potential */
+  PPEXSIInertiaCountInterface(
+    nrows,  
+    nnz,    
+    nnzLocal, 
+    numColLocal,
+    colptrLocal,
+    rowindLocal,
+    HnzvalLocal,
+    isSIdentity,
+    SnzvalLocal,
+    temperature,
+    numElectronExact,
+    muMin0,          
+    muMax0,         
+    numPole,       
+    maxIter,      
+    numElectronTolerance,
+    ordering,           
+    npPerPole,         
+    npSymbFact,       
+    comm,            
+    &muMinInertia,                
+    &muMaxInertia,               
+    &muLowerEdge,               
+    &muUpperEdge,              
+    &numIter,                 
+    &muList,                 
+    &numElectronList,       
+    &info                  
+    );
+  ...; 
+} 
+~~~~~~~~~~ 
+
+See @ref PPEXSIInertiaCountInterface for detailed information of its usage.
+
+
+@note The main purpose of the step of estimating the range of chemical
+potential is to allow a wide range of initial guess of the chemical
+potential.  When the guess of the chemical potential is already accurate,
+such as the case in consecutive steps of the self-consistent-field (SCF)
+iteration, the Newton iteration used in the next step will be efficient
+enough.  In such case the step of estimating the range of chemical
+potential can be skipped. 
+
+
+2) Solve electronic structure problem
+----------------------------------
+
+See @ref PPEXSISolveInterface for detailed information of its usage.
+
+
+3) Post processing
+---------------
+
+
+See @ref PPEXSISolveInterface for detailed information of its usage.

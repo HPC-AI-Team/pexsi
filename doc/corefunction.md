@@ -563,3 +563,14 @@ PMatrix     {#secPMatrix}
 <!-- ************************************************************ -->
 @page pageFORTRAN FORTRAN interface
 \tableofcontents
+
+All the interface routines in C has its FORTRAN version, given in
+interface.cpp.  All FORTRAN interface routines start with `f_` and can
+be called in FORTRAN directly.  
+
+@note Most FORTRAN compilers mangles the subroutine names in a way that
+in the corresponding C code, the subroutine name should end with an
+underscore "_".  This is controlled in `make.inc`, by adding `-DAdd_` in
+the `COMMONDEFS` variable.  This macro controls the behavior of
+`FORTRAN()` as defined in environment.hpp, as well as the internal
+routines such as `BLAS()` and `LAPACK()`.
