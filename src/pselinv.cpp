@@ -45,7 +45,8 @@ such enhancements or derivative works thereof, in binary and source code form.
 /// @date 2013-08-05
 #include "pselinv.hpp"
 
-
+#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
+#define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 
 
 #define MPI_MAX_COMM 6000
 
@@ -82,7 +83,131 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 namespace PEXSI{
+
+
+
+
+template <typename F> inline std::vector<char>::iterator serialize( F val, const std::vector<char>::iterator & bufpos)
+{
+  std::copy((char *)&val,(char*)&val+sizeof(F),bufpos);
+  return bufpos+sizeof(F);
+}
+
+
+
+
+template <typename F> inline std::vector<char>::iterator deserialize( F & val, const std::vector<char>::iterator & bufpos)
+{
+  val = ((F*)&(*bufpos))[0];
+  return bufpos+sizeof(F);
+}
+
+
+template <typename F> inline std::vector<char>::iterator serialize( NumMat<F> & mat, const std::vector<char>::iterator & bufpos)
+{
+  std::vector<char>::iterator curpos = bufpos;
+  //serialize the size first
+  curpos = serialize( mat.m(), curpos);
+  curpos = serialize( mat.n(), curpos);
+  //serialize the content
+  std::copy((char*)mat.Data(),(char*)mat.Data()+mat.ByteSize(),curpos);
+  return curpos+mat.ByteSize();
+}
+
+
+
+template <typename F> inline std::vector<char>::iterator deserialize( NumMat<F> & mat, const std::vector<char>::iterator & bufpos)
+{
+  std::vector<char>::iterator curpos = bufpos;
+  //deserialize the size first
+  Int mat_n,mat_m;
+  curpos = deserialize( mat_m, curpos);
+  curpos = deserialize( mat_n, curpos);
+  //allocate the array
+  mat.Resize(mat_m,mat_n);
+  std::copy(curpos,curpos+mat_n*mat_m*sizeof(F),mat.Data());
+  return curpos+mat_n*mat_m*sizeof(F);
+}
+
+template <typename F> inline std::vector<char>::iterator serialize( Int mat_m, Int mat_n, F * mat, const std::vector<char>::iterator & bufpos)
+{
+  std::vector<char>::iterator curpos = bufpos;
+  //serialize the size first
+  curpos = serialize( mat_m, curpos);
+  curpos = serialize( mat_n, curpos);
+  if(mat!=NULL){
+    //serialize the content
+    std::copy((char*)mat,(char*)mat+mat_m*mat_n*sizeof(F),curpos);
+  }
+  return curpos+mat_n*mat_m*sizeof(F);
+}
+
+template <typename F> inline std::vector<char>::iterator deserialize( Int & mat_m, Int & mat_n, F * & mat, const std::vector<char>::iterator & bufpos)
+{
+  std::vector<char>::iterator curpos = bufpos;
+  //deserialize the size first
+  curpos = deserialize( mat_m, curpos);
+  curpos = deserialize( mat_n, curpos);
+  mat = (F*)&(*curpos);  
+  return curpos+mat_n*mat_m*sizeof(F);
+}
+
+template <typename F> inline std::vector<char>::iterator serialize( Int vec_size, F * vec, const std::vector<char>::iterator & bufpos)
+{
+  std::vector<char>::iterator curpos = bufpos;
+  //serialize the size first
+  curpos = serialize( vec_size, curpos);
+  if(vec!=NULL){
+    //serialize the content
+    std::copy((char*)vec,(char*)vec+vec_size*sizeof(F),curpos);
+  }
+  return curpos+vec_size*sizeof(F);
+}
+
+template <typename F> inline std::vector<char>::iterator deserialize( Int & vec_size, F * & vec, const std::vector<char>::iterator & bufpos)
+{
+  std::vector<char>::iterator curpos = bufpos;
+  //deserialize the size first
+  curpos = deserialize( vec_size, curpos);
+  vec = (F*)&(*curpos);  
+  return curpos+vec_size*sizeof(F);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   GridType::GridType	( MPI_Comm Bcomm, int nprow, int npcol )
   {
@@ -799,9 +924,9 @@ namespace PEXSI{
     isSendToBelow_.Resize(grid_->numProcRow, numSuper);
     isSendToRight_.Resize(grid_->numProcCol, numSuper);
 
-    NumMat<bool> isSendToBelow2_(numSuper,grid_->numProcRow);
-    NumMat<bool> isSendToRight2_(numSuper,grid_->numProcCol);
-    NumMat<bool> isRecvFromBelow2_(numSuper,grid_->numProcRow);
+    BolNumMat isSendToBelow2_(numSuper,grid_->numProcRow);
+    BolNumMat isSendToRight2_(numSuper,grid_->numProcCol);
+    BolNumMat isRecvFromBelow2_(numSuper,grid_->numProcRow);
     SetValue( isSendToBelow2_, false );
     SetValue( isSendToRight2_, false );
     SetValue( isRecvFromBelow2_, false );
@@ -2247,12 +2372,11 @@ inline  void PMatrix::SelInv_lookup_indexes(const Int ksup, std::vector<LBlock> 
     // Allocate for the computational storage
     AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
 
-
     LUpdateBuf.Resize( numRowAinvBuf, SuperSize( ksup, super_ ) );
     UBuf.Resize( SuperSize( ksup, super_ ), numColAinvBuf );
-    SetValue( AinvBuf, SCALAR_ZERO );
-    SetValue( LUpdateBuf, SCALAR_ZERO );
-    SetValue( UBuf, SCALAR_ZERO );
+//    SetValue( AinvBuf, SCALAR_ZERO );
+//    SetValue( LUpdateBuf, SCALAR_ZERO );
+//    SetValue( UBuf, SCALAR_ZERO );
 
     // Fill UBuf first.  Make the transpose later in the Gemm phase.
     for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
@@ -2406,6 +2530,7 @@ inline  void PMatrix::SelInv_lookup_indexes(const Int ksup, std::vector<LBlock> 
 inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv,  std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf){
     TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
 
+    TIMER_START(Build_colptr_rowptr);
     // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
     // nonzero row in LcolRecv[ib]. The total number of rows in
     // snode.LUpdateBuf is given by rowPtr[end]-1
@@ -2426,12 +2551,12 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
 
     Int numRowAinvBuf = *rowPtr.rbegin();
     Int numColAinvBuf = *colPtr.rbegin();
+    TIMER_STOP(Build_colptr_rowptr);
 
     TIMER_START(Allocate_lookup);
     // Allocate for the computational storage
-    snode.LUpdateBuf.Resize( numRowAinvBuf, SuperSize( snode.Index, super_ ) );
-      AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
-      UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
+    AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
+    UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
 //    TIMER_START(SetValue_lookup);
 //    SetValue( AinvBuf, SCALAR_ZERO );
     //SetValue( snode.LUpdateBuf, SCALAR_ZERO );
@@ -2454,11 +2579,23 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
     // Calculate the relative indices for (isup, jsup)
     // Fill AinvBuf with the information in L or U block.
     TIMER_START(JB_Loop);
+
+#ifdef STDFIND
     for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
 
         UBlock& UB = UrowRecv[jb];
         Int jsup = UB.blockIdx;
         Int SinvColsSta = FirstBlockCol( jsup, super_ );
+
+              // Column relative indicies
+              std::vector<Int> relCols( UB.numCol );
+              for( Int j = 0; j < UB.numCol; j++ ){
+                relCols[j] = UB.cols[j] - SinvColsSta;
+              }
+
+
+
+
       for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
         LBlock& LB = LcolRecv[ib];
         Int isup = LB.blockIdx;
@@ -2480,30 +2617,6 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
               Int* rowsLBPtr    = LB.rows.Data();
               Int* rowsSinvBPtr = SinvB.rows.Data();
 
-//statusOFS<<SinvB.rows<<std::endl;
-
-//              TIMER_START(CURFIND_ROW);
-//              for( Int i = 0; i < LB.numRow; i++ ){
-//                bool isRowFound = false;
-//                for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
-//                  if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
-//                    isRowFound = true;
-//                    relRows[i] = i1;
-//                    break;
-//                  }
-//                }
-//                if( isRowFound == false ){
-//                  std::ostringstream msg;
-//                  msg << "Row " << rowsLBPtr[i] << 
-//                    " in LB cannot find the corresponding row in SinvB" << std::endl
-//                    << "LB.rows    = " << LB.rows << std::endl
-//                    << "SinvB.rows = " << SinvB.rows << std::endl;
-//                  throw std::runtime_error( msg.str().c_str() );
-//                }
-//              }
-//              TIMER_STOP(CURFIND_ROW);
-//statusOFS<<relRows<<std::endl;
-
               TIMER_START(STDFIND_ROW);
               Int * pos =&rowsSinvBPtr[0];
               Int * last =&rowsSinvBPtr[SinvB.numRow];
@@ -2512,17 +2625,6 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
                 pos = std::find(rowsSinvBPtr, last, rowsLBPtr[i]);
                 if(pos != last){
                   relRows[i] = (Int)(pos - rowsSinvBPtr);
-//                    //statusOFS<<relRows[i]<<" vs "<<(Int)(pos - rowsSinvBPtr)<<std::endl;
-                  
-//std::distance(rowsSinvBPtr,pos);
-
-//                  TIMER_START(Copy_Sinv_to_Ainv_New);
-//                  Int     ldSinv    = SinvB.numRow;
-//                  Scalar* nzvalSinv = SinvB.nzval.Data();
-//                  for( Int j = 0; j < UB.numCol; j++ ){
-//                    nzvalAinv[i+j*ldAinv] = nzvalSinv[relRows[i] + (UB.cols[j] - SinvColsSta) * ldSinv];
-//                  }
-//                  TIMER_STOP(Copy_Sinv_to_Ainv_New);
                 }
                 else{
                   std::ostringstream msg;
@@ -2535,10 +2637,138 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
               }
               TIMER_STOP(STDFIND_ROW);
 
-//statusOFS<<relRows<<std::endl;
+              TIMER_START(Copy_Sinv_to_Ainv);
+              // Transfer the values from Sinv to AinvBlock
+              Scalar* nzvalSinv = SinvB.nzval.Data();
+              Int     ldSinv    = SinvB.numRow;
+              for( Int j = 0; j < UB.numCol; j++ ){
+                for( Int i = 0; i < LB.numRow; i++ ){
+                  nzvalAinv[i+j*ldAinv] =
+                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                }
+              }
+              TIMER_STOP(Copy_Sinv_to_Ainv);
+
+              isBlockFound = true;
+              break;
+            }	
+          } // for (ibSinv )
+          if( isBlockFound == false ){
+            std::ostringstream msg;
+            msg << "Block(" << isup << ", " << jsup 
+              << ") did not find a matching block in Sinv." << std::endl;
+            throw std::runtime_error( msg.str().c_str() );
+          }
+        } // if (isup, jsup) is in L
+        else{
+              // Row relative indices
+              std::vector<Int> relRows( LB.numRow );
+              Int SinvRowsSta = FirstBlockCol( isup, super_ );
+              for( Int i = 0; i < LB.numRow; i++ ){
+                relRows[i] = LB.rows[i] - SinvRowsSta;
+              }
+          std::vector<UBlock>&   UrowSinv = this->U( LBi( isup, grid_ ) );
+          bool isBlockFound = false;
+          for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
+            // Found the (isup, jsup) block in Sinv
+            if( UrowSinv[jbSinv].blockIdx == jsup ){
+              UBlock& SinvB = UrowSinv[jbSinv];
+
+              
+
+              // Column relative indices
+              std::vector<Int> relCols( UB.numCol );
+              Int* colsUBPtr    = UB.cols.Data();
+              Int* colsSinvBPtr = SinvB.cols.Data();
+              TIMER_START(STDFIND_COL);
+              Int * pos =&colsSinvBPtr[0];
+              Int * last =&colsSinvBPtr[SinvB.numCol];
+              for( Int j = 0; j < UB.numCol; j++ ){
+                //colsUB is sorted
+                pos = std::find(colsSinvBPtr, last, colsUBPtr[j]);
+                if(pos !=last){
+                    relCols[j] = (Int)(pos - colsSinvBPtr);
+                }
+                else{
+                  std::ostringstream msg;
+                  msg << "Col " << colsUBPtr[j] << 
+                    " in UB cannot find the corresponding row in SinvB" << std::endl
+                    << "UB.cols    = " << UB.cols << std::endl
+                    << "UinvB.cols = " << SinvB.cols << std::endl;
+                  throw std::runtime_error( msg.str().c_str() );
+                }
+              }
+              TIMER_STOP(STDFIND_COL);
 
 
               TIMER_START(Copy_Sinv_to_Ainv);
+              // Transfer the values from Sinv to AinvBlock
+              Scalar* nzvalSinv = SinvB.nzval.Data();
+              Int     ldSinv    = SinvB.numRow;
+              for( Int j = 0; j < UB.numCol; j++ ){
+                for( Int i = 0; i < LB.numRow; i++ ){
+                  nzvalAinv[i+j*ldAinv] =
+                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                }
+              }
+              TIMER_STOP(Copy_Sinv_to_Ainv);
+
+              isBlockFound = true;
+              break;
+            }
+          } // for (jbSinv)
+          if( isBlockFound == false ){
+            std::ostringstream msg;
+            msg << "Block(" << isup << ", " << jsup 
+              << ") did not find a matching block in Sinv." << std::endl;
+            throw std::runtime_error( msg.str().c_str() );
+          }
+        } // if (isup, jsup) is in U
+
+      } // for( ib )
+    } // for ( jb )
+#else
+    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+      for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+        LBlock& LB = LcolRecv[ib];
+        UBlock& UB = UrowRecv[jb];
+        Int isup = LB.blockIdx;
+        Int jsup = UB.blockIdx;
+        Scalar* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
+        Int     ldAinv    = AinvBuf.m();
+
+        // Pin down the corresponding block in the part of Sinv.
+        if( isup >= jsup ){
+          std::vector<LBlock>&  LcolSinv = this->L( LBj(jsup, grid_ ) );
+          bool isBlockFound = false;
+          for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+            // Found the (isup, jsup) block in Sinv
+            if( LcolSinv[ibSinv].blockIdx == isup ){
+              LBlock& SinvB = LcolSinv[ibSinv];
+
+              // Row relative indices
+              std::vector<Int> relRows( LB.numRow );
+              Int* rowsLBPtr    = LB.rows.Data();
+              Int* rowsSinvBPtr = SinvB.rows.Data();
+              for( Int i = 0; i < LB.numRow; i++ ){
+                bool isRowFound = false;
+                for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
+                  if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
+                    isRowFound = true;
+                    relRows[i] = i1;
+                    break;
+                  }
+                }
+                if( isRowFound == false ){
+                  std::ostringstream msg;
+                  msg << "Row " << rowsLBPtr[i] << 
+                    " in LB cannot find the corresponding row in SinvB" << std::endl
+                    << "LB.rows    = " << LB.rows << std::endl
+                    << "SinvB.rows = " << SinvB.rows << std::endl;
+                  throw std::runtime_error( msg.str().c_str() );
+                }
+              }
+
               // Column relative indicies
               std::vector<Int> relCols( UB.numCol );
               Int SinvColsSta = FirstBlockCol( jsup, super_ );
@@ -2555,7 +2785,6 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
                     nzvalSinv[relRows[i] + relCols[j] * ldSinv];
                 }
               }
-              TIMER_STOP(Copy_Sinv_to_Ainv);
 
               isBlockFound = true;
               break;
@@ -2587,52 +2816,16 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
               std::vector<Int> relCols( UB.numCol );
               Int* colsUBPtr    = UB.cols.Data();
               Int* colsSinvBPtr = SinvB.cols.Data();
-
-//statusOFS<<SinvB.cols<<std::endl;
-//              TIMER_START(CURFIND_COL);
-//              for( Int j = 0; j < UB.numCol; j++ ){
-//                bool isColFound = false;
-//                for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
-//                  if( colsUBPtr[j] == colsSinvBPtr[j1] ){
-//                    isColFound = true;
-//                    relCols[j] = j1;
-//                    break;
-//                  }
-//                }
-//                if( isColFound == false ){
-//                  std::ostringstream msg;
-//                  msg << "Col " << colsUBPtr[j] << 
-//                    " in UB cannot find the corresponding row in SinvB" << std::endl
-//                    << "UB.cols    = " << UB.cols << std::endl
-//                    << "UinvB.cols = " << SinvB.cols << std::endl;
-//                  throw std::runtime_error( msg.str().c_str() );
-//                }
-//              }
-//              TIMER_STOP(CURFIND_COL);
-
-//statusOFS<<relCols<<std::endl;
-
-
-              TIMER_START(STDFIND_COL);
-              Int * pos =&colsSinvBPtr[0];
-              Int * last =&colsSinvBPtr[SinvB.numCol];
               for( Int j = 0; j < UB.numCol; j++ ){
-                //colsUB is sorted
-//                pos = std::find(pos, &colsSinvBPtr[SinvB.numCol-1], colsUBPtr[j]);
-                pos = std::find(colsSinvBPtr, last, colsUBPtr[j]);
-                if(pos !=last){
-                    relCols[j] = (Int)(pos - colsSinvBPtr);
-                    //statusOFS<<relRows[i]<<" vs "<<(Int)(pos - rowsSinvBPtr)<<std::endl;
-
-//                  Int     ldSinv    = SinvB.numRow;
-//              Scalar* nzvalSinv = SinvB.nzval.Data();
-//                  for( Int i = 0; i < LB.numRow; i++ ){
-//                    nzvalAinv[i+j*ldAinv] =
-//                      nzvalSinv[ LB.rows[i] - SinvRowsSta + relCols[j] * ldSinv];
-//                  }
-
+                bool isColFound = false;
+                for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
+                  if( colsUBPtr[j] == colsSinvBPtr[j1] ){
+                    isColFound = true;
+                    relCols[j] = j1;
+                    break;
+                  }
                 }
-                else{
+                if( isColFound == false ){
                   std::ostringstream msg;
                   msg << "Col " << colsUBPtr[j] << 
                     " in UB cannot find the corresponding row in SinvB" << std::endl
@@ -2641,14 +2834,8 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
                   throw std::runtime_error( msg.str().c_str() );
                 }
               }
-              TIMER_STOP(STDFIND_COL);
 
 
-
-//statusOFS<<relCols<<std::endl;
-
-
-              TIMER_START(Copy_Sinv_to_Ainv);
               // Transfer the values from Sinv to AinvBlock
               Scalar* nzvalSinv = SinvB.nzval.Data();
               Int     ldSinv    = SinvB.numRow;
@@ -2658,7 +2845,6 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
                     nzvalSinv[relRows[i] + relCols[j] * ldSinv];
                 }
               }
-              TIMER_STOP(Copy_Sinv_to_Ainv);
 
               isBlockFound = true;
               break;
@@ -2674,6 +2860,9 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
 
       } // for( ib )
     } // for ( jb )
+
+
+#endif
     TIMER_STOP(JB_Loop);
 
 
@@ -2681,14 +2870,16 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
   }
 
 
-      inline void PMatrix::SendRecvCD_UpdateU(std::vector<SuperNodeBufferType> & arrSuperNodes, Int stepSuper){
+      inline void PMatrix::SendRecvCD_UpdateU(std::vector<SuperNodeBufferType> & arrSuperNodes, Int stepSuper)
+      {
 
-      TIMER_START(Update_U);
+      TIMER_START(Send_CD_Update_U);
       //compute the number of requests
       Int sendCount = 0;
       Int recvCount = 0;
       Int sendOffset[stepSuper];
       Int recvOffset[stepSuper];
+      Int recvIdx=0;
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
         sendOffset[supidx]=sendCount;
@@ -2700,11 +2891,11 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
 
       std::vector<MPI_Request > arrMpiReqsSendCD(sendCount, MPI_REQUEST_NULL );
       std::vector<MPI_Request > arrMpiReqsSizeSendCD(sendCount, MPI_REQUEST_NULL );
-      std::vector<std::vector<char> > arrSstrLcolSendCD(sendCount);
-      std::vector<int > arrSstrLcolSizeSendCD(sendCount);
 
       std::vector<MPI_Request > arrMpiReqsRecvCD(recvCount, MPI_REQUEST_NULL );
       std::vector<MPI_Request > arrMpiReqsSizeRecvCD(recvCount, MPI_REQUEST_NULL );
+      std::vector<std::vector<char> > arrSstrLcolSendCD(sendCount);
+      std::vector<int > arrSstrLcolSizeSendCD(sendCount);
       std::vector<std::vector<char> > arrSstrLcolRecvCD(recvCount);
       std::vector<int > arrSstrLcolSizeRecvCD(recvCount);
 
@@ -2724,11 +2915,13 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
               Int dest = PNUM(PROW(snode.Index,grid_),dstCol,grid_);
 
               if( MYPROC( grid_ ) != dest	){
+                MPI_Request & mpiReqSizeSend = arrMpiReqsSizeSendCD[sendOffset[supidx]+sendIdx];
+                MPI_Request & mpiReqSend = arrMpiReqsSendCD[sendOffset[supidx]+sendIdx];
+
+
                 std::stringstream sstm;
                 std::vector<char> & sstrLcolSend = arrSstrLcolSendCD[sendOffset[supidx]+sendIdx];
                 Int & sstrSize = arrSstrLcolSizeSendCD[sendOffset[supidx]+sendIdx];
-                MPI_Request & mpiReqSizeSend = arrMpiReqsSizeSendCD[sendOffset[supidx]+sendIdx];
-                MPI_Request & mpiReqSend = arrMpiReqsSendCD[sendOffset[supidx]+sendIdx];
 
                 serialize( snode.RowLocalPtr, sstm, NO_MASK );
                 serialize( snode.BlockIdxLocal, sstm, NO_MASK );
@@ -2738,9 +2931,9 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
                 sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
                 sstrSize = sstrLcolSend.size();
 
-                MPI_Isend( &sstrSize, 1, MPI_INT, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, grid_->comm, &mpiReqSizeSend );
-                MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dest, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, &mpiReqSend );
 
+                MPI_Isend( &sstrSize, 1, MPI_INT, dest, IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE), grid_->comm, &mpiReqSizeSend );
+                MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dest, IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), grid_->comm, &mpiReqSend );
                 sendIdx++;
               }
             }
@@ -2764,7 +2957,7 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
               if( MYPROC( grid_ ) != src ){
                 Int & sstrSize = arrSstrLcolSizeRecvCD[recvOffset[supidx]+recvIdx];
                 MPI_Request & mpiReqSizeRecv = arrMpiReqsSizeRecvCD[recvOffset[supidx]+recvIdx];
-                MPI_Irecv( &sstrSize, 1, MPI_INT, src, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, grid_->comm, &mpiReqSizeRecv );
+                MPI_Irecv( &sstrSize, 1, MPI_INT, src, IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE), grid_->comm, &mpiReqSizeRecv );
                 recvIdx++;
               }
             }
@@ -2774,7 +2967,6 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
 
       //waitall sizes
       mpi::Waitall(arrMpiReqsSizeRecvCD);
-
       //Allocate content and do Irecv
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -2789,7 +2981,8 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
                 std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvOffset[supidx]+recvIdx];
                 MPI_Request & mpiReqRecv = arrMpiReqsRecvCD[recvOffset[supidx]+recvIdx];
                 sstrLcolRecv.resize( sstrSize);
-                MPI_Irecv( (void*)&sstrLcolRecv[0], sstrSize, MPI_BYTE, src, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, grid_->comm, &mpiReqRecv );
+                MPI_Irecv( (void*)&sstrLcolRecv[0], sstrSize, MPI_BYTE, src, IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), grid_->comm, &mpiReqRecv );
+//statusOFS<<"P"<<MYPROC(grid_)<<" received "<<sstrSize<<" bytes of L/U from CD P"<<src<<std::endl;               
                 recvIdx++;
               }
             }
@@ -2799,7 +2992,6 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
 
       //waitall content
       mpi::Waitall(arrMpiReqsRecvCD);
-
       //Do the work
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -2817,17 +3009,21 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
           std::vector<UBlock>&  Urow = this->U( LBi( snode.Index, grid_ ) );
           std::vector<bool> isBlockFound(Urow.size(),false);
 
-          Int recvIdx=0;
+          recvIdx=0;
           for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
             if(isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
               Int src = PNUM(srcRow,PCOL(snode.Index,grid_),grid_);
               TIMER_START(Recv_L_CrossDiag);
+
               std::vector<Int> rowLocalPtrRecv;
               std::vector<Int> blockIdxLocalRecv;
               NumMat<Scalar> UUpdateBuf;
 
-
               if( MYPROC( grid_ ) != src ){
+
+
+
+
                 std::stringstream sstm;
                 Int & sstrSize = arrSstrLcolSizeRecvCD[recvOffset[supidx]+recvIdx];
                 std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvOffset[supidx]+recvIdx];
@@ -2836,9 +3032,12 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
                 deserialize( rowLocalPtrRecv, sstm, NO_MASK );
                 deserialize( blockIdxLocalRecv, sstm, NO_MASK );
                 deserialize( UUpdateBuf, sstm, NO_MASK );	
+
                 recvIdx++;
+
               } // sender is not the same as receiver
               else{
+
                 rowLocalPtrRecv   = snode.RowLocalPtr;
                 blockIdxLocalRecv = snode.BlockIdxLocal;
                 UUpdateBuf = snode.LUpdateBuf;
@@ -2882,7 +3081,8 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
           }
         } // receiver
       }
-      TIMER_STOP(Update_U);
+
+      TIMER_STOP(Send_CD_Update_U);
 
       mpi::Waitall(arrMpiReqsSizeSendCD);
       mpi::Waitall(arrMpiReqsSendCD);
@@ -2894,11 +3094,18 @@ inline  void PMatrix::SelInv_lookup_indexes(SuperNodeBufferType & snode, std::ve
 
 
 
+
 inline void PMatrix::UnpackData(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv){
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
+#endif
   // U part
+//statusOFS<<"Deserializing U"<<std::endl;
   if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
     std::stringstream sstm;
-    sstm.write( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv );
+    sstm.write( &snode.SstrUrowRecv[0], snode.SstrUrowRecv.size() );
+//statusOFS<<"sstm written"<<std::endl;
     std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
     Int numUBlock;
     deserialize( numUBlock, sstm, NO_MASK );
@@ -2910,14 +3117,18 @@ inline void PMatrix::UnpackData(SuperNodeBufferType & snode, std::vector<LBlock>
   else{
     // U is obtained locally, just make a copy. Include everything
     // (there is no diagonal block)
-    UrowRecv = this->U( LBi( snode.Index, grid_ ) );
+    //Is it a copy ?
+//    UrowRecv = this->U( LBi( snode.Index, grid_ ) );
+    UrowRecv.resize(this->U( LBi( snode.Index, grid_ ) ).size());
+    std::copy(this->U( LBi( snode.Index, grid_ ) ).begin(),this->U( LBi( snode.Index, grid_ )).end(),UrowRecv.begin());
   } // sender is the same as receiver
 
 
+//statusOFS<<"Deserializing L"<<std::endl;
   //L part
   if( MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
     std::stringstream     sstm;
-    sstm.write( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv );
+    sstm.write( &snode.SstrLcolRecv[0], snode.SstrLcolRecv.size() );
     std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
     mask[LBlockMask::NZVAL] = 0; // nzval is excluded
     Int numLBlock;
@@ -2931,19 +3142,37 @@ inline void PMatrix::UnpackData(SuperNodeBufferType & snode, std::vector<LBlock>
     // L is obtained locally, just make a copy. 
     // Do not include the diagonal block
     std::vector<LBlock>& Lcol =  this->L( LBj( snode.Index, grid_ ) );
-    if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
-      LcolRecv.resize( Lcol.size() );
-      for( Int ib = 0; ib < Lcol.size(); ib++ ){
-        LcolRecv[ib] = Lcol[ib];
-      }
-    }
-    else{
-      LcolRecv.resize( Lcol.size() - 1 );
-      for( Int ib = 0; ib < Lcol.size() - 1; ib++ ){
-        LcolRecv[ib] = Lcol[ib+1];
-      }
-    }
+    Int startIdx = ( MYROW( grid_ ) == PROW( snode.Index, grid_ ) )?1:0;
+      LcolRecv.resize( Lcol.size() - startIdx );
+//      for( Int ib = 0; ib < Lcol.size() - startIdx; ib++ ){
+//        LcolRecv[ib] = Lcol[ib+startIdx];
+//      }
+    std::copy(Lcol.begin()+startIdx,Lcol.end(),LcolRecv.begin());
+
+//    if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
+//      LcolRecv.resize( Lcol.size() );
+//      for( Int ib = 0; ib < Lcol.size(); ib++ ){
+//        LcolRecv[ib] = Lcol[ib];
+//      }
+//    }
+//    else{
+//      LcolRecv.resize( Lcol.size() - 1 );
+//      for( Int ib = 0; ib < Lcol.size() - 1; ib++ ){
+//        LcolRecv[ib] = Lcol[ib+1];
+//      }
+//    }
   } // sender is the same as receiver
+//statusOFS<<"Done Deserializing"<<std::endl;
+
+
+////statusOFS<<"LcolRecv"<<std::endl;
+////for(Int i =0;i<LcolRecv.size();i++){statusOFS<<LcolRecv[i].blockIdx<<" ";}
+////statusOFS<<std::endl;
+////
+////statusOFS<<"UrowRecv"<<std::endl;
+////for(Int i =0;i<UrowRecv.size();i++){statusOFS<<UrowRecv[i].blockIdx<<" ";}
+////statusOFS<<std::endl;
+
 };
 
 inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
@@ -2951,7 +3180,7 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
         //---------Computing  Diagonal block, all processors in the column are participating to all pipelined supernodes
         if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Update the diagonal block" << std::endl << std::endl; 
+        statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updating the diagonal block" << std::endl << std::endl; 
 #endif
           std::vector<LBlock>&  Lcol = this->L( LBj( snode.Index, grid_ ) );
 
@@ -2959,21 +3188,17 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
           snode.DiagBuf.Resize(SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
           SetValue(snode.DiagBuf, SCALAR_ZERO);
 
-          if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
-            for( Int ib = 0; ib < Lcol.size(); ib++ ){
-              blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), Lcol[ib].numRow, 
-                  SCALAR_MINUS_ONE, &snode.LUpdateBuf( snode.RowLocalPtr[ib], 0 ), snode.LUpdateBuf.m(),
-                  Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), SCALAR_ONE, snode.DiagBuf.Data(), snode.DiagBuf.m() );
-            } 
-          } // I do not own the diagonal block
-          else{
-            for( Int ib = 1; ib < Lcol.size(); ib++ ){
-              blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), Lcol[ib].numRow, 
-                  SCALAR_MINUS_ONE, &snode.LUpdateBuf( snode.RowLocalPtr[ib-1], 0 ), snode.LUpdateBuf.m(),
-                  Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), 
-                  SCALAR_ONE, snode.DiagBuf.Data(), snode.DiagBuf.m() );
-            }
-          } // I own the diagonal block, skip the diagonal block
+          // Do I own the diagonal block ?
+          Int startIb = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
+          for( Int ib = startIb; ib < Lcol.size(); ib++ ){
+            blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), Lcol[ib].numRow, 
+                SCALAR_MINUS_ONE, &snode.LUpdateBuf( snode.RowLocalPtr[ib-startIb], 0 ), snode.LUpdateBuf.m(),
+                Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), SCALAR_ONE, snode.DiagBuf.Data(), snode.DiagBuf.m() );
+          } 
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updated the diagonal block" << std::endl << std::endl; 
+#endif
         }
 };
 
@@ -2996,27 +3221,30 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 
       TIMER_START(AllocateBuffer);
 
+      //This is required to send the size and content of U/L
       std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
-      std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
-      std::vector<MPI_Request>   arrMpireqsRecvSizeFromAny;
-      std::vector<MPI_Request>   arrMpireqsRecvContentFromAny;
-      //allocate the buffers for this supernode
       arrMpireqsSendToBelow.resize( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
+      std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
       arrMpireqsSendToRight.resize(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
+
+      //This is required to reduce L
+      std::vector<MPI_Request>  arrMpireqsSendToLeft;
+      arrMpireqsSendToLeft.resize(stepSuper, MPI_REQUEST_NULL );
+      //This is required to reduce D
+      std::vector<MPI_Request>  arrMpireqsSendToAbove;
+      arrMpireqsSendToAbove.resize(stepSuper, MPI_REQUEST_NULL );
+    
+      //This is required to receive the size and content of U/L
+      std::vector<MPI_Request>   arrMpireqsRecvSizeFromAny;
       arrMpireqsRecvSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
+      std::vector<MPI_Request>   arrMpireqsRecvContentFromAny;
       arrMpireqsRecvContentFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
-//      arrMpireqsSendToBelow.assign( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
-//      arrMpireqsSendToRight.assign(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
-//      arrMpireqsRecvSizeFromAny.assign(stepSuper*2 , MPI_REQUEST_NULL );
-//      arrMpireqsRecvContentFromAny.assign(stepSuper*2 , MPI_REQUEST_NULL );
 
 
+      //allocate the buffers for this supernode
       std::vector<SuperNodeBufferType> arrSuperNodes(stepSuper);
-      for (Int supidx=0; supidx<stepSuper; supidx++){
-        arrSuperNodes[supidx].Index = superList[lidx][supidx];
-      }
-
-
+      for (Int supidx=0; supidx<stepSuper; supidx++){ arrSuperNodes[supidx].Index = superList[lidx][supidx];  }
+      
       NumMat<Scalar> AinvBuf, UBuf;
 
 
@@ -3035,6 +3263,7 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 #endif
 
 
+{
       // Senders
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -3049,6 +3278,7 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
         // Communication for the U part.
         if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
           // Pack the data in U
+TIMER_START(Serialize_UL);
           std::stringstream sstm;
           std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
           std::vector<UBlock>&  Urow = this->U( LBi(snode.Index, grid_) );
@@ -3060,15 +3290,16 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
           snode.SstrUrowSend.resize( Size( sstm ) );
           sstm.read( &snode.SstrUrowSend[0], snode.SstrUrowSend.size() );
           snode.SizeSstrUrowSend = snode.SstrUrowSend.size();
+TIMER_STOP(Serialize_UL);
 
           for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
             if( MYROW( grid_ ) != iProcRow &&
                 isSendToBelow_( iProcRow,snode.Index ) == true ){
               // Use Isend to send to multiple targets
               MPI_Isend( &snode.SizeSstrUrowSend, 1, MPI_INT,  
-                  iProcRow, SELINV_TAG_COUNT*supidx+SELINV_TAG_U_SIZE, grid_->colComm, &mpireqsSendToBelow[2*iProcRow] );
+                  iProcRow, IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE), grid_->colComm, &mpireqsSendToBelow[2*iProcRow] );
               MPI_Isend( (void*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, MPI_BYTE, 
-                  iProcRow, SELINV_TAG_COUNT*supidx+SELINV_TAG_U_CONTENT, 
+                  iProcRow, IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT), 
                   grid_->colComm, &mpireqsSendToBelow[2*iProcRow+1] );
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES"<< std::endl <<  std::endl; 
@@ -3085,6 +3316,8 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 
         // Communication for the L part.
         if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+
+          TIMER_START(Serialize_UL);
           // Pack the data in L 
           std::stringstream sstm;
           std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
@@ -3092,6 +3325,7 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 
           std::vector<LBlock>&  Lcol = this->L( LBj(snode.Index, grid_) );
           // All blocks except for the diagonal block are to be sent right
+
           if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) )
             serialize( (Int)Lcol.size() - 1, sstm, NO_MASK );
           else
@@ -3108,15 +3342,17 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
           snode.SstrLcolSend.resize( Size( sstm ) );
           sstm.read( &snode.SstrLcolSend[0], snode.SstrLcolSend.size() );
           snode.SizeSstrLcolSend = snode.SstrLcolSend.size();
+          TIMER_STOP(Serialize_UL);
+
           for( Int iProcCol = 0; iProcCol < grid_->numProcCol ; iProcCol++ ){
             if( MYCOL( grid_ ) != iProcCol &&
                 isSendToRight_( iProcCol, snode.Index ) == true ){
               // Use Isend to send to multiple targets
               MPI_Isend( &snode.SizeSstrLcolSend, 1, MPI_INT,  
-                  iProcCol, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE, 
+                  iProcCol, IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE), 
                   grid_->rowComm, &mpireqsSendToRight[2*iProcCol] );
               MPI_Isend( (void*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, MPI_BYTE, 
-                  iProcCol, SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, 
+                  iProcCol, IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), 
                   grid_->rowComm, &mpireqsSendToRight[2*iProcCol+1] );
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend<< " BYTES"  << std::endl <<  std::endl; 
@@ -3137,10 +3373,10 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
         if( isRecvFromAbove_( snode.Index ) && 
             MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
           MPI_Irecv( &snode.SizeSstrUrowRecv, 1, MPI_INT, PROW( snode.Index, grid_ ), 
-              SELINV_TAG_COUNT*supidx+SELINV_TAG_U_SIZE,
+              IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE),
               grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U size on tag " << (int)SELINV_TAG_COUNT*supidx+SELINV_TAG_U_SIZE<< std::endl <<  std::endl; 
+          statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U size on tag " << IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE)<< std::endl <<  std::endl; 
 #endif
         } // if I need to receive from up
 
@@ -3148,25 +3384,18 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
         if( isRecvFromLeft_( snode.Index ) &&
             MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
           MPI_Irecv( &snode.SizeSstrLcolRecv, 1, MPI_INT, PCOL( snode.Index, grid_ ), 
-              SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE,
+              IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),
               grid_->rowComm, mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L size on tag " << (int)SELINV_TAG_COUNT*supidx+SELINV_TAG_L_SIZE<< std::endl <<  std::endl; 
+          statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L size on tag " << IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE)<< std::endl <<  std::endl; 
 #endif
         } // if I need to receive from left
       }
 
       //Wait to receive all the sizes
-      {
         TIMER_START(WaitSize_UL);
         mpi::Waitall(arrMpireqsRecvSizeFromAny);
         TIMER_STOP(WaitSize_UL);
-      }
-
-
-
-
-
 
       // Receivers (Content)
       for (Int supidx=0; supidx<stepSuper ; supidx++){
@@ -3179,7 +3408,7 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
             MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
           snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv );
           MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
-              PROW( snode.Index, grid_ ), SELINV_TAG_COUNT*supidx+SELINV_TAG_U_CONTENT, 
+              PROW( snode.Index, grid_ ), IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT), 
               grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U " << snode.SizeSstrUrowRecv << " BYTES"<< std::endl <<  std::endl; 
@@ -3190,7 +3419,7 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
             MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
           snode.SstrLcolRecv.resize( snode.SizeSstrLcolRecv );
           MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
-              PCOL( snode.Index, grid_ ), SELINV_TAG_COUNT*supidx+SELINV_TAG_L_CONTENT, 
+              PCOL( snode.Index, grid_ ), IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), 
               grid_->rowComm,
               mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
@@ -3199,23 +3428,46 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
         } // if I need to receive from left
       }
 
+}
+
+
+
+
+
+
 
       TIMER_START(Compute_Sinv_LT);
-
+{
       Int gemmProcessed = 0;
       Int gemmToDo = 0;
+//      Int toRecvGemm = 0;
       //copy the list of supernodes we need to process
       std::vector<Int> readySupidx;
       //find local things to do
       for(Int supidx = 0;supidx<stepSuper;supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+
+
+//        if( isRecvFromAbove_( snode.Index ) && 
+//            MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
+//            toRecvGemm++;
+//        }
+//
+//        if( isRecvFromLeft_( snode.Index ) &&
+//            MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
+//            toRecvGemm++;
+//        }
+
         if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
           gemmToDo++;
-          if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) )
+          if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
             snode.isReady++;
+          }
 
-          if(  MYROW( grid_ ) == PROW( snode.Index, grid_ ) )
+          if(  MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
             snode.isReady++;
+          }
 
           if(snode.isReady==2){
             readySupidx.push_back(supidx);
@@ -3224,22 +3476,21 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 #endif
           }
         }
-        else if( isRecvFromLeft_( snode.Index ) && MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) )
+        else if( (isRecvFromLeft_( snode.Index )  ) && MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) )
         {
+          MPI_Request & mpireqsSendToLeft = arrMpireqsSendToLeft[supidx];
           //Dummy 0-b send If I was a receiver, I need to send my data to proc in column of snode.Index
-          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-          MPI_Isend( snode.LUpdateBuf.Data(), snode.LUpdateBuf.ByteSize(), MPI_BYTE, PCOL(snode.Index,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_REDUCE, grid_->rowComm, &mpireqsSendToRight[0] );
+          MPI_Isend( NULL, 0, MPI_BYTE, PCOL(snode.Index,grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), grid_->rowComm, &mpireqsSendToLeft );
 
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< snode.LUpdateBuf.ByteSize() << " bytes to " << PCOL(snode.Index,grid_) << std::endl;
+          statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYPROC(grid_)<<" has sent "<< 0 << " bytes to " << PNUM(MYROW(grid_),PCOL(snode.Index,grid_),grid_) << std::endl;
 #endif
         }// if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ))
       }
 
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS<<std::endl<<"gemmToDo ="<<gemmToDo<<std::endl;
-//      statusOFS<<std::endl<<"isReady ="<<isReady<<std::endl;
-      statusOFS<<std::endl<<"readySupidx ="<<readySupidx<<std::endl;
+//      statusOFS<<std::endl<<"toRecvGemm ="<<toRecvGemm<<std::endl;
 #endif
 
 
@@ -3248,18 +3499,19 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
       begin_SendULWaitContentFirst=0;
 #endif
 
-      while(gemmProcessed<gemmToDo){
-        Int reqidx = -1;
+      while(gemmProcessed<gemmToDo)
+      {
+        Int reqidx = MPI_UNDEFINED;
         Int supidx = -1;
-        std::vector<LBlock> LcolRecv;
-        std::vector<UBlock> UrowRecv;
 
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<std::endl;
-#endif
 
         //while I don't have anything to do, wait for data to arrive 
-        while(readySupidx.size()==0){
+        do        {
+
+
+          int reqIndices[arrMpireqsRecvContentFromAny.size()];
+          int numRecv = 0; 
+
           //then process with the remote ones
 
           TIMER_START(WaitContent_UL);
@@ -3269,19 +3521,26 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
           }
 #endif
 
-          MPI_Waitany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, MPI_STATUS_IGNORE);
 
+//          MPI_Waitany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, MPI_STATUS_IGNORE);
+//          TIMER_STOP(WaitContent_UL);
+//          {
+          numRecv = 0;
+          MPI_Waitsome(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &numRecv, reqIndices, MPI_STATUSES_IGNORE);
           TIMER_STOP(WaitContent_UL);
 
+        for(int i =0;i<numRecv;i++){
+          reqidx = reqIndices[i];
           //I've received something
           if(reqidx!=MPI_UNDEFINED)
           { 
+
             supidx = reqidx/2;
             SuperNodeBufferType & snode = arrSuperNodes[supidx];
             snode.isReady++;
 
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS<<std::endl<<"Received data for ["<<snode.Index<<"] reqidx%2="<<reqidx%2<<std::endl;
+            statusOFS<<std::endl<<"Received data for ["<<snode.Index<<"] reqidx%2="<<reqidx%2<<" is ready ?"<<snode.isReady<<std::endl;
 #endif
             //if we received both L and U, the supernode is ready
             if(snode.isReady==2){
@@ -3295,19 +3554,22 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
             }
           }
 
-        }
+      }//end for waitsome
+
+        } while(readySupidx.size()==0);
+
+
+
+
+
 
         //If I have some work to do 
-        if(readySupidx.size()>0){
+        //while(readySupidx.size()>0)
+        if(readySupidx.size()>0)
+        {
           supidx = readySupidx.back();
           readySupidx.pop_back();
           SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
-#endif
-
-
 
 
           // Only the processors received information participate in the Gemm 
@@ -3320,16 +3582,17 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 
             UnpackData(snode, LcolRecv, UrowRecv);
 
+            //NumMat<Scalar> AinvBuf, UBuf;
             SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,AinvBuf,UBuf);
 
+            snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
             TIMER_START(Compute_Sinv_LT_GEMM);
-
             blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), SCALAR_MINUS_ONE, 
                 AinvBuf.Data(), AinvBuf.m(), 
                 UBuf.Data(), UBuf.m(), SCALAR_ZERO,
                 snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
-
             TIMER_STOP(Compute_Sinv_LT_GEMM);
+
 
 #if ( _DEBUGlevel_ >= 2 )
             statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
@@ -3338,26 +3601,35 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 
 
           //If I was a receiver, I need to send my data to proc in column of snode.Index
+        if( isRecvFromAbove_( snode.Index )  ){
           if( isRecvFromLeft_( snode.Index ) && MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) )
           {
-            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            MPI_Isend( snode.LUpdateBuf.Data(), snode.LUpdateBuf.ByteSize(), MPI_BYTE, PCOL(snode.Index,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_REDUCE, grid_->rowComm, &mpireqsSendToRight[0] );
+            MPI_Request & mpireqsSendToLeft = arrMpireqsSendToLeft[supidx];
+
+          MPI_Isend( snode.LUpdateBuf.Data(), snode.LUpdateBuf.ByteSize(), MPI_BYTE, PCOL(snode.Index,grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), grid_->rowComm, &mpireqsSendToLeft );
 
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< snode.LUpdateBuf.ByteSize() << " bytes to " << PCOL(snode.Index,grid_) << std::endl;
 #endif
+
           }//Sender
+        }
           gemmProcessed++;
+
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<"/"<<gemmToDo<<std::endl;
+#endif
+
+
         }
       }
 
+}
       TIMER_STOP(Compute_Sinv_LT);
-
-
-
-
       //Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
       TIMER_START(Reduce_Sinv_LT);
+
 
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -3408,7 +3680,9 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
             //Do the blocking recv
             MPI_Status stat;
             Int size = 0;
-            MPI_Recv(LUpdateBufRecv.Data(), LUpdateBufRecv.ByteSize(), MPI_BYTE, MPI_ANY_SOURCE,SELINV_TAG_COUNT*supidx+SELINV_TAG_L_REDUCE, grid_->rowComm,&stat);
+TIMER_START(L_RECV);
+            MPI_Recv(LUpdateBufRecv.Data(), LUpdateBufRecv.ByteSize(), MPI_BYTE, MPI_ANY_SOURCE,IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), grid_->rowComm,&stat);
+TIMER_STOP(L_RECV);
             MPI_Get_count(&stat, MPI_BYTE, &size);
             //if the processor contributes
             if(size>0){
@@ -3432,6 +3706,7 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 
       TIMER_STOP(Reduce_Sinv_LT);
 
+        mpi::Waitall( arrMpireqsSendToLeft );
 
 
       //--------------------- End of reduce of LUpdateBuf-------------------------
@@ -3449,9 +3724,9 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
           if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
             if(isSendToDiagonal_(snode.Index)){
               //send to above
-              std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+              MPI_Request & mpireqsSendToAbove = arrMpireqsSendToAbove[supidx];
               MPI_Isend( snode.DiagBuf.Data(),  snode.DiagBuf.ByteSize(), MPI_BYTE,
-                  PROW(snode.Index,grid_) ,SELINV_TAG_COUNT*supidx+SELINV_TAG_D_REDUCE, grid_->colComm, &mpireqsSendToRight[0] );
+                  PROW(snode.Index,grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_D_REDUCE), grid_->colComm, &mpireqsSendToAbove );
 
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYROW(grid_)<<" has sent "<< snode.DiagBuf.ByteSize() << " bytes of DiagBuf to " << PROW(snode.Index,grid_) << " isSendToDiagonal = "<< isSendToDiagonal_(snode.Index) <<  std::endl;
@@ -3484,7 +3759,9 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
               //Do the blocking recv
               MPI_Status stat;
               Int size = 0;
-              MPI_Recv(DiagBufRecv.Data(), DiagBufRecv.ByteSize(), MPI_BYTE, MPI_ANY_SOURCE,SELINV_TAG_COUNT*supidx+SELINV_TAG_D_REDUCE, grid_->colComm,&stat);
+TIMER_START(D_RECV);
+              MPI_Recv(DiagBufRecv.Data(), DiagBufRecv.ByteSize(), MPI_BYTE, MPI_ANY_SOURCE,IDX_TO_TAG(supidx,SELINV_TAG_D_REDUCE), grid_->colComm,&stat);
+TIMER_STOP(D_RECV);
               MPI_Get_count(&stat, MPI_BYTE, &size);
               //if the processor contributes
               if(size>0){
@@ -3498,16 +3775,12 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
             blas::Axpy( LB.numRow * LB.numCol, SCALAR_ONE, snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
             Symmetrize( LB.nzval );
           }
+
         } 
       }
 
+
       TIMER_STOP(Reduce_Diagonal);
-
-
-
-    for (Int supidx=0; supidx<stepSuper; supidx++){
-      mpi::Waitall(arrMpireqsSendToRight[supidx]);
-    }
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -3536,6 +3809,9 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
 #endif
+
+
+
         if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) && snode.LUpdateBuf.m() > 0 ){
           std::vector<LBlock>&  Lcol = this->L( LBj( snode.Index, grid_ ) );
           //Need to skip the diagonal block if present
@@ -3554,34 +3830,31 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
 
 
 
-
-
-
 #ifndef _RELEASE_
       PopCallStack();
 #endif
 
 
       TIMER_START(Barrier);
+        mpi::Waitall(arrMpireqsRecvContentFromAny);
+      //Sync for reduce L
+//      mpi::Waitall( arrMpireqsSendToLeft );
+      //Sync for reduce D
+      mpi::Waitall(arrMpireqsSendToAbove);
+
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
         std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
         std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+
+        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+          MPI_Barrier(grid_->colComm);
+        }
+
         mpi::Waitall( mpireqsSendToRight );
         mpi::Waitall( mpireqsSendToBelow );
 
-
-        //Barrier in the column required because of the reduction of Diagonal block = L^T Sinv L
-        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-          MPI_Barrier(grid_->colComm);
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "["<<ksup<<"] "<< " P"<<MYROW(grid_)<<" is done sending DiagBuf to P" << PROW(ksup,grid_) <<  std::endl;
-#endif
-        }     
       }
-      mpi::Waitall( arrMpireqsRecvContentFromAny );
-      mpi::Waitall( arrMpireqsRecvSizeFromAny );
-
 
       TIMER_STOP(Barrier);
 
@@ -3610,6 +3883,7 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
         arrSuperNodes[supidx].Index = superList[lidx][supidx];
       }
 
+      NumMat<Scalar> AinvBuf, UBuf;
       TIMER_STOP(AllocateBuffer);
 
 #ifndef _RELEASE_
@@ -3736,8 +4010,9 @@ inline void PMatrix::ComputeDiagUpdate(SuperNodeBufferType & snode){
         // The size will be updated in the Gemm phase and the reduce phase
           UnpackData(snode, LcolRecv, UrowRecv);
 
-          NumMat<Scalar> AinvBuf, UBuf;
           SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,AinvBuf,UBuf);
+
+          snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
 
           TIMER_START(Compute_Sinv_LT_GEMM);
 

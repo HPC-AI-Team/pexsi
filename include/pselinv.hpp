@@ -570,15 +570,15 @@ namespace PEXSI{
 
 
       // Communication variables
-      NumMat<bool>                       isSendToBelow_;
-      NumMat<bool>                       isSendToRight_;
-      NumVec<bool>                       isSendToDiagonal_;
-      NumMat<bool>                       isSendToCrossDiagonal_;
+      BolNumMat                       isSendToBelow_;
+      BolNumMat                       isSendToRight_;
+      BolNumVec                       isSendToDiagonal_;
+      BolNumMat                       isSendToCrossDiagonal_;
 
-      NumVec<bool>                       isRecvFromAbove_;
-      NumMat<bool>                       isRecvFromBelow_;
-      NumVec<bool>                       isRecvFromLeft_;
-      NumMat<bool>                       isRecvFromCrossDiagonal_;
+      BolNumMat                       isRecvFromBelow_;
+      BolNumVec                       isRecvFromAbove_;
+      BolNumVec                       isRecvFromLeft_;
+      BolNumMat                       isRecvFromCrossDiagonal_;
 
       //Communicators for the Bcast variant
 
@@ -613,6 +613,7 @@ namespace PEXSI{
       //NumVec<Int>                       countCrossDiag_;
 
       // This is the tag used for mpi communication for selinv
+#ifdef _ASYNC_CONTENT_
       enum{
         SELINV_TAG_U_SIZE,
         SELINV_TAG_U_CONTENT,
@@ -622,9 +623,25 @@ namespace PEXSI{
         SELINV_TAG_D_SIZE,
         SELINV_TAG_D_CONTENT,
         SELINV_TAG_D_REDUCE,
+        SELINV_TAG_CD,
         SELINV_TAG_COUNT
       };
-
+#else
+      enum{
+        SELINV_TAG_U_SIZE,
+        SELINV_TAG_U_CONTENT,
+        SELINV_TAG_L_SIZE,
+        SELINV_TAG_L_CONTENT,
+        SELINV_TAG_L_REDUCE,
+        SELINV_TAG_D_SIZE,
+        SELINV_TAG_D_CONTENT,
+        SELINV_TAG_D_REDUCE,
+#ifdef _ASYNC_CONTENT_CD
+        SELINV_TAG_CD,
+#endif
+        SELINV_TAG_COUNT
+      };
+#endif
 
 
 
@@ -644,6 +661,7 @@ namespace PEXSI{
         Int               SizeSstrUrowRecv;
         Int               Index;
         Int               isReady;
+
 
         SuperNodeBufferType():
           SizeSstrLcolSend(0),

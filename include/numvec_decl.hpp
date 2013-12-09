@@ -60,6 +60,14 @@ namespace  PEXSI{
 /// specifying (owndata_ == false).
 template <class F> class NumVec
 {
+protected:
+
+/// @brief Helper function allocating the memory pointed by the data_ attribute
+inline void allocate(F* data=NULL);
+
+/// @brief Helper function freeing memory pointed by the data_ attribute
+inline void deallocate();
+
 public:
 	/// @brief The size of the vector.
 	Int  m_;                                
@@ -68,7 +76,10 @@ public:
 	bool owndata_;                          
 
 	/// @brief The pointer for the actual data.
-	F* data_;                                
+	F* data_;
+
+  /// @brief The actual storage space allocated                          
+  Int bufsize_;
 public:
 	NumVec(Int m = 0);
 	NumVec(Int m, bool owndata, F* data);

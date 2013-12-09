@@ -94,25 +94,29 @@ namespace  PEXSI{
 		class NumMat
 		{
 		public:
-			/// @brief The size of the first dimension.
-			Int m_; 
+
+
 			Int bufsize_; 
-
-			/// @brief The size of second dimension.
-			Int n_;
-
 
 			/// @brief Whether it owns the data.
 			bool owndata_;
 
-			/// @brief The pointer for the actual data.
+			/// @brief The size of the first dimension.
+			Int m_; 
+
+			/// @brief The size of second dimension.
+			Int n_;
 
 #ifdef _NUMMAT_VECTOR_
 			std::vector<F> * container_;
+			/// @brief The pointer for the actual data.
       F* data_;
 #else
+
+
+			/// @brief The pointer for the actual data.
 			F* data_;
-#endif
+
 
 
       inline void allocate(F* data=NULL) {
@@ -235,6 +239,136 @@ namespace  PEXSI{
       Int AllocatedSize() const {return container_->capacity();}
 #else
       Int AllocatedSize() const {return bufsize_;}
+#endif
+#else
+
+/////
+/////      Int header_size_;
+/////
+/////			/// @brief The size of the first dimension.
+/////			Int m_; 
+/////
+/////			/// @brief The size of second dimension.
+/////			Int n_;
+/////
+/////
+/////			char * container_;
+/////
+/////			/// @brief The pointer for the actual data.
+/////			F* data_;
+/////
+/////      inline void allocate(Int supidx,F* data=NULL) {
+/////        if(owndata_) {
+/////          if(m_>0 && n_>0) { data_ = new char[3*sizeof(Int)+sizeof(F)*m_*n_ ]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
+/////          if(data!=NULL){std::copy(data,data+m_*n_,data_);}
+/////        } else {
+/////          data_ = data;
+/////        }
+/////        bufsize_ = m_*n_;
+/////      }
+/////      inline void deallocate(){
+/////				if(owndata_) {
+/////					if(bufsize_>0) { delete[] data_; data_ = NULL; }
+/////				}
+/////      }
+/////
+/////
+/////
+/////
+/////		public:
+/////			NumMat(Int m=0, Int n=0): m_(m), n_(n), owndata_(true) {
+/////        this->allocate();
+/////			}
+/////
+/////			NumMat(Int m, Int n, bool owndata, F* data): m_(m), n_(n), owndata_(owndata) {
+/////        this->allocate(data);
+/////			}
+/////
+/////			NumMat(const NumMat& C): m_(C.m_), n_(C.n_), owndata_(C.owndata_) {
+/////        this->allocate(C.data_);
+/////			}
+/////			~NumMat() {
+/////        this->deallocate();
+/////			}
+/////
+/////			NumMat& Copy(const NumMat& C) {
+/////        this->deallocate();
+/////				m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
+/////        this->allocate(C.data_);
+/////				return *this;
+/////			}
+/////
+/////			NumMat& operator=(const NumMat& C) {
+/////        this->deallocate();
+/////				m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
+/////        this->allocate(C.data_);
+/////				return *this;
+/////			}
+/////
+/////
+/////			void Resize(Int m, Int n)  {
+/////				if( owndata_ == false ){
+/////					throw std::logic_error("Matrix being resized must own data.");
+/////				}
+/////
+/////        
+/////#ifdef _NUMMAT_VECTOR_
+/////        if(container_->size()<m*n)
+/////        {
+/////          container_->resize(m*n);
+/////          data_=&(*container_)[0];
+/////        }
+/////				m_ = m; n_ = n;
+/////#else
+/////				if(m*n > bufsize_) {
+/////          this->deallocate();
+/////				  m_ = m; n_ = n;
+/////					this->allocate();
+/////        }
+/////        else{
+/////				  m_ = m; n_ = n;
+/////        }
+/////#endif
+/////			}
+/////			const F& operator()(Int i, Int j) const  { 
+/////				if( i < 0 || i >= m_ ||
+/////						j < 0 || j >= n_ ) {
+/////					throw std::logic_error( "Index is out of bound." );
+/////				}
+/////				return data_[i+j*m_];
+/////			}
+/////
+/////			F& operator()(Int i, Int j)  { 
+/////				if( i < 0 || i >= m_ ||
+/////						j < 0 || j >= n_ ) {
+/////					throw std::logic_error( "Index is out of bound." );
+/////				}
+/////				return data_[i+j*m_];
+/////			}
+/////
+/////
+/////
+/////
+/////
+/////
+/////
+/////			F* Data() const { return data_; }
+/////
+/////			F* VecData(Int j)  const 
+/////			{ 
+/////				if( j < 0 || j >= n_ ) {
+/////					throw std::logic_error( "Index is out of bound." );
+/////				}
+/////				return &(data_[j*m_]); 
+/////			}
+/////
+/////			Int m() const { return m_; }
+/////			Int n() const { return n_; }
+/////
+/////      Int Size() const {return m_*n_;}
+/////      Int ByteSize() const { return m_*n_*sizeof(F);}
+/////      Int AllocatedSize() const {return bufsize_;}
+/////
 #endif
 
 		};

@@ -793,7 +793,8 @@ int main(int argc, char **argv)
 
             // Preparation for the selected inversion
             GetTime( timeSta );
-            PMloc.ConstructCommunicationPattern_P2p();
+//            PMloc.ConstructCommunicationPattern_P2p();
+            PMloc.ConstructCommunicationPattern_Collectives();
             GetTime( timeEnd );
 
             if( mpirank == 0 )

@@ -78,7 +78,7 @@ class function_timer{
         }
         space[i] = '\0';
         fprintf(output, "%s", space);
-        fprintf(output,"%5d   %3d.%04d  %3d.%02d  %3d.%04d  %3d.%02d\n",
+        fprintf(output,"%5d   %3d.%03d  %3d.%02d  %3d.%03d  %3d.%02d\n",
                 total_calls/np,
                 (int)(total_time/np),
                 ((int)(1000.*(total_time)/np))%1000,
