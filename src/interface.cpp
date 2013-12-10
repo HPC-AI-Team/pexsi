@@ -1465,7 +1465,7 @@ void PPEXSISelInvInterface (
 
 
 		// Use the broadcast pipelined version of SelInv.
-		PMloc.DestructCommunicators_Collectives( );
+		//PMloc.DestructCommunicators_Collectives( );
 
 
 		*info = 0;

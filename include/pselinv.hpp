@@ -613,7 +613,7 @@ namespace PEXSI{
       //NumVec<Int>                       countCrossDiag_;
 
       // This is the tag used for mpi communication for selinv
-#ifdef _ASYNC_CONTENT_
+
       enum{
         SELINV_TAG_U_SIZE,
         SELINV_TAG_U_CONTENT,
@@ -623,25 +623,8 @@ namespace PEXSI{
         SELINV_TAG_D_SIZE,
         SELINV_TAG_D_CONTENT,
         SELINV_TAG_D_REDUCE,
-        SELINV_TAG_CD,
         SELINV_TAG_COUNT
       };
-#else
-      enum{
-        SELINV_TAG_U_SIZE,
-        SELINV_TAG_U_CONTENT,
-        SELINV_TAG_L_SIZE,
-        SELINV_TAG_L_CONTENT,
-        SELINV_TAG_L_REDUCE,
-        SELINV_TAG_D_SIZE,
-        SELINV_TAG_D_CONTENT,
-        SELINV_TAG_D_REDUCE,
-#ifdef _ASYNC_CONTENT_CD
-        SELINV_TAG_CD,
-#endif
-        SELINV_TAG_COUNT
-      };
-#endif
 
 
 
@@ -681,23 +664,39 @@ namespace PEXSI{
 
       };
 
+      /// @brief SelInvIntra_Collectives
       inline void SelInvIntra_Collectives(Int lidx);
 
+      /// @brief SelInvIntra_P2p
       inline void SelInvIntra_P2p(Int lidx);
 
+      /// @brief SelInv_lookup_indexes
       inline void SelInv_lookup_indexes(const Int ksup, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf,NumMat<Scalar> & LUpdateBuf);
+
+      /// @brief SelInv_lookup_indexes
       inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf);
 
+      /// @brief GetWorkSet
       inline void GetWorkSet(std::vector<Int> & snodeEtree, std::vector<std::vector<Int> > & WSet);
 
+      /// @brief UnpackData
       inline void UnpackData(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv);
 
+      /// @brief ComputeDiagUpdate
       inline void ComputeDiagUpdate(SuperNodeBufferType & snode);
 
+      /// @brief SendRecvCD_UpdateU
       inline void SendRecvCD_UpdateU(std::vector<SuperNodeBufferType> & arrSuperNodes, Int stepSuper);
 
+      /// @brief getMaxCommunicatorSizes
       void getMaxCommunicatorSizes();
 
+      /// @brief ConstructCommunicators_Collectives
+      void ConstructCommunicators_Collectives(Int lidx);
+
+      /// @brief DestructCommunicators_Collectives frees the MPI communicators allocated
+      /// by CreateCommunicators_Collectives.
+      void DestructCommunicators_Collectives( );
 
 
 
@@ -790,11 +789,6 @@ namespace PEXSI{
       /// The supernodal elimination tree is used to schedule the pipelined supernodes.
       void ConstructCommunicationPattern_Collectives( );
 
-      /// @brief DestructCommunicators_Collectives frees the MPI communicators allocated
-      /// by CreateCommunicators_Collectives.
-      void DestructCommunicators_Collectives( );
-
-      void PMatrix::ConstructCommunicators_Collectives(Int lidx);
 
       /// @brief ConstructCommunicationPattern constructs the communication
       /// pattern to be used later in the selected inversion stage.

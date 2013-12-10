@@ -66,6 +66,59 @@ void Allgatherv(
 		MPI_Comm          comm );
 
 
+
+
+
+template <typename T>
+void
+Allgatherv ( 
+		std::vector<T>& localVec, 
+		std::vector<T>& allVec,
+		MPI_Comm          comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Allgatherv");
+#endif
+	Int mpirank, mpisize;
+	MPI_Comm_rank( comm, &mpirank );
+	MPI_Comm_size( comm, &mpisize );
+
+	Int localSize = localVec.size()*sizeof(T);
+	std::vector<Int>  localSizeVec( mpisize );
+	std::vector<Int>  localSizeDispls( mpisize );
+	MPI_Allgather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT, comm );
+	localSizeDispls[0] = 0;
+	for( Int ip = 1; ip < mpisize; ip++ ){
+    localSizeDispls[ip] = (localSizeDispls[ip-1] + localSizeVec[ip-1])*sizeof(T);
+	}
+	Int totalSize = (localSizeDispls[mpisize-1] + localSizeVec[mpisize-1])*sizeof(T);
+
+	allVec.clear();
+	allVec.resize( totalSize/sizeof(T) );
+
+	MPI_Allgatherv( &localVec[0], localSize, MPI_BYTE, &allVec[0], 
+		 &localSizeVec[0], &localSizeDispls[0], MPI_BYTE, comm	);
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+};		// -----  end of function Allgatherv  ----- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // *********************************************************************
 // Send / Recv for stringstream 
 //

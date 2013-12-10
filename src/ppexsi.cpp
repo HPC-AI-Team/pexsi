@@ -730,7 +730,7 @@ void PPEXSIData::Solve(
 
 
 					// Use the broadcast pipelined version of SelInv.
-					PMloc.DestructCommunicators_Collectives( );
+					//PMloc.DestructCommunicators_Collectives( );
 				}
 				GetTime( timePoleEnd );
 

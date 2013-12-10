@@ -493,6 +493,25 @@ namespace PEXSI{
 	// standard case for most serialization/deserialization process.
 	const std::vector<Int> NO_MASK(1);
 
+
+
+	//template
+  template <typename T>
+	inline Int serialize(const T& val, std::ostream& os, const std::vector<Int>& mask)
+	{
+		os.write((char*)&val, sizeof(T));
+		return 0;
+	}
+
+  template <typename T>
+	inline Int deserialize(T& val, std::istream& is, const std::vector<Int>& mask)
+	{
+		is.read((char*)&val, sizeof(T));
+		return 0;
+	}
+
+
+
 	//bool
 	inline Int serialize(const bool& val, std::ostream& os, const std::vector<Int>& mask)
 	{

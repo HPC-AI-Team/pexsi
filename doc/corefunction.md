@@ -497,17 +497,26 @@ right hand sides and compare the accuracy.
 \tableofcontents
 
 
-<!--
+
 Procedure for Selected Inversion     {#secProcedureSelInv}
 ================================
 
 
-After factorizing a SuperLUMatrix luMat (See SuperLUMatrix for
-information on how to perform factorization), perform the following
-steps for parallel selected inversion.
+After factorizing a [SuperLUMatrix](@ref PEXSI::SuperLUMatrix) luMat (See the [factorization](@ref secProcedureFactor) page for
+information on how to perform factorization), the parallel selected inversion can be computed.
 
-- Conversion from SuperLU_DIST.
-  
+
+
+@note
+To provide a layer of abstraction from the matrix format used during the factorization, the [PMatrix](@ref PEXSI::PMatrix) class is used during the selected inversion.
+
+@note
+All major operations of [PMatrix](@ref PEXSI::PMatrix), including the selected inversion, are defined directly as member functions of [PMatrix](@ref PEXSI::PMatrix).
+
+The basic steps for selected inversion are:
+- Conversion from [SuperLUMatrix](@ref PEXSI::SuperLUMatrix) to [PMatrix](@ref PEXSI::PMatrix).
+ 
+<!-- 
   Symbolic information
 
       SuperNodeType super; 
@@ -517,9 +526,11 @@ steps for parallel selected inversion.
   Numerical information, both L and U.
 
       luMat.LUstructToPMatrix( PMloc ); 
+-->
 
-- Preparation.
+- Preparation of communicators and preprocessing.
 
+<!--
   Construct the communication pattern for SelInv.
 
       PMloc.ConstructCommunicationPattern(); 
@@ -527,28 +538,38 @@ steps for parallel selected inversion.
   Numerical preparation so that SelInv only involves Gemm.
 
       PMloc.PreSelInv();  
+-->
 
-- Selected inversion.
+- Parallel selected inversion.
 
-      PMloc.SelInv();
+<!--
+      PMloc.SelInv_P2p();
+-->
 
-- Postprocessing.
+- Conversion from [PMatrix](@ref PEXSI::PMatrix) back to [DistSparseMatrix](@ref PEXSI::DistSparseMatrix) format.
 
+<!--
   Get the information in DistSparseMatrix format 
 
       DistSparseMatrix<Scalar> Ainv;
       PMloc.PMatrixToDistSparseMatrix( Ainv );  
+-->
 
-Note
-----
 
-- All major operations of PMatrix, including the selected inversion
-are defined directly as the member function of PMatrix.
 
-- In the current version of PMatrix, square grid is assumed.  This
-assumption is only used when sending the information to
-cross-diagonal blocks, i.e. from L(isup, ksup) to U(ksup, isup).
-This assumption can be relaxed later.
+
+
+
+
+Related structures and subroutines
+----------------------------------
+
+> @ref PEXSI::GridType "GridType"
+
+> @ref PEXSI::PMatrix "PMatrix"
+
+
+
 
 
 GridType    {#secGridType}
@@ -558,7 +579,7 @@ PMatrix     {#secPMatrix}
 =======
 
 
--->
+
 
 <!-- ************************************************************ -->
 @page pageFORTRAN FORTRAN interface
