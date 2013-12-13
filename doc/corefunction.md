@@ -515,45 +515,9 @@ All major operations of [PMatrix](@ref PEXSI::PMatrix), including the selected i
 
 The basic steps for selected inversion are:
 - Conversion from [SuperLUMatrix](@ref PEXSI::SuperLUMatrix) to [PMatrix](@ref PEXSI::PMatrix).
- 
-<!-- 
-  Symbolic information
-
-      SuperNodeType super; 
-      PMatrix PMloc;
-      luMat.SymbolicToSuperNode( super );  
-  
-  Numerical information, both L and U.
-
-      luMat.LUstructToPMatrix( PMloc ); 
--->
-
 - Preparation of communicators and preprocessing.
-
-<!--
-  Construct the communication pattern for SelInv.
-
-      PMloc.ConstructCommunicationPattern(); 
-  
-  Numerical preparation so that SelInv only involves Gemm.
-
-      PMloc.PreSelInv();  
--->
-
 - Parallel selected inversion.
-
-<!--
-      PMloc.SelInv_P2p();
--->
-
 - Conversion from [PMatrix](@ref PEXSI::PMatrix) back to [DistSparseMatrix](@ref PEXSI::DistSparseMatrix) format.
-
-<!--
-  Get the information in DistSparseMatrix format 
-
-      DistSparseMatrix<Scalar> Ainv;
-      PMloc.PMatrixToDistSparseMatrix( Ainv );  
--->
 
 
 
@@ -566,17 +530,110 @@ Related structures and subroutines
 
 > @ref PEXSI::GridType "GridType"
 
+A thin interface for the mpi grid strucutre in PSelInv.
+GridType should be consistent with the grid used by SuperLU.
+
+@note
+It is the user's responsibility to enforce the coherence between [SuperLUGrid](@ref PEXSI::SuperLUGrid) and GridType.
+
+
 > @ref PEXSI::PMatrix "PMatrix"
 
+PMatrix contains the main data structure and
+computational routines for parallel selected inversion.  
+
+
+> @ref PEXSI::SuperLUMatrix::LUstructToPMatrix "SuperLUMatrix::LUstructToPMatrix"; 
+
+Converts a compressed row format [SuperLUMatrix](@ref PEXSI::SuperLUMatrix) into a PMatrix object, using the compressed column format used by PSelInv.
+
+@note
+Although LU factorization is used, the routine
+assumes that the matrix is strictly symmetric, and therefore the
+compressed sparse row (CSR) format, used by SuperLU_DIST, gives
+exactly the same matrix as formed by the compresed sparse column
+format (CSC).
+
+> @ref PEXSI::PMatrix::ConstructCommunicationPattern "PMatrix::ConstructCommunicationPattern" 
+
+This routine creates the MPI_Communicators and communication pattern used later by both PreSelInv and SelInv routines.
+The supernodal elimination tree is exploited to add an additional level of parallelism between supernodes.
+[ConstructCommunicationPattern_P2p](@ref PEXSI::ConstructCommunicationPattern_P2p) is called by default.
+
+> @ref PEXSI::PMatrix::PreSelInv "PMatrix::PreSelInv" 
+
+  PreSelInv prepares the structure in L and U so that
+  SelInv only involves matrix-matrix multiplication.
+  
+  @note
+  PreSelInv assumes that PEXSI::PMatrix::ConstructCommunicationPattern has been executed.
+
+> @ref PEXSI::PMatrix::SelInv "PMatrix::SelInv" 
+
+   SelInv preforms the actual parallel selected inversion.
+  [SelInv_P2p](@ref PEXSI::SelInv_P2p) is called by default.
+
+  @note
+  SelInv assumes that [PreSelInv](@ref PEXSI::PMatrix::PreSelInv) has been executed.
+
+> @ref PEXSI::PMatrix::PMatrixToDistSparseMatrix "PMatrix::PMatrixToDistSparseMatrix" 
+
+  Converts the PMatrix back to the original [DistSparseMatrix](@ref PEXSI::DistSparseMatrix) format.
+
+Example
+-------
+
+~~~~~~~~~~{.cpp}
+#include "ppexsi.hpp"
+{
+  ...;
+  // Construct AMat
+  DistSparseMatrix<Complex>  AMat;
+  ...;
+
+  /****** NUMERICAL FACTORIZATION ******/
+  // Setup SuperLU
+  SuperLUGrid g( comm, nprow, npcol );
+  SuperLUOptions luOpt;
+  luOpt.ColPerm = "MMD_AT_PLUS_A";
+  SuperLUMatrix luMat( g );
+
+  // Matrix conversion
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+
+  // Symbolic factorization
+  luMat.SymbolicFactorize();
+
+  // Numerical factorization
+  luMat.NumericalFactorize();
+
+  /****** SELECTED INVERSION ******/
+
+  PMatrix PMloc;
+
+  // Conversion to PMatrix
+  luMat.LUstructToPMatrix( PMloc );
+   
+  //Create the communication pattern
+  PMloc.ConstructCommunicationPattern();
+
+  //Prepare for parallel selected inversion 
+  PMloc.PreSelInv();
+
+  //Perform the parallel selected inversion
+  PMloc.SelInv();
+
+  //Get the result back in DistSparseMatrix format
+  DistSparseMatrix<Scalar> Ainv;
+  PMloc.PMatrixToDistSparseMatrix( Ainv );
+
+  ...;
+}
+~~~~~~~~~~
 
 
 
 
-GridType    {#secGridType}
-========
-
-PMatrix     {#secPMatrix}
-=======
 
 
 

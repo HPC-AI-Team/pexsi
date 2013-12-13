@@ -68,89 +68,6 @@ namespace PEXSI{
   typedef std::vector<bool> bitMask;
   typedef std::map<bitMask , std::vector<Int> > bitMaskSet;
 
-#ifdef SANITY_CHECK
-  struct SelInvError{
-    Real Value;
-    Int ksup;
-    Int ib;
-    Int i;
-    Int j;
-
-    SelInvError(Real val):Value(val), ksup(-1),ib(-1),i(-1),j(-1){}
-    SelInvError(Real val, Int pksup, Int pib, Int pi, Int pj):Value(val), ksup(pksup),ib(pib),i(pi),j(pj){}
-    inline void Set(Real val, Int pksup, Int pib, Int pi, Int pj) {Value = val;ksup=pksup;ib=pib;i=pi;j=pj;}
-
-    std::ostream& print(std::ostream &o) const
-    {
-      return o << "Value = " << Value << " (ksup="<<ksup<<", ib="<<ib<<", i="<<i<<", j="<<j<<")";
-    }
-
-  };
-
-
-  inline std::ostream& operator << (std::ostream &o,const SelInvError &a){
-    return a.print(o);
-  }
-
-  struct SelInvErrors{
-    SelInvError MaxRelError;
-    SelInvError CorrAbsError;
-    SelInvError MaxAbsError;
-
-
-    SelInvError MaxNwiseRelError;
-    SelInvError CorrNwiseAbsError;
-    SelInvError MaxNwiseAbsError;
-
-    SelInvError MaxRwiseRelError;
-    SelInvError CorrRwiseAbsError;
-    SelInvError MaxRwiseAbsError;
-
-    SelInvError MaxCwiseRelError ;
-    SelInvError CorrCwiseAbsError;
-    SelInvError MaxCwiseAbsError;
-
-
-
-    // Member functions to setup the default value
-    SelInvErrors(): MaxRelError(0),CorrAbsError(0),MaxAbsError(0),
-    MaxNwiseRelError(0), CorrNwiseAbsError(0), MaxNwiseAbsError(0),
-    MaxRwiseRelError(0), CorrRwiseAbsError(0), MaxRwiseAbsError(0),
-    MaxCwiseRelError (0), CorrCwiseAbsError(0), MaxCwiseAbsError(0) {}
-
-    std::ostream & print(std::ostream & output) const
-    {
-      output <<std::endl<< "Element-wise errors:"<<std::endl;
-      output << "Max relative error = " << MaxRelError << std::endl;
-      output << "Corresp. absolute error = " << CorrAbsError << std::endl;
-      output << "Max absolute = " << MaxAbsError << std::endl;
-
-      output <<std::endl<< "Norm-wise errors:"<<std::endl;
-      output << "Max relative error = " << MaxNwiseRelError << std::endl;
-      output << "Corresp. absolute error = " << CorrNwiseAbsError << std::endl;
-      output << "Max absolute = " << MaxNwiseAbsError << std::endl;
-
-      output <<std::endl<< "Row-wise errors:"<<std::endl;
-      output << "Max relative error = " << MaxRwiseRelError << std::endl;
-      output << "Corresp. absolute error = " << CorrRwiseAbsError << std::endl;
-      output << "Max absolute = " << MaxRwiseAbsError << std::endl;
-
-      output <<std::endl<< "Column-wise errors:"<<std::endl;
-      output << "Max relative error = " << MaxCwiseRelError << std::endl;
-      output << "Corresp. absolute error = " << CorrCwiseAbsError << std::endl;
-      output << "Max absolute = " << MaxCwiseAbsError << std::endl;
-      return output;
-    }
-
-  };
-
-
-  inline std::ostream& operator << (std::ostream &o,const SelInvErrors &a){
-    return a.print(o);
-  }
-#endif
-
-
 
   /**********************************************************************
    * Basic PSelInv data structure
@@ -522,6 +439,8 @@ namespace PEXSI{
   ///   Construct the communication pattern for SelInv.
   ///
   ///       PMloc.ConstructCommunicationPattern(); 
+  ///       or PMloc.ConstructCommunicationPattern_P2p(); 
+  ///       or PMloc.ConstructCommunicationPattern_Collectives(); 
   ///   
   ///   Numerical preparation so that SelInv only involves Gemm.
   ///
@@ -530,6 +449,8 @@ namespace PEXSI{
   /// - Selected inversion.
   ///
   ///       PMloc.SelInv();
+  ///       or PMloc.SelInv_P2p();
+  ///       or PMloc.SelInv_Collectives();
   ///
   /// - Postprocessing.
   ///
@@ -779,20 +700,29 @@ namespace PEXSI{
       /// to be used later in the pipelined selected inversion stage.
       void GetEtree(std::vector<Int> & etree_supno );
 
-      /// @brief ConstructCommunicationPattern_P2p constructs the communication
-      /// pattern to be used later in the selected inversion stage.
-      /// The supernodal elimination tree is used to schedule the pipelined supernodes.
-      void ConstructCommunicationPattern_P2p( );
-
-      /// @brief ConstructCommunicationPattern_Collectives constructs the communication
-      /// pattern to be used later in the selected inversion stage with the Bcast variant.
-      /// The supernodal elimination tree is used to schedule the pipelined supernodes.
-      void ConstructCommunicationPattern_Collectives( );
-
 
       /// @brief ConstructCommunicationPattern constructs the communication
       /// pattern to be used later in the selected inversion stage.
+      /// The supernodal elimination tree is used to add an additional level of parallelism between supernodes.
+      /// [ConstructCommunicationPattern_P2p](@ref PEXSI::ConstructCommunicationPattern_P2p) is called by default.
       void ConstructCommunicationPattern( );
+
+
+      /// @brief ConstructCommunicationPattern_P2p constructs the communication
+      /// pattern to be used later in the selected inversion stage.
+      /// The supernodal elimination tree is used to add an additional level of parallelism between supernodes.
+      void ConstructCommunicationPattern_P2p( );
+
+      /// @brief ConstructCommunicationPattern_Collectives constructs the communication
+      /// pattern to be used later in the selected inversion stage with the Collectives variant.
+      /// The supernodal elimination tree is used to add an additional level of parallelism between supernodes.
+      void ConstructCommunicationPattern_Collectives( );
+
+
+      /// @brief ConstructCommunicationPattern_Hybrid constructs the communication
+      /// pattern to be used later in the selected inversion stage with the Hybrid variant.
+      /// The supernodal elimination tree is used to schedule the pipelined supernodes.
+      void ConstructCommunicationPattern_Hybrid( );
 
 
       /// @brief PreSelInv prepares the structure in L_ and U_ so that
@@ -976,10 +906,6 @@ namespace PEXSI{
       void GetDiagonal( NumVec<Scalar>& diag );
       void GetColumn	( Int colIdx,  NumVec<Scalar>& col );
 
-#ifdef SANITY_CHECK
-      void CompareDiagonal	( PMatrix & Ref, SelInvErrors & errors);
-      void CompareOffDiagonal	( PMatrix & Ref,SelInvErrors & errors);
-#endif
 
       /// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
       /// distributed compressed sparse column matrix format.

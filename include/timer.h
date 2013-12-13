@@ -4,8 +4,23 @@
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
-#if defined (PROFILE) || defined(PMPI)
-  #define TAU
+#define VAL(str) #str
+#define TOSTRING(str) VAL(str)
+
+#ifdef USE_TAU
+#include "TAU.h"
+#define TIMER_START(a) TAU_START(TOSTRING(a));
+#define TIMER_STOP(a) TAU_STOP(TOSTRING(a));
+
+#elif defined (PROFILE) || defined(PMPI)
+#define TAU
+#define TIMER_START(a) TAU_FSTART(a);
+#define TIMER_STOP(a) TAU_FSTOP(a);
+
+#else
+
+#define TIMER_START(a)
+#define TIMER_STOP(a)
 #endif
 
 

@@ -45,13 +45,7 @@
 /// @date 2013-04-15
 #include  "ppexsi.hpp"
 
-
-#ifdef USE_TAU
-#include "TAU.h"
-#elif defined (PROFILE) || defined(PMPI)
-#define TAU
 #include "timer.h"
-#endif
 
 
 
@@ -59,7 +53,7 @@ using namespace PEXSI;
 using namespace std;
 
 void Usage(){
-  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvOriginal [doSelInvOriginal] -Shift [imaginary shift] -ToDist [doToDist] -Diag [doDiag]" << std::endl;
+  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -Shift [imaginary shift] -ToDist [doToDist] -Diag [doDiag]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -224,10 +218,6 @@ int main(int argc, char **argv)
 
 
 
-      Int doSinv_Original = 0;
-      if( options.find("-SinvOriginal") != options.end() ){ 
-        doSinv_Original = atoi(options["-SinvOriginal"].c_str());
-      }
       Int doSinv_Bcast = 1;
       if( options.find("-SinvBcast") != options.end() ){ 
         doSinv_Bcast = atoi(options["-SinvBcast"].c_str());
@@ -671,87 +661,6 @@ int main(int argc, char **argv)
 
 
 
-          NumVec<Scalar> diagRef;
-          PMatrix * PMlocRefPtr;
-          SuperNodeType * superRefPtr;
-          GridType * g3Ptr;
-
-          if(doSinv_Original)
-          {
-            GetTime( timeTotalSelInvSta );
-
-            g3Ptr = new GridType( world_comm, nprow, npcol );
-            GridType &g3 = *g3Ptr;
-
-            superRefPtr = new SuperNodeType();
-            SuperNodeType & superRef = *superRefPtr;
-
-            GetTime( timeSta );
-            luMat.SymbolicToSuperNode( superRef );
-
-            PMlocRefPtr = new PMatrix( &g3, &superRef, &luOpt  );
-            PMatrix & PMlocRef = *PMlocRefPtr;
-
-            luMat.LUstructToPMatrix( PMlocRef );
-            GetTime( timeEnd );
-
-            LongInt nnzLU = PMlocRef.Nnz();
-            if( mpirank == 0 ){
-              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
-            }
-
-
-            if( mpirank == 0 )
-              cout << "Time for converting LUstruct to PMatrix (Original) is " << timeEnd  - timeSta << endl;
-
-            GetTime( timeSta );
-            PMlocRef.ConstructCommunicationPattern();
-            GetTime( timeEnd );
-            if( mpirank == 0 )
-              cout << "Time for constructing the communication pattern (Original) is " << timeEnd  - timeSta << endl;
-
-            GetTime( timeSta );
-            PMlocRef.PreSelInv();
-            GetTime( timeEnd );
-            if( mpirank == 0 )
-              cout << "Time for pre selected inversion (Original) is " << timeEnd  - timeSta << endl;
-
-            GetTime( timeSta );
-            PMlocRef.SelInv();
-            GetTime( timeEnd );
-            GetTime( timeTotalSelInvEnd );
-            if( mpirank == 0 )
-              cout << "Time for numerical selected inversion (Original) is " << timeEnd  - timeSta << endl;
-
-
-            GetTime( timeTotalSelInvEnd );
-            if( mpirank == 0 )
-              cout << "Time for total selected inversion (Original) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
-
-
-
-
-
-            // Output the diagonal elements
-            if( doDiag ){
-              GetTime( timeSta );
-              PMlocRef.GetDiagonal( diagRef );
-              GetTime( timeEnd );
-
-
-              if( mpirank == 0 ){
-                statusOFS << std::endl << "Diagonal (original algorithm) of inverse in natural order: " << std::endl << diagRef << std::endl;
-                ofstream ofs("diag_original");
-                if( !ofs.good() ) 
-                  throw std::runtime_error("file cannot be opened.");
-                serialize( diagRef, ofs, NO_MASK );
-                ofs.close();
-              }
-            }
-
-
-          }
-
           NumVec<Scalar> diag;
           PMatrix * PMlocPtr;
           SuperNodeType * superPtr;
@@ -793,7 +702,7 @@ int main(int argc, char **argv)
 
             // Preparation for the selected inversion
             GetTime( timeSta );
-            PMloc.ConstructCommunicationPattern_P2p();
+            PMloc.ConstructCommunicationPattern();
 //            PMloc.ConstructCommunicationPattern_Collectives();
             GetTime( timeEnd );
 
@@ -810,7 +719,7 @@ int main(int argc, char **argv)
 
             // Main subroutine for selected inversion
             GetTime( timeSta );
-            PMloc.SelInv_P2p();
+            PMloc.SelInv();
             GetTime( timeEnd );
             if( mpirank == 0 )
               cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
@@ -851,252 +760,10 @@ int main(int argc, char **argv)
           }
 
 
-#ifdef SANITY_CHECK
-          if(doSinv_Original) 
-          {
 
-            //sanity check for SelInvPipeline
-            if(doSinvPipeline)
-            {
-              SelInvErrors errorsOffDiag;
-              SelInvErrors errorsDiag;
+          if(doSinvPipeline || doSinv_Bcast || doSinv_Hybrid){
 
-              SuperNodeType & super = *superPtr;
-              PMatrix & PMlocRef = *PMlocRefPtr;
-              PMatrix & PMloc = *PMlocPtr;
-              PMloc.CompareOffDiagonal( PMlocRef ,errorsOffDiag);
-
-              if( mpirank == 0 ){
-                cout << errorsOffDiag << std::endl;
-              }
-
-              PMloc.CompareDiagonal( PMlocRef , errorsDiag);
-              if( mpirank == 0 ){
-                cout << errorsDiag << std::endl;
-              } 
-
-
-
-              //SelInvError & error = (errorsDiag.MaxRelError.Value>errorsOffDiag.MaxRelError.Value)?errorsDiag.MaxRelError:errorsOffDiag.MaxRelError;
-              SelInvError & error = (errorsDiag.MaxAbsError.Value>errorsOffDiag.MaxAbsError.Value)?errorsDiag.MaxAbsError:errorsOffDiag.MaxAbsError;
-
-              if(error.Value>0)
-              {
-                NumVec<Scalar> col,col_Original;
-
-                PMloc.GetColumn( error.j, col );
-                PMlocRef.GetColumn( error.j, col_Original );
-                NumVec<Scalar> colBcast;
-                if(doSinv_Bcast){
-                  PMatrix & PMlocBcast = *PMlocBcastPtr;
-                  PMlocBcast.GetColumn( error.j, colBcast );
-                }
-
-                const IntNumVec& permInv = super.permInv;
-
-                //get the indices in NATURAL ordering
-                Int gi = permInv(error.i);
-                Int gj = permInv(error.j);
-
-
-                if( mpirank == 0 ){
-                  cout<<"Permuted indices are ("<<error.i<<","<<error.j<<")"<<std::endl;
-                  cout<<"Unpermuted indices are ("<<gi<<","<<gj<<")"<<std::endl;
-                }
-
-                SuperLUMatrix AExplicit(g),GA(g);
-
-                AExplicit.DistSparseMatrixToSuperMatrixNRloc( AMat );
-                AExplicit.ConvertNRlocToNC( GA );
-
-
-                int n = AExplicit.n();
-                IntNumVec cols(1);
-                cols(0)=gj;
-
-                if(!mpirank) cout << "i'm alive"<<std::endl;
-
-                NumMat<Scalar>  xTrueGlobal(n,1), bGlobal(n,1);
-                CpxNumMat  xTrueLocal, bLocal;
-                DblNumVec  berr;
-
-                IdentityCol(cols, bGlobal );
-                AExplicit.DistributeGlobalMultiVector( bGlobal,     bLocal );
-                luMat.SolveDistMultiVector( bLocal, berr );
-
-
-                Int displs[g1Ptr->mpisize];
-                Int rcounts[g1Ptr->mpisize];
-                Int avgSize = n/g1Ptr->mpisize;
-
-                for(Int i=0;i<g1Ptr->mpisize-1;++i){
-                  rcounts[i]=avgSize*sizeof(Scalar);
-                  displs[i]=i*avgSize*sizeof(Scalar); 
-                }
-                rcounts[g1Ptr->mpisize-1]=(n-(g1Ptr->mpisize-1)*avgSize)*sizeof(Scalar);
-                displs[g1Ptr->mpisize-1]=(g1Ptr->mpisize-1)*avgSize*sizeof(Scalar);
-
-
-                MPI_Gatherv(bLocal.Data(), bLocal.m()*sizeof(Scalar), MPI_BYTE, xTrueGlobal.Data(),  rcounts,displs, MPI_BYTE, 0, world_comm);
-
-                if( mpirank == 0 ){
-
-                  Real absErrorOriginal, absErrorBcast, absErrorPipeline;
-                  Real relErrorOriginal, relErrorBcast, relErrorPipeline;
-
-                  absErrorPipeline = abs(col(gi) - (xTrueGlobal)(gi,0));
-                  relErrorPipeline = abs(absErrorPipeline/ (xTrueGlobal)(gi,0));
-
-                  absErrorOriginal = abs(col_Original(gi) - (xTrueGlobal)(gi,0));
-                  relErrorOriginal = abs(absErrorOriginal/(xTrueGlobal)(gi,0));
-
-
-                  if(doSinv_Bcast){
-                    absErrorBcast = abs(colBcast(gi) - (xTrueGlobal)(gi,0));
-                    relErrorBcast = abs(absErrorBcast/(xTrueGlobal)(gi,0));
-                    cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInvPipeline \t SelInv_Bcast"<<std::endl;
-                    cout<< "Value \t\t"<<(xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< "\t" << colBcast(gi)<<std::endl;
-                    cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<< relErrorPipeline<< "\t" << relErrorBcast<<std::endl;
-                    cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<< absErrorPipeline<< "\t" << absErrorBcast<<std::endl<<std::endl;
-                  }
-                  else{
-
-                    cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInvPipeline"<<std::endl;
-                    cout<< "Value \t\t"<<(xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< std::endl;
-                    cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<< relErrorPipeline<< std::endl;
-                    cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<< absErrorPipeline<< std::endl<<std::endl;
-                  }
-                }     
-
-              }
-            }
-
-
-
-            if(doSinv_Bcast){
-              SelInvErrors errorsOffDiag;
-              SelInvErrors errorsDiag;
-
-              PMatrix & PMlocRef = *PMlocRefPtr;
-              PMatrix & PMlocBcast = *PMlocBcastPtr;
-              PMlocBcast.CompareOffDiagonal( PMlocRef ,errorsOffDiag);
-
-              if( mpirank == 0 ){
-                cout << errorsOffDiag << std::endl;
-              }
-
-              PMlocBcast.CompareDiagonal( PMlocRef , errorsDiag);
-              if( mpirank == 0 ){
-                cout << errorsDiag << std::endl;
-              } 
-
-
-              //SelInvError & error = (errorsDiag.MaxRelError.Value>errorsOffDiag.MaxRelError.Value)?errorsDiag.MaxRelError:errorsOffDiag.MaxRelError;
-              SelInvError & error = (errorsDiag.MaxAbsError.Value>errorsOffDiag.MaxAbsError.Value)?errorsDiag.MaxAbsError:errorsOffDiag.MaxAbsError;
-
-              if(error.Value>0)
-              {
-                NumVec<Scalar> col,col_Original,colBcast;
-                PMlocBcast.GetColumn( error.j, colBcast );
-                PMlocRef.GetColumn( error.j, col_Original );
-
-                if(doSinvPipeline){
-                  PMatrix & PMloc = *PMlocPtr;
-                  PMloc.GetColumn( error.j, col );
-                }
-
-                const IntNumVec& permInv_Bcast = superBcastPtr->permInv;
-
-                //get the indices in NATURAL ordering
-                Int gi = permInv_Bcast(error.i);
-                Int gj = permInv_Bcast(error.j);
-
-                if( mpirank == 0 ){
-                  cout<<"Permuted indices are ("<<error.i<<","<<error.j<<")"<<std::endl;
-                  cout<<"Unpermuted indices are ("<<gi<<","<<gj<<")"<<std::endl;
-                }
-
-                SuperLUMatrix AExplicit( g ), GA( g );
-                AExplicit.DistSparseMatrixToSuperMatrixNRloc( AMat );
-                AExplicit.ConvertNRlocToNC( GA );
-
-
-                int n = AExplicit.n();
-                IntNumVec cols(1);
-                cols(0)=gj;
-
-                NumMat<Scalar>  xTrueGlobal(n,1), bGlobal(n,1);
-                CpxNumMat  xTrueLocal, bLocal;
-                DblNumVec berr;
-
-                IdentityCol(cols, bGlobal );
-                AExplicit.DistributeGlobalMultiVector( bGlobal,     bLocal );
-                luMat.SolveDistMultiVector( bLocal, berr );
-
-                Int displs[g2Ptr->mpisize];
-                Int rcounts[g2Ptr->mpisize];
-                Int avgSize = n/g2Ptr->mpisize;
-
-                for(Int i=0;i<g2Ptr->mpisize-1;++i){
-                  rcounts[i]=avgSize*sizeof(Scalar);
-                  displs[i]=i*avgSize*sizeof(Scalar); 
-                }
-                rcounts[g2Ptr->mpisize-1]=(n-(g2Ptr->mpisize-1)*avgSize)*sizeof(Scalar);
-                displs[g2Ptr->mpisize-1]=(g2Ptr->mpisize-1)*avgSize*sizeof(Scalar);
-
-
-                MPI_Gatherv(bLocal.Data(), bLocal.m()*sizeof(Scalar), MPI_BYTE, xTrueGlobal.Data(),  rcounts,displs, MPI_BYTE, 0, world_comm);
-
-                if( mpirank == 0 ){
-
-                  Real absErrorOriginal, absErrorBcast, absErrorPipeline;
-                  Real relErrorOriginal, relErrorBcast, relErrorPipeline;
-
-                  if(doSinvPipeline){
-                    absErrorPipeline = abs(col(gi) - (xTrueGlobal)(gi,0));
-                    relErrorPipeline = abs(absErrorPipeline/(xTrueGlobal)(gi,0));
-                  }
-
-                  absErrorOriginal = abs(col_Original(gi) - (xTrueGlobal)(gi,0));
-                  relErrorOriginal = abs(absErrorOriginal/(xTrueGlobal)(gi,0));
-
-
-                  absErrorBcast = abs(colBcast(gi) - (xTrueGlobal)(gi,0));
-                  relErrorBcast = abs(absErrorBcast/(xTrueGlobal)(gi,0));
-
-                  if(doSinvPipeline){
-
-                    cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInvPipeline \t SelInv_Bcast"<<std::endl;
-                    cout<< "Value \t\t"<<(xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t"<< col(gi)<< "\t" << colBcast(gi)<<std::endl;
-                    cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<< relErrorPipeline<< "\t" << relErrorBcast<<std::endl;
-                    cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<< absErrorPipeline<< "\t" << absErrorBcast<<std::endl<<std::endl;
-                  }
-                  else{
-
-                    cout<<std::endl<< "\t\tSolve \t SelInv_Original \t SelInv_Bcast"<<std::endl;
-                    cout<< "Value \t\t"<<(xTrueGlobal)(gi,0)<<"\t"<< col_Original(gi)<<"\t" << colBcast(gi)<<std::endl;
-                    cout<< "Rel error \t\t"<< "NA" <<"\t"<< relErrorOriginal<<"\t"<<  relErrorBcast<<std::endl;
-                    cout<< "Abs error \t\t"<< "NA" <<"\t"<< absErrorOriginal<<"\t"<<  absErrorBcast<<std::endl<<std::endl;
-                  }
-
-
-                }     
-
-
-              }
-
-
-
-            }
-
-          }
-#endif
-
-
-
-          if(doSinvPipeline || doSinv_Bcast || doSinv_Original || doSinv_Hybrid){
-
-            PMatrix * PMloc = doSinvPipeline?PMlocPtr:(doSinv_Bcast?PMlocBcastPtr:(doSinv_Hybrid?PMlocHybridPtr:PMlocRefPtr));
+            PMatrix * PMloc = doSinvPipeline?PMlocPtr:(doSinv_Bcast?PMlocBcastPtr:PMlocHybridPtr);
 
             if(doToDist){
               // Convert to DistSparseMatrix and get the diagonal
@@ -1170,11 +837,6 @@ int main(int argc, char **argv)
 
           }
 
-          if(doSinv_Original){
-            delete PMlocRefPtr;
-            delete superRefPtr;
-            delete g3Ptr;
-          }
 
 
 
