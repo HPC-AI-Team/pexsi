@@ -49,7 +49,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
 #define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 
 
-#define MPI_MAX_COMM 6000
+#define MPI_MAX_COMM (8192/4)
 #define BCAST_THRESHOLD 20
 
 #define MOD(a,b) \
