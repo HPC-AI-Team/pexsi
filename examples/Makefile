@@ -4,7 +4,7 @@
 include ../make.inc
 
 SRCS_CPP  = run_pexsi.cpp run_ppexsi.cpp run_pselinv.cpp 
-SRCS_C    = driver_pselinv.c
+SRCS_C    = driver_pselinv.c driver_ksdft.c
 
 OBJS = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o}
 DEPS = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d}
@@ -22,6 +22,9 @@ EXES = ${SRCS_CPP:.cpp=} ${SRCS_C:.c=}
 	${FC} -c ${FFLAGS} $<
 
 all: run_pselinv run_pexsi run_ppexsi f_ppexsi driver_pselinv
+
+driver_ksdft: driver_ksdft.o ${PEXSI_LIB} 
+	($(LOADER) -o $@ driver_ksdft.o  $(LOADOPTS_PTSCOTCH) )
 
 driver_pselinv: driver_pselinv.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ driver_pselinv.o  $(LOADOPTS_PTSCOTCH) )

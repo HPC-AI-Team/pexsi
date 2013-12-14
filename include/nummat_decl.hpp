@@ -42,7 +42,6 @@
 */
 /// @file nummat_decl.hpp
 /// @brief Numerical matrix.
-/// @author Lexing Ying and Lin Lin
 /// @date 2010-09-27
 #ifndef _NUMMAT_DECL_HPP_
 #define _NUMMAT_DECL_HPP_
@@ -60,62 +59,62 @@ namespace  PEXSI{
 
 
 #ifdef _NUMMAT_VECTOR_
-//	template <typename F>
-//		struct NumMatType
-//		{
-//      using type = F;
-//    };
-//
-//
-//	template <>
-//		struct NumMatType<bool>
-//		{
-//      using type = char;
-//    };
-//
-//template<typename t, typename... p>
-//using fixed_vector = std::vector<typename NumMatType<F>::type, p...>;
+  //	template <typename F>
+  //		struct NumMatType
+  //		{
+  //      using type = F;
+  //    };
+  //
+  //
+  //	template <>
+  //		struct NumMatType<bool>
+  //		{
+  //      using type = char;
+  //    };
+  //
+  //template<typename t, typename... p>
+  //using fixed_vector = std::vector<typename NumMatType<F>::type, p...>;
 
 
-	//template <class F>class NumMat;
+  //template <class F>class NumMat;
   //typedef NumMat<bool> NumMat<char>;
 
 #endif
-  
-
-	/// @class NumMat
-	///
-	/// @brief Numerical matrix.
-	///
-	/// NumMat is a portable encapsulation of a pointer to represent a 2D
-	/// matrix, which can either own (owndata == true) or view (owndata ==
-	/// false) a piece of data.  
-	template <class F>
-		class NumMat
-		{
-		public:
 
 
-			Int bufsize_; 
+  /// @class NumMat
+  ///
+  /// @brief Numerical matrix.
+  ///
+  /// NumMat is a portable encapsulation of a pointer to represent a 2D
+  /// matrix, which can either own (owndata == true) or view (owndata ==
+  /// false) a piece of data.  
+  template <class F>
+    class NumMat
+    {
+    public:
 
-			/// @brief Whether it owns the data.
-			bool owndata_;
 
-			/// @brief The size of the first dimension.
-			Int m_; 
+      Int bufsize_; 
 
-			/// @brief The size of second dimension.
-			Int n_;
+      /// @brief Whether it owns the data.
+      bool owndata_;
+
+      /// @brief The size of the first dimension.
+      Int m_; 
+
+      /// @brief The size of second dimension.
+      Int n_;
 
 #ifdef _NUMMAT_VECTOR_
-			std::vector<F> * container_;
-			/// @brief The pointer for the actual data.
+      std::vector<F> * container_;
+      /// @brief The pointer for the actual data.
       F* data_;
 #else
 
 
-			/// @brief The pointer for the actual data.
-			F* data_;
+      /// @brief The pointer for the actual data.
+      F* data_;
 
 
 
@@ -137,101 +136,101 @@ namespace  PEXSI{
 #endif
       }
       inline void deallocate(){
-				if(owndata_) {
+        if(owndata_) {
 #ifdef _NUMMAT_VECTOR_
           delete container_;
 #else
-					if(bufsize_>0) { delete[] data_; data_ = NULL; }
+          if(bufsize_>0) { delete[] data_; data_ = NULL; }
 #endif
-				}
+        }
       }
 
-		public:
-			NumMat(Int m=0, Int n=0): m_(m), n_(n), owndata_(true) {
+    public:
+      NumMat(Int m=0, Int n=0): m_(m), n_(n), owndata_(true) {
         this->allocate();
-			}
+      }
 
-			NumMat(Int m, Int n, bool owndata, F* data): m_(m), n_(n), owndata_(owndata) {
+      NumMat(Int m, Int n, bool owndata, F* data): m_(m), n_(n), owndata_(owndata) {
         this->allocate(data);
-			}
+      }
 
-			NumMat(const NumMat& C): m_(C.m_), n_(C.n_), owndata_(C.owndata_) {
+      NumMat(const NumMat& C): m_(C.m_), n_(C.n_), owndata_(C.owndata_) {
         this->allocate(C.data_);
-			}
-			~NumMat() {
+      }
+      ~NumMat() {
         this->deallocate();
-			}
+      }
 
-			NumMat& Copy(const NumMat& C) {
+      NumMat& Copy(const NumMat& C) {
         this->deallocate();
-				m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
+        m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
         this->allocate(C.data_);
-				return *this;
-			}
+        return *this;
+      }
 
-			NumMat& operator=(const NumMat& C) {
+      NumMat& operator=(const NumMat& C) {
         this->deallocate();
-				m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
+        m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
         this->allocate(C.data_);
-				return *this;
-			}
+        return *this;
+      }
 
 
-			void Resize(Int m, Int n)  {
-				if( owndata_ == false ){
-					throw std::logic_error("Matrix being resized must own data.");
-				}
+      void Resize(Int m, Int n)  {
+        if( owndata_ == false ){
+          throw std::logic_error("Matrix being resized must own data.");
+        }
 
-        
+
 #ifdef _NUMMAT_VECTOR_
         if(container_->size()<m*n)
         {
           container_->resize(m*n);
           data_=&(*container_)[0];
         }
-				m_ = m; n_ = n;
+        m_ = m; n_ = n;
 #else
-				if(m*n > bufsize_) {
+        if(m*n > bufsize_) {
           this->deallocate();
-				  m_ = m; n_ = n;
-					this->allocate();
+          m_ = m; n_ = n;
+          this->allocate();
         }
         else{
-				  m_ = m; n_ = n;
+          m_ = m; n_ = n;
         }
 #endif
-			}
-			const F& operator()(Int i, Int j) const  { 
-				if( i < 0 || i >= m_ ||
-						j < 0 || j >= n_ ) {
-					throw std::logic_error( "Index is out of bound." );
-				}
-				return data_[i+j*m_];
-			}
+      }
+      const F& operator()(Int i, Int j) const  { 
+        if( i < 0 || i >= m_ ||
+            j < 0 || j >= n_ ) {
+          throw std::logic_error( "Index is out of bound." );
+        }
+        return data_[i+j*m_];
+      }
 
-			F& operator()(Int i, Int j)  { 
-				if( i < 0 || i >= m_ ||
-						j < 0 || j >= n_ ) {
-					throw std::logic_error( "Index is out of bound." );
-				}
-				return data_[i+j*m_];
-			}
+      F& operator()(Int i, Int j)  { 
+        if( i < 0 || i >= m_ ||
+            j < 0 || j >= n_ ) {
+          throw std::logic_error( "Index is out of bound." );
+        }
+        return data_[i+j*m_];
+      }
 
 #ifdef _NUMMAT_VECTOR_
-			std::vector<F> * Container() const { return container_; }
+      std::vector<F> * Container() const { return container_; }
 #endif
-			F* Data() const { return data_; }
+      F* Data() const { return data_; }
 
-			F* VecData(Int j)  const 
-			{ 
-				if( j < 0 || j >= n_ ) {
-					throw std::logic_error( "Index is out of bound." );
-				}
-				return &(data_[j*m_]); 
-			}
+      F* VecData(Int j)  const 
+      { 
+        if( j < 0 || j >= n_ ) {
+          throw std::logic_error( "Index is out of bound." );
+        }
+        return &(data_[j*m_]); 
+      }
 
-			Int m() const { return m_; }
-			Int n() const { return n_; }
+      Int m() const { return m_; }
+      Int n() const { return n_; }
 
       Int Size() const {return m_*n_;}
       Int ByteSize() const { return m_*n_*sizeof(F);}
@@ -240,157 +239,158 @@ namespace  PEXSI{
 #else
       Int AllocatedSize() const {return bufsize_;}
 #endif
-#else
 
-/////
-/////      Int header_size_;
-/////
-/////			/// @brief The size of the first dimension.
-/////			Int m_; 
-/////
-/////			/// @brief The size of second dimension.
-/////			Int n_;
-/////
-/////
-/////			char * container_;
-/////
-/////			/// @brief The pointer for the actual data.
-/////			F* data_;
-/////
-/////      inline void allocate(Int supidx,F* data=NULL) {
-/////        if(owndata_) {
-/////          if(m_>0 && n_>0) { data_ = new char[3*sizeof(Int)+sizeof(F)*m_*n_ ]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
-/////          if(data!=NULL){std::copy(data,data+m_*n_,data_);}
-/////        } else {
-/////          data_ = data;
-/////        }
-/////        bufsize_ = m_*n_;
-/////      }
-/////      inline void deallocate(){
-/////				if(owndata_) {
-/////					if(bufsize_>0) { delete[] data_; data_ = NULL; }
-/////				}
-/////      }
-/////
-/////
-/////
-/////
-/////		public:
-/////			NumMat(Int m=0, Int n=0): m_(m), n_(n), owndata_(true) {
-/////        this->allocate();
-/////			}
-/////
-/////			NumMat(Int m, Int n, bool owndata, F* data): m_(m), n_(n), owndata_(owndata) {
-/////        this->allocate(data);
-/////			}
-/////
-/////			NumMat(const NumMat& C): m_(C.m_), n_(C.n_), owndata_(C.owndata_) {
-/////        this->allocate(C.data_);
-/////			}
-/////			~NumMat() {
-/////        this->deallocate();
-/////			}
-/////
-/////			NumMat& Copy(const NumMat& C) {
-/////        this->deallocate();
-/////				m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
-/////        this->allocate(C.data_);
-/////				return *this;
-/////			}
-/////
-/////			NumMat& operator=(const NumMat& C) {
-/////        this->deallocate();
-/////				m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
-/////        this->allocate(C.data_);
-/////				return *this;
-/////			}
-/////
-/////
-/////			void Resize(Int m, Int n)  {
-/////				if( owndata_ == false ){
-/////					throw std::logic_error("Matrix being resized must own data.");
-/////				}
-/////
-/////        
-/////#ifdef _NUMMAT_VECTOR_
-/////        if(container_->size()<m*n)
-/////        {
-/////          container_->resize(m*n);
-/////          data_=&(*container_)[0];
-/////        }
-/////				m_ = m; n_ = n;
-/////#else
-/////				if(m*n > bufsize_) {
-/////          this->deallocate();
-/////				  m_ = m; n_ = n;
-/////					this->allocate();
-/////        }
-/////        else{
-/////				  m_ = m; n_ = n;
-/////        }
-/////#endif
-/////			}
-/////			const F& operator()(Int i, Int j) const  { 
-/////				if( i < 0 || i >= m_ ||
-/////						j < 0 || j >= n_ ) {
-/////					throw std::logic_error( "Index is out of bound." );
-/////				}
-/////				return data_[i+j*m_];
-/////			}
-/////
-/////			F& operator()(Int i, Int j)  { 
-/////				if( i < 0 || i >= m_ ||
-/////						j < 0 || j >= n_ ) {
-/////					throw std::logic_error( "Index is out of bound." );
-/////				}
-/////				return data_[i+j*m_];
-/////			}
-/////
-/////
-/////
-/////
-/////
-/////
-/////
-/////			F* Data() const { return data_; }
-/////
-/////			F* VecData(Int j)  const 
-/////			{ 
-/////				if( j < 0 || j >= n_ ) {
-/////					throw std::logic_error( "Index is out of bound." );
-/////				}
-/////				return &(data_[j*m_]); 
-/////			}
-/////
-/////			Int m() const { return m_; }
-/////			Int n() const { return n_; }
-/////
-/////      Int Size() const {return m_*n_;}
-/////      Int ByteSize() const { return m_*n_*sizeof(F);}
-/////      Int AllocatedSize() const {return bufsize_;}
-/////
+//#else
+
+      /////
+      /////      Int header_size_;
+      /////
+      /////			/// @brief The size of the first dimension.
+      /////			Int m_; 
+      /////
+      /////			/// @brief The size of second dimension.
+      /////			Int n_;
+      /////
+      /////
+      /////			char * container_;
+      /////
+      /////			/// @brief The pointer for the actual data.
+      /////			F* data_;
+      /////
+      /////      inline void allocate(Int supidx,F* data=NULL) {
+      /////        if(owndata_) {
+      /////          if(m_>0 && n_>0) { data_ = new char[3*sizeof(Int)+sizeof(F)*m_*n_ ]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
+      /////          if(data!=NULL){std::copy(data,data+m_*n_,data_);}
+      /////        } else {
+      /////          data_ = data;
+      /////        }
+      /////        bufsize_ = m_*n_;
+      /////      }
+      /////      inline void deallocate(){
+      /////				if(owndata_) {
+      /////					if(bufsize_>0) { delete[] data_; data_ = NULL; }
+      /////				}
+      /////      }
+      /////
+      /////
+      /////
+      /////
+      /////		public:
+      /////			NumMat(Int m=0, Int n=0): m_(m), n_(n), owndata_(true) {
+      /////        this->allocate();
+      /////			}
+      /////
+      /////			NumMat(Int m, Int n, bool owndata, F* data): m_(m), n_(n), owndata_(owndata) {
+      /////        this->allocate(data);
+      /////			}
+      /////
+      /////			NumMat(const NumMat& C): m_(C.m_), n_(C.n_), owndata_(C.owndata_) {
+      /////        this->allocate(C.data_);
+      /////			}
+      /////			~NumMat() {
+      /////        this->deallocate();
+      /////			}
+      /////
+      /////			NumMat& Copy(const NumMat& C) {
+      /////        this->deallocate();
+      /////				m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
+      /////        this->allocate(C.data_);
+      /////				return *this;
+      /////			}
+      /////
+      /////			NumMat& operator=(const NumMat& C) {
+      /////        this->deallocate();
+      /////				m_ = C.m_; n_=C.n_; owndata_=C.owndata_;
+      /////        this->allocate(C.data_);
+      /////				return *this;
+      /////			}
+      /////
+      /////
+      /////			void Resize(Int m, Int n)  {
+      /////				if( owndata_ == false ){
+      /////					throw std::logic_error("Matrix being resized must own data.");
+      /////				}
+      /////
+      /////        
+      /////#ifdef _NUMMAT_VECTOR_
+      /////        if(container_->size()<m*n)
+      /////        {
+      /////          container_->resize(m*n);
+      /////          data_=&(*container_)[0];
+      /////        }
+      /////				m_ = m; n_ = n;
+      /////#else
+      /////				if(m*n > bufsize_) {
+      /////          this->deallocate();
+      /////				  m_ = m; n_ = n;
+      /////					this->allocate();
+      /////        }
+      /////        else{
+      /////				  m_ = m; n_ = n;
+      /////        }
+      /////#endif
+      /////			}
+      /////			const F& operator()(Int i, Int j) const  { 
+      /////				if( i < 0 || i >= m_ ||
+      /////						j < 0 || j >= n_ ) {
+      /////					throw std::logic_error( "Index is out of bound." );
+      /////				}
+      /////				return data_[i+j*m_];
+      /////			}
+      /////
+      /////			F& operator()(Int i, Int j)  { 
+      /////				if( i < 0 || i >= m_ ||
+      /////						j < 0 || j >= n_ ) {
+      /////					throw std::logic_error( "Index is out of bound." );
+      /////				}
+      /////				return data_[i+j*m_];
+      /////			}
+      /////
+      /////
+      /////
+      /////
+      /////
+      /////
+      /////
+      /////			F* Data() const { return data_; }
+      /////
+      /////			F* VecData(Int j)  const 
+      /////			{ 
+      /////				if( j < 0 || j >= n_ ) {
+      /////					throw std::logic_error( "Index is out of bound." );
+      /////				}
+      /////				return &(data_[j*m_]); 
+      /////			}
+      /////
+      /////			Int m() const { return m_; }
+      /////			Int n() const { return n_; }
+      /////
+      /////      Int Size() const {return m_*n_;}
+      /////      Int ByteSize() const { return m_*n_*sizeof(F);}
+      /////      Int AllocatedSize() const {return bufsize_;}
+      /////
 #endif
 
-		};
+    };
 
-	// Commonly used
+  // Commonly used
 #ifdef _NUMMAT_VECTOR_
-	typedef NumMat<char>     BolNumMat;
+  typedef NumMat<char>     BolNumMat;
 #else
-	typedef NumMat<bool>     BolNumMat;
+  typedef NumMat<bool>     BolNumMat;
 #endif
-	typedef NumMat<Int>      IntNumMat;
-	typedef NumMat<Real>     DblNumMat;
-	typedef NumMat<Complex>  CpxNumMat;
+  typedef NumMat<Int>      IntNumMat;
+  typedef NumMat<Real>     DblNumMat;
+  typedef NumMat<Complex>  CpxNumMat;
 
-	// *********************************************************************
-	// Utility functions
-	// *********************************************************************
-	/// @brief SetValue sets a numerical matrix to a constant val.
-	template <class F> inline void SetValue(NumMat<F>& M, F val);
+  // *********************************************************************
+  // Utility functions
+  // *********************************************************************
+  /// @brief SetValue sets a numerical matrix to a constant val.
+  template <class F> inline void SetValue(NumMat<F>& M, F val);
 
-	/// @brief Energy computes the L2 norm of a matrix (treated as a vector).
-	template <class F> inline Real Energy(const NumMat<F>& M);
+  /// @brief Energy computes the L2 norm of a matrix (treated as a vector).
+  template <class F> inline Real Energy(const NumMat<F>& M);
 
 } // namespace PEXSI
 

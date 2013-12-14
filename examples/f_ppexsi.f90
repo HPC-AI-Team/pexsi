@@ -55,7 +55,7 @@ double precision, allocatable, dimension(:) :: &
 	shiftList, inertiaList, localDOSnzvalLocal
 double precision:: Energy, eta
 integer :: numPole
-double precision :: K2au, temperature, numElectronExact, numElectron,&
+double precision :: temperature, numElectronExact, numElectron,&
 	gap, deltaE
 double precision ::   muMin0, muMax0, muInertia, muMinInertia, muMaxInertia,&
 	muLowerEdge, muUpperEdge, muPEXSI, muMinPEXSI, muMaxPEXSI
@@ -104,10 +104,9 @@ call mpi_comm_rank( MPI_COMM_WORLD, mpirank, ierr )
 call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 
-! Below are the default parameters which are obtained from the DNA matrix
-K2au             = 3.1668152d-6
+! Below is the data for a DNA matrix
 ! Temperature should be in the same unit as the H matrix. Here it is Rydberg.
-temperature      = 0.0019
+temperature      = 0.0019d0
 
 numElectronExact = 2442.0d0
 numPole          = 40
