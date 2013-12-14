@@ -5077,7 +5077,7 @@ TIMER_STOP(STCD_RFCD);
         &sizeSend[0], 1, MPI_INT,
         &sizeRecv[0], 1, MPI_INT, grid_->comm );
   
-  #if ( _DEBUGlevel_ >= 0 )
+  #if ( _DEBUGlevel_ >= 1 )
     statusOFS << std::endl << "sizeSend: " << sizeSend << std::endl;
     statusOFS << std::endl << "sizeRecv: " << sizeRecv << std::endl;
   #endif
@@ -5112,7 +5112,7 @@ TIMER_STOP(STCD_RFCD);
     colRecv.resize( sizeRecvTotal );
     valRecv.resize( sizeRecvTotal );
   
-  #if ( _DEBUGlevel_ >= 0 )
+  #if ( _DEBUGlevel_ >= 1 )
     statusOFS << "displsSend = " << displsSend << std::endl;
     statusOFS << "displsRecv = " << displsRecv << std::endl;
   #endif
@@ -5155,7 +5155,7 @@ TIMER_STOP(STCD_RFCD);
         &colRecv[0], &sizeRecv[0], &displsRecv[0],
         grid_->comm );
   
-  #if ( _DEBUGlevel_ >= 0 )
+  #if ( _DEBUGlevel_ >= 1 )
     statusOFS << "Alltoallv communication of nonzero indices finished." << std::endl;
   #endif
   
@@ -5241,7 +5241,7 @@ TIMER_STOP(STCD_RFCD);
         &valSend[0], &sizeSend[0], &displsSend[0],
         grid_->comm );
   
-  #if ( _DEBUGlevel_ >= 0 )
+  #if ( _DEBUGlevel_ >= 1 )
     statusOFS << "Alltoallv communication of nonzero values finished." << std::endl;
   #endif
   

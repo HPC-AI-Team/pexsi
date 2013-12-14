@@ -1437,12 +1437,23 @@ void PPEXSISelInvInterface (
 		luMat.LUstructToPMatrix( PMloc );
 
 
-		PMloc.ConstructCommunicationPattern_Collectives();
+    // P2p communication version
+		PMloc.ConstructCommunicationPattern();
+
+    // Collective communication version
+//		PMloc.ConstructCommunicationPattern_Collectives();
+
 		PMloc.PreSelInv();
 
 		// Main subroutine for selected inversion
 		// Use the broadcast pipelined version of SelInv.
-		PMloc.SelInv_Collectives();
+    
+    // P2p communication version
+    PMloc.SelInv();
+
+    // Collective communication version
+//		PMloc.SelInv_Collectives();
+
 #if ( _DEBUGlevel_ >= 1 )
     statusOFS << "After selected inversion." << std::endl;
 #endif
@@ -1463,9 +1474,6 @@ void PPEXSISelInvInterface (
     statusOFS << "After copying the matrix of Ainv." << std::endl;
 #endif
 
-
-		// Use the broadcast pipelined version of SelInv.
-		//PMloc.DestructCommunicators_Collectives( );
 
 
 		*info = 0;

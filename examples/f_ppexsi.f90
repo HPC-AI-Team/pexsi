@@ -42,7 +42,7 @@
 !> @file f_ppexsi.f90
 !> @brief Test the new FORTRAN interface for PPEXSI.
 !> @date 2013-04-10
-program ex22
+program f_ppexsi
 implicit none
 include 'mpif.h'
 
@@ -326,6 +326,8 @@ if( isProcRead == 1 ) then
 
 end if
 
+
+
 call mpi_barrier( MPI_COMM_WORLD, ierr )
 
 call f_ppexsi_inertiacount_interface(&
@@ -358,6 +360,7 @@ call f_ppexsi_inertiacount_interface(&
 	inertiaList,&
 	info)
 
+
 if( info .ne. 0 ) then
 	call mpi_finalize( ierr )
 	call exit(info)
@@ -371,6 +374,7 @@ if( mpirank == 0 ) then
 		write(*,*) "Shift = ", shiftList(i), "inertia = ", inertiaList(i)
 	enddo
 endif
+
 
 ! PEXSI Solve procedure
 
@@ -421,6 +425,13 @@ if( mpirank == 0 ) then
 endif
 
 ! Compute the "raw inertia" after the calculation
+
+
+if( mpirank == 0 ) then
+	write(*,*) 
+	write(*,*)  "Compute the raw inertia after the calculation."
+endif
+
 
 allocate( inertiaListInt( numPole ) ) 
 
@@ -501,5 +512,5 @@ endif
 call mpi_comm_free( readComm, ierr )
 call mpi_finalize( ierr )
 
-end program ex22
+end program f_ppexsi
 
