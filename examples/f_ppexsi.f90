@@ -295,39 +295,7 @@ if( mpirank == 0 ) then
 		timeEnd - timeSta, " [s]"
 endif
 
-!Only the first pole group participates in the computation of the selected
-!inversion for a single shift.
-if( isProcRead == 1 ) then
-	Energy = 1.0;
-	eta    = 0.001;
-	call f_ppexsi_localdos_interface(&
-		nrows,&
-		nnz,&
-		nnzLocal,&
-		numColLocal,&
-		colptrLocal,&
-		rowindLocal,&
-		HnzvalLocal,&
-		isSIdentity,&
-		SnzvalLocal,&
-		Energy,&
-		eta,&
-		ordering,&
-		npSymbFact,&
-		readComm,&
-		localDOSnzvalLocal,&
-		info)
-
-	if( info .ne. 0 ) then
-		call mpi_finalize( ierr )
-		call exit(info)
-	endif
-
-end if
-
-
-
-call mpi_barrier( MPI_COMM_WORLD, ierr )
+! Step 1. Estimate the range of chemical potential
 
 call f_ppexsi_inertiacount_interface(&
 	nrows,&
@@ -375,7 +343,7 @@ if( mpirank == 0 ) then
 endif
 
 
-! PEXSI Solve procedure
+! Step 2. Solve KSDFT using PEXSISolve
 
 call f_ppexsi_solve_interface(&
 	nrows,&
@@ -423,8 +391,9 @@ if( mpirank == 0 ) then
 	write(*,*) "PEXSI Solve finished."
 endif
 
-! Compute the "raw inertia" after the calculation
+! Step 3. Post processing
 
+! Compute the "raw inertia" after the calculation
 
 if( mpirank == 0 ) then
 	write(*,*) 
@@ -468,7 +437,45 @@ if( mpirank == 0 ) then
 	enddo
 endif
 
+
+! Compute the local density of states
+! Only the first pole group participates in the computation of the selected
+! inversion for a single shift.
+if( isProcRead == 1 ) then
+	Energy = 1.0;
+	eta    = 0.001;
+	call f_ppexsi_localdos_interface(&
+		nrows,&
+		nnz,&
+		nnzLocal,&
+		numColLocal,&
+		colptrLocal,&
+		rowindLocal,&
+		HnzvalLocal,&
+		isSIdentity,&
+		SnzvalLocal,&
+		Energy,&
+		eta,&
+		ordering,&
+		npSymbFact,&
+		readComm,&
+		localDOSnzvalLocal,&
+		info)
+
+	if( info .ne. 0 ) then
+		call mpi_finalize( ierr )
+		call exit(info)
+	endif
+
+end if
+
+call mpi_barrier( MPI_COMM_WORLD, ierr )
+
+
+! Final output.
+
 if( mpirank == 0 ) then
+  write(*, *)
 	write(*, *) "After inertia count,"
 	write(*, *) "muMinInertia  = ", muMinInertia
 	write(*, *) "muMaxInertia  = ", muMaxInertia

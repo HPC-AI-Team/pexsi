@@ -436,7 +436,8 @@ void PPEXSIInertiaCountInterface(
 				SMat.size = 0;
 				SMat.nnz  = 0;
 				SMat.nnzLocal = 0;
-			}
+        SMat.comm = HMat.comm; 
+      }
 			else{
 				CopyPattern( HMat, SMat );
 				SMat.comm = gridPole.rowComm;
@@ -470,6 +471,7 @@ void PPEXSIInertiaCountInterface(
 				SMat.size = 0;
 				SMat.nnz  = 0;
 				SMat.nnzLocal = 0;
+        SMat.comm = HMat.comm;
 			}
 			else{
 				CopyPattern( HMat, SMat );
@@ -481,8 +483,8 @@ void PPEXSIInertiaCountInterface(
 
 
 #if ( _DEBUGlevel_ >= 0 )
-		statusOFS << "H.size     = " << HMat.size     << std::endl;
-		statusOFS << "H.nnzLocal = " << HMat.nnzLocal << std::endl;
+    statusOFS << "H.size     = " << HMat.size     << std::endl;
+    statusOFS << "H.nnzLocal = " << HMat.nnzLocal << std::endl;
 		statusOFS << "H.nnz      = " << HMat.Nnz()    << std::endl;
 		statusOFS << "S.size     = " << SMat.size     << std::endl;
 		statusOFS << "S.nnzLocal = " << SMat.nnzLocal << std::endl;
@@ -506,6 +508,8 @@ void PPEXSIInertiaCountInterface(
 				throw std::logic_error("Unsupported ordering strategy.");
 		}
 
+
+
 		// In inertia counts, "Pole" is the same as "Shifts" (since there is no actual pole here)
 		// inertiaVec is the zero-temperature cumulative DOS.
 		// inertiaFTVec is the finite temperature cumulative DOS, obtained from linear interpolation of
@@ -525,6 +529,7 @@ void PPEXSIInertiaCountInterface(
 			for( Int l = 0; l < numShift; l++ ){
 				shiftVec[l] = muMin + l * (muMax - muMin) / (numShift-1);
 			}
+      
 
 			GetTime( timeSta );
 			pexsi.CalculateNegativeInertiaReal( 
@@ -536,6 +541,8 @@ void PPEXSIInertiaCountInterface(
 					npSymbFact );
 
 			GetTime( timeEnd );
+      
+
 
 			// Inertia is multiplied by 2.0 to reflect the doubly occupied
 			// orbitals.
@@ -839,7 +846,8 @@ void PPEXSIRawInertiaCountInterface(
 				SMat.size = 0;
 				SMat.nnz  = 0;
 				SMat.nnzLocal = 0;
-			}
+        SMat.comm = HMat.comm; 
+      }
 			else{
 				CopyPattern( HMat, SMat );
 				SMat.comm = gridPole.rowComm;
@@ -873,6 +881,7 @@ void PPEXSIRawInertiaCountInterface(
 				SMat.size = 0;
 				SMat.nnz  = 0;
 				SMat.nnzLocal = 0;
+        SMat.comm = HMat.comm;
 			}
 			else{
 				CopyPattern( HMat, SMat );
@@ -906,6 +915,8 @@ void PPEXSIRawInertiaCountInterface(
 			default:
 				throw std::logic_error("Unsupported ordering strategy.");
 		}
+
+
 
 		Int  numShift = numPole;
 		std::vector<Real>  shiftVec( numShift );
@@ -1068,6 +1079,7 @@ void PPEXSISolveInterface (
 				SMat.size = 0;
 				SMat.nnz  = 0;
 				SMat.nnzLocal = 0;
+        SMat.comm = HMat.comm;
 			}
 			else{
 				CopyPattern( HMat, SMat );
@@ -1102,6 +1114,7 @@ void PPEXSISolveInterface (
 				SMat.size = 0;
 				SMat.nnz  = 0;
 				SMat.nnzLocal = 0;
+        SMat.comm = HMat.comm;
 			}
 			else{
 				CopyPattern( HMat, SMat );
@@ -1324,6 +1337,7 @@ void PPEXSISelInvInterface (
 				SMat.size = 0;
 				SMat.nnz  = 0;
 				SMat.nnzLocal = 0;
+        SMat.comm = HMat.comm;
 			}
 			else{
 				CopyPattern( HMat, SMat );

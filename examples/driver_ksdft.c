@@ -48,6 +48,7 @@
  * See "Tutorial" in the documentation for explanation of the
  * parameters.
  *
+ * @see f_ppexsi.f90
  * @date 2013-12-14
  */
 #include  <stdio.h>
@@ -147,7 +148,9 @@ int main(int argc, char **argv)
   Sfile               = "";
   isFormatted         = 1;
   isSIdentity         = 1;
-  ordering            = 2;
+  ordering            = 1;
+  Energy              = 1.0;
+  eta                 = 0.001;
 
   /* Split the processors to read matrix */
   if( mpirank < npPerPole ) 
@@ -157,97 +160,299 @@ int main(int argc, char **argv)
 
   MPI_Comm_split( MPI_COMM_WORLD, isProcRead, mpirank, &readComm );
 
-  /* Allocate memory */
+  /* Allocate memory visible to all processors */
   muList                  = (double*) malloc( sizeof(double) * muMaxIter );
   numElectronList         = (double*) malloc( sizeof(double) * muMaxIter );
   numElectronDrvList      = (double*) malloc( sizeof(double) * muMaxIter );
   shiftList               = (double*) malloc( sizeof(double) * numPole   );
   inertiaList             = (double*) malloc( sizeof(double) * numPole   );
+  inertiaListInt          = (int*) malloc( sizeof(int) * numPole   );
+
 
   if( isProcRead == 1 ){
+    printf("Proc %5d is reading file...", mpirank );
+    /* Read the matrix head for allocating memory */
+    if( isFormatted == 1 ){
+      ReadDistSparseMatrixFormattedHeadInterface(
+          Hfile,
+          &nrows,
+          &nnz,
+          &nnzLocal,
+          &numColLocal,
+          readComm );
+    }
+    else{
+      ReadDistSparseMatrixHeadInterface(
+          Hfile,
+          &nrows,
+          &nnz,
+          &nnzLocal,
+          &numColLocal,
+          readComm );
+    }
+    
+    if( mpirank == 0 ){
+      printf("On processor 0...\n");
+      printf("nrows       = %d\n", nrows );
+      printf("nnz         = %d\n", nnz );
+      printf("nnzLocal    = %d\n", nnzLocal );
+      printf("numColLocal = %d\n", numColLocal );
+    }
 
+
+    /* Allocate memory visible to processors in the group of readComm */
+    colptrLocal             = (int*) malloc( sizeof(int) * (numColLocal+1) );
+    rowindLocal             = (int*) malloc( sizeof(int) * nnzLocal );
+    HnzvalLocal             = (double*) malloc( sizeof(double) * nnzLocal );
+    SnzvalLocal             = (double*) malloc( sizeof(double) * nnzLocal );
+    DMnzvalLocal            = (double*) malloc( sizeof(double) * nnzLocal );
+    EDMnzvalLocal           = (double*) malloc( sizeof(double) * nnzLocal );
+    FDMnzvalLocal           = (double*) malloc( sizeof(double) * nnzLocal );
+    localDOSnzvalLocal      = (double*) malloc( sizeof(double) * nnzLocal );
+
+    /* Actually read the matrix */
+    if( isFormatted == 1 ){
+      ReadDistSparseMatrixFormattedInterface(
+          Hfile,
+          nrows,
+          nnz,
+          nnzLocal,
+          numColLocal,
+          colptrLocal,
+          rowindLocal,
+          HnzvalLocal,
+          readComm );
+    }
+    else{
+      ParaReadDistSparseMatrixInterface(
+          Hfile,
+          nrows,
+          nnz,
+          nnzLocal,
+          numColLocal,
+          colptrLocal,
+          rowindLocal,
+          HnzvalLocal,
+          readComm );
+    }
+
+    if( isSIdentity == 0 ){
+      if( isFormatted == 1 ){
+        ReadDistSparseMatrixFormattedInterface(
+            Hfile,
+            nrows,
+            nnz,
+            nnzLocal,
+            numColLocal,
+            colptrLocal,
+            rowindLocal,
+            SnzvalLocal,
+            readComm );
+      }
+      else{
+        ParaReadDistSparseMatrixInterface(
+            Hfile,
+            nrows,
+            nnz,
+            nnzLocal,
+            numColLocal,
+            colptrLocal,
+            rowindLocal,
+            SnzvalLocal,
+            readComm );
+      }
+    }
+    
+    if( mpirank == 0 ){ 
+      printf("Finish reading the matrix.\n");
+    }
   }
 
-//  /* Read the matrix */
-//  ReadDistSparseMatrixFormattedHeadInterface(
-//      Hfile,
-//      &nrows,
-//      &nnz,
-//      &nnzLocal,
-//      &numColLocal,
-//      MPI_COMM_WORLD );
-//      
-//  if( mpirank == 0 ){
-//    printf("On processor 0...\n");
-//    printf("nrows       = %d\n", nrows );
-//    printf("nnz         = %d\n", nnz );
-//    printf("nnzLocal    = %d\n", nnzLocal );
-//    printf("numColLocal = %d\n", numColLocal );
-//  }
-//
-//  /* Allocate memory */
-//  colptrLocal = (int*)malloc( (numColLocal+1) * sizeof(int) );
-//  rowindLocal = (int*)malloc( nnzLocal * sizeof(int) );
-//  HnzvalLocal = (double*)malloc( nnzLocal * sizeof(double) );
-//  AinvnzvalLocal = (double*)malloc( 2*nnzLocal * sizeof(double) );
-//
-//  /* Read the matrix */
-//  ReadDistSparseMatrixFormattedInterface(
-//      Hfile,
-//      nrows,
-//      nnz,
-//      nnzLocal,
-//      numColLocal,
-//      colptrLocal,
-//      rowindLocal,
-//      HnzvalLocal,
-//      MPI_COMM_WORLD );
-//
-//
-//  /* Other parameters */
-//  isSIdentity = 1;
-//  ordering    = 0;
-//  zShift[0]   = 0.5;
-//  zShift[1]   = 0.0;
-//  npSymbFact  = 1;
-//
-//  PPEXSISelInvInterface(
-//      nrows,
-//      nnz,
-//      nnzLocal,
-//      numColLocal,
-//      colptrLocal,
-//      rowindLocal,
-//      HnzvalLocal,
-//      isSIdentity,
-//      SnzvalLocal,
-//      zShift,
-//      ordering,
-//      npSymbFact,
-//      MPI_COMM_WORLD,
-//      AinvnzvalLocal,
-//      &info );
-//
-//  /* The first processor output the diagonal elements in natural order
-//   */
-//  if( mpirank == 0 ){
-//    numColLocalFirst = nrows / mpisize;
-//    firstCol         = mpirank * numColLocalFirst;
-//    for( j = 0; j < numColLocal; j++ ){
-//      jcol = firstCol + j + 1;
-//      for( i = colptrLocal[j]-1; 
-//           i < colptrLocal[j+1]-1; i++ ){
-//        irow = rowindLocal[i];
-//        if( irow == jcol ){
-//          printf("Ainv[%5d,%5d] = %15.10e + %15.10e i\n", 
-//              irow, irow,
-//              AinvnzvalLocal[2*i],
-//              AinvnzvalLocal[2*i+1]);
-//        }
-//      }
-//    } // for (j)
-//  }
+  /* Step 1. Estimate the range of chemical potential */
   
+  PPEXSIInertiaCountInterface(
+      nrows,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      HnzvalLocal,
+      isSIdentity,
+      SnzvalLocal,
+      temperature,
+      numElectronExact,
+      muMin0,
+      muMax0,
+      numPole,
+      inertiaMaxIter,
+      inertiaNumElectronTolerance,
+      ordering,
+      npPerPole,
+      npSymbFact,
+      MPI_COMM_WORLD,
+      &muMinInertia,
+      &muMaxInertia,
+      &muLowerEdge,
+      &muUpperEdge,
+      &inertiaIter,
+      shiftList,
+      inertiaList,
+      &info);
+
+  if( info != 0 ){
+    if( mpirank == 0 ){
+      printf("Inertia count routine gives info = %d. Exit now.\n", info );
+    }
+    MPI_Finalize();
+    return info;
+  }
+
+  muInertia = (muLowerEdge + muUpperEdge)/2.0;
+
+  if( mpirank == 0 ){ 
+    printf("The computed finite temperature inertia = \n");
+    for( i = 0; i < numPole; i++ )
+      printf( "Shift = %25.15f, inertia = %25.15f\n", 
+          shiftList[i], inertiaList[i] );
+  }
+  
+  /* Step 2. Solve KSDFT using PEXSI */
+  PPEXSISolveInterface(
+      nrows,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      HnzvalLocal,
+      isSIdentity,
+      SnzvalLocal,
+      temperature,
+      numElectronExact,
+      muInertia,
+      muMinInertia,
+      muMaxInertia,
+      gap,
+      deltaE,
+      numPole,
+      muMaxIter,
+      PEXSINumElectronTolerance,
+      ordering,
+      npPerPole,
+      npSymbFact,
+      MPI_COMM_WORLD,
+      DMnzvalLocal,
+      EDMnzvalLocal,
+      FDMnzvalLocal,
+      &muPEXSI,
+      &numElectron,
+      &muMinPEXSI,
+      &muMaxPEXSI,
+      &muIter,
+      muList,
+      numElectronList,
+      numElectronDrvList,
+      &info );
+
+  if( info != 0 ){
+    if( mpirank == 0 ){
+      printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
+    }
+    MPI_Finalize();
+    return info;
+  }
+
+  if( mpirank == 0 ){ 
+    printf("PEXSI Solve finished. \n");
+  }
+
+
+  /* Step 3. Post processing */
+  
+  /* Compute the density of states (DOS) via inertia counting (without
+   * including finite temperature effects) */
+
+  PPEXSIRawInertiaCountInterface(
+      nrows,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      HnzvalLocal,
+      isSIdentity,
+      SnzvalLocal,
+      muMinInertia,
+      muMaxInertia,
+      numPole,
+      ordering,
+      npPerPole,
+      npSymbFact,
+      MPI_COMM_WORLD,
+      shiftList,
+      inertiaListInt,
+      &info);
+
+  if( info != 0 ){
+    if( mpirank == 0 ){
+      printf("PEXSI raw inertia counting routine gives info = %d. Exit now.\n", info );
+    }
+    MPI_Finalize();
+    return info;
+  }
+
+
+  if( mpirank == 0 ){ 
+    printf("PEXSI raw inertia counting routine finished. \n");
+    printf("The computed raw inertia (zero temperature) = \n");
+    for( i = 0; i < numPole; i++ )
+      printf( "Shift = %25.15f, inertia = %15d\n", 
+          shiftList[i], inertiaListInt[i] );
+  }
+
+
+  /* Compute the local density of states (LDOS).
+   *
+   * Only the first pole group participates in the computation of the
+   * selected inversion for a single shift. */
+
+  if( isProcRead == 1 ){ 
+    PPEXSILocalDOSInterface(
+        nrows,
+        nnz,
+        nnzLocal,
+        numColLocal,
+        colptrLocal,
+        rowindLocal,
+        HnzvalLocal,
+        isSIdentity,
+        SnzvalLocal,
+        Energy,
+        eta,
+        ordering,
+        npSymbFact,
+        readComm,
+        localDOSnzvalLocal,
+        &info);
+
+    if( info != 0 ){
+      if( mpirank == 0 ){
+        printf("PEXSI LDOS calculation gives info = %d. Exit now.\n", info );
+      }
+      MPI_Finalize();
+      return info;
+    }
+  }
+
+  if( mpirank == 0 ){ 
+    printf("Local DOS calculation has finished.\n");
+  }
+
+  if( mpirank == 0 ){ 
+    printf("\nAll calculation is finished. Exit the program.\n");
+  }
+
 
   /* Deallocate memory */
   free( muList );
@@ -255,14 +460,21 @@ int main(int argc, char **argv)
   free( numElectronDrvList );
   free( shiftList );
   free( inertiaList );
+  free( inertiaListInt );
 
-
-//  free( colptrLocal );
-//  free( rowindLocal );
-//  free( HnzvalLocal );
-//  free( AinvnzvalLocal );
+  if( isProcRead == 1 ){
+    free( colptrLocal );
+    free( rowindLocal );
+    free( HnzvalLocal );
+    free( SnzvalLocal );
+    free( DMnzvalLocal );
+    free( EDMnzvalLocal );
+    free( FDMnzvalLocal );
+    free( localDOSnzvalLocal );
+  }
 
   
+  MPI_Comm_free( &readComm );
   MPI_Finalize();
 
   return 0;
