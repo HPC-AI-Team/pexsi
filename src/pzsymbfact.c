@@ -1,8 +1,8 @@
 /// @file pzsymbfact.c
 /// @brief Symbolic factorization routine using complex arithmetic.
 ///
-/// Modified by Lin Lin.
-/// @date 2012-11-01
+/// 
+/// @date 2012-11-01 modified by Lin Lin.
 #include <math.h>
 #include "superlu_zdefs.h"
 #define  PRNTlevel 0

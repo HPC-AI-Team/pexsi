@@ -1,6 +1,8 @@
 /* NOTE: 
+ * This file is NOT a part of PEXSI but of SuperLU_DIST.
+ *
  * It is not necessary to include this file in the final package of PEXSI.  
- * However, including this file can facilitate the debugging process. 
+ * However, including this file can help the debugging process. 
  */
 
 /*! @file

@@ -1,8 +1,8 @@
 /// @file pdsymbfact.c
 /// @brief Symbolic factorization routine using real arithmetic.
 ///
-/// Modified by Lin Lin.
-/// @date 2013-07-20
+/// 
+/// @date 2013-07-20 modified by Lin Lin.
 #include <math.h>
 #include "superlu_ddefs.h"
 #define  PRNTlevel 0
