@@ -7,7 +7,7 @@ Main Page           {#mainpage}
   - @ref pageOverview
   - @ref pageLicense
 - @subpage pageInstall
-  - @ref pageSource
+  - @ref pageDownload
   - @ref pageDependency
   - @ref pageBuild
 - @subpage pageTutorial
