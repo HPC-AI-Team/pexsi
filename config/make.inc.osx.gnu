@@ -8,8 +8,8 @@ USE_AUTO_TAU   =   0
 # Different compiling and linking options.
 #MODE           = debug
 MODE	         = release
-PLATFORM       =osx_v0.5.5
-SUFFIX         =$(MODE)_${PLATFORM}
+PLATFORM       = osx_v0.5.5
+SUFFIX         = $(MODE)_${PLATFORM}
 
 ifdef USE_TAU
   ifeq ($(USE_TAU),1)
