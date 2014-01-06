@@ -1,15 +1,13 @@
 #/usr/bin/bash
-# Use of the following 4 variables?
-PROFILE    =  0
-PROF_MPI   =  0
-
+PROFILE        =   0
+PROF_MPI       =   0
 USE_TAU        =   0
 USE_AUTO_TAU   =   0
 
 # Different compiling and linking options.
-#
+#MODE           = debug
 MODE	         = release
-PLATFORM       = hopper_v0.5.0
+PLATFORM       = edison_v0.5.5
 SUFFIX         =$(MODE)_${PLATFORM}
 
 ifdef USE_TAU
@@ -17,21 +15,20 @@ ifdef USE_TAU
     SUFFIX=$(MODE)_tau_${PLATFORM}
   endif
 
-	ifeq ($(PROFILE),1)
-	SUFFIX=$(MODE)_tau_${PLATFORM}
-	endif
+  ifeq ($(PROFILE),1)
+    SUFFIX=$(MODE)_tau_${PLATFORM}
+  endif
 
-	ifeq ($(PROF_MPI),1)
-	SUFFIX=$(MODE)_tau_${PLATFORM}
-	endif
+  ifeq ($(PROF_MPI),1)
+    SUFFIX=$(MODE)_tau_${PLATFORM}
+  endif
 endif
 
 
-PEXSI_DIR     = /global/homes/l/linlin/project/pexsi
-DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_3.3
-PARMETIS_DIR  = /global/homes/l/linlin/software/parmetis-4.0.2/build/Linux-x86_64
-SCOTCH_DIR    = /project/projectdirs/m1027/PEXSI/scotch_6.0.0
-# SCOTCH_DIR    = /global/homes/l/linlin/software/scotch_6.0.0
+PEXSI_DIR     = /global/homes/l/linlin/project/pexsi_edison
+DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_3.3_edison
+PARMETIS_DIR  = /project/projectdirs/m1027/PEXSI/libpexsi_edison
+SCOTCH_DIR    = /project/projectdirs/m1027/PEXSI/libpexsi_edison
 # inclues
 
 PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
@@ -43,15 +40,16 @@ ifeq ($(USE_TAU),1)
 endif
 
 # Libraries
-#METIS_LIB        = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libmetis.a 
-#PARMETISLIB	     = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libparmetis.a 
-METIS_LIB        = ${PARMETIS_DIR}/libmetis/libmetis.a
-PARMETISLIB	     = ${PARMETIS_DIR}/libparmetis/libparmetis.a
-SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch 
-SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
-# DSUPERLU_LIB     = ${DSUPERLU_DIR}/craypgi-xe6_O/lib/libsuperlu_dist_2.5.a
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/build/lib/libsuperlu_dist_3.3.a
+METIS_LIB        = /project/projectdirs/m1027/PEXSI/libpexsi_edison/libmetis.a
+#PARMETISLIB	     = ${PARMETIS_DIR}/libparmetis/libparmetis.a
+SCOTCH_LIB       = -L${SCOTCH_DIR} -lptscotchparmetis -lptscotch -lptscotcherr -lscotch 
+SELINV_LIB       = /project/projectdirs/m1027/PEXSI/libpexsi_edison/libselinv.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_3.3.a
+#MKL_LIB          = -Wl,--start-group  ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a -Wl,--end-group -lpthread -lm
+#MKL_LIB          = -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_intel_sequential.a -Wl,--end-group -lpthread -lm
+MKL_LIB          = -mkl
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
+
 
 ifdef USE_TAU
   ifeq ($(USE_TAU),1)
@@ -59,9 +57,9 @@ TAU_LIB          = -L/opt/cray/mpt/5.5.2/gni/mpich2-pgi/119/lib -L/usr/common/ac
   endif
 endif
 
-LIBS_PARMETIS    = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${PARMETIS_LIB} ${METIS_LIB} ${TAU_LIB} ${IPM}   
-LIBS_PTSCOTCH    = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${SCOTCH_LIB}  ${METIS_LIB} ${TAU_LIB} ${IPM} 
-LIBS             = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SELINV_LIB} ${SCOTCH_LIB} ${METIS_LIB} ${TAU_LIB} ${IPM} 
+LIBS_PARMETIS    = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PARMETIS_LIB} ${METIS_LIB} ${TAU_LIB} ${MKL_LIB} ${IPM}   
+LIBS_PTSCOTCH    = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SCOTCH_LIB}  ${METIS_LIB} ${TAU_LIB} ${MKL_LIB} ${IPM} 
+LIBS             = ${LIBS_PTSCOTCH}
 
 CC           = cc
 CXX          = CC
@@ -80,7 +78,7 @@ LOADER       = tau_cxx.sh
 endif
 
 
-AR           = ar 
+AR           = ar
 ARFLAGS      = rvcu
 # For System V based machine without ranlib, like Cray and SGI,
 # use touch instead.
@@ -93,7 +91,7 @@ RMFLAGS      = -f
 
 
 ifeq ($(MODE), debug)
-	COMMONDEFS   = -DDEBUG=0 -g -DAdd_ -DUSE_REDUCE_L -DUSE_BCAST_UL -DPRINT_COMMUNICATOR_STAT #-DUSE_BCAST_UL #-DCOMPARE_LUPDATE #-DUSE_MPI_COLLECTIVES -DBLOCK_REDUCE
+	COMMONDEFS   = -DDEBUG=0 -g -DAdd_ #-DUSE_REDUCE_L -DUSE_BCAST_UL -DPRINT_COMMUNICATOR_STAT #-DUSE_BCAST_UL #-DCOMPARE_LUPDATE #-DUSE_MPI_COLLECTIVES -DBLOCK_REDUCE
   CFLAGS       = -O0 -g -w ${INCLUDES} -DAdd_
   FFLAGS       = -O0 -g -w ${INCLUDES}
   CXXFLAGS     = -O0 -g -w ${INCLUDES} -DAdd_ #-DSANITY_CHECK -DSANITY_PRECISION=1e-5 #-DSELINV_TIMING -DSELINV_MEMORY -DNO_PARMETIS_FIX 
@@ -102,20 +100,20 @@ ifeq ($(MODE), debug)
   LOADOPTS     = ${LIBS}
   LOADOPTS_PARMETIS     = ${LIBS_PARMETIS}
   LOADOPTS_PTSCOTCH     = ${LIBS_PTSCOTCH}
-  FLOADOPTS    = ${LIBS}
+  FLOADOPTS    = ${LIBS} -lstdc++
 endif
 
 ifeq ($(MODE), release)
-	COMMONDEFS   = -DRELEASE -DAdd_ -DUSE_REDUCE_L -DUSE_BCAST_UL #-DPRINT_COMMUNICATOR_STAT #-DUSE_BCAST_UL #-DCOMPARE_LUPDATE #-DUSE_MPI_COLLECTIVES 
-  CFLAGS       = -fast -w ${INCLUDES} 
-  FFLAGS       = -fast -w ${INCLUDES}
-  CXXFLAGS     = -fast -w ${INCLUDES}  -DNO_PARMETIS_FIX  #-DSANITY_CHECK -DSANITY_PRECISION=1e-5 
+	COMMONDEFS   = -DDEBUG=0 -DRELEASE -DAdd_ #-DUSE_REDUCE_L -DUSE_BCAST_UL #-DPRINT_COMMUNICATOR_STAT #-DUSE_BCAST_UL #-DCOMPARE_LUPDATE #-DUSE_MPI_COLLECTIVES 
+  CFLAGS       = -fast -no-ipo -g -w ${INCLUDES} 
+  FFLAGS       = -fast -no-ipo -g -w ${INCLUDES}
+  CXXFLAGS     = -fast -no-ipo -g -w ${INCLUDES}  #-DNO_PARMETIS_FIX  #-DSANITY_CHECK -DSANITY_PRECISION=1e-5 
 	CCDEFS       = ${COMMONDEFS}
 	CPPDEFS      = ${COMMONDEFS}
   LOADOPTS     = ${LIBS}
   LOADOPTS_PARMETIS     = ${LIBS_PARMETIS}
   LOADOPTS_PTSCOTCH     = ${LIBS_PTSCOTCH}
-  FLOADOPTS    = ${LIBS}
+  FLOADOPTS    = ${LIBS} -no-ipo -lstdc++
 endif
 
 

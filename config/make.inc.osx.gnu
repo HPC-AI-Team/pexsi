@@ -4,10 +4,11 @@ PROF_MPI       =   0
 USE_TAU        =   0
 USE_AUTO_TAU   =   0
 
+
 # Different compiling and linking options.
 #MODE           = debug
 MODE	         = release
-PLATFORM       = hopper_v0.5.5
+PLATFORM       =osx_v0.5.5
 SUFFIX         =$(MODE)_${PLATFORM}
 
 ifdef USE_TAU
@@ -25,13 +26,13 @@ ifdef USE_TAU
 endif
 
 
-PEXSI_DIR     = /global/homes/l/linlin/project/pexsi
-DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_3.3
-PARMETIS_DIR  = /global/homes/l/linlin/software/parmetis-4.0.2/build/Linux-x86_64
-SCOTCH_DIR    = /project/projectdirs/m1027/PEXSI/scotch_6.0.0
-# SCOTCH_DIR    = /global/homes/l/linlin/software/scotch_6.0.0
-# inclues
+PEXSI_DIR     = $(HOME)/Projects/pexsi
+DSUPERLU_DIR  = $(HOME)/Documents/Software/SuperLU_DIST_3.3
+METIS_DIR     = $(HOME)/Software/metis-5.1.0/build_release
+PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.2/build/Darwin-x86_64
+SCOTCH_DIR    = $(HOME)/Software/scotch_6.0.0
 
+# includes
 PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
 DSUPERLU_INCLUDE = -I${DSUPERLU_DIR}/SRC
 INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} 
@@ -41,15 +42,15 @@ ifeq ($(USE_TAU),1)
 endif
 
 # Libraries
-#METIS_LIB        = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libmetis.a 
-#PARMETISLIB	     = /usr/common/acts/PARMETIS/3.1.1/craypgi-xe6_O/libparmetis.a 
-METIS_LIB        = ${PARMETIS_DIR}/libmetis/libmetis.a
-PARMETISLIB	     = ${PARMETIS_DIR}/libparmetis/libparmetis.a
-SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch 
-SELINV_LIB       = ${PEXSI_DIR}/external/SelInv/libselinv.a
-# DSUPERLU_LIB     = ${DSUPERLU_DIR}/craypgi-xe6_O/lib/libsuperlu_dist_2.5.a
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/build/lib/libsuperlu_dist_3.3.a
+GFORTRAN_LIB     = /usr/local/lib/libgfortran.dylib
+LAPACK_LIB       = -llapack
+BLAS_LIB         = -lblas
+METIS_LIB        = -L${METIS_DIR}/lib -lmetis
+PARMETIS_LIB     = -L${PARMETIS_DIR}/libparmetis -lparmetis 
+SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_print/libsuperlu_dist_3.3.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
+
 
 ifdef USE_TAU
   ifeq ($(USE_TAU),1)
@@ -57,14 +58,15 @@ TAU_LIB          = -L/opt/cray/mpt/5.5.2/gni/mpich2-pgi/119/lib -L/usr/common/ac
   endif
 endif
 
-LIBS_PARMETIS    = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PARMETIS_LIB} ${METIS_LIB} ${TAU_LIB} ${IPM}   
-LIBS_PTSCOTCH    = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SCOTCH_LIB}  ${METIS_LIB} ${TAU_LIB} ${IPM} 
+
+LIBS_PARMETIS    = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PARMETIS_LIB} ${METIS_LIB} ${TAU_LIB} ${IPM}  ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB} 
+LIBS_PTSCOTCH    = ${PEXSI_LIB} ${DSUPERLU_LIB} ${SCOTCH_LIB}  ${METIS_LIB} ${TAU_LIB} ${IPM} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
 LIBS             = ${LIBS_PTSCOTCH}
 
-CC           = cc
-CXX          = CC
-FC           = ftn
-LOADER       = CC
+CC           = mpicc 
+CXX          = mpic++
+FC           = mpif90
+LOADER       = mpic++
 
 ifdef USE_TAU
   ifeq ($(USE_TAU),1)
@@ -78,6 +80,9 @@ LOADER       = tau_cxx.sh
 endif
 
 
+
+
+
 AR           = ar 
 ARFLAGS      = rvcu
 # For System V based machine without ranlib, like Cray and SGI,
@@ -89,9 +94,9 @@ CP           = cp
 RM           = rm
 RMFLAGS      = -f
 
-
+# Different compiling and linking options.
 ifeq ($(MODE), debug)
-	COMMONDEFS   = -DDEBUG=0 -g -DAdd_ #-DUSE_REDUCE_L -DUSE_BCAST_UL -DPRINT_COMMUNICATOR_STAT #-DUSE_BCAST_UL #-DCOMPARE_LUPDATE #-DUSE_MPI_COLLECTIVES -DBLOCK_REDUCE
+	COMMONDEFS   = -DDEBUG=1 -DAdd_  #-DUSE_REDUCE_L -DUSE_BCAST_UL -DPRINT_COMMUNICATOR_STAT #-DUSE_BCAST_UL #-DCOMPARE_LUPDATE #-DUSE_MPI_COLLECTIVES -DBLOCK_REDUCE
   CFLAGS       = -O0 -g -w ${INCLUDES} -DAdd_
   FFLAGS       = -O0 -g -w ${INCLUDES}
   CXXFLAGS     = -O0 -g -w ${INCLUDES} -DAdd_ #-DSANITY_CHECK -DSANITY_PRECISION=1e-5 #-DSELINV_TIMING -DSELINV_MEMORY -DNO_PARMETIS_FIX 
@@ -100,32 +105,21 @@ ifeq ($(MODE), debug)
   LOADOPTS     = ${LIBS}
   LOADOPTS_PARMETIS     = ${LIBS_PARMETIS}
   LOADOPTS_PTSCOTCH     = ${LIBS_PTSCOTCH}
-  FLOADOPTS    = ${LIBS}
+  FLOADOPTS    = ${LIBS} -L/usr/local/lib  -lstdc++
 endif
 
 ifeq ($(MODE), release)
-	COMMONDEFS   = -DRELEASE -DDEBUG=0 -DAdd_ #-DUSE_REDUCE_L -DUSE_BCAST_UL #-DPRINT_COMMUNICATOR_STAT #-DUSE_BCAST_UL #-DCOMPARE_LUPDATE #-DUSE_MPI_COLLECTIVES 
-  CFLAGS       = -fast -w -g ${INCLUDES} 
-  FFLAGS       = -fast -w -g ${INCLUDES}
-  CXXFLAGS     = -fast -w -g ${INCLUDES}  #-DNO_PARMETIS_FIX  #-DSANITY_CHECK -DSANITY_PRECISION=1e-5 
+	COMMONDEFS   = -DRELEASE -g -DDEBUG=0 -DAdd_ #-DUSE_REDUCE_L -DUSE_BCAST_UL -DPRINT_COMMUNICATOR_STAT #-DUSE_BCAST_UL #-DCOMPARE_LUPDATE #-DUSE_MPI_COLLECTIVES 
+  CFLAGS       = -O3  -w ${INCLUDES}  #-fopenmp
+  FFLAGS       = -O3 -w ${INCLUDES}
+  CXXFLAGS     = -O3 -w ${INCLUDES}  #-DNO_PARMETIS_FIX  -DSANITY_CHECK -DSANITY_PRECISION=1e-5 #-fopenmp
 	CCDEFS       = ${COMMONDEFS}
 	CPPDEFS      = ${COMMONDEFS}
   LOADOPTS     = ${LIBS}
   LOADOPTS_PARMETIS     = ${LIBS_PARMETIS}
   LOADOPTS_PTSCOTCH     = ${LIBS_PTSCOTCH}
-  FLOADOPTS    = ${LIBS}
+  FLOADOPTS    = ${LIBS} -L/usr/local/lib  -lstdc++ 
 endif
 
 
-# Generate auto-dependencies 
-%.d: %.c
-	@set -e; rm -f $@; \
-	$(CC) -M $(CCDEFS) $(CFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
-	rm -f $@.$$$$
 
-%.d: %.cpp
-	@set -e; rm -f $@; \
-	$(CXX) -M $(CPPDEFS) $(CXXFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
-	rm -f $@.$$$$
