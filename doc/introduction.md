@@ -64,8 +64,8 @@ the \f$80\f$ matrices can be inverted independently among different
 groups of processors.  The parallel selected inversion method (PSelInv,
 which is included in %PEXSI) can scale well to \f$256\sim 4096\f$
 processors depending on the sparsity of the problem, and the system
-size.  Therefore it is most advantageous to use %PEXSI when \f$10000~100000\f$
-processors are available.  
+size.  Therefore it is most advantageous to use %PEXSI when more than
+1000 processors are available.  
 
 Nonetheless, for some problems we have also observed that it can be
 advantageous to use %PEXSI using hundreds to thousands of processors.

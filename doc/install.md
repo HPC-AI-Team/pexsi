@@ -4,7 +4,6 @@ Installation       {#pageInstall}
 - @subpage pageSource
 - @subpage pageDependency
 - @subpage pageBuild
-- @subpage pageTrouble
 
 <!-- ************************************************************ -->
 @page pageSource Obtaining the source code
@@ -140,8 +139,3 @@ For more information on the examples, see @ref pageTutorial.
 They are generated during the developing stage. Unless specified
 otherwise, it is usually the case that some routines cannot be compiled
 properly.
-
-<!-- ************************************************************ -->
-@page pageTrouble Troubleshooting
-
-**TBD**
