@@ -101,20 +101,12 @@ typedef NumTns<Complex>    CpxNumTns;
 ~~~~~~~~~~
 
 
-Compressed sparse column format    {#secCSC}
-===============================
-
-**TBD**
-
-The class for serial CSC format matrix is @ref PEXSI::SparseMatrix
-"SparseMatrix".
-
 Distributed compressed sparse column format    {#secDistCSC}
 ===========================================
 
 
 We use the following convention for distributed CSC format for saving a
-sparse matrix.  We assume the number of processor is \f$P\f$, the number of
+sparse matrix on multiple processors.  We assume the number of processor is \f$P\f$, the number of
 rows and columns of the matrix is \f$N\f$.  The class for distributed
 memory CSC format matrix is @ref PEXSI::DistSparseMatrix
 "DistSparseMatrix".
@@ -137,10 +129,6 @@ memory CSC format matrix is @ref PEXSI::DistSparseMatrix
   `Complex`) `NumVec` of dimension `nnzLocal`, stores the nonzero values
   in each column.
 
-2D block cyclic format    {#secCyclic}
-======================
-
-**TBD**  
 
 <!-- ************************************************************ -->
 @page pagePole Pole expansion   
