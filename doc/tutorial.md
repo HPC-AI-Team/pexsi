@@ -67,7 +67,7 @@ structure calculation based on the Kohn-Sham density functional theory.
 An example routine is given in driver_ksdft.c.
 
 1) Estimate the range of chemical potential
-----------------------------------------
+-------------------------------------------
 
 Starting from a rough estimate of the chemical potential \f$\mu\f$,
 [muMin0, muMax0], obtain a refined interval for the chemical potential
@@ -79,7 +79,7 @@ Starting from a rough estimate of the chemical potential \f$\mu\f$,
 {
   /* Setup the input matrix in distributed compressed sparse column (CSC) format */ 
   ...;
-  /* Estimate the range of the chemical potential */
+  /* Step 1. Estimate the range of chemical potential */
   PPEXSIInertiaCountInterface(
     nrows,  
     nnz,    
@@ -127,13 +127,173 @@ potential can be skipped.
 
 
 2) Solve electronic structure problem
-----------------------------------
+-------------------------------------
+
+After obtaining the range of the chemical potential and a reasonably
+accurate guess for the chemical potential.  The electronic structure
+problem for obtaining the selected elements of the Fermi operator
+(a.k.a. the single particle density matrix) can be
+computed using %PEXSI.  The chemical potential is refined at the same
+time using Newton's method.  Besides the Fermi operator, the energy
+density matrix (for computing the force) and the free energy density
+matrix (for computing the Helmholtz free energy) can be computed at the
+same time.
+
+@note The iteration of the chemical potential is usually in the inner
+loop of an electronic structure calculation.  The self-consistent field
+(SCF) iteration serves as an outer loop.  Because it usually takes
+a few SCF steps to converge the electron density, it is not necessary to
+achieve very high accuracy in the inner loop, especially during the
+initial few SCF steps.
+
+~~~~~~~~~~{.c}
+#include  "c_pexsi_interface.h"
+...
+{
+  /* Step 2. Solve KSDFT using PEXSI */
+  PPEXSISolveInterface(
+      nrows,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      HnzvalLocal,
+      isSIdentity,
+      SnzvalLocal,
+      temperature,
+      numElectronExact,
+      muInertia,
+      muMinInertia,
+      muMaxInertia,
+      gap,
+      deltaE,
+      numPole,
+      muMaxIter,
+      PEXSINumElectronTolerance,
+      ordering,
+      npPerPole,
+      npSymbFact,
+      MPI_COMM_WORLD,
+      DMnzvalLocal,
+      EDMnzvalLocal,
+      FDMnzvalLocal,
+      &muPEXSI,
+      &numElectron,
+      &muMinPEXSI,
+      &muMaxPEXSI,
+      &muIter,
+      muList,
+      numElectronList,
+      numElectronDrvList,
+      &info );
+  ...; 
+} 
+~~~~~~~~~~ 
+
 
 See @ref PPEXSISolveInterface for detailed information of its usage.
 
 
-3) Post processing
----------------
+3) Post processing (optional)
+-----------------------------
+
+After the chemical potential has converged, post-processing steps can be
+performed.  Currently %PEXSI supports the computation of the density of
+states (zero temperature) via counting the negative inertia.  
+
+~~~~~~~~~~{.c}
+#include  "c_pexsi_interface.h"
+...
+{
+  /* Step 3. Post processing */
+
+  /* Compute the density of states (DOS) via inertia counting (without
+   * including finite temperature effects) */
+
+  PPEXSISolveInterface(
+      nrows,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      HnzvalLocal,
+      isSIdentity,
+      SnzvalLocal,
+      temperature,
+      numElectronExact,
+      muInertia,
+      muMinInertia,
+      muMaxInertia,
+      gap,
+      deltaE,
+      numPole,
+      muMaxIter,
+      PEXSINumElectronTolerance,
+      ordering,
+      npPerPole,
+      npSymbFact,
+      MPI_COMM_WORLD,
+      DMnzvalLocal,
+      EDMnzvalLocal,
+      FDMnzvalLocal,
+      &muPEXSI,
+      &numElectron,
+      &muMinPEXSI,
+      &muMaxPEXSI,
+      &muIter,
+      muList,
+      numElectronList,
+      numElectronDrvList,
+      &info );
+  ...; 
+} 
+~~~~~~~~~~ 
 
 
-See @ref PPEXSISolveInterface for detailed information of its usage.
+See @ref PPEXSIRawInertiaCountInterface for detailed information of its usage.
+
+Besides the DOS, the spatially resolved local DOS can also be computed
+without computing eigenvalues or eigenvectors.
+
+
+~~~~~~~~~~{.c}
+#include  "c_pexsi_interface.h"
+...
+{
+  /* Step 3. Post processing */
+
+  /* Compute the local density of states (LDOS).
+   *
+   * Only the first pole group participates in the computation of the
+   * selected inversion for a single shift. */
+
+    PPEXSILocalDOSInterface(
+        nrows,
+        nnz,
+        nnzLocal,
+        numColLocal,
+        colptrLocal,
+        rowindLocal,
+        HnzvalLocal,
+        isSIdentity,
+        SnzvalLocal,
+        Energy,
+        eta,
+        ordering,
+        npSymbFact,
+        readComm,
+        localDOSnzvalLocal,
+        &info);
+
+  ...; 
+} 
+~~~~~~~~~~ 
+
+
+See @ref PPEXSILocalDOSInterface for detailed information of its usage.
+
+@note When `mpisize > npPerPole`, @ref PPEXSILocalDOSInterface should
+not be executed by all processors, but only by a subgroup of processors.
+For more information see driver_ksdft.c.

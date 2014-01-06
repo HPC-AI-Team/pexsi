@@ -153,7 +153,7 @@ int main(int argc, char **argv)
   eta                 = 0.001;
 
   /* Split the processors to read matrix */
-  if( mpirank < npPerPole ) 
+  if( mpirank < npPerPole )
     isProcRead = 1;
   else
     isProcRead = 0;

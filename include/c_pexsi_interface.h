@@ -380,7 +380,7 @@ void PPEXSIInertiaCountInterface(
  *  used for evaluating density of states after @ref PPEXSISolveInterface 
  *  has reached convergence.
  * 
- *  See @ref PPEXSIRawInertiaCountInterface for explanation of
+ *  See @ref PPEXSIInertiaCountInterface for explanation of
  *  parameters.
  */
 void PPEXSIRawInertiaCountInterface(

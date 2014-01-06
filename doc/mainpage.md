@@ -1,7 +1,7 @@
 Main Page           {#mainpage}
 =========
 
-**Welcome to the documentation of %PEXSI 1.0**
+**Welcome to the documentation of %PEXSI**
 
 - @subpage pageIntro
   - @ref pageOverview
