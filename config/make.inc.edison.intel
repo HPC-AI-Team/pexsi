@@ -41,7 +41,7 @@ endif
 
 # Libraries
 METIS_LIB        = /project/projectdirs/m1027/PEXSI/libpexsi_edison/libmetis.a
-#PARMETISLIB	     = ${PARMETIS_DIR}/libparmetis/libparmetis.a
+PARMETIS_LIB     = ${PARMETIS_DIR}/libparmetis/libparmetis.a
 SCOTCH_LIB       = -L${SCOTCH_DIR} -lptscotchparmetis -lptscotch -lptscotcherr -lscotch 
 SELINV_LIB       = /project/projectdirs/m1027/PEXSI/libpexsi_edison/libselinv.a
 DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_3.3.a
