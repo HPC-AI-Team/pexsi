@@ -53,7 +53,7 @@ using namespace PEXSI;
 using namespace std;
 
 void Usage(){
-  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -r [nprow] -c [npcol] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -Shift [imaginary shift] -ToDist [doToDist] -Diag [doDiag]" << std::endl;
+  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -r [nprow] -c [npcol] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -251,9 +251,12 @@ int main(int argc, char **argv)
       }
 
 
-      Real cshift = 0;
-      if( options.find("-Shift") != options.end() ){ 
-        cshift = atof(options["-Shift"].c_str());
+      Real rshift = 0.0, ishift = 0.0;
+      if( options.find("-rshift") != options.end() ){ 
+        rshift = atof(options["-rshift"].c_str());
+      }
+      if( options.find("-ishift") != options.end() ){ 
+        ishift = atof(options["-ishift"].c_str());
       }
 
 
@@ -347,7 +350,7 @@ int main(int argc, char **argv)
       Complex *ptr0 = AMat.nzvalLocal.Data();
       Real *ptr1 = HMat.nzvalLocal.Data();
       Real *ptr2 = SMat.nzvalLocal.Data();
-      Complex zshift = Complex(1.0, cshift);
+      Complex zshift = Complex(rshift, ishift);
 
       if( SMat.size != 0 ){
         // S is not an identity matrix
@@ -818,7 +821,7 @@ int main(int argc, char **argv)
                 statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
               }
 
-              Complex traceLocal = blas::Dot( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1, 
+              Complex traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1, 
                   Ainv2.nzvalLocal.Data(), 1 );
               Complex trace = Z_ZERO;
               mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
