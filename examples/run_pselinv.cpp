@@ -832,8 +832,8 @@ int main(int argc, char **argv)
                 cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
                 statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
 
-                cout << std::endl << "H.size - Tr[Ainv2 * AMat] = " << (Real)HMat.size - (Real)trace.real() << std::endl;
-                statusOFS << std::endl << "H.size - Tr[Ainv2 * AMat] = " << (Real)HMat.size- (Real)trace.real() << std::endl;
+                cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( HMat.size - trace ) << std::endl;
+                statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( HMat.size - trace ) << std::endl;
 
               }
             }
