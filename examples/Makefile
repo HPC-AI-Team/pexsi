@@ -3,7 +3,7 @@
 
 include ../make.inc
 
-SRCS_CPP  = run_ppexsi.cpp run_pselinv.cpp 
+SRCS_CPP  = run_inertia.cpp run_ppexsi.cpp run_pselinv.cpp 
 SRCS_C    = driver_pselinv.c driver_ksdft.c
 
 OBJS = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o}
@@ -29,6 +29,9 @@ driver_ksdft: driver_ksdft.o ${PEXSI_LIB}
 driver_pselinv: driver_pselinv.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ driver_pselinv.o  $(LOADOPTS) )
 
+run_inertia: run_inertia.o ${PEXSI_LIB} 
+	($(LOADER) -o $@_${SUFFIX} run_inertia.o  $(LOADOPTS) )
+
 run_pselinv: run_pselinv.o ${PEXSI_LIB} run_pselinv_ptscotch run_pselinv_parmetis
 	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS_PTSCOTCH) )
 
@@ -38,6 +41,8 @@ run_pselinv_parmetis: run_pselinv.o ${PEXSI_LIB}
 run_pselinv_ptscotch: run_pselinv.o   ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PTSCOTCH) )
 
+run_inertia.o: run_inertia.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 run_pselinv.o: run_pselinv.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 

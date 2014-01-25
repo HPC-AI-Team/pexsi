@@ -56,6 +56,7 @@ extern "C" {
 
 void Usage(){
   std::cout 
+    << "WARNING: This file is out of date.  Do not use it for any serious purpose!" << std::endl
 		<< "run_ppexsi -temp [temp] -mu0 [mu0] -muMin [muMin] -muMax [muMax] -numel [numel] -numPole [numPole] -deltaE [deltaE] -gap [gap] -H [Hfile] -S [Sfile] -npPerPole [npPole] -npSymbFact [npsymbfact] -colperm [colperm] -muiter [muiter]" << std::endl 
 		<< "temp:    Temperature (unit: K)" << std::endl
 		<< "mu0:     Initial guess for chemical potential" << std::endl
