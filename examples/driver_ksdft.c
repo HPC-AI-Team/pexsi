@@ -144,7 +144,7 @@ int main(int argc, char **argv)
   PEXSINumElectronTolerance   = 0.01;
   npPerPole           = 1;
   npSymbFact          = 1;
-  Hfile               = "g20.matrix";
+  Hfile               = "lap2dr.matrix";
   Sfile               = "";
   isFormatted         = 1;
   isSIdentity         = 1;

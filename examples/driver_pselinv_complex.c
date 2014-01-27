@@ -41,12 +41,15 @@
    such enhancements or derivative works thereof, in binary and source code form.
 */
 /**
- * @file driver_pselinv.c
+ * @file driver_pselinv_complex.c
  * @brief Example for using the driver interface for parallel selected
  * inversion of a complex symmetric matrix.
  *
- * @see PPEXSISelInvInterface 
+ * Read the matrix 
+ *
+ * @see PSelInvComplexSymmetricInterface
  * @date 2013-11-10
+ * @date 2014-01-26 Change the interface.
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -61,15 +64,16 @@ int main(int argc, char **argv)
   int           numColLocal;                  
   int*          colptrLocal;                  
   int*          rowindLocal;                  
-  double*       HnzvalLocal;                  
-  int           isSIdentity;                  
-  double*       SnzvalLocal;                  
-  double        zShift[2];                       
-  int           ordering;                
-  int           npSymbFact;                   
+  double*       RnzvalLocal;                  
+  double*       InzvalLocal;                  
+  double*       AnzvalLocal;
   double*       AinvnzvalLocal;
+  int           ordering;                
+  int           npSymbFact;
+  int           nprow, npcol;
   int           info;
-  char*         Hfile = "g20.matrix";
+  char*         Rfile = "lap2dr.matrix";   /* Real part */
+  char*         Ifile = "lap2di.matrix";   /* Imag part */
 
   int           i, j, irow, jcol;
   int           numColLocalFirst, firstCol;
@@ -80,7 +84,7 @@ int main(int argc, char **argv)
 
   /* Read the matrix */
   ReadDistSparseMatrixFormattedHeadInterface(
-      Hfile,
+      Rfile,
       &nrows,
       &nnz,
       &nnzLocal,
@@ -98,43 +102,62 @@ int main(int argc, char **argv)
   /* Allocate memory */
   colptrLocal = (int*)malloc( (numColLocal+1) * sizeof(int) );
   rowindLocal = (int*)malloc( nnzLocal * sizeof(int) );
-  HnzvalLocal = (double*)malloc( nnzLocal * sizeof(double) );
+  RnzvalLocal = (double*)malloc( nnzLocal * sizeof(double) );
+  InzvalLocal = (double*)malloc( nnzLocal * sizeof(double) );
+  AnzvalLocal = (double*)malloc( 2*nnzLocal * sizeof(double) );
   AinvnzvalLocal = (double*)malloc( 2*nnzLocal * sizeof(double) );
 
-  /* Read the matrix */
+  /* Read the real part of the matrix */
   ReadDistSparseMatrixFormattedInterface(
-      Hfile,
+      Rfile,
       nrows,
       nnz,
       nnzLocal,
       numColLocal,
       colptrLocal,
       rowindLocal,
-      HnzvalLocal,
+      RnzvalLocal,
       MPI_COMM_WORLD );
 
-
-  /* Other parameters */
-  isSIdentity = 1;
-  ordering    = 0;
-  zShift[0]   = 0.5;
-  zShift[1]   = 0.0;
-  npSymbFact  = 1;
-
-  PPEXSISelInvInterface(
+  /* Read the imag part of the matrix. The sparsity must be the same as
+   * that in the real part of the matrix */
+  ReadDistSparseMatrixFormattedInterface(
+      Ifile,
       nrows,
       nnz,
       nnzLocal,
       numColLocal,
       colptrLocal,
       rowindLocal,
-      HnzvalLocal,
-      isSIdentity,
-      SnzvalLocal,
-      zShift,
+      InzvalLocal,
+      MPI_COMM_WORLD );
+
+  /* Form the input matrix A */
+  for( i = 0; i < nnzLocal; i++ ){
+    AnzvalLocal[2*i]   = RnzvalLocal[i];
+    AnzvalLocal[2*i+1] = InzvalLocal[i];
+  }
+
+  /* Other parameters */
+  ordering    = 0;
+  npSymbFact  = 1;
+  /* NOTE: For best performance it is better to have nprow == npcol */
+  nprow       = 1;
+  npcol       = mpisize;
+
+  PSelInvComplexSymmetricInterface(
+      nrows,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      AnzvalLocal,
       ordering,
       npSymbFact,
       MPI_COMM_WORLD,
+      nprow,
+      npcol,
       AinvnzvalLocal,
       &info );
 
@@ -162,7 +185,9 @@ int main(int argc, char **argv)
   /* Deallocate memory */
   free( colptrLocal );
   free( rowindLocal );
-  free( HnzvalLocal );
+  free( RnzvalLocal );
+  free( InzvalLocal );
+  free( AnzvalLocal );
   free( AinvnzvalLocal );
 
   

@@ -16,11 +16,11 @@ for i = 1 : nnzAlower
 end
 toc
 
-if(0)
+if(1)
 	disp('Writing the matrix to file (text format)...');
 	tic
 		fid = fopen(filename,'w');
-		fprintf(fid, '%d %d ', [N, nnzAlower]);
+		fprintf(fid, '%d %d %d', [N, nnzAlower]);
 		fprintf(fid, '\n');
 		fprintf(fid, '%d ', colptr);
 		fprintf(fid, '\n');

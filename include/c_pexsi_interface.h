@@ -164,7 +164,8 @@ void ParaReadDistSparseMatrixInterface (
 
 
 /**
- * @brief Driver interface for computing the selected  elements of a matrix.  
+ * @brief Driver interface for computing the selected  elements of a
+ * matrix (in complex arithmietic).  
  *
  * Evaluate the selected elements of 
  * \f$(H - z S)^{-1}\f$ for a shift \f$z\in\mathbb{C}\f$.
@@ -613,6 +614,62 @@ void PPEXSILocalDOSInterface (
 		double*       localDOSnzvalLocal, 
 		int*          info               
 		);
+
+
+/**
+ * @brief Simplified driver interface for computing the selected
+ * elements of a complex symmetric symmetric.
+ *
+ * @param[in] nrows (global) Number of rows and columns of the matrix.
+ * @param[in] nnz (global) Total number of nonzeros of H.
+ * @param[in] nnzLocal (local) Number of local nonzeros of H.
+ * @param[in] numColLocal (local) Number of local columns for H.
+ * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
+ * pointer in CSC format.
+ * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
+ * pointer in CSC format.
+ * @param[in] AnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * values of A in CSC format.  
+ * - Use 2 double for one complex number. This
+ * ensures the compatibility with FORTRAN.  
+ * - Real part: AnzvalLocal[2*k]. Imag part: AnzvalLocal[2*k+1].
+ * @param[in] ordering (global) Ordering strategy for factorization and selected
+ * inversion.  
+ * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
+ *   option in SuperLU_DIST).
+ * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
+ *   option in SuperLU_DIST).
+ * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
+ *   option in SuperLU_DIST).
+ * @param[in] npSymbFact (global) Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
+ * @param[in] comm (global) MPI communicator. NOTE: mpisize should be
+ * equal to nprow * npcol
+ * @param[in] nprow (global) Number of row processors.
+ * @param[in] npcol (global) Number of column processors.  
+ * @param[out] AinvnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * values of the selected elements of \f$A^{-1}\f$.
+ * - Use 2 double for one complex number. This ensures the compatibility with FORTRAN.
+ * - Real part: AinvnzvalLocal[2*k]. Imag part: AinvnzvalLocal[2*k+1].
+ * @param[out] info 
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PSelInvComplexSymmetricInterface ( 
+    int           nrows,                        
+    int           nnz,                          
+    int           nnzLocal,                     
+    int           numColLocal,                  
+    int*          colptrLocal,                  
+    int*          rowindLocal,                  
+    double*       AnzvalLocal,                  
+    int           ordering,                
+    int           npSymbFact,                   
+    MPI_Comm	    comm,
+    int           nprow,
+    int           npcol,
+    double*       AinvnzvalLocal,
+    int*          info
+    );
 
 
 #ifdef __cplusplus

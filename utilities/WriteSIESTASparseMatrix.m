@@ -26,7 +26,6 @@ tic
 	fprintf(fid, '\n');
 	fprintf(fid, '%d ', rowind);
 	fprintf(fid, '\n');
-	fprintf(fid, '%g ', nzval);
-	fprintf(fid, '\n');
+	fprintf(fid, '%25.15f\n ', nzval);
 	fclose(fid);
 toc

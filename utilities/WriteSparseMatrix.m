@@ -12,7 +12,7 @@ nnzAlower = nnz( Alower );
 colptr = [ colptr; nnzAlower+1 ];
 toc
 
-if(0)
+if(1)
 	disp('Writing the matrix to file (text format)...');
 	tic
 		fid = fopen(filename,'w');

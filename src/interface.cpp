@@ -1515,6 +1515,7 @@ void PPEXSISelInvInterface (
 }  // -----  end of function PPEXSISelInvInterface ----- 
 
 
+
 extern "C" 
 void PPEXSILocalDOSInterface (
 		// Input parameters
@@ -1607,6 +1608,175 @@ void PPEXSILocalDOSInterface (
 	statusOFS.close();
 	return;
 }  // -----  end of function PPEXSILocalDOSInterface  ----- 
+
+
+extern "C"
+void PSelInvComplexSymmetricInterface ( 
+    int           nrows,                        
+    int           nnz,                          
+    int           nnzLocal,                     
+    int           numColLocal,                  
+    int*          colptrLocal,                  
+    int*          rowindLocal,                  
+    double*       AnzvalLocal,                  
+    int           ordering,                
+    int           npSymbFact,                   
+    MPI_Comm	    comm,                         
+    int           nprow,
+    int           npcol,
+    double*       AinvnzvalLocal,
+    int*          info
+    )
+{
+	Int mpirank, mpisize;
+	MPI_Comm_rank( comm, &mpirank );
+	MPI_Comm_size( comm, &mpisize );
+	Real timeSta, timeEnd;
+	
+
+	// log files
+	std::stringstream  ss;
+	ss << "logPEXSI" << mpirank;
+	// append to previous log files
+	statusOFS.open( ss.str().c_str(), std::ios_base::app );
+		
+
+	try{
+		if( mpisize != nprow * npcol ){
+			throw std::runtime_error( " mpisize != nprow * npcol ." );
+		}
+
+		SuperLUGrid g( comm, nprow, npcol );
+		
+		// Convert into DistSparseMatrix
+		DistSparseMatrix<Complex> AMat;
+
+		{
+			AMat.size        = nrows;
+			AMat.nnz         = nnz;
+			AMat.nnzLocal    = nnzLocal;
+			// The first row processor does not need extra copies of the index /
+			// value of the matrix. 
+			AMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
+			AMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
+			// H value
+			AMat.nzvalLocal  = CpxNumVec( nnzLocal,      false, 
+          reinterpret_cast<Complex*>(AnzvalLocal) );
+			AMat.comm        = comm;
+		}
+
+		std::string colPerm;
+		switch (ordering){
+			case 0:
+				colPerm = "PARMETIS";
+				break;
+			case 1:
+				colPerm = "METIS_AT_PLUS_A";
+				break;
+			case 2:
+				colPerm = "MMD_AT_PLUS_A";
+				break;
+			default:
+				throw std::logic_error("Unsupported ordering strategy.");
+		}
+
+
+		// *********************************************************************
+		// Symbolic factorization 
+		// *********************************************************************
+
+		SuperLUOptions luOpt;
+		luOpt.ColPerm = colPerm;
+		luOpt.numProcSymbFact = npSymbFact;
+		// TODO Introduce maxPipelineDepth as an adjustable parameter when needed.
+		luOpt.maxPipelineDepth = -1;
+
+		SuperLUMatrix luMat( g, luOpt );
+		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+
+		luMat.SymbolicFactorize();
+		luMat.DestroyAOnly();
+		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+		luMat.Distribute();
+		luMat.NumericalFactorize();
+
+		// *********************************************************************
+		// Selected inversion
+		// *********************************************************************
+
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << "After numerical factorization." << std::endl;
+#endif
+
+		GridType g1( comm, nprow, npcol );
+		SuperNodeType super;
+
+		luMat.SymbolicToSuperNode( super );
+		PMatrix PMloc( &g1, &super, &luOpt );
+		luMat.LUstructToPMatrix( PMloc );
+
+
+    // P2p communication version
+		PMloc.ConstructCommunicationPattern();
+
+    // Collective communication version
+//		PMloc.ConstructCommunicationPattern_Collectives();
+
+		PMloc.PreSelInv();
+
+		// Main subroutine for selected inversion
+		// Use the broadcast pipelined version of SelInv.
+    
+    // P2p communication version
+    PMloc.SelInv();
+
+    // Collective communication version
+//		PMloc.SelInv_Collectives();
+
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << "After selected inversion." << std::endl;
+#endif
+
+		DistSparseMatrix<Complex>  AinvMat;       // A^{-1} in DistSparseMatrix format
+
+		PMloc.PMatrixToDistSparseMatrix2( AMat, AinvMat );
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << "After conversion to DistSparseMatrix." << std::endl;
+#endif
+
+		// Convert the internal variables to output parameters
+
+		blas::Copy( nnzLocal*2, reinterpret_cast<double*>(AinvMat.nzvalLocal.Data()), 
+				1, AinvnzvalLocal, 1 );
+
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << "After copying the matrix of Ainv." << std::endl;
+#endif
+
+
+
+		*info = 0;
+	}
+	catch( std::exception& e ) {
+		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+//		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+//			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+	
+	// Synchronize the info among all processors. 
+	// If any processor gets error message, info = 1
+	Int infoAll = 0;
+	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+	*info = infoAll;
+
+	statusOFS.close();
+	return;
+}  // -----  end of function PSelInvComplexSymmetricInterface ----- 
 
 
 // ********************************************************************* 
