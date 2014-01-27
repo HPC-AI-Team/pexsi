@@ -10,8 +10,8 @@ Tutorial              {#pageTutorial}
 \tableofcontents
 
 The computation of @ref defSelectedElem "selected elements" of an
-inverse matrix is a standalone functionality of %PEXSI. If you are a
-C/C++ programmer, the parallel selected inversion routine can be used as
+inverse matrix is a standalone functionality of %PEXSI. For 
+C/C++ programmers, the parallel selected inversion routine can be used as
 follows.
 
 ~~~~~~~~~~{.c}
@@ -50,7 +50,7 @@ follows the @ref secDistCSC, defined through the variables `colptrLocal`,
 is an identity matrix and by setting `isSIdentity=1`. If \f$S\f$ is not
 an identity matrix, the nonzero sparsity pattern is assumed to be the
 same as the nonzero sparsity pattern of \f$H\f$.  Both `HnzvalLocal` and
-`SnzvalLocal` are double arrays.  The output array `AinvnzvalLocal` is a
+`SnzvalLocal` are double precision arrays.  The output array `AinvnzvalLocal` is a
 double array which is twice the size of  `HnzvalLocal` due to the usage
 of complex format.
 

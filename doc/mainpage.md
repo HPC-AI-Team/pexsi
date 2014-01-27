@@ -14,6 +14,7 @@ Main Page           {#mainpage}
   - @ref pagePselinvComplex
   - @ref pagePEXSISolve
 - @subpage pageCoreFunction
+  - @ref pageBasicCore
   - @ref pageDataType
   - @ref pagePole
   - @ref pageFactor
@@ -25,4 +26,6 @@ Main Page           {#mainpage}
   - @ref pageConvert
 - @subpage pageTODO
 -->
+- @subpage pageFAQ
 - @subpage pageTrouble
+

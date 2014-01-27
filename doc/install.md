@@ -133,6 +133,12 @@ Edit the variables in make.inc.
     PARMETIS_DIR  = Main directory for ParMETIS 
     SCOTCH_DIR    = Main directory for PT-Scotch
 
+@note %PEXSI can be compiled using `debug` or `release` mode in
+by the variable `MODE` in `make.inc`.  This variable mainly controls the
+compiling flag `-DRELEASE`.  The `debug` mode introduces tracing of call
+stacks at all levels of functions, and may significantly slow down the
+code.  For production runs, use `release` mode.
+
 Build the %PEXSI library
 ------------------------
 

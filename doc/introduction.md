@@ -10,7 +10,8 @@ Introduction      {#pageIntro}
 
 The Pole EXpansion and Selected Inversion method (%PEXSI) is a fast
 method for evaluating certain [selected elements](@ref defSelectedElem)
-of a matrix function.  
+of a matrix function.  %PEXSI is highly scalable on distributed memory
+parallel machines. 
 
 Given a sparse square matrix \f$A\f$ and a certain function
 \f$f(\cdot)\f$, the basic idea of %PEXSI is to
@@ -24,7 +25,7 @@ elements \f$(A-z_l I)^{-1}_{i,j}\f$ (selected inversion).
 The currently supported form of \f$f(\cdot)\f$ include:
 
 - \f$f(z)=z^{-1}\f$: Matrix inversion.  Since the matrix inversion is
-  already represented as a single term of rational functions (poles), no
+  already represented as a single term of rational function (pole), no
   pole expansion is needed.  The selected inversion method can be
   significantly faster than directly inverting the matrix and then
   extract the selected elements of the inverse.
@@ -41,7 +42,7 @@ The currently supported form of \f$f(\cdot)\f$ include:
   @image html FermiDirac.png "Red: Fermi-Dirac function. Black: Matrix sign function" 
   
 
-The %PEXSI method can be more efficient than the widely used
+For sparse matrices, the %PEXSI method can be more efficient than the widely used
 [diagonalization method](@ref defDiagonalization) for evaluating matrix
 functions, especially when a relatively large number of eigenpairs are
 needed to be computed in the diagonalization method.  
@@ -62,12 +63,12 @@ available, due to the two-level parallelism.  For accurate evaluation,
 the pole expansion usually takes around \f$P\approx 80\f$ poles.  All
 the \f$80\f$ matrices can be inverted independently among different
 groups of processors.  The parallel selected inversion method (PSelInv,
-which is included in %PEXSI) can scale well to \f$256\sim 4096\f$
+which is included in %PEXSI) can scale well to \f$256\sim 1024\f$ or
+more
 processors depending on the sparsity of the problem, and the system
 size.  Therefore it is most advantageous to use %PEXSI when more than
 1000 processors are available.  
-
-Nonetheless, for some problems we have also observed that it can be
+For some problems we have also observed that it can be
 advantageous to use %PEXSI using hundreds to thousands of processors.
 
 @anchor defDiagonalization
@@ -88,10 +89,12 @@ needed to be computed, depending on the value of \f$f(\lambda_i)\f$.
 @anchor defSelectedElem 
 **Selected elements** 
 
-The selected elements of a matrix \f$B\f$ with respect to a matrix
-\f$A\f$ are defined to be the set \f$\{B_{i,j}\vert A_{i,j}\ne 0\}\f$.
+For structurally symmetric matrices (i.e. \f$A_{i,j}\ne 0\f$ implies
+\f$A_{j,i}\ne 0\f$), we define the selected
+elements of a matrix \f$B\f$ with respect to a matrix \f$A\f$ as the set
+\f$\{B_{i,j}\vert A_{i,j}\ne 0\}\f$.
 
-A particularly commonly used case in %PEXSI is the selected elements of
+A commonly used case in %PEXSI is the selected elements of
 \f$A^{-1}\f$, which corresponds to the set \f$\{A^{-1}_{i,j}\vert A_{i,j}\ne 0\}\f$.
 
 

@@ -1,14 +1,29 @@
 Core Functionality            {#pageCoreFunction}
 ==================
 
-If only the driver routines are to be used, then for C, include the
-interface file:
+- @subpage pageBasicCore
+- @subpage pageDataType
+- @subpage pagePole
+- @subpage pageFactor
+- @subpage pageSelInv
+- @subpage pageFORTRAN
+
+
+<!-- ************************************************************ -->
+@page pageBasicCore Basic
+\tableofcontents
+
+You should be able to skip most of this section if you only intend to
+use the driver routines, described in the @ref pageTutorial section and
+in @ref c_pexsi_interface.h.  
+
+In such case for C/C++ programmers, include the interface file:
 
 ~~~~~~~~~~{.c}
 #include  "c_pexsi_interface.h"
 ~~~~~~~~~~
 
-For FORTRAN, there is no interface routines such as
+For FORTRAN programmers, there is no interface routines such as
 `f_pexsi_interface.F90` yet.  However, the FORTRAN routines can directly
 be used.  See @ref pageFORTRAN for more information.
 
@@ -20,12 +35,19 @@ For C++ and usage beyond the driver routines, include the following file
 #include  "ppexsi.hpp"
 ~~~~~~~~~~
 
+For developers, 
 
-- @subpage pageDataType
-- @subpage pagePole
-- @subpage pageFactor
-- @subpage pageSelInv
-- @subpage pageFORTRAN
+- For VI/VIM users, PEXSI seems to be best visualized with the following
+  options concerning indentation.
+
+~~~~~~~~~~
+set tabstop=2       
+set shiftwidth=2
+set expandtab 
+~~~~~~~~~~
+ 
+- For EMACS users or users of other text editors, **to be added**.
+
 
 <!-- ************************************************************ -->
 @page pageDataType Data type 
@@ -35,6 +57,8 @@ For C++ and usage beyond the driver routines, include the following file
 Basic data type    {#secBasicDataType}
 ===============
 
+To enhance potential transplantability of the code, some basic data
+types are constants are defined in @ref environment.hpp.
 
 The basic data types `int` and `double` are redefined as `Int` and
 `Real`, in order to improve compatibility for different architecture
@@ -63,11 +87,15 @@ pointers are wrapped into different classes.
 The most commonly used are @ref PEXSI::NumVec "NumVec", @ref
 PEXSI::NumMat "NumMat", and @ref PEXSI::NumTns "NumTns", which are
 wrappers for 1D array (vector), 2D array (matrix) and 3D array (tensor),
-respectively.  The arrays are always saved contiguously in memory.
+respectively.  The arrays are always saved contiguously in memory as a
+1D array. Column-major ordering is assumed for arrays of all dimensions,
+which makes the arrays directly compatible with BLAS/LAPACK libraries.
+
 
 These wrapper classes can both actually own an array (by specifying
-`owndata_=true`), and view an array (by specifying `owndata_=false`).
-Vector/Matrix/Tensor elements can be accessed using `()`.  
+`owndata_=true`), and just view an array (by specifying `owndata_=false`).
+Elements of arrays can be accessed directly as in FORTRAN convention,
+such as `A(i)` (NumVec), `A(i,j)` (NumMat), and `A(i,j,k)` (NumTns).  
 
 The underlying pointer can be accessed using the member function `Data()`.
 
@@ -101,18 +129,27 @@ typedef NumTns<Complex>    CpxNumTns;
 ~~~~~~~~~~
 
 
-Distributed compressed sparse column format    {#secDistCSC}
-===========================================
+Distributed compressed sparse column (CSC) format    {#secDistCSC}
+=================================================
 
+We use the Compressed Sparse Column (CSC) format, a.k.a. the Compressed
+Column Storage (CCS) format for storing a sparse matrix.  See
 
-We use the following convention for distributed CSC format for saving a
-sparse matrix on multiple processors.  We assume the number of processor is \f$P\f$, the number of
-rows and columns of the matrix is \f$N\f$.  The class for distributed
-memory CSC format matrix is @ref PEXSI::DistSparseMatrix
-"DistSparseMatrix".
+http://netlib.org/linalg/html_templates/node92.html
 
-- `DistSparseMatrix` uses FORTRAN convention (1-based) index, and MPI
-  uses C convention (0-based) index. 
+for the explanation of the format.
+
+We adopt the following convention for distributed CSC format for saving a
+sparse matrix on distributed memory parallel machines.  We assume the
+number of processor is \f$P\f$, the number of rows and columns of the
+matrix is \f$N\f$.  The class for distributed memory CSC format matrix
+is @ref PEXSI::DistSparseMatrix "DistSparseMatrix".
+
+- `DistSparseMatrix` uses FORTRAN convention (1-based) indices for
+  `colptrLocal` and `rowindLocal`, i.e. the first row and the first column indices
+  are 1 instead of 0. 
+- `mpirank` follows the standard C convention, i.e. the `mpirank` for
+  the first processor is 0.
 - Each processor holds \f$\lfloor N/P \rfloor\f$ consequentive columns,
   with the exception that the last processor (`mpirank == P-1`) holds a
   all the remaining \f$N - (P-1) \lfloor N/P \rfloor\f$ columns. 
