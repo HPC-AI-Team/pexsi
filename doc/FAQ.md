@@ -33,6 +33,14 @@ applications in mind and %PEXSI may bring significant acceleration to
 your application, please contact us as in @ref pageTrouble, with some
 description of your matrix and application.
 
+**Q: I only found the driver routine for selected inversion of complex
+symmetric matrices.  Why %PEXSI does not support selected inversion in real arithmetic?**
+
+A: Real arithmetic selected inversion *is available* in %PEXSI.
+However, due to historic reason it is not available in an intuitive way,
+and therefore we do not provide the driver routine  There is some historic reason that the real
+arithemetic 
+
 Installation
 ------------
 
