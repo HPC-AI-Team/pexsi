@@ -154,17 +154,29 @@ Build examples
 --------------
 
 After `libpexsi.a` is built, all driver routines are readily to be
-compiled.  For example,
+compiled.  For example, the selected inversion for a complex matrix has
+the test routine
 
     cd ${PEXSI_DIR}
     cd examples
-    make driver_pselinv
+    make driver_pselinv_complex
 
-should produce `driver_pselinv`, which can be executed with MPI.
+should produce `driver_pselinv_complex`, which can be executed with MPI.
 
 For more information on the examples, see @ref pageTutorial.
 
-\attention Most of the routines in the `tests` folder are out-of-date.
-They are generated during the developing stage. Unless specified
-otherwise, it is usually the case that some routines cannot be compiled
-properly.
+Tests
+-----
+
+After driver_pselinv_complex is compiled, 
+
+    examples$ mpirun -n 1 ./driver_pselinv_complex
+
+should return the diagonal of the matrix
+\f[
+  (A + i I)^{-1}
+\f]
+saved on the 0-th processor, where \f$A\f$ is the five-point
+discretization of a Laplacian operator on a 2D domain.  The result can
+be compared with `examples/driver_pselinv_complex.out` to check the
+correctness of the result.
