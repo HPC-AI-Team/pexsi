@@ -484,6 +484,8 @@ namespace PEXSI{
 
       const SuperLUOptions * options_;
 
+      std::vector<std::vector<Int> > ColBlockIdx_;
+      std::vector<std::vector<Int> > RowBlockIdx_;
       std::vector<std::vector<LBlock> > L_;
       std::vector<std::vector<UBlock> > U_;
 
@@ -591,8 +593,6 @@ namespace PEXSI{
       /// @brief SelInvIntra_P2p
       inline void SelInvIntra_P2p(Int lidx);
 
-      /// @brief SelInv_lookup_indexes
-      inline void SelInv_lookup_indexes(const Int ksup, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf,NumMat<Scalar> & LUpdateBuf);
 
       /// @brief SelInv_lookup_indexes
       inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf);
@@ -649,6 +649,11 @@ namespace PEXSI{
 
       /// @brief NumLocalBlockRow returns the total number of block rows.
       Int NumLocalBlockRow() const { return CEILING( this->NumSuper(), grid_->numProcRow); }
+
+
+      std::vector<Int> & ColBlockIdx(Int jLocal) { return ColBlockIdx_[jLocal]; }
+      std::vector<Int> & RowBlockIdx(Int iLocal) { return RowBlockIdx_[iLocal]; }
+
 
       /// @brief NumBlockL returns the number of nonzero L blocks for the
       /// local block column jLocal.

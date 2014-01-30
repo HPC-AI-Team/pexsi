@@ -49,12 +49,14 @@
 #define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
 #define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 
 
-#define MPI_MAX_COMM (8192/4)
+#define MPI_MAX_COMM (1024)
 #define BCAST_THRESHOLD 20
 
 #define MOD(a,b) \
   ( ((a)%(b)+(b))%(b))
 
+#define LIST_BARRIER
+//#define ALL_BARRIER
 
 namespace PEXSI{
   GridType::GridType	( MPI_Comm Bcomm, int nprow, int npcol )
@@ -132,6 +134,10 @@ namespace PEXSI{
 
     L_.resize( this->NumLocalBlockCol() );
     U_.resize( this->NumLocalBlockRow() );
+
+    ColBlockIdx_.resize( this->NumLocalBlockCol() );
+    RowBlockIdx_.resize( this->NumLocalBlockRow() );
+
     //workingSet_.resize(this->NumSuper());
 #if ( _DEBUGlevel_ >= 1 )
     statusOFS << std::endl << "PMatrix is constructed. The grid information: " << std::endl;
@@ -173,191 +179,6 @@ namespace PEXSI{
     maxCommSizes_.Resize(maxSizes.m());
     SetValue(maxCommSizes_,I_ONE);
     MPI_Allreduce( maxSizes.Data(), maxCommSizes_.Data(), maxSizes.m(), MPI_INT, MPI_MAX, grid_->comm );
-  }
-
-  inline  void PMatrix::SelInv_lookup_indexes(
-      const Int ksup, std::vector<LBlock> & LcolRecv,  
-      std::vector<UBlock> & UrowRecv, 
-      NumMat<Scalar> & AinvBuf,
-      NumMat<Scalar> & UBuf,
-      NumMat<Scalar> & LUpdateBuf )
-  {
-    TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
-
-    // rowPtr[ib] gives the row index in LUpdateBuf for the first
-    // nonzero row in LcolRecv[ib]. The total number of rows in
-    // LUpdateBuf is given by rowPtr[end]-1
-    std::vector<Int> rowPtr(LcolRecv.size() + 1);
-    // colPtr[jb] gives the column index in UBuf for the first
-    // nonzero column in UrowRecv[jb]. The total number of rows in
-    // UBuf is given by colPtr[end]-1
-    std::vector<Int> colPtr(UrowRecv.size() + 1);
-
-    rowPtr[0] = 0;
-    for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
-      rowPtr[ib+1] = rowPtr[ib] + LcolRecv[ib].numRow;
-    }
-    colPtr[0] = 0;
-    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-      colPtr[jb+1] = colPtr[jb] + UrowRecv[jb].numCol;
-    }
-
-    Int numRowAinvBuf = *rowPtr.rbegin();
-    Int numColAinvBuf = *colPtr.rbegin();
-
-    // Allocate for the computational storage
-    AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
-
-    LUpdateBuf.Resize( numRowAinvBuf, SuperSize( ksup, super_ ) );
-    UBuf.Resize( SuperSize( ksup, super_ ), numColAinvBuf );
-
-    // Fill UBuf first.  Make the transpose later in the Gemm phase.
-    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-      UBlock& UB = UrowRecv[jb];
-      if( UB.numRow != SuperSize(ksup, super_) ){
-        throw std::logic_error( "The size of UB is not right.  Something is seriously wrong." );
-      }
-      lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
-          UB.numRow, UBuf.VecData( colPtr[jb] ), UBuf.m() );	
-    }
-
-    // Calculate the relative indices for (isup, jsup)
-    // Fill AinvBuf with the information in L or U block.
-    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-      for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
-        LBlock& LB = LcolRecv[ib];
-        UBlock& UB = UrowRecv[jb];
-        Int isup = LB.blockIdx;
-        Int jsup = UB.blockIdx;
-        Scalar* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
-        Int     ldAinv    = AinvBuf.m();
-
-        // Pin down the corresponding block in the part of Sinv.
-        if( isup >= jsup ){
-          std::vector<LBlock>&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-          bool isBlockFound = false;
-          for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
-            // Found the (isup, jsup) block in Sinv
-            if( LcolSinv[ibSinv].blockIdx == isup ){
-              LBlock& SinvB = LcolSinv[ibSinv];
-
-              // Row relative indices
-              std::vector<Int> relRows( LB.numRow );
-              Int* rowsLBPtr    = LB.rows.Data();
-              Int* rowsSinvBPtr = SinvB.rows.Data();
-              for( Int i = 0; i < LB.numRow; i++ ){
-                bool isRowFound = false;
-                for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
-                  if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
-                    isRowFound = true;
-                    relRows[i] = i1;
-                    break;
-                  }
-                }
-                if( isRowFound == false ){
-                  std::ostringstream msg;
-                  msg << "Row " << rowsLBPtr[i] << 
-                    " in LB cannot find the corresponding row in SinvB" << std::endl
-                    << "LB.rows    = " << LB.rows << std::endl
-                    << "SinvB.rows = " << SinvB.rows << std::endl;
-                  throw std::runtime_error( msg.str().c_str() );
-                }
-              }
-
-              // Column relative indicies
-              std::vector<Int> relCols( UB.numCol );
-              Int SinvColsSta = FirstBlockCol( jsup, super_ );
-              for( Int j = 0; j < UB.numCol; j++ ){
-                relCols[j] = UB.cols[j] - SinvColsSta;
-              }
-
-              // Transfer the values from Sinv to AinvBlock
-              Scalar* nzvalSinv = SinvB.nzval.Data();
-              Int     ldSinv    = SinvB.numRow;
-              for( Int j = 0; j < UB.numCol; j++ ){
-                for( Int i = 0; i < LB.numRow; i++ ){
-                  nzvalAinv[i+j*ldAinv] =
-                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
-                }
-              }
-
-              isBlockFound = true;
-              break;
-            }	
-          } // for (ibSinv )
-          if( isBlockFound == false ){
-            std::ostringstream msg;
-            msg << "Block(" << isup << ", " << jsup 
-              << ") did not find a matching block in Sinv." << std::endl;
-            throw std::runtime_error( msg.str().c_str() );
-          }
-        } // if (isup, jsup) is in L
-        else{
-          std::vector<UBlock>&   UrowSinv = this->U( LBi( isup, grid_ ) );
-          bool isBlockFound = false;
-          for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
-            // Found the (isup, jsup) block in Sinv
-            if( UrowSinv[jbSinv].blockIdx == jsup ){
-              UBlock& SinvB = UrowSinv[jbSinv];
-
-              // Row relative indices
-              std::vector<Int> relRows( LB.numRow );
-              Int SinvRowsSta = FirstBlockCol( isup, super_ );
-              for( Int i = 0; i < LB.numRow; i++ ){
-                relRows[i] = LB.rows[i] - SinvRowsSta;
-              }
-
-              // Column relative indices
-              std::vector<Int> relCols( UB.numCol );
-              Int* colsUBPtr    = UB.cols.Data();
-              Int* colsSinvBPtr = SinvB.cols.Data();
-              for( Int j = 0; j < UB.numCol; j++ ){
-                bool isColFound = false;
-                for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
-                  if( colsUBPtr[j] == colsSinvBPtr[j1] ){
-                    isColFound = true;
-                    relCols[j] = j1;
-                    break;
-                  }
-                }
-                if( isColFound == false ){
-                  std::ostringstream msg;
-                  msg << "Col " << colsUBPtr[j] << 
-                    " in UB cannot find the corresponding row in SinvB" << std::endl
-                    << "UB.cols    = " << UB.cols << std::endl
-                    << "UinvB.cols = " << SinvB.cols << std::endl;
-                  throw std::runtime_error( msg.str().c_str() );
-                }
-              }
-
-
-              // Transfer the values from Sinv to AinvBlock
-              Scalar* nzvalSinv = SinvB.nzval.Data();
-              Int     ldSinv    = SinvB.numRow;
-              for( Int j = 0; j < UB.numCol; j++ ){
-                for( Int i = 0; i < LB.numRow; i++ ){
-                  nzvalAinv[i+j*ldAinv] =
-                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
-                }
-              }
-
-              isBlockFound = true;
-              break;
-            }
-          } // for (jbSinv)
-          if( isBlockFound == false ){
-            std::ostringstream msg;
-            msg << "Block(" << isup << ", " << jsup 
-              << ") did not find a matching block in Sinv." << std::endl;
-            throw std::runtime_error( msg.str().c_str() );
-          }
-        } // if (isup, jsup) is in U
-
-      } // for( ib )
-    } // for ( jb )
-
-
-    TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
   }
 
   inline  void PMatrix::SelInv_lookup_indexes(
@@ -446,6 +267,7 @@ namespace PEXSI{
         if( isup >= jsup ){
           std::vector<LBlock>&  LcolSinv = this->L( LBj(jsup, grid_ ) );
           bool isBlockFound = false;
+          TIMER_START(PARSING_ROW_BLOCKIDX);
           for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
             // Found the (isup, jsup) block in Sinv
             if( LcolSinv[ibSinv].blockIdx == isup ){
@@ -492,6 +314,7 @@ namespace PEXSI{
               break;
             }	
           } // for (ibSinv )
+          TIMER_STOP(PARSING_ROW_BLOCKIDX);
           if( isBlockFound == false ){
             std::ostringstream msg;
             msg << "Block(" << isup << ", " << jsup 
@@ -508,6 +331,7 @@ namespace PEXSI{
           }
           std::vector<UBlock>&   UrowSinv = this->U( LBi( isup, grid_ ) );
           bool isBlockFound = false;
+          TIMER_START(PARSING_COL_BLOCKIDX);
           for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
             // Found the (isup, jsup) block in Sinv
             if( UrowSinv[jbSinv].blockIdx == jsup ){
@@ -556,6 +380,7 @@ namespace PEXSI{
               break;
             }
           } // for (jbSinv)
+          TIMER_STOP(PARSING_COL_BLOCKIDX);
           if( isBlockFound == false ){
             std::ostringstream msg;
             msg << "Block(" << isup << ", " << jsup 
@@ -580,6 +405,7 @@ namespace PEXSI{
         if( isup >= jsup ){
           std::vector<LBlock>&  LcolSinv = this->L( LBj(jsup, grid_ ) );
           bool isBlockFound = false;
+          TIMER_START(PARSING_ROW_BLOCKIDX);
           for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
             // Found the (isup, jsup) block in Sinv
             if( LcolSinv[ibSinv].blockIdx == isup ){
@@ -629,6 +455,7 @@ namespace PEXSI{
               break;
             }	
           } // for (ibSinv )
+          TIMER_STOP(PARSING_ROW_BLOCKIDX);
           if( isBlockFound == false ){
             std::ostringstream msg;
             msg << "Block(" << isup << ", " << jsup 
@@ -639,6 +466,7 @@ namespace PEXSI{
         else{
           std::vector<UBlock>&   UrowSinv = this->U( LBi( isup, grid_ ) );
           bool isBlockFound = false;
+          TIMER_START(PARSING_COL_BLOCKIDX);
           for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
             // Found the (isup, jsup) block in Sinv
             if( UrowSinv[jbSinv].blockIdx == jsup ){
@@ -689,6 +517,7 @@ namespace PEXSI{
               break;
             }
           } // for (jbSinv)
+          TIMER_STOP(PARSING_COL_BLOCKIDX);
           if( isBlockFound == false ){
             std::ostringstream msg;
             msg << "Block(" << isup << ", " << jsup 
@@ -1932,9 +1761,15 @@ namespace PEXSI{
     TIMER_STOP(Barrier);
 
 
-    if (options_->maxPipelineDepth!=-1){
-      MPI_Barrier(grid_->comm);
-    }
+#ifdef LIST_BARRIER
+#ifndef ALL_BARRIER
+      if (options_->maxPipelineDepth!=-1)
+#endif
+      {
+        MPI_Barrier(grid_->comm);
+      }
+#endif
+
   }
 
   inline void PMatrix::SelInvIntra_Collectives(Int lidx)
@@ -2315,9 +2150,14 @@ namespace PEXSI{
 
       TIMER_STOP(Update_L);
 
-      if (options_->maxPipelineDepth!=-1){
+#ifdef LIST_BARRIER
+#ifndef ALL_BARRIER
+      if (options_->maxPipelineDepth!=-1)
+#endif
+      {
         MPI_Barrier(grid_->comm);
       }
+#endif
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -2413,88 +2253,6 @@ TIMER_STOP(GetEtree);
 
     localColBlockRowIdx.resize( this->NumLocalBlockCol() );
 
-//first compute global size
-///TIMER_START(Column_communication_Packed);
-///    std::stringstream sstm;
-///    Int arrTBlockRowIdxSize = 0;
-///    for( Int ksup = 0; ksup < numSuper; ksup++ ){
-///      if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-///        std::vector<LBlock>& Lcol = this->L( LBj(ksup, grid_) );
-///        std::vector<UBlock>& Urow = this->U( LBi(ksup, grid_) );
-///        //arrTBlockRowIdxSize += Lcol.size() + Urow.size(); 
-///        arrTBlockRowIdxSize += 1;
-///      }
-///    }
-///
-///    std::vector<Int> maskLcol( LBlockMask::BLOCKIDX, 1 );
-///    std::vector<Int> maskUrow( UBlockMask::BLOCKIDX, 1 );
-///    serialize( arrTBlockRowIdxSize, sstm, NO_MASK );
-///    for( Int ksup = 0; ksup < numSuper; ksup++ ){
-///      if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-///        serialize( ksup, sstm, NO_MASK );
-///        std::vector<LBlock>& Lcol = this->L( LBj(ksup, grid_) );
-///        std::vector<UBlock>& Urow = this->U( LBi(ksup, grid_) );
-///
-///
-///
-///        std::vector<Int>  tBlockRowIdx;
-///        // L part
-///        for( Int ib = 0; ib < Lcol.size(); ib++ ){
-///          tBlockRowIdx.push_back( Lcol[ib].blockIdx );
-///        }
-///
-///        // U part
-///        for( Int ib = 0; ib < this->NumLocalBlockRow(); ib++ ){
-///          std::vector<UBlock>& Urow = this->U(ib);
-///          for( Int jb = 0; jb < Urow.size(); jb++ ){
-///            if( Urow[jb].blockIdx == ksup ){
-///              tBlockRowIdx.push_back( GBi( ib, grid_ ) );
-///            }
-///          }
-///        }
-///
-///        serialize( tBlockRowIdx, sstm, NO_MASK );
-///
-///        statusOFS<<"W ["<<ksup<<"]"; for(int j = 0; j<tBlockRowIdx.size();j++){statusOFS<<tBlockRowIdx[j]<<" ";} statusOFS<<std::endl;
-///      }
-///    }
-///    Int sstrSize = Size(sstm);
-///    std::vector<char> sstr(sstrSize);
-///    sstm.read((char*)&sstr[0],sstrSize);
-///
-///
-///    // Communication
-///    std::vector<char> allSstr;
-///TIMER_START(Allgatherv);
-///    mpi::Allgatherv( sstr, allSstr, grid_->colComm );
-///TIMER_STOP(Allgatherv);
-///
-///    
-///    sstm.clear();
-///    sstm.write(&allSstr[0],allSstr.size());
-///    Int readBytes = 0;
-///    while(readBytes < allSstr.size()){
-///      deserialize( arrTBlockRowIdxSize, sstm, NO_MASK );
-///      for(Int i = 0; i< arrTBlockRowIdxSize; i++){
-///        Int ksup;
-///        deserialize( ksup, sstm, NO_MASK );
-///
-///        std::vector<Int>  tBlockRowIdx;
-///        deserialize( tBlockRowIdx, sstm, NO_MASK );
-///      statusOFS<<"R ["<<ksup<<"]"; for(int j = 0; j<tBlockRowIdx.size();j++){statusOFS<<tBlockRowIdx[j]<<" ";} statusOFS<<std::endl;
-///
-///        localColBlockRowIdx[LBj( ksup, grid_ )].insert(
-///            tBlockRowIdx.begin(), tBlockRowIdx.end() );
-///      }
-///      readBytes+=sstm.tellg();
-///      statusOFS<<"Read "<<readBytes<<" / "<<allSstr.size()<<" bytes"<<std::endl;
-///    } 
-///    sstm.clear();
-///    allSstr.clear();
-///    sstr.clear();
-///
-///TIMER_STOP(Column_communication_Packed);
-
 
 TIMER_START(Column_communication);
 
@@ -2502,32 +2260,16 @@ TIMER_START(Column_communication);
     for( Int ksup = 0; ksup < numSuper; ksup++ ){
       // All block columns perform independently
       if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-        std::vector<Int>  tBlockRowIdx;
-        tBlockRowIdx.clear();
 
-        // L part
-        std::vector<LBlock>& Lcol = this->L( LBj(ksup, grid_) );
-        for( Int ib = 0; ib < Lcol.size(); ib++ ){
-          tBlockRowIdx.push_back( Lcol[ib].blockIdx );
-        }
-
-        // U part
-        for( Int ib = 0; ib < this->NumLocalBlockRow(); ib++ ){
-          std::vector<UBlock>& Urow = this->U(ib);
-          for( Int jb = 0; jb < Urow.size(); jb++ ){
-            if( Urow[jb].blockIdx == ksup ){
-              tBlockRowIdx.push_back( GBi( ib, grid_ ) );
-            }
-          }
-        }
 
         // Communication
         std::vector<Int> tAllBlockRowIdx;
+        std::vector<Int> & colBlockIdx = ColBlockIdx(LBj(ksup, grid_));
 TIMER_START(Allgatherv_Column_communication);
         if( grid_ -> mpisize != 1 )
-          mpi::Allgatherv( tBlockRowIdx, tAllBlockRowIdx, grid_->colComm );
+          mpi::Allgatherv( colBlockIdx, tAllBlockRowIdx, grid_->colComm );
         else
-          tAllBlockRowIdx = tBlockRowIdx;
+          tAllBlockRowIdx = colBlockIdx;
 
 TIMER_STOP(Allgatherv_Column_communication);
 
@@ -2573,32 +2315,15 @@ TIMER_START(Row_communication);
     for( Int ksup = 0; ksup < numSuper; ksup++ ){
       // All block columns perform independently
       if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
-        std::vector<Int>  tBlockColIdx;
-        tBlockColIdx.clear();
-
-        // U part
-        std::vector<UBlock>& Urow = this->U( LBi(ksup, grid_) );
-        for( Int jb = 0; jb < Urow.size(); jb++ ){
-          tBlockColIdx.push_back( Urow[jb].blockIdx );
-        }
-
-        // L part
-        for( Int jb = 0; jb < this->NumLocalBlockCol(); jb++ ){
-          std::vector<LBlock>& Lcol = this->L(jb);
-          for( Int ib = 0; ib < Lcol.size(); ib++ ){
-            if( Lcol[ib].blockIdx == ksup ){
-              tBlockColIdx.push_back( GBj( jb, grid_ ) );
-            }
-          }
-        }
 
         // Communication
         std::vector<Int> tAllBlockColIdx;
+        std::vector<Int> & rowBlockIdx = RowBlockIdx(LBi(ksup, grid_));
 TIMER_START(Allgatherv_Row_communication);
         if( grid_ -> mpisize != 1 )
-          mpi::Allgatherv( tBlockColIdx, tAllBlockColIdx, grid_->rowComm );
+          mpi::Allgatherv( rowBlockIdx, tAllBlockColIdx, grid_->rowComm );
         else
-          tAllBlockColIdx = tBlockColIdx;
+          tAllBlockColIdx = rowBlockIdx;
 
 TIMER_STOP(Allgatherv_Row_communication);
 

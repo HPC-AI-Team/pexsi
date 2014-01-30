@@ -715,16 +715,28 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 
 		Int cnt = 0;                                // Count for the index in LUstruct
 		Int cntval = 0;                             // Count for the nonzero values
+    Int cntidx = 0;                             // Count for the nonzero block indexes
 		const Int* index = Llu->Lrowind_bc_ptr[jb];
 		if( index ){ 
 			// Not an empty column, start a new column then.
 			std::vector<LBlock>& Lcol = PMloc.L(jb);
 			Lcol.resize( index[cnt++] );
+
+ 
 			Int lda = index[cnt++];
+
+			std::vector<Int>& ColBlockIdx = PMloc.ColBlockIdx(jb);
 
 			for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
 				LBlock& LB     = Lcol[iblk];
 				LB.blockIdx    = index[cnt++];
+
+        ColBlockIdx.push_back(LB.blockIdx);
+
+        Int LBi = LB.blockIdx / grid->numProcRow; 
+        PMloc.RowBlockIdx( LBi ).push_back( bnum );
+
+
 				LB.numRow      = index[cnt++];
 				LB.numCol      = super->superPtr[bnum+1] - super->superPtr[bnum];
 				LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
@@ -748,6 +760,8 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 #endif 
 
 			} // for(iblk)
+
+
 		}  // if(index)
 	} // for(jb)
 #ifndef _RELEASE_
@@ -767,6 +781,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 
 		Int cnt = 0;                                // Count for the index in LUstruct
 		Int cntval = 0;                             // Count for the nonzero values
+    Int cntidx = 0;                             // Count for the nonzero block indexes
 		const Int*    index = Llu->Ufstnz_br_ptr[ib]; 
 		const Scalar* pval  = reinterpret_cast<const Scalar*>(Llu->Unzval_br_ptr[ib]);
 		if( index ){ 
@@ -776,11 +791,22 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 			Urow.resize( index[cnt++] );
 			cnt = BR_HEADER;
 
+			std::vector<Int>& RowBlockIdx = PMloc.RowBlockIdx(ib);
+
 			std::vector<Int> cols;                    //Save the nonzero columns in the current block
 			for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
 				cols.clear();
 				UBlock& UB = Urow[jblk];
 				UB.blockIdx = index[cnt];
+
+
+        RowBlockIdx.push_back(UB.blockIdx);
+
+        Int LBj = UB.blockIdx / grid->numProcCol; 
+        PMloc.ColBlockIdx( LBj ).push_back( bnum );
+
+
+
 				UB.numRow = super->superPtr[bnum+1] - super->superPtr[bnum];
 				cnt += UB_DESCRIPTOR;
 				for( Int j = FirstBlockCol( UB.blockIdx, super ); 
