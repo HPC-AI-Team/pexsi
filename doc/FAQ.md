@@ -10,16 +10,17 @@ A: %PEXSI may not necessarily be faster than the diagonalization method or
 other competitive methods.  The simplest way to see whether %PEXSI
 brings acceleration for your applications is to use %PEXSI to compute
 the selected elements of the inverse for a typical matrix from your
-applications.  See @ref pagePselinvComplex and @ref driver_pselinv.c for
+applications.  See @ref pagePselinvComplex and @ref
+driver_pselinv_complex.c for
 how to do this.
 
-**Q: How do I only use the selected inversion routine?**
+**Q: Can I just use the selected inversion routine?**
 
 A: The parallel selected inversion (PSelInv) is a standalone routine.
 See @ref pagePselinvComplex for an example.
 
 
-**Q: Does %PEXSI bring any advantage if the matrix is dense?**
+**Q: Does %PEXSI accelerate dense matrix computation?**
 
 A: No.  The acceleration is based on the sparsity of the LU factor or
 the Cholesky factor.  %PEXSI should not be fast if the matrix is dense
@@ -32,6 +33,20 @@ We plan to support asymmetric matrices in the future.  If you have
 applications in mind and %PEXSI may bring significant acceleration to
 your application, please contact us as in @ref pageTrouble, with some
 description of your matrix and application.
+
+**Q: I only found the driver routine for selected inversion of complex
+symmetric matrices.  Why %PEXSI does not provide driver routines for
+real arithmetic selected inversion?**
+
+A: Real arithmetic selected inversion *is available* in %PEXSI.
+However, due to legacy reason it is not available in an intuitive way,
+and therefore we do not provide the driver routine in the first release.
+We plan to make major change of the structure of the code in the next
+version.  If you need the real version of selected inversion, the
+easiest workaround is to use the complex arithmetic interface.  If speed
+is crucial for your application, please contact us as in @ref
+pageTrouble, with some description of your matrix and application.
+
 
 Installation
 ------------

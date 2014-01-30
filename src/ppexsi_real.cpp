@@ -62,12 +62,6 @@
 
 extern "C"{
 void
-pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
-		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
-		int *info, double *totalMemory, double *maxMemory );
-
-void
 pdsymbfact(superlu_options_t *options, SuperMatrix *A, 
 		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
 		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
@@ -455,221 +449,247 @@ void PPEXSIData::CalculateNegativeInertiaReal(
   return ;
 } 		// -----  end of method PPEXSIData::CalculateNegativeInertiaReal ----- 
 
-
-//extern "C" 
-//void PPEXSISelInvInterfaceReal (
-//		// Input parameters
-//		int           nrows,                        // Size of the matrix
-//	  int           nnz,                          // Total number of nonzeros in H
-//		int           nnzLocal,                     // Number of nonzeros in H on this proc
-//		int           numColLocal,                  // Number of local columns for H
-//		int*          colptrLocal,                  // Colomn pointer in CSC format
-//		int*          rowindLocal,                  // Row index pointer in CSC format
-//		double*       HnzvalLocal,                  // Nonzero value of H in CSC format
-//		int           isSIdentity,                  // Whether S is an identity matrix. If so, the variable SnzvalLocal is omitted.
-//		double*       SnzvalLocal,                  // Nonzero falue of S in CSC format
-//		double        rShift,                       // Shift (real)
-//		int           ordering,                     // SuperLUDIST ordering
-//		int           npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
-//	  MPI_Comm	    comm,                         // Overall MPI communicator
-//		// Output parameters
-//		double*       AinvnzvalLocal,               // Nonzero value of Ainv = (H - z S)^{-1}
-//		int*          info                          // 0: successful exit.  1: unsuccessful
-//		)
+//extern "C"
+//void PSelInvRealSymmetricInterface ( 
+//    int           nrows,                        
+//    int           nnz,                          
+//    int           nnzLocal,                     
+//    int           numColLocal,                  
+//    int*          colptrLocal,                  
+//    int*          rowindLocal,                  
+//    double*       AnzvalLocal,                  
+//    int           ordering,                
+//    int           npSymbFact,                   
+//    MPI_Comm	    comm,                         
+//    int           nprow,
+//    int           npcol,
+//    double*       AinvnzvalLocal,
+//    int*          info
+//    )
 //{
-//  Int mpirank, mpisize;
-//  MPI_Comm_rank( comm, &mpirank );
-//  MPI_Comm_size( comm, &mpisize );
-//  Real timeSta, timeEnd;
+//	Int mpirank, mpisize;
+//	MPI_Comm_rank( comm, &mpirank );
+//	MPI_Comm_size( comm, &mpisize );
+//	Real timeSta, timeEnd;
+//	
+//
+//	// log files
+//	std::stringstream  ss;
+//	ss << "logPEXSI" << mpirank;
+//	// append to previous log files
+//	statusOFS.open( ss.str().c_str(), std::ios_base::app );
+//		
+//
+//	try{
+//		if( mpisize != nprow * npcol ){
+//			throw std::runtime_error( " mpisize != nprow * npcol ." );
+//		}
+//
+//    SuperMatrix         A;
+//    superlu_options_t   options;
+//    ScalePermstruct_t   ScalePermstruct;          
+//    gridinfo_t*         grid;
+//    LUstruct_t          LUstruct;
+//    SOLVEstruct_t       SOLVEstruct;
+//    SuperLUStat_t       stat;
+//    Int                 info;
+//
+//    // Initialize the SuperLU grid
+//    // Note: cannot use gridSuperLU_ because of the pImpl treatment.
+//    // Here it assumes that gridSuperLU_ and gridSelInv_ follow the same
+//    // distribution.
+//
+//    grid = new gridinfo_t;
+//    superlu_gridinit( comm, nprow, npcol, grid );
+//
+//    // Set SuperLU options
+//    set_default_options_dist(&options);
+//
+//    // The default value of ColPerm uses the default value from SuperLUOptions
+//    options.Fact              = DOFACT;
+//    options.RowPerm           = NOROWPERM; // IMPORTANT for symmetric matrices
+//    options.IterRefine        = NOREFINE;
+//    options.ParSymbFact       = NO;
+//    options.Equil             = NO; 
+//    options.ReplaceTinyPivot  = NO;
+//    // For output information such as # of nonzeros in L and U
+//    // and the memory cost, set PrintStat = YES
+//    options.PrintStat         = NO;
+//    options.SolveInitialized  = NO;
+//
+//		switch (ordering){
+//			case 0:
+//        options.ColPerm           = PARMETIS;
+//        options.ParSymbFact       = YES;
+//				break;
+//			case 1:
+//        options.ColPerm           = METIS_AT_PLUS_A;
+//				break;
+//			case 2:
+//        options.ColPerm           = MMD_AT_PLUS_A;
+//				break;
+//			default:
+//				throw std::logic_error("Unsupported ordering strategy.");
+//		}
 //
 //
-//  // log files
-//  std::stringstream  ss;
-//  ss << "logPEXSI" << mpirank;
-//  // append to previous log files
-//  statusOFS.open( ss.str().c_str(), std::ios_base::app );
+//		// *********************************************************************
+//		// Symbolic factorization 
+//		// *********************************************************************
 //
-//
-//  try{
-//    Int nprow = iround( std::sqrt( (double)mpisize) );
-//    Int npcol = mpisize / nprow;
-//    if( mpisize != nprow * npcol || nprow != npcol ){
-//      throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
-//    }
-//
-//    SuperLUGrid g( comm, nprow, npcol );
-//
-//
-//    // Convert into H and S matrices
-//    DistSparseMatrix<Real> HMat, SMat;
-//
-//    // The first row processors (size: npPerPole) read the matrix, and
-//    // then distribute the matrix to the rest of the processors.
-//    //
-//    // NOTE: The first row processor must have data for H/S.
+//    // Generate the data pattern for the SuperMatrix A
 //    {
-//      HMat.size        = nrows;
-//      HMat.nnz         = nnz;
-//      HMat.nnzLocal    = nnzLocal;
-//      // The first row processor does not need extra copies of the index /
-//      // value of the matrix. 
-//      HMat.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
-//      HMat.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
-//      // H value
-//      HMat.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
-//      HMat.comm        = comm;
+//      Int numRowLocal = numColLocal;
+//      Int numRowLocalFirst = nrows / mpisize;
+//      Int firstRow = mpirank * numRowLocalFirst;
 //
-//      // S value
-//      if( isSIdentity ){
-//        SMat.size = 0;
-//        SMat.nnz  = 0;
-//        SMat.nnzLocal = 0;
-//        SMat.comm = HMat.comm;
+//      int_t *colindLocal, *rowptrLocal;
+//      double *nzvalLocal;
+//      rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
+//      colindLocal = (int_t*)intMalloc_dist(nnzLocal); 
+//      nzvalLocal  = (double*)doubleMalloc_dist(nnzLocal);
+//
+//      std::copy( colptrLocal, colptrLocal + numColLocal + 1,
+//          rowptrLocal );
+//      std::copy( rowindLocal, rowindLocal + nnzLocal,
+//          colindLocal );
+//
+//      // Important to adjust from FORTRAN convention (1 based) to C
+//      // convention (0 based) indices
+//      for(Int i = 0; i < nnzLocal; i++){
+//        colindLocal[i]--;
 //      }
-//      else{
-//        CopyPattern( HMat, SMat );
-//        SMat.comm = comm;
-//        SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+//
+//      for(Int i = 0; i < numColLocal + 1; i++){
+//        rowptrLocal[i]--;
 //      }
+//
+//      // Construct the distributed matrix according to the SuperLU_DIST format
+//      dCreate_CompRowLoc_Matrix_dist(&A, nrows, nrows, nnzLocal, 
+//          numRowLocal, firstRow,
+//          nzvalLocal, colindLocal, rowptrLocal,
+//          SLU_NR_loc, SLU_D, SLU_GE);
 //    }
 //
-//    // Get the diagonal indices for H and save it n diagIdxLocal
+//    GetTime( timeSta );
+//    // Symbolic factorization
+//    {
+//      ScalePermstructInit(A.nrow, A.ncol, &ScalePermstruct);
+//      LUstructInit(A.nrow, A.ncol, &LUstruct);
 //
-//    std::vector<Int>  diagIdxLocal;
-//    { 
-//      Int numColLocal      = HMat.colptrLocal.m() - 1;
-//      Int numColLocalFirst = HMat.size / mpisize;
-//      Int firstCol         = mpirank * numColLocalFirst;
+//      PStatInit(&stat);
+//#if ( _DEBUGlevel_ >= 1 )
+//      statusOFS << "Before symbfact subroutine." << std::endl;
+//#endif
 //
-//      diagIdxLocal.clear();
+//      double totalMemory, maxMemory;
 //
-//      for( Int j = 0; j < numColLocal; j++ ){
-//        Int jcol = firstCol + j + 1;
-//        for( Int i = HMat.colptrLocal(j)-1; 
-//            i < HMat.colptrLocal(j+1)-1; i++ ){
-//          Int irow = HMat.rowindLocal(i);
-//          if( irow == jcol ){
-//            diagIdxLocal.push_back( i );
-//          }
-//        }
-//      } // for (j)
+//      pdsymbfact(&options, &A, &ScalePermstruct, grid, 
+//          &LUstruct, &stat, &numProcSymbFact, &info,
+//          &totalMemory, &maxMemory);
+//      PStatFree(&stat);
+//
+//#if ( _DEBUGlevel_ >= 0 )
+//      statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
+//      statusOFS << "Total: " << totalMemory << ", Average: " << 
+//        totalMemory / ( grid->nprow * grid->npcol )
+//        << ", Max: " << maxMemory << std::endl << std::endl;
+//#endif
 //    }
+//#if ( _DEBUGlevel_ >= 1 )
+//    statusOFS << "Symbolic factorization is finished." << std::endl;
+//#endif
 //
+//    GetTime( timeEnd );
+//#if ( _DEBUGlevel_ >= 0 )
+//    statusOFS << "Time for symbolic factorization is " <<
+//      timeEnd - timeSta << " [s]" << std::endl << std::endl;
+//#endif
+//		
+//    // *********************************************************************
+//		// Numerical factorization
+//		// *********************************************************************
+//    GetTime( timeSta );
 //
-//    DistSparseMatrix<Complex>  AMat;
-//    AMat.size          = HMat.size;
-//    AMat.nnz           = HMat.nnz;
-//    AMat.nnzLocal      = HMat.nnzLocal;
-//    AMat.colptrLocal   = HMat.colptrLocal;
-//    AMat.rowindLocal   = HMat.rowindLocal;
-//    AMat.nzvalLocal.Resize( HMat.nnzLocal );
-//    AMat.comm          = comm;
+//    // Numerical factorization
+//#if ( _DEBUGlevel_ >= 1 )
+//    statusOFS << "Before NumericalFactorize." << std::endl;
+//#endif
+//    {
+//      // Estimate the 1-norm
+//      char norm[1]; *norm = '1';
+//      double anorm = pdlangs( norm, &A, grid );
 //
-//    Complex *ptr0 = AMat.nzvalLocal.Data();
-//    Real *ptr1 = HMat.nzvalLocal.Data();
-//    Real *ptr2 = SMat.nzvalLocal.Data();
-//    Complex zshift = Complex(zShift[0], zShift[1]);
-//
-//    if( SMat.size != 0 ){
-//      // S is not an identity matrix
-//      for( Int i = 0; i < HMat.nnzLocal; i++ ){
-//        AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift * SMat.nzvalLocal(i);
+//      PStatInit(&stat);
+//      pdgstrf(&options, A.nrow, A.ncol, 
+//          anorm, &LUstruct, grid, &stat, &info); 
+//      PStatFree(&stat);
+//      if( info ){
+//        std::ostringstream msg;
+//        msg << "Numerical factorization error, info =  " << info << std::endl;
+//        throw std::runtime_error( msg.str().c_str() );
 //      }
 //    }
-//    else{
-//      // S is an identity matrix
-//      for( Int i = 0; i < HMat.nnzLocal; i++ ){
-//        AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
-//      }
+//#if ( _DEBUGlevel_ >= 1 )
+//    statusOFS << "After NumericalFactorize." << std::endl;
+//#endif
 //
-//      for( Int i = 0; i < diagIdxLocal.size(); i++ ){
-//        AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
-//      }
-//    } // if (SMat.size != 0 )
+//    GetTime( timeEnd );
 //
-//    std::string colPerm;
-//    switch (ordering){
-//      case 0:
-//        colPerm = "PARMETIS";
-//        break;
-//      case 1:
-//        colPerm = "METIS_AT_PLUS_A";
-//        break;
-//      case 2:
-//        colPerm = "MMD_AT_PLUS_A";
-//        break;
-//      default:
-//        throw std::logic_error("Unsupported ordering strategy.");
-//    }
+//#if ( _DEBUGlevel_ >= 0 )
+//    statusOFS << "Time for total factorization is " 
+//      << timeEnd - timeSta << " [s]" << std::endl; 
+//#endif
 //
 //
-//    // *********************************************************************
-//    // Symbolic factorization 
-//    // *********************************************************************
-//
-//    SuperLUOptions luOpt;
-//    luOpt.ColPerm = colPerm;
-//    luOpt.numProcSymbFact = npSymbFact;
-//    // TODO Introduce maxPipelineDepth as an adjustable parameter when needed.
-//    luOpt.maxPipelineDepth = -1;
-//
-//    SuperLUMatrix luMat( g, luOpt );
-//    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
-//
-//    luMat.SymbolicFactorize();
-//    luMat.DestroyAOnly();
-//    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
-//    luMat.Distribute();
-//    luMat.NumericalFactorize();
-//
-//    // *********************************************************************
-//    // Selected inversion
-//    // *********************************************************************
+//		// *********************************************************************
+//		// Selected inversion
+//		// *********************************************************************
 //
 //#if ( _DEBUGlevel_ >= 1 )
 //    statusOFS << "After numerical factorization." << std::endl;
 //#endif
 //
-//    GridType g1( comm, nprow, npcol );
-//    SuperNodeType super;
+//		GridType g1( comm, nprow, npcol );
+//		SuperNodeType super;
 //
-//    luMat.SymbolicToSuperNode( super );
-//    PMatrix PMloc( &g1, &super, &luOpt );
-//    luMat.LUstructToPMatrix( PMloc );
+//		luMat.SymbolicToSuperNode( super );
+//		PMatrix PMloc( &g1, &super, &luOpt );
+//		luMat.LUstructToPMatrix( PMloc );
 //
 //
 //    // P2p communication version
-//    PMloc.ConstructCommunicationPattern();
+//		PMloc.ConstructCommunicationPattern();
 //
 //    // Collective communication version
-//    //		PMloc.ConstructCommunicationPattern_Collectives();
+////		PMloc.ConstructCommunicationPattern_Collectives();
 //
-//    PMloc.PreSelInv();
+//		PMloc.PreSelInv();
 //
-//    // Main subroutine for selected inversion
-//    // Use the broadcast pipelined version of SelInv.
-//
+//		// Main subroutine for selected inversion
+//		// Use the broadcast pipelined version of SelInv.
+//    
 //    // P2p communication version
 //    PMloc.SelInv();
 //
 //    // Collective communication version
-//    //		PMloc.SelInv_Collectives();
+////		PMloc.SelInv_Collectives();
 //
 //#if ( _DEBUGlevel_ >= 1 )
 //    statusOFS << "After selected inversion." << std::endl;
 //#endif
 //
-//    DistSparseMatrix<Complex>  AinvMat;       // A^{-1} in DistSparseMatrix format
+//		DistSparseMatrix<Complex>  AinvMat;       // A^{-1} in DistSparseMatrix format
 //
-//    PMloc.PMatrixToDistSparseMatrix2( AMat, AinvMat );
+//		PMloc.PMatrixToDistSparseMatrix2( AMat, AinvMat );
 //#if ( _DEBUGlevel_ >= 1 )
 //    statusOFS << "After conversion to DistSparseMatrix." << std::endl;
 //#endif
 //
-//    // Convert the internal variables to output parameters
+//		// Convert the internal variables to output parameters
 //
-//    blas::Copy( nnzLocal*2, reinterpret_cast<double*>(AinvMat.nzvalLocal.Data()), 
-//        1, AinvnzvalLocal, 1 );
+//		blas::Copy( nnzLocal*2, reinterpret_cast<double*>(AinvMat.nzvalLocal.Data()), 
+//				1, AinvnzvalLocal, 1 );
 //
 //#if ( _DEBUGlevel_ >= 1 )
 //    statusOFS << "After copying the matrix of Ainv." << std::endl;
@@ -677,28 +697,28 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 //
 //
 //
-//    *info = 0;
-//  }
-//  catch( std::exception& e ) {
-//    statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
-//      << std::endl << e.what() << std::endl;
-//    //		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
-//    //			<< std::endl << e.what() << std::endl;
-//    *info = 1;
+//		*info = 0;
+//	}
+//	catch( std::exception& e ) {
+//		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+//			<< std::endl << e.what() << std::endl;
+////		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+////			<< std::endl << e.what() << std::endl;
+//		*info = 1;
 //#ifndef _RELEASE_
-//    DumpCallStack();
+//		DumpCallStack();
 //#endif
-//  }
+//	}
+//	
+//	// Synchronize the info among all processors. 
+//	// If any processor gets error message, info = 1
+//	Int infoAll = 0;
+//	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+//	*info = infoAll;
 //
-//  // Synchronize the info among all processors. 
-//  // If any processor gets error message, info = 1
-//  Int infoAll = 0;
-//  mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
-//  *info = infoAll;
-//
-//  statusOFS.close();
-//  return;
-//}  // -----  end of function PPEXSISelInvInterfaceReal ----- 
+//	statusOFS.close();
+//	return;
+//}  // -----  end of function PSelInvRealSymmetricInterface ----- 
 
 
 } //  namespace PEXSI

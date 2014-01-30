@@ -21,20 +21,19 @@ follows.
   /* Setup the input matrix in distributed compressed sparse column (CSC) format */ 
   ...;
   /* Main routine for computing selected elements and save into AinvnzvalLocal */
-  PPEXSISelInvInterface(
+  PSelInvComplexSymmetricInterface(
       nrows,
       nnz,
       nnzLocal,
       numColLocal,
       colptrLocal,
       rowindLocal,
-      HnzvalLocal,
-      isSIdentity,
-      SnzvalLocal,
-      zShift,
+      AnzvalLocal,
       ordering,
       npSymbFact,
       MPI_COMM_WORLD,
+      nprow,
+      npcol,
       AinvnzvalLocal,
       &info );
   ...;
@@ -54,8 +53,11 @@ same as the nonzero sparsity pattern of \f$H\f$.  Both `HnzvalLocal` and
 double array which is twice the size of  `HnzvalLocal` due to the usage
 of complex format.
 
-An example is given in driver_pselinv.c. See also @ref
-PPEXSISelInvInterface for detailed information of its usage.
+An example is given in driver_pselinv_complex.c. See also 
+@ref PSelInvComplexSymmetricInterface for detailed information of its usage.
+
+@note Currently there is no driver routine for real arithmetic selected
+inversion.  For the explanation of this please see the page @ref pageFAQ.
 
 
 

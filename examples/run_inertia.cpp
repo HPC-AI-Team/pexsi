@@ -76,10 +76,6 @@ int main(int argc, char **argv)
     // Input parameter
     // *********************************************************************
 
-    stringstream  ss;
-    ss << "logTest" << mpirank;
-    statusOFS.open( ss.str().c_str() );
-
     std::map<std::string,std::string> options;
     
     OptionsCreate(argc, argv, options);
@@ -162,9 +158,11 @@ int main(int argc, char **argv)
 			Sfile = options["-S"];
 		}
 		else{
-			statusOFS << "-S option is not given. " 
-				<< "Treat the overlap matrix as an identity matrix." 
-				<< std::endl << std::endl;
+      if( mpirank == 0 ){
+        std::cout << "-S option is not given. " 
+          << "Treat the overlap matrix as an identity matrix." 
+          << std::endl << std::endl;
+      }
 		}
 
 
@@ -173,9 +171,11 @@ int main(int argc, char **argv)
       numProcSymbFact = atoi( options["-npsymbfact"].c_str() );
     }
     else{
-      statusOFS << "-npsymbfact option is not given. " 
-        << "Use default value (maximum number of procs)." 
-        << std::endl << std::endl;
+      if( mpirank == 0 ){
+        std::cout << "-npsymbfact option is not given. " 
+          << "Use default value (maximum number of procs)." 
+          << std::endl << std::endl;
+      }
       numProcSymbFact = 0;
     }
 
@@ -184,22 +184,14 @@ int main(int argc, char **argv)
       ordering = atoi( options["-ordering"].c_str() );
     }
     else{
-      statusOFS << "-ordering option is not given. " 
-        << "Use default value 0 (PARMETIS)." 
-        << std::endl << std::endl;
+      if( mpirank == 0 ){
+        std::cout << "-ordering option is not given. " 
+          << "Use default value 0 (PARMETIS)." 
+          << std::endl << std::endl;
+      }
       ordering = 0;
     }
     
-    std::string ColPerm;
-    if( options.find("-colperm") != options.end() ){ 
-      ColPerm = options["-colperm"];
-    }
-    else{
-      statusOFS << "-colperm option is not given. " 
-        << "Use MMD_AT_PLUS_A." 
-        << std::endl << std::endl;
-      ColPerm = "MMD_AT_PLUS_A";
-    }
 
 		// *********************************************************************
 		// Check the input parameters
@@ -308,7 +300,6 @@ int main(int argc, char **argv)
             shiftList[i], inertiaListInt[i] / 2 );
     }
 
-    statusOFS.close();
   }
   catch( std::exception& e )
   {

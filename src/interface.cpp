@@ -74,7 +74,7 @@ inline Real
 MonotoneRootFinding ( 
 		const std::vector<Real>&  x,
 		const std::vector<Real>&  y,
-		Real val)
+		Real val )
 {
 #ifndef _RELEASE_
 	PushCallStack("MonotoneRootFinding");
