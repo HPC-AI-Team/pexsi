@@ -207,7 +207,7 @@ so this routine actually computes the expansion
 \f]
 
 
-> @ref PEXSI::GetPoleDensityDrvMu "GetPoleDensityDrvMu" 
+> @ref PEXSI::GetPoleDensityDrvT "GetPoleDensityDrvT" 
 
 Pole expansion for the derivative of the Fermi-Dirac
 operator with respect to the temperature T \f$(1/\beta)\f$.
@@ -249,13 +249,17 @@ This routine can be used to compute the Pulay contribution of the
 atomic force in electronic structure calculations.  This term is
 especially important when basis set is not complete and changes
 with atomic positions.
-This routine expands the free energy function
+This routine expands the function used in the energy density matrix.  
 
 \f[
    f^{E}_{\beta}(z) = (z+\mu) f_{\beta}(z) 
    \approx \mathrm{Im} \sum_{l=1}^{P}
    \frac{\omega^{E}_l}{z-z_l}
 \f]
+
+Note that when \f$z=H-\mu I\f$, \f$f^{E}_{\beta}(H-\mu I) = H
+f_{\beta}(H-\mu I)\f$, and therefore the energy density matrix can be
+directly used to compute the band energy without using eigenvalues.
 
 
 <!-- ************************************************************ -->
