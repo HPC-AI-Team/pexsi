@@ -80,3 +80,12 @@ to be related to the parallel symbolic factorization routine in
 SuperLU\_DIST.  If this problem happens, try to reduce `npSymbFact` to
 a small number (such as 4 or 16), or even try to use the sequential
 symbolic factorization if feasible.
+
+
+**Q: Why the PPEXSI driver routines do not specify nprow/npcol?**
+
+A: Due to legacy reason the number of processors used in the interface
+routines for each parallel selected inversion process has to be a
+**square number** (1,4,9,16,64 etc).  This will be changed in the next
+version of the user interface.
+

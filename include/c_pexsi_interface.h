@@ -431,6 +431,9 @@ void PPEXSIRawInertiaCountInterface(
  *   upper bounds muMin0 / muMax0 should be obtained from 
  *   @ref PPEXSIInertiaCountInterface, or from heuristics using
  *   information from previous steps.
+ * - In the current version of the interface routines, the number of 
+ * processors used for each selected inversion process must be a square 
+ * number.
  *
  * @todo The estimation of deltaE should be estimated in a more
  * automatic way later, using a few steps of Lanczos.
@@ -472,7 +475,7 @@ void PPEXSIRawInertiaCountInterface(
  * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
  *   option in SuperLU_DIST).
  * @param[in] npPerPole  (global) Number of processors per pole
- * (ppp).
+ * (ppp).  
  * @param[in] npSymbFact (global) Number of processors for
  * PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
  * @param[in] comm (global) MPI communicator.

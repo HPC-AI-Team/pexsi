@@ -2197,3 +2197,46 @@ void FORTRAN(f_ppexsi_localdos_interface)(
 			localDOSnzvalLocal,
 			info );
 } // -----  end of function f_ppexsi_localdos_interface  ----- 
+
+
+/// @brief FORTRAN interface for @ref PSelInvComplexSymmetricInterface.
+extern "C" 
+void FORTRAN(f_pselinv_complex_symmetric_interface)(
+		// Input parameters
+		int*          nrows,                        // Size of the matrix
+	  int*          nnz,                          // Total number of nonzeros in H
+		int*          nnzLocal,                     // Number of nonzeros in H on this proc
+		int*          numColLocal,                  // Number of local columns for H
+		int*          colptrLocal,                  // Colomn pointer in CSC format
+		int*          rowindLocal,                  // Row index pointer in CSC format
+    double*       AnzvalLocal,                  // Nonzero value of A in CSC format.  A is complex.
+		int*          ordering,                     // SuperLUDIST ordering
+		int*          npSymbFact,                   // Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
+		int*    	    Fcomm,                        // Overall MPI communicator
+    int*          nprow,                        // Number of row processors
+    int*          npcol,                        // Number of column processors
+		// Output parameters
+    double*       AinvnzvalLocal,               // Nonzero value of (A)^{-1}. A^{-1} is complex.
+		int*          info                          // 0: successful exit.  1: unsuccessful
+		)
+{
+  PSelInvComplexSymmetricInterface ( 
+      *nrows,
+      *nnz,
+      *nnzLocal,
+      *numColLocal,
+      colptrLocal,
+      rowindLocal,
+      AnzvalLocal,
+      *ordering,
+      *npSymbFact,
+      f2c_comm(Fcomm),
+      *nprow,
+      *npcol,
+      AinvnzvalLocal,
+      info
+      );
+} // -----  end of function f_pselinv_complex_symmetric_interface  ----- 
+
+
+
