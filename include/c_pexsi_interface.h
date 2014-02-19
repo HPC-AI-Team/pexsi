@@ -375,7 +375,7 @@ void PPEXSIInertiaCountInterface(
 /** 
  * @brief Directly compute the negative inertia at a set of shifts.
  * 
- *  This is a simplified version of @ref PPEXSIInertiaCountInterfac,
+ *  This is a simplified version of @ref PPEXSIInertiaCountInterface,
  *  without the including the finite temperature effect, or
  *  iterative refinement of the chemical potential.  This routine can be
  *  used for evaluating density of states after @ref PPEXSISolveInterface 

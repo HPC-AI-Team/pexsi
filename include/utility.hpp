@@ -1552,6 +1552,59 @@ namespace PEXSI{
 			return ;
 		}		// -----  end of template function CopyPattern  ----- 
 
+  /// Perform
+  /// \f[
+  ///   C = \beta C + \alpha A B
+  /// \f]
+  
+  /// @brief Multiply a DistSparseMatrix with a vector that is
+  /// distributed across all processors participating the operation.
+  ///
+  /// **Note** It is not assumed that the matrix is symmetric.
+  ///
+  /// @param[in]  A  Distributed sparse matrix in CSC format.
+  /// @param[in]  B  Dense vector with the same values across all
+  ///                procesors. The size of the vector is the same as
+  ///                the size of the matrix A.
+  /// @param[in,out] C Dense vector with the same values across all
+  ///                  procesors. The size of the vector is the same as
+  ///                  the size of the matrix A and B.
+	template <class F> 
+		void
+		DistSparseMatMultGlobalVec( 
+        const F                    alpha,
+        const DistSparseMatrix<F>& A, 
+        const NumVec<F>& B,
+        const F                    beta
+        NumVec<F>& C )
+		{
+#ifndef _RELEASE_
+			PushCallStack("DistSparseMatMultGlobalVec");
+#endif
+      if( B.Size() != A.size ){
+        std::ostringstream msg;
+        msg << std::endl
+          << "The size of the matrix A is " << A.size << std::endl;
+          << "The size of the vector B is " << B.Size() << std::endl 
+          << "and they must agree with each other.";
+          throw std::runtime_error( msg.str().c_str() );
+      }
+      if( C.Size() != A.size ){
+        std::ostringstream msg;
+        msg << std::endl
+          << "The size of the matrix A is " << A.size << std::endl;
+          << "The size of the vector C is " << C.Size() << std::endl 
+          << "and they must agree with each other.";
+          throw std::runtime_error( msg.str().c_str() );
+      }
+
+
+#ifndef _RELEASE_
+			PopCallStack();
+#endif
+			return ;
+		}		// -----  end of template function DistSparseMatMultGlobalVec  ----- 
+
 	// *********************************************************************
 	// Other numerical routines
 	// *********************************************************************

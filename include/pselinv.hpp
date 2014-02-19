@@ -709,7 +709,7 @@ namespace PEXSI{
       /// @brief ConstructCommunicationPattern constructs the communication
       /// pattern to be used later in the selected inversion stage.
       /// The supernodal elimination tree is used to add an additional level of parallelism between supernodes.
-      /// [ConstructCommunicationPattern_P2p](@ref PEXSI::ConstructCommunicationPattern_P2p) is called by default.
+      /// [ConstructCommunicationPattern_P2p](@ref PEXSI::PMatrix::ConstructCommunicationPattern_P2p) is called by default.
       void ConstructCommunicationPattern( );
 
 
@@ -897,8 +897,12 @@ namespace PEXSI{
       ///
       ///
       void SelInv( );
+      /// @brief Collective communication version of the selected inversion.
       void SelInv_Collectives( );
+      /// @brief Point-to-point version of the selected inversion.
       void SelInv_P2p( );
+      /// @brief Hybrid version of the selected inversion. This file is
+      /// obsolete.
       void SelInv_Hybrid(Int threshold);
 
 
