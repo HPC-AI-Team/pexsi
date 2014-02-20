@@ -1360,5 +1360,21 @@ void PPEXSIData::CalculateNegativeInertia(
 } 		// -----  end of method PPEXSIData::CalculateNegativeInertia ----- 
 
 
+void
+PPEXSIData::EstimateSpectralRadius(
+    const DistSparseMatrix<Real>&  HMat,
+    const DistSparseMatrix<Real>&  SMat,
+    Int                            method,
+    Int                            numIter,
+    Real&                          sigma ){
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::EstimateSpectralRadius");
+#endif
 
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+}		// -----  end of function PPEXSIData::EstimateSpectralRadius  ----- 
 } //  namespace PEXSI

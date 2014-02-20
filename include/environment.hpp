@@ -86,7 +86,7 @@
 // Redefine the global macros
 // *********************************************************************
 
-// Always use complex data for pexsi and ppexsi.
+// FIXME Always use complex data for pexsi and ppexsi.
 #define _USE_COMPLEX_
 
 // The verbose level of debugging information
@@ -104,6 +104,9 @@
 /***********************************************************************
  *  Data types and constants
  **********************************************************************/
+
+/// @namespace PEXSI
+/// @brief The main namespace.
 
 namespace PEXSI{
 

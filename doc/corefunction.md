@@ -587,7 +587,7 @@ format (CSC).
 
 This routine creates the MPI_Communicators and communication pattern used later by both PreSelInv and SelInv routines.
 The supernodal elimination tree is exploited to add an additional level of parallelism between supernodes.
-[ConstructCommunicationPattern_P2p](@ref PEXSI::ConstructCommunicationPattern_P2p) is called by default.
+[ConstructCommunicationPattern_P2p](@ref PEXSI::PMatrix::ConstructCommunicationPattern_P2p) is called by default.
 
 > @ref PEXSI::PMatrix::PreSelInv "PMatrix::PreSelInv" 
 
@@ -600,7 +600,7 @@ The supernodal elimination tree is exploited to add an additional level of paral
 > @ref PEXSI::PMatrix::SelInv "PMatrix::SelInv" 
 
    SelInv preforms the actual parallel selected inversion.
-  [SelInv_P2p](@ref PEXSI::SelInv_P2p) is called by default.
+  [SelInv_P2p](@ref PEXSI::PMatrix::SelInv_P2p) is called by default.
 
   @note
   SelInv assumes that [PreSelInv](@ref PEXSI::PMatrix::PreSelInv) has been executed.

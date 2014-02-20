@@ -332,6 +332,31 @@ namespace PEXSI{
 				std::string                    ColPerm,
 				Int                            numProcSymbFact );
 
+    /// @brief Estimate the spectral radius of the matrix stencil (H,S).
+    ///
+    /// The current method uses the locally optimal conjugate gradient
+    /// (LOCG) method.
+    ///
+		/// @param[in] HMat Hamiltonian matrix saved in distributed compressed
+		/// sparse column format. See DistSparseMatrix.
+		/// @param[in] SMat Overlap matrix saved in distributed compressed
+		/// sparse column format. See DistSparseMatrix. S can be an identity
+    /// matrix.
+    /// @param[in] method Method for estimating the spectral radius
+    /// - = 0     : Locally optimal conjugate gradient (LOCG) method
+    ///             (default).  This works for both S being an identity
+    ///             matrix or not.  This is the only implemented one
+    ///             currently.
+    /// @param[in] numIter Number of iterations.
+    /// @param[out] sigma The estimated spectral radius.
+		void EstimateSpectralRadius( 
+				const DistSparseMatrix<Real>&  HMat,
+				const DistSparseMatrix<Real>&  SMat,
+        Int                            method,
+        Int                            numIter,
+        Real&                          sigma );
+
+
 	};
 
 
