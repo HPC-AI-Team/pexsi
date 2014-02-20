@@ -92,7 +92,7 @@ endif
 LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
 
 
-COMPILE_DEFS += -DAdd_
+COMPILE_DEF  += -DAdd_
 
 #FLOADOPTS    = ${LIBS} -L/usr/local/lib  -lstdc++ 
 
