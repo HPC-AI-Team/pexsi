@@ -218,12 +218,12 @@ int main(int argc, char **argv)
 
 
 
-      Int doSinv_Bcast = 1;
+      Int doSinv_Bcast = 0;
       if( options.find("-SinvBcast") != options.end() ){ 
         doSinv_Bcast = atoi(options["-SinvBcast"].c_str());
       }
 
-      Int doSinvPipeline = 0;
+      Int doSinvPipeline = 1;
       if( options.find("-SinvPipeline") != options.end() ){ 
         doSinvPipeline = atoi(options["-SinvPipeline"].c_str());
       }

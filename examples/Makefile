@@ -32,14 +32,8 @@ driver_pselinv_complex: driver_pselinv_complex.o ${PEXSI_LIB}
 run_inertia: run_inertia.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_inertia.o  $(LOADOPTS) )
 
-run_pselinv: run_pselinv.o ${PEXSI_LIB} run_pselinv_ptscotch run_pselinv_parmetis
-	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS_PTSCOTCH) )
-
-run_pselinv_parmetis: run_pselinv.o ${PEXSI_LIB} 
-	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PARMETIS) )
-
-run_pselinv_ptscotch: run_pselinv.o   ${PEXSI_LIB} 
-	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS_PTSCOTCH) )
+run_pselinv: run_pselinv.o ${PEXSI_LIB} 
+	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS) )
 
 run_inertia.o: run_inertia.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
