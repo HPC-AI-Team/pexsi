@@ -109,11 +109,23 @@ void LAPACK(zhegst)
         dcomplex* A, const Int* lda,
   const dcomplex* B, const Int* ldb, Int* info );
 
-// For solving the standard eigenvalue problem using the divide and // conquer algorithm
+// For solving the standard eigenvalue problem using the divide and
+// conquer algorithm 
+//
 // TODO all versions
 void LAPACK(dsyevd)
 ( const char *jobz, const char *uplo, const Int *n, 
 	double *A, const Int *lda, double *W, double *work, 
+	const int *lwork, Int *iwork, const int *liwork, int *info );
+
+
+// For solving the generalized eigenvalue problem using the divide and
+// conquer algorithm 
+//
+// TODO all versions
+void LAPACK(dsygvd)
+( const int* itype, const char *jobz, const char *uplo, const Int *n, 
+	double *A, const Int *lda, double *B, const Int *ldb, double *W, double *work, 
 	const int *lwork, Int *iwork, const int *liwork, int *info );
 
 
@@ -525,6 +537,44 @@ void Syevd
 	{
 		std::ostringstream msg;
 		msg << "syevd returned with info = " << info;
+		throw std::logic_error( msg.str().c_str() );
+	}
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
+}
+
+
+// *********************************************************************
+// For solving the generalized eigenvalue problem using the divide and
+// conquer algorithm
+// *********************************************************************
+
+void Sygvd
+( int itype, char jobz, char uplo, Int n, double* A, Int lda, 
+  double* B, Int ldb, double* eigs ){
+#ifndef _RELEASE_
+	PushCallStack("lapack::Sygvd");
+#endif
+	Int lwork = -1, info;
+	Int liwork = -1;
+	std::vector<double> work(1);
+	std::vector<int>    iwork(1);
+
+	LAPACK(dsygvd)( &itype, &jobz, &uplo, &n, A, &lda, B, &ldb, 
+      eigs, &work[0], &lwork, &iwork[0], &liwork, &info );
+	lwork = (Int)work[0];
+	work.resize(lwork);
+	liwork = iwork[0];
+	iwork.resize(liwork);
+	
+	LAPACK(dsygvd)( &itype, &jobz, &uplo, &n, A, &lda, B, &ldb, 
+      eigs, &work[0], &lwork, &iwork[0], &liwork, &info );
+
+	if( info != 0 )
+	{
+		std::ostringstream msg;
+		msg << "sygvd returned with info = " << info;
 		throw std::logic_error( msg.str().c_str() );
 	}
 #ifndef _RELEASE_
