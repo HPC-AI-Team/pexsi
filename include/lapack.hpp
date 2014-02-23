@@ -94,6 +94,15 @@ namespace lapack {
 		( Int itype, char uplo,
 			Int n, dcomplex* A, Int lda, const dcomplex* B, Int ldb );
 
+  // *********************************************************************
+  // For solving the standard eigenvalue problem using the divide and
+  // conquer algorithm
+  // *********************************************************************
+
+  void Syevd
+    ( char jobz, char uplo, Int n, double* A, Int lda, double* eigs );
+
+
 	// *********************************************************************
 	// For computing the inverse of a triangular matrix
 	// *********************************************************************

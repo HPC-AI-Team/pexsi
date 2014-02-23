@@ -109,6 +109,14 @@ void LAPACK(zhegst)
         dcomplex* A, const Int* lda,
   const dcomplex* B, const Int* ldb, Int* info );
 
+// For solving the standard eigenvalue problem using the divide and // conquer algorithm
+// TODO all versions
+void LAPACK(dsyevd)
+( const char *jobz, const char *uplo, const Int *n, 
+	double *A, const Int *lda, double *W, double *work, 
+	const int *lwork, Int *iwork, const int *liwork, int *info );
+
+
 // Triangular inversion
 void LAPACK(strtri)
 ( const char* uplo, const char* diag,
@@ -487,6 +495,43 @@ void Hegst
     PopCallStack();
 #endif
 }
+
+// *********************************************************************
+// For solving the standard eigenvalue problem using the divide and
+// conquer algorithm
+// *********************************************************************
+
+void Syevd
+( char jobz, char uplo, Int n, double* A, Int lda, double* eigs ){
+#ifndef _RELEASE_
+	PushCallStack("lapack::Syevd");
+#endif
+	Int lwork = -1, info;
+	Int liwork = -1;
+	std::vector<double> work(1);
+	std::vector<int>    iwork(1);
+
+	LAPACK(dsyevd)( &jobz, &uplo, &n, A, &lda, eigs, &work[0],
+		 &lwork, &iwork[0], &liwork, &info );
+	lwork = (Int)work[0];
+	work.resize(lwork);
+	liwork = iwork[0];
+	iwork.resize(liwork);
+	
+	LAPACK(dsyevd)( &jobz, &uplo, &n, A, &lda, eigs, &work[0],
+		 &lwork, &iwork[0], &liwork, &info );
+
+	if( info != 0 )
+	{
+		std::ostringstream msg;
+		msg << "syevd returned with info = " << info;
+		throw std::logic_error( msg.str().c_str() );
+	}
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
+}
+
 
 // *********************************************************************
 // For computing the inverse of a triangular matrix
