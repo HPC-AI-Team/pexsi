@@ -233,8 +233,9 @@ template <class F> inline void SetValue( NumVec<F>& vec, F val )
 template <class F> inline Real Energy( const NumVec<F>& vec )
 {
 	Real sum = 0;
-	for(Int i=0; i<vec.m(); i++)
-		sum += abs(vec(i)*vec(i));
+	for(Int i=0; i<vec.m(); i++){
+		sum += std::abs(vec(i)*vec(i));
+  }
 	return sum;
 }  
 

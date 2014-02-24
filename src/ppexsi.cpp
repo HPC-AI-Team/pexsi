@@ -1362,14 +1362,240 @@ void PPEXSIData::CalculateNegativeInertia(
 
 void
 PPEXSIData::EstimateSpectralRadius(
+    Int                            method,
     const DistSparseMatrix<Real>&  HMat,
     const DistSparseMatrix<Real>&  SMat,
-    Int                            method,
-    Int                            numIter,
+    const NumVec<Real>&            v0,
+    Real                           tol,
+    Int                            maxNumIter,
+    Int&                           numIter,
     Real&                          sigma ){
 #ifndef _RELEASE_
 	PushCallStack("PPEXSIData::EstimateSpectralRadius");
 #endif
+  Int n = HMat.size;
+
+  bool isSIdentity = ( SMat.size == 0 );
+
+  if( HMat.size != SMat.size && (!isSIdentity) ){
+		std::ostringstream msg;
+		msg << std::endl
+			<< "The sizes of H and S do not match." << std::endl
+      << "H.size = " << HMat.size << std::endl
+      << "S.size = " << SMat.size << std::endl;
+		throw std::runtime_error( msg.str().c_str() );
+  }
+
+  // Locally Optimal Conjugate Gradient method
+  if( method == 0 ){
+    // Q = [X W P]
+    // X: The current vector
+    // W: (Preconditioned) residual
+    // P: Conjugate direction
+    // A: The same as H
+    // B: The same as S
+    DblNumMat  Q, AQ, BQ; 
+    Q.Resize( n, 3 );
+    AQ.Resize( n, 3 );
+    BQ.Resize( n, 3 );
+    
+    DblNumVec X( n, false, Q.VecData(0) );
+    DblNumVec W( n, false, Q.VecData(1) );
+    DblNumVec P( n, false, Q.VecData(2) );
+    DblNumVec AX( n, false, AQ.VecData(0) );
+    DblNumVec AW( n, false, AQ.VecData(1) );
+    DblNumVec AP( n, false, AQ.VecData(2) );
+    DblNumVec BX( n, false, BQ.VecData(0) );
+    DblNumVec BW( n, false, BQ.VecData(1) );
+    DblNumVec BP( n, false, BQ.VecData(2) );
+
+    // Residual
+    DblNumVec R( n );
+
+    if( v0.m() != 0 ){
+      // Use v0
+      if( v0.m() != HMat.size ){
+        std::ostringstream msg;
+        msg << std::endl
+          << "The sizes of H and v0 do not match." << std::endl
+          << "H.size = " << HMat.size << std::endl
+          << "v0.size = " << v0.m() << std::endl;
+        throw std::runtime_error( msg.str().c_str() );
+      }
+      blas::Copy( n, v0.Data(), 1, X.Data(), 1 );
+    }
+    else{
+      // Start from random initial vector
+      UniformRandom( X );
+    }
+
+    Real XNorm = std::sqrt( Energy(X) );
+    blas::Scal( n, 1.0 / XNorm, X.Data(), 1 );
+
+    Int numConv = 0;
+    Int sizeQ;
+
+    Real lambda = 0.0, lambdaP = 0.0;
+    Real RNorm, PNorm;
+    DblNumMat QAQ(3, 3), QBQ(3, 3);
+    DblNumVec ev(3);
+    DblNumVec ef(3);
+    SetValue( QAQ, 0.0 );
+    SetValue( QBQ, 0.0 );
+    SetValue( ev, 0.0 );
+    SetValue( ef, 0.0 );
+
+    Int iter;
+    for( iter = 1; iter <= maxNumIter; iter++ ){
+      DistSparseMatMultGlobalVec( 
+          1.0, HMat, X, 0.0, AX );
+      if( !isSIdentity ){
+        DistSparseMatMultGlobalVec( 
+            1.0, SMat, X, 0.0, BX );
+      }
+      else{
+        blas::Copy( n, X.Data(), 1, BX.Data(), 1 );
+      }
+      
+      QAQ(0,0) = blas::Dot( n, X.Data(), 1, AX.Data(), 1 );
+      QBQ(0,0) = blas::Dot( n, X.Data(), 1, BX.Data(), 1 );
+
+      lambdaP = lambda;
+      lambda = QAQ(0,0) / QBQ(0,0);
+      // Residual
+      for( Int i = 0; i < n; i++ )
+        R(i) = AX(i) - BX(i) *lambda;
+      
+      RNorm = std::sqrt( Energy(R) );
+
+#if ( _DEBUGlevel_ >= 2 )
+      statusOFS << "R = " << R << std::endl;
+      statusOFS << "X = " << X << std::endl;
+      statusOFS << "Energy(R) = " << Energy(R) << std::endl;
+      statusOFS << "RNorm = " << RNorm << std::endl;
+#endif
+      
+      if( RNorm < tol ){
+        numConv = 1;
+      }
+      if( iter > 1 ){
+        if( std::abs( lambdaP - lambda ) < tol * std::abs( lambda ) ){
+          numConv = 1;
+        }
+      }
+
+      if( numConv >= 1 ){
+        break;
+      }
+
+
+      // No preconditioner applied to the residual
+      for( Int i = 0; i < n; i++ )
+        W(i) = R(i) / RNorm;
+
+      
+      DistSparseMatMultGlobalVec( 
+          1.0, HMat, W, 0.0, AW );
+      if( !isSIdentity ){
+        DistSparseMatMultGlobalVec( 
+            1.0, SMat, W, 0.0, BW );
+      }
+      else{
+        blas::Copy( n, W.Data(), 1, BW.Data(), 1 );
+      }
+
+      if( iter == 1 )
+        sizeQ = 2;
+      else
+        sizeQ = 3;
+
+      blas::Gemm( 'T', 'N', sizeQ, sizeQ, n, 
+          1.0, Q.Data(), n, AQ.Data(), n, 0.0, QAQ.Data(), 3 );
+
+      blas::Gemm( 'T', 'N', sizeQ, sizeQ, n, 
+          1.0, Q.Data(), n, BQ.Data(), n, 0.0, QBQ.Data(), 3 );
+
+#if ( _DEBUGlevel_ >= 2 )
+      statusOFS << "QAQ = " << QAQ << std::endl;
+      statusOFS << "QBQ = " << QBQ << std::endl;
+#endif
+
+      // ( Q^T A Q ) V = ( Q^T B Q ) V D
+      lapack::Sygvd( 1, 'V', 'L', sizeQ, QAQ.Data(), 3, 
+          QBQ.Data(), 3, ev.Data() );
+
+      // ef is the eigenvector corresponding to the largest eigenvalue
+      blas::Copy( sizeQ, QAQ.VecData(sizeQ-1), 1, ef.Data(), 1 );
+      
+#if ( _DEBUGlevel_ >= 2 )
+      statusOFS << "ev = " << ev << std::endl;
+      statusOFS << "ef = " << ef << std::endl;
+#endif
+
+
+      if( iter > 1 ){
+        //  X =  Q * ef
+        // AX = AQ * ef
+        // BX = BQ * ef
+        //  P =  W * ef[1] +  P * ef[2]
+        // AP = AW * ef[1] + AP * ef[2]
+        // BP = BW * ef[1] + BP * ef[2]
+
+        for( Int i = 0; i < n; i++ ){
+          X[i] = ef[0] * X[i] + ef[1] * W[i] + ef[2] * P[i];
+          AX[i] = ef[0] * AX[i] + ef[1] * AW[i] + ef[2] * AP[i]; 
+          BX[i] = ef[0] * BX[i] + ef[1] * BW[i] + ef[2] * BP[i];
+
+          P[i] = ef[1] * W[i] + ef[2] * P[i];
+          AP[i] = ef[1] * AW[i] + ef[2] * AP[i]; 
+          BP[i] = ef[1] * BW[i] + ef[2] * BP[i];
+        }
+        PNorm = std::sqrt( Energy( P ) );
+        blas::Scal( n, 1.0 / PNorm, P.Data(), 1 );
+        blas::Scal( n, 1.0 / PNorm, AP.Data(), 1 );
+        blas::Scal( n, 1.0 / PNorm, BP.Data(), 1 );
+      }
+      else{
+        //  X =  Q * ef
+        // AX = AQ * ef
+        // BX = BQ * ef
+        // P  = W;
+        // AP = AW;
+        // BP = BW;
+        for( Int i = 0; i < n; i++ ){
+          X[i] = ef[0] * X[i] + ef[1] * W[i];
+          AX[i] = ef[0] * AX[i] + ef[1] * AW[i]; 
+          BX[i] = ef[0] * BX[i] + ef[1] * BW[i];
+
+          P[i] = W[i];
+          AP[i] = AW[i]; 
+          BP[i] = BW[i];
+        }
+      }
+    } // for (iter)
+
+    // Final computation of the eigenvalue
+    DistSparseMatMultGlobalVec( 
+        1.0, HMat, X, 0.0, AX );
+    if( !isSIdentity ){
+      DistSparseMatMultGlobalVec( 
+          1.0, SMat, X, 0.0, BX );
+    }
+    else{
+      blas::Copy( n, X.Data(), 1, BX.Data(), 1 );
+    }
+
+    QAQ(0,0) = blas::Dot( n, X.Data(), 1, AX.Data(), 1 );
+    QBQ(0,0) = blas::Dot( n, X.Data(), 1, BX.Data(), 1 );
+
+    // Output variable
+    numIter = (iter <= maxNumIter) ? iter : maxNumIter;
+    sigma = QAQ(0,0) / QBQ(0,0);
+  }
+  else{
+    throw std::runtime_error( "Method != 0 is not yet supported." );
+  }
+
 
 #ifndef _RELEASE_
 	PopCallStack();

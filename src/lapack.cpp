@@ -554,31 +554,31 @@ void Sygvd
 ( int itype, char jobz, char uplo, Int n, double* A, Int lda, 
   double* B, Int ldb, double* eigs ){
 #ifndef _RELEASE_
-	PushCallStack("lapack::Sygvd");
+  PushCallStack("lapack::Sygvd");
 #endif
-	Int lwork = -1, info;
-	Int liwork = -1;
-	std::vector<double> work(1);
-	std::vector<int>    iwork(1);
+  Int lwork = -1, info;
+  Int liwork = -1;
+  std::vector<double> work(1);
+  std::vector<int>    iwork(1);
 
-	LAPACK(dsygvd)( &itype, &jobz, &uplo, &n, A, &lda, B, &ldb, 
+  LAPACK(dsygvd)( &itype, &jobz, &uplo, &n, A, &lda, B, &ldb, 
       eigs, &work[0], &lwork, &iwork[0], &liwork, &info );
-	lwork = (Int)work[0];
-	work.resize(lwork);
-	liwork = iwork[0];
-	iwork.resize(liwork);
-	
-	LAPACK(dsygvd)( &itype, &jobz, &uplo, &n, A, &lda, B, &ldb, 
+  lwork = (Int)work[0];
+  work.resize(lwork);
+  liwork = iwork[0];
+  iwork.resize(liwork);
+
+  LAPACK(dsygvd)( &itype, &jobz, &uplo, &n, A, &lda, B, &ldb, 
       eigs, &work[0], &lwork, &iwork[0], &liwork, &info );
 
-	if( info != 0 )
-	{
-		std::ostringstream msg;
-		msg << "sygvd returned with info = " << info;
-		throw std::logic_error( msg.str().c_str() );
-	}
+  if( info != 0 )
+  {
+    std::ostringstream msg;
+    msg << "sygvd returned with info = " << info;
+    throw std::logic_error( msg.str().c_str() );
+  }
 #ifndef _RELEASE_
-    PopCallStack();
+  PopCallStack();
 #endif
 }
 

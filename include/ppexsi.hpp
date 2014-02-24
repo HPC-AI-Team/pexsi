@@ -337,27 +337,34 @@ namespace PEXSI{
     /// The current method uses the locally optimal conjugate gradient
     /// (LOCG) method.
     ///
-		/// @param[in] HMat Hamiltonian matrix saved in distributed compressed
-		/// sparse column format. See DistSparseMatrix.
-		/// @param[in] SMat Overlap matrix saved in distributed compressed
-		/// sparse column format. See DistSparseMatrix. S can be an identity
-    /// matrix.
     /// @param[in] method Method for estimating the spectral radius
     /// - = 0     : Locally optimal conjugate gradient (LOCG) method
     ///             (default).  This works for both S being an identity
     ///             matrix or not.  This is the only implemented one
     ///             currently.
-    /// @param[in] numIter Number of iterations.
+		/// @param[in] HMat Hamiltonian matrix saved in distributed compressed
+		/// sparse column format. See DistSparseMatrix.
+		/// @param[in] SMat Overlap matrix saved in distributed compressed
+		/// sparse column format. See DistSparseMatrix. S can be an identity
+    /// matrix.
+    /// @param[in] v0   Initial starting vector.  
+    ///
+    /// If v0.m() == 0, then a random vector is used as the initial
+    /// starting vector.
+    /// @param[in] tol        Relative tolerance for estimating sigma.
+    /// @param[in] maxNumIter Maximum number of iterations.
+    /// @param[out] numIter The number of iterations.
     /// @param[out] sigma The estimated spectral radius.
 		void EstimateSpectralRadius( 
+        Int                            method,
 				const DistSparseMatrix<Real>&  HMat,
 				const DistSparseMatrix<Real>&  SMat,
-        Int                            method,
-        Int                            numIter,
+        const NumVec<Real>&            v0,
+        Real                           tol,
+        Int                            maxNumIter,
+        Int&                           numIter,
         Real&                          sigma );
-
-
-	};
+	}; // PPEXSIData
 
 
 } // namespace PEXSI

@@ -1562,7 +1562,7 @@ namespace PEXSI{
   ///
   /// **Note** It is not assumed that the matrix is symmetric.
   ///
-  /// @param[in]  A  Distributed sparse matrix in CSC format.
+  /// @param[in]  AMat  Distributed sparse matrix in CSC format.
   /// @param[in]  B  Dense vector with the same values across all
   ///                procesors. The size of the vector is the same as
   ///                the size of the matrix A.
@@ -1573,32 +1573,68 @@ namespace PEXSI{
 		void
 		DistSparseMatMultGlobalVec( 
         const F                    alpha,
-        const DistSparseMatrix<F>& A, 
-        const NumVec<F>& B,
-        const F                    beta
-        NumVec<F>& C )
+        const DistSparseMatrix<F>& AMat, 
+        const NumVec<F>&           B,
+        const F                    beta,
+        NumVec<F>&                 C )
 		{
 #ifndef _RELEASE_
 			PushCallStack("DistSparseMatMultGlobalVec");
 #endif
-      if( B.Size() != A.size ){
+      if( B.m() != AMat.size ){
         std::ostringstream msg;
         msg << std::endl
-          << "The size of the matrix A is " << A.size << std::endl;
-          << "The size of the vector B is " << B.Size() << std::endl 
+          << "The size of the matrix A is " << AMat.size << std::endl
+          << "The size of the vector B is " << B.m() << std::endl 
           << "and they must agree with each other.";
           throw std::runtime_error( msg.str().c_str() );
       }
-      if( C.Size() != A.size ){
+      if( C.m() != AMat.size ){
         std::ostringstream msg;
         msg << std::endl
-          << "The size of the matrix A is " << A.size << std::endl;
-          << "The size of the vector C is " << C.Size() << std::endl 
+          << "The size of the matrix A is " << AMat.size << std::endl
+          << "The size of the vector C is " << C.m() << std::endl 
           << "and they must agree with each other.";
           throw std::runtime_error( msg.str().c_str() );
       }
 
+      MPI_Comm  comm = AMat.comm;
+      
+      Int mpirank, mpisize;
+      MPI_Comm_rank( comm, &mpirank );
+      MPI_Comm_size( comm, &mpisize );
 
+      // Initiate a new vector for saving DeltaC = alpha * A * B
+      // This is somewhat inefficient implementation but this should not
+      // matter at this moment, since the global distribution of a dense
+      // vector is not important anyway.
+      NumVec<F>  DeltaClocal( AMat.size ); 
+      NumVec<F>  DeltaC( AMat.size ); 
+      SetValue( DeltaClocal, 0.0 );
+      SetValue( DeltaC, 0.0 );
+
+      Int numColLocal      = AMat.colptrLocal.m() - 1;
+      Int numColLocalFirst = AMat.size / mpisize;
+      Int firstCol         = mpirank * numColLocalFirst;
+
+      // NOTE: DistSparseMatrix use 1-based indicies, while access to
+      // vectors uses 0-based indicies.
+      for( Int j = 0; j < numColLocal; j++ ){
+        Int jcol = firstCol + j;
+        for( Int i = AMat.colptrLocal(j)-1; 
+            i < AMat.colptrLocal(j+1)-1; i++ ){
+          Int irow = AMat.rowindLocal(i) - 1;
+          DeltaClocal( irow ) += AMat.nzvalLocal(i) * B(jcol);
+        }
+      } // for (j)
+      
+      mpi::Allreduce( DeltaClocal.Data(), DeltaC.Data(), 
+          AMat.size, MPI_SUM, comm );
+
+      for( Int i = 0; i < AMat.size; i++ ){
+        C(i) = beta * C(i) + alpha * DeltaC(i);
+      }
+      
 #ifndef _RELEASE_
 			PopCallStack();
 #endif
