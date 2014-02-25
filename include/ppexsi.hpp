@@ -337,6 +337,13 @@ namespace PEXSI{
     /// The current method uses the locally optimal conjugate gradient
     /// (LOCG) method.
     ///
+    /// @note Rigorously speaking we are not computing the spectral
+    /// radius, but **the largest generalized eigenvalue**.  For
+    /// standard Kohn-Sham problem with pseudopotential this should be
+    /// OK.  But this **should be changed** later, at least as a safe
+    /// guard, but also may have practical relavance in the case of e.g.
+    /// all electron calculation.
+    ///
     /// @param[in] method Method for estimating the spectral radius
     /// - = 0     : Locally optimal conjugate gradient (LOCG) method
     ///             (default).  This works for both S being an identity

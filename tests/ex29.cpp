@@ -30,12 +30,47 @@ int main(int argc, char **argv)
 
 
   try{
-    DistSparseMatrix<Real>   AMat;
-    DistSparseMatrix<Real>   BMat;
+    std::map<std::string,std::string> options;
+    
+    OptionsCreate(argc, argv, options);
 
-    ParaReadDistSparseMatrix( "H.csc", AMat, MPI_COMM_WORLD ); 
 
-    BMat.size = 0;  // B is an identity matrix.
+    std::string Hfile, Sfile;
+
+		if( options.find("-H") != options.end() ){ 
+			Hfile = options["-H"];
+		}
+		else{
+      throw std::logic_error("Hfile must be provided.");
+		}
+
+		if( options.find("-S") != options.end() ){
+			Sfile = options["-S"];
+		}
+		else{
+      if( mpirank == 0 ){
+        std::cout << "-S option is not given. " 
+          << "Treat the overlap matrix as an identity matrix." 
+          << std::endl << std::endl;
+      }
+		}
+
+    // Read the matrices
+
+    DistSparseMatrix<Real>   HMat;
+    DistSparseMatrix<Real>   SMat;
+
+
+    ParaReadDistSparseMatrix( Hfile.c_str(), HMat, MPI_COMM_WORLD ); 
+    if( Sfile.empty() ){
+      SMat.size = 0;  // S is an identity matrix.
+    }
+    else{
+      ParaReadDistSparseMatrix( Sfile.c_str(), SMat, MPI_COMM_WORLD ); 
+    }
+
+    // Estimate the spectral radius
+
     DblNumVec v0;   // Random initial start by having v0.m() == 0
     Real sigma;
     Int numIter;
@@ -50,12 +85,12 @@ int main(int argc, char **argv)
 
     SetRandomSeed( 10 );
     
-    v0.Resize( AMat.size );
+    v0.Resize( HMat.size );
 
     UniformRandom( v0 );
 
     pexsi.EstimateSpectralRadius(
-        0, AMat, BMat, v0, 1e-3, 1000, numIter, sigma );
+        0, HMat, SMat, v0, 1e-5, 1000, numIter, sigma );
 
     if( mpirank == 0 ) {
       std::cout << "iter  = " << numIter << std::endl;
