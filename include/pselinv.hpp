@@ -733,6 +733,9 @@ namespace PEXSI{
       /// @brief PreSelInv prepares the structure in L_ and U_ so that
       /// SelInv only involves matrix-matrix multiplication.
       ///
+      /// @todo Move documentation to a more proper place and update the
+      /// information.
+      ///
       /// Procedure
       /// ---------
       /// PreSelInv performs
@@ -758,6 +761,9 @@ namespace PEXSI{
       void PreSelInv( );
 
       /// @brief SelInv is the main function for the selected inversion.
+      ///
+      /// @todo Move documentation to a more proper place and update the
+      /// information.
       ///
       /// Procedure
       /// ---------
@@ -876,24 +882,6 @@ namespace PEXSI{
       ///   This requires a square processor grid.
       ///   
       ///
-      /// Future work
-      /// -----------
-      ///
-      /// - Pipelining:
-      ///
-      ///   Approximately 50% of speedup.
-      ///   
-      ///   Reference: S. Li and J. Demmel, SuperLU_DIST : A Scalable
-      ///   Distributed-Memory Sparse Direct Solver for Unsymmetric Linear
-      ///   Systems, ACM TOMS, 2003
-      ///
-      /// - Look-ahead and static scheduling:
-      ///
-      ///   Approximately 2.5~3.5 times speedup.
-      ///
-      ///   Reference: I. Yamazaki and S. Li, New Scheduling Strategies and Hybrid Programming for
-      ///   a Parallel Right-looking Sparse LU Factorization Algorithm on
-      ///   Multicore Cluster Systems, IPDPS 2012
       ///
       ///
       void SelInv( );
