@@ -58,6 +58,12 @@
 extern "C"{
 #endif
 
+// *********************************************************************
+// The following routines belong to the first version of the interface
+// The new interface will be given in
+// c_pexsi_new_interface.h
+// The two files will eventually merge. 
+// *********************************************************************
 
 /**
  * @brief Read the sizes of a DistSparseMatrix in formatted form (txt)
@@ -731,4 +737,3 @@ void PSelInvComplexSymmetricInterface (
 #endif
 
 #endif // _C_PEXSI_INTERFACE_H_
-

@@ -241,11 +241,6 @@ namespace PEXSI{
 		/// @param[out] super
 		void SymbolicToSuperNode( SuperNodeType& super );
 	};
-
-
-
-
-
 } // namespace PEXSI
 
 #endif // _SUPERLU_DIST_INTERF_HPP_
