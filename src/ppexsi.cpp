@@ -41,8 +41,11 @@
    such enhancements or derivative works thereof, in binary and source code form.
 */
 /// @file ppexsi.cpp
-/// @brief Implementation of the parallel version of %PEXSI.
-/// @date 2012-11-20
+/// @brief Implementation of the parallel %PEXSI.
+/// @date 2012-11-20  Initially started.
+/// @date 2014-03-09  Revise for the new interface.
+///
+///
 #include "ppexsi.hpp"
 
 namespace PEXSI{

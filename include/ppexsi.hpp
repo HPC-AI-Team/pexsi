@@ -42,7 +42,8 @@
 */
 /// @file ppexsi.hpp
 /// @brief Main class for parallel %PEXSI.
-/// @date 2012-11-22
+/// @date 2012-11-22  Initially started.
+/// @date 2014-03-09  Revise for the new interface.
 #ifndef _PPEXSI_HPP_
 #define _PPEXSI_HPP_
 #include  "environment.hpp"

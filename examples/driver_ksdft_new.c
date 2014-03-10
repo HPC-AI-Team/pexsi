@@ -66,61 +66,35 @@ int main(int argc, char **argv)
   double*       HnzvalLocal;                  
   int           isSIdentity;                  
   double*       SnzvalLocal;                  
-  int           ordering;                
-  int           npSymbFact;                   
   double*       AinvnzvalLocal;
 
-  int*          inertiaListInt;
   double*       DMnzvalLocal;
   double*       EDMnzvalLocal;
   double*       FDMnzvalLocal;
-  double*       muList;
-  double*       numElectronList;
-  double*       numElectronDrvList;
-  double*       shiftList;
-  double*       inertiaList;
   double*       localDOSnzvalLocal;  
 
   double        Energy;
   double        eta;
 
-  int           numPole;
-  int           nprow;
-  int           npcol;
-  int           npPerPole;
-
-  double        temperature;
-  double        numElectronExact;
-  double        numElectron;
-  double        gap;
-  double        deltaE;
   double        muMin0;
   double        muMax0;
-  double        muInertia;
+  double        numElectronExact;
+
+  double        muPEXSI;
+  double        numElectronPEXSI;
   double        muMinInertia;
   double        muMaxInertia;
-  double        muLowerEdge;
-  double        muUpperEdge;
-  double        muPEXSI;
-  double        muMinPEXSI;
-  double        muMaxPEXSI;
-
-  int           inertiaMaxIter;
-  int           inertiaIter;
-  int           muMaxIter;
-  int           muIter;
-  int           isInertiaCount;
+  int           numTotalInertiaIter;
+  int           numTotalPEXSIIter;
   
   char*         Hfile;
   char*         Sfile;
   int           isFormatted;
 
-  double        PEXSINumElectronTolerance;
-  double        inertiaNumElectronTolerance;
-
 
   int           i, j, irow, jcol;
   int           numColLocalFirst, firstCol;
+  int           nprow, npcol;
   MPI_Comm      readComm;
   int           isProcRead;
   int           info;
@@ -132,45 +106,23 @@ int main(int argc, char **argv)
 
   /* Below is the data used for the toy g20 matrix */
 
-  temperature         = 0.0019;
   numElectronExact    = 12.0;
-  numPole             = 40;
-  gap                 = 0.0;
-  deltaE              = 30.0;
-  muMin0              = 0.0;
-  muMax0              = 10.0;
-  inertiaMaxIter      = 5;
-  muMaxIter           = 5;
-  inertiaNumElectronTolerance = 10.0;
-  PEXSINumElectronTolerance   = 0.01;
   nprow               = 1;
   npcol               = 1;
-  npPerPole           = nprow * npcol;
-  npSymbFact          = 1;
   Hfile               = "lap2dr.matrix";
   Sfile               = "";
   isFormatted         = 1;
   isSIdentity         = 1;
-  ordering            = 1;
   Energy              = 1.0;
   eta                 = 0.001;
 
   /* Split the processors to read matrix */
-  if( mpirank < npPerPole )
+  if( mpirank < nprow * npcol )
     isProcRead = 1;
   else
     isProcRead = 0;
 
   MPI_Comm_split( MPI_COMM_WORLD, isProcRead, mpirank, &readComm );
-
-  /* Allocate memory visible to all processors */
-  muList                  = (double*) malloc( sizeof(double) * muMaxIter );
-  numElectronList         = (double*) malloc( sizeof(double) * muMaxIter );
-  numElectronDrvList      = (double*) malloc( sizeof(double) * muMaxIter );
-  shiftList               = (double*) malloc( sizeof(double) * numPole   );
-  inertiaList             = (double*) malloc( sizeof(double) * numPole   );
-  inertiaListInt          = (int*) malloc( sizeof(int) * numPole   );
-
 
   if( isProcRead == 1 ){
     printf("Proc %5d is reading file...", mpirank );
@@ -275,8 +227,19 @@ int main(int argc, char **argv)
 
   /* Step 1. Initialize PEXSI */
 
+  PPEXSIDFTOptions  options;
+  PPEXSISetDefaultDFTOptions( &options );
+
   PPEXSIPlan   plan;
+
   plan = PPEXSIPlanInitialize( 
+      MPI_COMM_WORLD, 
+      nprow,
+      npcol,
+      mpirank );
+
+  PPEXSILoadMatrix( 
+      plan, 
       nrows,
       nnz,
       nnzLocal,
@@ -285,16 +248,25 @@ int main(int argc, char **argv)
       rowindLocal,
       HnzvalLocal,
       isSIdentity,
-      SnzvalLocal,
-      nprow,
-      npcol,
-      MPI_COMM_WORLD,
-      mpirank );
+      SnzvalLocal);
 
-
-  PPEXSIPlanFinalize( plan );
-  
   /* Step 2. PEXSI Solve */
+
+  PPEXSIDFTDriver(
+      plan,
+      numElectronExact,
+      options,
+      DMnzvalLocal,                  
+      EDMnzvalLocal,                 
+      FDMnzvalLocal,                
+      &muPEXSI,                   
+      &numElectronPEXSI,         
+      &muMinInertia,              
+      &muMaxInertia,             
+      &numTotalInertiaIter,   
+      &numTotalPEXSIIter,   
+      &info );    
+
 
 //  if( info != 0 ){
 //    if( mpirank == 0 ){
@@ -314,18 +286,14 @@ int main(int argc, char **argv)
   /* Compute the density of states (DOS) via inertia counting (without
    * including finite temperature effects) */
 
+  /* Step 4. Clean up */
+
+  PPEXSIPlanFinalize( plan );
+  
   if( mpirank == 0 ){ 
     printf("\nAll calculation is finished. Exit the program.\n");
   }
 
-
-  /* Deallocate memory */
-  free( muList );
-  free( numElectronList );
-  free( numElectronDrvList );
-  free( shiftList );
-  free( inertiaList );
-  free( inertiaListInt );
 
   if( isProcRead == 1 ){
     free( colptrLocal );

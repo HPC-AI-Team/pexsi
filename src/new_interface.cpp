@@ -59,7 +59,47 @@
 using namespace PEXSI;
 
 extern "C"
+void PPEXSISetDefaultDFTOptions(
+    PPEXSIDFTOptions*   options ){
+  options->temperature           = 0.0019;   // 300K 
+  options->deltaE                = 10.0; 
+  options->numPole               = 40;
+  options->isInertiaCount        = 1;
+  options->maxPEXSIIter          = 3;
+  options->muMin0                = -10.0; 
+  options->muMax0                = +10.0; 
+  options->muInertiaTolerance    = 0.05;
+  options->muPEXSISafeGuard      = 0.05;
+  options->numElectronPEXSITolerance = 0.01;
+  options->ordering              = 0;
+  options->npSymbFact            = 1;
+}   // -----  end of function PPEXSISetDefaultDFTOptions  ----- 
+
+
+extern "C"
 PPEXSIPlan PPEXSIPlanInitialize(
+    MPI_Comm      comm,
+    int           numProcRow,
+    int           numProcCol,
+    int           outputFileIndex ){
+
+	Int mpirank, mpisize;
+	MPI_Comm_rank( comm, &mpirank );
+	MPI_Comm_size( comm, &mpisize );
+
+  Int npPerPole = numProcRow * numProcCol;
+  
+  PPEXSIData *ptrData;
+  GridType gridPole( comm, mpisize / npPerPole, npPerPole );
+  ptrData = new PPEXSIData( &gridPole, numProcRow, numProcCol );
+        
+  return reinterpret_cast<PPEXSIPlan>(ptrData);
+}   // -----  end of function PPEXSIPlanInitialize  ----- 
+
+
+extern "C"
+void PPEXSILoadMatrix(
+    PPEXSIPlan    plan,
     int           nrows,                        
     int           nnz,                          
     int           nnzLocal,                     
@@ -68,26 +108,37 @@ PPEXSIPlan PPEXSIPlanInitialize(
     int*          rowindLocal,                  
     double*       HnzvalLocal,                  
     int           isSIdentity,                  
-    double*       SnzvalLocal,
-    int           nprow,
-    int           npcol,
-    MPI_Comm      comm,
-    int           outputFileIndex ){
+    double*       SnzvalLocal ){
 
-	Int mpirank, mpisize;
-	MPI_Comm_rank( comm, &mpirank );
-	MPI_Comm_size( comm, &mpisize );
+  return;
+}   // -----  end of function PPEXSILoadMatrix  ----- 
 
-  Int npPerPole = nprow * npcol;
+
+void PPEXSIDFTDriver(
+    /* Input parameters */
+    PPEXSIPlan        plan,
+    double            numElectronExact,
+    PPEXSIDFTOptions  options,
+    /* Output parameters */
+		double*      DMnzvalLocal,                  
+		double*     EDMnzvalLocal,                 
+		double*     FDMnzvalLocal,                
+		double*       muPEXSI,                   
+		double*       numElectronPEXSI,         
+    double*       muMinInertia,              
+		double*       muMaxInertia,             
+		int*          numTotalInertiaIter,   
+		int*          numTotalPEXSIIter,   
+    int*          info ){
   
-  PPEXSIData *ptrData;
-  GridType gridPole( comm, mpisize / npPerPole, npPerPole );
-  ptrData = new PPEXSIData( &gridPole, nprow, npcol );
-        
-  return reinterpret_cast<PPEXSIPlan>(ptrData);
-}   // -----  end of function PPEXSIPlanInitialize  ----- 
+  return;
+
+}   // -----  end of function PPEXSIDFTDriver  ----- 
+
+
 
 extern "C"
 void PPEXSIPlanFinalize( PPEXSIPlan plan ){
   delete reinterpret_cast<PPEXSIData*>(plan);
+  return;
 }   // -----  end of function PPEXSIPlanFinalize  ----- 
