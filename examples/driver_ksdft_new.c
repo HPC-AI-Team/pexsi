@@ -107,7 +107,7 @@ int main(int argc, char **argv)
   /* Below is the data used for the toy g20 matrix */
 
   numElectronExact    = 12.0;
-  nprow               = 1;
+  nprow               = 2;
   npcol               = 1;
   Hfile               = "lap2dr.matrix";
   Sfile               = "";
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
   MPI_Comm_split( MPI_COMM_WORLD, isProcRead, mpirank, &readComm );
 
   if( isProcRead == 1 ){
-    printf("Proc %5d is reading file...", mpirank );
+    printf("Proc %5d is reading file...\n", mpirank );
     /* Read the matrix head for allocating memory */
     if( isFormatted == 1 ){
       ReadDistSparseMatrixFormattedHeadInterface(
@@ -227,8 +227,8 @@ int main(int argc, char **argv)
 
   /* Step 1. Initialize PEXSI */
 
-  PPEXSIDFTOptions  options;
-  PPEXSISetDefaultDFTOptions( &options );
+  PPEXSIOptions  options;
+  PPEXSISetDefaultOptions( &options );
 
   PPEXSIPlan   plan;
 
@@ -236,9 +236,10 @@ int main(int argc, char **argv)
       MPI_COMM_WORLD, 
       nprow,
       npcol,
-      mpirank );
+      mpirank, 
+      &info );
 
-  PPEXSILoadMatrix( 
+  PPEXSILoadRealSymmetricHSMatrix( 
       plan, 
       nrows,
       nnz,
@@ -248,7 +249,8 @@ int main(int argc, char **argv)
       rowindLocal,
       HnzvalLocal,
       isSIdentity,
-      SnzvalLocal);
+      SnzvalLocal,
+      &info );
 
   /* Step 2. PEXSI Solve */
 
@@ -256,9 +258,6 @@ int main(int argc, char **argv)
       plan,
       numElectronExact,
       options,
-      DMnzvalLocal,                  
-      EDMnzvalLocal,                 
-      FDMnzvalLocal,                
       &muPEXSI,                   
       &numElectronPEXSI,         
       &muMinInertia,              
@@ -288,7 +287,9 @@ int main(int argc, char **argv)
 
   /* Step 4. Clean up */
 
-  PPEXSIPlanFinalize( plan );
+  PPEXSIPlanFinalize( 
+      plan,
+      &info );
   
   if( mpirank == 0 ){ 
     printf("\nAll calculation is finished. Exit the program.\n");

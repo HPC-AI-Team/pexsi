@@ -377,8 +377,6 @@ void PPEXSIInertiaCountInterface(
 
 	try{
 
-
-
 		if( mpisize % npPerPole != 0 ){
 			std::ostringstream msg;
 			msg 
@@ -397,7 +395,6 @@ void PPEXSIInertiaCountInterface(
 				<< std::endl;
 			throw std::runtime_error( msg.str().c_str() );
 		}
-
 
 
 		Int nprow = iround( std::sqrt( (double)npPerPole) );
@@ -1611,7 +1608,7 @@ void PPEXSILocalDOSInterface (
 
 
 extern "C"
-void PSelInvComplexSymmetricInterface ( 
+void PSelInvComplexSymmetricInterface (
     int           nrows,                        
     int           nnz,                          
     int           nnzLocal,                     

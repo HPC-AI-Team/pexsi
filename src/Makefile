@@ -1,7 +1,7 @@
 include ../make.inc
 
 SRCS_C   = pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c
-SRCS_CPP = new_interface.cpp interface.cpp ppexsi.cpp ppexsi_real.cpp pole.cpp \
+SRCS_CPP = new_interface.cpp new_ppexsi.cpp interface.cpp ppexsi.cpp ppexsi_real.cpp pole.cpp \
 					 pselinv.cpp superlu_dist_interf.cpp \
 					 mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp 
 

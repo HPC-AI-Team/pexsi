@@ -47,7 +47,7 @@
 /// @date 2014-03-07
 #include "c_pexsi_interface.h"
 #include "c_pexsi_new_interface.h"
-#include "ppexsi.hpp"
+#include "new_ppexsi.hpp"
 #include "blas.hpp"
 
 // FIXME
@@ -59,9 +59,10 @@
 using namespace PEXSI;
 
 extern "C"
-void PPEXSISetDefaultDFTOptions(
-    PPEXSIDFTOptions*   options ){
+void PPEXSISetDefaultOptions(
+    PPEXSIOptions*   options ){
   options->temperature           = 0.0019;   // 300K 
+  options->gap                   = 0.0;      // no gap 
   options->deltaE                = 10.0; 
   options->numPole               = 40;
   options->isInertiaCount        = 1;
@@ -71,9 +72,11 @@ void PPEXSISetDefaultDFTOptions(
   options->muInertiaTolerance    = 0.05;
   options->muPEXSISafeGuard      = 0.05;
   options->numElectronPEXSITolerance = 0.01;
+  options->matrixType            = 0;
   options->ordering              = 0;
   options->npSymbFact            = 1;
-}   // -----  end of function PPEXSISetDefaultDFTOptions  ----- 
+  options->verbosity             = 1;
+}   // -----  end of function PPEXSISetDefaultOptions  ----- 
 
 
 extern "C"
@@ -81,24 +84,35 @@ PPEXSIPlan PPEXSIPlanInitialize(
     MPI_Comm      comm,
     int           numProcRow,
     int           numProcCol,
-    int           outputFileIndex ){
+    int           outputFileIndex, 
+    int*          info ){
 
-	Int mpirank, mpisize;
-	MPI_Comm_rank( comm, &mpirank );
-	MPI_Comm_size( comm, &mpisize );
+  Int mpirank, mpisize;
+  MPI_Comm_rank( comm, &mpirank );
+  MPI_Comm_size( comm, &mpisize );
 
-  Int npPerPole = numProcRow * numProcCol;
-  
-  PPEXSIData *ptrData;
-  GridType gridPole( comm, mpisize / npPerPole, npPerPole );
-  ptrData = new PPEXSIData( &gridPole, numProcRow, numProcCol );
-        
+  *info = 0;
+  PPEXSINewData *ptrData;
+
+  try{
+    ptrData = new PPEXSINewData( comm, numProcRow, numProcCol, mpirank );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
   return reinterpret_cast<PPEXSIPlan>(ptrData);
 }   // -----  end of function PPEXSIPlanInitialize  ----- 
 
 
 extern "C"
-void PPEXSILoadMatrix(
+void PPEXSILoadRealSymmetricHSMatrix(
     PPEXSIPlan    plan,
     int           nrows,                        
     int           nnz,                          
@@ -108,37 +122,141 @@ void PPEXSILoadMatrix(
     int*          rowindLocal,                  
     double*       HnzvalLocal,                  
     int           isSIdentity,                  
-    double*       SnzvalLocal ){
+    double*       SnzvalLocal, 
+    int*          info ){
+
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSINewData*>(plan)->GridPole();
+
+  *info = 0;
+
+  try{
+    reinterpret_cast<PPEXSINewData*>(plan)->
+      LoadRealSymmetricMatrix(
+          nrows,                        
+          nnz,                          
+          nnzLocal,                     
+          numColLocal,                  
+          colptrLocal,                  
+          rowindLocal,                  
+          HnzvalLocal,                  
+          isSIdentity,                  
+          SnzvalLocal );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
 
   return;
-}   // -----  end of function PPEXSILoadMatrix  ----- 
+}   // -----  end of function PPEXSILoadRealSymmetricHSMatrix  ----- 
 
 
+extern "C"
 void PPEXSIDFTDriver(
     /* Input parameters */
     PPEXSIPlan        plan,
     double            numElectronExact,
-    PPEXSIDFTOptions  options,
+    PPEXSIOptions     options,
     /* Output parameters */
-		double*      DMnzvalLocal,                  
-		double*     EDMnzvalLocal,                 
-		double*     FDMnzvalLocal,                
-		double*       muPEXSI,                   
-		double*       numElectronPEXSI,         
-    double*       muMinInertia,              
-		double*       muMaxInertia,             
-		int*          numTotalInertiaIter,   
-		int*          numTotalPEXSIIter,   
-    int*          info ){
+		double*           muPEXSI,                   
+		double*           numElectronPEXSI,         
+    double*           muMinInertia,              
+		double*           muMaxInertia,             
+		int*              numTotalInertiaIter,   
+		int*              numTotalPEXSIIter,   
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSINewData*>(plan)->GridPole();
   
+  try{
+    reinterpret_cast<PPEXSINewData*>(plan)->DFTDriver(
+        numElectronExact,
+        options.temperature,
+        options.gap,
+        options.deltaE,
+        options.numPole,
+        options.isInertiaCount,
+        options.maxPEXSIIter,
+        options.muMin0,
+        options.muMax0,
+        options.muInertiaTolerance,
+        options.muPEXSISafeGuard,
+        options.numElectronPEXSITolerance,
+        options.matrixType,
+        options.ordering,
+        options.npSymbFact,
+        options.verbosity,
+        *muPEXSI,
+        *numElectronPEXSI,
+        *muMinInertia,
+        *muMaxInertia,
+        *numTotalInertiaIter,
+        *numTotalPEXSIIter );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
   return;
 
+  return;
 }   // -----  end of function PPEXSIDFTDriver  ----- 
 
 
+//extern "C"
+//void PPEXSIRetrieveRealSymmetricDFTMatrix(
+//    PPEXSIPlan        plan,
+//		double*      DMnzvalLocal,
+//		double*     EDMnzvalLocal,
+//		double*     FDMnzvalLocal,
+//    int*              info ){
+//  *info = 0;
+//
+//	// Synchronize the info among all processors. 
+//	// If any processor gets error message, info = 1
+//	Int infoAll = 0;
+//	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
+//	*info = infoAll;
+//
+//  return;
+//}
+
 
 extern "C"
-void PPEXSIPlanFinalize( PPEXSIPlan plan ){
-  delete reinterpret_cast<PPEXSIData*>(plan);
+void PPEXSIPlanFinalize( 
+    PPEXSIPlan    plan,
+    int*          info ){
+
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSINewData*>(plan)->GridPole();
+  
+  try{
+    delete reinterpret_cast<PPEXSINewData*>(plan);
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
   return;
 }   // -----  end of function PPEXSIPlanFinalize  ----- 
