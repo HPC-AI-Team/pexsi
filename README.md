@@ -1,50 +1,13 @@
-Installation       {#pageInstall}
+PEXSI: Pole EXpansion and Selected Inversion 
+============================================
+
+For full documentation, including instructions for installation please see
+
+http://pexsi.github.io/pexsi/
+
+Installation       
 ============
 
-- @subpage pageDownload
-- @subpage pageDependency
-- @subpage pageBuild
-
-<!-- ************************************************************ -->
-@page pageDownload Obtaining the source code
-
-The tarball file for the most recent version (v0.6.0) of the %PEXSI
-package can be downloaded here:
-
-<a href="http://pexsi.github.io/pexsi/pexsi_v0.6.0.tar.gz">pexsi_v0.6.0.tar.gz</a>
-
-@htmlonly
-<!-- Start of StatCounter Code for Default Guide -->
-<script type="text/javascript">
-var sc_project=9519165; 
-var sc_invisible=1; 
-var sc_security="aa052b1d"; 
-var scJsHost = (("https:" == document.location.protocol) ?
-"https://secure." : "http://www.");
-document.write("<sc"+"ript type='text/javascript' src='" +
-scJsHost+
-"statcounter.com/counter/counter.js'></"+"script>");
-</script>
-<noscript><div class="statcounter"><a title="web stats"
-href="http://statcounter.com/free-web-stats/"
-target="_blank"><img class="statcounter"
-src="http://c.statcounter.com/9519165/0/aa052b1d/1/"
-alt="web stats"></a></div></noscript>
-<!-- End of StatCounter Code for Default Guide -->
-@endhtmlonly
-
-<!-- ************************************************************ -->
-@page pageDependency Dependencies
-
-
-%PEXSI requires an external parallel \f$LU\f$ factorization or
-\f$LDL^T\f$ factorization routine, and an external parallel matrix
-reordering routine to reduce the fill-in of the factorization routine.
-
-Currently we use SuperLU_DIST for the parallel \f$LU\f$ factorization,
-and ParMETIS for the parallel fill-in reducing reordering.  It is also
-possible to use PT-Scotch for the reordering.  But we recommend to first
-download ParMETIS.
 
 
 Build ParMETIS
@@ -110,17 +73,17 @@ INSTALL.TXT for more information.
     2.9) MeTiS compatibility library
 
 <!-- ************************************************************ -->
-@page pageBuild Build %PEXSI
+@page pageBuild Build PEXSI
 
 Edit make.inc
 -------------
 
-Configuration of %PEXSI is controlled by a single `make.inc` file.
+Configuration of PEXSI is controlled by a single `make.inc` file.
 Examples of the `make.inc` file are given under the `config/` directory.
 
 Find `make.inc` with the most similar architecture, and copy to the main
-%PEXSI directory (using Edison for example, the latest Intel computer
-at NERSC).  `${PEXSI_DIR}` stands for the main directory of %PEXSI.
+PEXSI directory (using Edison for example, the latest Intel computer
+at NERSC).  `${PEXSI_DIR}` stands for the main directory of PEXSI.
 
     cd ${PEXSI_DIR}
     cp config/make.inc.edison.intel make.inc
@@ -134,7 +97,7 @@ Edit the variables in make.inc.
     PTSCOTCH_DIR  = Main directory for PT-Scotch
 
 
-@note %PEXSI can be compiled using `debug` or `release` mode in
+@note PEXSI can be compiled using `debug` or `release` mode in
 by the variable `COMPILE_MODE` in `make.inc`.  This variable mainly controls the
 compiling flag `-DRELEASE`.  The `debug` mode introduces tracing of call
 stacks at all levels of functions, and may significantly slow down the
@@ -143,7 +106,7 @@ code.  For production runs, use `release` mode.
 @note The `*.profile` configuration files are for debugging purpose and
 can be ignored.
 
-Build the %PEXSI library
+Build the PEXSI library
 ------------------------
 
 If make.inc is configured correctly,
