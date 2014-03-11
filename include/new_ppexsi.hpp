@@ -159,6 +159,7 @@ namespace PEXSI{
         Real       muMin0,
         Real       muMax0,
         Real       muInertiaTolerance,
+        Real       muInertiaExpansion,
         Real       muPEXSISafeGuard,
         Real       numElectronPEXSITolerance,
         Int        matrixType,
@@ -171,6 +172,47 @@ namespace PEXSI{
         Real&      muMaxInertia,             
         Int&       numTotalInertiaIter,   
         Int&       numTotalPEXSIIter );
+
+
+		/// @brief Compute the negative inertia (the number of eigenvalues
+		/// below a shift) using real arithemetic factorization routine.
+		///
+		/// This subroutine computes the negative inertia of the matrix
+		///
+		/// I = H - shift * S
+		///
+		/// where I is the same as the number of eigenvalues lambda for
+		///
+		/// H x = lambda S x
+		///
+		/// with lambda < shift according to the Sylvester's law of inertia.
+		///
+		/// @param[in]  shiftVec Shift vectors.
+		/// @param[out] inertiaVec Negative inertia count, the same size as
+		/// shiftVec.
+		/// @param[in] HMat Hamiltonian matrix saved in distributed compressed
+		/// sparse column format. See DistSparseMatrix.
+		/// @param[in] SMat Overlap matrix saved in distributed compressed
+		/// sparse column format. See DistSparseMatrix.
+		///
+		/// **Note**: If SMat.size == 0, SMat is treated as an identity matrix.
+		/// 
+		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		///
+		/// @param[in] numProcSymbFact Number of processors used for parallel
+		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+		void CalculateNegativeInertiaReal(
+				const std::vector<Real>&       shiftVec, 
+				std::vector<Real>&             inertiaVec,
+				const DistSparseMatrix<Real>&  HMat,
+				const DistSparseMatrix<Real>&  SMat,
+				std::string                    ColPerm,
+				Int                            numProcSymbFact );
+
+
+    // *********************************************************************
+    // Access data
+    // *********************************************************************
 
     const GridType*  GridPole() const {return gridPole_;}
 

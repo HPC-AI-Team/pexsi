@@ -233,6 +233,7 @@ PPEXSINewData::DFTDriver (
     Real       muMin0,
     Real       muMax0,
     Real       muInertiaTolerance,
+    Real       muInertiaExpansion,
     Real       muPEXSISafeGuard,
     Real       numElectronPEXSITolerance,
     Int        matrixType,
@@ -249,6 +250,257 @@ PPEXSINewData::DFTDriver (
 #ifndef _RELEASE_
 	PushCallStack("PPEXSINewData::DFTDriver");
 #endif
+  numTotalInertiaIter = 0;
+  numTotalPEXSIIter   = 0;
+
+	Real timeSta, timeEnd;
+
+  // Initial setup
+  muMinInertia = muMin0;
+  muMaxInertia = muMax0;
+
+  std::string colPerm;
+  switch (ordering){
+    case 0:
+      colPerm = "PARMETIS";
+      break;
+    case 1:
+      colPerm = "METIS_AT_PLUS_A";
+      break;
+    case 2:
+      colPerm = "MMD_AT_PLUS_A";
+      break;
+    default:
+      throw std::logic_error("Unsupported ordering strategy.");
+  }
+
+
+  // Main loop: inertia count + PEXSI
+   
+  while(1){
+
+    // Perform inertia count
+    if( isInertiaCount == 1 ){
+      bool     isBadBound = false;
+
+      // Number of shifts is exactly determined by the number of
+      // independent groups to minimize the cost
+      // However, the minimum number of shifts is 10 to accelerate
+      // convergence.
+      Int numShift = std::max( gridPole_->numProcRow, 10 );
+      std::vector<Real>  shiftVec( numShift );
+      std::vector<Real>  inertiaVec( numShift );   // Zero temperature
+      std::vector<Real>  inertiaFTVec( numShift ); // Finite temperature
+      Int iter;
+      Int maxInertiaIter = std::max( 1, iround( 
+            std::log( (muMax0 - muMin0) / muInertiaTolerance ) /
+            std::log( numShift ) ) ); 
+
+      if( verbosity == 1 ){
+        statusOFS << std::endl
+          << "From" << std::endl
+          << "(muMin0, muMax0)   = " << "(" << muMin0 << ", " << muMax0 
+          << ")" << std::endl
+          << "muInertiaTolerance = " << muInertiaTolerance << std::endl
+          << "numShift           = " << numShift << std::endl
+          << "we have " << std::endl
+          << "maxInertiaIter     = " << maxInertiaIter << std::endl << std::endl;
+      }
+
+      for( iter = 1; iter <= maxInertiaIter; iter++ ){
+        for( Int l = 0; l < numShift; l++ ){
+          shiftVec[l] = muMinInertia + l * (muMaxInertia - muMinInertia) / (numShift-1);
+        }
+
+
+        GetTime( timeSta );
+        CalculateNegativeInertiaReal(
+            shiftVec,
+            inertiaVec,
+            HRealMat_,
+            SRealMat_,
+            colPerm,
+            numProcSymbFact );
+
+        GetTime( timeEnd );
+
+        // Inertia is multiplied by 2.0 to reflect the doubly occupied
+        // orbitals.
+        for( Int l = 0; l < numShift; l++ ){
+          inertiaVec[l] *= 2.0;
+        }
+
+        // Using linear interpolation procedure to compute the finite
+        // temperature cumulative DOS
+        {
+          Int numInp = 1000;   // Number of interpolation points
+          Real shiftExpand = 20 * temperature;   // Expand the interval for interpolation
+          std::vector<Real>  shiftInpVec( numInp );
+          std::vector<Real>  inertiaInpVec( numInp ); 
+          std::vector<Real>  fdDrvVec( numInp );
+          for( Int l = 0; l < numShift; l++ ){
+            Real shiftInp0 = shiftVec[l] - shiftExpand;
+            Real shiftInp1 = shiftVec[l] + shiftExpand; 
+            Real h = (shiftInp1 - shiftInp0) / (numInp-1);
+            for( Int i = 0; i < numInp; i++ ){
+              shiftInpVec[i] = shiftInp0 + h * i;
+              // fdDrvMu(x) = beta * exp(beta*x)/(1+exp(beta*z))^2
+              // Note: compared to fdDrvMu used in pole.cpp, the factor 2.0 is not
+              // present, because it is included in inertiaVec. 
+              fdDrvVec[i]    = 1.0 / ( 2.0 * temperature * (
+                    1.0 + std::cosh( ( shiftInpVec[i] - shiftVec[l] ) / temperature ) ) );
+            }
+            LinearInterpolation( shiftVec, inertiaVec, 
+                shiftInpVec, inertiaInpVec );
+
+            inertiaFTVec[l] = 0.0;
+            for( Int i = 0; i < numInp; i++ ){
+              inertiaFTVec[l] += fdDrvVec[i] * inertiaInpVec[i] * h;
+            }
+
+            if( verbosity == 1 ){
+              statusOFS << std::setiosflags(std::ios::left) 
+                << std::setw(LENGTH_VAR_NAME) << "Shift      = "
+                << std::setw(LENGTH_VAR_DATA) << shiftVec[l]
+                << std::setw(LENGTH_VAR_NAME) << "Inertia    = "
+                << std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
+                << std::setw(LENGTH_VAR_NAME) << "InertiaFT  = "
+                << std::setw(LENGTH_VAR_DATA) << inertiaFTVec[l]
+                << std::endl;
+            }
+          } // for (l)
+        }
+
+        if( verbosity == 1 ){
+          statusOFS << std::endl << "Time for iteration " 
+            << iter << " of the inertia count is " 
+            << timeEnd - timeSta << std::endl;
+        }
+
+        // If the chemical potential does not fall into the
+        // (muMinInertia, muMaxInertia) bracket, expand the interval.
+
+        if( inertiaFTVec[0] > numElectronExact - 0.1 ){
+          isBadBound = true;
+          muMaxInertia = muMinInertia;
+          muMinInertia = muMinInertia - muInertiaExpansion;
+        }
+
+        if( inertiaFTVec[numShift-1] < numElectronExact + 0.1 ){
+          isBadBound = true;
+//          muMinInertia = 
+        }
+
+        if( inertiaFTVec[0] >= numElectronExact ||
+            inertiaFTVec[numShift-1] <= numElectronExact ){
+          std::ostringstream msg;
+          msg 
+            << "The solution is not in the prescribed (muMin, muMax) interval." << std::endl
+            << "(muMin, muMax) ~ (" << shiftVec[0] << " , " << shiftVec[numShift-1] << " ) " << std::endl
+            << "(Ne(muMin), Ne(muMax)) ~ (" << inertiaFTVec[0] << " , " << inertiaFTVec[numShift-1] 
+            << " ) " << std::endl
+            << "NeExact = " << numElectronExact << std::endl
+            << "Try to increase numElectronTolerance or initial search interval for mu." << std::endl;
+          throw std::runtime_error( msg.str().c_str() );
+        }
+//
+//
+//        // Update muMin, muMax
+//        // NOTE: divide by 4 is just heuristics so that the interval does
+//        // not get to be too small for the PEXSI iteration
+//
+//        // First find the smallest interval
+//        const Real EPS = 1e-1;
+//        Int idxMin = 0, idxMax = numShift-1;
+//        for( Int i = 0; i < numShift; i++ ){
+//          if( ( inertiaFTVec[i] < numElectronExact ) &&
+//              ( inertiaVec[i]   < numElectronExact - EPS ) ){
+//            idxMin = ( idxMin < i ) ? i : idxMin;
+//          }
+//          if( ( inertiaFTVec[i] > numElectronExact ) &&
+//              ( inertiaVec[i]   > numElectronExact + EPS ) ){
+//            idxMax = ( idxMax > i ) ? i : idxMax;
+//          }
+//        }
+//
+//#if ( _DEBUGlevel_ >= 0 )
+//        statusOFS << "idxMin = " << idxMin << "inertiaVec = " << inertiaVec[idxMin] << std::endl;
+//        statusOFS << "idxMax = " << idxMax << "inertiaVec = " << inertiaVec[idxMax] << std::endl;
+//#endif
+//
+//
+//
+//        if( inertiaFTVec[idxMax] - inertiaFTVec[idxMin] >= 
+//            numElectronTolerance ){
+//          // The smallest interval still contain too many eigenvalues
+//          muMin = shiftVec[idxMin];
+//          muMax = shiftVec[idxMax];
+//          Real NeMin, NeMax;
+//          NeMin = std::min( inertiaFTVec[idxMin], 
+//              numElectronExact - numElectronTolerance / 2 + EPS );
+//          NeMin = std::max( inertiaFTVec[0] + EPS, NeMin );
+//          NeMax = std::max( inertiaFTVec[idxMax],
+//              numElectronExact + numElectronTolerance / 2 - EPS );
+//          NeMax = std::min( inertiaFTVec[numShift-1] - EPS, NeMax );
+//          muMin = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMin );
+//          muMax = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMax );
+//        }
+//        else{
+//          // Root finding using linear interpolation
+//          Real NeMin, NeMax;
+//          NeMin = numElectronExact - numElectronTolerance / 2 + EPS;
+//          NeMin = std::max( inertiaFTVec[0] + EPS, NeMin );
+//          NeMax = numElectronExact + numElectronTolerance / 2 - EPS;
+//          NeMax = std::min( inertiaFTVec[numShift-1] - EPS, NeMax );
+//          muMin = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMin );
+//          muMax = MonotoneRootFinding( shiftVec, inertiaFTVec, NeMax );
+//        }
+//
+//
+//        double mu0 = (muMin + muMax)/2.0;
+//
+//
+//        Real NeLower = numElectronExact - EPS;
+//        Real NeUpper = numElectronExact + EPS;
+//
+//
+//
+//        muLow = MonotoneRootFinding( shiftVec, inertiaFTVec, NeLower );
+//        muUpp = MonotoneRootFinding( shiftVec, inertiaFTVec, NeUpper );
+//
+//        // Convert the internal variables to output parameters
+//        // This early output is mainly for debugging purpose.
+//        {
+//          *muMinInertia = muMin;
+//          *muMaxInertia = muMax;
+//          *muLowerEdge  = muLow;
+//          *muUpperEdge  = muUpp;
+//          *numIter      = iter;
+//        }
+//
+//        // Output some information after EACH STEP for dynamical adjustament.
+//        {
+//#if ( _DEBUGlevel_ >= 0 )
+//          statusOFS << std::endl << "After inertia count iteration " << iter
+//            << std::endl;
+//          Print( statusOFS, "muLowerEdge   = ", muLow );
+//          Print( statusOFS, "muUppperEdge  = ", muUpp );
+//          Print( statusOFS, "muMin         = ", muMin );
+//          Print( statusOFS, "muMax         = ", muMax );
+//          statusOFS << std::endl;
+//#endif
+//        }
+//
+//
+//        if( inertiaFTVec[numShift-1] - inertiaFTVec[0] < numElectronTolerance ){
+//          isConverged = true;
+//          break;
+//        }
+      } // for (iter)
+    }
+    // FIXME
+    break;
+  }
 
 #ifndef _RELEASE_
 	PopCallStack();

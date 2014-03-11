@@ -70,6 +70,7 @@ void PPEXSISetDefaultOptions(
   options->muMin0                = -10.0; 
   options->muMax0                = +10.0; 
   options->muInertiaTolerance    = 0.05;
+  options->muInertiaExpansion    = 0.3;      
   options->muPEXSISafeGuard      = 0.05;
   options->numElectronPEXSITolerance = 0.01;
   options->matrixType            = 0;
@@ -188,6 +189,7 @@ void PPEXSIDFTDriver(
         options.muMin0,
         options.muMax0,
         options.muInertiaTolerance,
+        options.muInertiaExpansion,
         options.muPEXSISafeGuard,
         options.numElectronPEXSITolerance,
         options.matrixType,

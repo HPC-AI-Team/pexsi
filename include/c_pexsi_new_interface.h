@@ -115,6 +115,11 @@ typedef struct {
      */ 
     double        muInertiaTolerance;
     /** 
+     * @brief  If the chemical potential is not in the initial interval,
+     * the interval is expanded by muInertiaExpansion.
+     */ 
+    double        muInertiaExpansion;
+    /** 
      * @brief  Safe guard criterion in terms of the chemical potential
      * to reinvoke the inertia counting procedure.
      */ 
