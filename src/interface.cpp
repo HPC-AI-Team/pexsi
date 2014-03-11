@@ -1311,7 +1311,7 @@ void PPEXSISelInvInterface (
 			throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
 		}
 
-		SuperLUGrid g( comm, nprow, npcol );
+		SuperLUGrid<Scalar> g( comm, nprow, npcol );
 		
 
 		// Convert into H and S matrices
@@ -1427,7 +1427,7 @@ void PPEXSISelInvInterface (
 		// TODO Introduce maxPipelineDepth as an adjustable parameter when needed.
 		luOpt.maxPipelineDepth = -1;
 
-		SuperLUMatrix luMat( g, luOpt );
+		SuperLUMatrix<Scalar> luMat( g, luOpt );
 		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
 
 		luMat.SymbolicFactorize();
@@ -1448,7 +1448,7 @@ void PPEXSISelInvInterface (
 		SuperNodeType super;
 
 		luMat.SymbolicToSuperNode( super );
-		PMatrix PMloc( &g1, &super, &luOpt );
+		PMatrix<Scalar> PMloc( &g1, &super, &luOpt );
 		luMat.LUstructToPMatrix( PMloc );
 
 
@@ -1646,7 +1646,7 @@ void PSelInvComplexSymmetricInterface (
 			throw std::runtime_error( " mpisize != nprow * npcol ." );
 		}
 
-		SuperLUGrid g( comm, nprow, npcol );
+		SuperLUGrid<Complex> g( comm, nprow, npcol );
 		
 		// Convert into DistSparseMatrix
 		DistSparseMatrix<Complex> AMat;
@@ -1691,7 +1691,7 @@ void PSelInvComplexSymmetricInterface (
 		// TODO Introduce maxPipelineDepth as an adjustable parameter when needed.
 		luOpt.maxPipelineDepth = -1;
 
-		SuperLUMatrix luMat( g, luOpt );
+		SuperLUMatrix<Complex> luMat( g, luOpt );
 		luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
 
 		luMat.SymbolicFactorize();
@@ -1712,7 +1712,7 @@ void PSelInvComplexSymmetricInterface (
 		SuperNodeType super;
 
 		luMat.SymbolicToSuperNode( super );
-		PMatrix PMloc( &g1, &super, &luOpt );
+		PMatrix<Complex> PMloc( &g1, &super, &luOpt );
 		luMat.LUstructToPMatrix( PMloc );
 
 

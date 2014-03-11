@@ -2,8 +2,11 @@ include ../make.inc
 
 SRCS_C   = pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c
 SRCS_CPP = interface.cpp ppexsi.cpp ppexsi_real.cpp pole.cpp \
-					 pselinv.cpp superlu_dist_interf.cpp \
-					 mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp 
+					 mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp \
+           superlu_RealSuperLUData.cpp superlu_ComplexSuperLUData.cpp \
+           superlu_RealGridData.cpp superlu_ComplexGridData.cpp 
+
+#          pselinv.cpp \
 
 OBJS     = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o} ${SRCS_F:.f=.o}
 DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F:.f=.d}

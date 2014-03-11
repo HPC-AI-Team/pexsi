@@ -1,61 +1,9 @@
-/*
-   Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+#include "superlu_RealGridData.hpp"
+#include "superlu_RealSuperLUData.hpp"
 
-   Author: Lin Lin
-	 
-   This file is part of PEXSI. All rights reserved.
+#include "pselinv.hpp"
+//#include "superlu_dist_interf.hpp"
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
-
-   (1) Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-   (2) Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   (3) Neither the name of the University of California, Lawrence Berkeley
-   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
-
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-   You are under no obligation whatsoever to provide any bug fixes, patches, or
-   upgrades to the features, functionality or performance of the source code
-   ("Enhancements") to anyone; however, if you choose to make your Enhancements
-   available either publicly, or directly to Lawrence Berkeley National
-   Laboratory, without imposing a separate written license agreement for such
-   Enhancements, then you hereby grant the following license: a non-exclusive,
-   royalty-free perpetual license to install, use, modify, prepare derivative
-   works, incorporate into other computer software, distribute, and sublicense
-   such enhancements or derivative works thereof, in binary and source code form.
-*/
-/// @file superlu_dist_interf.cpp
-/// @brief Interface to SuperLU_Dist (v3.3).
-/// @author Lin Lin
-/// @date 2012-11-15
-#include "superlu_dist_interf.hpp"
-#ifdef _USE_COMPLEX_
-#include "superlu_zdefs.h"
-#include "Cnames.h"
-extern "C"{
-void
-pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
-		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
-		int *info, double *totalMemory, double *maxMemory );
-}
-#else
 #include "superlu_ddefs.h"
 #include "Cnames.h"
 extern "C"{ void
@@ -64,61 +12,45 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
 		int *info, double *totalMemory, double *maxMemory );
 }
-#endif
+
 
 // SuperLUGrid class
 namespace PEXSI{
 
-struct SuperLUGrid::GridData{
-	gridinfo_t          grid;
+
+class RealGridInfo{
+  friend class RealGridData;
+  friend class RealSuperLUData;
+  protected:
+	  gridinfo_t          grid;
 };
 
+    RealGridData::RealGridData(){
+      info_ = new RealGridInfo;
+    }
 
-SuperLUGrid::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
-{
-#ifndef _RELEASE_
-	PushCallStack("SuperLUGrid::SuperLUGrid");
-#endif
-	ptrData = new GridData;
-	if( ptrData == NULL )
-		throw std::runtime_error( "SuperLUGrid cannot be allocated." );
-
-	superlu_gridinit(comm, nprow, npcol, &ptrData->grid);
+    RealGridData::~RealGridData(){
+      delete info_;
+    }
 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
-	return ;
-} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+    void RealGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
+    	superlu_gridinit(comm, nprow, npcol, &info_->grid);
+    }
 
+    void RealGridData::GridExit(  ){
+    	superlu_gridexit(&info_->grid);
+    }
 
-SuperLUGrid::~SuperLUGrid	(  )
-{
-#ifndef _RELEASE_
-	PushCallStack("SuperLUGrid::~SuperLUGrid");
-#endif
-	// NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
-	// communicator, it is legal to call superlu_gridexit even if
-	// grid->comm is a copy of MPI_COMM_WORLD.
-	
-	superlu_gridexit(&ptrData->grid);
-	
-	delete ptrData;
+}
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-	return ;
-} 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
-
-} // namespace PEXSI
-
-// SuperLUMatrix class
+// SuperLUData class
 namespace PEXSI{
 
-struct SuperLUMatrix::SuperLUData{
+class RealSuperLUData_internal{
+  friend class RealSuperLUData;
+  protected:
 	/// @brief SuperLU matrix. 
 	SuperMatrix         A;                        
 
@@ -170,12 +102,11 @@ struct SuperLUMatrix::SuperLUData{
 };
 
 
-SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
-{
+RealSuperLUData::RealSuperLUData( const SuperLUGrid<Real>& g, const SuperLUOptions& opt ){
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::SuperLUMatrix");
+	PushCallStack("RealSuperLUData::RealSuperLUData");
 #endif
-	ptrData = new SuperLUData;
+  ptrData = new RealSuperLUData_internal;
 	if( ptrData == NULL )
 		throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
 	
@@ -226,24 +157,21 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 	}
 
 	// Setup grids
-  ptrData->grid = &(g.ptrData->grid);
+  ptrData->grid = &(g.ptrData->info_->grid);
 
 
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
-} 		// -----  end of method SuperLUMatrix::SuperLUMatrix  ----- 
 
 
 
+}
 
 
-
-
-SuperLUMatrix::~SuperLUMatrix	(  )
-{
+RealSuperLUData::~RealSuperLUData(){
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::~SuperLUMatrix");
+	PushCallStack("RealSuperLUData::~RealSuperLUData");
 #endif
 	SuperMatrix& A = ptrData->A;
 	if( ptrData->isLUstructAllocated ){
@@ -255,7 +183,7 @@ SuperLUMatrix::~SuperLUMatrix	(  )
 	}
 	if( ptrData->options.SolveInitialized ){
 		// TODO real arithmetic
-		zSolveFinalize(&ptrData->options, &ptrData->SOLVEstruct);
+		dSolveFinalize(&ptrData->options, &ptrData->SOLVEstruct);
 	}
 	if( ptrData->isSuperMatrixAllocated ){
 		this->DestroyAOnly();
@@ -266,23 +194,24 @@ SuperLUMatrix::~SuperLUMatrix	(  )
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
-} 		// -----  end of method SuperLUMatrix::~SuperLUMatrix  ----- 
+}
 
 
-Int SuperLUMatrix::m (  ) const	
+Int RealSuperLUData::m (  ) const	
 {
 	return ptrData->A.nrow;
-} 		// -----  end of method SuperLUMatrix::m  ----- 
+} 		// -----  end of method RealSuperLUData::m  ----- 
 
 
-Int SuperLUMatrix::n (  ) const	
+Int RealSuperLUData::n (  ) const	
 {
 	return ptrData->A.ncol;
-} 		// -----  end of method SuperLUMatrix::n  ----- 
+} 		// -----  end of method RealSuperLUData::n  ----- 
 
-void SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>& sparseA ){
+void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA )
+{
 #ifndef _RELEASE_
-	PushCallStack( "SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc" );
+	PushCallStack( "RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc" );
 #endif
 	if( ptrData->isSuperMatrixAllocated == true ){
 		throw std::logic_error( "SuperMatrix is already allocated." );
@@ -297,17 +226,17 @@ void SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>
 	Int firstRow = mpirank * numRowLocalFirst;
 
   int_t *colindLocal, *rowptrLocal;
-	doublecomplex *nzvalLocal;
+	double *nzvalLocal;
 	rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 	colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal); 
-	nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(sparseA.nnzLocal);
+	nzvalLocal  = (double*)doubleMalloc_dist(sparseA.nnzLocal);
   
 	std::copy( sparseA.colptrLocal.Data(), sparseA.colptrLocal.Data() + sparseA.colptrLocal.m(),
 			rowptrLocal );
 	std::copy( sparseA.rowindLocal.Data(), sparseA.rowindLocal.Data() + sparseA.rowindLocal.m(),
 			colindLocal );
 	std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
-			(Complex*)nzvalLocal );
+			(Real*)nzvalLocal );
 
 
 
@@ -321,10 +250,10 @@ void SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>
 	}
 
 	// Construct the distributed matrix according to the SuperLU_DIST format
-	zCreate_CompRowLoc_Matrix_dist(&ptrData->A, sparseA.size, sparseA.size, sparseA.nnzLocal, 
+	dCreate_CompRowLoc_Matrix_dist(&ptrData->A, sparseA.size, sparseA.size, sparseA.nnzLocal, 
 			numRowLocal, firstRow,
 			nzvalLocal, colindLocal, rowptrLocal,
-			SLU_NR_loc, SLU_Z, SLU_GE);
+			SLU_NR_loc, SLU_D, SLU_GE);
 
 	ptrData->isSuperMatrixAllocated = true;
 
@@ -334,14 +263,13 @@ void SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>
 
 	return;
 
-} 		// -----  end of method SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc ----- 
-
+} 		// -----  end of method RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc ----- 
 
 void
-SuperLUMatrix::DestroyAOnly	(  )
+RealSuperLUData::DestroyAOnly	(  )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::DestroyAOnly");
+	PushCallStack("RealSuperLUData::DestroyAOnly");
 #endif
 	if( ptrData->isSuperMatrixAllocated == false ){
 		throw std::logic_error( "SuperMatrix has not been allocated." );
@@ -365,13 +293,13 @@ SuperLUMatrix::DestroyAOnly	(  )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::DestroyAOnly  ----- 
+} 		// -----  end of method RealSuperLUData::DestroyAOnly  ----- 
 
 void
-SuperLUMatrix::SymbolicFactorize	(  )
+RealSuperLUData::SymbolicFactorize	(  )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::SymbolicFactorize");
+	PushCallStack("RealSuperLUData::SymbolicFactorize");
 #endif
 	if( ptrData->isScalePermstructAllocated ){
 		throw std::logic_error( "ScalePermstruct is already allocated." );
@@ -396,7 +324,7 @@ SuperLUMatrix::SymbolicFactorize	(  )
 	double totalMemory, maxMemory;
 
 
-	pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
+	pdsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
 			&ptrData->LUstruct, &ptrData->stat, &ptrData->numProcSymbFact, &ptrData->info,
 			&totalMemory, &maxMemory);
 	PStatFree(&ptrData->stat);
@@ -418,14 +346,13 @@ SuperLUMatrix::SymbolicFactorize	(  )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::SymbolicFactorize  ----- 
-
+} 		// -----  end of method RealSuperLUData::SymbolicFactorize  ----- 
 
 void
-SuperLUMatrix::Distribute	(  )
+RealSuperLUData::Distribute	(  )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::Distribute");
+	PushCallStack("RealSuperLUData::Distribute");
 #endif
 	if( ptrData->isScalePermstructAllocated == false ){
 		throw std::logic_error( "ScalePermstruct has not been allocated by SymbolicFactorize." );
@@ -447,7 +374,7 @@ SuperLUMatrix::Distribute	(  )
 	// Distribute Pc*Pr*diag(R)*A*diag(C)*Pc' into L and U storage.  
   // NOTE: the row permutation Pc*Pr is applied internally in the
   // distribution routine. 
-	float dist_mem_use = pzdistribute(SamePattern_SameRowPerm, ptrData->A.nrow, 
+	float dist_mem_use = pddistribute(SamePattern_SameRowPerm, ptrData->A.nrow, 
 			&ptrData->A, &ptrData->ScalePermstruct, NULL, &ptrData->LUstruct, ptrData->grid);
 
 #ifndef _RELEASE_
@@ -455,24 +382,23 @@ SuperLUMatrix::Distribute	(  )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::Distribute  ----- 
-
+} 		// -----  end of method RealSuperLUData::Distribute  ----- 
 
 void
-SuperLUMatrix::NumericalFactorize	(  )
+RealSuperLUData::NumericalFactorize	(  )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::NumericalFactorize");
+	PushCallStack("RealSuperLUData::NumericalFactorize");
 #endif
 	if( !ptrData->isLUstructAllocated ){
 		throw std::logic_error( "LUstruct has not been allocated." );
 	}
 	// Estimate the 1-norm
 	char norm[1]; *norm = '1';
-	double anorm = pzlangs( norm, &ptrData->A, ptrData->grid );
+	double anorm = pdlangs( norm, &ptrData->A, ptrData->grid );
   
 	PStatInit(&ptrData->stat);
-	pzgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol, 
+	pdgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol, 
 			anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info); 
 	PStatFree(&ptrData->stat);
 	if( ptrData->info ){
@@ -489,41 +415,41 @@ SuperLUMatrix::NumericalFactorize	(  )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::NumericalFactorize  ----- 
-
+} 		// -----  end of method RealSuperLUData::NumericalFactorize  ----- 
 
 void
-SuperLUMatrix::ConvertNRlocToNC	( SuperLUMatrix& AGlobal )
+RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::ConvertNRlocToNC");
+	PushCallStack("RealSuperLUData::ConvertNRlocToNC");
 #endif
   if( !ptrData->isSuperMatrixAllocated ){
 		throw std::runtime_error( "The local SuperMatrix has not been allocated." );
 	}
-  if( AGlobal.ptrData->isSuperMatrixAllocated ){
+  if( aptrData->ptrData->isSuperMatrixAllocated ){
 		throw std::runtime_error( "The global SuperMatrix has been allocated." );
 	}
 	// TODO make sure the two grids are the same
   
 	// TODO real arithmetic
 	const Int NEED_VALUE = 1;
-	pzCompRow_loc_to_CompCol_global(NEED_VALUE, &ptrData->A, ptrData->grid, 
-			&AGlobal.ptrData->A);
+	pdCompRow_loc_to_CompCol_global(NEED_VALUE, &ptrData->A, ptrData->grid, 
+			&aptrData->ptrData->A);
 
-	AGlobal.ptrData->isSuperMatrixAllocated = true;
+	ptrData->isSuperMatrixAllocated = true;
 
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::ConvertNRlocToNC  ----- 
+} 		// -----  end of method RealSuperLUData::ConvertNRlocToNC  ----- 
+
 void
-SuperLUMatrix::MultiplyGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& bGlobal )
+RealSuperLUData::MultiplyGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& bGlobal )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::MultiplyGlobalMultiVector");
+	PushCallStack("RealSuperLUData::MultiplyGlobalMultiVector");
 #endif
 	char trans[1]; *trans = 'N';
 	Int m = xGlobal.m();
@@ -537,21 +463,21 @@ SuperLUMatrix::MultiplyGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scala
 			<< "Consider using ConvertNRlocToNC subroutine" << std::endl;
 		throw std::runtime_error( msg.str().c_str() );
 	}	
-  zFillRHS_dist(trans, nrhs, (doublecomplex*)xGlobal.Data(), m, 
-			&ptrData->A, (doublecomplex*) bGlobal.Data(), m);
+  dFillRHS_dist(trans, nrhs, (double*)xGlobal.Data(), m, 
+			&ptrData->A, (double*) bGlobal.Data(), m);
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
  
 	return ;
-} 		// -----  end of method SuperLUMatrix::MultiplyGlobalMultiVector  ----- 
+} 		// -----  end of method RealSuperLUData::MultiplyGlobalMultiVector  ----- 
 
 
 void
-SuperLUMatrix::DistributeGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal )
+RealSuperLUData::DistributeGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& xLocal )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::DistributeGlobalMultiVector");
+	PushCallStack("RealSuperLUData::DistributeGlobalMultiVector");
 #endif
 	SuperMatrix& A = ptrData->A;
   if( ptrData->A.Stype != SLU_NR_loc ){
@@ -568,7 +494,7 @@ SuperLUMatrix::DistributeGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sca
 	Int nrhs = xGlobal.n();
 	
 	xLocal.Resize( numRowLocal, nrhs );
-	SetValue( xLocal, SCALAR_ZERO );
+	SetValue( xLocal, ZERO<Real>() );
 	for( Int j = 0; j < nrhs; j++ ){
 		std::copy( xGlobal.VecData(j)+firstRow, xGlobal.VecData(j)+firstRow+numRowLocal,
 				xLocal.VecData(j) );
@@ -579,13 +505,13 @@ SuperLUMatrix::DistributeGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sca
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::DistributeGlobalMultiVector  ----- 
+} 		// -----  end of method RealSuperLUData::DistributeGlobalMultiVector  ----- 
 
 
-void SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal )
+void RealSuperLUData::GatherDistributedMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& xLocal )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::GatherDistributedMultiVector");
+	PushCallStack("RealSuperLUData::GatherDistributedMultiVector");
 #endif
 	SuperMatrix& A = ptrData->A;
   if( ptrData->A.Stype != SLU_NR_loc ){
@@ -608,8 +534,8 @@ void SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumM
 
   
 
-  NumMat<Scalar> tmpLocal(xGlobal.m(),nrhs);
-	SetValue( tmpLocal, SCALAR_ZERO );
+  NumMat<Real> tmpLocal(xGlobal.m(),nrhs);
+	SetValue( tmpLocal, ZERO<Real>() );
 	for( Int j = 0; j < nrhs; j++ ){
 		std::copy( xLocal.VecData(j), xLocal.VecData(j)+numRowLocal, tmpLocal.VecData(j)+firstRow );
 	}
@@ -621,14 +547,14 @@ void SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumM
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::GatherDistributedMultiVector  ----- 
+} 		// -----  end of method RealSuperLUData::GatherDistributedMultiVector  ----- 
 
 
 void
-SuperLUMatrix::SolveDistMultiVector	( NumMat<Scalar>& bLocal, DblNumVec& berr )
+RealSuperLUData::SolveDistMultiVector	( NumMat<Real>& bLocal, DblNumVec& berr )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::SolveDistMultiVector");
+	PushCallStack("RealSuperLUData::SolveDistMultiVector");
 #endif
 	Int nrhs = bLocal.n();
 	NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
@@ -640,14 +566,14 @@ SuperLUMatrix::SolveDistMultiVector	( NumMat<Scalar>& bLocal, DblNumVec& berr )
 	// TODO Real arithmetic
 
 	PStatInit(&ptrData->stat);
-	pzgssvx(&ptrData->options, &ptrData->A, &ptrData->ScalePermstruct, 
-			(doublecomplex*)bLocal.Data(), numRowLocal, nrhs, ptrData->grid,
+	pdgssvx(&ptrData->options, &ptrData->A, &ptrData->ScalePermstruct, 
+			(double*)bLocal.Data(), numRowLocal, nrhs, ptrData->grid,
 			&ptrData->LUstruct, &ptrData->SOLVEstruct, berr.Data(), 
 			&ptrData->stat, &ptrData->info);
 	PStatFree(&ptrData->stat); 
 
   if ( ptrData->options.SolveInitialized ) {
-    zSolveFinalize(&ptrData->options, &ptrData->SOLVEstruct);
+    dSolveFinalize(&ptrData->options, &ptrData->SOLVEstruct);
   }
 
 	if( ptrData->info ){
@@ -664,36 +590,36 @@ SuperLUMatrix::SolveDistMultiVector	( NumMat<Scalar>& bLocal, DblNumVec& berr )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::SolveDistMultiVector  ----- 
+} 		// -----  end of method RealSuperLUData::SolveDistMultiVector  ----- 
 
 
 void
-SuperLUMatrix::CheckErrorDistMultiVector	( NumMat<Scalar>& xLocal, NumMat<Scalar>& xTrueLocal )
+RealSuperLUData::CheckErrorDistMultiVector	( NumMat<Real>& xLocal, NumMat<Real>& xTrueLocal )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::CheckErrorDistMultiVector");
+	PushCallStack("RealSuperLUData::CheckErrorDistMultiVector");
 #endif
 	Int nrhs = xLocal.n();
 	NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
 	Int numRowLocal = Astore->m_loc;
 
-	pzinf_norm_error(ptrData->grid->iam, numRowLocal, nrhs, 
-			(doublecomplex*)xLocal.Data(), numRowLocal, 
-			(doublecomplex*)xTrueLocal.Data(), numRowLocal, ptrData->grid);
+	pdinf_norm_error(ptrData->grid->iam, numRowLocal, nrhs, 
+			(double*)xLocal.Data(), numRowLocal, 
+			(double*)xTrueLocal.Data(), numRowLocal, ptrData->grid);
 
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::CheckErrorDistMultiVector  ----- 
+} 		// -----  end of method RealSuperLUData::CheckErrorDistMultiVector  ----- 
 
 
 void
-SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
+RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::LUstructToPMatrix");
+	PushCallStack("RealSuperLUData::LUstructToPMatrix");
 #endif
 	const LocalLU_t* Llu   = ptrData->LUstruct.Llu;
 	const GridType* grid   = PMloc.Grid();
@@ -719,7 +645,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 		const Int* index = Llu->Lrowind_bc_ptr[jb];
 		if( index ){ 
 			// Not an empty column, start a new column then.
-			std::vector<LBlock>& Lcol = PMloc.L(jb);
+			std::vector<LBlock<Real> >& Lcol = PMloc.L(jb);
 			Lcol.resize( index[cnt++] );
 
  
@@ -728,7 +654,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 			std::vector<Int>& ColBlockIdx = PMloc.ColBlockIdx(jb);
 
 			for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
-				LBlock& LB     = Lcol[iblk];
+				LBlock<Real> & LB     = Lcol[iblk];
 				LB.blockIdx    = index[cnt++];
 
         ColBlockIdx.push_back(LB.blockIdx);
@@ -741,11 +667,11 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 				LB.numCol      = super->superPtr[bnum+1] - super->superPtr[bnum];
 				LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
 				LB.nzval.Resize( LB.numRow, LB.numCol );   
-				SetValue( LB.nzval, SCALAR_ZERO ); 
+				SetValue( LB.nzval, ZERO<Real>() ); 
 				cnt += LB.numRow;
 				
 				lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
-						(Scalar*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
+						(Real*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
 						LB.nzval.Data(), LB.numRow );
 
 				cntval += LB.numRow;
@@ -783,11 +709,11 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 		Int cntval = 0;                             // Count for the nonzero values
     Int cntidx = 0;                             // Count for the nonzero block indexes
 		const Int*    index = Llu->Ufstnz_br_ptr[ib]; 
-		const Scalar* pval  = reinterpret_cast<const Scalar*>(Llu->Unzval_br_ptr[ib]);
+		const Real* pval  = reinterpret_cast<const Real*>(Llu->Unzval_br_ptr[ib]);
 		if( index ){ 
 			// Not an empty row
 			// Compute the number of nonzero columns 
-			std::vector<UBlock>& Urow = PMloc.U(ib);
+			std::vector<UBlock<Real> >& Urow = PMloc.U(ib);
 			Urow.resize( index[cnt++] );
 			cnt = BR_HEADER;
 
@@ -796,7 +722,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 			std::vector<Int> cols;                    //Save the nonzero columns in the current block
 			for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
 				cols.clear();
-				UBlock& UB = Urow[jblk];
+				UBlock<Real> & UB = Urow[jblk];
 				UB.blockIdx = index[cnt];
 
 
@@ -821,7 +747,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 				UB.numCol = cols.size();
 				UB.cols   = IntNumVec( cols.size(), true, &cols[0] );
 				UB.nzval.Resize( UB.numRow, UB.numCol );
-				SetValue( UB.nzval, SCALAR_ZERO );
+				SetValue( UB.nzval, ZERO<Real>() );
 
 				Int cntcol = 0;
 				for( Int j = 0; 
@@ -861,15 +787,15 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::LUstructToPMatrix  ----- 
+} 		// -----  end of method RealSuperLUData::LUstructToPMatrix  ----- 
 
 
 
 void
-SuperLUMatrix::SymbolicToSuperNode	( SuperNodeType& super )
+RealSuperLUData::SymbolicToSuperNode	( SuperNodeType& super )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::SymbolicToSuperNode");
+	PushCallStack("RealSuperLUData::SymbolicToSuperNode");
 #endif
 	Int n = ptrData->A.ncol;
 	// Permutation vector
@@ -906,6 +832,7 @@ SuperLUMatrix::SymbolicToSuperNode	( SuperNodeType& super )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::SymbolicToSuperNode  ----- 
+} 		// -----  end of method RealSuperLUData::SymbolicToSuperNode  ----- 
 
-} // namespace PEXSI
+
+}

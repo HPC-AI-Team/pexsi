@@ -1525,9 +1525,10 @@ namespace PEXSI{
 
 
 	// TODO Real format
+  template<typename T>
 	void
-		GetDiagonal ( const DistSparseMatrix<Complex>& A, 
-				NumVec<Complex>& diag );
+		GetDiagonal ( const DistSparseMatrix<T>& A, 
+				NumVec<T>& diag );
 
 
 	// Functions for DistSparseMatrix
@@ -1655,4 +1656,7 @@ namespace PEXSI{
 
 
 } // namespace PEXSI
+
+#include "utility_impl.hpp"
+
 #endif // _UTILITY_HPP_

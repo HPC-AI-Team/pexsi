@@ -51,6 +51,8 @@
 #include  "utility.hpp"
 #include  "pole.hpp"
 #include	"mpi_interf.hpp"
+#include  "superlu_SuperLUGrid.hpp"
+#include  "superlu_SuperLUOptions.hpp"
 #include  "superlu_dist_interf.hpp"
 #include	"pselinv.hpp"
 #include  "c_pexsi_interface.h"
@@ -76,7 +78,8 @@ namespace PEXSI{
 
 		const GridType*           gridPole_;          // Outer layer communicator. Also used for distributing the DistSparseMatrix.  Each DistSparseMatrix is replicated in the row (numPoleGroup) direction of gridPole.
 		const GridType*           gridSelInv_;        // Inner layer communicator for SelInv
-		const SuperLUGrid*    gridSuperLU_;           // Inner layer communicator for SuperLU factorization
+		const SuperLUGrid<Complex>*    zGridSuperLU_;           // Inner layer communicator for SuperLU factorization
+		const SuperLUGrid<Real>*    dGridSuperLU_;           // Inner layer communicator for SuperLU factorization
 
 		SuperNodeType         super_;                 // Supernode partition
 

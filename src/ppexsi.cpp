@@ -58,7 +58,8 @@ PPEXSIData::PPEXSIData	( const GridType* g, Int nprow, Int npcol ): gridPole_(g)
 	if( gridPole_->numProcCol != nprow * npcol ){
 		throw std::runtime_error( "The number of processors numProcCol do not match nprow * npcol." );
 	}
-	gridSuperLU_  = new SuperLUGrid( gridPole_->rowComm, nprow, npcol );
+	zGridSuperLU_  = new SuperLUGrid<Complex>( gridPole_->rowComm, nprow, npcol );
+	dGridSuperLU_  = new SuperLUGrid<Real>( gridPole_->rowComm, nprow, npcol );
 	gridSelInv_   = new GridType( gridPole_->rowComm, nprow, npcol );
 
   
@@ -75,10 +76,13 @@ PPEXSIData::~PPEXSIData	(  )
 #ifndef _RELEASE_
 	PushCallStack("PPEXSIData::~PPEXSIData");
 #endif
-	if( gridSuperLU_ != NULL ){
-		delete gridSuperLU_;
+	if( zGridSuperLU_ != NULL ){
+		delete zGridSuperLU_;
 	}
 	
+	if( dGridSuperLU_ != NULL ){
+		delete dGridSuperLU_;
+	}
 	if( gridSelInv_ != NULL ){
 		delete gridSelInv_;
 	}
@@ -286,7 +290,7 @@ void PPEXSIData::Solve(
 	// TODO Introduce maxPipelineDepth as an adjustable parameter when needed.
 	luOpt.maxPipelineDepth = -1;
 
-	SuperLUMatrix    luMat( *gridSuperLU_, luOpt );  // SuperLU matrix.
+	SuperLUMatrix<Complex>    luMat( *zGridSuperLU_, luOpt );  // SuperLU matrix.
 
 	// *********************************************************************
 	// Symbolic factorization.  
@@ -315,7 +319,7 @@ void PPEXSIData::Solve(
 
 	// Compute the number of nonzeros from PMatrix
 	{
-		PMatrix PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
+		PMatrix<Scalar> PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
 		luMat.LUstructToPMatrix( PMloc );
 #if ( _DEBUGlevel_ >= 0 )
 		Int nnzLocal = PMloc.NnzLocal();
@@ -636,7 +640,7 @@ void PPEXSIData::Solve(
 					Real timeTotalSelInvSta, timeTotalSelInvEnd;
 					GetTime( timeTotalSelInvSta );
 
-					PMatrix PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
+					PMatrix<Scalar> PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
 
 					luMat.LUstructToPMatrix( PMloc );
 					
@@ -1196,7 +1200,7 @@ void PPEXSIData::CalculateNegativeInertia(
 	luOpt.ColPerm = ColPerm;
 	luOpt.numProcSymbFact = numProcSymbFact;
 
-	SuperLUMatrix    luMat( *gridSuperLU_, luOpt );  // SuperLU matrix.
+	SuperLUMatrix<Complex>    luMat( *zGridSuperLU_, luOpt );  // SuperLU matrix.
 
 	// *********************************************************************
 	// Symbolic factorization.  
@@ -1225,7 +1229,7 @@ void PPEXSIData::CalculateNegativeInertia(
 
 	// Compute the number of nonzeros from PMatrix
 	{
-		PMatrix PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
+		PMatrix<Scalar> PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
 		luMat.LUstructToPMatrix( PMloc );
 #if ( _DEBUGlevel_ >= 0 )
 		Int nnzLocal = PMloc.NnzLocal();
@@ -1329,7 +1333,7 @@ void PPEXSIData::CalculateNegativeInertia(
 			Real timeInertiaSta, timeInertiaEnd;
 			GetTime( timeInertiaSta );
 
-			PMatrix PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
+			PMatrix<Scalar> PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
 
 			luMat.LUstructToPMatrix( PMloc );
 
