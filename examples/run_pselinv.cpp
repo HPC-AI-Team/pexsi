@@ -47,7 +47,7 @@
 
 #include "timer.h"
 
-//#define _MYCOMPLEX_
+#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -180,7 +180,6 @@ int main(int argc, char **argv)
 
       doFacto = doFacto && doSymbfact;
 
-
       if( options.find("-H") != options.end() ){ 
         Hfile = options["-H"];
       }
@@ -207,7 +206,6 @@ int main(int argc, char **argv)
           << std::endl << std::endl;
       }
 
-
       Int numProcSymbFact;
       if( options.find("-npsymbfact") != options.end() ){ 
         numProcSymbFact = atoi( options["-npsymbfact"].c_str() );
@@ -218,12 +216,6 @@ int main(int argc, char **argv)
           << std::endl << std::endl;
         numProcSymbFact = 0;
       }
-
-
-
-
-
-
 
       Int doSinv_Bcast = 0;
       if( options.find("-SinvBcast") != options.end() ){ 
@@ -240,8 +232,6 @@ int main(int argc, char **argv)
         doSinv_Hybrid = atoi(options["-SinvHybrid"].c_str());
       }
 
-
-
       Int doConstructPattern = 1;
       if( options.find("-Pattern") != options.end() ){ 
         doConstructPattern = atoi(options["-Pattern"].c_str());
@@ -256,7 +246,6 @@ int main(int argc, char **argv)
       if( options.find("-Selinv") != options.end() ){ 
         doSelinv = atoi(options["-Selinv"].c_str());
       }
-
 
       Real rshift = 0.0, ishift = 0.0;
       if( options.find("-rshift") != options.end() ){ 

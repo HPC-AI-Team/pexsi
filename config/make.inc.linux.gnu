@@ -1,14 +1,14 @@
 #/usr/bin/bash
 COMPILE_MODE     = release
 USE_PROFILE      = 0
-PAR_ND_LIBRARY   = parmetis
-SEQ_ND_LIBRARY   = metis
+PAR_ND_LIBRARY   = ptscotch
+SEQ_ND_LIBRARY   = scotch
 
 
 
 
 # Different compiling and linking options.
-SUFFIX       = osx_v0.5.5
+SUFFIX       = linux_v0.5.5
 
 #compiler and tools
 ################################################################
@@ -32,16 +32,16 @@ RMFLAGS      = -f
 
 
 #pexsi directory
-PEXSI_DIR     = $(HOME)/Work/postdoc-lbl/pexsi
+PEXSI_DIR     = $(HOME)/Work/postdoc-lbl/pexsi/pexsi_src
 
 #required libraries directories
-GFORTRAN_DIR  = /usr/local/Cellar/gfortran/4.8.2/gfortran/lib
+GFORTRAN_DIR  = 
 DSUPERLU_DIR  = $(HOME)/software/release/SuperLU_DIST_3.3
 METIS_DIR     = $(HOME)/software/release/parmetis-4.0.3/build/Darwin-x86_64
 PARMETIS_DIR  = $(HOME)/software/release/parmetis-4.0.3/build/Darwin-x86_64
 SCOTCH_DIR    = $(HOME)/software/release/scotch_6.0.0
-
-
+LAPACK_DIR    = 
+BLAS_DIR      = ${HOME}/software/OpenBLAS 
 
 # Includes
 PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
@@ -50,8 +50,8 @@ INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE}
 
 # Libraries
 GFORTRAN_LIB     = -L${GFORTRAN_DIR} -lgfortran
-LAPACK_LIB       = -llapack
-BLAS_LIB         = -lblas
+LAPACK_LIB       = 
+BLAS_LIB         = -L${BLAS_DIR} -lopenblas
 DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_3.3.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
