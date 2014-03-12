@@ -48,9 +48,28 @@
 #include "timer.h"
 
 
+#ifdef _PAPI_
+#include <papi.h>
+#endif
 
 using namespace PEXSI;
 using namespace std;
+
+#ifdef _PAPI_
+void print_mem_info(PAPI_dmem_info_t & dmem){
+printf("Mem Size:\t\t%lld\n",dmem.size);
+printf("Mem Resident:\t\t%lld\n",dmem.resident);
+printf("Mem High Water Mark:\t%lld\n",dmem.high_water_mark);
+printf("Mem Shared:\t\t%lld\n",dmem.shared);
+printf("Mem Text:\t\t%lld\n",dmem.text);
+printf("Mem Library:\t\t%lld\n",dmem.library);
+printf("Mem Heap:\t\t%lld\n",dmem.heap);
+printf("Mem Locked:\t\t%lld\n",dmem.locked);
+printf("Mem Stack:\t\t%lld\n",dmem.stack);
+printf("Mem Pagesize:\t\t%lld\n",dmem.pagesize);
+}
+#endif
+
 
 void Usage(){
   std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -r [nprow] -c [npcol] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag]" << std::endl;
@@ -72,6 +91,17 @@ int main(int argc, char **argv)
   int mpirank, mpisize;
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
+
+#ifdef _PAPI_
+//initialize papi
+ int retval;
+PAPI_dmem_info_t dmem_begin,dmem_end;
+if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT)
+exit(1);
+retval = PAPI_library_init(PAPI_VER_CURRENT);
+if (retval != PAPI_VER_CURRENT)
+exit(2);
+#endif
 
 
   try{
@@ -278,13 +308,23 @@ int main(int argc, char **argv)
       // Setup grid.
       SuperLUGrid g( world_comm, nprow, npcol );
 
+
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_begin);
+      if( mpirank == 0 ) { print_mem_info(dmem_begin); }
+#endif
+
+
       int      m, n;
       DistSparseMatrix<Complex>  AMat;
+
+      MPI_Pcontrol(1, "Input matrices");
 
       DistSparseMatrix<Real> HMat;
       DistSparseMatrix<Real> SMat;
       Real timeSta, timeEnd;
       GetTime( timeSta );
+
       if(isCSC)
         ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
       else{
@@ -307,6 +347,17 @@ int main(int argc, char **argv)
       }
 
       GetTime( timeEnd );
+
+      MPI_Pcontrol(-1, "Input matrices");
+
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_end);
+      statusOFS<<"Memory occupation of H and S is "<<dmem_end.size - dmem_begin.size<<std::endl;
+#endif
+
+
+
+
       LongInt nnzH = HMat.Nnz();
       if( mpirank == 0 ){
         cout << "Time for reading H and S is " << timeEnd - timeSta << endl;
@@ -337,6 +388,9 @@ int main(int argc, char **argv)
       }
 
 
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_begin);
+#endif
       GetTime( timeSta );
 
       AMat.size          = HMat.size;
@@ -379,6 +433,10 @@ int main(int argc, char **argv)
       if( mpirank == 0 )
         cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;
 
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_end);
+      statusOFS<<"Memory occupation of A is "<<dmem_end.size - dmem_begin.size<<std::endl;
+#endif
 
       // *********************************************************************
       // Symbolic factorization 
@@ -389,21 +447,54 @@ int main(int argc, char **argv)
       luOpt.ColPerm = ColPerm;
       luOpt.maxPipelineDepth = maxPipelineDepth;
       luOpt.numProcSymbFact = numProcSymbFact;
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_begin);
+#endif
       SuperLUMatrix luMat(g, luOpt );
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_end);
+#endif
       luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
       GetTime( timeEnd );
+
+
+#ifdef _PAPI_
+      statusOFS<<"Memory occupation of luMat before symfact is "<<dmem_end.size - dmem_begin.size<<std::endl;
+#endif
+
       if( mpirank == 0 )
         cout << "Time for converting to SuperLU format is " << timeEnd - timeSta << endl;
 
 
       if(doSymbfact){
+
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_begin);
+#endif
+
+        MPI_Pcontrol(1, "Symbfact");
+
         GetTime( timeSta );
         luMat.SymbolicFactorize();
         luMat.DestroyAOnly();
         GetTime( timeEnd );
 
+        MPI_Pcontrol(-1, "Symbfact");
+
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_end);
+#endif
         if( mpirank == 0 )
           cout << "Time for performing the symbolic factorization is " << timeEnd - timeSta << endl;
+
+#ifdef _PAPI_
+      statusOFS<<"Memory occupation during symbfact is "<<dmem_end.high_water_mark - dmem_begin.size<<std::endl;
+      if( mpirank == 0 )
+      {
+        print_mem_info(dmem_begin);
+        print_mem_info(dmem_end);
+      }
+#endif
       }
 
       // *********************************************************************
@@ -416,8 +507,16 @@ int main(int argc, char **argv)
 
         // Important: the distribution in pzsymbfact is going to mess up the
         // A matrix.  Recompute the matrix A here.
+
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_begin);
+#endif
         luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
 
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_end);
+      statusOFS<<"Memory occupation of luMat after symfact is "<<dmem_end.size - dmem_begin.size<<std::endl;
+#endif
         GetTime( timeTotalFactorizationSta );
 
         GetTime( timeSta );
@@ -472,6 +571,7 @@ int main(int argc, char **argv)
         for(int i=1; i<= doSelInv; ++i )
         {
 
+      MPI_Pcontrol(1, "TOTAL");
           Real timeTotalSelInvSta, timeTotalSelInvEnd;
 
           NumVec<Scalar> diagBcast;
@@ -864,6 +964,12 @@ int main(int argc, char **argv)
             delete g1Ptr;
           }
 
+#ifdef _PAPI_
+      PAPI_get_dmem_info(&dmem_begin);
+      if( mpirank == 0 ) { print_mem_info(dmem_begin); }
+#endif
+
+      MPI_Pcontrol(-1, "TOTAL");
         }
 
 
