@@ -1645,12 +1645,78 @@ namespace PEXSI{
 	// Other numerical routines
 	// *********************************************************************
 
+  // Interpolation
+  /// @brief Linear interpolates from (x,y) to (xx,yy)
+  ///
+  /// Note: 
+  ///
+  /// x and xx must be sorted in ascending order.
+  ///
+  /// if xx[i] < x[0],     yy[i] = y[0]
+  ///    xx[i] > x[end-1], yy[i] = y[end-1]
 	void
 		LinearInterpolation ( 
 				const std::vector<Real>& x, 
 				const std::vector<Real>& y,
 				const std::vector<Real>& xx,
 				std::vector<Real>& yy );
+
+  // Root finding
+
+  /// @brief Root finding for monotonic non-decreasing functions.
+  ///
+  /// Find the solution to \f$y(x) = val\f$ through a set of tabulated
+  /// values \f$\{(x_i,y_i)\}\f$. Both \f$\{x_i\}\f$ and \f$\{y_i\}\f$
+  /// follow non-decreasing order. The solution is obtained via linear
+  /// interpolation.
+  ///
+  /// This is an internal routine used for searching the chemical potential.  
+  ///
+  /// @param[in] x Dimension: N. 
+  /// @param[in] y Dimension: N. 
+  /// @param[in] val Real scalar.
+  /// @return Root of \f$y(x) = val\f$.
+  inline Real
+    MonotoneRootFinding ( 
+        const std::vector<Real>&  x,
+        const std::vector<Real>&  y,
+        Real val )
+    {
+#ifndef _RELEASE_
+      PushCallStack("MonotoneRootFinding");
+#endif
+      Int numX = x.size();
+
+      if( val <= y[0] || val >= y[numX-1] ){
+        std::ostringstream msg;
+        msg 
+          << "The root finding procedure cannot find the solution for y(x)=" 
+          << val << std::endl << "here [min(y) max(y)] = [" << y[0] << ", "
+          << y[numX-1] << "]" << std::endl;
+        throw std::runtime_error( msg.str().c_str() );
+      }
+
+      std::vector<Real>::const_iterator vi = std::lower_bound( 
+          y.begin(), y.end(), val );
+
+      Int idx = vi - y.begin();
+
+      Real root;
+      if( y[idx] == y[idx-1] ){
+        root = x[idx-1];
+      }
+      else{
+        // Linear interpolation
+        root = x[idx-1] + ( x[idx] - x[idx-1] ) / ( y[idx] - y[idx-1] ) 
+          * ( val - y[idx-1] );
+      }
+
+#ifndef _RELEASE_
+      PopCallStack();
+#endif
+
+      return root;
+    }		// -----  end of function MonotoneRootFinding  ----- 
 
 
 

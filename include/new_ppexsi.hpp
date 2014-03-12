@@ -98,6 +98,12 @@ namespace PEXSI{
 		std::vector<Int>           diagIdxLocal_;    
 
 		// *********************************************************************
+		// Saved variables for nonlinear iterations
+		// *********************************************************************
+    Real                       muPEXSISave_;
+
+
+		// *********************************************************************
 		// Member functions
 		// *********************************************************************
 		/// @brief Calculate the new chemical potential using the Newton's

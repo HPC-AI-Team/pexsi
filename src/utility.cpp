@@ -940,15 +940,6 @@ GetDiagonal ( const DistSparseMatrix<Complex>& A,
 // Other numerical routines
 // *********************************************************************
 
-// Interpolation
-/// @brief Linear interpolates from (x,y) to (xx,yy)
-///
-/// Note: 
-///
-/// x and xx must be sorted in ascending order.
-///
-/// if xx[i] < x[0],     yy[i] = y[0]
-///    xx[i] > x[end-1], yy[i] = y[end-1]
 void
 LinearInterpolation ( 
 		const std::vector<Real>& x, 

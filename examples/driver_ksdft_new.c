@@ -76,8 +76,6 @@ int main(int argc, char **argv)
   double        Energy;
   double        eta;
 
-  double        muMin0;
-  double        muMax0;
   double        numElectronExact;
 
   double        muPEXSI;
@@ -92,8 +90,7 @@ int main(int argc, char **argv)
   int           isFormatted;
 
 
-  int           i, j, irow, jcol;
-  int           numColLocalFirst, firstCol;
+  int           i, j;
   int           nprow, npcol;
   MPI_Comm      readComm;
   int           isProcRead;
@@ -229,6 +226,8 @@ int main(int argc, char **argv)
 
   PPEXSIOptions  options;
   PPEXSISetDefaultOptions( &options );
+  options.muMin0 = 1.0;
+  options.muMax0 = 2.0;
 
   PPEXSIPlan   plan;
 
