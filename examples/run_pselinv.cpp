@@ -390,7 +390,12 @@ int main(int argc, char **argv)
       luOpt.ColPerm = ColPerm;
       luOpt.maxPipelineDepth = maxPipelineDepth;
       luOpt.numProcSymbFact = numProcSymbFact;
+
+
       SuperLUMatrix<MYSCALAR> luMat(g, luOpt );
+
+`
+
       luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
       GetTime( timeEnd );
       if( mpirank == 0 )
@@ -676,7 +681,13 @@ int main(int argc, char **argv)
             GetTime( timeSta );
             luMat.SymbolicToSuperNode( super );
 
+
+
             PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &luOpt  );
+
+
+
+
             PMatrix<MYSCALAR> & PMloc = *PMlocPtr;
 
             luMat.LUstructToPMatrix( PMloc );
