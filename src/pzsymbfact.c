@@ -5,7 +5,7 @@
 /// @date 2012-11-01 modified by Lin Lin.
 #include <math.h>
 #include "superlu_zdefs.h"
-#define  PRNTlevel 0
+#define  PRNTlevel 2
 
 /// @brief pzsymbfact performs symbolic factorization that can be
 /// reused.

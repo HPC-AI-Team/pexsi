@@ -86,11 +86,17 @@ namespace PEXSI{
     DistSparseMatrix<Real>     HRealMat_;
     DistSparseMatrix<Real>     SRealMat_;
 
-		DistSparseMatrix<Real>     rhoMat_;                   // Density matrix 
-		DistSparseMatrix<Real>     rhoDrvMuMat_;              // Derivative of the Fermi-Dirac with respect to mu
-		DistSparseMatrix<Real>     rhoDrvTMat_;               // Derivative of the Fermi-Dirac with respect to T
-		DistSparseMatrix<Real>     freeEnergyDensityMat_;     // Helmholtz free energy density matrix
-		DistSparseMatrix<Real>     energyDensityMat_;         // Energy density matrix for computing the Pulay force
+    DistSparseMatrix<Real>     shiftRealMat_;
+    DistSparseMatrix<Complex>  shiftComplexMat_;
+
+    DistSparseMatrix<Real>     shiftInvRealMat_;
+    DistSparseMatrix<Complex>  shiftInvComplexMat_;
+
+		DistSparseMatrix<Real>     rhoRealMat_;                   // Density matrix 
+		DistSparseMatrix<Real>     rhoDrvMuRealMat_;              // Derivative of the Fermi-Dirac with respect to mu
+		DistSparseMatrix<Real>     rhoDrvTRealMat_;               // Derivative of the Fermi-Dirac with respect to T
+		DistSparseMatrix<Real>     freeEnergyDensityRealMat_;     // Helmholtz free energy density matrix
+		DistSparseMatrix<Real>     energyDensityRealMat_;         // Energy density matrix for computing the Pulay force
 
 		// Saves all the indices of diagonal elements in H, so that
 		// H.nzvalLocal(diagIdxLocal_[j]) are diagonal elements for all j.
@@ -154,34 +160,11 @@ namespace PEXSI{
         Real*         SnzvalLocal );
 
 
-    void DFTDriver(
-        Real       numElectronExact,
-        Real       temperature,
-        Real       gap,
-        Real       deltaE,
-        Int        numPole, 
-        Int        isInertiaCount,
-        Int        maxPEXSIIter,
-        Real       muMin0,
-        Real       muMax0,
-        Real       muInertiaTolerance,
-        Real       muInertiaExpansion,
-        Real       muPEXSISafeGuard,
-        Real       numElectronPEXSITolerance,
-        Int        matrixType,
-        Int        ordering,
-        Int        numProcSymbFact,
-        Int        verbosity,
-        Real&      muPEXSI,                   
-        Real&      numElectronPEXSI,         
-        Real&      muMinInertia,              
-        Real&      muMaxInertia,             
-        Int&       numTotalInertiaIter,   
-        Int&       numTotalPEXSIIter );
 
 
 		/// @brief Compute the negative inertia (the number of eigenvalues
-		/// below a shift) using real arithemetic factorization routine.
+		/// below a shift) for real symmetric matrices.  The factorization
+    /// uses real arithemetic factorization routine.
 		///
 		/// This subroutine computes the negative inertia of the matrix
 		///
@@ -214,6 +197,142 @@ namespace PEXSI{
 				const DistSparseMatrix<Real>&  SMat,
 				std::string                    ColPerm,
 				Int                            numProcSymbFact );
+
+
+    /// @brief Compute the Fermi operator for a given chemical
+    /// potential for real symmetric matrices.
+		///
+    /// This routine also computes the single particle density matrix,
+    /// the Helmholtz free energy density matrix, and the energy density
+    /// matrix (for computing the Pulay force) simultaneously.   These
+    /// matrices can be called later via member functions DensityMatrix,
+    /// FreeEnergyDensityMatrix, EnergyDensityMatrix.
+		///
+		/// @param[in] numPole Number of poles for the pole expansion
+		///	@param[in] temperature  Temperature
+		/// @param[in] gap Band gap
+		/// @param[in] deltaE Upperbound of the spectrum width
+		/// @param[in] mu Initial guess of chemical potential.
+		/// @param[in] numElectronExact  Exact number of electrons.
+    /// @param[in] numElectronTolerance  Tolerance for the number of
+    /// electrons. This is just used to discard some poles in the pole
+    /// expansion.
+		/// @param[in] HMat Hamiltonian matrix saved in distributed compressed
+		/// sparse column format. See DistSparseMatrix.
+		/// @param[in] SMat Overlap matrix saved in distributed compressed
+		/// sparse column format. See DistSparseMatrix.  **Note**: If
+		/// SMat.size == 0, SMat is treated as an identity matrix.
+		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		/// @param[in] numProcSymbFact Number of processors used for parallel
+		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+    /// @param[out] numElectron The number of electron calculated at mu.
+    /// @param[out] numElectronDrvMu The derivative of the number of
+    /// electron calculated with respect to the chemical potential at mu.
+		void CalculateFermiOperatorReal(
+				Int   numPole, 
+				Real  temperature,
+				Real  gap,
+				Real  deltaE,
+				Real  mu,
+        Real  numElectronExact, 
+        Real  numElectronTolerance,
+				const DistSparseMatrix<Real>&  HMat,
+				const DistSparseMatrix<Real>&  SMat,
+				std::string         ColPerm,
+				Int                 numProcSymbFact,
+        Real& numElectron,
+        Real& numElectronDrvMu );
+
+
+		/// @brief CalculateNumElectron computes the number of electrons given
+		/// the current density matrix.
+		///
+		/// @param[in] SMat overlap matrix.
+		///
+		/// @return The number of electrons Tr[\rho S]
+		Real CalculateNumElectron( const DistSparseMatrix<Real>& SMat );
+
+		/// @brief CalculateNumElectronDrvMu computes the derivative of the
+		/// number of electrons with respect to the chemical potential.
+		///
+		/// @param[in] SMat overlap matrix.
+		///
+		/// @return The derivative of the number of electrons Tr[f'(H-\muS) S]
+		Real CalculateNumElectronDrvMu( const DistSparseMatrix<Real>& SMat );
+
+		/// @brief CalculateNumElectronDrvT computes the derivative of the
+		/// number of electrons with respect to the temperature (1/beta, in
+		/// atomic unit).
+		///
+		/// @param[in] SMat overlap matrix.
+		///
+		/// @return The derivative of the number of electrons Tr[f'(H-\muS) S]
+		Real CalculateNumElectronDrvT( const DistSparseMatrix<Real>& SMat );
+
+		/// @brief CalculateTotalEnergy computes the total energy (band energy
+		/// part only).
+		///
+		/// @param[in] HMat Hamilotian matrix.
+		///
+		/// @return The total energy Tr[ H \rho ]. 
+		Real CalculateTotalEnergy( const DistSparseMatrix<Real>& HMat );
+
+		/// @brief CalculateFreeEnergy computes the total Helmholtz free
+		/// energy (band energy part only).  
+		///
+		/// For more information see 
+		/// Alavi, A., Kohanoff, J., Parrinello, M., & Frenkel, D. (1994). Ab
+		/// initio molecular dynamics with excited electrons. Physical review
+		/// letters, 73(19), 2599–2602. 
+		///
+		/// @param[in] HMat Hamilotian matrix.
+		///
+		/// @return The Helmholtz free energy Tr[rho_f H]
+		Real CalculateFreeEnergy( const DistSparseMatrix<Real>& SMat );
+
+		/// @brief CalculateFreeEnergy computes the force, including the
+		/// Hellman-Feynman force and the Pulay force. 
+		///
+		/// @param[in] HDerivativeMat Derivative of the Hamilotian matrix with
+		/// respect to the atomic position R_{i,j}, i = 1, ..., natoms,
+		/// j=1,2,3. 
+		///
+		/// @param[in] HDerivativeMat Derivative of the overlap matrix with
+		/// respect to the atomic position R_{i,j}, i = 1, ..., natoms,
+		/// j=1,2,3. 
+		///
+		/// @return The force f_{i,j} with
+		/// respect to the atomic position R_{i,j}, i = 1, ..., natoms,
+		/// j=1,2,3. 
+		Real CalculateForce( 
+				const DistSparseMatrix<Real>& HDerivativeMat,  
+				const DistSparseMatrix<Real>& SDerivativeMat ); 
+
+
+    void DFTDriver(
+        Real       numElectronExact,
+        Real       temperature,
+        Real       gap,
+        Real       deltaE,
+        Int        numPole, 
+        Int        isInertiaCount,
+        Int        maxPEXSIIter,
+        Real       muMin0,
+        Real       muMax0,
+        Real       muInertiaTolerance,
+        Real       muInertiaExpansion,
+        Real       muPEXSISafeGuard,
+        Real       numElectronPEXSITolerance,
+        Int        matrixType,
+        Int        ordering,
+        Int        numProcSymbFact,
+        Int        verbosity,
+        Real&      muPEXSI,                   
+        Real&      numElectronPEXSI,         
+        Real&      muMinInertia,              
+        Real&      muMaxInertia,             
+        Int&       numTotalInertiaIter,   
+        Int&       numTotalPEXSIIter );
 
 
     // *********************************************************************

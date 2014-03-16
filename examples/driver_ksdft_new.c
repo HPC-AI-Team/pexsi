@@ -104,8 +104,8 @@ int main(int argc, char **argv)
   /* Below is the data used for the toy g20 matrix */
 
   numElectronExact    = 12.0;
-  nprow               = 2;
-  npcol               = 1;
+  nprow               = 1;
+  npcol               = 2;
   Hfile               = "lap2dr.matrix";
   Sfile               = "";
   isFormatted         = 1;
@@ -228,6 +228,8 @@ int main(int argc, char **argv)
   PPEXSISetDefaultOptions( &options );
   options.muMin0 = 1.0;
   options.muMax0 = 2.0;
+  options.npSymbFact = 1;
+  options.ordering = 0;
 
   PPEXSIPlan   plan;
 
@@ -263,7 +265,7 @@ int main(int argc, char **argv)
       &muMaxInertia,             
       &numTotalInertiaIter,   
       &numTotalPEXSIIter,   
-      &info );    
+      &info );
 
 
 //  if( info != 0 ){
