@@ -93,7 +93,7 @@ namespace PEXSI{
     DistSparseMatrix<Complex>  shiftInvComplexMat_;
 
 		DistSparseMatrix<Real>     rhoRealMat_;                   // Density matrix 
-		DistSparseMatrix<Real>     rhoDrvMuRealMat_;              // Derivative of the Fermi-Dirac with respect to mu
+	  DistSparseMatrix<Real>     rhoDrvMuRealMat_;              // Derivative of the Fermi-Dirac with respect to mu
 		DistSparseMatrix<Real>     rhoDrvTRealMat_;               // Derivative of the Fermi-Dirac with respect to T
 		DistSparseMatrix<Real>     freeEnergyDensityRealMat_;     // Helmholtz free energy density matrix
 		DistSparseMatrix<Real>     energyDensityRealMat_;         // Energy density matrix for computing the Pulay force
@@ -102,6 +102,14 @@ namespace PEXSI{
 		// H.nzvalLocal(diagIdxLocal_[j]) are diagonal elements for all j.
 		// This is manly used when S is implicitly given as an identity matrix.
 		std::vector<Int>           diagIdxLocal_;    
+
+    // Energy computed from Tr[H*DM]
+    Real                       totalEnergyH_;
+    // Energy computed from Tr[S*EDM]
+    Real                       totalEnergyS_;
+    // Free energy 
+    Real                       totalFreeEnergy_;
+
 
 		// *********************************************************************
 		// Saved variables for nonlinear iterations

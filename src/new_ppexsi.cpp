@@ -312,7 +312,7 @@ void PPEXSINewData::CalculateFermiOperatorReal(
   SetValue( AMat.nzvalLocal, Z_ZERO );          
   // Symbolic factorization does not need value
 
-  if( verbosity >= 1 ){
+  if( verbosity >= 2 ){
     statusOFS << "AMat.nnzLocal = " << AMat.nnzLocal << std::endl;
     statusOFS << "AMat.nnz      = " << AMat.Nnz()    << std::endl;
   }
@@ -1115,6 +1115,9 @@ PPEXSINewData::DFTDriver (
       throw std::logic_error("Unsupported ordering strategy.");
   }
 
+  if( matrixType != 0 ){
+    throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
+  }
 
   // Main loop: inertia count + PEXSI
 
@@ -1183,14 +1186,16 @@ PPEXSINewData::DFTDriver (
 
 
         GetTime( timeSta );
-        CalculateNegativeInertiaReal(
-            shiftVec,
-            inertiaVec,
-            HRealMat_,
-            SRealMat_,
-            colPerm,
-            numProcSymbFact,
-            verbosity );
+        if( matrixType == 0 ){
+          CalculateNegativeInertiaReal(
+              shiftVec,
+              inertiaVec,
+              HRealMat_,
+              SRealMat_,
+              colPerm,
+              numProcSymbFact,
+              verbosity );
+        }
 
         GetTime( timeEnd );
 
@@ -1307,6 +1312,9 @@ PPEXSINewData::DFTDriver (
         }
 
 
+        // Heuristics to increase the span of mu a bit
+//        muMinInertia = shiftVec[idxMin] - 5 * temperature;
+//        muMaxInertia = shiftVec[idxMax] + 5 * temperature;
         muMinInertia = shiftVec[idxMin];
         muMaxInertia = shiftVec[idxMax];
         muPEXSI0     = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact );
@@ -1344,24 +1352,27 @@ PPEXSINewData::DFTDriver (
       numTotalPEXSIIter++;
 
       if( verbosity >= 1 ){
-        statusOFS << "PEXSI Iteration " << iter << ", mu = " << muPEXSI0;
+        statusOFS << "PEXSI Iteration " << iter 
+          << ", mu = " << muPEXSI0 << std::endl;
       }
 
-      CalculateFermiOperatorReal(
-          numPole,
-          temperature,
-          gap,
-          deltaE,
-          muPEXSI0,
-          numElectronExact,
-          numElectronPEXSITolerance,
-          HRealMat_,
-          SRealMat_,
-          colPerm,
-          numProcSymbFact,
-          verbosity,
-          numElectronPEXSI,
-          numElectronDrvMuPEXSI );
+      if( matrixType == 0 ){
+        CalculateFermiOperatorReal(
+            numPole,
+            temperature,
+            gap,
+            deltaE,
+            muPEXSI0,
+            numElectronExact,
+            numElectronPEXSITolerance,
+            HRealMat_,
+            SRealMat_,
+            colPerm,
+            numProcSymbFact,
+            verbosity,
+            numElectronPEXSI,
+            numElectronDrvMuPEXSI );
+      }
 
       GetTime( timeMuEnd );
 
@@ -1415,6 +1426,60 @@ PPEXSINewData::DFTDriver (
 
   GetTime( timeTotalEnd );
   
+  // Compute the energy, and free energy
+  if( matrixType == 0 ){
+    // Energy computed from Tr[H*DM]
+    {
+      Real local = 0.0;
+      local = blas::Dot( HRealMat_.nnzLocal, 
+          HRealMat_.nzvalLocal.Data(),
+          1, rhoRealMat_.nzvalLocal.Data(), 1 );
+      mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+    }
+  
+    // Energy computed from Tr[S*EDM]
+    {
+      Real local = 0.0;
+      if( SRealMat_.size != 0 ){
+        local = blas::Dot( SRealMat_.nnzLocal, 
+            SRealMat_.nzvalLocal.Data(),
+            1, energyDensityRealMat_.nzvalLocal.Data(), 1 );
+      }
+      else{
+        DblNumVec& nzval = energyDensityRealMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]);
+        }
+      }
+
+      mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+    }
+
+
+    // Free energy 
+    {
+      Real local = 0.0;
+      if( SRealMat_.size != 0 ){
+        local = blas::Dot( SRealMat_.nnzLocal, 
+            SRealMat_.nzvalLocal.Data(),
+            1, freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
+      }
+      else{
+        DblNumVec& nzval = freeEnergyDensityRealMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]);
+        }
+      }
+
+      mpi::Allreduce( &local, &totalFreeEnergy_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+
+      // Correction
+      totalFreeEnergy_ += muPEXSI0 * numElectronPEXSI;
+    }
+  } // if( matrixType == 0 )
 
   if( verbosity == 1 ){
     if( isConverged == 1 ){
@@ -1432,7 +1497,16 @@ PPEXSINewData::DFTDriver (
       << std::endl;
   }
 
-
+  if( verbosity >= 1 ){
+    statusOFS << "Final result " << std::endl;
+    Print( statusOFS, "mu                          = ", muPEXSI0 );
+    Print( statusOFS, "Computed number of electron = ", numElectronPEXSI );
+    Print( statusOFS, "Exact number of electron    = ", numElectronExact );
+    Print( statusOFS, "d Ne / d mu                 = ", numElectronDrvMuPEXSI );
+		Print( statusOFS, "Total energy (H*DM)         = ", totalEnergyH_ );
+		Print( statusOFS, "Total energy (S*EDM)        = ", totalEnergyS_ );
+		Print( statusOFS, "Total free energy           = ", totalFreeEnergy_ );
+  }
 
   // Save the PEXSI variable
   muPEXSISave_ = muPEXSI0;

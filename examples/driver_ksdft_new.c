@@ -226,12 +226,17 @@ int main(int argc, char **argv)
 
   PPEXSIOptions  options;
   PPEXSISetDefaultOptions( &options );
-  options.muMin0 = 1.0;
-  options.muMax0 = 2.0;
+  options.muMin0 = 0.0;
+  options.muMax0 = 0.5;
   options.npSymbFact = 1;
   options.ordering = 0;
   options.isInertiaCount = 1;
-  options.verbosity = 0;
+  options.verbosity = 1;
+  options.deltaE   = 20.0;
+  options.numPole  = 60;
+  options.temperature  = 0.019; // 3000K
+  options.muPEXSISafeGuard  = 0.2; 
+  options.numElectronPEXSITolerance = 0.0001;
 
   PPEXSIPlan   plan;
 
