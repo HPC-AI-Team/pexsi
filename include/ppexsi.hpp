@@ -43,16 +43,16 @@
 /// @file ppexsi.hpp
 /// @brief Main class for parallel %PEXSI.
 /// @date 2012-11-22
-#ifndef _PPEXSI_HPP_
-#define _PPEXSI_HPP_
+#ifndef _PEXSI_PPEXSI_HPP_
+#define _PEXSI_PPEXSI_HPP_
 #include  "environment.hpp"
-#include  "sparse_matrix_impl.hpp"
-#include  "numvec_impl.hpp"
+#include  "sparse_matrix.hpp"
+#include  "NumVec.hpp"
 #include  "utility.hpp"
 #include  "pole.hpp"
 #include	"mpi_interf.hpp"
-#include  "superlu_SuperLUGrid.hpp"
-#include  "superlu_SuperLUOptions.hpp"
+#include  "SuperLUGrid.hpp"
+//#include  "SuperLUOptions.hpp"
 #include  "superlu_dist_interf.hpp"
 #include	"pselinv.hpp"
 #include  "c_pexsi_interface.h"
@@ -378,4 +378,5 @@ namespace PEXSI{
 
 
 } // namespace PEXSI
-#endif
+
+#endif //_PEXSI_PPEXSI_HPP_

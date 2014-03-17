@@ -40,10 +40,12 @@
    works, incorporate into other computer software, distribute, and sublicense
    such enhancements or derivative works thereof, in binary and source code form.
 */
-/// @file pselinv.cpp
+/// @file pselinv_impl.hpp
 /// @brief Implementation of the parallel SelInv.
 /// @date 2013-08-05
-//#include "pselinv.hpp"
+#ifndef _PEXSI_PSELINV_IMPL_HPP_
+#define _PEXSI_PSELINV_IMPL_HPP_
+
 #include "timer.h"
 #include "superlu_dist_interf.hpp"
 
@@ -5138,3 +5140,5 @@ TIMER_STOP(STCD_RFCD);
 
 
 } // namespace PEXSI
+
+#endif //_PEXSI_PSELINV_IMPL_HPP_

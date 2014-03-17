@@ -43,8 +43,8 @@
 /// @file environment.hpp
 /// @brief Environmental variables.
 /// @date 2012-08-10
-#ifndef _ENVIRONMENT_HPP_
-#define _ENVIRONMENT_HPP_
+#ifndef _PEXSI_ENVIRONMENT_HPP_
+#define _PEXSI_ENVIRONMENT_HPP_
 
 // STL libraries
 #include <iostream> 
@@ -78,9 +78,6 @@
 #include "mpi.h"
 
 
-// TODO Remove environment_impl.hpp. Move things to utility.hpp and only
-// keep environment.hpp
-// Update numXXX_*.hpp and tinyvec*.hpp
 
 // *********************************************************************
 // Redefine the global macros
@@ -252,4 +249,4 @@ namespace PEXSI{
 } // namespace PEXSI
 
 
-#endif // _ENVIRONMENT_HPP_
+#endif // _PEXSI_ENVIRONMENT_HPP_

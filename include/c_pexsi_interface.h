@@ -50,8 +50,8 @@
  * 
  * @date 2013-01-31
  */
-#ifndef _C_PEXSI_INTERFACE_H_ 
-#define _C_PEXSI_INTERFACE_H_
+#ifndef _PEXSI_C_PEXSI_INTERFACE_H_ 
+#define _PEXSI_C_PEXSI_INTERFACE_H_
 #include "mpi.h"
 
 #ifdef __cplusplus
@@ -730,5 +730,5 @@ void PSelInvComplexSymmetricInterface (
 }// extern "C"
 #endif
 
-#endif // _C_PEXSI_INTERFACE_H_
+#endif // _PEXSI_C_PEXSI_INTERFACE_H_
 

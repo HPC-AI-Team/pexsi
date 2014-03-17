@@ -43,18 +43,18 @@
 /// @file pselinv.hpp
 /// @brief Main file for parallel selected inversion.
 /// @date 2013-08-05
-#ifndef _PSELINV_T_HPP_
-#define _PSELINV_T_HPP_
+#ifndef _PEXSI_PSELINV_HPP_
+#define _PEXSI_PSELINV_HPP_
 
 // *********************************************************************
 //  Common utilities
 // *********************************************************************
 
 #include  "environment.hpp"
-#include	"numvec_impl.hpp"
-#include	"nummat_impl.hpp" 
-#include  "sparse_matrix_impl.hpp"
-#include "superlu_SuperLUOptions.hpp"
+#include	"NumVec.hpp"
+#include	"NumMat.hpp" 
+#include  "sparse_matrix.hpp"
+
 #include  "superlu_dist_interf.hpp"
 #include  "mpi_interf.hpp"
 #include	"utility.hpp"
@@ -981,4 +981,4 @@ namespace PEXSI{
 
 #include "pselinv_impl.hpp"
 
-#endif // _PSELINV_T_HPP_
+#endif //_PEXSI_PSELINV_HPP_

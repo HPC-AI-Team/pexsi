@@ -394,7 +394,6 @@ int main(int argc, char **argv)
 
       SuperLUMatrix<MYSCALAR> luMat(g, luOpt );
 
-`
 
       luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
       GetTime( timeEnd );
