@@ -79,7 +79,8 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
 		const DistSparseMatrix<Real>&  HMat,
 		const DistSparseMatrix<Real>&  SMat,
 		std::string                    ColPerm,
-		Int                            numProcSymbFact
+		Int                            numProcSymbFact,
+    Int                            verbosity
     ){
 #ifndef _RELEASE_
   PushCallStack("PPEXSINewData::CalculateNegativeInertiaReal");
@@ -204,11 +205,11 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
         SLU_NR_loc, SLU_D, SLU_GE);
   }
   GetTime( timeEnd );
-#if ( _DEBUGlevel_ >= 1 )
-  statusOFS << "SuperMatrix is constructed." << std::endl;
-  statusOFS << "Time for SuperMatrix construction is " <<
-    timeEnd - timeSta << " [s]" << std::endl << std::endl;
-#endif
+  if( verbosity >= 2 ){
+    statusOFS << "SuperMatrix is constructed." << std::endl;
+    statusOFS << "Time for SuperMatrix construction is " <<
+      timeEnd - timeSta << " [s]" << std::endl << std::endl;
+  }
   GetTime( timeSta );
   // Symbolic factorization
   {
@@ -216,9 +217,10 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
     LUstructInit(A.nrow, A.ncol, &LUstruct);
 
     PStatInit(&stat);
-#if ( _DEBUGlevel_ >= 1 )
-    statusOFS << "Before symbfact subroutine." << std::endl;
-#endif
+
+    if( verbosity >= 2 ){
+      statusOFS << "Before symbfact subroutine." << std::endl;
+    }
 
     double totalMemory, maxMemory;
 
@@ -227,22 +229,19 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
         &totalMemory, &maxMemory);
     PStatFree(&stat);
 
-#if ( _DEBUGlevel_ >= 0 )
-    statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
-    statusOFS << "Total: " << totalMemory << ", Average: " << 
-      totalMemory / ( grid->nprow * grid->npcol )
-      << ", Max: " << maxMemory << std::endl << std::endl;
-#endif
+    if( verbosity >= 1 ){
+      statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
+      statusOFS << "Total: " << totalMemory << ", Average: " << 
+        totalMemory / ( grid->nprow * grid->npcol )
+        << ", Max: " << maxMemory << std::endl << std::endl;
+    }
   }
-#if ( _DEBUGlevel_ >= 1 )
-  statusOFS << "Symbolic factorization is finished." << std::endl;
-#endif
 
   GetTime( timeEnd );
-#if ( _DEBUGlevel_ >= 0 )
-  statusOFS << "Time for symbolic factorization is " <<
-    timeEnd - timeSta << " [s]" << std::endl << std::endl;
-#endif
+  if( verbosity >= 1 ){
+    statusOFS << "Time for symbolic factorization is " <<
+      timeEnd - timeSta << " [s]" << std::endl << std::endl;
+  }
 
   // NOTE: A does not need to be destroyed.  The values of A can
   // be reused in later factorization.
@@ -264,10 +263,10 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
 
       GetTime( timeShiftSta );
 
-#if ( _DEBUGlevel_ >= 0 )
-      statusOFS << "Shift " << l << " = " << shiftVec[l] 
-        << " processing..." << std::endl;
-#endif
+      if( verbosity >= 1 ){
+        statusOFS << "Shift " << l << " = " << shiftVec[l] 
+          << " processing..." << std::endl;
+      }
 
       // *********************************************************************
       // Data conversion
@@ -306,9 +305,10 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
       GetTime( timeTotalFactorizationSta );
 
       // Data redistribution
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "Before Distribute." << std::endl;
-#endif
+      if( verbosity >= 2 ){
+        statusOFS << "Before Distribute." << std::endl;
+      }
+
       {
         Int* perm_c = ScalePermstruct.perm_c;
         NRformat_loc *Astore = (NRformat_loc *) A.Store;
@@ -333,14 +333,14 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
         pddistribute(SamePattern_SameRowPerm, A.nrow, 
             &A, &ScalePermstruct, NULL, &LUstruct, grid);
       }
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "After Distribute." << std::endl;
-#endif
+      if( verbosity >= 2 ){
+        statusOFS << "After Distribute." << std::endl;
+      }
 
       // Numerical factorization
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "Before NumericalFactorize." << std::endl;
-#endif
+      if( verbosity >= 2 ){
+        statusOFS << "Before NumericalFactorize." << std::endl;
+      }
       {
         // Estimate the 1-norm
         char norm[1]; *norm = '1';
@@ -356,15 +356,15 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
           throw std::runtime_error( msg.str().c_str() );
         }
       }
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "After NumericalFactorize." << std::endl;
-#endif
+      if( verbosity >= 2 ){
+        statusOFS << "After NumericalFactorize." << std::endl;
+      }
 
       GetTime( timeTotalFactorizationEnd );
 
-#if ( _DEBUGlevel_ >= 0 )
-      statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
-#endif
+      if( verbosity >= 1 ){
+        statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+      }
 
       // *********************************************************************
       // Compute inertia

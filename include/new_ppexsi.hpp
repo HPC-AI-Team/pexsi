@@ -160,8 +160,6 @@ namespace PEXSI{
         Real*         SnzvalLocal );
 
 
-
-
 		/// @brief Compute the negative inertia (the number of eigenvalues
 		/// below a shift) for real symmetric matrices.  The factorization
     /// uses real arithemetic factorization routine.
@@ -190,13 +188,19 @@ namespace PEXSI{
 		///
 		/// @param[in] numProcSymbFact Number of processors used for parallel
 		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+    /// @param[in] verbosity The level of output information.
+    /// - = 0   : No output.
+    /// - = 1   : Basic output (default)
+    /// - = 2   : Detailed output.
+
 		void CalculateNegativeInertiaReal(
 				const std::vector<Real>&       shiftVec, 
 				std::vector<Real>&             inertiaVec,
 				const DistSparseMatrix<Real>&  HMat,
 				const DistSparseMatrix<Real>&  SMat,
 				std::string                    ColPerm,
-				Int                            numProcSymbFact );
+				Int                            numProcSymbFact,
+        Int                            verbosity );
 
 
     /// @brief Compute the Fermi operator for a given chemical
@@ -225,6 +229,10 @@ namespace PEXSI{
 		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
 		/// @param[in] numProcSymbFact Number of processors used for parallel
 		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+    /// @param[in] verbosity The level of output information.
+    /// - = 0   : No output.
+    /// - = 1   : Basic output (default)
+    /// - = 2   : Detailed output.
     /// @param[out] numElectron The number of electron calculated at mu.
     /// @param[out] numElectronDrvMu The derivative of the number of
     /// electron calculated with respect to the chemical potential at mu.
@@ -240,6 +248,7 @@ namespace PEXSI{
 				const DistSparseMatrix<Real>&  SMat,
 				std::string         ColPerm,
 				Int                 numProcSymbFact,
+        Int                 verbosity,
         Real& numElectron,
         Real& numElectronDrvMu );
 

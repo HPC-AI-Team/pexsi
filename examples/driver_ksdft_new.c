@@ -231,6 +231,7 @@ int main(int argc, char **argv)
   options.npSymbFact = 1;
   options.ordering = 0;
   options.isInertiaCount = 1;
+  options.verbosity = 0;
 
   PPEXSIPlan   plan;
 

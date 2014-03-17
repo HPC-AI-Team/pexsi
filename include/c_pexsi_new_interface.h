@@ -152,7 +152,7 @@ typedef struct {
      */ 
     int           npSymbFact;
     /** 
-     * @brief  The level of output information from %PEXSI.
+     * @brief  The level of output information.
      * - = 0   : No output.
      * - = 1   : Basic output (default)
      * - = 2   : Detailed output.

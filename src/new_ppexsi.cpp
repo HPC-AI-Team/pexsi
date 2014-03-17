@@ -261,6 +261,7 @@ void PPEXSINewData::CalculateFermiOperatorReal(
     const DistSparseMatrix<Real>&  SMat,
     std::string         ColPerm,
     Int                 numProcSymbFact,
+    Int                 verbosity,
     Real& numElectron,
     Real& numElectronDrvMu ){
 
@@ -311,10 +312,10 @@ void PPEXSINewData::CalculateFermiOperatorReal(
   SetValue( AMat.nzvalLocal, Z_ZERO );          
   // Symbolic factorization does not need value
 
-#if ( _DEBUGlevel_ >= 0 )
-  statusOFS << "AMat.nnzLocal = " << AMat.nnzLocal << std::endl;
-  statusOFS << "AMat.nnz      = " << AMat.Nnz()    << std::endl;
-#endif
+  if( verbosity >= 1 ){
+    statusOFS << "AMat.nnzLocal = " << AMat.nnzLocal << std::endl;
+    statusOFS << "AMat.nnz      = " << AMat.Nnz()    << std::endl;
+  }
 
   SuperLUOptions   luOpt;
 
@@ -335,19 +336,19 @@ void PPEXSINewData::CalculateFermiOperatorReal(
   GetTime( timeSta );
   luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
   GetTime( timeEnd );
-#if ( _DEBUGlevel_ >= 0 )
-  statusOFS << "AMat is converted to SuperMatrix." << std::endl;
-  statusOFS << "Time for SuperMatrix conversion is " <<
-    timeEnd - timeSta << " [s]" << std::endl << std::endl;
-#endif
+  if( verbosity >= 1 ){
+    statusOFS << "AMat is converted to SuperMatrix." << std::endl;
+    statusOFS << "Time for SuperMatrix conversion is " <<
+      timeEnd - timeSta << " [s]" << std::endl << std::endl;
+  }
   GetTime( timeSta );
   luMat.SymbolicFactorize();
   GetTime( timeEnd );
-#if ( _DEBUGlevel_ >= 0 )
-  statusOFS << "Symbolic factorization is finished." << std::endl;
-  statusOFS << "Time for symbolic factorization is " <<
-    timeEnd - timeSta << " [s]" << std::endl << std::endl;
-#endif
+  if( verbosity >= 1 ){
+    statusOFS << "Symbolic factorization is finished." << std::endl;
+    statusOFS << "Time for symbolic factorization is " <<
+      timeEnd - timeSta << " [s]" << std::endl << std::endl;
+  }
   luMat.SymbolicToSuperNode( super_ );
   luMat.DestroyAOnly();
 
@@ -356,21 +357,20 @@ void PPEXSINewData::CalculateFermiOperatorReal(
   {
     PMatrix PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
     luMat.LUstructToPMatrix( PMloc );
-#if ( _DEBUGlevel_ >= 0 )
-    Int nnzLocal = PMloc.NnzLocal();
-    statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
-    LongInt nnz  = PMloc.Nnz();
-    statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
-#endif
+    if( verbosity >= 1 ){
+      Int nnzLocal = PMloc.NnzLocal();
+      statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
+      LongInt nnz  = PMloc.Nnz();
+      statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+    }
   }
 
-#if ( _DEBUGlevel_ >= 1 )
-  statusOFS << "perm: "    << std::endl << super_.perm     << std::endl;
-  statusOFS << "permInv: " << std::endl << super_.permInv  << std::endl;
-  statusOFS << "superIdx:" << std::endl << super_.superIdx << std::endl;
-  statusOFS << "superPtr:" << std::endl << super_.superPtr << std::endl; 
-#endif
-
+  if( verbosity >= 2 ){
+    statusOFS << "perm: "    << std::endl << super_.perm     << std::endl;
+    statusOFS << "permInv: " << std::endl << super_.permInv  << std::endl;
+    statusOFS << "superIdx:" << std::endl << super_.superIdx << std::endl;
+    statusOFS << "superPtr:" << std::endl << super_.superPtr << std::endl; 
+  }
 
   // Reinitialize the variables
   SetValue( rhoMat.nzvalLocal, 0.0 );
@@ -511,22 +511,22 @@ void PPEXSINewData::CalculateFermiOperatorReal(
 
     errorTotal = errorRelMax * numElectronExact + errorAbsMax * HMat.size;
 
-#if ( _DEBUGlevel_ >= 0 )
-    statusOFS << "Pole expansion indicates that the error "
-      << "of numElectron is bounded by "
-      << errorTotal << std::endl;
-    statusOFS << "Required accuracy: numElectronTolerance is "
-      << numElectronTolerance << std::endl << std::endl;
+    if( verbosity >= 1 ){
+      statusOFS << "Pole expansion indicates that the error "
+        << "of numElectron is bounded by "
+        << errorTotal << std::endl;
+      statusOFS << "Required accuracy: numElectronTolerance is "
+        << numElectronTolerance << std::endl << std::endl;
 
-    if( errorTotal > numElectronTolerance ){
-      statusOFS << "WARNING!!! " 
-        << "Pole expansion may not be accurate enough to reach numElectronTolerance. " << std::endl
-        << "Try to increase numPole or increase numElectronTolerance." << std::endl << std::endl;
+      if( errorTotal > numElectronTolerance ){
+        statusOFS << "WARNING!!! " 
+          << "Pole expansion may not be accurate enough to reach numElectronTolerance. " << std::endl
+          << "Try to increase numPole or increase numElectronTolerance." << std::endl << std::endl;
 
+      }
+      statusOFS << "numPoleInput =" << numPoleInput << std::endl;
+      statusOFS << "numPoleSignificant = " << numPoleSignificant << std::endl;
     }
-    statusOFS << "numPoleInput =" << numPoleInput << std::endl;
-    statusOFS << "numPoleSignificant = " << numPoleSignificant << std::endl;
-#endif
   }
 
   // Initialize the number of electrons
@@ -559,10 +559,10 @@ void PPEXSINewData::CalculateFermiOperatorReal(
         numPoleInput, temperature, gap, deltaE, mu ); 
   }
 
-#if ( _DEBUGlevel_ >= 1 )
-  statusOFS << "zshift" << std::endl << zshift_ << std::endl;
-  statusOFS << "zweightRho" << std::endl << zweightRho_ << std::endl;
-#endif
+  if( verbosity >= 2 ){
+    statusOFS << "zshift" << std::endl << zshift_ << std::endl;
+    statusOFS << "zweightRho" << std::endl << zweightRho_ << std::endl;
+  }
 
   // for each pole, perform LDLT factoriation and selected inversion
   Real timePoleSta, timePoleEnd;
@@ -574,18 +574,22 @@ void PPEXSINewData::CalculateFermiOperatorReal(
       Int l = poleIdx[lidx];
 
       GetTime( timePoleSta );
-#if ( _DEBUGlevel_ >= 0 )
-      statusOFS << "Pole " << lidx << " processing..." << std::endl;
-      statusOFS << "zshift           = " << zshift_[l] << std::endl;
-      statusOFS	<< "zweightRho       = " << zweightRho_[l] << std::endl;
-      statusOFS	<< "zweightRhoDrvMu  = " << zweightRhoDrvMu_[l] << std::endl;
-      if( isFreeEnergyDensityMatrix )
-        statusOFS << "zweightHelmholtz = " << zweightHelmholtz_[l] << std::endl;
-      if( isEnergyDensityMatrix )
-        statusOFS << "zweightForce     = " << zweightForce_[l] << std::endl;
-      if( isDerivativeTMatrix )
-        statusOFS << "zweightRhoDrvT   = " << zweightRhoDrvT_[l] << std::endl;
-#endif
+
+      if( verbosity >= 1 ){
+        statusOFS << "Pole " << lidx << " processing..." << std::endl;
+      }
+      if( verbosity >= 2 ){
+        statusOFS << "zshift           = " << zshift_[l] << std::endl;
+        statusOFS	<< "zweightRho       = " << zweightRho_[l] << std::endl;
+        statusOFS	<< "zweightRhoDrvMu  = " << zweightRhoDrvMu_[l] << std::endl;
+        if( isFreeEnergyDensityMatrix )
+          statusOFS << "zweightHelmholtz = " << zweightHelmholtz_[l] << std::endl;
+        if( isEnergyDensityMatrix )
+          statusOFS << "zweightForce     = " << zweightForce_[l] << std::endl;
+        if( isDerivativeTMatrix )
+          statusOFS << "zweightRhoDrvT   = " << zweightRhoDrvT_[l] << std::endl;
+      }
+
       {
         numPoleComputed++;
 
@@ -612,42 +616,42 @@ void PPEXSINewData::CalculateFermiOperatorReal(
         // *********************************************************************
         // Important: the distribution in pzsymbfact is going to mess up the
         // A matrix.  Recompute the matrix A here.
-#if ( _DEBUGlevel_ >= 0 )
-        statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-#endif
+        if( verbosity >= 2 ){
+          statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+        }
         luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
-#if ( _DEBUGlevel_ >= 0 )
-        statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-#endif
+        if( verbosity >= 2 ){
+          statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+        }
 
         Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
 
         GetTime( timeTotalFactorizationSta );
 
         // Data redistribution
-#if ( _DEBUGlevel_ >= 0 )
-        statusOFS << "Before Distribute." << std::endl;
-#endif
+        if( verbosity >= 2 ){
+          statusOFS << "Before Distribute." << std::endl;
+        }
         luMat.Distribute();
-#if ( _DEBUGlevel_ >= 0 )
-        statusOFS << "After Distribute." << std::endl;
-#endif
+        if( verbosity >= 2 ){
+          statusOFS << "After Distribute." << std::endl;
+        }
 
         // Numerical factorization
-#if ( _DEBUGlevel_ >= 0 )
-        statusOFS << "Before NumericalFactorize." << std::endl;
-#endif
+        if( verbosity >= 2 ){
+          statusOFS << "Before NumericalFactorize." << std::endl;
+        }
         luMat.NumericalFactorize();
-#if ( _DEBUGlevel_ >= 0 )
-        statusOFS << "After NumericalFactorize." << std::endl;
-#endif
+        if( verbosity >= 2 ){
+          statusOFS << "After NumericalFactorize." << std::endl;
+        }
         luMat.DestroyAOnly();
 
         GetTime( timeTotalFactorizationEnd );
 
-#if ( _DEBUGlevel_ >= 0 )
-        statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
-#endif
+        if( verbosity >= 1 ){
+          statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+        }
 
         // *********************************************************************
         // Selected inversion
@@ -677,10 +681,10 @@ void PPEXSINewData::CalculateFermiOperatorReal(
 
         GetTime( timeTotalSelInvEnd );
 
-#if ( _DEBUGlevel_ >= 0 )
-        statusOFS << "Time for total selected inversion is " <<
-          timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
-#endif
+        if( verbosity >= 1 ){
+          statusOFS << "Time for total selected inversion is " <<
+            timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
+        }
 
         // *********************************************************************
         // Postprocessing
@@ -692,10 +696,10 @@ void PPEXSINewData::CalculateFermiOperatorReal(
 
         PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
 
-#if ( _DEBUGlevel_ >= 0 )
-        statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
-        statusOFS << "AinvMat.nnzLocal = " << AinvMat.nnzLocal << std::endl;
-#endif
+        if( verbosity >= 2 ){
+          statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
+          statusOFS << "AinvMat.nnzLocal = " << AinvMat.nnzLocal << std::endl;
+        }
 
 
         // Update the density matrix. The following lines are equivalent to
@@ -747,37 +751,20 @@ void PPEXSINewData::CalculateFermiOperatorReal(
         // Update the free energy density matrix and energy density matrix similarly
         GetTime( timePostProcessingEnd );
 
-#if ( _DEBUGlevel_ >= 0 )
-        statusOFS << "Time for postprocessing is " <<
-          timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
-#endif
+        if( verbosity >= 1 ){
+          statusOFS << "Time for postprocessing is " <<
+            timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
+        }
 
       }
       GetTime( timePoleEnd );
 
-#if ( _DEBUGlevel_ >= 0 )
-      statusOFS << "Time for pole " << lidx << " is " <<
-        timePoleEnd - timePoleSta << " [s]" << std::endl << std::endl;
-#endif
+      if( verbosity >= 1 ){
+        statusOFS << "Time for pole " << lidx << " is " <<
+          timePoleEnd - timePoleSta << " [s]" << std::endl << std::endl;
+      }
 
     } // if I am in charge of this pole
-#if ( _DEBUGlevel_ >= 1 )
-    // Output the number of electrons at each step for debugging,
-    // if there is no parallelization among poles.
-    // This debug mode is currently only available if SMat is not
-    // implicitly given by  an identity matrix 
-    if( gridPole_->numProcRow == 1 && SMat.size != 0 ){
-      Real numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-          1, rhoMat.nzvalLocal.Data(), 1 );
-
-      Real numElec;
-      mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, gridPole_->comm ); 
-
-      statusOFS << std::endl << "No parallelization of poles, output the number of electrons up to this pole." << std::endl;
-      statusOFS << "numElecLocal = " << numElecLocal << std::endl;
-      statusOFS << "numElecTotal = " << numElec << std::endl << std::endl;
-    }
-#endif
   } // for(lidx)
 
   // Reduce the density matrix across the processor rows in gridPole_
@@ -1148,6 +1135,12 @@ PPEXSINewData::DFTDriver (
       GetTime( timeInertiaSta );
 
       numTotalInertiaIter++;
+
+      if( verbosity >= 1 ){
+        PrintBlock( statusOFS, "Inertia counting phase" );
+      }
+
+
       // Number of shifts is exactly determined by the number of
       // independent groups to minimize the cost
       // However, the minimum number of shifts is 10 to accelerate
@@ -1196,7 +1189,8 @@ PPEXSINewData::DFTDriver (
             HRealMat_,
             SRealMat_,
             colPerm,
-            numProcSymbFact );
+            numProcSymbFact,
+            verbosity );
 
         GetTime( timeEnd );
 
@@ -1333,9 +1327,16 @@ PPEXSINewData::DFTDriver (
       continue;
     }
 
+
+    if( verbosity >= 1 ){
+      PrintBlock( statusOFS, "PEXSI phase" );
+    }
+
     // PEXSI iteration
     Real timeMuSta, timeMuEnd;
     isDeltaMuSafe = true;
+
+
 
     for(Int iter = 1; iter <= maxPEXSIIter; iter++){
       GetTime( timeMuSta );
@@ -1343,9 +1344,7 @@ PPEXSINewData::DFTDriver (
       numTotalPEXSIIter++;
 
       if( verbosity >= 1 ){
-        std::ostringstream msg;
-        msg << "PEXSI Iteration " << iter << ", mu = " << muPEXSI0;
-        PrintBlock( statusOFS, msg.str() );
+        statusOFS << "PEXSI Iteration " << iter << ", mu = " << muPEXSI0;
       }
 
       CalculateFermiOperatorReal(
@@ -1360,6 +1359,7 @@ PPEXSINewData::DFTDriver (
           SRealMat_,
           colPerm,
           numProcSymbFact,
+          verbosity,
           numElectronPEXSI,
           numElectronDrvMuPEXSI );
 
@@ -1378,9 +1378,11 @@ PPEXSINewData::DFTDriver (
       if( std::abs( numElectronPEXSI - numElectronExact ) < 
           numElectronPEXSITolerance ){
         isConverged = true;
-        statusOFS << "PEXSI has converged within " 
-          << iter << " steps." << std::endl
-          << "Exiting the PEXSI iteration now." << std::endl;
+        if( verbosity >= 0 ){
+          statusOFS << "PEXSI has converged within " 
+            << iter << " steps." << std::endl
+            << "Exiting the PEXSI iteration now." << std::endl;
+        }
         break;
       }
       else{
