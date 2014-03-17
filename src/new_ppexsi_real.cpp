@@ -105,9 +105,10 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
   // Here it assumes that gridSuperLU_ and gridSelInv_ follow the same
   // distribution.
 
-  grid = new gridinfo_t;
-  superlu_gridinit( gridSelInv_->comm, gridSelInv_->numProcRow, 
-      gridSelInv_->numProcCol, grid );
+  grid = (gridinfo_t*)gridSuperLU_->ptrData;
+//  grid = new gridinfo_t;
+//  superlu_gridinit( gridSelInv_->comm, gridSelInv_->numProcRow, 
+//      gridSelInv_->numProcCol, grid );
 
   // Get the diagonal indices for H and save it n diagIdxLocal_
   {
@@ -439,8 +440,8 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
   ScalePermstructFree(&ScalePermstruct);
   Destroy_CompRowLoc_Matrix_dist(&A);
 
-  superlu_gridexit(grid);
-  delete grid;
+//  superlu_gridexit(grid);
+//  delete grid;
 
 #ifndef _RELEASE_
   PopCallStack();

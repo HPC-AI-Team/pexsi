@@ -65,12 +65,22 @@ namespace PEXSI{
 		/// @brief SuperLUMatrix can have access to the grid information.
 		friend class SuperLUMatrix;
 	private:
-		struct           GridData;
-		GridData*        ptrData;
+//		struct           GridData;
+//		GridData*        ptrData;
 	public:
 		SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
 
 		~SuperLUGrid();
+
+    // FIXME
+    // Moving the following two things to public access is to allow the
+    // mixed real/complex arithmetic factorization.  
+    // The goal is to avoid calling superlu_gridinit twice without 
+    // superlu_gridexit in the middle.  This is a very hidden bug and took me
+    // a long time to find it.
+		struct           GridData;
+		GridData*        ptrData;
+
 
 	};
 

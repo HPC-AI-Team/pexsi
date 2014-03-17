@@ -1346,6 +1346,7 @@ PPEXSINewData::DFTDriver (
     if( isConverged == true ){
       break;
     }
+    break;
   }
 
   GetTime( timeTotalEnd );

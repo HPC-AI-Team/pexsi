@@ -5,7 +5,7 @@
 /// @date 2012-11-01 modified by Lin Lin.
 #include <math.h>
 #include "superlu_zdefs.h"
-#define  PRNTlevel 2
+#define  PRNTlevel 0
 
 /// @brief pzsymbfact performs symbolic factorization that can be
 /// reused.
@@ -585,8 +585,16 @@ distribution routine. */
 			for (j = 0; j < nnz_loc; ++j) colind[j] = perm_c[colind[j]];
 
 			t = SuperLU_timer_();
+#if ( PRNTlevel >= 2 )
+      if( !iam ) fprintf(stderr,"before zdist_psymbtonum.");
+#endif
 			dist_mem_use = zdist_psymbtonum(Fact, n, A, ScalePermstruct,
 																			&Pslu_freeable, LUstruct, grid);
+
+#if ( PRNTlevel >= 2 )
+      if( !iam ) fprintf(stderr,"after zdist_psymbtonum.");
+#endif
+
 			if (dist_mem_use > 0)
 				ABORT ("Not enough memory available for dist_psymbtonum\n");
 
@@ -599,6 +607,11 @@ distribution routine. */
 		t = SuperLU_timer_();
 		// pzgstrf(options, m, n, anorm, LUstruct, grid, stat, info);
 		stat->utime[FACT] = SuperLU_timer_() - t;
+
+#if ( PRNTlevel >= 2 )
+      if( !iam ) fprintf(stderr,"before memory output.");
+#endif
+
 
 		// LL: The memory output is modified.
 		{

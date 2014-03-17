@@ -230,6 +230,7 @@ int main(int argc, char **argv)
   options.muMax0 = 2.0;
   options.npSymbFact = 1;
   options.ordering = 0;
+  options.isInertiaCount = 1;
 
   PPEXSIPlan   plan;
 
