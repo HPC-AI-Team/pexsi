@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 
   numElectronExact    = 12.0;
   nprow               = 1;
-  npcol               = 2;
+  npcol               = 1;
   Hfile               = "lap2dr.matrix";
   Sfile               = "";
   isFormatted         = 1;

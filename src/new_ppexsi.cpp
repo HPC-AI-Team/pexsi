@@ -867,7 +867,7 @@ PPEXSINewData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
     }
 
   } // if ( SMat.size != 0 )
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "numElecLocal = " << numElecLocal << std::endl;
 #endif
 
@@ -906,7 +906,7 @@ PPEXSINewData::CalculateNumElectronDrvMu	( const DistSparseMatrix<Real>& SMat )
     }
   }
 
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "numElecDrvLocal = " << numElecDrvLocal << std::endl;
 #endif
 
@@ -943,7 +943,7 @@ PPEXSINewData::CalculateNumElectronDrvT	( const DistSparseMatrix<Real>& SMat )
       numElecDrvLocal += nzval(diagIdxLocal_[i]);
     }
   }
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "numElecDrvLocal = " << numElecDrvLocal << std::endl;
 #endif
 
@@ -971,7 +971,7 @@ PPEXSINewData::CalculateTotalEnergy	( const DistSparseMatrix<Real>& HMat )
 
   totalEnergyLocal = blas::Dot( HMat.nnzLocal, HMat.nzvalLocal.Data(),
       1, rhoMat.nzvalLocal.Data(), 1 );
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "TotalEnergyLocal = " << totalEnergyLocal << std::endl;
 #endif
 
@@ -1009,7 +1009,7 @@ PPEXSINewData::CalculateFreeEnergy	( const DistSparseMatrix<Real>& SMat )
     }
   } // if ( SMat.size != 0 )
 
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "TotalFreeEnergyLocal = " << totalFreeEnergyLocal << std::endl;
 #endif
 
@@ -1052,7 +1052,7 @@ PPEXSINewData::CalculateForce	(
         frcMat.nzvalLocal.Data(), 1 );
   }
 
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "TotalForceLocal = " << totalForceLocal << std::endl;
 #endif
 
@@ -1131,17 +1131,23 @@ PPEXSINewData::DFTDriver (
 
   // Main loop: inertia count + PEXSI
 
+  // Maximum number of total iterations
   const Int maxTotalInertiaIter = 10;
-  bool  isBadBound;
-  bool  isConverged;
+  // Whether the given interval contains the chemical potential
+  bool  isBadBound = false;  
+  // Whether the Newton update is in the trusted range
+  bool  isDeltaMuSafe = true;
+  // Whether the whole process has converged
+  bool  isConverged = false;
    
   GetTime( timeTotalSta );
   while( numTotalInertiaIter < maxTotalInertiaIter ){
 
     // Perform inertia count
-    GetTime( timeInertiaSta );
     if( isInertiaCount == 1 ){
+      GetTime( timeInertiaSta );
 
+      numTotalInertiaIter++;
       // Number of shifts is exactly determined by the number of
       // independent groups to minimize the cost
       // However, the minimum number of shifts is 10 to accelerate
@@ -1166,6 +1172,16 @@ PPEXSINewData::DFTDriver (
       }
 
       for( Int iter = 1; iter <= maxInertiaIter; iter++ ){
+        if( numTotalInertiaIter >= maxTotalInertiaIter ){
+          std::ostringstream msg;
+          msg  << std::endl
+            << maxTotalInertiaIter 
+            << " inertia counts have been proceeded." << std::endl
+            << "Try to revise the initial interval for the chemical potential, "
+            << "or increase muInertiaTolerance. " << std::endl;
+          throw std::runtime_error( msg.str().c_str() );
+        }
+
         numTotalInertiaIter++;
 
         for( Int l = 0; l < numShift; l++ ){
@@ -1305,65 +1321,107 @@ PPEXSINewData::DFTDriver (
         if( ( std::abs( inertiaVec[idxMax] - numElectronExact ) < EPS ) ||
             ( ( shiftVec[idxMax] - shiftVec[idxMin] ) < muInertiaTolerance ) ){
           isInertiaCount = 0;
-          // FIXME SOON!
-          isConverged = true;
         }
       } // for (iter)
+
+      GetTime( timeInertiaEnd );
+      timeInertia += timeInertiaEnd - timeInertiaSta;
     }
-    GetTime( timeInertiaEnd );
-    timeInertia += timeInertiaEnd - timeInertiaSta;
 
     // Immediately continue the inertia counting procedure
-    if( isBadBound == true ){
+    if( isBadBound == true && isInertiaCount == 1 ){
       continue;
     }
 
     // PEXSI iteration
+    Real timeMuSta, timeMuEnd;
+    isDeltaMuSafe = true;
 
-    CalculateFermiOperatorReal(
-        numPole,
-        temperature,
-        gap,
-        deltaE,
-        muPEXSI0,
-        numElectronExact,
-        numElectronPEXSITolerance,
-        HRealMat_,
-        SRealMat_,
-        colPerm,
-        numProcSymbFact,
-        numElectronPEXSI,
-        numElectronDrvMuPEXSI );
+    for(Int iter = 1; iter <= maxPEXSIIter; iter++){
+      GetTime( timeMuSta );
 
-    if( verbosity >= 1 ){
-      statusOFS << std::endl;
-      Print( statusOFS, "mu                          = ", muPEXSI0 );
-      Print( statusOFS, "Computed number of electron = ", numElectronPEXSI );
-      Print( statusOFS, "Exact number of electron    = ", numElectronExact );
-      Print( statusOFS, "d Ne / d mu                 = ", numElectronDrvMuPEXSI );
-    }
+      numTotalPEXSIIter++;
 
-    if( isConverged == true ){
+      if( verbosity >= 1 ){
+        std::ostringstream msg;
+        msg << "PEXSI Iteration " << iter << ", mu = " << muPEXSI0;
+        PrintBlock( statusOFS, msg.str() );
+      }
+
+      CalculateFermiOperatorReal(
+          numPole,
+          temperature,
+          gap,
+          deltaE,
+          muPEXSI0,
+          numElectronExact,
+          numElectronPEXSITolerance,
+          HRealMat_,
+          SRealMat_,
+          colPerm,
+          numProcSymbFact,
+          numElectronPEXSI,
+          numElectronDrvMuPEXSI );
+
+      GetTime( timeMuEnd );
+
+      if( verbosity >= 1 ){
+        statusOFS << std::endl;
+        Print( statusOFS, "mu                          = ", muPEXSI0 );
+        Print( statusOFS, "Computed number of electron = ", numElectronPEXSI );
+        Print( statusOFS, "Exact number of electron    = ", numElectronExact );
+        Print( statusOFS, "d Ne / d mu                 = ", numElectronDrvMuPEXSI );
+        statusOFS << std::endl << "Time for mu iteration " << iter << " is " <<
+          timeMuEnd - timeMuSta << " [s]" << std::endl << std::endl;
+      }
+
+      if( std::abs( numElectronPEXSI - numElectronExact ) < 
+          numElectronPEXSITolerance ){
+        isConverged = true;
+        statusOFS << "PEXSI has converged within " 
+          << iter << " steps." << std::endl
+          << "Exiting the PEXSI iteration now." << std::endl;
+        break;
+      }
+      else{
+
+        // Update the chemical potential using Newton's method
+        Real deltaMu = 
+          -(numElectronPEXSI - numElectronExact) / numElectronDrvMuPEXSI;
+
+        if( std::abs( deltaMu ) > muPEXSISafeGuard ){
+          isDeltaMuSafe = false;
+          isInertiaCount = 1;
+          statusOFS << std::endl 
+            << "deltaMu computed from Newton's method is " << deltaMu << std::endl
+            << "and is larger than the trusted range " << muPEXSISafeGuard << std::endl
+            << "Exiting PEXSI iteration now and reactivate the inertia counting scheme." 
+            << std::endl;
+          break;
+        }
+        else{
+          muPEXSI0 += deltaMu;
+        }
+      }
+    } // for (iter)
+
+    // Exit no matter whether PEXSI has converged.
+    if( isDeltaMuSafe == true ){
       break;
     }
-    break;
   }
 
   GetTime( timeTotalEnd );
   
-  if( numTotalInertiaIter >= maxTotalInertiaIter ){
-    std::ostringstream msg;
-    msg  << std::endl
-      << maxTotalInertiaIter 
-      << " inertia counts have been proceeded without convergence." << std::endl
-      << "Try to revise the initial interval for the chemical potential, "
-      << "or increase muInertiaTolerance. " << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
-  }
 
   if( verbosity == 1 ){
+    if( isConverged == 1 ){
+      statusOFS << std::endl << "PEXSI has converged!" << std::endl;
+    }
+    else{
+      statusOFS << std::endl << "PEXSI did not converge!" << std::endl;
+    }
     statusOFS << std::endl
-      << "PEXSI has converged!" << std::endl
       << "Total number of inertia counts       = " << numTotalInertiaIter << std::endl
       << "Total number of PEXSI iterations     = " << numTotalPEXSIIter << std::endl 
       << "Total time for inertia counts        = " << timeInertia << " [s]" << std::endl 
@@ -1371,6 +1429,11 @@ PPEXSINewData::DFTDriver (
       << "Total time for the DFT driver        = " << timeTotalEnd - timeTotalSta   << " [s]" << std::endl
       << std::endl;
   }
+
+
+
+  // Save the PEXSI variable
+  muPEXSISave_ = muPEXSI0;
 
 #ifndef _RELEASE_
 	PopCallStack();
