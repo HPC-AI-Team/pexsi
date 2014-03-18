@@ -371,7 +371,21 @@ void PPEXSIRetrieveRealSymmetricDFTMatrix(
 		double*      DMnzvalLocal,
 		double*     EDMnzvalLocal,
 		double*     FDMnzvalLocal,
+    double*     totalEnergyH,
+    double*     totalEnergyS,
+    double*     totalFreeEnergy,
     int*              info );
+
+
+/* FIXME */
+void PPEXSIRealSymmetricRawInertiaCount(
+    PPEXSIPlan        plan,
+    int               numShift,
+		double*           shiftVec,            
+    PPEXSIOptions     options,
+		int*              inertiaVec,
+    int*              info );
+
 
 /**
  * @brief Release the memory used by %PEXSI.

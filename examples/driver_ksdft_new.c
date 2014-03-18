@@ -84,6 +84,10 @@ int main(int argc, char **argv)
   double        muMaxInertia;
   int           numTotalInertiaIter;
   int           numTotalPEXSIIter;
+
+  double        totalEnergyH;
+  double        totalEnergyS;
+  double        totalFreeEnergy;
   
   char*         Hfile;
   char*         Sfile;
@@ -274,6 +278,24 @@ int main(int argc, char **argv)
       &numTotalPEXSIIter,   
       &info );
 
+  if( isProcRead == 1 ){
+    PPEXSIRetrieveRealSymmetricDFTMatrix(
+        plan,
+        DMnzvalLocal,
+        EDMnzvalLocal,
+        FDMnzvalLocal,
+        &totalEnergyH,
+        &totalEnergyS,
+        &totalFreeEnergy,
+        &info );
+
+    if( mpirank == 0 ){
+      printf("Output from the main program\n");
+      printf("Total energy (H*DM)         = %15.5f\n", totalEnergyH);
+      printf("Total energy (S*EDM)        = %15.5f\n", totalEnergyS);
+      printf("Total free energy           = %15.5f\n", totalFreeEnergy);
+    }
+  }
 
 //  if( info != 0 ){
 //    if( mpirank == 0 ){

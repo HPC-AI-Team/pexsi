@@ -214,28 +214,83 @@ void PPEXSIDFTDriver(
 #endif
 	}
   return;
-
-  return;
 }   // -----  end of function PPEXSIDFTDriver  ----- 
 
 
-//extern "C"
-//void PPEXSIRetrieveRealSymmetricDFTMatrix(
-//    PPEXSIPlan        plan,
-//		double*      DMnzvalLocal,
-//		double*     EDMnzvalLocal,
-//		double*     FDMnzvalLocal,
-//    int*              info ){
-//  *info = 0;
-//
-//	// Synchronize the info among all processors. 
-//	// If any processor gets error message, info = 1
-//	Int infoAll = 0;
-//	mpi::Allreduce( info, &infoAll, 1, MPI_MAX, comm  );
-//	*info = infoAll;
-//
-//  return;
-//}
+
+extern "C"
+void PPEXSIRetrieveRealSymmetricDFTMatrix(
+    PPEXSIPlan        plan,
+		double*      DMnzvalLocal,
+		double*     EDMnzvalLocal,
+		double*     FDMnzvalLocal,
+    double*     totalEnergyH,
+    double*     totalEnergyS,
+    double*     totalFreeEnergy,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSINewData*>(plan)->GridPole();
+  PPEXSINewData* ptrData = reinterpret_cast<PPEXSINewData*>(plan);
+  
+  try{
+    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
+
+    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
+        DMnzvalLocal, 1 );
+
+    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
+        EDMnzvalLocal, 1 );
+
+    blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
+        FDMnzvalLocal, 1 );
+
+    *totalEnergyH = ptrData->TotalEnergyH();
+
+    *totalEnergyS = ptrData->TotalEnergyS();
+
+    *totalFreeEnergy = ptrData->TotalFreeEnergy();
+  }
+	catch( std::exception& e ) {
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+  return;
+}   // -----  end of function PPEXSIRetrieveRealSymmetricDFTMatrix  ----- 
+
+
+extern "C"
+void PPEXSIRealSymmetricRawInertiaCount(
+    PPEXSIPlan        plan,
+    int               numShift,
+		double*           shiftVec,            
+    PPEXSIOptions     options,
+		int*              inertiaVec,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSINewData*>(plan)->GridPole();
+  
+  try{
+    delete reinterpret_cast<PPEXSINewData*>(plan);
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+  return;
+}   // -----  end of function PPEXSIRealSymmetricRawInertiaCount  ----- 
 
 
 extern "C"

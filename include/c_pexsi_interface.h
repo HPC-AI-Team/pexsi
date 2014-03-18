@@ -156,7 +156,7 @@ void ReadDistSparseMatrixHeadInterface (
  * values in CSC format.
  * @param[in]  comm (global) MPI communicator.
  */
-void ParaReadDistSparseMatrixInterface ( 
+void ParaReadDistSparseMatrixInterface (
     char*     filename,
     int       size,
     int       nnz,

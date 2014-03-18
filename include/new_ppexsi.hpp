@@ -116,37 +116,6 @@ namespace PEXSI{
 		// *********************************************************************
     Real                       muPEXSISave_;
 
-
-		// *********************************************************************
-		// Member functions
-		// *********************************************************************
-		/// @brief Calculate the new chemical potential using the Newton's
-		/// method with finite difference calculation of the derivative.
-		Real CalculateChemicalPotentialNewtonFD(
-				const Int iter, 
-				const Real numElectronExact, 
-				const Real numElectronTolerance,
-				const std::vector<Real>& muList,
-				const std::vector<Real>& numElectronList );
-
-		/// @brief Calculate the new chemical potential using the Newton's
-		/// method with bisection as safeguard
-		/// @param[in] numElectronExact  Exact number of electrons.
-		/// @param[in] numElectron       Computed number of electrons.
-		/// @param[in] numElectronDrvMu  The derivative of the number of
-		/// electrons with respect to the chemical potential.
-		/// @param[in] mu Chemical potential and its update (output).
-		/// @param[in] muMin Lower bound of the chemical potential.
-		/// @param[in] muMax Upper bound of the chemical potential.
-		/// @return Update of the chemical potential.
-		Real CalculateChemicalPotentialNewtonBisection(
-				const Real numElectronExact, 
-				const Real numElectron,
-				const Real numElectronDrvMu,
-				const Real mu,
-				const Real muMin,
-				const Real muMax );
-
 	public:
     PPEXSINewData(
         MPI_Comm   comm,
@@ -357,6 +326,18 @@ namespace PEXSI{
     // *********************************************************************
 
     const GridType*  GridPole() const {return gridPole_;}
+
+    const DistSparseMatrix<Real>&   RhoRealMat() const {return rhoRealMat_;}
+
+    const DistSparseMatrix<Real>&   EnergyDensityRealMat() const {return energyDensityRealMat_;}
+
+    const DistSparseMatrix<Real>&   FreeEnergyDensityRealMat() const {return freeEnergyDensityRealMat_;}
+
+    Real   TotalEnergyH() const {return totalEnergyH_;}
+    
+    Real   TotalEnergyS() const {return totalEnergyS_;}
+
+    Real   TotalFreeEnergy() const {return totalFreeEnergy_;}
 
 
 	}; // PPEXSINewData
