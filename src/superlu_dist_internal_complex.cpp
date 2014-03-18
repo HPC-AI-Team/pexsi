@@ -2,8 +2,8 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Author: Lin Lin
-	 
+   Author: Lin Lin and Mathias Jacquelin
+
    This file is part of PEXSI. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
@@ -40,85 +40,65 @@
    works, incorporate into other computer software, distribute, and sublicense
    such enhancements or derivative works thereof, in binary and source code form.
 */
-/// @file superlu_dist_interf.cpp
-/// @brief Interface to SuperLU_Dist (v3.3).
-/// @author Lin Lin
-/// @date 2012-11-15
-#include "superlu_dist_interf.hpp"
-#ifdef _USE_COMPLEX_
+/// @file superlu_dist_internal_complex.cpp
+/// @brief Implementation of internal structures for interfacing with SuperLU_Dist (version 3.0 and later) for complex arithmetic
+/// @date 2014-03-17
+#include "SuperLUGrid.hpp"
+#include "superlu_dist_internal.hpp"
+
+#include "pselinv.hpp"
+
 #include "superlu_zdefs.h"
 #include "Cnames.h"
-extern "C"{
-void
+extern "C"{ void
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
 		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
 		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
 		int *info, double *totalMemory, double *maxMemory );
 }
-#else
-#include "superlu_ddefs.h"
-#include "Cnames.h"
-extern "C"{ void
-pdsymbfact(superlu_options_t *options, SuperMatrix *A, 
-		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-		LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
-		int *info, double *totalMemory, double *maxMemory );
-}
-#endif
+
+
+
 
 // SuperLUGrid class
 namespace PEXSI{
 
-struct SuperLUGrid::GridData{
-	gridinfo_t          grid;
+
+class ComplexGridInfo{
+  friend class ComplexGridData;
+  friend class ComplexSuperLUData;
+  protected:
+	  gridinfo_t          grid;
 };
 
+    ComplexGridData::ComplexGridData(){
+      info_ = new ComplexGridInfo;
+    }
 
-SuperLUGrid::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
-{
-#ifndef _RELEASE_
-	PushCallStack("SuperLUGrid::SuperLUGrid");
-#endif
-	ptrData = new GridData;
-	if( ptrData == NULL )
-		throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+    ComplexGridData::~ComplexGridData(){
+      delete info_;
+    }
 
-	superlu_gridinit(comm, nprow, npcol, &ptrData->grid);
+    void ComplexGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
+    	superlu_gridinit(comm, nprow, npcol, &info_->grid);
+    }
 
+    void ComplexGridData::GridExit(  ){
+    	superlu_gridexit(&info_->grid);
+    }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-
-	return ;
-} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+}
 
 
-SuperLUGrid::~SuperLUGrid	(  )
-{
-#ifndef _RELEASE_
-	PushCallStack("SuperLUGrid::~SuperLUGrid");
-#endif
-	// NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
-	// communicator, it is legal to call superlu_gridexit even if
-	// grid->comm is a copy of MPI_COMM_WORLD.
-	
-	superlu_gridexit(&ptrData->grid);
-	
-	delete ptrData;
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
-	return ;
-} 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
 
-} // namespace PEXSI
 
-// SuperLUMatrix class
+// SuperLUData class
 namespace PEXSI{
 
-struct SuperLUMatrix::SuperLUData{
+class ComplexSuperLUData_internal{
+  friend class ComplexSuperLUData;
+  protected:
 	/// @brief SuperLU matrix. 
 	SuperMatrix         A;                        
 
@@ -170,12 +150,12 @@ struct SuperLUMatrix::SuperLUData{
 };
 
 
-SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
-{
+
+ComplexSuperLUData::ComplexSuperLUData( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt ){
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::SuperLUMatrix");
+	PushCallStack("ComplexSuperLUData::ComplexSuperLUData");
 #endif
-	ptrData = new SuperLUData;
+  ptrData = new ComplexSuperLUData_internal;
 	if( ptrData == NULL )
 		throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
 	
@@ -226,24 +206,21 @@ SuperLUMatrix::SuperLUMatrix	( const SuperLUGrid& g, const SuperLUOptions& opt )
 	}
 
 	// Setup grids
-  ptrData->grid = &(g.ptrData->grid);
+  ptrData->grid = &(g.ptrData->info_->grid);
 
 
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
-} 		// -----  end of method SuperLUMatrix::SuperLUMatrix  ----- 
 
 
 
+}
 
 
-
-
-SuperLUMatrix::~SuperLUMatrix	(  )
-{
+ComplexSuperLUData::~ComplexSuperLUData(){
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::~SuperLUMatrix");
+	PushCallStack("ComplexSuperLUData::~ComplexSuperLUData");
 #endif
 	SuperMatrix& A = ptrData->A;
 	if( ptrData->isLUstructAllocated ){
@@ -266,23 +243,23 @@ SuperLUMatrix::~SuperLUMatrix	(  )
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
-} 		// -----  end of method SuperLUMatrix::~SuperLUMatrix  ----- 
+}
 
 
-Int SuperLUMatrix::m (  ) const	
+Int ComplexSuperLUData::m (  ) const	
 {
 	return ptrData->A.nrow;
-} 		// -----  end of method SuperLUMatrix::m  ----- 
+} 		// -----  end of method ComplexSuperLUData::m  ----- 
 
 
-Int SuperLUMatrix::n (  ) const	
+Int ComplexSuperLUData::n (  ) const	
 {
 	return ptrData->A.ncol;
-} 		// -----  end of method SuperLUMatrix::n  ----- 
+} 		// -----  end of method ComplexSuperLUData::n  ----- 
 
-void SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>& sparseA ){
+void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA ){
 #ifndef _RELEASE_
-	PushCallStack( "SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc" );
+	PushCallStack( "ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc" );
 #endif
 	if( ptrData->isSuperMatrixAllocated == true ){
 		throw std::logic_error( "SuperMatrix is already allocated." );
@@ -334,14 +311,14 @@ void SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Scalar>
 
 	return;
 
-} 		// -----  end of method SuperLUMatrix::DistSparseMatrixToSuperMatrixNRloc ----- 
+} 		// -----  end of method ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc ----- 
 
 
 void
-SuperLUMatrix::DestroyAOnly	(  )
+ComplexSuperLUData::DestroyAOnly	(  )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::DestroyAOnly");
+	PushCallStack("ComplexSuperLUData::DestroyAOnly");
 #endif
 	if( ptrData->isSuperMatrixAllocated == false ){
 		throw std::logic_error( "SuperMatrix has not been allocated." );
@@ -365,13 +342,13 @@ SuperLUMatrix::DestroyAOnly	(  )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::DestroyAOnly  ----- 
+} 		// -----  end of method ComplexSuperLUData::DestroyAOnly  ----- 
 
 void
-SuperLUMatrix::SymbolicFactorize	(  )
+ComplexSuperLUData::SymbolicFactorize	(  )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::SymbolicFactorize");
+	PushCallStack("ComplexSuperLUData::SymbolicFactorize");
 #endif
 	if( ptrData->isScalePermstructAllocated ){
 		throw std::logic_error( "ScalePermstruct is already allocated." );
@@ -418,14 +395,14 @@ SuperLUMatrix::SymbolicFactorize	(  )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::SymbolicFactorize  ----- 
+} 		// -----  end of method ComplexSuperLUData::SymbolicFactorize  ----- 
 
 
 void
-SuperLUMatrix::Distribute	(  )
+ComplexSuperLUData::Distribute	(  )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::Distribute");
+	PushCallStack("ComplexSuperLUData::Distribute");
 #endif
 	if( ptrData->isScalePermstructAllocated == false ){
 		throw std::logic_error( "ScalePermstruct has not been allocated by SymbolicFactorize." );
@@ -455,14 +432,14 @@ SuperLUMatrix::Distribute	(  )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::Distribute  ----- 
+} 		// -----  end of method ComplexSuperLUData::Distribute  ----- 
 
 
 void
-SuperLUMatrix::NumericalFactorize	(  )
+ComplexSuperLUData::NumericalFactorize	(  )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::NumericalFactorize");
+	PushCallStack("ComplexSuperLUData::NumericalFactorize");
 #endif
 	if( !ptrData->isLUstructAllocated ){
 		throw std::logic_error( "LUstruct has not been allocated." );
@@ -489,19 +466,19 @@ SuperLUMatrix::NumericalFactorize	(  )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::NumericalFactorize  ----- 
+} 		// -----  end of method ComplexSuperLUData::NumericalFactorize  ----- 
 
 
 void
-SuperLUMatrix::ConvertNRlocToNC	( SuperLUMatrix& AGlobal )
+ComplexSuperLUData::ConvertNRlocToNC	( ComplexSuperLUData * aptrData )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::ConvertNRlocToNC");
+	PushCallStack("ComplexSuperLUData::ConvertNRlocToNC");
 #endif
   if( !ptrData->isSuperMatrixAllocated ){
 		throw std::runtime_error( "The local SuperMatrix has not been allocated." );
 	}
-  if( AGlobal.ptrData->isSuperMatrixAllocated ){
+  if( aptrData->ptrData->isSuperMatrixAllocated ){
 		throw std::runtime_error( "The global SuperMatrix has been allocated." );
 	}
 	// TODO make sure the two grids are the same
@@ -509,21 +486,22 @@ SuperLUMatrix::ConvertNRlocToNC	( SuperLUMatrix& AGlobal )
 	// TODO real arithmetic
 	const Int NEED_VALUE = 1;
 	pzCompRow_loc_to_CompCol_global(NEED_VALUE, &ptrData->A, ptrData->grid, 
-			&AGlobal.ptrData->A);
+			&aptrData->ptrData->A);
 
-	AGlobal.ptrData->isSuperMatrixAllocated = true;
+	ptrData->isSuperMatrixAllocated = true;
 
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::ConvertNRlocToNC  ----- 
+} 		// -----  end of method ComplexSuperLUData::ConvertNRlocToNC  ----- 
+
 void
-SuperLUMatrix::MultiplyGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& bGlobal )
+ComplexSuperLUData::MultiplyGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& bGlobal )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::MultiplyGlobalMultiVector");
+	PushCallStack("ComplexSuperLUData::MultiplyGlobalMultiVector");
 #endif
 	char trans[1]; *trans = 'N';
 	Int m = xGlobal.m();
@@ -544,14 +522,14 @@ SuperLUMatrix::MultiplyGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scala
 #endif
  
 	return ;
-} 		// -----  end of method SuperLUMatrix::MultiplyGlobalMultiVector  ----- 
+} 		// -----  end of method ComplexSuperLUData::MultiplyGlobalMultiVector  ----- 
 
 
 void
-SuperLUMatrix::DistributeGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal )
+ComplexSuperLUData::DistributeGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::DistributeGlobalMultiVector");
+	PushCallStack("ComplexSuperLUData::DistributeGlobalMultiVector");
 #endif
 	SuperMatrix& A = ptrData->A;
   if( ptrData->A.Stype != SLU_NR_loc ){
@@ -579,13 +557,13 @@ SuperLUMatrix::DistributeGlobalMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Sca
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::DistributeGlobalMultiVector  ----- 
+} 		// -----  end of method ComplexSuperLUData::DistributeGlobalMultiVector  ----- 
 
 
-void SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumMat<Scalar>& xLocal )
+void ComplexSuperLUData::GatherDistributedMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::GatherDistributedMultiVector");
+	PushCallStack("ComplexSuperLUData::GatherDistributedMultiVector");
 #endif
 	SuperMatrix& A = ptrData->A;
   if( ptrData->A.Stype != SLU_NR_loc ){
@@ -608,7 +586,7 @@ void SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumM
 
   
 
-  NumMat<Scalar> tmpLocal(xGlobal.m(),nrhs);
+  NumMat<Complex> tmpLocal(xGlobal.m(),nrhs);
 	SetValue( tmpLocal, SCALAR_ZERO );
 	for( Int j = 0; j < nrhs; j++ ){
 		std::copy( xLocal.VecData(j), xLocal.VecData(j)+numRowLocal, tmpLocal.VecData(j)+firstRow );
@@ -621,14 +599,14 @@ void SuperLUMatrix::GatherDistributedMultiVector	( NumMat<Scalar>& xGlobal, NumM
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::GatherDistributedMultiVector  ----- 
+} 		// -----  end of method ComplexSuperLUData::GatherDistributedMultiVector  ----- 
 
 
 void
-SuperLUMatrix::SolveDistMultiVector	( NumMat<Scalar>& bLocal, DblNumVec& berr )
+ComplexSuperLUData::SolveDistMultiVector	( NumMat<Complex>& bLocal, DblNumVec& berr )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::SolveDistMultiVector");
+	PushCallStack("ComplexSuperLUData::SolveDistMultiVector");
 #endif
 	Int nrhs = bLocal.n();
 	NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
@@ -637,7 +615,7 @@ SuperLUMatrix::SolveDistMultiVector	( NumMat<Scalar>& bLocal, DblNumVec& berr )
 	
 	berr.Resize( nrhs );
 
-	// TODO Real arithmetic
+	// TODO Complex arithmetic
 
 	PStatInit(&ptrData->stat);
 	pzgssvx(&ptrData->options, &ptrData->A, &ptrData->ScalePermstruct, 
@@ -664,14 +642,14 @@ SuperLUMatrix::SolveDistMultiVector	( NumMat<Scalar>& bLocal, DblNumVec& berr )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::SolveDistMultiVector  ----- 
+} 		// -----  end of method ComplexSuperLUData::SolveDistMultiVector  ----- 
 
 
 void
-SuperLUMatrix::CheckErrorDistMultiVector	( NumMat<Scalar>& xLocal, NumMat<Scalar>& xTrueLocal )
+ComplexSuperLUData::CheckErrorDistMultiVector	( NumMat<Complex>& xLocal, NumMat<Complex>& xTrueLocal )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::CheckErrorDistMultiVector");
+	PushCallStack("ComplexSuperLUData::CheckErrorDistMultiVector");
 #endif
 	Int nrhs = xLocal.n();
 	NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
@@ -686,14 +664,14 @@ SuperLUMatrix::CheckErrorDistMultiVector	( NumMat<Scalar>& xLocal, NumMat<Scalar
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::CheckErrorDistMultiVector  ----- 
+} 		// -----  end of method ComplexSuperLUData::CheckErrorDistMultiVector  ----- 
 
 
 void
-SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
+ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::LUstructToPMatrix");
+	PushCallStack("ComplexSuperLUData::LUstructToPMatrix");
 #endif
 	const LocalLU_t* Llu   = ptrData->LUstruct.Llu;
 	const GridType* grid   = PMloc.Grid();
@@ -719,7 +697,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 		const Int* index = Llu->Lrowind_bc_ptr[jb];
 		if( index ){ 
 			// Not an empty column, start a new column then.
-			std::vector<LBlock>& Lcol = PMloc.L(jb);
+			std::vector<LBlock<Complex> >& Lcol = PMloc.L(jb);
 			Lcol.resize( index[cnt++] );
 
  
@@ -728,7 +706,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 			std::vector<Int>& ColBlockIdx = PMloc.ColBlockIdx(jb);
 
 			for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
-				LBlock& LB     = Lcol[iblk];
+				LBlock<Complex> & LB     = Lcol[iblk];
 				LB.blockIdx    = index[cnt++];
 
         ColBlockIdx.push_back(LB.blockIdx);
@@ -745,7 +723,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 				cnt += LB.numRow;
 				
 				lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
-						(Scalar*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
+						(Complex*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
 						LB.nzval.Data(), LB.numRow );
 
 				cntval += LB.numRow;
@@ -783,11 +761,11 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 		Int cntval = 0;                             // Count for the nonzero values
     Int cntidx = 0;                             // Count for the nonzero block indexes
 		const Int*    index = Llu->Ufstnz_br_ptr[ib]; 
-		const Scalar* pval  = reinterpret_cast<const Scalar*>(Llu->Unzval_br_ptr[ib]);
+		const Complex* pval  = reinterpret_cast<const Complex*>(Llu->Unzval_br_ptr[ib]);
 		if( index ){ 
 			// Not an empty row
 			// Compute the number of nonzero columns 
-			std::vector<UBlock>& Urow = PMloc.U(ib);
+			std::vector<UBlock<Complex> >& Urow = PMloc.U(ib);
 			Urow.resize( index[cnt++] );
 			cnt = BR_HEADER;
 
@@ -796,7 +774,7 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 			std::vector<Int> cols;                    //Save the nonzero columns in the current block
 			for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
 				cols.clear();
-				UBlock& UB = Urow[jblk];
+				UBlock<Complex> & UB = Urow[jblk];
 				UB.blockIdx = index[cnt];
 
 
@@ -861,15 +839,15 @@ SuperLUMatrix::LUstructToPMatrix	( PMatrix& PMloc )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::LUstructToPMatrix  ----- 
+} 		// -----  end of method ComplexSuperLUData::LUstructToPMatrix  ----- 
 
 
 
 void
-SuperLUMatrix::SymbolicToSuperNode	( SuperNodeType& super )
+ComplexSuperLUData::SymbolicToSuperNode	( SuperNodeType& super )
 {
 #ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix::SymbolicToSuperNode");
+	PushCallStack("ComplexSuperLUData::SymbolicToSuperNode");
 #endif
 	Int n = ptrData->A.ncol;
 	// Permutation vector
@@ -906,6 +884,14 @@ SuperLUMatrix::SymbolicToSuperNode	( SuperNodeType& super )
 #endif
 
 	return ;
-} 		// -----  end of method SuperLUMatrix::SymbolicToSuperNode  ----- 
+} 		// -----  end of method ComplexSuperLUData::SymbolicToSuperNode  ----- 
 
-} // namespace PEXSI
+
+
+
+
+
+
+
+
+}

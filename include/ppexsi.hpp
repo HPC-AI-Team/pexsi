@@ -42,16 +42,17 @@
 */
 /// @file ppexsi.hpp
 /// @brief Main class for parallel %PEXSI.
-/// @date 2012-11-22  Initially started.
-/// @date 2014-03-09  Revise for the new interface.
-#ifndef _PPEXSI_HPP_
-#define _PPEXSI_HPP_
+/// @date 2012-11-22
+#ifndef _PEXSI_PPEXSI_HPP_
+#define _PEXSI_PPEXSI_HPP_
 #include  "environment.hpp"
-#include  "sparse_matrix_impl.hpp"
-#include  "numvec_impl.hpp"
+#include  "sparse_matrix.hpp"
+#include  "NumVec.hpp"
 #include  "utility.hpp"
 #include  "pole.hpp"
 #include	"mpi_interf.hpp"
+#include  "SuperLUGrid.hpp"
+//#include  "SuperLUOptions.hpp"
 #include  "superlu_dist_interf.hpp"
 #include	"pselinv.hpp"
 #include  "c_pexsi_interface.h"
@@ -77,7 +78,8 @@ namespace PEXSI{
 
 		const GridType*           gridPole_;          // Outer layer communicator. Also used for distributing the DistSparseMatrix.  Each DistSparseMatrix is replicated in the row (numPoleGroup) direction of gridPole.
 		const GridType*           gridSelInv_;        // Inner layer communicator for SelInv
-		const SuperLUGrid*    gridSuperLU_;           // Inner layer communicator for SuperLU factorization
+		const SuperLUGrid<Complex>*    zGridSuperLU_;           // Inner layer communicator for SuperLU factorization
+		const SuperLUGrid<Real>*    dGridSuperLU_;           // Inner layer communicator for SuperLU factorization
 
 		SuperNodeType         super_;                 // Supernode partition
 
@@ -376,4 +378,5 @@ namespace PEXSI{
 
 
 } // namespace PEXSI
-#endif
+
+#endif //_PEXSI_PPEXSI_HPP_

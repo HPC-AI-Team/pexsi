@@ -50,20 +50,14 @@
  * 
  * @date 2013-01-31
  */
-#ifndef _C_PEXSI_INTERFACE_H_ 
-#define _C_PEXSI_INTERFACE_H_
+#ifndef _PEXSI_C_PEXSI_INTERFACE_H_ 
+#define _PEXSI_C_PEXSI_INTERFACE_H_
 #include "mpi.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-// *********************************************************************
-// The following routines belong to the first version of the interface
-// The new interface will be given in
-// c_pexsi_new_interface.h
-// The two files will eventually merge. 
-// *********************************************************************
 
 /**
  * @brief Read the sizes of a DistSparseMatrix in formatted form (txt)
@@ -156,7 +150,7 @@ void ReadDistSparseMatrixHeadInterface (
  * values in CSC format.
  * @param[in]  comm (global) MPI communicator.
  */
-void ParaReadDistSparseMatrixInterface (
+void ParaReadDistSparseMatrixInterface ( 
     char*     filename,
     int       size,
     int       nnz,
@@ -736,4 +730,5 @@ void PSelInvComplexSymmetricInterface (
 }// extern "C"
 #endif
 
-#endif // _C_PEXSI_INTERFACE_H_
+#endif // _PEXSI_C_PEXSI_INTERFACE_H_
+

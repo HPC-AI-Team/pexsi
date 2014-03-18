@@ -43,8 +43,8 @@
 /// @file mpi_interf.hpp
 /// @brief Interface with MPI to facilitate communication.
 /// @date 2012-11-03
-#ifndef _MPI_INTERF_HPP_
-#define _MPI_INTERF_HPP_
+#ifndef _PEXSI_MPI_HPP_
+#define _PEXSI_MPI_HPP_
 
 #include  "environment.hpp"
 
@@ -202,5 +202,5 @@ Alltoallv ( Complex *bufSend, Int *sizeSend, Int *displsSend,
 
 
 
-#endif // _MPI_INTERF_HPP_
+#endif // _PEXSI_MPI_HPP_
 

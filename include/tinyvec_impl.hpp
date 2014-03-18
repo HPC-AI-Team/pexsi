@@ -2,7 +2,7 @@
 	 Copyright (c) 2012 The Regents of the University of California,
 	 through Lawrence Berkeley National Laboratory.  
 
-   Authors: Lexing Ying and Lin Lin
+   Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
 	 
    This file is part of PEXSI. All rights reserved.
 
@@ -43,10 +43,9 @@
 /// @file tinyvec_impl.hpp
 /// @brief Implementation of tiny vectors
 /// @date 2010-09-20
-#ifndef  _TINYVEC_IMPL_HPP_
-#define  _TINYVEC_IMPL_HPP_
+#ifndef  _PEXSI_TINYVEC_IMPL_HPP_
+#define  _PEXSI_TINYVEC_IMPL_HPP_
 
-#include "tinyvec_decl.hpp"
 
 namespace PEXSI{
 
@@ -119,4 +118,4 @@ namespace PEXSI{
 
 } // namespace PEXSI
 
-#endif // _TINYVEC_IMPL_HPP_
+#endif // _PEXSI_TINYVEC_IMPL_HPP_

@@ -2,7 +2,7 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-Author: Mathias Jacquelin and Lin Lin
+Authors: Mathias Jacquelin and Lin Lin
 
 This file is part of PEXSI. All rights reserved.
 
@@ -40,25 +40,90 @@ royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
  */
-/// @file superlu_dist_interf.hpp
-/// @brief Interface with SuperLU_Dist (version 3.0 and later)
-/// @date 2012-11-12
-#ifndef _PEXSI_SUPERLU_DIST_INTERF_HPP_
-#define _PEXSI_SUPERLU_DIST_INTERF_HPP_
+/// @file SuperLUGrid_impl.hpp
+/// @brief Implementation of SuperLU processor grid.
+/// @date 2014-03-17
+#ifndef _PEXSI_SUPERLUGRID_IMPL_HPP_
+#define _PEXSI_SUPERLUGRID_IMPL_HPP_
 
-#include  "superlu_dist_internal.hpp"
+namespace PEXSI{
 
-// Interface with PSelInv
-#include "pselinv.hpp"
+inline SuperLUGrid<Real>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUGrid::SuperLUGrid");
+#endif
+	ptrData = new RealGridData;
+	if( ptrData == NULL )
+		throw std::runtime_error( "SuperLUGrid cannot be allocated." );
 
-// Interface with sparse matrix (CSC format)
-#include  "sparse_matrix.hpp"
+  ptrData->GridInit(comm, nprow, npcol);	
 
-// Interface with LAPACK
-#include  "lapack.hpp"
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
 
-#include  "SuperLUGrid.hpp"
-#include  "SuperLUMatrix.hpp"
+	return ;
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
 
-#endif //_PEXSI_SUPERLU_DIST_INTERF_HPP_
+inline SuperLUGrid<Real>::~SuperLUGrid	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUGrid::~SuperLUGrid");
+#endif
+	// NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
+	// communicator, it is legal to call superlu_gridexit even if
+	// grid->comm is a copy of MPI_COMM_WORLD.
 
+  ptrData->GridExit();	
+	
+	delete ptrData;
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return ;
+} 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
+
+inline SuperLUGrid<Complex>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUGrid::SuperLUGrid");
+#endif
+	ptrData = new ComplexGridData;
+	if( ptrData == NULL )
+		throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+
+  ptrData->GridInit(comm, nprow, npcol);	
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+
+
+inline SuperLUGrid<Complex>::~SuperLUGrid	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUGrid::~SuperLUGrid");
+#endif
+	// NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
+	// communicator, it is legal to call superlu_gridexit even if
+	// grid->comm is a copy of MPI_COMM_WORLD.
+
+  ptrData->GridExit();	
+	
+	delete ptrData;
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return ;
+} 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
+
+}
+
+
+#endif //_PEXSI_SUPERLUGRID_IMPL_HPP_

@@ -2,7 +2,7 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
    
-   Author: Lin Lin
+   Author: Lin Lin and Mathias Jacquelin
 	 
    This file is part of PEXSI. All rights reserved.
 
@@ -43,16 +43,16 @@
 /// @file utility.hpp
 /// @brief Various utility subroutines.
 /// @date 2012-09-27
-#ifndef _UTILITY_HPP_ 
-#define _UTILITY_HPP_
+#ifndef _PEXSI_UTILITY_HPP_ 
+#define _PEXSI_UTILITY_HPP_
 
 #include  <stdlib.h>
 #include  "environment.hpp"
-#include  "tinyvec_impl.hpp"
-#include  "numvec_impl.hpp"
-#include  "nummat_impl.hpp"
-#include  "numtns_impl.hpp"
-#include  "sparse_matrix_impl.hpp"
+#include  "tinyvec.hpp"
+#include  "NumVec.hpp"
+#include  "NumMat.hpp"
+#include  "NumTns.hpp"
+#include  "sparse_matrix.hpp"
 #include	"mpi_interf.hpp"
 
 namespace PEXSI{
@@ -70,6 +70,8 @@ namespace PEXSI{
 	const int LENGTH_VAR_DATA = 16;
 
 
+	// standard case for most serialization/deserialization process.
+	const std::vector<Int> NO_MASK(1);
 
 	// *********************************************************************
 	// Formatted output stream
@@ -490,8 +492,6 @@ namespace PEXSI{
 	// class files
 	// *********************************************************************
 
-	// standard case for most serialization/deserialization process.
-	const std::vector<Int> NO_MASK(1);
 
 
 
@@ -1525,9 +1525,10 @@ namespace PEXSI{
 
 
 	// TODO Real format
+  template<typename T>
 	void
-		GetDiagonal ( const DistSparseMatrix<Complex>& A, 
-				NumVec<Complex>& diag );
+		GetDiagonal ( const DistSparseMatrix<T>& A, 
+				NumVec<T>& diag );
 
 
 	// Functions for DistSparseMatrix
@@ -1721,4 +1722,7 @@ namespace PEXSI{
 
 
 } // namespace PEXSI
-#endif // _UTILITY_HPP_
+
+#include "utility_impl.hpp"
+
+#endif // _PEXSI_UTILITY_HPP_

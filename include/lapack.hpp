@@ -43,6 +43,9 @@
 /// @file lapack.hpp
 /// @brief Thin interface to LAPACK
 /// @date 2012-09-12
+#ifndef _PEXSI_LAPACK_HPP_
+#define _PEXSI_LAPACK_HPP_
+
 #include  "environment.hpp"
 
 namespace PEXSI {
@@ -226,3 +229,5 @@ namespace lapack {
 
 } // namespace lapack
 } // namespace PEXSI
+
+#endif //_PEXSI_LAPACK_HPP_

@@ -2,7 +2,7 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-Author: Mathias Jacquelin and Lin Lin
+Authors: Mathias Jacquelin and Lin Lin
 
 This file is part of PEXSI. All rights reserved.
 
@@ -40,25 +40,87 @@ royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
  */
-/// @file superlu_dist_interf.hpp
-/// @brief Interface with SuperLU_Dist (version 3.0 and later)
-/// @date 2012-11-12
-#ifndef _PEXSI_SUPERLU_DIST_INTERF_HPP_
-#define _PEXSI_SUPERLU_DIST_INTERF_HPP_
+/// @file SuperLUGrid.hpp
+/// @brief SuperLU processor grid.
+/// @date 2014-03-17
+#ifndef _PEXSI_SUPERLUGRID_HPP_
+#define _PEXSI_SUPERLUGRID_HPP_
 
-#include  "superlu_dist_internal.hpp"
+#include "environment.hpp"
 
-// Interface with PSelInv
-#include "pselinv.hpp"
+//#include "superlu_RealGridData.hpp"
+//#include "superlu_ComplexGridData.hpp"
 
-// Interface with sparse matrix (CSC format)
-#include  "sparse_matrix.hpp"
 
-// Interface with LAPACK
-#include  "lapack.hpp"
+namespace PEXSI{
 
-#include  "SuperLUGrid.hpp"
-#include  "SuperLUMatrix.hpp"
 
-#endif //_PEXSI_SUPERLU_DIST_INTERF_HPP_
 
+
+
+class RealGridInfo;
+class ComplexGridInfo;
+
+class ComplexGridData{
+  public:
+    ComplexGridInfo * info_;
+  public:
+
+    ComplexGridData();
+    ~ComplexGridData();
+    void GridInit( MPI_Comm comm, Int nprow, Int npcol );
+    void GridExit(  );
+};
+
+
+class RealGridData{
+  public:
+    RealGridInfo * info_;
+  public:
+
+    RealGridData();
+    ~RealGridData();
+    void GridInit( MPI_Comm comm, Int nprow, Int npcol );
+    void GridExit(  );
+};
+
+
+
+
+  /// @class SuperLUGrid
+  /// @brief A thin interface for the gridinfo_t structure in SuperLU.
+  template< typename T > class SuperLUGrid{
+    /// @brief SuperLUMatrix can have access to the grid information.
+    public:
+    void *        ptrData;
+    public:
+    SuperLUGrid( MPI_Comm comm, int nprow, int npcol ){};
+    ~SuperLUGrid(){};
+  };
+
+
+  template< > class SuperLUGrid<Real>{
+    /// @brief SuperLUMatrix can have access to the grid information.
+    public:
+    RealGridData*        ptrData;
+    public:
+    SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
+    ~SuperLUGrid();
+  };
+
+
+  template< > class SuperLUGrid<Complex>{
+    /// @brief SuperLUMatrix can have access to the grid information.
+    public:
+    ComplexGridData*        ptrData;
+    public:
+    SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
+    ~SuperLUGrid();
+  };
+
+}
+
+
+#include "SuperLUGrid_impl.hpp"
+
+#endif //_PEXSI_SUPERLUGRID_HPP_

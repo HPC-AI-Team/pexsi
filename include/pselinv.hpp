@@ -43,17 +43,18 @@
 /// @file pselinv.hpp
 /// @brief Main file for parallel selected inversion.
 /// @date 2013-08-05
-#ifndef _PSELINV_HPP_
-#define _PSELINV_HPP_
+#ifndef _PEXSI_PSELINV_HPP_
+#define _PEXSI_PSELINV_HPP_
 
 // *********************************************************************
 //  Common utilities
 // *********************************************************************
 
 #include  "environment.hpp"
-#include	"numvec_impl.hpp"
-#include	"nummat_impl.hpp" 
-#include  "sparse_matrix_impl.hpp"
+#include	"NumVec.hpp"
+#include	"NumMat.hpp" 
+#include  "sparse_matrix.hpp"
+
 #include  "superlu_dist_interf.hpp"
 #include  "mpi_interf.hpp"
 #include	"utility.hpp"
@@ -61,9 +62,9 @@
 #include	"lapack.hpp"
 #include <set>
 
+
 namespace PEXSI{
 
-  struct SuperLUOptions;
 
   typedef std::vector<bool> bitMask;
   typedef std::map<bitMask , std::vector<Int> > bitMaskSet;
@@ -131,6 +132,7 @@ namespace PEXSI{
   ///
   /// @brief LBlock stores a nonzero block in the lower triangular part or
   /// the diagonal part in PSelInv.
+  template<typename T>
   struct LBlock{
     // Variables
     /// @brief Block index (supernodal index)
@@ -146,7 +148,7 @@ namespace PEXSI{
     IntNumVec         rows;
 
     /// @brief Dimension numRow * numCol, nonzero elements.
-    NumMat<Scalar>    nzval;
+    NumMat<T>    nzval;
 
     // Member functions;
     LBlock() {blockIdx = -1; numRow = 0; numCol =0;}
@@ -178,6 +180,7 @@ namespace PEXSI{
   /// UBlocks is to facilitate the communication.  
   ///
   /// @see PMatrix::SelInv
+  template<typename T>
   struct UBlock{
     // Variables
     /// @brief Block index (supernodal index)
@@ -193,7 +196,7 @@ namespace PEXSI{
     IntNumVec         cols;
 
     /// @brief Dimension numRow * numCol, nonzero elements.
-    NumMat<Scalar>    nzval;
+    NumMat<T>    nzval;
 
     // Member functions;
     UBlock() {blockIdx = -1; numRow = 0; numCol =0;}
@@ -208,12 +211,10 @@ namespace PEXSI{
     }
 
     friend std::ostream& operator<<(std::ostream& out, const UBlock& vec) // output
-    {
+    { 
       out << "(" << vec.blockIdx << ", " << vec.numRow << ", " << vec.numCol <<std::endl<< "cols " << vec.cols <<std::endl<< "nzval " <<std::endl<< vec.nzval << ")";
       return out;
     }
-
-
   };
 
   // *********************************************************************
@@ -338,7 +339,9 @@ namespace PEXSI{
     };
   }
 
-  Int inline serialize(LBlock& val, std::ostream& os, const std::vector<Int>& mask){
+  
+  template<typename T>
+  Int inline serialize(LBlock<T>& val, std::ostream& os, const std::vector<Int>& mask){
     Int i = 0;
     if(mask[i]==1) serialize(val.blockIdx, os, mask); i++;
     if(mask[i]==1) serialize(val.numRow,  os, mask); i++;
@@ -348,7 +351,8 @@ namespace PEXSI{
     return 0;
   }
 
-  Int inline deserialize(LBlock& val, std::istream& is, const std::vector<Int>& mask){
+  template<typename T>
+  Int inline deserialize(LBlock<T>& val, std::istream& is, const std::vector<Int>& mask){
     Int i = 0;
     if(mask[i]==1) deserialize(val.blockIdx, is, mask); i++;
     if(mask[i]==1) deserialize(val.numRow,  is, mask); i++;
@@ -385,7 +389,8 @@ namespace PEXSI{
     };
   }
 
-  Int inline serialize(UBlock& val, std::ostream& os, const std::vector<Int>& mask){
+  template<typename T>
+  Int inline serialize(UBlock<T>& val, std::ostream& os, const std::vector<Int>& mask){
     Int i = 0;
     if(mask[i]==1) serialize(val.blockIdx, os, mask); i++;
     if(mask[i]==1) serialize(val.numRow,  os, mask); i++;
@@ -395,7 +400,8 @@ namespace PEXSI{
     return 0;
   }
 
-  Int inline deserialize(UBlock& val, std::istream& is, const std::vector<Int>& mask){
+  template<typename T>
+  Int inline deserialize(UBlock<T>& val, std::istream& is, const std::vector<Int>& mask){
     Int i = 0;
     if(mask[i]==1) deserialize(val.blockIdx, is, mask); i++;
     if(mask[i]==1) deserialize(val.numRow,  is, mask); i++;
@@ -470,6 +476,7 @@ namespace PEXSI{
   /// cross-diagonal blocks, i.e. from L(isup, ksup) to U(ksup, isup).
   /// This assumption can be relaxed later.
 
+  template<typename T>
   class PMatrix{
 
     private:
@@ -486,8 +493,8 @@ namespace PEXSI{
 
       std::vector<std::vector<Int> > ColBlockIdx_;
       std::vector<std::vector<Int> > RowBlockIdx_;
-      std::vector<std::vector<LBlock> > L_;
-      std::vector<std::vector<UBlock> > U_;
+      std::vector<std::vector<LBlock<T> > > L_;
+      std::vector<std::vector<UBlock<T> > > U_;
 
       std::vector<std::vector<Int> > workingSet_;
 
@@ -553,8 +560,8 @@ namespace PEXSI{
 
 
       struct SuperNodeBufferType{
-        NumMat<Scalar>    LUpdateBuf;
-        NumMat<Scalar>    DiagBuf;
+        NumMat<T>    LUpdateBuf;
+        NumMat<T>    DiagBuf;
         std::vector<Int>  RowLocalPtr;
         std::vector<Int>  BlockIdxLocal;
         std::vector<char> SstrLcolSend;
@@ -595,19 +602,19 @@ namespace PEXSI{
 
 
       /// @brief SelInv_lookup_indexes
-      inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv, NumMat<Scalar> & AinvBuf,NumMat<Scalar> & UBuf);
+      inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
 
       /// @brief GetWorkSet
       inline void GetWorkSet(std::vector<Int> & snodeEtree, std::vector<std::vector<Int> > & WSet);
 
       /// @brief UnpackData
-      inline void UnpackData(SuperNodeBufferType & snode, std::vector<LBlock> & LcolRecv, std::vector<UBlock> & UrowRecv);
+      inline void UnpackData(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv);
 
       /// @brief ComputeDiagUpdate
       inline void ComputeDiagUpdate(SuperNodeBufferType & snode);
 
       /// @brief SendRecvCD_UpdateU
-      inline void SendRecvCD_UpdateU(std::vector<SuperNodeBufferType> & arrSuperNodes, Int stepSuper);
+      inline void SendRecvCD_UpdateU(std::vector<SuperNodeBufferType > & arrSuperNodes, Int stepSuper);
 
       /// @brief getMaxCommunicatorSizes
       void getMaxCommunicatorSizes();
@@ -672,11 +679,11 @@ namespace PEXSI{
 
       /// @brief L returns the vector of nonzero L blocks for the local
       /// block column jLocal.
-      std::vector<LBlock>& L( Int jLocal ) { return L_[jLocal]; } 	
+      std::vector<LBlock<T> >& L( Int jLocal ) { return L_[jLocal]; } 	
 
       /// @brief U returns the vector of nonzero U blocks for the local
       /// block row iLocal.
-      std::vector<UBlock>& U( Int iLocal ) { return U_[iLocal]; }
+      std::vector<UBlock<T> >& U( Int iLocal ) { return U_[iLocal]; }
 
       /// @brief WorkingSet returns the ordered list of supernodes which could
       /// be done in parallel.
@@ -900,8 +907,8 @@ namespace PEXSI{
       ///
       /// 2) diag is shared by all processors in grid_->comm through a
       /// Allreduce procedure.
-      void GetDiagonal( NumVec<Scalar>& diag );
-      void GetColumn	( Int colIdx,  NumVec<Scalar>& col );
+      void GetDiagonal( NumVec<T>& diag );
+      void GetColumn	( Int colIdx,  NumVec<T>& col );
 
 
       /// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
@@ -909,7 +916,7 @@ namespace PEXSI{
       /// The DistSparseMatrix follows the natural order.
       ///
       /// @param[out] A Output sparse matrix.
-      void PMatrixToDistSparseMatrix( DistSparseMatrix<Scalar>& A );
+      void PMatrixToDistSparseMatrix( DistSparseMatrix<T>& A );
 
       /// @brief PMatrixToDistSparseMatrix converts the PMatrix into a
       /// distributed compressed sparse column matrix format B, which has
@@ -921,8 +928,8 @@ namespace PEXSI{
       ///
       /// @param[out] B Output sparse matrix.
       void PMatrixToDistSparseMatrix( 
-          const DistSparseMatrix<Scalar>& A,
-          DistSparseMatrix<Scalar>& B	);
+          const DistSparseMatrix<T>& A,
+          DistSparseMatrix<T>& B	);
 
 
       /// @brief PMatrixToDistSparseMatrix2 is a more efficient version
@@ -936,8 +943,8 @@ namespace PEXSI{
       ///
       /// @param[out] B Output sparse matrix.
       void PMatrixToDistSparseMatrix2( 
-          const DistSparseMatrix<Scalar>& A,
-          DistSparseMatrix<Scalar>& B );
+          const DistSparseMatrix<T>& A,
+          DistSparseMatrix<T>& B );
 
 
       /// @brief NnzLocal computes the number of nonzero elements (L and U)
@@ -959,4 +966,7 @@ namespace PEXSI{
 
 } // namespace PEXSI
 
-#endif // _PSELINV_HPP_
+
+#include "pselinv_impl.hpp"
+
+#endif //_PEXSI_PSELINV_HPP_

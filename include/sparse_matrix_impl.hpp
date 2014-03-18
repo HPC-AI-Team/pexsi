@@ -2,7 +2,7 @@
 	 Copyright (c) 2012 The Regents of the University of California,
 	 through Lawrence Berkeley National Laboratory.  
 
-   Author: Lin Lin
+   Author: Mathias Jacquelin and Lin Lin
 	 
    This file is part of PEXSI. All rights reserved.
 
@@ -43,10 +43,17 @@
 /// @file sparse_matrix_impl.hpp
 /// @brief Implementation of sparse matrices.
 /// @date 2012-11-28
-#ifndef _SPARSE_MATRIX_IMPL_HPP_
-#define _SPARSE_MATRIX_IMPL_HPP_
+#ifndef _PEXSI_SPARSE_MATRIX_IMPL_HPP_
+#define _PEXSI_SPARSE_MATRIX_IMPL_HPP_
 
-#include "sparse_matrix_decl.hpp"
+#include <iostream>
+#include "environment.hpp"
+
+using std::ifstream;
+using std::ofstream;
+
+#include "utility.hpp"
+
 
 namespace  PEXSI{
 
@@ -68,6 +75,10 @@ template <class F> inline LongInt DistSparseMatrix<F>::Nnz ( )
   return nnz;
 } 		// -----  end of method DistSparseMatrix<F>::Nnz  ----- 
 
+
+
+
+
 } // namespace PEXSI
 
-#endif // _SPARSE_MATRIX_IMPL_HPP_
+#endif // _PEXSI_SPARSE_MATRIX_IMPL_HPP_
