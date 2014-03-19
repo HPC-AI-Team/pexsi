@@ -5105,8 +5105,8 @@ TIMER_STOP(STCD_RFCD);
     return nnz;
   } 		// -----  end of method PMatrix::Nnz  ----- 
 
-  template<typename T>
-  void PMatrix<T>::GetNegativeInertia	( Real& inertia )
+  template< >
+  inline void PMatrix<Real>::GetNegativeInertia	( Real& inertia )
   {
   #ifndef _RELEASE_
     PushCallStack("PMatrix::GetNegativeInertia");
@@ -5120,7 +5120,41 @@ TIMER_STOP(STCD_RFCD);
       // I own the diagonal block	
       if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
           MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-        LBlock<T> & LB = this->L( LBj( ksup, grid_ ) )[0];
+        LBlock<Real> & LB = this->L( LBj( ksup, grid_ ) )[0];
+        for( Int i = 0; i < LB.numRow; i++ ){
+          if( LB.nzval(i, i) < 0 )
+            inertiaLocal++;
+        }
+      }
+    }
+  
+    // All processors own diag
+    mpi::Allreduce( &inertiaLocal, &inertia, 1, MPI_SUM, grid_->comm );
+  
+  #ifndef _RELEASE_
+    PopCallStack();
+  #endif
+  
+    return ;
+  } 		// -----  end of method PMatrix::GetNegativeInertia  ----- 
+
+
+  template< >
+  inline void PMatrix<Complex>::GetNegativeInertia	( Real& inertia )
+  {
+  #ifndef _RELEASE_
+    PushCallStack("PMatrix::GetNegativeInertia");
+  #endif
+    Int numSuper = this->NumSuper(); 
+  
+    Real inertiaLocal = 0.0;
+    inertia          = 0.0;
+  
+    for( Int ksup = 0; ksup < numSuper; ksup++ ){
+      // I own the diagonal block	
+      if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
+          MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+        LBlock<Complex> & LB = this->L( LBj( ksup, grid_ ) )[0];
         for( Int i = 0; i < LB.numRow; i++ ){
           if( LB.nzval(i, i).real() < 0 )
             inertiaLocal++;

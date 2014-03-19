@@ -49,14 +49,118 @@
  * 
  * @date 2014-03-07
  */
-#ifndef _C_PEXSI_NEW_INTERFACE_H_ 
-#define _C_PEXSI_NEW_INTERFACE_H_
+#ifndef _PEXSI_NEW_C_PEXSI_INTERFACE_H_ 
+#define _PEXSI_NEW_C_PEXSI_INTERFACE_H_
 #include "mpi.h"
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"{
 #endif
+
+/**
+ * @brief Read the sizes of a DistSparseMatrix in formatted form (txt)
+ * for allocating memory in C.
+ *
+ * @param[in] filename (global) Filename for the input matrix.
+ * @param[out] size (global) Number of rows and columns of the matrix.
+ * @param[out] nnz (global) Total number of nonzeros.
+ * @param[out] nnzLocal (local) Number of local nonzeros.
+ * @param[out] numColLocal (local) Number of local columns.
+ * @param[in]  comm (global) MPI communicator.
+ */
+void ReadDistSparseMatrixFormattedHeadInterface ( 
+    char*    filename,
+    int*     size,
+    int*     nnz,
+    int*     nnzLocal,
+    int*     numColLocal,
+    MPI_Comm comm );
+
+/**
+ * @brief Reading the data of a formatted DistSparseMatrix. 
+ *
+ * This routine assumes that the arrays have been allocated outside this
+ * subroutine.
+ *
+ * @param[in] filename (global) Filename for the input matrix.
+ * @param[in] size (global) Number of rows and columns of the matrix.
+ * @param[in] nnz (global) Total number of nonzeros.
+ * @param[in] nnzLocal (local) Number of local nonzeros.
+ * @param[in] numColLocal (local) Number of local columns.
+ * @param[out] colptrLocal (local) Dimension: numColLocal+1. Local column
+ * pointer in CSC format.
+ * @param[out] rowindLocal (local) Dimension: nnzLocal. Local row index
+ * pointer in CSC format.
+ * @param[out] nzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values in CSC format.
+ * @param[in]  comm (global) MPI communicator.
+ */
+void ReadDistSparseMatrixFormattedInterface(
+		char*     filename,
+		int       size,
+		int       nnz,
+		int       nnzLocal,
+		int       numColLocal,
+		int*      colptrLocal,
+		int*      rowindLocal,
+		double*   nzvalLocal,
+		MPI_Comm  comm );
+
+
+/**
+ * @brief Read the sizes of a DistSparseMatrix in unformatted form
+ * (csc) for allocating memory in C.
+ *
+ * @param[in] filename (global) Filename for the input matrix.
+ * @param[out] size (global) Number of rows and columns of the matrix.
+ * @param[out] nnz (global) Total number of nonzeros.
+ * @param[out] nnzLocal (local) Number of local nonzeros.
+ * @param[out] numColLocal (local) Number of local columns.
+ * @param[in]  comm (global) MPI communicator.
+ */
+void ReadDistSparseMatrixHeadInterface ( 
+    char*    filename,
+    int*     size,
+    int*     nnz,
+    int*     nnzLocal,
+    int*     numColLocal,
+    MPI_Comm comm );
+
+/**
+ * @brief Actual reading the data of a DistSparseMatrix using MPI-IO,
+ * assuming that the arrays have been allocated outside this
+ * subroutine.
+ *
+ * This routine can be much faster than reading a DistSparseMatrix
+ * sequentially, especially compared to the version using formatted
+ * input @ref ReadDistSparseMatrixFormattedInterface.
+ *
+ * @param[in] filename (global) Filename for the input matrix.
+ * @param[in] size (global) Number of rows and columns of the matrix.
+ * @param[in] nnz (global) Total number of nonzeros.
+ * @param[in] nnzLocal (local) Number of local nonzeros.
+ * @param[in] numColLocal (local) Number of local columns.
+ * @param[out] colptrLocal (local) Dimension: numColLocal+1. Local column
+ * pointer in CSC format.
+ * @param[out] rowindLocal (local) Dimension: nnzLocal. Local row index
+ * pointer in CSC format.
+ * @param[out] nzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values in CSC format.
+ * @param[in]  comm (global) MPI communicator.
+ */
+void ParaReadDistSparseMatrixInterface ( 
+    char*     filename,
+    int       size,
+    int       nnz,
+    int       nnzLocal,
+    int       numColLocal,
+    int*      colptrLocal,
+    int*      rowindLocal,
+    double*   nzvalLocal,
+    MPI_Comm  comm );
+
+
 
 // *********************************************************************
 // The following routines belong to the second version of the interface
@@ -405,4 +509,4 @@ void PPEXSIPlanFinalize(
 }// extern "C"
 #endif
 
-#endif // _C_PEXSI_NEW_INTERFACE_H_
+#endif // _PEXSI_NEW_C_PEXSI_INTERFACE_H_

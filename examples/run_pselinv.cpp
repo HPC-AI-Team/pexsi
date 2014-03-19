@@ -273,6 +273,7 @@ int main(int argc, char **argv)
 
       // Setup grid.
       SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
+//      SuperLUGrid<Complex> g1( world_comm, nprow, npcol );
 
       int      m, n;
       DistSparseMatrix<MYSCALAR>  AMat;

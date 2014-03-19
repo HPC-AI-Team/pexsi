@@ -45,7 +45,6 @@
 ///
 /// This file will eventually merge with interface.cpp.
 /// @date 2014-03-07
-#include "c_pexsi_interface.h"
 #include "c_pexsi_new_interface.h"
 #include "new_ppexsi.hpp"
 #include "blas.hpp"
@@ -57,6 +56,194 @@
 #define iA(expr) { if((expr)==0) { std::cerr<<"wrong "<<__LINE__<<" in " <<__FILE__<<std::endl; std::cerr.flush(); exit(1); } }
 
 using namespace PEXSI;
+
+extern "C"
+void ReadDistSparseMatrixFormattedHeadInterface (
+		char*    filename,
+		int*     size,
+		int*     nnz,
+		int*     nnzLocal,
+		int*     numColLocal,
+		MPI_Comm comm )
+{
+  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+	std::ifstream fin;
+	if( mpirank == 0 ){
+		fin.open(filename);
+		if( !fin.good() ){
+			throw std::logic_error( "File cannot be openeded!" );
+		}
+		Int dummy;
+		fin >> *size >> dummy;
+		fin >> *nnz;
+	}
+	
+	MPI_Bcast( &(*size), 1, MPI_INT, 0, comm);
+	MPI_Bcast( &(*nnz),  1, MPI_INT, 0, comm);
+
+	IntNumVec  colptr(*size+1);
+	if( mpirank == 0 ){
+		Int* ptr = colptr.Data();
+		for( Int i = 0; i < *size+1; i++ )
+			fin >> *(ptr++);
+	}
+
+	MPI_Bcast(colptr.Data(), *size+1, MPI_INT, 0, comm);
+
+	// Compute the number of columns on each processor
+	IntNumVec numColLocalVec(mpisize);
+	Int numColFirst;
+	numColFirst = *size / mpisize;
+  SetValue( numColLocalVec, numColFirst );
+  numColLocalVec[mpisize-1] = *size - numColFirst * (mpisize-1);  
+	// Modify the last entry	
+
+	*numColLocal = numColLocalVec[mpirank];
+
+	*nnzLocal = colptr[mpirank * numColFirst + (*numColLocal)] - 
+		colptr[mpirank * numColFirst];
+	
+	// Close the file
+	if( mpirank == 0 ){
+    fin.close();
+	}
+
+	return;
+}  
+// -----  end of function ReadDistSparseMatrixFormattedHeadInterface
+
+
+extern "C"
+void ReadDistSparseMatrixFormattedInterface(
+		char*     filename,
+		int       size,
+		int       nnz,
+		int       nnzLocal,
+		int       numColLocal,
+		int*      colptrLocal,
+		int*      rowindLocal,
+		double*   nzvalLocal,
+		MPI_Comm  comm )
+{
+	DistSparseMatrix<Real> A;
+	ReadDistSparseMatrixFormatted( filename, A, comm );
+	iA( size == A.size );
+	iA( nnz  == A.nnz  );
+	iA( nnzLocal == A.nnzLocal );
+	iA( numColLocal + 1 == A.colptrLocal.m() );
+	
+	blas::Copy( numColLocal+1, A.colptrLocal.Data(), 1,
+			colptrLocal, 1 );
+
+	blas::Copy( nnzLocal, A.rowindLocal.Data(), 1,
+			rowindLocal, 1 );
+
+	blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
+			nzvalLocal, 1 );
+
+	return;
+}  
+// -----  end of function ReadDistSparseMatrixFormattedInterface  
+
+
+extern "C"
+void ReadDistSparseMatrixHeadInterface (
+		char*    filename,
+		int*     size,
+		int*     nnz,
+		int*     nnzLocal,
+		int*     numColLocal,
+		MPI_Comm comm )
+{
+  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+	std::ifstream fin;
+	if( mpirank == 0 ){
+		fin.open(filename);
+		if( !fin.good() ){
+			throw std::logic_error( "File cannot be openeded!" );
+		}
+		fin.read((char*)size, sizeof(int));
+		fin.read((char*)nnz,  sizeof(int));
+	}
+	
+	MPI_Bcast( &(*size), 1, MPI_INT, 0, comm);
+	MPI_Bcast( &(*nnz),  1, MPI_INT, 0, comm);
+
+	IntNumVec  colptr(*size+1);
+	if( mpirank == 0 ){
+		Int tmp;
+		fin.read((char*)&tmp, sizeof(int));  
+
+		if( tmp != (*size)+1 ){
+			throw std::logic_error( "colptr is not of the right size." );
+		}
+
+		Int* ptr = colptr.Data();
+		fin.read((char*)ptr, (*size+1) * sizeof(int));  
+	}
+
+	MPI_Bcast(colptr.Data(), *size+1, MPI_INT, 0, comm);
+
+	// Compute the number of columns on each processor
+	IntNumVec numColLocalVec(mpisize);
+	Int numColFirst;
+	numColFirst = *size / mpisize;
+  SetValue( numColLocalVec, numColFirst );
+  numColLocalVec[mpisize-1] = *size - numColFirst * (mpisize-1);  
+	// Modify the last entry	
+
+	*numColLocal = numColLocalVec[mpirank];
+
+	*nnzLocal = colptr[mpirank * numColFirst + (*numColLocal)] - 
+		colptr[mpirank * numColFirst];
+	
+	// Close the file
+	if( mpirank == 0 ){
+    fin.close();
+	}
+
+	return;
+}  
+// -----  end of function ReadDistSparseMatrixHeadInterface
+
+extern "C"
+void ParaReadDistSparseMatrixInterface(
+		char*     filename,
+		int       size,
+		int       nnz,
+		int       nnzLocal,
+		int       numColLocal,
+		int*      colptrLocal,
+		int*      rowindLocal,
+		double*   nzvalLocal,
+		MPI_Comm  comm )
+{
+	DistSparseMatrix<Real> A;
+	ParaReadDistSparseMatrix( filename, A, comm );
+	iA( size == A.size );
+	iA( nnz  == A.nnz  );
+	iA( nnzLocal == A.nnzLocal );
+	iA( numColLocal + 1 == A.colptrLocal.m() );
+	
+	blas::Copy( numColLocal+1, A.colptrLocal.Data(), 1,
+			colptrLocal, 1 );
+
+	blas::Copy( nnzLocal, A.rowindLocal.Data(), 1,
+			rowindLocal, 1 );
+
+	blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
+			nzvalLocal, 1 );
+
+	return;
+}  
+// -----  end of function ReadDistSparseMatrixFormattedInterface  
+
+
+// *********************************************************************
+// Second interface
+// *********************************************************************
 
 extern "C"
 void PPEXSISetDefaultOptions(
@@ -277,6 +464,7 @@ void PPEXSIRealSymmetricRawInertiaCount(
     reinterpret_cast<PPEXSINewData*>(plan)->GridPole();
   
   try{
+    // FIXME
     delete reinterpret_cast<PPEXSINewData*>(plan);
   }
 	catch( std::exception& e )

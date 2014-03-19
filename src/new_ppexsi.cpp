@@ -76,8 +76,11 @@ PPEXSINewData::PPEXSINewData	(
   }
 
   gridPole_     = new GridType( comm, mpisize / npPerPole, npPerPole );
-	gridSuperLU_  = new SuperLUGrid( gridPole_->rowComm, 
-      numProcRow, numProcCol );
+	gridSuperLUComplex_  = new SuperLUGrid<Complex>( 
+      gridPole_->rowComm, numProcRow, numProcCol );
+	gridSuperLUReal_     = new SuperLUGrid<Real>( 
+      gridPole_->rowComm, numProcRow, numProcCol );
+
 	gridSelInv_   = new GridType( gridPole_->rowComm, 
       numProcRow, numProcCol );
 
@@ -106,9 +109,14 @@ PPEXSINewData::~PPEXSINewData	(  )
     delete gridPole_;
   }
 
-	if( gridSuperLU_ != NULL ){
-		delete gridSuperLU_;
+	if( gridSuperLUReal_ != NULL ){
+		delete gridSuperLUReal_;
 	}
+
+	if( gridSuperLUComplex_ != NULL ){
+		delete gridSuperLUComplex_;
+	}
+
 	
 	if( gridSelInv_ != NULL ){
 		delete gridSelInv_;
@@ -246,6 +254,193 @@ PPEXSINewData::LoadRealSymmetricMatrix	(
   return ;
 }    	// -----  end of method PPEXSINewData::LoadRealSymmetricMatrix  ----- 
 
+void PPEXSINewData::CalculateNegativeInertiaReal(
+		const std::vector<Real>&       shiftVec, 
+		std::vector<Real>&             inertiaVec,
+		const DistSparseMatrix<Real>&  HMat,
+		const DistSparseMatrix<Real>&  SMat,
+		std::string                    ColPerm,
+		Int                            numProcSymbFact,
+    Int                            verbosity ){
+#ifndef _RELEASE_
+  PushCallStack("PPEXSINewData::CalculateNegativeInertiaReal");
+#endif
+
+	// *********************************************************************
+	// Initialize
+	// *********************************************************************
+
+  // rename for convenience
+  DistSparseMatrix<Real>& AMat      = shiftRealMat_;  // A = H - \lambda  S
+
+	// Copy the pattern
+	CopyPattern( HMat, AMat );
+
+	SetValue( AMat.nzvalLocal, D_ZERO );          // Symbolic factorization does not need value
+
+	SuperLUOptions   luOpt;
+
+	luOpt.ColPerm = ColPerm;
+	luOpt.numProcSymbFact = numProcSymbFact;
+
+ 	SuperLUMatrix<Real>    luMat( *gridSuperLUReal_, luOpt );  // SuperLU matrix.
+
+	// *********************************************************************
+	// Symbolic factorization.  
+	// Each numPoleGroup perform independently
+	// *********************************************************************
+	Real timeSta, timeEnd;
+	GetTime( timeSta );
+	luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+	GetTime( timeEnd );
+  if( verbosity >= 1 ){
+    statusOFS << "AMat is converted to SuperMatrix." << std::endl;
+    statusOFS << "Time for SuperMatrix conversion is " <<
+      timeEnd - timeSta << " [s]" << std::endl << std::endl;
+  }
+	GetTime( timeSta );
+	luMat.SymbolicFactorize();
+	GetTime( timeEnd );
+  if( verbosity >= 1 ){
+    statusOFS << "Symbolic factorization is finished." << std::endl;
+    statusOFS << "Time for symbolic factorization is " <<
+      timeEnd - timeSta << " [s]" << std::endl << std::endl;
+  }
+	luMat.SymbolicToSuperNode( super_ );
+	luMat.DestroyAOnly();
+
+	// Compute the number of nonzeros from PMatrix
+  if( verbosity >= 1 ) {
+    PMatrix<Real> PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
+    luMat.LUstructToPMatrix( PMloc );
+    Int nnzLocal = PMloc.NnzLocal();
+    statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
+    LongInt nnz  = PMloc.Nnz();
+    statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+  }
+
+  if( verbosity >= 2 ){
+    statusOFS << "perm: "    << std::endl << super_.perm     << std::endl;
+    statusOFS << "permInv: " << std::endl << super_.permInv  << std::endl;
+    statusOFS << "superIdx:" << std::endl << super_.superIdx << std::endl;
+    statusOFS << "superPtr:" << std::endl << super_.superPtr << std::endl; 
+  }
+
+	Real timeShiftSta, timeShiftEnd;
+	
+	Int numShift = shiftVec.size();
+	std::vector<Real>  inertiaVecLocal(numShift);
+	inertiaVec.resize(numShift);
+	for(Int l = 0; l < numShift; l++){
+		inertiaVecLocal[l] = 0.0;
+		inertiaVec[l]      = 0.0;
+	}
+
+	for(Int l = 0; l < numShift; l++){
+		if( MYROW( gridPole_ ) == PROW( l, gridPole_ ) ){
+
+			GetTime( timeShiftSta );
+
+      if( verbosity >= 1 ){
+        statusOFS << "Shift " << l << " = " << shiftVec[l] 
+          << " processing..." << std::endl;
+      }
+
+			if( SMat.size != 0 ){
+				// S is not an identity matrix
+				for( Int i = 0; i < HMat.nnzLocal; i++ ){
+					AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - shiftVec[l] * SMat.nzvalLocal(i);
+				}
+			}
+			else{
+				// S is an identity matrix
+				for( Int i = 0; i < HMat.nnzLocal; i++ ){
+					AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+				}
+
+				for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+					AMat.nzvalLocal( diagIdxLocal_[i] ) -= shiftVec[l];
+				}
+			} // if (SMat.size != 0 )
+
+
+			// *********************************************************************
+			// Factorization
+			// *********************************************************************
+			// Important: the distribution in pzsymbfact is going to mess up the
+			// A matrix.  Recompute the matrix A here.
+      if( verbosity >= 2 ){
+        statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+      }
+			luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+      if( verbosity >= 2 ){
+        statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+      }
+
+			Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+			GetTime( timeTotalFactorizationSta );
+
+			// Data redistribution
+      if( verbosity >= 2 ){
+        statusOFS << "Before Distribute." << std::endl;
+      }
+			luMat.Distribute();
+      if( verbosity >= 2 ){
+        statusOFS << "After Distribute." << std::endl;
+      }
+
+			// Numerical factorization
+      if( verbosity >= 2 ){
+        statusOFS << "Before NumericalFactorize." << std::endl;
+      }
+			luMat.NumericalFactorize();
+      if( verbosity >= 2 ){
+        statusOFS << "After NumericalFactorize." << std::endl;
+      }
+			luMat.DestroyAOnly();
+
+			GetTime( timeTotalFactorizationEnd );
+
+      if( verbosity >= 1 ){
+        statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+      }
+
+			// *********************************************************************
+			// Compute inertia
+			// *********************************************************************
+			Real timeInertiaSta, timeInertiaEnd;
+			GetTime( timeInertiaSta );
+
+			PMatrix<Real> PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
+
+			luMat.LUstructToPMatrix( PMloc );
+
+			// Compute the negative inertia of the matrix.
+//			PMloc.GetNegativeInertia( inertiaVecLocal[l] );
+
+			GetTime( timeInertiaEnd );
+
+      if( verbosity >= 1 ){
+        statusOFS << "Time for computing the inertia is " <<
+          timeInertiaEnd  - timeInertiaSta << " [s]" << std::endl;
+      }
+
+
+		} // if I am in charge of this shift
+	} // for(l)
+
+	// Collect all the negative inertia together
+	mpi::Allreduce( &inertiaVecLocal[0], &inertiaVec[0], numShift, 
+			MPI_SUM, gridPole_->colComm );
+
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PPEXSINewData::CalculateNegativeInertiaReal ----- 
 
 
 // Main subroutine for the electronic structure calculation
@@ -326,7 +521,7 @@ void PPEXSINewData::CalculateFermiOperatorReal(
 
   // FIXME Update to new superlumatrix formulation using the template format. 
   // FIXME Symbolic factorization to be put outside the routine
-  SuperLUMatrix    luMat( *gridSuperLU_, luOpt );  // SuperLU matrix.
+  SuperLUMatrix<Complex>    luMat( *gridSuperLUComplex_, luOpt );  // SuperLU matrix.
 
   // *********************************************************************
   // Symbolic factorization.  
@@ -354,8 +549,8 @@ void PPEXSINewData::CalculateFermiOperatorReal(
 
 
   // Compute the number of nonzeros from PMatrix
-  {
-    PMatrix PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
+  if( verbosity >= 1 ){
+    PMatrix<Complex> PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
     luMat.LUstructToPMatrix( PMloc );
     if( verbosity >= 1 ){
       Int nnzLocal = PMloc.NnzLocal();
@@ -659,7 +854,7 @@ void PPEXSINewData::CalculateFermiOperatorReal(
         Real timeTotalSelInvSta, timeTotalSelInvEnd;
         GetTime( timeTotalSelInvSta );
 
-        PMatrix PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
+        PMatrix<Complex> PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
 
         luMat.LUstructToPMatrix( PMloc );
 

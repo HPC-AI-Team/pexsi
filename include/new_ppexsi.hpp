@@ -46,11 +46,12 @@
 #ifndef _NEW_PPEXSI_HPP_
 #define _NEW_PPEXSI_HPP_
 #include  "environment.hpp"
-#include  "sparse_matrix_impl.hpp"
-#include  "numvec_impl.hpp"
+#include  "sparse_matrix.hpp"
+#include  "NumVec.hpp"
 #include  "utility.hpp"
 #include  "pole.hpp"
 #include	"mpi_interf.hpp"
+#include  "SuperLUGrid.hpp"
 #include  "superlu_dist_interf.hpp"
 #include	"pselinv.hpp"
 #include  "c_pexsi_new_interface.h"
@@ -79,7 +80,10 @@ namespace PEXSI{
     // (numPoleGroup) direction of gridPole.
 		const GridType*           gridPole_;          
 		const GridType*           gridSelInv_;        // Inner layer communicator for SelInv
-		const SuperLUGrid*        gridSuperLU_;       // Inner layer communicator for SuperLU factorization
+	
+    // Inner layer communicator for SuperLU factorization
+   	const SuperLUGrid<Real>*       gridSuperLUReal_;           
+   	const SuperLUGrid<Complex>*    gridSuperLUComplex_;           
 
 		SuperNodeType             super_;             // Supernode partition
 
