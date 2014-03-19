@@ -56,6 +56,7 @@ namespace  PEXSI{
     } else {
       data_ = data;
     }
+    bufsize_=m_*n_;
   }
   template <class F> inline void NumMat<F>::deallocate(){
     if(owndata_) {

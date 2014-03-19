@@ -155,7 +155,8 @@ ComplexSuperLUData::ComplexSuperLUData( const SuperLUGrid<Complex>& g, const Sup
 #ifndef _RELEASE_
 	PushCallStack("ComplexSuperLUData::ComplexSuperLUData");
 #endif
-  ptrData = new ComplexSuperLUData_internal;
+  
+  ptrData = new ComplexSuperLUData_internal();
 	if( ptrData == NULL )
 		throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
 	
