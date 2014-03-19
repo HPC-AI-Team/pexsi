@@ -4442,6 +4442,8 @@ TIMER_STOP(STCD_RFCD);
       A.colptrLocal(j+1) = A.colptrLocal(j) + rows[j].size();
     }
   
+    A.comm = grid_->comm;
+
   #if ( _DEBUGlevel_ >= 1 )
     statusOFS << "nnzLocal = " << A.nnzLocal << std::endl;
     statusOFS << "nnz      = " << A.Nnz()      << std::endl;
@@ -4450,7 +4452,6 @@ TIMER_STOP(STCD_RFCD);
   
     A.rowindLocal.Resize( A.nnzLocal );
     A.nzvalLocal.Resize(  A.nnzLocal );
-    A.comm = grid_->comm;
   
     Int*     rowPtr = A.rowindLocal.Data();
     T*  nzvalPtr = A.nzvalLocal.Data();
