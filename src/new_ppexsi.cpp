@@ -417,7 +417,7 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
 			luMat.LUstructToPMatrix( PMloc );
 
 			// Compute the negative inertia of the matrix.
-//			PMloc.GetNegativeInertia( inertiaVecLocal[l] );
+			PMloc.GetNegativeInertia( inertiaVecLocal[l] );
 
 			GetTime( timeInertiaEnd );
 

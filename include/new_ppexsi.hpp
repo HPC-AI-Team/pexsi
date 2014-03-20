@@ -173,7 +173,6 @@ namespace PEXSI{
     /// - = 0   : No output.
     /// - = 1   : Basic output (default)
     /// - = 2   : Detailed output.
-
 		void CalculateNegativeInertiaReal(
 				const std::vector<Real>&       shiftVec, 
 				std::vector<Real>&             inertiaVec,
