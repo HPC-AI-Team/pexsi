@@ -696,7 +696,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 		Int cntval = 0;                             // Count for the nonzero values
     Int cntidx = 0;                             // Count for the nonzero block indexes
 		const Int* index = Llu->Lrowind_bc_ptr[jb];
-		if( index ){ 
+		if( index ){
 			// Not an empty column, start a new column then.
 			std::vector<LBlock<Complex> >& Lcol = PMloc.L(jb);
 			Lcol.resize( index[cnt++] );
@@ -739,8 +739,6 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 #endif 
 
 			} // for(iblk)
-
-
 		}  // if(index)
 	} // for(jb)
 #ifndef _RELEASE_

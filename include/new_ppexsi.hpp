@@ -102,6 +102,18 @@ namespace PEXSI{
 		DistSparseMatrix<Real>     freeEnergyDensityRealMat_;     // Helmholtz free energy density matrix
 		DistSparseMatrix<Real>     energyDensityRealMat_;         // Energy density matrix for computing the Pulay force
 
+    // SuperLUMatrix and PMatrix structures These structures are saved
+    // to avoid repetitive symbolic factorization process, and saved in
+    // pointer form because of the constructors.
+//    SuperLUMatrix<Real>*       luRealMat_;
+//    SuperLUMatrix<Complex>*    luComplexMat_;
+//
+    PMatrix<Real>              PMRealMat_;
+    PMatrix<Complex>           PMComplexMat_;
+
+
+
+
 		// Saves all the indices of diagonal elements in H, so that
 		// H.nzvalLocal(diagIdxLocal_[j]) are diagonal elements for all j.
 		// This is manly used when S is implicitly given as an identity matrix.

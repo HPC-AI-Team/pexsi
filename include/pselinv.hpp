@@ -420,6 +420,8 @@ namespace PEXSI{
   ///
   /// @brief PMatrix contains the main data structure and the
   /// computational routine for the parallel selected inversion.  
+  /// 
+  /// **NOTE** The following is a bit obsolete.
   ///
   /// Procedure for Selected Inversion 
   /// --------------------------------
@@ -626,26 +628,18 @@ namespace PEXSI{
       /// by CreateCommunicators_Collectives.
       void DestructCommunicators_Collectives( );
 
-
-
-
-
-
-
-
-
-
-
-
-
     public:
       // *********************************************************************
       // Public member functions 
       // *********************************************************************
 
+      PMatrix() {}
+
       PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
-      ~PMatrix();
+      ~PMatrix() {}
+
+      void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
       Int NumCol() const { return super_ -> superIdx.m(); }
 

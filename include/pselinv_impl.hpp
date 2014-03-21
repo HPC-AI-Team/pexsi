@@ -127,15 +127,42 @@ namespace PEXSI{
       const GridType* g, 
       const SuperNodeType* s, 
       const PEXSI::SuperLUOptions * o 
-      ):grid_(g), super_(s), options_(o)
+      )
   {
 #ifndef _RELEASE_
     PushCallStack("PMatrix::PMatrix");
 #endif
 
+    this->Setup( g, s, o );
+
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
+    return ;
+  } 		// -----  end of method PMatrix::PMatrix  ----- 
+
+
+  template<typename T>
+  void PMatrix<T>::Setup( 
+      const GridType* g, 
+      const SuperNodeType* s, 
+      const PEXSI::SuperLUOptions * o 
+      ) {
+#ifndef _RELEASE_
+    PushCallStack("PMatrix::Setup");
+#endif
+
+    grid_          = g;
+    super_         = s;
+    options_       = o;
+
     //    if( grid_->numProcRow != grid_->numProcCol ){
     //      throw std::runtime_error( "The current version of SelInv only works for square processor grids." ); }
 
+    L_.clear();
+    U_.clear();
+    ColBlockIdx_.clear();
+    RowBlockIdx_.clear();
 
     L_.resize( this->NumLocalBlockCol() );
     U_.resize( this->NumLocalBlockRow() );
@@ -155,10 +182,8 @@ namespace PEXSI{
     PopCallStack();
 #endif
     return ;
-  } 		// -----  end of method PMatrix::PMatrix  ----- 
+  } 		// -----  end of method PMatrix::Setup   ----- 
 
-  template<typename T>
-  PMatrix<T>::~PMatrix() {}	
 
   ///////////// Utility functions ///////////////////
   template<typename T>

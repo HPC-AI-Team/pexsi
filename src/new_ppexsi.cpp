@@ -272,6 +272,7 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
 
   // rename for convenience
   DistSparseMatrix<Real>& AMat      = shiftRealMat_;  // A = H - \lambda  S
+  PMatrix<Real>&          PMloc     = PMRealMat_;
 
 	// Copy the pattern
 	CopyPattern( HMat, AMat );
@@ -311,7 +312,7 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
 
 	// Compute the number of nonzeros from PMatrix
   if( verbosity >= 1 ) {
-    PMatrix<Real> PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
+    PMloc.Setup( gridSelInv_, &super_ , &luOpt );
     luMat.LUstructToPMatrix( PMloc );
     Int nnzLocal = PMloc.NnzLocal();
     statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
@@ -412,7 +413,7 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
 			Real timeInertiaSta, timeInertiaEnd;
 			GetTime( timeInertiaSta );
 
-			PMatrix<Real> PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
+			PMloc.Setup( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
 
 			luMat.LUstructToPMatrix( PMloc );
 
@@ -488,6 +489,8 @@ void PPEXSINewData::CalculateFermiOperatorReal(
   DistSparseMatrix<Complex>& AMat      = shiftComplexMat_;
   DistSparseMatrix<Complex>& AinvMat   = shiftInvComplexMat_;
 
+  PMatrix<Complex>&       PMloc        = PMComplexMat_;
+
   // 
   bool isFreeEnergyDensityMatrix = true;
   bool isEnergyDensityMatrix     = true;
@@ -546,18 +549,17 @@ void PPEXSINewData::CalculateFermiOperatorReal(
   }
   luMat.SymbolicToSuperNode( super_ );
   luMat.DestroyAOnly();
+  
+  PMloc.Setup( gridSelInv_, &super_ , &luOpt);
 
 
   // Compute the number of nonzeros from PMatrix
   if( verbosity >= 1 ){
-    PMatrix<Complex> PMloc( gridSelInv_, &super_ , &luOpt); // A^{-1} in PMatrix format
     luMat.LUstructToPMatrix( PMloc );
-    if( verbosity >= 1 ){
-      Int nnzLocal = PMloc.NnzLocal();
-      statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
-      LongInt nnz  = PMloc.Nnz();
-      statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
-    }
+    Int nnzLocal = PMloc.NnzLocal();
+    statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
+    LongInt nnz  = PMloc.Nnz();
+    statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
   }
 
   if( verbosity >= 2 ){
@@ -853,8 +855,6 @@ void PPEXSINewData::CalculateFermiOperatorReal(
         // *********************************************************************
         Real timeTotalSelInvSta, timeTotalSelInvEnd;
         GetTime( timeTotalSelInvSta );
-
-        PMatrix<Complex> PMloc( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
 
         luMat.LUstructToPMatrix( PMloc );
 
