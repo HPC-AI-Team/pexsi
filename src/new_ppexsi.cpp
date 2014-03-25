@@ -1009,10 +1009,52 @@ void PPEXSINewData::CalculateFermiOperatorReal(
         rhoDrvTMat.nnzLocal, MPI_SUM, gridPole_->colComm );
   }
 
-  // All processors groups compute the number of electrons
+  // Compute the number of electrons
+  // The number of electrons is computed by Tr[DM*S]
+  {
+    Real numElecLocal;
+    if( SMat.size != 0 ){
+      // S is not an identity matrix
+      numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+          1, rhoMat.nzvalLocal.Data(), 1 );
+    }
+    else{
+      // S is an identity matrix
+      DblNumVec& nzval = rhoMat.nzvalLocal;
+      for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+        numElecLocal += nzval(diagIdxLocal_[i]);
+      }
+    } // if ( SMat.size != 0 )
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << std::endl << "numElecLocal = " << numElecLocal << std::endl;
+#endif
 
-  numElectron      = CalculateNumElectron( SMat );
-  numElectronDrvMu = CalculateNumElectronDrvMu( SMat );
+    mpi::Allreduce( &numElecLocal, &numElectron, 1, MPI_SUM, rhoMat.comm ); 
+  }
+
+  // Compute the derivative of the number of electrons with respect to mu
+  // The number of electrons is computed by Tr[f'(H-\muS)*S]
+  {
+    Real numElecDrvLocal;
+    if( SMat.size != 0 ){
+      // S is not an identity matrix
+      numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+          1, rhoDrvMuMat.nzvalLocal.Data(), 1 );
+    }
+    else{
+      // S is an identity matrix
+      DblNumVec& nzval = rhoDrvMuMat.nzvalLocal;
+      for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+        numElecDrvLocal += nzval(diagIdxLocal_[i]);
+      }
+    }
+
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << std::endl << "numElecDrvLocal = " << numElecDrvLocal << std::endl;
+#endif
+
+    mpi::Allreduce( &numElecDrvLocal, &numElectronDrvMu, 1, MPI_SUM, rhoDrvMuMat.comm ); 
+  }
 
 #ifndef _RELEASE_
   PopCallStack();
@@ -1020,232 +1062,6 @@ void PPEXSINewData::CalculateFermiOperatorReal(
 
   return ;
 }    // -----  end of method PPEXSINewData::CalculateFermiOperatorReal  ----- 
-
-
-
-Real
-PPEXSINewData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
-{
-#ifndef _RELEASE_
-  PushCallStack("PPEXSINewData::CalculateNumElectron");
-#endif
-  Real numElecLocal = 0.0, numElec = 0.0;
-  DistSparseMatrix<Real>& rhoMat       = rhoRealMat_;     
-
-
-  // TODO Check SMat and rhoMat has the same sparsity if SMat is not
-  // implicitly given by an identity matrix.
-
-  if( SMat.size != 0 ){
-    // S is not an identity matrix
-    numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-        1, rhoMat.nzvalLocal.Data(), 1 );
-  }
-  else{
-    // S is an identity matrix
-    DblNumVec& nzval = rhoMat.nzvalLocal;
-    for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-      numElecLocal += nzval(diagIdxLocal_[i]);
-    }
-
-  } // if ( SMat.size != 0 )
-#if ( _DEBUGlevel_ >= 1 )
-  statusOFS << std::endl << "numElecLocal = " << numElecLocal << std::endl;
-#endif
-
-  mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, rhoMat.comm ); 
-
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
-
-  return numElec;
-} 		// -----  end of method PPEXSINewData::CalculateNumElectron  ----- 
-
-Real
-PPEXSINewData::CalculateNumElectronDrvMu	( const DistSparseMatrix<Real>& SMat )
-{
-#ifndef _RELEASE_
-  PushCallStack("PPEXSINewData::CalculateNumElectronDrvMu");
-#endif
-  Real numElecDrvLocal = 0.0, numElecDrv = 0.0;
-  DistSparseMatrix<Real>& rhoMat       = rhoRealMat_;     
-  DistSparseMatrix<Real>& rhoDrvMuMat  = rhoDrvMuRealMat_;     
-
-  // TODO Check SMat and rhoDrvMuMat has the same sparsity
-
-
-  if( SMat.size != 0 ){
-    // S is not an identity matrix
-    numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-        1, rhoDrvMuMat.nzvalLocal.Data(), 1 );
-  }
-  else{
-    // S is an identity matrix
-    DblNumVec& nzval = rhoDrvMuMat.nzvalLocal;
-    for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-      numElecDrvLocal += nzval(diagIdxLocal_[i]);
-    }
-  }
-
-#if ( _DEBUGlevel_ >= 1 )
-  statusOFS << std::endl << "numElecDrvLocal = " << numElecDrvLocal << std::endl;
-#endif
-
-  mpi::Allreduce( &numElecDrvLocal, &numElecDrv, 1, MPI_SUM, rhoDrvMuMat.comm ); 
-
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
-
-  return numElecDrv;
-} 		// -----  end of method PPEXSINewData::CalculateNumElectronDrvMu  ----- 
-
-Real
-PPEXSINewData::CalculateNumElectronDrvT	( const DistSparseMatrix<Real>& SMat )
-{
-#ifndef _RELEASE_
-  PushCallStack("PPEXSINewData::CalculateNumElectronDrvT");
-#endif
-  Real numElecDrvLocal = 0.0, numElecDrv = 0.0;
-  DistSparseMatrix<Real>& rhoMat       = rhoRealMat_;     
-  DistSparseMatrix<Real>& rhoDrvTMat   = rhoDrvTRealMat_;     
-
-  // TODO Check SMat and rhoDrvTMat has the same sparsity
-
-  if( SMat.size != 0 ){
-    // S is not an identity matrix
-    numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-        1, rhoDrvTMat.nzvalLocal.Data(), 1 );
-  }
-  else{
-    // S is an identity matrix
-    DblNumVec& nzval = rhoDrvTMat.nzvalLocal;
-    for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-      numElecDrvLocal += nzval(diagIdxLocal_[i]);
-    }
-  }
-#if ( _DEBUGlevel_ >= 1 )
-  statusOFS << std::endl << "numElecDrvLocal = " << numElecDrvLocal << std::endl;
-#endif
-
-  mpi::Allreduce( &numElecDrvLocal, &numElecDrv, 1, MPI_SUM, rhoDrvTMat.comm ); 
-
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
-
-  return numElecDrv;
-} 		// -----  end of method PPEXSINewData::CalculateNumElectronDrvT  ----- 
-
-
-Real
-PPEXSINewData::CalculateTotalEnergy	( const DistSparseMatrix<Real>& HMat )
-{
-#ifndef _RELEASE_
-  PushCallStack("PPEXSINewData::CalculateTotalEnergy");
-#endif
-
-  Real totalEnergyLocal = 0.0, totalEnergy = 0.0;
-  DistSparseMatrix<Real>& rhoMat           = rhoRealMat_;     
-
-  // TODO Check HMat and rhoMat has the same sparsity
-
-  totalEnergyLocal = blas::Dot( HMat.nnzLocal, HMat.nzvalLocal.Data(),
-      1, rhoMat.nzvalLocal.Data(), 1 );
-#if ( _DEBUGlevel_ >= 1 )
-  statusOFS << std::endl << "TotalEnergyLocal = " << totalEnergyLocal << std::endl;
-#endif
-
-  mpi::Allreduce( &totalEnergyLocal, &totalEnergy, 1, MPI_SUM, rhoMat.comm ); 
-
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
-
-  return totalEnergy;
-} 		// -----  end of method PPEXSINewData::CalculateTotalEnergy  ----- 
-
-Real 
-PPEXSINewData::CalculateFreeEnergy	( const DistSparseMatrix<Real>& SMat )
-{
-#ifndef _RELEASE_
-  PushCallStack("PPEXSINewData::CalculateFreeEnergy");
-#endif
-
-  Real totalFreeEnergyLocal = 0.0, totalFreeEnergy = 0.0;
-  DistSparseMatrix<Real>& hmzMat                   = freeEnergyDensityRealMat_;     
-
-  // TODO Check SMat and hmzMat has the same sparsity
-
-  if( SMat.size != 0 ){
-    // S is not an identity matrix
-    totalFreeEnergyLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-        1, hmzMat.nzvalLocal.Data(), 1 );
-  }
-  else{
-    // S is an identity matrix
-    DblNumVec& nzval = hmzMat.nzvalLocal;
-    for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-      totalFreeEnergyLocal += nzval(diagIdxLocal_[i]);
-    }
-  } // if ( SMat.size != 0 )
-
-#if ( _DEBUGlevel_ >= 1 )
-  statusOFS << std::endl << "TotalFreeEnergyLocal = " << totalFreeEnergyLocal << std::endl;
-#endif
-
-  mpi::Allreduce( &totalFreeEnergyLocal, &totalFreeEnergy, 1, MPI_SUM, 
-      hmzMat.comm ); 
-
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
-
-  return totalFreeEnergy;
-} 		// -----  end of method PPEXSINewData::CalculateFreeEnergy  ----- 
-
-
-Real
-PPEXSINewData::CalculateForce	( 
-    const DistSparseMatrix<Real>& HDerivativeMat,  
-    const DistSparseMatrix<Real>& SDerivativeMat )
-{
-#ifndef _RELEASE_
-  PushCallStack("PPEXSINewData::CalculateForce");
-#endif
-
-  Real totalForceLocal = 0.0, totalForce = 0.0;
-
-  DistSparseMatrix<Real>& rhoMat           = rhoRealMat_;     
-  DistSparseMatrix<Real>& frcMat           = energyDensityRealMat_;     
-
-  // TODO Check HDerivativeMat, SDerivativeMat, rhoMat and
-  // frcMat has the same sparsity pattern
-
-  totalForceLocal = - blas::Dot( HDerivativeMat.nnzLocal,
-      HDerivativeMat.nzvalLocal.Data(), 1, rhoMat.nzvalLocal.Data(), 1
-      );
-
-  if( SDerivativeMat.size != 0 ){
-    // If S is not an identity matrix, compute the Pulay force
-    totalForceLocal += blas::Dot( SDerivativeMat.nnzLocal,
-        SDerivativeMat.nzvalLocal.Data(), 1,
-        frcMat.nzvalLocal.Data(), 1 );
-  }
-
-#if ( _DEBUGlevel_ >= 1 )
-  statusOFS << std::endl << "TotalForceLocal = " << totalForceLocal << std::endl;
-#endif
-
-  mpi::Allreduce( &totalForceLocal, &totalForce, 1, MPI_SUM, rhoMat.comm );
-
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
-
-  return totalForce;
-} 		// -----  end of method PPEXSINewData::CalculateForce  ----- 
 
 
 
@@ -1268,7 +1084,7 @@ PPEXSINewData::DFTDriver (
     Int        ordering,
     Int        numProcSymbFact,
     Int        verbosity,
-    Real&      muPEXSI,                   
+    Real&      muPEXSI,
     Real&      numElectronPEXSI,         
     Real&      muMinInertia,              
     Real&      muMaxInertia,             
@@ -1291,8 +1107,8 @@ PPEXSINewData::DFTDriver (
   // Initial setup
   muMinInertia = muMin0;
   muMaxInertia = muMax0;
+  muPEXSI = muPEXSISave_;
 
-  Real muPEXSI0 = muPEXSISave_;
   Real numElectronDrvMuPEXSI;
 
   std::string colPerm;
@@ -1512,7 +1328,7 @@ PPEXSINewData::DFTDriver (
 //        muMaxInertia = shiftVec[idxMax] + 5 * temperature;
         muMinInertia = shiftVec[idxMin];
         muMaxInertia = shiftVec[idxMax];
-        muPEXSI0     = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact );
+        muPEXSI      = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact );
 
         // Check convergence. Stop the inertia count after convergence.
         if( ( std::abs( inertiaVec[idxMax] - numElectronExact ) < EPS ) ||
@@ -1541,6 +1357,7 @@ PPEXSINewData::DFTDriver (
 
 
 
+    GetTime( timePEXSISta );
     for(Int iter = 1; iter <= maxPEXSIIter; iter++){
       GetTime( timeMuSta );
 
@@ -1548,7 +1365,7 @@ PPEXSINewData::DFTDriver (
 
       if( verbosity >= 1 ){
         statusOFS << "PEXSI Iteration " << iter 
-          << ", mu = " << muPEXSI0 << std::endl;
+          << ", mu = " << muPEXSI << std::endl;
       }
 
       if( matrixType == 0 ){
@@ -1557,7 +1374,7 @@ PPEXSINewData::DFTDriver (
             temperature,
             gap,
             deltaE,
-            muPEXSI0,
+            muPEXSI,
             numElectronExact,
             numElectronPEXSITolerance,
             HRealMat_,
@@ -1573,7 +1390,7 @@ PPEXSINewData::DFTDriver (
 
       if( verbosity >= 1 ){
         statusOFS << std::endl;
-        Print( statusOFS, "mu                          = ", muPEXSI0 );
+        Print( statusOFS, "mu                          = ", muPEXSI );
         Print( statusOFS, "Computed number of electron = ", numElectronPEXSI );
         Print( statusOFS, "Exact number of electron    = ", numElectronExact );
         Print( statusOFS, "d Ne / d mu                 = ", numElectronDrvMuPEXSI );
@@ -1608,10 +1425,13 @@ PPEXSINewData::DFTDriver (
           break;
         }
         else{
-          muPEXSI0 += deltaMu;
+          muPEXSI += deltaMu;
         }
       }
     } // for (iter)
+    GetTime( timePEXSIEnd );
+
+    timePEXSI = timePEXSIEnd - timePEXSISta;
 
     // Exit no matter whether PEXSI has converged.
     if( isDeltaMuSafe == true ){
@@ -1672,7 +1492,7 @@ PPEXSINewData::DFTDriver (
           gridPole_->rowComm ); 
 
       // Correction
-      totalFreeEnergy_ += muPEXSI0 * numElectronPEXSI;
+      totalFreeEnergy_ += muPEXSI * numElectronPEXSI;
     }
   } // if( matrixType == 0 )
 
@@ -1694,7 +1514,7 @@ PPEXSINewData::DFTDriver (
 
   if( verbosity >= 1 ){
     statusOFS << "Final result " << std::endl;
-    Print( statusOFS, "mu                          = ", muPEXSI0 );
+    Print( statusOFS, "mu                          = ", muPEXSI );
     Print( statusOFS, "Computed number of electron = ", numElectronPEXSI );
     Print( statusOFS, "Exact number of electron    = ", numElectronExact );
     Print( statusOFS, "d Ne / d mu                 = ", numElectronDrvMuPEXSI );
@@ -1704,7 +1524,7 @@ PPEXSINewData::DFTDriver (
   }
 
   // Save the PEXSI variable
-  muPEXSISave_ = muPEXSI0;
+  muPEXSISave_ = muPEXSI;
 
 #ifndef _RELEASE_
 	PopCallStack();
