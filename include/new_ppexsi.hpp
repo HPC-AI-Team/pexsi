@@ -245,31 +245,6 @@ namespace PEXSI{
         Real& numElectronDrvMu );
 
 
-		/// @brief CalculateNumElectron computes the number of electrons given
-		/// the current density matrix.
-		///
-		/// @param[in] SMat overlap matrix.
-		///
-		/// @return The number of electrons Tr[\rho S]
-		Real CalculateNumElectron( const DistSparseMatrix<Real>& SMat );
-
-		/// @brief CalculateNumElectronDrvMu computes the derivative of the
-		/// number of electrons with respect to the chemical potential.
-		///
-		/// @param[in] SMat overlap matrix.
-		///
-		/// @return The derivative of the number of electrons Tr[f'(H-\muS) S]
-		Real CalculateNumElectronDrvMu( const DistSparseMatrix<Real>& SMat );
-
-		/// @brief CalculateNumElectronDrvT computes the derivative of the
-		/// number of electrons with respect to the temperature (1/beta, in
-		/// atomic unit).
-		///
-		/// @param[in] SMat overlap matrix.
-		///
-		/// @return The derivative of the number of electrons Tr[f'(H-\muS) S]
-		Real CalculateNumElectronDrvT( const DistSparseMatrix<Real>& SMat );
-
 		/// @brief CalculateTotalEnergy computes the total energy (band energy
 		/// part only).
 		///
@@ -278,38 +253,7 @@ namespace PEXSI{
 		/// @return The total energy Tr[ H \rho ]. 
 		Real CalculateTotalEnergy( const DistSparseMatrix<Real>& HMat );
 
-		/// @brief CalculateFreeEnergy computes the total Helmholtz free
-		/// energy (band energy part only).  
-		///
-		/// For more information see 
-		/// Alavi, A., Kohanoff, J., Parrinello, M., & Frenkel, D. (1994). Ab
-		/// initio molecular dynamics with excited electrons. Physical review
-		/// letters, 73(19), 2599–2602. 
-		///
-		/// @param[in] HMat Hamilotian matrix.
-		///
-		/// @return The Helmholtz free energy Tr[rho_f H]
-		Real CalculateFreeEnergy( const DistSparseMatrix<Real>& SMat );
-
-		/// @brief CalculateFreeEnergy computes the force, including the
-		/// Hellman-Feynman force and the Pulay force. 
-		///
-		/// @param[in] HDerivativeMat Derivative of the Hamilotian matrix with
-		/// respect to the atomic position R_{i,j}, i = 1, ..., natoms,
-		/// j=1,2,3. 
-		///
-		/// @param[in] HDerivativeMat Derivative of the overlap matrix with
-		/// respect to the atomic position R_{i,j}, i = 1, ..., natoms,
-		/// j=1,2,3. 
-		///
-		/// @return The force f_{i,j} with
-		/// respect to the atomic position R_{i,j}, i = 1, ..., natoms,
-		/// j=1,2,3. 
-		Real CalculateForce( 
-				const DistSparseMatrix<Real>& HDerivativeMat,  
-				const DistSparseMatrix<Real>& SDerivativeMat ); 
-
-
+    /// @brief Main driver for solving KSDFT.
     void DFTDriver(
         Real       numElectronExact,
         Real       temperature,
@@ -342,10 +286,27 @@ namespace PEXSI{
 
     const GridType*  GridPole() const {return gridPole_;}
 
+    /// @brief Density matrix.
+    ///
+    /// Can be used to estimate the number of electrons by Tr[DM*S]
+    /// or the band energy via Tr[DM*H]
     const DistSparseMatrix<Real>&   RhoRealMat() const {return rhoRealMat_;}
 
+    /// @brief Energy density matrix.  
+    ///
+    /// Can be used to estimate the total band energy via Tr[EDM*S] or
+    /// the force, including the Hellman-Feynman force and the Pulay
+    /// force. 
     const DistSparseMatrix<Real>&   EnergyDensityRealMat() const {return energyDensityRealMat_;}
 
+    /// @brief Total Helmholtz free energy matrix (band energy part only).  
+    ///
+    /// The Helmholtz free energy is computed by Tr[rho_f*H].
+		///
+		/// For more information see 
+		/// Alavi, A., Kohanoff, J., Parrinello, M., & Frenkel, D. (1994). Ab
+		/// initio molecular dynamics with excited electrons. Physical review
+		/// letters, 73(19), 2599–2602. 
     const DistSparseMatrix<Real>&   FreeEnergyDensityRealMat() const {return freeEnergyDensityRealMat_;}
 
     Real   TotalEnergyH() const {return totalEnergyH_;}
