@@ -43,6 +43,8 @@
 /// @file blas.hpp
 /// @brief Thin interface to BLAS
 /// @date 2012-09-12
+#ifndef _PEXSI_BLAS_HPP_ 
+#define _PEXSI_BLAS_HPP_
 #include  "environment.hpp"
 
 namespace PEXSI {
@@ -554,3 +556,5 @@ namespace blas {
 
 } // namespace blas
 } // namespace PEXSI 
+
+#endif //_PEXSI_BLAS_HPP_

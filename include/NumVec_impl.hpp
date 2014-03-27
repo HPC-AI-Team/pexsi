@@ -2,7 +2,7 @@
 	 Copyright (c) 2012 The Regents of the University of California,
 	 through Lawrence Berkeley National Laboratory.  
 
-   Authors: Lexing Ying and Lin Lin
+   Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
 	 
    This file is part of PEXSI. All rights reserved.
 
@@ -40,13 +40,12 @@
 	 works, incorporate into other computer software, distribute, and sublicense
 	 such enhancements or derivative works thereof, in binary and source code form.
 */
-/// @file numvec_impl.hpp
+/// @file NumVec_impl.hpp
 /// @brief Implementation of Numerical Vector.
 /// @date 2010-09-27
-#ifndef _NUMVEC_IMPL_HPP_
-#define _NUMVEC_IMPL_HPP_
+#ifndef _PEXSI_NUMVEC_IMPL_HPP_
+#define _PEXSI_NUMVEC_IMPL_HPP_
 
-#include  "numvec_decl.hpp"
 
 namespace  PEXSI{
 
@@ -55,9 +54,6 @@ namespace  PEXSI{
 // The main advantage of this portable NumVec structure is that it can
 // either own (owndata == true) or view (owndata == false) a piece of
 // data.
-
-
-
 
 template <class F> NumVec<F>::NumVec	( Int m ) : m_(m), owndata_(true)
 {
@@ -242,4 +238,4 @@ template <class F> inline Real Energy( const NumVec<F>& vec )
 
 } // namespace PEXSI
 
-#endif // _NUMVEC_IMPL_HPP_
+#endif // _PEXSI_NUMVEC_IMPL_HPP_

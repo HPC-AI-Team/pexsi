@@ -43,27 +43,18 @@
 /**
  * @file c_pexsi_interface.h
  * @brief Interface subroutines of %PEXSI that can be called by C.
- *
- * The FORTRAN interface are wrappers of the C interface.  The header
- * file is not needed here, and the interface routines are given
- * directly in interface.cpp.
  * 
- * @date 2013-01-31
+ * @date Original:      2013-01-31
+ * @date Revision:      2014-03-07  Second generation interface.
  */
-#ifndef _C_PEXSI_INTERFACE_H_ 
-#define _C_PEXSI_INTERFACE_H_
+#ifndef _PEXSI_C_PEXSI_INTERFACE_H_ 
+#define _PEXSI_C_PEXSI_INTERFACE_H_
 #include "mpi.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"{
 #endif
-
-// *********************************************************************
-// The following routines belong to the first version of the interface
-// The new interface will be given in
-// c_pexsi_new_interface.h
-// The two files will eventually merge. 
-// *********************************************************************
 
 /**
  * @brief Read the sizes of a DistSparseMatrix in formatted form (txt)
@@ -156,7 +147,7 @@ void ReadDistSparseMatrixHeadInterface (
  * values in CSC format.
  * @param[in]  comm (global) MPI communicator.
  */
-void ParaReadDistSparseMatrixInterface (
+void ParaReadDistSparseMatrixInterface ( 
     char*     filename,
     int       size,
     int       nnz,
@@ -169,21 +160,173 @@ void ParaReadDistSparseMatrixInterface (
 
 
 
+// *********************************************************************
+// The following routines belong to the second version of the interface
+// *********************************************************************
+
 /**
- * @brief Driver interface for computing the selected  elements of a
- * matrix (in complex arithmietic).  
+ * @brief A handle for holding the internal %PEXSI data structure.  
  *
- * Evaluate the selected elements of 
- * \f$(H - z S)^{-1}\f$ for a shift \f$z\in\mathbb{C}\f$.
- * 
- * **Note** 
- * - H and S are always real symmetric matrices, are saved in the
- *   compressed sparse column (CSC) format, and have the same sparsity
- *   pattern.
- * - Complex arithmetic operation is used for the factorization
- *   and selected inversion even if z is real.
- * - The input of S is optional, and the shift z can be 0.
+ * @note This handle can be also used with FORTRAN, with the `INTEGER*8`
+ * data structure, or the `INTEGER(C_INTPTR_T)` structure if
+ * ISO_C_BINDING is used.
+ */
+typedef intptr_t  PPEXSIPlan;
+
+/**
+ * @struct PPEXSIOptions
+ * @brief Structure for the input parameters in DFT calculations.
+ */
+typedef struct {
+    /** 
+     * @brief  Temperature, in the same unit as H 
+     */ 
+    double        temperature;  
+    /** 
+     * @brief  Spectral gap. **Note** This can be set to be 0 in most cases.
+     */ 
+    double        gap;
+    /** 
+     * @brief  An upper bound for the spectral radius of \f$S^{-1} H\f$.
+     */ 
+    double        deltaE;
+    /** 
+     * @brief  Number of terms in the pole expansion.
+     */ 
+    int           numPole;
+    /** 
+     * @brief  Whether inertia counting is used at the very beginning.
+     */ 
+    int           isInertiaCount;
+    /** 
+     * @brief  Maximum number of PEXSI iterations after each inertia
+     * counting procedure.
+     */ 
+    int           maxPEXSIIter;
+    /** 
+     * @brief  Initial guess of lower bound for mu.
+     */ 
+    double        muMin0;
+    /** 
+     * @brief  Initial guess of upper bound for mu.
+     */ 
+    double        muMax0;
+    /** 
+     * @brief  Stopping criterion in terms of the chemical potential
+     * for the inertia counting procedure.
+     */ 
+    double        muInertiaTolerance;
+    /** 
+     * @brief  If the chemical potential is not in the initial interval,
+     * the interval is expanded by muInertiaExpansion.
+     */ 
+    double        muInertiaExpansion;
+    /** 
+     * @brief  Safe guard criterion in terms of the chemical potential
+     * to reinvoke the inertia counting procedure.
+     */ 
+    double        muPEXSISafeGuard;
+    /** 
+     * @brief  Stopping criterion of the %PEXSI iteration in terms of the
+     * number of electrons compared to numElectronExact.
+     */ 
+    double        numElectronPEXSITolerance;
+    /**
+     * @param[in] matrixType (global) Type of input H and S matrices.
+     * - = 0   : Real symmetric (default)
+     * - = 1   : Complex Hermitian (not implemented yet)
+     */
+    int           matrixType;
+    /** 
+     * @brief  Whether to perform symbolic factorization.
+     */ 
+    int           isSymbolicFactorize;
+    /** 
+     * @brief  Ordering strategy for factorization and selected
+     * inversion.  
+     * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
+     *   option in SuperLU_DIST).
+     * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
+     *   option in SuperLU_DIST).
+     * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
+     *   option in SuperLU_DIST).
+     */ 
+    int           ordering;
+    /** 
+     * @brief  Number of processors for PARMETIS/PT-SCOTCH.  Only used
+     * if the ordering == 0.
+     */ 
+    int           npSymbFact;
+    /** 
+     * @brief  The level of output information.
+     * - = 0   : No output.
+     * - = 1   : Basic output (default)
+     * - = 2   : Detailed output.
+     */ 
+    int           verbosity;
+} PPEXSIOptions;
+
+
+/**
+ * @brief Set the default options for DFT driver.
  *
+ * All default values assume the input unit (for H) is Rydberg.
+ *
+ * @param[in] options (global) Pointer to the options containing input
+ * parameters for the driver.  
+ */
+void PPEXSISetDefaultOptions(
+    PPEXSIOptions*   options );
+
+
+/**
+ * @brief Initialize the %PEXSI plan.
+ *
+ * @todo A specicial FORTRAN interface for this routine.  This is
+ * because the comm between C and FORTRAN are different.  All subsequent
+ * interface routines do not require anymore interface in this routine,
+ * but should be taken care of using ISO_C_BINDING.
+ *
+ * @param[in] comm  (global) Communicator used for the entire %PEXSI procedure.  The
+ * size of this communicator should be a multiple of npPerPole =
+ * numProcRow * numProcCol, which is the total number of processors used
+ * by each individual pole.
+ * @param[in] numProcRow (global) Number of processors in the row communication group
+ * for each pole.
+ * @param[in] numProcCol (global) Number of processors in the column communication group
+ * for each pole.
+ * @param[in] outputFileIndex (local) The index for the %PEXSI output file.  For
+ * instance, if this index is 1, then the corresponding processor will
+ * output to the file `logPEXSI1`.  
+ * **Note** Each processor must output to a **different** file.  By
+ * default, outputFileIndex can be set as mpirank.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ *
+ *
+ *
+ * @return (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ */
+PPEXSIPlan PPEXSIPlanInitialize(
+    MPI_Comm      comm,
+    int           numProcRow, 
+    int           numProcCol,
+    int           outputFileIndex,
+    int*          info );
+
+
+/**
+ * @brief Load the real symmetric H and S matrices into the %PEXSI
+ * internal data structure.
+ *
+ * @note Only input from the processors associated with the first pole
+ * is required. The information will be broadcast to the other
+ * processors in the communicator.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
  * @param[in] nrows (global) Number of rows and columns of the matrix.
  * @param[in] nnz (global) Total number of nonzeros of H.
  * @param[in] nnzLocal (local) Number of local nonzeros of H.
@@ -198,29 +341,12 @@ void ParaReadDistSparseMatrixInterface (
  * If so, the variable SnzvalLocal is omitted.
  * @param[in] SnzvalLocal (local) Dimension: nnzLocal. Local nonzero
  * value of S in CSC format.
- * @param[in] zShift  (global) Dimension: 2. Use 2 real numbers to
- * denote a complex shift. 
- * - Real part: zShift[0]
- * - Imag part: zShift[1]    
- * @param[in] ordering (global) Ordering strategy for factorization and selected
- * inversion.  
- * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
- *   option in SuperLU_DIST).
- * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
- *   option in SuperLU_DIST).
- * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
- *   option in SuperLU_DIST).
- * @param[in] npSymbFact (global) Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
- * @param[in] comm (global) MPI communicator.
- * @param[out] AinvnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
- * values of the selected elements of \f$(H - z S)^{-1}\f$.
- * - Use 2 double for one complex number. This ensures the compatibility with FORTRAN.
- * - Real part: AinvnzvalLocal[2*k]. Imag part: AinvnzvalLocal[2*k+1].
- * @param[out] info 
+ * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PPEXSISelInvInterface ( 
+void PPEXSILoadRealSymmetricHSMatrix(
+    PPEXSIPlan    plan,
     int           nrows,                        
     int           nnz,                          
     int           nnzLocal,                     
@@ -229,262 +355,60 @@ void PPEXSISelInvInterface (
     int*          rowindLocal,                  
     double*       HnzvalLocal,                  
     int           isSIdentity,                  
-    double*       SnzvalLocal,                  
-    double*       zShift,                       
-    int           ordering,                
-    int           npSymbFact,                   
-    MPI_Comm	    comm,                         
-    double*       AinvnzvalLocal,
-    int*          info
-    );
+    double*       SnzvalLocal,
+    int*          info );
+
+
+
 
 /**
- * @brief Driver interface for estimating the chemical potential using
- * inertia counting procedure.
- *
- * The main purpose of this routine is to obtain two set of intervals.
- *
- * The first interval is [muMinInertia, muMaxInertia]. This should be a
- * tight interval so that 
- *   \f[
- *     N_e(\mathrm{muMinInertia}) \le \mathrm{numElectronExact} 
- *     \le N_e(\mathrm{muMaxInertia}).
- *   \f]
- * This interval can be used as a bound interval for @ref PPEXSISolveInterface.
- *
- * The second interval is [muLowerEdge, muUpperEdge]. This interval is
- * defined by
- *   \f[
- *     N_e(\mathrm{muLowerEdge}) = \mathrm{numElectronExact} - eps,
- *   \f]
- *   \f[
- *     N_e(\mathrm{muUpppeEdge}) = \mathrm{numElectronExact} + eps.
- *   \f]
- *   eps is a small number currently fixed to be 0.1.
- *   For metals (\f$N'_e(\mu_{\mathrm{exact}}) > 0\f$), it should be
- *   expected that muLowerEdge is very close to muUpperEdge. For
- *   insulators, (\f$N'_e(\mu_{\mathrm{exact}}) \approx 0\f$),
- *   we have muUpperEdge > muLowerEdge, with the difference
- *   characterizing the band gap.
- *
- *   For either metal or insulator, 
- *   \f[
- *       \frac{1}{2} ( \mathrm{muLowerEdge} + \mathrm{muUpperEdge} ) 
- *   \f]
- *   is a good guess for the chemical potential to be provided to 
- *   @ref PPEXSISolveInterface.
- *
- * These intervals are refined for in an iterative procedure, until
- * \f[
- *   N_e(\mathrm{muMaxInertia}) - N_e(\mathrm{muMinInertia}) <
- *   numElectronTolerance.
- * \f]
- *
- * The counting of the number of electrons (eigenvalues) is obtained by
- * counting the number of negative eigenvalues for the matrix \f$H-\mu_l
- * S\f$ for a series of \f$\{\mu_l\}\f$. The algorithm makes use of
- * Sylvester's law of inertia.  
- *
- * Finite temperature effect is also taken into account when computing
- * the number of electrons.
+ * @brief Simplified driver for solving Kohn-Sham DFT.
  * 
- * **Note** 
- * - H and S are always real symmetric matrices, are saved in the
- *   compressed sparse column (CSC) format, and have the same sparsity
- *   pattern.
- * - This algorithm uses real arithmetic LU decomposition.
- * - The input of S is optional, and the shift z can be 0.
+ * This function contains both the inertia counting step for estimating
+ * the chemical potential, and the Newton's iteration for updating the
+ * chemical potential.  Heuristics are built into this routine.  Expert
+ * users and developers can modify this routine to obtain better
+ * heuristics.  The implementation of this function contains **all** the
+ * heuristics for a DFT solver.
  *
- * @param[in] nrows (global) Number of rows and columns of the matrix.
- * @param[in] nnz (global) Total number of nonzeros of H.
- * @param[in] nnzLocal (local) Number of local nonzeros of H.
- * @param[in] numColLocal (local) Number of local columns for H.
- * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
- * pointer in CSC format.
- * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
- * pointer in CSC format.
- * @param[in] HnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * values of H in CSC format.
- * @param[in] isSIdentity (global) Whether S is an identity matrix. 
- * If so, the variable SnzvalLocal is omitted.
- * @param[in] SnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * value of S in CSC format.
- * @param[in] temperature (global) Temperature, in the same unit as H
- * @param[in] numElectronExact (global) Exact number of electrons, i.e. \f$N_e(\mu_{\mathrm{exact}})\f$.
- * @param[in] muMin0   (global) Initial guess of lower bound for mu
- * @param[in] muMax0   (global) Initial guess of upper bound for mu
- * @param[in] numPole  (global) Number of shifts (chemical potentials) evaluated at each iteration.
- * @param[in] maxIter  (global) Maximum number of iterations.
- * @param[in] numElectronTolerance (global) Stopping criterion of the
- * iterations.
- * @param[in] ordering (global) Ordering strategy for factorization and selected
- * inversion.  
- * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
- *   option in SuperLU_DIST).
- * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
- *   option in SuperLU_DIST).
- * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
- *   option in SuperLU_DIST).
- * @param[in] npSymbFact (global) Number of processors for
- * PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
- * @param[in] comm (global) MPI communicator.
- * @param[out] muMinInertia (global) Lower bound for mu after the inertia count.
- * @param[out] muMaxInertia (global) Upper bound for mu after the inertia count.
- * @param[out] muLowerEdge  (global) muLowerEdge satisfies
- * N_e(muLowerEdge) = numElectronExact - eps.  
- * @param[out] muUpperEdge  (global) muUpperEdge satisfies
- * N_e(muUpperEdge) = numElectronExact + eps.  
- * @param[out] numIter      (global) Number of iterations used before
- * reaching the stopping criterion.
- * @param[out] muList       (global) Dimension: numIter. The list of shifts after the final
- * iteration.
- * @param[out] numElectronList (global) Dimension: numIter. The number of electrons at the
- * each shift. Finite temperature effect is taken into account. For
- * obtaining the number of electrons without the finite temperature
- * effect, see @ref PPEXSIRawInertiaCountInterface.
- * @param[out] info 
- * - = 0: successful exit.  
- * - > 0: unsuccessful.
- */
-void PPEXSIInertiaCountInterface(
-    int           nrows,  
-    int           nnz,    
-    int           nnzLocal, 
-    int           numColLocal,
-    int*          colptrLocal,
-    int*          rowindLocal,
-    double*       HnzvalLocal,
-    int           isSIdentity,
-    double*       SnzvalLocal,
-    double        temperature,
-    double        numElectronExact,
-    double        muMin0,          
-    double        muMax0,         
-    int           numPole,       
-    int           maxIter,      
-    double        numElectronTolerance,
-    int           ordering,           
-    int           npPerPole,         
-    int           npSymbFact,       
-    MPI_Comm	    comm,            
-    double*       muMinInertia,                
-    double*       muMaxInertia,               
-    double*       muLowerEdge,               
-    double*       muUpperEdge,              
-    int*          numIter,                 
-    double*       muList,                 
-    double*       numElectronList,       
-    int*          info                  
-    );
-
-
-/** 
- * @brief Directly compute the negative inertia at a set of shifts.
- * 
- *  This is a simplified version of @ref PPEXSIInertiaCountInterface,
- *  without the including the finite temperature effect, or
- *  iterative refinement of the chemical potential.  This routine can be
- *  used for evaluating density of states after @ref PPEXSISolveInterface 
- *  has reached convergence.
- * 
- *  See @ref PPEXSIInertiaCountInterface for explanation of
- *  parameters.
- */
-void PPEXSIRawInertiaCountInterface(
-		// Input parameters
-		int           nrows,  
-		int           nnz,    
-		int           nnzLocal, 
-		int           numColLocal, 
-		int*          colptrLocal, 
-		int*          rowindLocal, 
-		double*       HnzvalLocal, 
-		int           isSIdentity, 
-		double*       SnzvalLocal,
-		double        muMin0,    
-		double        muMax0,   
-		int           numPole, 
-		int           ordering,
-		int           npPerPole, 
-		int           npSymbFact,
-		MPI_Comm	    comm,     
-		double*       muList, 
-		int   *       numElectronList,   
-		int*          info              
-		);
-
-
-/** 
- * @brief Main driver routine for solving Kohn-Sham density functional
- * theory using %PEXSI.
- * 
- * Given a good initial guess of the chemical potential and the bound
- * for the chemical potential, this routine
- * uses the Newton method to find the converged chemical potential for
- * a given number of electrons at certain temperature.
- * 
- * After convergence, this routine also returns the density matrix for
- * evaluating the electron density.  It also returns the free energy
- * density matrix for evaluating the (Helmholtz or Mermin) free energy,
- * and the energy density matrix for evaluating the atomic force.
+ * The input parameter options are controlled through the structure
+ * PPEXSIOptions.  The default value can be obtained through
+ * PPEXSISetDefaultDFTOptions.
  *
- * **Note**
- * - H and S are always real symmetric matrices, are saved in the
- *   compressed sparse column (CSC) format, and have the same sparsity
- *   pattern.
- * - The input of S is optional, and the shift z can be 0.
- * - The initial guess for the chemical potential mu0, and the lower / 
- *   upper bounds muMin0 / muMax0 should be obtained from 
- *   @ref PPEXSIInertiaCountInterface, or from heuristics using
- *   information from previous steps.
- * - In the current version of the interface routines, the number of 
- * processors used for each selected inversion process must be a square 
- * number.
  *
- * @todo The estimation of deltaE should be estimated in a more
- * automatic way later, using a few steps of Lanczos.
+ * **Basic strategy of the heuristics**
  *
- * @param[in] nrows (global) Number of rows and columns of the matrix.
- * @param[in] nnz (global) Total number of nonzeros of H.
- * @param[in] nnzLocal (local) Number of local nonzeros of H.
- * @param[in] numColLocal (local) Number of local columns for H.
- * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
- * pointer in CSC format.
- * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
- * pointer in CSC format.
- * @param[in] HnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * values of H in CSC format.
- * @param[in] isSIdentity (global) Whether S is an identity matrix. 
- * If so, the variable SnzvalLocal is omitted.
- * @param[in] SnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * value of S in CSC format.
- * @param[in] temperature (global) Temperature, in the same unit as H
- * @param[in] numElectronExact (global) Exact number of electrons, i.e. \f$N_e(\mu_{\mathrm{exact}})\f$.
- * @param[in] mu0      (global) Initial guess for mu.
- * @param[in] muMin0   (global) Initial guess of lower bound for mu.
- * @param[in] muMax0   (global) Initial guess of upper bound for mu.
- * @param[in] gap      (global) A lower bound for the band gap.
- * Currently it is recommended to set this to 0, which works for all
- * systems.
- * @param[in] deltaE   (global) An upper bound for the spectral radius
- * of \f$S^{-1} H\f$.  
- * @param[in] numPole  (global) Number of poles.
- * @param[in] maxIter  (global) Maximum number of iterations.
- * @param[in] numElectronTolerance (global) Stopping criterion of the
- * iterations.
- * @param[in] ordering (global) Ordering strategy for factorization and selected
- * inversion.  
- * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
- *   option in SuperLU_DIST).
- * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
- *   option in SuperLU_DIST).
- * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
- *   option in SuperLU_DIST).
- * @param[in] npPerPole  (global) Number of processors per pole
- * (ppp).  
- * @param[in] npSymbFact (global) Number of processors for
- * PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
- * @param[in] comm (global) MPI communicator.
+ * - If isInertiaCount == 1, then the inertia counting procedure is
+ * invoked until the chemical potential interval is refined from size
+ * (muMax0-muMin0) to muInertiaTolerance, or the estimated band gap is
+ * larger than muInertiaTolerance.
+ * - If the change of step in Newton's iteration is larger than
+ * muPEXSISafeGuard, the the inertia counting procedure is invoked
+ * again, starting from (muMin0, muMax0).  If Newton's iteration fails
+ * again, the subroutine returns error message with info = 1.
+ * - The number of shifts in the inertia count is always automatically
+ * chosen to be (mpisize / npPerPole). This minimizes the wall clock
+ * time of the inertia counting procedure.
+ *
+ * **Complex Hermitian case**
+ *
+ * This file should work for both real symmetric and complex Hermitian H
+ * and S matrices.  However, the complex Hermitian case require
+ * asymmetric PSelInv which will be in the future work.
+ *
+ * **Input/Output**
+ *
+ * The input H and S matrices should be given by loading functions
+ * (currently it is PPEXSILoadRealSymmetricHSMatrix).  The output
+ * matrices should be obtained from retrieving functions (currently it
+ * is PPEXSIRetrieveRealSymmetricDFTMatrix).
+ *
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] numElectronExact (global) Exact number of electrons, i.e.
+ * \f$N_e(\mu_{\mathrm{exact}})\f$.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
  * @param[out]  DMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero value
  * of density matrix in CSC format.
  * @param[out] EDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
@@ -493,247 +417,98 @@ void PPEXSIRawInertiaCountInterface(
  * value of free energy density matrix in CSC format.
  * @param[out] muPEXSI      (global) Chemical potential after the last
  * iteration.
+ * - In the case that convergence is reached within maxPEXSIIter steps, the
+ * value of muPEXSI is the last mu used to achieve accuracy within
+ * numElectronPEXSITolerance.
+ * - In the case that convergence is not reached within maxPEXSIIter steps,
+ * and the update from Newton's iteration does not exceed
+ * muPEXSISafeGuard, the value of muPEXSI is the last mu plus the update
+ * from Newton's iteration.
+ *
  * @param[out] numElectronPEXSI (global) Number of electrons
- * evaluated at muPEXSI after the last iteration.
- * @param[out] muMinPEXSI   (global) Lower bound for mu after the last
- * iteration.
- * @param[out] muMaxPEXSI   (global) Upper bound for mu after the last
- * iteration.
- * @param[out] numIter      (global) Number of iterations used before
- * reaching the stopping criterion.
- * @param[out] muList       (global) Dimension: numIter. The history of chemical potential.
- * @param[out] numElectronList (global) Dimension: numIter. The history of the number of
- * electrons evaluated at each mu in muList.
- * @param[out] numElectronDrvList (global) Dimension: numIter. The history of the derivative
- * of the number of electrons with respect to mu, evaluated at each mu
- * in muList. This is used in the Newton iteration.
- * @param[out] info 
- * - = 0: successful exit.  
- * - > 0: unsuccessful.
- */ 
-void PPEXSISolveInterface (
-		int           nrows,                        
-	  int           nnz,                          
-		int           nnzLocal,                     
-		int           numColLocal,                  
-		int*          colptrLocal,                  
-		int*          rowindLocal,                  
-		double*       HnzvalLocal,                  
-		int           isSIdentity,                  
-		double*       SnzvalLocal,                 
-		double        temperature,                 
-		double        numElectronExact,            
-		double        mu0,                         
-		double        muMin0,                      
-		double        muMax0,                      
-		double        gap,                        
-		double        deltaE,                    
-		int           numPole,                  
-		int           maxIter,                 
-		double        numElectronTolerance,   
-		int           ordering,               
-	  int           npPerPole,             
-		int           npSymbFact,           
-	  MPI_Comm	    comm,                 
-		double*      DMnzvalLocal,                  
-		double*     EDMnzvalLocal,                 
-		double*     FDMnzvalLocal,                
-		double*       muPEXSI,                   
-		double*       numElectronPEXSI,         
-		double*       muMinPEXSI,              
-		double*       muMaxPEXSI,             
-		int*          numIter,               
-		double*       muList,               
-		double*       numElectronList,     
-		double*       numElectronDrvList, 
-		int*          info                
-		);
-
-
-/**
- *  @brief Driver interface for computing the local density of states.
- *
- *  The local density of states (LDOS) can be evaluated as
- *  \f[
- *     n(r;E) = \lim_{\eta->0+} \mathrm{Im} \frac{1}{\pi} 
- *       \langle r\vert (H-(E+i \eta)I)^{-1} \vert r \rangle.
- *  \f]
- *  For nonorthogonal basis functions, this routine returns
- *  of the matrix
- *  \f[
- *     \frac{1}{\pi} \mathrm{Im} ( H - (E+i \eta) S )^{-1},
- *  \f]
- *  and the LDOS in the real space can be constructed in the same way
- *  that the density is constructed.
- *
- * **Note** 
- * - H and S are always real symmetric matrices, are saved in the
- *   compressed sparse column (CSC) format, and have the same sparsity
- *   pattern.
- * - The input of S is optional, and the shift z can be 0.
- *
- * @param[in] nrows (global) Number of rows and columns of the matrix.
- * @param[in] nnz (global) Total number of nonzeros of H.
- * @param[in] nnzLocal (local) Number of local nonzeros of H.
- * @param[in] numColLocal (local) Number of local columns for H.
- * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
- * pointer in CSC format.
- * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
- * pointer in CSC format.
- * @param[in] HnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * values of H in CSC format.
- * @param[in] isSIdentity (global) Whether S is an identity matrix. 
- * If so, the variable SnzvalLocal is omitted.
- * @param[in] SnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * value of S in CSC format.
- * @param[in] Energy      (global) Real part of the shift.
- * @param[in] eta         (global) Imaginary part of the shift, or the
- * "broadening" parameter \f$\eta\f$.
- * @param[in] ordering (global) Ordering strategy for factorization and selected
- * inversion.  
- * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
- *   option in SuperLU_DIST).
- * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
- *   option in SuperLU_DIST).
- * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
- *   option in SuperLU_DIST).
- * @param[in] npSymbFact (global) Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
- * @param[in] comm (global) MPI communicator.
- * @param[out] localDOSnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * values of the selected elements of \f$\frac{1}{\pi} \mathrm{Im} ( H - (E+i \eta) S )^{-1}\f$.
- * @param[out] info 
- * - = 0: successful exit.  
- * - > 0: unsuccessful.
- */    
-void PPEXSILocalDOSInterface (
-		int           nrows, 
-	  int           nnz,   
-		int           nnzLocal, 
-		int           numColLocal, 
-		int*          colptrLocal, 
-		int*          rowindLocal,
-		double*       HnzvalLocal,
-		int           isSIdentity, 
-		double*       SnzvalLocal, 
-		double        Energy,      
-		double        eta,         
-		int           ordering,   
-		int           npSymbFact,
-	  MPI_Comm	    comm,        
-		double*       localDOSnzvalLocal, 
-		int*          info               
-		);
-
-
-/**
- * @brief Simplified driver interface for computing the selected
- * elements of a real symmetric symmetric.
- *
- * @param[in] nrows (global) Number of rows and columns of the matrix.
- * @param[in] nnz (global) Total number of nonzeros of H.
- * @param[in] nnzLocal (local) Number of local nonzeros of H.
- * @param[in] numColLocal (local) Number of local columns for H.
- * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
- * pointer in CSC format.
- * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
- * pointer in CSC format.
- * @param[in] AnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * values of A in CSC format.  
- * @param[in] ordering (global) Ordering strategy for factorization and selected
- * inversion.  
- * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
- *   option in SuperLU_DIST).
- * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
- *   option in SuperLU_DIST).
- * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
- *   option in SuperLU_DIST).
- * @param[in] npSymbFact (global) Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
- * @param[in] comm (global) MPI communicator. NOTE: mpisize should be
- * equal to nprow * npcol
- * @param[in] nprow (global) Number of row processors.
- * @param[in] npcol (global) Number of column processors.  
- * @param[out] AinvnzvalLocal (local) Dimension: nnzLocal. Local nonzero
- * values of the selected elements of \f$A^{-1}\f$.
- * @param[out] info 
+ * evaluated at the last step.  
+ * **Note** In the case that convergence is not reached within maxPEXSIIter steps,
+ * and numElectron does not correspond to the number of electrons
+ * evaluated at muPEXSI.
+ * @param[out] muMinInertia (global) Lower bound for mu after the last
+ * inertia count procedure.
+ * @param[out] muMaxInertia (global) Upper bound for mu after the last
+ * inertia count procedure.
+ * @param[out] numTotalInertiaIter (global) Number of total inertia
+ * counting procedure.
+ * @param[out] numTotalPEXSIIter (global) Number of total %PEXSI
+ * evaluation procedure.
+ * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PSelInvRealSymmetricInterface ( 
-    int           nrows,                        
-    int           nnz,                          
-    int           nnzLocal,                     
-    int           numColLocal,                  
-    int*          colptrLocal,                  
-    int*          rowindLocal,                  
-    double*       AnzvalLocal,                  
-    int           ordering,                
-    int           npSymbFact,                   
-    MPI_Comm	    comm,
-    int           nprow,
-    int           npcol,
-    double*       AinvnzvalLocal,
-    int*          info
-    );
-
+void PPEXSIDFTDriver(
+    PPEXSIPlan        plan,
+    double            numElectronExact,
+    PPEXSIOptions     options,
+		double*           muPEXSI,
+		double*           numElectronPEXSI,
+    double*           muMinInertia,
+		double*           muMaxInertia,
+		int*              numTotalInertiaIter,
+		int*              numTotalPEXSIIter,
+    int*              info );
 
 /**
- * @brief Simplified driver interface for computing the selected
- * elements of a complex symmetric symmetric.
+ * @brief Retrieve the output matrices after running PPEXSIDFTDriver.
+
  *
- * @param[in] nrows (global) Number of rows and columns of the matrix.
- * @param[in] nnz (global) Total number of nonzeros of H.
- * @param[in] nnzLocal (local) Number of local nonzeros of H.
- * @param[in] numColLocal (local) Number of local columns for H.
- * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
- * pointer in CSC format.
- * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
- * pointer in CSC format.
- * @param[in] AnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
- * values of A in CSC format.  
- * - Use 2 double for one complex number. This
- * ensures the compatibility with FORTRAN.  
- * - Real part: AnzvalLocal[2*k]. Imag part: AnzvalLocal[2*k+1].
- * @param[in] ordering (global) Ordering strategy for factorization and selected
- * inversion.  
- * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
- *   option in SuperLU_DIST).
- * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
- *   option in SuperLU_DIST).
- * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
- *   option in SuperLU_DIST).
- * @param[in] npSymbFact (global) Number of processors for PARMETIS/PT-SCOTCH.  Only used if the ordering = 0.
- * @param[in] comm (global) MPI communicator. NOTE: mpisize should be
- * equal to nprow * npcol
- * @param[in] nprow (global) Number of row processors.
- * @param[in] npcol (global) Number of column processors.  
- * @param[out] AinvnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
- * values of the selected elements of \f$A^{-1}\f$.
- * - Use 2 double for one complex number. This ensures the compatibility with FORTRAN.
- * - Real part: AinvnzvalLocal[2*k]. Imag part: AinvnzvalLocal[2*k+1].
- * @param[out] info 
+ * The output matrices are of real arithmetic.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out]  DMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero value
+ * of density matrix in CSC format.
+ * @param[out] EDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of energy density matrix in CSC format.
+ * @param[out] FDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of free energy density matrix in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PSelInvComplexSymmetricInterface ( 
-    int           nrows,                        
-    int           nnz,                          
-    int           nnzLocal,                     
-    int           numColLocal,                  
-    int*          colptrLocal,                  
-    int*          rowindLocal,                  
-    double*       AnzvalLocal,                  
-    int           ordering,                
-    int           npSymbFact,                   
-    MPI_Comm	    comm,
-    int           nprow,
-    int           npcol,
-    double*       AinvnzvalLocal,
-    int*          info
-    );
+void PPEXSIRetrieveRealSymmetricDFTMatrix(
+    PPEXSIPlan        plan,
+		double*      DMnzvalLocal,
+		double*     EDMnzvalLocal,
+		double*     FDMnzvalLocal,
+    double*     totalEnergyH,
+    double*     totalEnergyS,
+    double*     totalFreeEnergy,
+    int*              info );
+
+
+/* FIXME */
+void PPEXSIRealSymmetricRawInertiaCount(
+    PPEXSIPlan        plan,
+    int               numShift,
+		double*           shiftVec,            
+    PPEXSIOptions     options,
+		int*              inertiaVec,
+    int*              info );
+
+
+/**
+ * @brief Release the memory used by %PEXSI.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIPlanFinalize( 
+    PPEXSIPlan plan, 
+    int*       info );
 
 
 #ifdef __cplusplus
 }// extern "C"
 #endif
 
-#endif // _C_PEXSI_INTERFACE_H_
+#endif // _PEXSI_C_PEXSI_INTERFACE_H_

@@ -44,8 +44,8 @@
 /// @file timer.h
 /// @brief Profiling and timing using TAU
 /// @date 2013-09-06
-#ifndef __TIMER_H__
-#define __TIMER_H__
+#ifndef _PEXSI_TIMER_H_
+#define _PEXSI_TIMER_H_
 
 #define VAL(str) #str
 #define TOSTRING(str) VAL(str)
@@ -183,5 +183,5 @@ void CTF_set_context(MPI_Comm ctxt);
               __t.stop(); }
 #endif
 
-#endif
+#endif //_PEXSI_TIMER_H_
 
