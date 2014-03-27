@@ -240,7 +240,8 @@ int main(int argc, char **argv)
   options.numPole  = 60;
   options.temperature  = 0.019; // 3000K
   options.muPEXSISafeGuard  = 0.2; 
-  options.numElectronPEXSITolerance = 0.0001;
+  options.numElectronPEXSITolerance = 0.001;
+  options.isSymbolicFactorize = 1;
 
   PPEXSIPlan   plan;
 
@@ -294,6 +295,64 @@ int main(int argc, char **argv)
       printf("Total energy (H*DM)         = %15.5f\n", totalEnergyH);
       printf("Total energy (S*EDM)        = %15.5f\n", totalEnergyS);
       printf("Total free energy           = %15.5f\n", totalFreeEnergy);
+    }
+  }
+
+  // Solve the problem once again without symbolic factorization
+  {
+    if( mpirank == 0 ){
+      printf("To test the correctness of the program, solve the problem \n");
+      printf("again without symbolic factorization or inertia counting.\n");
+    }
+
+    PPEXSILoadRealSymmetricHSMatrix( 
+        plan, 
+        nrows,
+        nnz,
+        nnzLocal,
+        numColLocal,
+        colptrLocal,
+        rowindLocal,
+        HnzvalLocal,
+        isSIdentity,
+        SnzvalLocal,
+        &info );
+
+    // No symbolic factorization
+    options.muMin0 = muMinInertia;
+    options.muMax0 = muMaxInertia;
+    options.isInertiaCount = 0;
+    options.isSymbolicFactorize = 0;
+
+    PPEXSIDFTDriver(
+        plan,
+        numElectronExact,
+        options,
+        &muPEXSI,                   
+        &numElectronPEXSI,         
+        &muMinInertia,              
+        &muMaxInertia,             
+        &numTotalInertiaIter,   
+        &numTotalPEXSIIter,   
+        &info );
+
+    if( isProcRead == 1 ){
+      PPEXSIRetrieveRealSymmetricDFTMatrix(
+          plan,
+          DMnzvalLocal,
+          EDMnzvalLocal,
+          FDMnzvalLocal,
+          &totalEnergyH,
+          &totalEnergyS,
+          &totalFreeEnergy,
+          &info );
+
+      if( mpirank == 0 ){
+        printf("Output from the main program\n");
+        printf("Total energy (H*DM)         = %15.5f\n", totalEnergyH);
+        printf("Total energy (S*EDM)        = %15.5f\n", totalEnergyS);
+        printf("Total free energy           = %15.5f\n", totalFreeEnergy);
+      }
     }
   }
 

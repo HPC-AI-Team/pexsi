@@ -91,6 +91,8 @@ PPEXSINewData::PPEXSINewData	(
 
   // Initialize the saved variables
   muPEXSISave_ = 0.0;
+  isMatrixLoaded_       = false;
+  isSymbolicFactorized_ = false;
   
 #ifndef _RELEASE_
 	PopCallStack();
@@ -148,6 +150,11 @@ PPEXSINewData::LoadRealSymmetricMatrix	(
 #ifndef _RELEASE_
   PushCallStack("PPEXSINewData::LoadRealSymmetricMatrix");
 #endif
+  // Clear the previously saved information
+  HRealMat_ = DistSparseMatrix<Real>();
+  SRealMat_ = DistSparseMatrix<Real>();
+
+  // Data communication
   std::vector<char> sstr;
   Int sizeStm;
   if( MYROW( gridPole_ ) == 0 ){
@@ -222,6 +229,7 @@ PPEXSINewData::LoadRealSymmetricMatrix	(
   statusOFS << "H.nnzLocal = " << HRealMat_.nnzLocal << std::endl;
   statusOFS << "S.size     = " << SRealMat_.size     << std::endl;
   statusOFS << "S.nnzLocal = " << SRealMat_.nnzLocal << std::endl;
+  statusOFS << std::endl << std::endl;
 #endif
 
 
@@ -246,6 +254,7 @@ PPEXSINewData::LoadRealSymmetricMatrix	(
 		} // for (j)
 	}
 
+  isMatrixLoaded_ = true;
 
 #ifndef _RELEASE_
   PopCallStack();
@@ -254,13 +263,203 @@ PPEXSINewData::LoadRealSymmetricMatrix	(
   return ;
 }    	// -----  end of method PPEXSINewData::LoadRealSymmetricMatrix  ----- 
 
+
+void
+PPEXSINewData::SymbolicFactorizeRealSymmetricMatrix	(
+    std::string                    ColPerm,
+    Int                            numProcSymbFact,
+    Int                            verbosity )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSINewData::SymbolicFactorizeRealSymmetricMatrix");
+#endif
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealSymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+  
+  // Real matrices
+  {
+    if( verbosity >= 1 ){
+      statusOFS << "Symbolic factorization for the real matrix."  << std::endl;
+    }
+
+    SuperLUMatrix<Real>&    luMat     = luRealMat_;
+    PMatrix<Real>&          PMloc     = PMRealMat_;
+    SuperNodeType&          super     = superReal_;
+
+    // Clear the matrices first
+    luMat = SuperLUMatrix<Real>();
+    PMloc = PMatrix<Real>();
+
+    SuperLUOptions   luOpt;
+
+    luOpt.ColPerm = ColPerm;
+    luOpt.numProcSymbFact = numProcSymbFact;
+    luOpt.maxPipelineDepth = -1;
+
+    luMat.Setup( *gridSuperLUReal_, luOpt );  // SuperLU matrix.
+
+    DistSparseMatrix<Real> AMat;
+    CopyPattern( HRealMat_, AMat );
+
+    SetValue( AMat.nzvalLocal, D_ZERO );          // Symbolic factorization does not need value
+
+    Real timeSta, timeEnd;
+    GetTime( timeSta );
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS << "Time for SuperMatrix conversion is " <<
+        timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    GetTime( timeSta );
+    luMat.SymbolicFactorize();
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for symbolic factorization is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    luMat.SymbolicToSuperNode( super );
+    
+    PMloc.Setup( gridSelInv_, &super , &luOpt );
+    GetTime( timeSta );
+    luMat.LUstructToPMatrix( PMloc );
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for converting LUstruct to PMatrix is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    GetTime( timeSta );
+    PMloc.ConstructCommunicationPattern();
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for constructing communication pattern is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+
+    // Compute the number of nonzeros from PMatrix
+    if( verbosity >= 1 ) {
+      Int nnzLocal = PMloc.NnzLocal();
+      statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
+      LongInt nnz  = PMloc.Nnz();
+      statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+    }
+
+    // Get ready for the factorization for another matrix using the same
+    // sparsity pattern
+    luMat.DestroyAOnly();
+
+    if( verbosity >= 2 ){
+      statusOFS << "perm: "    << std::endl << super.perm     << std::endl;
+      statusOFS << "permInv: " << std::endl << super.permInv  << std::endl;
+      statusOFS << "superIdx:" << std::endl << super.superIdx << std::endl;
+      statusOFS << "superPtr:" << std::endl << super.superPtr << std::endl; 
+    }
+  }
+
+  // Complex matrices
+  {
+    if( verbosity >= 1 ){
+      statusOFS << "Symbolic factorization for the complex matrix."  << std::endl;
+    }
+
+    SuperLUMatrix<Complex>&    luMat     = luComplexMat_;
+    PMatrix<Complex>&          PMloc     = PMComplexMat_;
+    SuperNodeType&          super        = superComplex_;
+
+    // Clear the matrices first
+    luMat = SuperLUMatrix<Complex>();
+    PMloc = PMatrix<Complex>();
+
+    SuperLUOptions   luOpt;
+
+    luOpt.ColPerm = ColPerm;
+    luOpt.numProcSymbFact = numProcSymbFact;
+    luOpt.maxPipelineDepth = -1;
+
+    luMat.Setup( *gridSuperLUComplex_, luOpt );  // SuperLU matrix.
+
+    DistSparseMatrix<Complex> AMat;
+    CopyPattern( HRealMat_, AMat );
+
+    SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
+
+    Real timeSta, timeEnd;
+    GetTime( timeSta );
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS << "Time for SuperMatrix conversion is " <<
+        timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    GetTime( timeSta );
+    luMat.SymbolicFactorize();
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for symbolic factorization is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    luMat.SymbolicToSuperNode( super );
+    
+    PMloc.Setup( gridSelInv_, &super , &luOpt );
+    GetTime( timeSta );
+    luMat.LUstructToPMatrix( PMloc );
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for converting LUstruct to PMatrix is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    GetTime( timeSta );
+    PMloc.ConstructCommunicationPattern();
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for constructing communication pattern is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+
+    // Compute the number of nonzeros from PMatrix
+    if( verbosity >= 1 ) {
+      Int nnzLocal = PMloc.NnzLocal();
+      statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
+      LongInt nnz  = PMloc.Nnz();
+      statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+    }
+
+    // Get ready for the factorization for another matrix using the same
+    // sparsity pattern
+    luMat.DestroyAOnly();
+
+    if( verbosity >= 2 ){
+      statusOFS << "perm: "    << std::endl << super.perm     << std::endl;
+      statusOFS << "permInv: " << std::endl << super.permInv  << std::endl;
+      statusOFS << "superIdx:" << std::endl << super.superIdx << std::endl;
+      statusOFS << "superPtr:" << std::endl << super.superPtr << std::endl; 
+    }
+  }
+
+
+  isSymbolicFactorized_ = true;
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PPEXSINewData::SymbolicFactorizeRealSymmetricMatrix  ----- 
+
 void PPEXSINewData::CalculateNegativeInertiaReal(
 		const std::vector<Real>&       shiftVec, 
 		std::vector<Real>&             inertiaVec,
-		const DistSparseMatrix<Real>&  HMat,
-		const DistSparseMatrix<Real>&  SMat,
-		std::string                    ColPerm,
-		Int                            numProcSymbFact,
     Int                            verbosity ){
 #ifndef _RELEASE_
   PushCallStack("PPEXSINewData::CalculateNegativeInertiaReal");
@@ -269,66 +468,32 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
 	// *********************************************************************
 	// Initialize
 	// *********************************************************************
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealSymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
 
-  // rename for convenience
+  if( isSymbolicFactorized_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been factorized symbolically." << std::endl
+      << "Call SymbolicFactorizeRealSymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+
+
+  // Rename for convenience.
+  // The symbolic information should have already been there.
+  DistSparseMatrix<Real>&  HMat     = HRealMat_;
+  DistSparseMatrix<Real>&  SMat     = SRealMat_;
   DistSparseMatrix<Real>& AMat      = shiftRealMat_;  // A = H - \lambda  S
   SuperLUMatrix<Real>&    luMat     = luRealMat_;
   PMatrix<Real>&          PMloc     = PMRealMat_;
-  // FIXME
-  luMat = SuperLUMatrix<Real>();
 
-	// Copy the pattern
-	CopyPattern( HMat, AMat );
-
-	SetValue( AMat.nzvalLocal, D_ZERO );          // Symbolic factorization does not need value
-
-	SuperLUOptions   luOpt;
-
-	luOpt.ColPerm = ColPerm;
-	luOpt.numProcSymbFact = numProcSymbFact;
-
- 	luMat.Setup( *gridSuperLUReal_, luOpt );  // SuperLU matrix.
-
-	// *********************************************************************
-	// Symbolic factorization.  
-	// Each numPoleGroup perform independently
-	// *********************************************************************
-	Real timeSta, timeEnd;
-	GetTime( timeSta );
-	luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
-	GetTime( timeEnd );
-  if( verbosity >= 1 ){
-    statusOFS << "AMat is converted to SuperMatrix." << std::endl;
-    statusOFS << "Time for SuperMatrix conversion is " <<
-      timeEnd - timeSta << " [s]" << std::endl << std::endl;
-  }
-	GetTime( timeSta );
-	luMat.SymbolicFactorize();
-	GetTime( timeEnd );
-  if( verbosity >= 1 ){
-    statusOFS << "Symbolic factorization is finished." << std::endl;
-    statusOFS << "Time for symbolic factorization is " <<
-      timeEnd - timeSta << " [s]" << std::endl << std::endl;
-  }
-	luMat.SymbolicToSuperNode( super_ );
-	luMat.DestroyAOnly();
-
-	// Compute the number of nonzeros from PMatrix
-  if( verbosity >= 1 ) {
-    PMloc.Setup( gridSelInv_, &super_ , &luOpt );
-    luMat.LUstructToPMatrix( PMloc );
-    Int nnzLocal = PMloc.NnzLocal();
-    statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
-    LongInt nnz  = PMloc.Nnz();
-    statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
-  }
-
-  if( verbosity >= 2 ){
-    statusOFS << "perm: "    << std::endl << super_.perm     << std::endl;
-    statusOFS << "permInv: " << std::endl << super_.permInv  << std::endl;
-    statusOFS << "superIdx:" << std::endl << super_.superIdx << std::endl;
-    statusOFS << "superPtr:" << std::endl << super_.superPtr << std::endl; 
-  }
+  CopyPattern( HMat, AMat );
 
 	Real timeShiftSta, timeShiftEnd;
 	
@@ -416,8 +581,6 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
 			Real timeInertiaSta, timeInertiaEnd;
 			GetTime( timeInertiaSta );
 
-			PMloc.Setup( gridSelInv_, &super_, &luOpt ); // A^{-1} in PMatrix format
-
 			luMat.LUstructToPMatrix( PMloc );
 
 			// Compute the negative inertia of the matrix.
@@ -456,17 +619,28 @@ void PPEXSINewData::CalculateFermiOperatorReal(
     Real  mu,
     Real  numElectronExact,
     Real  numElectronTolerance,
-    const DistSparseMatrix<Real>&  HMat,
-    const DistSparseMatrix<Real>&  SMat,
-    std::string         ColPerm,
-    Int                 numProcSymbFact,
-    Int                 verbosity,
+    Int   verbosity,
     Real& numElectron,
     Real& numElectronDrvMu ){
 
 #ifndef _RELEASE_
   PushCallStack("PPEXSINewData::CalculateFermiOperatorReal");
 #endif
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealSymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+
+  if( isSymbolicFactorized_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been factorized symbolically." << std::endl
+      << "Call SymbolicFactorizeRealSymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
 
   // *********************************************************************
   // Check the input parameters
@@ -475,14 +649,13 @@ void PPEXSINewData::CalculateFermiOperatorReal(
     throw std::logic_error( "Must be even number of poles!" );
   }
 
-  // TODO Check H and S have the same pattern
-
-  // TODO Check H and S agree with gridPole_
-
   // *********************************************************************
   // Initialize
   // *********************************************************************
-  // rename for convenience
+  // Rename for convenience
+  DistSparseMatrix<Real>&  HMat        = HRealMat_;
+  DistSparseMatrix<Real>&  SMat        = SRealMat_;
+
   DistSparseMatrix<Real>& rhoMat       = rhoRealMat_;     
   DistSparseMatrix<Real>& rhoDrvMuMat  = rhoDrvMuRealMat_;
   DistSparseMatrix<Real>& rhoDrvTMat   = rhoDrvTRealMat_;
@@ -492,11 +665,9 @@ void PPEXSINewData::CalculateFermiOperatorReal(
   DistSparseMatrix<Complex>& AMat      = shiftComplexMat_;
   DistSparseMatrix<Complex>& AinvMat   = shiftInvComplexMat_;
 
+  // The symbolic information should have already been there.
   SuperLUMatrix<Complex>& luMat        = luComplexMat_;
   PMatrix<Complex>&       PMloc        = PMComplexMat_;
-  // FIXME
-  luMat = SuperLUMatrix<Complex>();
-  PMloc = PMatrix<Complex>();
 
   // 
   bool isFreeEnergyDensityMatrix = true;
@@ -513,70 +684,6 @@ void PPEXSINewData::CalculateFermiOperatorReal(
     CopyPattern( HMat, frcMat );
   if( isDerivativeTMatrix )
     CopyPattern( HMat, rhoDrvTMat );
-
-  SetValue( AMat.nzvalLocal, Z_ZERO );          
-  // Symbolic factorization does not need value
-
-  if( verbosity >= 2 ){
-    statusOFS << "AMat.nnzLocal = " << AMat.nnzLocal << std::endl;
-    statusOFS << "AMat.nnz      = " << AMat.Nnz()    << std::endl;
-  }
-
-  SuperLUOptions   luOpt;
-
-  luOpt.ColPerm = ColPerm;
-  luOpt.numProcSymbFact = numProcSymbFact;
-  // TODO Introduce maxPipelineDepth as an adjustable parameter when needed.
-  luOpt.maxPipelineDepth = -1;
-
-  // FIXME Update to new superlumatrix formulation using the template format. 
-  // FIXME Symbolic factorization to be put outside the routine
-  luMat.Setup( *gridSuperLUComplex_, luOpt );  // SuperLU matrix.
-
-  // *********************************************************************
-  // Symbolic factorization.  
-  // Each numPoleGroup perform independently
-  // *********************************************************************
-  Real timeSta, timeEnd;
-  GetTime( timeSta );
-  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
-  GetTime( timeEnd );
-  if( verbosity >= 1 ){
-    statusOFS << "AMat is converted to SuperMatrix." << std::endl;
-    statusOFS << "Time for SuperMatrix conversion is " <<
-      timeEnd - timeSta << " [s]" << std::endl << std::endl;
-  }
-  GetTime( timeSta );
-  luMat.SymbolicFactorize();
-  GetTime( timeEnd );
-  if( verbosity >= 1 ){
-    statusOFS << "Symbolic factorization is finished." << std::endl;
-    statusOFS << "Time for symbolic factorization is " <<
-      timeEnd - timeSta << " [s]" << std::endl << std::endl;
-  }
-  luMat.SymbolicToSuperNode( super_ );
-  luMat.DestroyAOnly();
-  
-  PMloc.Setup( gridSelInv_, &super_ , &luOpt);
-  luMat.LUstructToPMatrix( PMloc );
-  // P2p communication version
-  PMloc.ConstructCommunicationPattern();
-
-
-  // Compute the number of nonzeros from PMatrix
-  if( verbosity >= 0 ){
-    Int nnzLocal = PMloc.NnzLocal();
-    statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
-    LongInt nnz  = PMloc.Nnz();
-    statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
-  }
-
-  if( verbosity >= 2 ){
-    statusOFS << "perm: "    << std::endl << super_.perm     << std::endl;
-    statusOFS << "permInv: " << std::endl << super_.permInv  << std::endl;
-    statusOFS << "superIdx:" << std::endl << super_.superIdx << std::endl;
-    statusOFS << "superPtr:" << std::endl << super_.superPtr << std::endl; 
-  }
 
   // Reinitialize the variables
   SetValue( rhoMat.nzvalLocal, 0.0 );
@@ -1088,6 +1195,7 @@ PPEXSINewData::DFTDriver (
     Real       muPEXSISafeGuard,
     Real       numElectronPEXSITolerance,
     Int        matrixType,
+    Int        isSymbolicFactorize,
     Int        ordering,
     Int        numProcSymbFact,
     Int        verbosity,
@@ -1135,6 +1243,27 @@ PPEXSINewData::DFTDriver (
 
   if( matrixType != 0 ){
     throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
+  }
+
+  // Perform symbolic factorization first if required
+  if( isSymbolicFactorize == true ){
+    if( verbosity >= 1 ){
+      statusOFS << "Perform symbolic factorization now." << std::endl;
+    }
+    if( matrixType == 0 ){
+      SymbolicFactorizeRealSymmetricMatrix( 
+          colPerm, 
+          numProcSymbFact,
+          verbosity );
+    }
+  }
+  else{
+    if( verbosity >= 1 ){
+      statusOFS << "Skip symbolic factorization" << std::endl
+        << "NOTE: This assumes that symbolic factorization has been done, "
+        << "and the input H and S matrices have the same sparisty as "
+        << "previously used." << std::endl;
+    }
   }
 
   // Main loop: inertia count + PEXSI
@@ -1208,10 +1337,6 @@ PPEXSINewData::DFTDriver (
           CalculateNegativeInertiaReal(
               shiftVec,
               inertiaVec,
-              HRealMat_,
-              SRealMat_,
-              colPerm,
-              numProcSymbFact,
               verbosity );
         }
 
@@ -1384,10 +1509,6 @@ PPEXSINewData::DFTDriver (
             muPEXSI,
             numElectronExact,
             numElectronPEXSITolerance,
-            HRealMat_,
-            SRealMat_,
-            colPerm,
-            numProcSymbFact,
             verbosity,
             numElectronPEXSI,
             numElectronDrvMuPEXSI );
@@ -1528,6 +1649,7 @@ PPEXSINewData::DFTDriver (
 		Print( statusOFS, "Total energy (H*DM)         = ", totalEnergyH_ );
 		Print( statusOFS, "Total energy (S*EDM)        = ", totalEnergyS_ );
 		Print( statusOFS, "Total free energy           = ", totalFreeEnergy_ );
+    statusOFS << std::endl << std::endl;
   }
 
   // Save the PEXSI variable

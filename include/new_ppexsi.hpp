@@ -85,7 +85,6 @@ namespace PEXSI{
    	const SuperLUGrid<Real>*       gridSuperLUReal_;           
    	const SuperLUGrid<Complex>*    gridSuperLUComplex_;           
 
-		SuperNodeType             super_;             // Supernode partition
 
     DistSparseMatrix<Real>     HRealMat_;
     DistSparseMatrix<Real>     SRealMat_;
@@ -111,8 +110,16 @@ namespace PEXSI{
     PMatrix<Real>              PMRealMat_;
     PMatrix<Complex>           PMComplexMat_;
 
-
-
+    // Whether the matrices have been loaded into HRealMat_ and
+    // SRealMat_
+    bool                       isMatrixLoaded_;
+    // Whether the matrices (luMat and PMat) have obtained symbolic
+    // information
+    bool                       isSymbolicFactorized_;
+    // Supernode partition for the real matrix
+    SuperNodeType              superReal_;             
+    // Supernode partition for the complex matrix
+    SuperNodeType              superComplex_;             
 
 		// Saves all the indices of diagonal elements in H, so that
 		// H.nzvalLocal(diagIdxLocal_[j]) are diagonal elements for all j.
@@ -152,6 +159,26 @@ namespace PEXSI{
         Int           isSIdentity,                  
         Real*         SnzvalLocal );
 
+    
+    /// @brief Symbolically factorize the loaded matrices 
+    ///
+    /// Both luRealMat_ and luComplexMat_ will be factorized.
+    ///
+    /// The symbolic information will be passed to PMRealMat_ and
+    /// PMComplexMat_, respectively.
+    ///
+		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		///
+		/// @param[in] numProcSymbFact Number of processors used for parallel
+		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+    /// @param[in] verbosity The level of output information.
+    /// - = 0   : No output.
+    /// - = 1   : Basic output (default)
+    /// - = 2   : Detailed output.
+    void SymbolicFactorizeRealSymmetricMatrix(
+				std::string                    ColPerm,
+				Int                            numProcSymbFact,
+        Int                            verbosity );
 
 		/// @brief Compute the negative inertia (the number of eigenvalues
 		/// below a shift) for real symmetric matrices.  The factorization
@@ -177,10 +204,6 @@ namespace PEXSI{
 		///
 		/// **Note**: If SMat.size == 0, SMat is treated as an identity matrix.
 		/// 
-		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
-		///
-		/// @param[in] numProcSymbFact Number of processors used for parallel
-		/// symbolic factorization and PARMETIS/PT-SCOTCH.
     /// @param[in] verbosity The level of output information.
     /// - = 0   : No output.
     /// - = 1   : Basic output (default)
@@ -188,10 +211,6 @@ namespace PEXSI{
 		void CalculateNegativeInertiaReal(
 				const std::vector<Real>&       shiftVec, 
 				std::vector<Real>&             inertiaVec,
-				const DistSparseMatrix<Real>&  HMat,
-				const DistSparseMatrix<Real>&  SMat,
-				std::string                    ColPerm,
-				Int                            numProcSymbFact,
         Int                            verbosity );
 
 
@@ -213,14 +232,6 @@ namespace PEXSI{
     /// @param[in] numElectronTolerance  Tolerance for the number of
     /// electrons. This is just used to discard some poles in the pole
     /// expansion.
-		/// @param[in] HMat Hamiltonian matrix saved in distributed compressed
-		/// sparse column format. See DistSparseMatrix.
-		/// @param[in] SMat Overlap matrix saved in distributed compressed
-		/// sparse column format. See DistSparseMatrix.  **Note**: If
-		/// SMat.size == 0, SMat is treated as an identity matrix.
-		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
-		/// @param[in] numProcSymbFact Number of processors used for parallel
-		/// symbolic factorization and PARMETIS/PT-SCOTCH.
     /// @param[in] verbosity The level of output information.
     /// - = 0   : No output.
     /// - = 1   : Basic output (default)
@@ -236,22 +247,10 @@ namespace PEXSI{
 				Real  mu,
         Real  numElectronExact, 
         Real  numElectronTolerance,
-				const DistSparseMatrix<Real>&  HMat,
-				const DistSparseMatrix<Real>&  SMat,
-				std::string         ColPerm,
-				Int                 numProcSymbFact,
-        Int                 verbosity,
+        Int   verbosity,
         Real& numElectron,
         Real& numElectronDrvMu );
 
-
-		/// @brief CalculateTotalEnergy computes the total energy (band energy
-		/// part only).
-		///
-		/// @param[in] HMat Hamilotian matrix.
-		///
-		/// @return The total energy Tr[ H \rho ]. 
-		Real CalculateTotalEnergy( const DistSparseMatrix<Real>& HMat );
 
     /// @brief Main driver for solving KSDFT.
     void DFTDriver(
@@ -269,6 +268,7 @@ namespace PEXSI{
         Real       muPEXSISafeGuard,
         Real       numElectronPEXSITolerance,
         Int        matrixType,
+        Int        isSymbolicFactorize,
         Int        ordering,
         Int        numProcSymbFact,
         Int        verbosity,

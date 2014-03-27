@@ -261,6 +261,7 @@ void PPEXSISetDefaultOptions(
   options->muPEXSISafeGuard      = 0.05;
   options->numElectronPEXSITolerance = 0.01;
   options->matrixType            = 0;
+  options->isSymbolicFactorize   = 1;
   options->ordering              = 0;
   options->npSymbFact            = 1;
   options->verbosity             = 1;
@@ -380,6 +381,7 @@ void PPEXSIDFTDriver(
         options.muPEXSISafeGuard,
         options.numElectronPEXSITolerance,
         options.matrixType,
+        options.isSymbolicFactorize,
         options.ordering,
         options.npSymbFact,
         options.verbosity,
@@ -451,6 +453,7 @@ void PPEXSIRetrieveRealSymmetricDFTMatrix(
 }   // -----  end of function PPEXSIRetrieveRealSymmetricDFTMatrix  ----- 
 
 
+// FIXME
 extern "C"
 void PPEXSIRealSymmetricRawInertiaCount(
     PPEXSIPlan        plan,
