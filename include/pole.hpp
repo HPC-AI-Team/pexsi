@@ -43,8 +43,8 @@
 /// @file pole.hpp
 /// @brief Pole expansion subroutines.
 /// @date 2012-10-12
-#ifndef _POLE_HPP_
-#define _POLE_HPP_
+#ifndef _PEXSI_POLE_HPP_
+#define _PEXSI_POLE_HPP_
 
 #include "environment.hpp"
 
@@ -249,4 +249,4 @@ namespace PEXSI{
 
 }
 
-#endif
+#endif //_PEXSI_POLE_HPP_

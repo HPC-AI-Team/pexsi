@@ -2,7 +2,7 @@
 	 Copyright (c) 2012 The Regents of the University of California,
 	 through Lawrence Berkeley National Laboratory.  
 
-   Authors: Lexing Ying and Lin Lin
+   Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
 	 
    This file is part of PEXSI. All rights reserved.
 
@@ -40,11 +40,11 @@
 	 works, incorporate into other computer software, distribute, and sublicense
 	 such enhancements or derivative works thereof, in binary and source code form.
 */
-/// @file tinyvec_decl.hpp
+/// @file tinyvec.hpp
 /// @brief Tiny vectors of dimension 3.
 /// @date 2010-09-20
-#ifndef  _TINYVEC_DECL_HPP_
-#define  _TINYVEC_DECL_HPP_
+#ifndef  _PEXSI_TINYVEC_HPP_
+#define  _PEXSI_TINYVEC_HPP_
 
 #include "environment.hpp"
 
@@ -225,4 +225,6 @@ namespace PEXSI{
 
 } // namespace PEXSI
 
-#endif // _TINYVEC_DECL_HPP_
+#include "tinyvec_impl.hpp"
+
+#endif // _PEXSI_TINYVEC_HPP_

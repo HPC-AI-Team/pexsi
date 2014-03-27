@@ -2,7 +2,7 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
    
-   Author: Lin Lin
+   Author: Lin Lin and Mathias Jacquelin
 	 
    This file is part of PEXSI. All rights reserved.
 
@@ -43,16 +43,16 @@
 /// @file utility.hpp
 /// @brief Various utility subroutines.
 /// @date 2012-09-27
-#ifndef _UTILITY_HPP_ 
-#define _UTILITY_HPP_
+#ifndef _PEXSI_UTILITY_HPP_ 
+#define _PEXSI_UTILITY_HPP_
 
 #include  <stdlib.h>
 #include  "environment.hpp"
-#include  "tinyvec_impl.hpp"
-#include  "numvec_impl.hpp"
-#include  "nummat_impl.hpp"
-#include  "numtns_impl.hpp"
-#include  "sparse_matrix_impl.hpp"
+#include  "tinyvec.hpp"
+#include  "NumVec.hpp"
+#include  "NumMat.hpp"
+#include  "NumTns.hpp"
+#include  "sparse_matrix.hpp"
 #include	"mpi_interf.hpp"
 
 namespace PEXSI{
@@ -70,6 +70,8 @@ namespace PEXSI{
 	const int LENGTH_VAR_DATA = 16;
 
 
+	// standard case for most serialization/deserialization process.
+	const std::vector<Int> NO_MASK(1);
 
 	// *********************************************************************
 	// Formatted output stream
@@ -490,8 +492,6 @@ namespace PEXSI{
 	// class files
 	// *********************************************************************
 
-	// standard case for most serialization/deserialization process.
-	const std::vector<Int> NO_MASK(1);
 
 
 
@@ -1525,9 +1525,10 @@ namespace PEXSI{
 
 
 	// TODO Real format
+  template<typename T>
 	void
-		GetDiagonal ( const DistSparseMatrix<Complex>& A, 
-				NumVec<Complex>& diag );
+		GetDiagonal ( const DistSparseMatrix<T>& A, 
+				NumVec<T>& diag );
 
 
 	// Functions for DistSparseMatrix
@@ -1645,6 +1646,15 @@ namespace PEXSI{
 	// Other numerical routines
 	// *********************************************************************
 
+  // Interpolation
+  /// @brief Linear interpolates from (x,y) to (xx,yy)
+  ///
+  /// Note: 
+  ///
+  /// x and xx must be sorted in ascending order.
+  ///
+  /// if xx[i] < x[0],     yy[i] = y[0]
+  ///    xx[i] > x[end-1], yy[i] = y[end-1]
 	void
 		LinearInterpolation ( 
 				const std::vector<Real>& x, 
@@ -1652,7 +1662,67 @@ namespace PEXSI{
 				const std::vector<Real>& xx,
 				std::vector<Real>& yy );
 
+  // Root finding
+
+  /// @brief Root finding for monotonic non-decreasing functions.
+  ///
+  /// Find the solution to \f$y(x) = val\f$ through a set of tabulated
+  /// values \f$\{(x_i,y_i)\}\f$. Both \f$\{x_i\}\f$ and \f$\{y_i\}\f$
+  /// follow non-decreasing order. The solution is obtained via linear
+  /// interpolation.
+  ///
+  /// This is an internal routine used for searching the chemical potential.  
+  ///
+  /// @param[in] x Dimension: N. 
+  /// @param[in] y Dimension: N. 
+  /// @param[in] val Real scalar.
+  /// @return Root of \f$y(x) = val\f$.
+  inline Real
+    MonotoneRootFinding ( 
+        const std::vector<Real>&  x,
+        const std::vector<Real>&  y,
+        Real val )
+    {
+#ifndef _RELEASE_
+      PushCallStack("MonotoneRootFinding");
+#endif
+      Int numX = x.size();
+
+      if( val <= y[0] || val >= y[numX-1] ){
+        std::ostringstream msg;
+        msg 
+          << "The root finding procedure cannot find the solution for y(x)=" 
+          << val << std::endl << "here [min(y) max(y)] = [" << y[0] << ", "
+          << y[numX-1] << "]" << std::endl;
+        throw std::runtime_error( msg.str().c_str() );
+      }
+
+      std::vector<Real>::const_iterator vi = std::lower_bound( 
+          y.begin(), y.end(), val );
+
+      Int idx = vi - y.begin();
+
+      Real root;
+      if( y[idx] == y[idx-1] ){
+        root = x[idx-1];
+      }
+      else{
+        // Linear interpolation
+        root = x[idx-1] + ( x[idx] - x[idx-1] ) / ( y[idx] - y[idx-1] ) 
+          * ( val - y[idx-1] );
+      }
+
+#ifndef _RELEASE_
+      PopCallStack();
+#endif
+
+      return root;
+    }		// -----  end of function MonotoneRootFinding  ----- 
+
 
 
 } // namespace PEXSI
-#endif // _UTILITY_HPP_
+
+#include "utility_impl.hpp"
+
+#endif // _PEXSI_UTILITY_HPP_

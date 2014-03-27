@@ -40,7 +40,7 @@
    works, incorporate into other computer software, distribute, and sublicense
    such enhancements or derivative works thereof, in binary and source code form.
 */
-/// @file ppexsi_lu.cpp
+/// @file ppexsi_real_old.cpp
 /// @brief Real arithmetic routines related to SuperLU_DIST.
 /// 
 /// This file contains the real arithmetic inertia counting routine and

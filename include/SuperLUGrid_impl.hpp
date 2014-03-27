@@ -1,8 +1,8 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory. 
 
-   Authors: Lexing Ying and Lin Lin
+   Authors: Mathias Jacquelin and Lin Lin
 
    This file is part of PEXSI. All rights reserved.
 
@@ -39,84 +39,91 @@
    royalty-free perpetual license to install, use, modify, prepare derivative
    works, incorporate into other computer software, distribute, and sublicense
    such enhancements or derivative works thereof, in binary and source code form.
-*/
-/// @file numvec_decl.hpp
-/// @brief  Numerical vector.
-/// @date 2010-09-27
-#ifndef _NUMVEC_DECL_HPP_
-#define _NUMVEC_DECL_HPP_
+ */
+/// @file SuperLUGrid_impl.hpp
+/// @brief Implementation of SuperLU processor grid.
+/// @date 2014-03-17
+#ifndef _PEXSI_SUPERLUGRID_IMPL_HPP_
+#define _PEXSI_SUPERLUGRID_IMPL_HPP_
 
-#include "environment.hpp"
+namespace PEXSI{
 
-namespace  PEXSI{
-
-/// @class NumVec
-///
-/// @brief Numerical vector.
-/// 
-/// NumVec is a portable encapsulation of a pointer to represent a 1D
-/// vector. The main difference between NumVec<F> and std::vector<F> is
-/// that NumVec<F> allows the vector to not owning the data, by
-/// specifying (owndata_ == false).
-template <class F> class NumVec
+inline SuperLUGrid<Real>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
 {
-protected:
+#ifndef _RELEASE_
+	PushCallStack("SuperLUGrid::SuperLUGrid");
+#endif
+	ptrData = new RealGridData;
+	if( ptrData == NULL )
+		throw std::runtime_error( "SuperLUGrid cannot be allocated." );
 
-/// @brief Helper function allocating the memory pointed by the data_ attribute
-inline void allocate(F* data=NULL);
+  ptrData->GridInit(comm, nprow, npcol);	
 
-/// @brief Helper function freeing memory pointed by the data_ attribute
-inline void deallocate();
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
 
-public:
-	/// @brief The size of the vector.
-	Int  m_;                                
-	///
-	/// @brief Whether it owns the data.
-	bool owndata_;                          
+	return ;
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
 
-	/// @brief The pointer for the actual data.
-	F* data_;
+inline SuperLUGrid<Real>::~SuperLUGrid	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUGrid::~SuperLUGrid");
+#endif
+	// NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
+	// communicator, it is legal to call superlu_gridexit even if
+	// grid->comm is a copy of MPI_COMM_WORLD.
 
-  /// @brief The actual storage space allocated                          
-  Int bufsize_;
-public:
-	NumVec(Int m = 0);
-	NumVec(Int m, bool owndata, F* data);
-	NumVec(const NumVec& C);
-	~NumVec();
+  ptrData->GridExit();	
+	
+	delete ptrData;
 
-	NumVec& operator=(const NumVec& C);
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return ;
+} 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
 
-	void Resize ( Int m );
+inline SuperLUGrid<Complex>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUGrid::SuperLUGrid");
+#endif
+	ptrData = new ComplexGridData;
+	if( ptrData == NULL )
+		throw std::runtime_error( "SuperLUGrid cannot be allocated." );
 
-	const F& operator()(Int i) const;  
-	F& operator()(Int i);  
-	const F& operator[](Int i) const;
-	F& operator[](Int i);
+  ptrData->GridInit(comm, nprow, npcol);	
 
-	bool IsOwnData() const { return owndata_; }
-	F*   Data() const { return data_; }
-	Int  m () const { return m_; }
-};
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
 
-// Commonly used
-typedef NumVec<bool>       BolNumVec;
-typedef NumVec<Int>        IntNumVec;
-typedef NumVec<Real>       DblNumVec;
-typedef NumVec<Complex>    CpxNumVec;
-
-
-// *********************************************************************
-// Utility functions
-// *********************************************************************
-/// @brief SetValue sets a numerical vector to a constant val.
-template <class F> inline void SetValue( NumVec<F>& vec, F val );
-
-/// @brief Energy computes the L2 norm of a vector.
-template <class F> inline Real Energy( const NumVec<F>& vec );
+	return ;
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
 
 
-} // namespace PEXSI
+inline SuperLUGrid<Complex>::~SuperLUGrid	(  )
+{
+#ifndef _RELEASE_
+	PushCallStack("SuperLUGrid::~SuperLUGrid");
+#endif
+	// NOTE (07/21/2013): Since superlu_gridinit gets a copy of the
+	// communicator, it is legal to call superlu_gridexit even if
+	// grid->comm is a copy of MPI_COMM_WORLD.
 
-#endif // _NUMVEC_DECL_HPP_
+  ptrData->GridExit();	
+	
+	delete ptrData;
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+	return ;
+} 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
+
+}
+
+
+#endif //_PEXSI_SUPERLUGRID_IMPL_HPP_

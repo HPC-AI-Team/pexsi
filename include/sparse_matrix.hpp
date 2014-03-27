@@ -2,7 +2,7 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Author: Lin Lin
+   Author: Mathias Jacquelin and Lin Lin
 
    This file is part of PEXSI. All rights reserved.
 
@@ -40,15 +40,15 @@
    works, incorporate into other computer software, distribute, and sublicense
    such enhancements or derivative works thereof, in binary and source code form.
 */
-/// @file sparse_matrix_decl.hpp
+/// @file sparse_matrix.hpp
 /// @brief Sparse matrix and Distributed sparse matrix in compressed
 /// column format.
 /// @date 2012-11-10
-#ifndef _SPARSE_MATRIX_DECL_HPP_
-#define _SPARSE_MATRIX_DECL_HPP_
+#ifndef _PEXSI_SPARSE_MATRIX_HPP_
+#define _PEXSI_SPARSE_MATRIX_HPP_
 
 #include "environment.hpp"
-#include "numvec_impl.hpp"
+#include "NumVec.hpp"
 
 namespace  PEXSI{
 
@@ -131,4 +131,6 @@ namespace  PEXSI{
 
 } // namespace PEXSI
 
-#endif // _SPARSE_MATRIX_DECL_HPP_
+#include "sparse_matrix_impl.hpp"
+
+#endif // _PEXSI_SPARSE_MATRIX_HPP_

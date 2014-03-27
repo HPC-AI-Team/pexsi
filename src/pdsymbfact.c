@@ -623,18 +623,18 @@ distribution routine. */
 
 			temp = SUPERLU_MAX(temp, num_mem_usage.total);
 
-			MPI_Reduce( &temp, &max,
-									1, MPI_FLOAT, MPI_MAX, 0, grid->comm );
-			MPI_Reduce( &temp, &avg,
-									1, MPI_FLOAT, MPI_SUM, 0, grid->comm );
+			MPI_Allreduce( &temp, &max,
+									1, MPI_FLOAT, MPI_MAX, grid->comm );
+			MPI_Allreduce( &temp, &avg,
+									1, MPI_FLOAT, MPI_SUM, grid->comm );
 			MPI_Allreduce( &stat->TinyPivots, &TinyPivots, 1, mpi_int_t,
 										 MPI_SUM, grid->comm );
 			stat->TinyPivots = TinyPivots;
 
-			MPI_Reduce( &num_mem_usage.for_lu, &for_lu,
-									1, MPI_FLOAT, MPI_SUM, 0, grid->comm );
-			MPI_Reduce( &num_mem_usage.total, &total,
-									1, MPI_FLOAT, MPI_SUM, 0, grid->comm );
+			MPI_Allreduce( &num_mem_usage.for_lu, &for_lu,
+									1, MPI_FLOAT, MPI_SUM, grid->comm );
+			MPI_Allreduce( &num_mem_usage.total, &total,
+									1, MPI_FLOAT, MPI_SUM, grid->comm );
 
 			*totalMemory = avg * 1e-6;
 			*maxMemory   = max * 1e-6;
