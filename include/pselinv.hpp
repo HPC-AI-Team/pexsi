@@ -652,6 +652,8 @@ namespace PEXSI{
       Int NumLocalBlockRow() const { return CEILING( this->NumSuper(), grid_->numProcRow); }
 
 
+      std::vector< std::vector<Int> > & ColBlockIdx() { return ColBlockIdx_; }
+      std::vector< std::vector<Int> > & RowBlockIdx() { return RowBlockIdx_; }
       std::vector<Int> & ColBlockIdx(Int jLocal) { return ColBlockIdx_[jLocal]; }
       std::vector<Int> & RowBlockIdx(Int iLocal) { return RowBlockIdx_[iLocal]; }
 

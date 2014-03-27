@@ -272,7 +272,10 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
 
   // rename for convenience
   DistSparseMatrix<Real>& AMat      = shiftRealMat_;  // A = H - \lambda  S
+  SuperLUMatrix<Real>&    luMat     = luRealMat_;
   PMatrix<Real>&          PMloc     = PMRealMat_;
+  // FIXME
+  luMat = SuperLUMatrix<Real>();
 
 	// Copy the pattern
 	CopyPattern( HMat, AMat );
@@ -284,7 +287,7 @@ void PPEXSINewData::CalculateNegativeInertiaReal(
 	luOpt.ColPerm = ColPerm;
 	luOpt.numProcSymbFact = numProcSymbFact;
 
- 	SuperLUMatrix<Real>    luMat( *gridSuperLUReal_, luOpt );  // SuperLU matrix.
+ 	luMat.Setup( *gridSuperLUReal_, luOpt );  // SuperLU matrix.
 
 	// *********************************************************************
 	// Symbolic factorization.  
@@ -489,7 +492,11 @@ void PPEXSINewData::CalculateFermiOperatorReal(
   DistSparseMatrix<Complex>& AMat      = shiftComplexMat_;
   DistSparseMatrix<Complex>& AinvMat   = shiftInvComplexMat_;
 
+  SuperLUMatrix<Complex>& luMat        = luComplexMat_;
   PMatrix<Complex>&       PMloc        = PMComplexMat_;
+  // FIXME
+  luMat = SuperLUMatrix<Complex>();
+  PMloc = PMatrix<Complex>();
 
   // 
   bool isFreeEnergyDensityMatrix = true;
@@ -524,7 +531,7 @@ void PPEXSINewData::CalculateFermiOperatorReal(
 
   // FIXME Update to new superlumatrix formulation using the template format. 
   // FIXME Symbolic factorization to be put outside the routine
-  SuperLUMatrix<Complex>    luMat( *gridSuperLUComplex_, luOpt );  // SuperLU matrix.
+  luMat.Setup( *gridSuperLUComplex_, luOpt );  // SuperLU matrix.
 
   // *********************************************************************
   // Symbolic factorization.  
@@ -551,11 +558,13 @@ void PPEXSINewData::CalculateFermiOperatorReal(
   luMat.DestroyAOnly();
   
   PMloc.Setup( gridSelInv_, &super_ , &luOpt);
+  luMat.LUstructToPMatrix( PMloc );
+  // P2p communication version
+  PMloc.ConstructCommunicationPattern();
 
 
   // Compute the number of nonzeros from PMatrix
-  if( verbosity >= 1 ){
-    luMat.LUstructToPMatrix( PMloc );
+  if( verbosity >= 0 ){
     Int nnzLocal = PMloc.NnzLocal();
     statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
     LongInt nnz  = PMloc.Nnz();
@@ -858,8 +867,6 @@ void PPEXSINewData::CalculateFermiOperatorReal(
 
         luMat.LUstructToPMatrix( PMloc );
 
-        // P2p communication version
-        PMloc.ConstructCommunicationPattern();
 
         // Collective communication version
         //          PMloc.ConstructCommunicationPattern_Collectives();

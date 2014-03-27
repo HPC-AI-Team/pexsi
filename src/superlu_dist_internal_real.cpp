@@ -678,6 +678,10 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
 	statusOFS << std::endl << "LUstructToPMatrix::L part" << std::endl;
 #endif
 
+  PMloc.ColBlockIdx().clear();
+  PMloc.RowBlockIdx().clear();
+  PMloc.ColBlockIdx().resize( PMloc.NumLocalBlockCol() );
+  PMloc.RowBlockIdx().resize( PMloc.NumLocalBlockRow() );
 
 	for( Int jb = 0; jb < PMloc.NumLocalBlockCol(); jb++ ){
 		Int bnum = GBj( jb, grid );
@@ -695,14 +699,12 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
  
 			Int lda = index[cnt++];
 
-			std::vector<Int>& ColBlockIdx = PMloc.ColBlockIdx(jb);
 
 			for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
 				LBlock<Real> & LB     = Lcol[iblk];
 				LB.blockIdx    = index[cnt++];
 
-        ColBlockIdx.push_back(LB.blockIdx);
-
+        PMloc.ColBlockIdx(jb).push_back(LB.blockIdx);
         Int LBi = LB.blockIdx / grid->numProcRow; 
         PMloc.RowBlockIdx( LBi ).push_back( bnum );
 
@@ -761,7 +763,6 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
 			Urow.resize( index[cnt++] );
 			cnt = BR_HEADER;
 
-			std::vector<Int>& RowBlockIdx = PMloc.RowBlockIdx(ib);
 
 			std::vector<Int> cols;                    //Save the nonzero columns in the current block
 			for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
@@ -770,11 +771,10 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
 				UB.blockIdx = index[cnt];
 
 
-        RowBlockIdx.push_back(UB.blockIdx);
 
+        PMloc.RowBlockIdx(ib).push_back(UB.blockIdx);
         Int LBj = UB.blockIdx / grid->numProcCol; 
         PMloc.ColBlockIdx( LBj ).push_back( bnum );
-
 
 
 				UB.numRow = super->superPtr[bnum+1] - super->superPtr[bnum];

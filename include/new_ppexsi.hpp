@@ -105,9 +105,9 @@ namespace PEXSI{
     // SuperLUMatrix and PMatrix structures These structures are saved
     // to avoid repetitive symbolic factorization process, and saved in
     // pointer form because of the constructors.
-//    SuperLUMatrix<Real>*       luRealMat_;
-//    SuperLUMatrix<Complex>*    luComplexMat_;
-//
+    SuperLUMatrix<Real>        luRealMat_;
+    SuperLUMatrix<Complex>     luComplexMat_;
+
     PMatrix<Real>              PMRealMat_;
     PMatrix<Complex>           PMComplexMat_;
 
