@@ -22,7 +22,6 @@ DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F:.f=.d}
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
 
-
 all: libpexsi.a 
 
 -include ${DEPS}
