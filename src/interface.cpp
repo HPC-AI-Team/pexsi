@@ -491,6 +491,48 @@ void PPEXSIInertiaCountRealSymmetricMatrix(
 	return ;
 }		// -----  end of function PPEXSIInertiaCountRealSymmetricMatrix  ----- 
 
+extern "C"
+void PPEXSICalculateFermiOperatorReal(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double            mu,
+    double            numElectronExact,
+    double*           numElectronPEXSI,
+    double*           numElectronDrvMuPEXSI,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->CalculateFermiOperatorReal(
+        options.numPole,
+        options.temperature,
+        options.gap,
+        options.deltaE,
+        mu,
+        numElectronExact,
+        options.numElectronPEXSITolerance,
+        options.verbosity,
+        *numElectronPEXSI,
+        *numElectronDrvMuPEXSI );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSICalculateFermiOperatorReal  ----- 
+
+
 
 extern "C"
 void PPEXSISelInvRealSymmetricMatrix (
@@ -520,7 +562,6 @@ void PPEXSISelInvRealSymmetricMatrix (
 		DumpCallStack();
 #endif
 	}
-
 
 	return ;
 }		// -----  end of function PPEXSISelInvRealSymmetricMatrix  ----- 
@@ -563,8 +604,8 @@ extern "C"
 void PPEXSIDFTDriver(
     /* Input parameters */
     PPEXSIPlan        plan,
-    double            numElectronExact,
     PPEXSIOptions     options,
+    double            numElectronExact,
     /* Output parameters */
 		double*           muPEXSI,                   
 		double*           numElectronPEXSI,         
@@ -664,36 +705,6 @@ void PPEXSIRetrieveRealSymmetricDFTMatrix(
   return;
 }   // -----  end of function PPEXSIRetrieveRealSymmetricDFTMatrix  ----- 
 
-
-// FIXME
-extern "C"
-void PPEXSIRealSymmetricRawInertiaCount(
-    PPEXSIPlan        plan,
-    int               numShift,
-		double*           shiftVec,            
-    PPEXSIOptions     options,
-		int*              inertiaVec,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  
-  try{
-    // FIXME
-    delete reinterpret_cast<PPEXSIData*>(plan);
-  }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
-  return;
-}   // -----  end of function PPEXSIRealSymmetricRawInertiaCount  ----- 
 
 
 extern "C"

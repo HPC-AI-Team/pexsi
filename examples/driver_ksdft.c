@@ -270,8 +270,8 @@ int main(int argc, char **argv)
 
   PPEXSIDFTDriver(
       plan,
-      numElectronExact,
       options,
+      numElectronExact,
       &muPEXSI,                   
       &numElectronPEXSI,         
       &muMinInertia,              
@@ -279,6 +279,15 @@ int main(int argc, char **argv)
       &numTotalInertiaIter,   
       &numTotalPEXSIIter,   
       &info );
+
+  if( info != 0 ){
+    if( mpirank == 0 ){
+      printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
+    }
+    MPI_Finalize();
+    return info;
+  }
+
 
   if( isProcRead == 1 ){
     PPEXSIRetrieveRealSymmetricDFTMatrix(
@@ -299,7 +308,7 @@ int main(int argc, char **argv)
     }
   }
 
-  // Solve the problem once again without symbolic factorization
+  /* Step 3. Solve the problem once again without symbolic factorization */
   {
     if( mpirank == 0 ){
       printf("To test the correctness of the program, solve the problem \n");
@@ -308,6 +317,7 @@ int main(int argc, char **argv)
 
     PPEXSILoadRealSymmetricHSMatrix( 
         plan, 
+        options,
         nrows,
         nnz,
         nnzLocal,
@@ -327,8 +337,8 @@ int main(int argc, char **argv)
 
     PPEXSIDFTDriver(
         plan,
-        numElectronExact,
         options,
+        numElectronExact,
         &muPEXSI,                   
         &numElectronPEXSI,         
         &muMinInertia,              
@@ -336,6 +346,15 @@ int main(int argc, char **argv)
         &numTotalInertiaIter,   
         &numTotalPEXSIIter,   
         &info );
+
+
+    if( info != 0 ){
+      if( mpirank == 0 ){
+        printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
+      }
+      MPI_Finalize();
+      return info;
+    }
 
     if( isProcRead == 1 ){
       PPEXSIRetrieveRealSymmetricDFTMatrix(
@@ -356,24 +375,6 @@ int main(int argc, char **argv)
       }
     }
   }
-
-//  if( info != 0 ){
-//    if( mpirank == 0 ){
-//      printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
-//    }
-//    MPI_Finalize();
-//    return info;
-//  }
-//
-//  if( mpirank == 0 ){ 
-//    printf("PEXSI Solve finished. \n");
-//  }
-
-
-  /* Step 3. Post processing */
-  
-  /* Compute the density of states (DOS) via inertia counting (without
-   * including finite temperature effects) */
 
   /* Step 4. Clean up */
 
