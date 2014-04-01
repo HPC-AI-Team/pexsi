@@ -327,6 +327,7 @@ PPEXSIPlan PPEXSIPlanInitialize(
  *
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
  * @param[in] nrows (global) Number of rows and columns of the matrix.
  * @param[in] nnz (global) Total number of nonzeros of H.
  * @param[in] nnzLocal (local) Number of local nonzeros of H.
@@ -347,6 +348,7 @@ PPEXSIPlan PPEXSIPlanInitialize(
  */
 void PPEXSILoadRealSymmetricHSMatrix(
     PPEXSIPlan    plan,
+    PPEXSIOptions options,
     int           nrows,                        
     int           nnz,                          
     int           nnzLocal,                     
@@ -358,7 +360,147 @@ void PPEXSILoadRealSymmetricHSMatrix(
     double*       SnzvalLocal,
     int*          info );
 
+/**
+ * @brief Separately perform symbolic factorization to prepare
+ * factorization and selected inversion for real arithmetic matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISymbolicFactorizeRealSymmetricMatrix(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info );
 
+/**
+ * @brief Separately perform symbolic factorization to prepare
+ * factorization and selected inversion for complex arithmetic matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info );
+
+
+/**
+ * @brief Directly compute the negative inertia at a set of shifts.
+ *
+ * @note Only input from the processors associated with the first pole
+ * is required. The information will be broadcast to the other
+ * processors in the communicator.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] numShift (global) Number of shifts.
+ * @param[in] shiftList (global) The list of shifts. Size: numShift
+ * @param[out] inertiaList (global) The list of inertia counts (in
+ * double precision but are of integer values). Size: numShift
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIInertiaCountRealSymmetricMatrix(
+    /* Input parameters */
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int               numShift,
+    double*           shiftList,
+    /* Output parameters */
+    double*           inertiaList,
+    int*              info );
+
+/**
+ * @brief Simplified driver interface for computing the selected
+ * elements of a real symmetric matrix.
+ *
+ * @note The computation is only performed using the group of processors
+ * corresponding to the first pole.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] AnzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values of A in CSC format.  
+ * @param[out] AinvnzvalLocal (local) Dimension: nnzLocal. 
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISelInvRealSymmetricMatrix (
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
+    double*           AinvnzvalLocal,
+    int*              info );
+
+
+/**
+ * @brief Simplified driver interface for computing the selected
+ * elements of a complex symmetric matrix.
+ *
+ * @note The computation is only performed using the group of processors
+ * corresponding to the first pole.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] AnzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values of A in CSC format.  
+ * - Use 2 double for one complex number. This
+ * ensures the compatibility with FORTRAN.  
+ * - Real part: AnzvalLocal[2*k]. Imag part: AnzvalLocal[2*k+1].
+ * @param[out] AinvnzvalLocal (local) Dimension: 2*nnzLocal. 
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISelInvComplexSymmetricMatrix (
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
+    double*           AinvnzvalLocal,
+    int*              info );
+
+
+/**
+ * @brief Simplified driver interface for computing the selected
+ * elements of a complex symmetric matrix.
+ *
+ * @note The computation is only performed using the group of processors
+ * corresponding to the first pole.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] AnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * values of A in CSC format.  
+ * - Use 2 double for one complex number. This
+ * ensures the compatibility with FORTRAN.  
+ * - Real part: AnzvalLocal[2*k]. Imag part: AnzvalLocal[2*k+1].
+ * @param[out] AinvnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * values of the selected elements of \f$A^{-1}\f$. The format is the same as of AnzvalLocal.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISelInvComplexSymmetricMatrix (
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
+    double*           AinvnzvalLocal,
+    int*              info );
 
 
 /**
@@ -424,7 +566,6 @@ void PPEXSILoadRealSymmetricHSMatrix(
  * and the update from Newton's iteration does not exceed
  * muPEXSISafeGuard, the value of muPEXSI is the last mu plus the update
  * from Newton's iteration.
- *
  * @param[out] numElectronPEXSI (global) Number of electrons
  * evaluated at the last step.  
  * **Note** In the case that convergence is not reached within maxPEXSIIter steps,
@@ -483,14 +624,6 @@ void PPEXSIRetrieveRealSymmetricDFTMatrix(
     int*              info );
 
 
-/* FIXME */
-void PPEXSIRealSymmetricRawInertiaCount(
-    PPEXSIPlan        plan,
-    int               numShift,
-		double*           shiftVec,            
-    PPEXSIOptions     options,
-		int*              inertiaVec,
-    int*              info );
 
 
 /**

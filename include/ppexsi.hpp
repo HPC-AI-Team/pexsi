@@ -116,7 +116,8 @@ namespace PEXSI{
     bool                       isMatrixLoaded_;
     // Whether the matrices (luMat and PMat) have obtained symbolic
     // information
-    bool                       isSymbolicFactorized_;
+    bool                       isRealSymmetricSymbolicFactorized_;
+    bool                       isComplexSymmetricSymbolicFactorized_;
     // Supernode partition for the real matrix
     SuperNodeType              superReal_;             
     // Supernode partition for the complex matrix
@@ -158,15 +159,15 @@ namespace PEXSI{
         Int*          rowindLocal,                  
         Real*         HnzvalLocal,                  
         Int           isSIdentity,                  
-        Real*         SnzvalLocal );
+        Real*         SnzvalLocal,
+        Int           verbosity );
 
     
-    /// @brief Symbolically factorize the loaded matrices 
+    /// @brief Symbolically factorize the loaded matrices for real
+    /// arithmetic factorization and selected inversion.
     ///
-    /// Both luRealMat_ and luComplexMat_ will be factorized.
-    ///
-    /// The symbolic information will be passed to PMRealMat_ and
-    /// PMComplexMat_, respectively.
+    /// The symbolic information is saved internally at luRealMat_ and
+    /// PMRealMat_.
     ///
 		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
 		///
@@ -180,6 +181,37 @@ namespace PEXSI{
 				std::string                    ColPerm,
 				Int                            numProcSymbFact,
         Int                            verbosity );
+    
+    /// @brief Symbolically factorize the loaded matrices for complex
+    /// arithmetic factorization and selected inversion.
+    ///
+    /// The symbolic information is saved internally at luComplexMat_ and
+    /// PMComplexMat_.
+    ///
+		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		///
+		/// @param[in] numProcSymbFact Number of processors used for parallel
+		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+    /// @param[in] verbosity The level of output information.
+    /// - = 0   : No output.
+    /// - = 1   : Basic output (default)
+    /// - = 2   : Detailed output.
+    void SymbolicFactorizeComplexSymmetricMatrix(
+				std::string                    ColPerm,
+				Int                            numProcSymbFact,
+        Int                            verbosity );
+
+
+    void SelInvRealSymmetricMatrix(
+          double*           AnzvalLocal,                  
+          Int               verbosity,
+          double*           AinvnzvalLocal );
+
+    void SelInvComplexSymmetricMatrix(
+          double*           AnzvalLocal,                  
+          Int               verbosity,
+          double*           AinvnzvalLocal );
+
 
 		/// @brief Compute the negative inertia (the number of eigenvalues
 		/// below a shift) for real symmetric matrices.  The factorization

@@ -305,6 +305,7 @@ PPEXSIPlan PPEXSIPlanInitialize(
 extern "C"
 void PPEXSILoadRealSymmetricHSMatrix(
     PPEXSIPlan    plan,
+    PPEXSIOptions options,
     int           nrows,                        
     int           nnz,                          
     int           nnzLocal,                     
@@ -332,7 +333,8 @@ void PPEXSILoadRealSymmetricHSMatrix(
           rowindLocal,                  
           HnzvalLocal,                  
           isSIdentity,                  
-          SnzvalLocal );
+          SnzvalLocal,
+          options.verbosity );
   }
 	catch( std::exception& e )
 	{
@@ -347,6 +349,214 @@ void PPEXSILoadRealSymmetricHSMatrix(
 
   return;
 }   // -----  end of function PPEXSILoadRealSymmetricHSMatrix  ----- 
+
+extern "C"
+void PPEXSISymbolicFactorizeRealSymmetricMatrix(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info ) {
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  *info = 0;
+
+  try{
+    std::string colPerm;
+    switch (options.ordering){
+      case 0:
+        colPerm = "PARMETIS";
+        break;
+      case 1:
+        colPerm = "METIS_AT_PLUS_A";
+        break;
+      case 2:
+        colPerm = "MMD_AT_PLUS_A";
+        break;
+      default:
+        throw std::logic_error("Unsupported ordering strategy.");
+    }
+
+    reinterpret_cast<PPEXSIData*>(plan)->
+      SymbolicFactorizeRealSymmetricMatrix(
+          colPerm,
+          options.npSymbFact,
+          options.verbosity );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSISymbolicFactorizeRealSymmetricMatrix  ----- 
+
+
+extern "C"
+void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info ) {
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  *info = 0;
+
+  try{
+    std::string colPerm;
+    switch (options.ordering){
+      case 0:
+        colPerm = "PARMETIS";
+        break;
+      case 1:
+        colPerm = "METIS_AT_PLUS_A";
+        break;
+      case 2:
+        colPerm = "MMD_AT_PLUS_A";
+        break;
+      default:
+        throw std::logic_error("Unsupported ordering strategy.");
+    }
+
+    reinterpret_cast<PPEXSIData*>(plan)->
+      SymbolicFactorizeComplexSymmetricMatrix(
+          colPerm,
+          options.npSymbFact,
+          options.verbosity );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSISymbolicFactorizeRealSymmetricMatrix  ----- 
+
+
+extern "C"
+void PPEXSIInertiaCountRealSymmetricMatrix(
+    /* Input parameters */
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int               numShift,
+    double*           shiftList,
+    /* Output parameters */
+    double*           inertiaList,
+    int*              info ) {
+
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  *info = 0;
+
+  try{
+    std::vector<Real>    shiftVec(numShift);
+    std::vector<Real>    inertiaVec(numShift);
+    for( Int i = 0; i < numShift; i++ ){
+      shiftVec[i] = shiftList[i];
+    }
+
+    reinterpret_cast<PPEXSIData*>(plan)->
+      CalculateNegativeInertiaReal(
+          shiftVec,
+          inertiaVec,
+          options.verbosity );
+
+    for( Int i = 0; i < numShift; i++ ){
+      inertiaList[i] = inertiaVec[i];
+    }
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSIInertiaCountRealSymmetricMatrix  ----- 
+
+
+extern "C"
+void PPEXSISelInvRealSymmetricMatrix (
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
+    double*           AinvnzvalLocal,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->SelInvRealSymmetricMatrix(
+        AnzvalLocal,
+        options.verbosity,
+        AinvnzvalLocal );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+
+	return ;
+}		// -----  end of function PPEXSISelInvRealSymmetricMatrix  ----- 
+
+
+extern "C"
+void PPEXSISelInvComplexSymmetricMatrix (
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
+    double*           AinvnzvalLocal,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexSymmetricMatrix(
+        AnzvalLocal,
+        options.verbosity,
+        AinvnzvalLocal );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSISelInvComplexSymmetricMatrix  ----- 
 
 
 extern "C"

@@ -93,7 +93,8 @@ PPEXSIData::PPEXSIData	(
   // Initialize the saved variables
   muPEXSISave_ = 0.0;
   isMatrixLoaded_       = false;
-  isSymbolicFactorized_ = false;
+  isRealSymmetricSymbolicFactorized_ = false;
+  isComplexSymmetricSymbolicFactorized_ = false;
   
 #ifndef _RELEASE_
 	PopCallStack();
@@ -146,7 +147,8 @@ PPEXSIData::LoadRealSymmetricMatrix	(
     Int*          rowindLocal,                  
     Real*         HnzvalLocal,                  
     Int           isSIdentity,                  
-    Real*         SnzvalLocal )
+    Real*         SnzvalLocal,
+    Int           verbosity )
 {
 #ifndef _RELEASE_
   PushCallStack("PPEXSIData::LoadRealSymmetricMatrix");
@@ -196,9 +198,9 @@ PPEXSIData::LoadRealSymmetricMatrix	(
 
   MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole_->colComm );
 
-#if ( _DEBUGlevel_ >= 0 )
-  statusOFS << "sizeStm = " << sizeStm << std::endl;
-#endif
+  if( verbosity >= 2 ){
+    statusOFS << "sizeStm = " << sizeStm << std::endl;
+  }
 
   if( MYROW( gridPole_ ) != 0 ) sstr.resize( sizeStm );
 
@@ -225,13 +227,13 @@ PPEXSIData::LoadRealSymmetricMatrix	(
   sstr.clear();
 
 
-#if ( _DEBUGlevel_ >= 0 )
-  statusOFS << "H.size     = " << HRealMat_.size     << std::endl;
-  statusOFS << "H.nnzLocal = " << HRealMat_.nnzLocal << std::endl;
-  statusOFS << "S.size     = " << SRealMat_.size     << std::endl;
-  statusOFS << "S.nnzLocal = " << SRealMat_.nnzLocal << std::endl;
-  statusOFS << std::endl << std::endl;
-#endif
+  if( verbosity >= 1 ){
+    statusOFS << "H.size     = " << HRealMat_.size     << std::endl;
+    statusOFS << "H.nnzLocal = " << HRealMat_.nnzLocal << std::endl;
+    statusOFS << "S.size     = " << SRealMat_.size     << std::endl;
+    statusOFS << "S.nnzLocal = " << SRealMat_.nnzLocal << std::endl;
+    statusOFS << std::endl << std::endl;
+  }
 
 
   // Record the index for the diagonal elements to handle the case if S
@@ -282,7 +284,6 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
     throw std::runtime_error( msg.str().c_str() );
   }
   
-  // Real matrices
   {
     if( verbosity >= 1 ){
       statusOFS << "Symbolic factorization for the real matrix."  << std::endl;
@@ -365,6 +366,33 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
     }
   }
 
+  isRealSymmetricSymbolicFactorized_ = true;
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PPEXSIData::SymbolicFactorizeRealSymmetricMatrix  ----- 
+
+
+void
+PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
+    std::string                    ColPerm,
+    Int                            numProcSymbFact,
+    Int                            verbosity )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix");
+#endif
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealSymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+  
   // Complex matrices
   {
     if( verbosity >= 1 ){
@@ -373,7 +401,7 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
 
     SuperLUMatrix<Complex>&    luMat     = luComplexMat_;
     PMatrix<Complex>&          PMloc     = PMComplexMat_;
-    SuperNodeType&          super        = superComplex_;
+    SuperNodeType&             super     = superComplex_;
 
     // Clear the matrices first
     luMat = SuperLUMatrix<Complex>();
@@ -449,14 +477,250 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
   }
 
 
-  isSymbolicFactorized_ = true;
+  isComplexSymmetricSymbolicFactorized_ = true;
 
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
 
 	return ;
-} 		// -----  end of method PPEXSIData::SymbolicFactorizeRealSymmetricMatrix  ----- 
+} 		// -----  end of method PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix  ----- 
+
+
+void 
+PPEXSIData::SelInvRealSymmetricMatrix(
+    double*           AnzvalLocal,                  
+    Int               verbosity,
+    double*           AinvnzvalLocal )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::SelInvRealSymmetricMatrix");
+#endif
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealSymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+
+  if( isRealSymmetricSymbolicFactorized_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been factorized symbolically." << std::endl
+      << "Call SymbolicFactorizeRealSymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+  
+  // Only the processor group corresponding to the first pole participate
+  if( MYROW( gridPole_ ) == 0 ){
+
+    DistSparseMatrix<Real>& AMat      = shiftRealMat_;
+    DistSparseMatrix<Real>& AinvMat   = shiftInvRealMat_;
+    SuperLUMatrix<Real>&    luMat     = luRealMat_;
+    PMatrix<Real>&          PMloc     = PMRealMat_;
+
+    // Copy the pattern
+    CopyPattern( HRealMat_, AMat );
+
+    blas::Copy( AMat.nnzLocal, AnzvalLocal, 1, AMat.nzvalLocal.Data(), 1 );
+    
+    if( verbosity >= 2 ){
+      statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+    }
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+    if( verbosity >= 2 ){
+      statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+    }
+
+    Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+    GetTime( timeTotalFactorizationSta );
+
+    // Data redistribution
+    if( verbosity >= 2 ){
+      statusOFS << "Before Distribute." << std::endl;
+    }
+    luMat.Distribute();
+    if( verbosity >= 2 ){
+      statusOFS << "After Distribute." << std::endl;
+    }
+
+    // Numerical factorization
+    if( verbosity >= 2 ){
+      statusOFS << "Before NumericalFactorize." << std::endl;
+    }
+    luMat.NumericalFactorize();
+    if( verbosity >= 2 ){
+      statusOFS << "After NumericalFactorize." << std::endl;
+    }
+    luMat.DestroyAOnly();
+
+    GetTime( timeTotalFactorizationEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+    }
+
+    Real timeTotalSelInvSta, timeTotalSelInvEnd;
+    GetTime( timeTotalSelInvSta );
+
+    luMat.LUstructToPMatrix( PMloc );
+
+    PMloc.PreSelInv();
+    
+    PMloc.SelInv();
+
+    GetTime( timeTotalSelInvEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for total selected inversion is " <<
+        timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
+    }
+
+
+    Real timePostProcessingSta, timePostProcessingEnd;
+
+    GetTime( timePostProcessingSta );
+
+    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+
+    GetTime( timePostProcessingEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for postprocessing is " <<
+        timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
+    }
+
+    // Return the data to AinvnzvalLocal
+    blas::Copy( AMat.nnzLocal, AinvMat.nzvalLocal.Data(), 1, AinvnzvalLocal, 1 );
+  }
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PPEXSIData::SelInvRealSymmetricMatrix  ----- 
+
+void 
+PPEXSIData::SelInvComplexSymmetricMatrix(
+    double*           AnzvalLocal,                  
+    Int               verbosity,
+    double*           AinvnzvalLocal )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::SelInvComplexSymmetricMatrix");
+#endif
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealSymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+
+  if( isComplexSymmetricSymbolicFactorized_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been factorized symbolically." << std::endl
+      << "Call SymbolicFactorizeComplexSymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+  
+  // Only the processor group corresponding to the first pole participate
+  if( MYROW( gridPole_ ) == 0 ){
+
+    DistSparseMatrix<Complex>& AMat      = shiftComplexMat_;
+    DistSparseMatrix<Complex>& AinvMat   = shiftInvComplexMat_;
+    SuperLUMatrix<Complex>&    luMat     = luComplexMat_;
+    PMatrix<Complex>&          PMloc     = PMComplexMat_;
+
+    // Copy the pattern
+    CopyPattern( HRealMat_, AMat );
+
+    blas::Copy( 2*AMat.nnzLocal, AnzvalLocal, 1, 
+       reinterpret_cast<double*>(AMat.nzvalLocal.Data()), 1 );
+    
+    if( verbosity >= 2 ){
+      statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+    }
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+    if( verbosity >= 2 ){
+      statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+    }
+
+    Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+    GetTime( timeTotalFactorizationSta );
+
+    // Data redistribution
+    if( verbosity >= 2 ){
+      statusOFS << "Before Distribute." << std::endl;
+    }
+    luMat.Distribute();
+    if( verbosity >= 2 ){
+      statusOFS << "After Distribute." << std::endl;
+    }
+
+    // Numerical factorization
+    if( verbosity >= 2 ){
+      statusOFS << "Before NumericalFactorize." << std::endl;
+    }
+    luMat.NumericalFactorize();
+    if( verbosity >= 2 ){
+      statusOFS << "After NumericalFactorize." << std::endl;
+    }
+    luMat.DestroyAOnly();
+
+    GetTime( timeTotalFactorizationEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+    }
+
+    Real timeTotalSelInvSta, timeTotalSelInvEnd;
+    GetTime( timeTotalSelInvSta );
+
+    luMat.LUstructToPMatrix( PMloc );
+
+    PMloc.PreSelInv();
+    
+    PMloc.SelInv();
+
+    GetTime( timeTotalSelInvEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for total selected inversion is " <<
+        timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
+    }
+
+
+    Real timePostProcessingSta, timePostProcessingEnd;
+
+    GetTime( timePostProcessingSta );
+
+    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+
+    GetTime( timePostProcessingEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for postprocessing is " <<
+        timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
+    }
+
+    // Return the data to AinvnzvalLocal
+    blas::Copy( 2*AMat.nnzLocal, reinterpret_cast<double*>(AinvMat.nzvalLocal.Data()), 1, 
+        AinvnzvalLocal, 1 );
+  }
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PPEXSIData::SelInvComplexSymmetricMatrix  ----- 
+
 
 void PPEXSIData::CalculateNegativeInertiaReal(
 		const std::vector<Real>&       shiftVec, 
@@ -477,7 +741,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
     throw std::runtime_error( msg.str().c_str() );
   }
 
-  if( isSymbolicFactorized_ == false ){
+  if( isRealSymmetricSymbolicFactorized_ == false ){
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
@@ -635,11 +899,11 @@ void PPEXSIData::CalculateFermiOperatorReal(
     throw std::runtime_error( msg.str().c_str() );
   }
 
-  if( isSymbolicFactorized_ == false ){
+  if( isComplexSymmetricSymbolicFactorized_ == false ){
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
-      << "Call SymbolicFactorizeRealSymmetricMatrix first." << std::endl;
+      << "Call SymbolicFactorizeComplexSymmetricMatrix first." << std::endl;
     throw std::runtime_error( msg.str().c_str() );
   }
 
@@ -1058,7 +1322,6 @@ void PPEXSIData::CalculateFermiOperatorReal(
               rhoDrvTMat.nzvalLocal.Data(), 1 );
         }
 
-        // Update the free energy density matrix and energy density matrix similarly
         GetTime( timePostProcessingEnd );
 
         if( verbosity >= 1 ){
@@ -1253,6 +1516,12 @@ PPEXSIData::DFTDriver (
     }
     if( matrixType == 0 ){
       SymbolicFactorizeRealSymmetricMatrix( 
+          colPerm, 
+          numProcSymbFact,
+          verbosity );
+
+
+      SymbolicFactorizeComplexSymmetricMatrix( 
           colPerm, 
           numProcSymbFact,
           verbosity );

@@ -94,6 +94,9 @@ int main(int argc, char **argv)
   int           isFormatted;
 
 
+  PPEXSIPlan    plan;
+  PPEXSIOptions options;
+
   int           i, j;
   int           nprow, npcol;
   MPI_Comm      readComm;
@@ -228,7 +231,6 @@ int main(int argc, char **argv)
 
   /* Step 1. Initialize PEXSI */
 
-  PPEXSIOptions  options;
   PPEXSISetDefaultOptions( &options );
   options.muMin0 = 0.0;
   options.muMax0 = 0.5;
@@ -243,8 +245,6 @@ int main(int argc, char **argv)
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;
 
-  PPEXSIPlan   plan;
-
   plan = PPEXSIPlanInitialize( 
       MPI_COMM_WORLD, 
       nprow,
@@ -254,6 +254,7 @@ int main(int argc, char **argv)
 
   PPEXSILoadRealSymmetricHSMatrix( 
       plan, 
+      options,
       nrows,
       nnz,
       nnzLocal,

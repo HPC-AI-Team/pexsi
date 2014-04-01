@@ -41,9 +41,9 @@
    such enhancements or derivative works thereof, in binary and source code form.
 */
 /**
- * @file driver_pselinv_complex.c
+ * @file driver_pselinv_real.c
  * @brief Example for using the driver interface for parallel selected
- * inversion of a complex symmetric matrix.
+ * inversion of a real symmetric matrix.
  *
  *
  * @date 2013-11-10 Original version.
@@ -63,14 +63,11 @@ int main(int argc, char **argv)
   int           numColLocal;                  
   int*          colptrLocal;                  
   int*          rowindLocal;                  
-  double*       RnzvalLocal;                  
-  double*       InzvalLocal;                  
   double*       AnzvalLocal;
   double*       AinvnzvalLocal;
   int           nprow, npcol;
   int           info;
-  char*         Rfile = "lap2dr.matrix";   /* Real part */
-  char*         Ifile = "lap2di.matrix";   /* Imag part */
+  char*         Rfile;   
 
   int           i, j, irow, jcol;
   int           numColLocalFirst, firstCol;
@@ -84,6 +81,7 @@ int main(int argc, char **argv)
 
   nprow               = 1;
   npcol               = mpisize;
+  Rfile               = "lap2dr.matrix";
 
 
   /* Read the matrix */
@@ -94,7 +92,6 @@ int main(int argc, char **argv)
       &nnzLocal,
       &numColLocal,
       MPI_COMM_WORLD );
-
       
   if( mpirank == 0 ){
     printf("On processor 0...\n");
@@ -107,12 +104,10 @@ int main(int argc, char **argv)
   /* Allocate memory */
   colptrLocal = (int*)malloc( (numColLocal+1) * sizeof(int) );
   rowindLocal = (int*)malloc( nnzLocal * sizeof(int) );
-  RnzvalLocal = (double*)malloc( nnzLocal * sizeof(double) );
-  InzvalLocal = (double*)malloc( nnzLocal * sizeof(double) );
-  AnzvalLocal = (double*)malloc( 2*nnzLocal * sizeof(double) );
-  AinvnzvalLocal = (double*)malloc( 2*nnzLocal * sizeof(double) );
+  AnzvalLocal = (double*)malloc( nnzLocal * sizeof(double) );
+  AinvnzvalLocal = (double*)malloc( nnzLocal * sizeof(double) );
 
-  /* Read the real part of the matrix */
+  /* Read the matrix */
   ReadDistSparseMatrixFormattedInterface(
       Rfile,
       nrows,
@@ -121,28 +116,8 @@ int main(int argc, char **argv)
       numColLocal,
       colptrLocal,
       rowindLocal,
-      RnzvalLocal,
+      AnzvalLocal,
       MPI_COMM_WORLD );
-
-  /* Read the imag part of the matrix. The sparsity must be the same as
-   * that in the real part of the matrix */
-  ReadDistSparseMatrixFormattedInterface(
-      Ifile,
-      nrows,
-      nnz,
-      nnzLocal,
-      numColLocal,
-      colptrLocal,
-      rowindLocal,
-      InzvalLocal,
-      MPI_COMM_WORLD );
-
-
-  /* Form the input matrix A */
-  for( i = 0; i < nnzLocal; i++ ){
-    AnzvalLocal[2*i]   = RnzvalLocal[i];
-    AnzvalLocal[2*i+1] = InzvalLocal[i];
-  }
 
 
   /* Step 1. Initialize PEXSI */
@@ -162,7 +137,6 @@ int main(int argc, char **argv)
       mpirank, 
       &info );
 
-  // For complex matrices, this is just to load a pattern
   PPEXSILoadRealSymmetricHSMatrix( 
       plan, 
       options,
@@ -177,17 +151,19 @@ int main(int argc, char **argv)
       NULL,  // S is identity
       &info );
 
-  PPEXSISymbolicFactorizeComplexSymmetricMatrix( 
+  PPEXSISymbolicFactorizeRealSymmetricMatrix( 
       plan,
       options,
       &info );
 
-  PPEXSISelInvComplexSymmetricMatrix (
+  PPEXSISelInvRealSymmetricMatrix (
       plan,
       options,
       AnzvalLocal,
       AinvnzvalLocal,
       &info );
+
+
 
   if( info != 0 ){
     if( mpirank == 0 ){
@@ -197,6 +173,7 @@ int main(int argc, char **argv)
     MPI_Finalize();
     return info;
   }
+
 
   /* The first processor output the diagonal elements in natural order
    */
@@ -209,10 +186,9 @@ int main(int argc, char **argv)
            i < colptrLocal[j+1]-1; i++ ){
         irow = rowindLocal[i];
         if( irow == jcol ){
-          printf("Ainv[%5d,%5d] = %15.10e + %15.10e i\n", 
+          printf("Ainv[%5d,%5d] = %15.10e\n", 
               irow, irow,
-              AinvnzvalLocal[2*i],
-              AinvnzvalLocal[2*i+1]);
+              AinvnzvalLocal[i]);
         }
       }
     } // for (j)
@@ -221,8 +197,6 @@ int main(int argc, char **argv)
   /* Deallocate memory */
   free( colptrLocal );
   free( rowindLocal );
-  free( RnzvalLocal );
-  free( InzvalLocal );
   free( AnzvalLocal );
   free( AinvnzvalLocal );
 
