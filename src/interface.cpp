@@ -731,3 +731,98 @@ void PPEXSIPlanFinalize(
 	}
   return;
 }   // -----  end of function PPEXSIPlanFinalize  ----- 
+
+// ********************************************************************* 
+// FORTRAN interface
+// 
+// NOTE: 
+// 
+// 1. Most of the interface routines do not explicitly depend on the MPI
+// communicators, and therefore can be called directly through the
+// ISO_C_BINDING feature as in f_interface.f90.
+//
+// 2. For routines use MPI communicators, the communicators from FORTRAN
+// must be transferred to C communicators using f2c_comm, and the
+// FORTRAN version is given below.
+//
+// 3. In ISO_C_BINDING, passing by value is allowed and it is not
+// required that all arguments by given in the form of pointers.
+//
+// 4. The following routines need not be defined in the C header file.
+// *********************************************************************
+
+/// @brief Internal subroutine to convert FORTRAN communicator to C
+extern "C" 
+MPI_Comm f2c_comm(MPI_Fint* Fcomm)
+{
+	return MPI_Comm_f2c((*Fcomm));
+}  // -----  end of function f2c_comm ----- 
+
+
+/// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedHeadInterface.
+extern "C"
+void f_read_distsparsematrix_formatted_head (
+		char*    filename,
+		int*     size,
+		int*     nnz,
+		int*     nnzLocal,
+		int*     numColLocal,
+		MPI_Fint* Fcomm )
+{
+  ReadDistSparseMatrixFormattedHeadInterface(
+			filename,
+			size,
+			nnz,
+			nnzLocal,
+			numColLocal,
+			f2c_comm( Fcomm ) );
+
+	return;
+}  // -----  end of function f_read_distsparsematrix_formatted_head  
+
+
+/// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedInterface.
+extern "C"
+void f_read_distsparsematrix_formatted (
+		char*    filename,
+		int      size,
+		int      nnz,
+		int      nnzLocal,
+		int      numColLocal,
+		int*     colptrLocal,
+		int*     rowindLocal,
+		double*  nzvalLocal,
+    MPI_Fint* Fcomm )
+{
+	ReadDistSparseMatrixFormattedInterface(
+			filename,
+			size,
+			nnz,
+			nnzLocal,
+			numColLocal,
+			colptrLocal,
+			rowindLocal,
+			nzvalLocal,
+			f2c_comm( Fcomm ) );
+	return;
+} // -----  end of function f_read_distsparsematrix_formatted  ----- 
+
+
+
+/// @brief FORTRAN interface for @ref PPEXSIPlanInitialize
+extern "C"
+PPEXSIPlan f_ppexsi_plan_initialize (
+    MPI_Fint*     Fcomm,
+    int           numProcRow,
+    int           numProcCol,
+    int           outputFileIndex, 
+    int*          info ){
+  return PPEXSIPlanInitialize(
+      f2c_comm( Fcomm ),
+      numProcRow,
+      numProcCol,
+      outputFileIndex,
+      info );
+}		// -----  end of function f_ppexsi_plan_initialize  ----- 
+
+

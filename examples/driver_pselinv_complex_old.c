@@ -45,10 +45,11 @@
  * @brief Example for using the driver interface for parallel selected
  * inversion of a complex symmetric matrix.
  *
+ * Read the matrix 
  *
- * @date 2013-11-10 Original version.
+ * @see PSelInvComplexSymmetricInterface
+ * @date 2013-11-10
  * @date 2014-01-26 Change the interface.
- * @date 2014-04-01 Compatible with the interface at version 0.7.0.
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -67,6 +68,8 @@ int main(int argc, char **argv)
   double*       InzvalLocal;                  
   double*       AnzvalLocal;
   double*       AinvnzvalLocal;
+  int           ordering;                
+  int           npSymbFact;
   int           nprow, npcol;
   int           info;
   char*         Rfile = "lap2dr.matrix";   /* Real part */
@@ -79,13 +82,6 @@ int main(int argc, char **argv)
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
-
-  /* Below is the data used for the toy g20 matrix */
-
-  nprow               = 1;
-  npcol               = mpisize;
-
-
   /* Read the matrix */
   ReadDistSparseMatrixFormattedHeadInterface(
       Rfile,
@@ -94,7 +90,6 @@ int main(int argc, char **argv)
       &nnzLocal,
       &numColLocal,
       MPI_COMM_WORLD );
-
       
   if( mpirank == 0 ){
     printf("On processor 0...\n");
@@ -137,35 +132,20 @@ int main(int argc, char **argv)
       InzvalLocal,
       MPI_COMM_WORLD );
 
-
   /* Form the input matrix A */
   for( i = 0; i < nnzLocal; i++ ){
     AnzvalLocal[2*i]   = RnzvalLocal[i];
     AnzvalLocal[2*i+1] = InzvalLocal[i];
   }
 
+  /* Other parameters */
+  ordering    = 0;
+  npSymbFact  = 1;
+  /* NOTE: For best performance it is better to have nprow == npcol */
+  nprow       = 1;
+  npcol       = mpisize;
 
-  /* Step 1. Initialize PEXSI */
-
-  PPEXSIOptions  options;
-  PPEXSISetDefaultOptions( &options );
-  options.npSymbFact = 1;
-  options.ordering = 0;
-  options.verbosity = 1;
-
-  PPEXSIPlan   plan;
-
-  plan = PPEXSIPlanInitialize( 
-      MPI_COMM_WORLD, 
-      nprow,
-      npcol,
-      mpirank, 
-      &info );
-
-  // For complex matrices, this is just to load a pattern
-  PPEXSILoadRealSymmetricHSMatrix( 
-      plan, 
-      options,
+  PSelInvComplexSymmetricInterface(
       nrows,
       nnz,
       nnzLocal,
@@ -173,30 +153,13 @@ int main(int argc, char **argv)
       colptrLocal,
       rowindLocal,
       AnzvalLocal,
-      1,     // S is identity
-      NULL,  // S is identity
-      &info );
-
-  PPEXSISymbolicFactorizeComplexSymmetricMatrix( 
-      plan,
-      options,
-      &info );
-
-  PPEXSISelInvComplexSymmetricMatrix (
-      plan,
-      options,
-      AnzvalLocal,
+      ordering,
+      npSymbFact,
+      MPI_COMM_WORLD,
+      nprow,
+      npcol,
       AinvnzvalLocal,
       &info );
-
-  if( info != 0 ){
-    if( mpirank == 0 ){
-      printf("PSelInv routine gives info = %d. Exit now.\n", info );
-      printf("The error message is in logPEXSI* files.\n" );
-    }
-    MPI_Finalize();
-    return info;
-  }
 
   /* The first processor output the diagonal elements in natural order
    */
@@ -218,10 +181,7 @@ int main(int argc, char **argv)
     } // for (j)
   }
   
-  // Finalize PPEXSI
-  PPEXSIPlanFinalize( plan, &info );
-  
-  
+
   /* Deallocate memory */
   free( colptrLocal );
   free( rowindLocal );

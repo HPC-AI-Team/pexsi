@@ -77,9 +77,9 @@ PPEXSIData::PPEXSIData	(
   }
 
   gridPole_     = new GridType( comm, mpisize / npPerPole, npPerPole );
-	gridSuperLUComplex_  = new SuperLUGrid<Complex>( 
-      gridPole_->rowComm, numProcRow, numProcCol );
 	gridSuperLUReal_     = new SuperLUGrid<Real>( 
+      gridPole_->rowComm, numProcRow, numProcCol );
+	gridSuperLUComplex_  = new SuperLUGrid<Complex>( 
       gridPole_->rowComm, numProcRow, numProcCol );
 
 	gridSelInv_   = new GridType( gridPole_->rowComm, 
@@ -109,10 +109,6 @@ PPEXSIData::~PPEXSIData	(  )
 #ifndef _RELEASE_
 	PushCallStack("PPEXSIData::~PPEXSIData");
 #endif
-  if( gridPole_    != NULL ){
-    delete gridPole_;
-  }
-
 	if( gridSuperLUReal_ != NULL ){
 		delete gridSuperLUReal_;
 	}
@@ -121,10 +117,14 @@ PPEXSIData::~PPEXSIData	(  )
 		delete gridSuperLUComplex_;
 	}
 
-	
 	if( gridSelInv_ != NULL ){
 		delete gridSelInv_;
 	}
+
+  if( gridPole_    != NULL ){
+    delete gridPole_;
+  }
+
 
   // Close the log file
   statusOFS.close();

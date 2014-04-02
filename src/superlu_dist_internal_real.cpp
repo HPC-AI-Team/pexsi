@@ -69,23 +69,23 @@ class RealGridInfo{
 	  gridinfo_t          grid;
 };
 
-    RealGridData::RealGridData(){
-      info_ = new RealGridInfo;
-    }
+RealGridData::RealGridData(){
+  info_ = new RealGridInfo;
+}
 
-    RealGridData::~RealGridData(){
-      delete info_;
-    }
+RealGridData::~RealGridData(){
+  delete info_;
+}
 
 
 
-    void RealGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
-    	superlu_gridinit(comm, nprow, npcol, &info_->grid);
-    }
+void RealGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
+  superlu_gridinit(comm, nprow, npcol, &info_->grid);
+}
 
-    void RealGridData::GridExit(  ){
-    	superlu_gridexit(&info_->grid);
-    }
+void RealGridData::GridExit(  ){
+  superlu_gridexit(&info_->grid);
+}
 
 }
 

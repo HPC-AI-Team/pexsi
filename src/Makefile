@@ -4,12 +4,10 @@ SRCS_C   = pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c
 SRCS_CPP = interface.cpp ppexsi.cpp pole.cpp \
 					 superlu_dist_internal_complex.cpp superlu_dist_internal_real.cpp \
 					 mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp
-#new_ppexsi_real.cpp \
-#interface.cpp ppexsi.cpp ppexsi_real.cpp \
 
 
-OBJS     = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o} ${SRCS_F:.f=.o}
-DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F:.f=.d}
+OBJS     = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o} ${SRCS_F90:.f90=.o} 
+DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F90:.f90=.d}
 
 # Compilation replacement rules
 
@@ -21,6 +19,10 @@ DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F:.f=.d}
 	${FC} -c ${FFLAGS} $<
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
+%.o: %.f90
+	${FC} -c ${FFLAGS} $<
+%.o: %.F90
+	${FC} -c ${FFLAGS} $<
 
 
 all: libpexsi.a 
@@ -28,7 +30,7 @@ all: libpexsi.a
 -include ${DEPS}
 
 libpexsi.a: ${OBJS}
-	$(AR) $(ARFLAGS) $(PEXSI_LIB) ${OBJS}
+	$(AR) $(ARFLAGS) $(PEXSI_LIB) ${OBJS} 
 	$(RANLIB) $(shell basename $@ .a)_${SUFFIX}.a
 #ifeq (${MODE},release)
 #ifneq ($(USE_TAU),1)

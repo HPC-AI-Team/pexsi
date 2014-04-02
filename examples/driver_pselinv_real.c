@@ -193,7 +193,7 @@ int main(int argc, char **argv)
       }
     } // for (j)
   }
-  
+
   /* Deallocate memory */
   free( colptrLocal );
   free( rowindLocal );
