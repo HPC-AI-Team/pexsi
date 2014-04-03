@@ -5,8 +5,6 @@ include ../make.inc
 
 SRCS_CPP  = run_inertia.cpp run_ppexsi.cpp run_pselinv.cpp 
 SRCS_C    = driver_pselinv_real.c driver_pselinv_complex.c driver_ksdft.c 
-SRCS_F90  = f_driver_pselinv_real.f90 f_driver_pselinv_complex.f90 \
-						f_interface.f90
 
 OBJS = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o} 
 DEPS = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d}
@@ -23,30 +21,7 @@ EXES = ${SRCS_CPP:.cpp=} ${SRCS_C:.c=}
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
 
-all: driver_pselinv_complex driver_ksdft 
-
-f_driver_ksdft: f_interface.o f_driver_ksdft.o ${PEXSI_LIB} 
-	($(FC) -o $@_${SUFFIX} f_driver_ksdft.o  $(FLOADOPTS) )
-
-f_driver_ksdft.o: f_driver_ksdft.f90
-	  ${FC} -c ${FFLAGS} $<
-
-
-f_driver_pselinv_complex: f_interface.o f_driver_pselinv_complex.o ${PEXSI_LIB} 
-	($(FC) -o $@_${SUFFIX} f_driver_pselinv_complex.o  $(FLOADOPTS) )
-
-f_driver_pselinv_complex.o: f_driver_pselinv_complex.f90
-	  ${FC} -c ${FFLAGS} $<
-
-
-f_driver_pselinv_real: f_interface.o f_driver_pselinv_real.o ${PEXSI_LIB} 
-	($(FC) -o $@_${SUFFIX} f_driver_pselinv_real.o  $(FLOADOPTS) )
-
-f_driver_pselinv_real.o: f_driver_pselinv_real.f90
-	  ${FC} -c ${FFLAGS} $<
-
-f_interface.o: f_interface.f90
-	  ${FC} -c ${FFLAGS} $<
+all: driver_pselinv_real driver_pselinv_complex driver_ksdft 
 
 driver_ksdft: driver_ksdft.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} driver_ksdft.o  $(LOADOPTS) )
@@ -68,12 +43,6 @@ run_inertia.o: run_inertia.cpp
 
 run_pselinv.o: run_pselinv.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
-
-f_ppexsi_old: f_ppexsi_old.o ${PEXSI_LIB} 
-	  ($(FC) -o $@_${SUFFIX} f_ppexsi_old.o  $(FLOADOPTS) )
-
-f_ppexsi_old.o: f_ppexsi_old.f90
-	  ${FC} -c ${FFLAGS} $<
 
 run_ppexsi_old: run_ppexsi_old.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ run_ppexsi_old.o  $(LOADOPTS) )
