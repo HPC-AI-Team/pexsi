@@ -131,6 +131,43 @@ interface
     integer, intent(in)                :: fcomm
   end subroutine 
 
+  subroutine f_read_distsparsematrix_head (&
+      filename,&
+      nrows,&
+      nnz,&
+      nnzLocal,&
+      numColLocal,&
+      fcomm ) &
+      bind(C, Name="f_read_distsparsematrix_head")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    character(kind=c_char), intent(in) :: filename(*)
+    integer(c_int), intent(out)        :: nrows, nnz, nnzLocal, numColLocal
+    integer, intent(in)                :: fcomm
+  end subroutine 
+
+
+  subroutine f_para_read_distsparsematrix(&
+      filename,&
+      nrows,&
+      nnz,&
+      nnzLocal,&
+      numColLocal,&
+      colptrLocal,&
+      rowindLocal,&
+      nzvalLocal,&
+      fcomm ) &
+      bind(C, Name="f_para_read_distsparsematrix")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    character(kind=c_char), intent(in) :: filename(*)
+    integer(c_int), intent(in), value  :: nrows, nnz, nnzLocal, numColLocal
+    integer(c_int), intent(out)        :: colptrLocal(*), rowindLocal(*)
+    real(c_double), intent(out)        :: nzvalLocal(*)
+    integer, intent(in)                :: fcomm
+  end subroutine 
+
+
   function f_ppexsi_plan_initialize(&
       fcomm,&
       numProcRow,&

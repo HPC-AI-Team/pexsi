@@ -807,6 +807,53 @@ void f_read_distsparsematrix_formatted (
 	return;
 } // -----  end of function f_read_distsparsematrix_formatted  ----- 
 
+/// @brief FORTRAN interface for @ref ReadDistSparseMatrixHeadInterface.
+extern "C"
+void f_read_distsparsematrix_head (
+		char*    filename,
+		int*     size,
+		int*     nnz,
+		int*     nnzLocal,
+		int*     numColLocal,
+		MPI_Fint* Fcomm )
+{
+  ReadDistSparseMatrixHeadInterface(
+			filename,
+			size,
+			nnz,
+			nnzLocal,
+			numColLocal,
+			f2c_comm( Fcomm ) );
+
+	return;
+}  // -----  end of function f_read_distsparsematrix_head  
+
+
+/// @brief FORTRAN interface for @ref ParaReadDistSparseMatrixInterface.
+extern "C"
+void f_para_read_distsparsematrix (
+		char*    filename,
+		int      size,
+		int      nnz,
+		int      nnzLocal,
+		int      numColLocal,
+		int*     colptrLocal,
+		int*     rowindLocal,
+		double*  nzvalLocal,
+		MPI_Fint* Fcomm )
+{
+	ParaReadDistSparseMatrixInterface(
+			filename,
+			size,
+			nnz,
+			nnzLocal,
+			numColLocal,
+			colptrLocal,
+			rowindLocal,
+			nzvalLocal,
+			f2c_comm( Fcomm ) );
+	return;
+} // -----  end of function f_para_read_distsparsematrix  ----- 
 
 
 /// @brief FORTRAN interface for @ref PPEXSIPlanInitialize
