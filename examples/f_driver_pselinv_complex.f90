@@ -39,11 +39,11 @@
 !	 works, incorporate into other computer software, distribute, and sublicense
 !	 such enhancements or derivative works thereof, in binary and source code form.
 !
-!> @file f_driver_pselinv_real.f90
-!> @brief FORTRAN version of the driver for using PSelInv for real symmetric
+!> @file f_driver_pselinv_complex.f90
+!> @brief FORTRAN version of the driver for using PSelInv for complex symmetric
 !> matrices.
 !> @date 2014-04-01
-program f_driver_pselinv_real
+program f_driver_pselinv_complex
 use f_ppexsi_interface
 use iso_c_binding
 implicit none
@@ -52,11 +52,11 @@ include 'mpif.h'
 integer(c_int) :: nrows, nnz, nnzLocal, numColLocal
 integer(c_int), allocatable, dimension(:) ::  colptrLocal, rowindLocal
 real(c_double), allocatable, dimension(:) ::  &
-  HnzvalLocal, SnzvalLocal, AnzvalLocal, AinvnzvalLocal
+  SnzvalLocal, RnzvalLocal, InzvalLocal, AnzvalLocal, AinvnzvalLocal
 integer(c_int):: nprow, npcol, npSymbFact
 integer :: mpirank, mpisize, ierr
 double precision:: timeSta, timeEnd
-character*32 :: Hfile
+character*32 :: Rfile, Ifile
 integer(c_int):: info
 integer(c_intptr_t) :: plan
 type(f_ppexsi_options) :: options
@@ -70,13 +70,14 @@ call mpi_init( ierr )
 call mpi_comm_rank( MPI_COMM_WORLD, mpirank, ierr )
 call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
-Hfile            = "lap2dr.matrix"
+Rfile            = "lap2dr.matrix"
+Ifile            = "lap2di.matrix"
 
 nprow = 1
 npcol = 1
 
 call f_read_distsparsematrix_formatted_head( &
-  trim(Hfile)//char(0),&
+  trim(Rfile)//char(0),&
   nrows,&
   nnz,&
   nnzLocal,&
@@ -94,23 +95,39 @@ endif
 ! Allocate memory
 allocate( colptrLocal( numColLocal + 1 ) )
 allocate( rowindLocal( nnzLocal ) )
-allocate( HnzvalLocal( nnzLocal ) )
-allocate( AnzvalLocal( nnzLocal ) )
-allocate( AinvnzvalLocal( nnzLocal ) )
+allocate( RnzvalLocal( nnzLocal ) )
+allocate( InzvalLocal( nnzLocal ) )
+allocate( AnzvalLocal( 2*nnzLocal ) )
+allocate( AinvnzvalLocal( 2*nnzLocal ) )
 
+! Read the real part of the matrix
 call f_read_distsparsematrix_formatted (&
-  trim(Hfile)//char(0),&
+  trim(Rfile)//char(0),&
   nrows,&
   nnz,&
   nnzLocal,&
   numColLocal,&
   colptrLocal,&
   rowindLocal,&
-  HnzvalLocal,&
+  RnzvalLocal,&
   MPI_COMM_WORLD )
 
+! Read the imag part of the matrix 
+call f_read_distsparsematrix_formatted (&
+  trim(Ifile)//char(0),&
+  nrows,&
+  nnz,&
+  nnzLocal,&
+  numColLocal,&
+  colptrLocal,&
+  rowindLocal,&
+  InzvalLocal,&
+  MPI_COMM_WORLD )
+
+! Form the matrix
 do i = 1, nnzLocal
-  AnzvalLocal(i) = HnzvalLocal(i)
+  AnzvalLocal(2*i-1) = RnzvalLocal(i)
+  AnzvalLocal(2*i)   = InzvalLocal(i)
 enddo
 
 plan = f_ppexsi_plan_initialize(&
@@ -129,6 +146,7 @@ call f_ppexsi_set_default_options(&
   options )
 
 
+! This is just to load the pattern for symbolic factorization
 call f_ppexsi_load_real_symmetric_hs_matrix(&
       plan,&       
       options,&
@@ -138,7 +156,7 @@ call f_ppexsi_load_real_symmetric_hs_matrix(&
       numColLocal,&
       colptrLocal,& 
       rowindLocal,&
-      HnzvalLocal,&
+      RnzvalLocal,&
       1,&
       SnzvalLocal,&
       info ) 
@@ -153,7 +171,7 @@ if( mpirank == 0 ) then
   write(*,*)  "Finish setting up the matrix."
 endif
 
-call f_ppexsi_symbolic_factorize_real_symmetric_matrix(&
+call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(&
   plan,&
   options,&
   info)
@@ -168,7 +186,7 @@ if( mpirank == 0 ) then
   write(*,*)  "Finish symbolic factorization."
 endif
 
-call f_ppexsi_selinv_real_symmetric_matrix(&
+call f_ppexsi_selinv_complex_symmetric_matrix(&
   plan,&
   options,&
   AnzvalLocal,&
@@ -195,8 +213,9 @@ if( mpirank == 0 ) then
     do i = colptrLocal(j), colptrLocal(j+1)
       irow = rowindLocal(i)
       if( irow == jcol ) then
-        write(*,"(A,2I5,A,F15.10)") &
-          "Ainv[", irow, irow, "]= ", AinvnzvalLocal(i)
+        write(*,"(A,2I5,A,F15.10,A,F15.10,A)") &
+          "Ainv[", irow, irow, "]= ", AinvnzvalLocal(2*i-1), &
+          " + ", AinvnzvalLocal(2*i), " i"
       endif
     enddo
   enddo
@@ -208,10 +227,11 @@ call mpi_finalize( ierr )
 
 deallocate( colptrLocal )
 deallocate( rowindLocal )
-deallocate( HnzvalLocal )
+deallocate( RnzvalLocal )
+deallocate( InzvalLocal )
 deallocate( AnzvalLocal )
 deallocate( AinvnzvalLocal )
 
 
-end program f_driver_pselinv_real
+end program f_driver_pselinv_complex
 

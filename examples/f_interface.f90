@@ -58,11 +58,13 @@
 !> @date 2014-04-01
 
 ! *********************************************************************
-! Module for PPEXSIOptions
+! Module for main PEXSI interface routines
 ! *********************************************************************
-module f_ppexsi_data
+
+module f_ppexsi_interface
 use, intrinsic :: iso_c_binding
-implicit none
+
+! Struct for PPEXSIOptions
 type, bind(C) :: f_ppexsi_options
   real(c_double)         :: temperature
   real(c_double)         :: gap
@@ -83,21 +85,14 @@ type, bind(C) :: f_ppexsi_options
   integer(c_int)         :: verbosity
 end type f_ppexsi_options
 
-end module f_ppexsi_data
 
-
-! *********************************************************************
-! Module for main PEXSI interface routines
-! *********************************************************************
-
-module f_ppexsi_interface
 
 interface  
   subroutine f_ppexsi_set_default_options(&
       options) &
       bind(C, Name="PPEXSISetDefaultOptions")
     use, intrinsic :: iso_c_binding
-    use            :: f_ppexsi_data
+    import         :: f_ppexsi_options
     implicit none
     type( f_ppexsi_options ), intent(out) :: options
   end subroutine 
@@ -178,7 +173,7 @@ interface
       info) &
       bind(C, Name="PPEXSILoadRealSymmetricHSMatrix")
     use, intrinsic :: iso_c_binding
-    use            :: f_ppexsi_data
+    import         :: f_ppexsi_options
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
     type( f_ppexsi_options ), value, intent(in) :: options
@@ -200,13 +195,29 @@ interface
       info) &
       bind(C, Name="PPEXSISymbolicFactorizeRealSymmetricMatrix")
     use, intrinsic :: iso_c_binding
-    use            :: f_ppexsi_data
+    import         :: f_ppexsi_options
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
     type( f_ppexsi_options ), value, intent(in) :: options
     integer(c_int), intent(out)            :: info
   end subroutine 
 end interface
+
+interface  
+  subroutine f_ppexsi_symbolic_factorize_complex_symmetric_matrix(&
+      plan,&
+      options,&
+      info) &
+      bind(C, Name="PPEXSISymbolicFactorizeComplexSymmetricMatrix")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    integer(c_int), intent(out)            :: info
+  end subroutine 
+end interface
+
 
 interface  
   subroutine f_ppexsi_selinv_real_symmetric_matrix(&
@@ -217,7 +228,27 @@ interface
       info) &
       bind(C, Name="PPEXSISelInvRealSymmetricMatrix")
     use, intrinsic :: iso_c_binding
-    use            :: f_ppexsi_data
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    real(c_double), intent(in)  :: AnzvalLocal(*)
+    real(c_double), intent(out) :: AinvnzvalLocal(*)
+    integer(c_int), intent(out)            :: info
+  end subroutine 
+end interface
+
+
+interface  
+  subroutine f_ppexsi_selinv_complex_symmetric_matrix(&
+      plan,&
+      options,&
+      AnzvalLocal,&
+      AinvnzvalLocal,&
+      info) &
+      bind(C, Name="PPEXSISelInvComplexSymmetricMatrix")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
     type( f_ppexsi_options ), value, intent(in) :: options
