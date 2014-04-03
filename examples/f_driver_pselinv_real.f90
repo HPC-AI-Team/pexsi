@@ -44,34 +44,34 @@
 !> matrices.
 !> @date 2014-04-01
 program f_driver_pselinv_real
-use f_pexsi_interface
+use f_ppexsi_interface
+use f_ppexsi_data
 use iso_c_binding
 implicit none
 include 'mpif.h'
 
 integer(c_int) :: nrows, nnz, nnzLocal, numColLocal
 integer(c_int), allocatable, dimension(:) ::  colptrLocal, rowindLocal
-real(c_double), allocatable, dimension(:) ::  HnzvalLocal
+real(c_double), allocatable, dimension(:) ::  &
+  HnzvalLocal, SnzvalLocal, AnzvalLocal, AinvnzvalLocal
 integer(c_int):: nprow, npcol, npSymbFact
 integer :: mpirank, mpisize, ierr
 double precision:: timeSta, timeEnd
 character*32 :: Hfile
 integer(c_int):: info
 integer(c_intptr_t) :: plan
+type(f_ppexsi_options) :: options
 
-integer:: i 
+integer:: i, j 
+integer:: numColLocalFirst, firstCol
+integer:: irow, jcol
+
 
 call mpi_init( ierr )
 call mpi_comm_rank( MPI_COMM_WORLD, mpirank, ierr )
 call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 Hfile            = "lap2dr.matrix"
-
-! Ordering 
-!   0   : PARMETIS
-!   1   : METIS_AT_PLUS_A
-!   2   : MMD_AT_PLUS_A
-ordering         = 0
 
 nprow = 1
 npcol = 1
@@ -96,6 +96,8 @@ endif
 allocate( colptrLocal( numColLocal + 1 ) )
 allocate( rowindLocal( nnzLocal ) )
 allocate( HnzvalLocal( nnzLocal ) )
+allocate( AnzvalLocal( nnzLocal ) )
+allocate( AinvnzvalLocal( nnzLocal ) )
 
 call f_read_distsparsematrix_formatted (&
   trim(Hfile)//char(0),&
@@ -108,6 +110,10 @@ call f_read_distsparsematrix_formatted (&
   HnzvalLocal,&
   MPI_COMM_WORLD )
 
+do i = 1, nnzLocal
+  AnzvalLocal(i) = HnzvalLocal(i)
+enddo
+
 plan = f_ppexsi_plan_initialize(&
   MPI_COMM_WORLD,&
   nprow,&
@@ -115,12 +121,98 @@ plan = f_ppexsi_plan_initialize(&
   mpirank,&
   info )
 
-call f_ppexsi_plan_finalize(&
+if( info .ne. 0 ) then
+	call mpi_finalize( ierr )
+	call exit(info)
+endif
+
+call f_ppexsi_set_default_options(&
+  options )
+
+
+call f_ppexsi_load_real_symmetric_hs_matrix(&
+      plan,&       
+      options,&
+      nrows,&
+      nnz,&
+      nnzLocal,&
+      numColLocal,&
+      colptrLocal,& 
+      rowindLocal,&
+      HnzvalLocal,&
+      1,&
+      SnzvalLocal,&
+      info ) 
+
+if( info .ne. 0 ) then
+	call mpi_finalize( ierr )
+	call exit(info)
+endif
+
+
+if( mpirank == 0 ) then
+  write(*,*)  "Finish setting up the matrix."
+endif
+
+call f_ppexsi_symbolic_factorize_real_symmetric_matrix(&
   plan,&
+  options,&
   info)
 
+if( info .ne. 0 ) then
+	call mpi_finalize( ierr )
+	call exit(info)
+endif
+
+
+if( mpirank == 0 ) then
+  write(*,*)  "Finish symbolic factorization."
+endif
+
+call f_ppexsi_selinv_real_symmetric_matrix(&
+  plan,&
+  options,&
+  AnzvalLocal,&
+  AinvnzvalLocal,&
+  info)
+
+if( info .ne. 0 ) then
+	call mpi_finalize( ierr )
+	call exit(info)
+endif
+
+
+if( mpirank == 0 ) then
+  write(*,*)  "Finish selected inversion."
+endif
+
+
+! The first processor output the diagonal elements in natural order
+if( mpirank == 0 ) then
+  numColLocalFirst = nrows / mpisize;
+  firstCol         = mpirank * numColLocalFirst;
+  do j = 1, numColLocal
+    jcol = firstCol + j
+    do i = colptrLocal(j), colptrLocal(j+1)
+      irow = rowindLocal(i)
+      if( irow == jcol ) then
+        write(*,"(A,2I5,A,F15.10)") &
+          "Ainv[", irow, irow, "]= ", AinvnzvalLocal(i)
+      endif
+    enddo
+  enddo
+endif
+
+call f_ppexsi_plan_finalize( plan, info )
 
 call mpi_finalize( ierr )
+
+deallocate( colptrLocal )
+deallocate( rowindLocal )
+deallocate( HnzvalLocal )
+deallocate( AnzvalLocal )
+deallocate( AinvnzvalLocal )
+
 
 end program f_driver_pselinv_real
 

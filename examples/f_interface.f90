@@ -56,7 +56,54 @@
 !>
 !> @see  c_pexsi_interface.h
 !> @date 2014-04-01
-module f_pexsi_interface
+
+! *********************************************************************
+! Module for PPEXSIOptions
+! *********************************************************************
+module f_ppexsi_data
+use, intrinsic :: iso_c_binding
+implicit none
+type, bind(C) :: f_ppexsi_options
+  real(c_double)         :: temperature
+  real(c_double)         :: gap
+  real(c_double)         :: deltaE
+  integer(c_int)         :: numPole
+  integer(c_int)         :: isInertiaCount
+  integer(c_int)         :: maxPEXSIIter
+  real(c_double)         :: muMin0
+  real(c_double)         :: muMax0
+  real(c_double)         :: muInertiaTolerance
+  real(c_double)         :: muInertiaExpansion
+  real(c_double)         :: muPEXSISafeGuard
+  real(c_double)         :: numElectronPEXSITolerance
+  integer(c_int)         :: matrixType
+  integer(c_int)         :: isSymbolicFactorize
+  integer(c_int)         :: ordering
+  integer(c_int)         :: npSymbFact
+  integer(c_int)         :: verbosity
+end type f_ppexsi_options
+
+end module f_ppexsi_data
+
+
+! *********************************************************************
+! Module for main PEXSI interface routines
+! *********************************************************************
+
+module f_ppexsi_interface
+
+interface  
+  subroutine f_ppexsi_set_default_options(&
+      options) &
+      bind(C, Name="PPEXSISetDefaultOptions")
+    use, intrinsic :: iso_c_binding
+    use            :: f_ppexsi_data
+    implicit none
+    type( f_ppexsi_options ), intent(out) :: options
+  end subroutine 
+end interface
+
+
 
 interface  
   subroutine f_read_distsparsematrix_formatted_head (&
@@ -114,6 +161,73 @@ interface
   end function
 end interface
 
+
+interface  
+  subroutine f_ppexsi_load_real_symmetric_hs_matrix(&
+      plan,&
+      options,&
+      nrows,&
+      nnz,&
+      nnzLocal,&
+      numColLocal,&
+      colptrLocal,&
+      rowindLocal,&
+      HnzvalLocal,&
+      isSIdentity,&
+      SnzvalLocal,&
+      info) &
+      bind(C, Name="PPEXSILoadRealSymmetricHSMatrix")
+    use, intrinsic :: iso_c_binding
+    use            :: f_ppexsi_data
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    integer(c_int), value, intent(in)  :: &
+      nrows, nnz, nnzLocal, numColLocal, isSIdentity
+    integer(c_int), intent(in)  :: &
+      colptrLocal(*), rowindLocal(*)
+    real(c_double), intent(in)  :: &
+      HnzvalLocal(*), SnzvalLocal(*)
+    integer(c_int), intent(out)            :: info
+  end subroutine 
+end interface
+
+
+interface  
+  subroutine f_ppexsi_symbolic_factorize_real_symmetric_matrix(&
+      plan,&
+      options,&
+      info) &
+      bind(C, Name="PPEXSISymbolicFactorizeRealSymmetricMatrix")
+    use, intrinsic :: iso_c_binding
+    use            :: f_ppexsi_data
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    integer(c_int), intent(out)            :: info
+  end subroutine 
+end interface
+
+interface  
+  subroutine f_ppexsi_selinv_real_symmetric_matrix(&
+      plan,&
+      options,&
+      AnzvalLocal,&
+      AinvnzvalLocal,&
+      info) &
+      bind(C, Name="PPEXSISelInvRealSymmetricMatrix")
+    use, intrinsic :: iso_c_binding
+    use            :: f_ppexsi_data
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    real(c_double), intent(in)  :: AnzvalLocal(*)
+    real(c_double), intent(out) :: AinvnzvalLocal(*)
+    integer(c_int), intent(out)            :: info
+  end subroutine 
+end interface
+
+
 interface  
   subroutine f_ppexsi_plan_finalize(&
       plan,&
@@ -127,4 +241,4 @@ interface
 end interface
 
 
-end module f_pexsi_interface
+end module f_ppexsi_interface
