@@ -69,16 +69,16 @@ run_inertia.o: run_inertia.cpp
 run_pselinv.o: run_pselinv.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
-f_ppexsi: f_ppexsi.o ${PEXSI_LIB} 
-	  ($(FC) -o $@_${SUFFIX} f_ppexsi.o  $(FLOADOPTS) )
+f_ppexsi_old: f_ppexsi_old.o ${PEXSI_LIB} 
+	  ($(FC) -o $@_${SUFFIX} f_ppexsi_old.o  $(FLOADOPTS) )
 
-f_ppexsi.o: f_ppexsi.f90
+f_ppexsi_old.o: f_ppexsi_old.f90
 	  ${FC} -c ${FFLAGS} $<
 
-run_ppexsi: run_ppexsi.o ${PEXSI_LIB} 
-	($(LOADER) -o $@ run_ppexsi.o  $(LOADOPTS) )
+run_ppexsi_old: run_ppexsi_old.o ${PEXSI_LIB} 
+	($(LOADER) -o $@ run_ppexsi_old.o  $(LOADOPTS) )
 
-run_ppexsi.o: run_ppexsi.cpp 
+run_ppexsi_old.o: run_ppexsi_old.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 -include ${DEPS}
