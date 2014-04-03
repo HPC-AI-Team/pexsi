@@ -41,7 +41,7 @@
    such enhancements or derivative works thereof, in binary and source code form.
 */
 /**
- * @file driver_ksdft_new.c
+ * @file driver_ksdft.c
  * @brief Example for using the new driver interface for performing KSDFT
  * calculations.
  *
@@ -66,7 +66,6 @@ int main(int argc, char **argv)
   double*       HnzvalLocal;                  
   int           isSIdentity;                  
   double*       SnzvalLocal;                  
-  double*       AinvnzvalLocal;
 
   double*       DMnzvalLocal;
   double*       EDMnzvalLocal;

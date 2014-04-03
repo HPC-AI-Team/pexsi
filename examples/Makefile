@@ -25,6 +25,13 @@ EXES = ${SRCS_CPP:.cpp=} ${SRCS_C:.c=}
 
 all: driver_pselinv_complex driver_ksdft 
 
+f_driver_ksdft: f_interface.o f_driver_ksdft.o ${PEXSI_LIB} 
+	($(FC) -o $@_${SUFFIX} f_driver_ksdft.o  $(FLOADOPTS) )
+
+f_driver_ksdft.o: f_driver_ksdft.f90
+	  ${FC} -c ${FFLAGS} $<
+
+
 f_driver_pselinv_complex: f_interface.o f_driver_pselinv_complex.o ${PEXSI_LIB} 
 	($(FC) -o $@_${SUFFIX} f_driver_pselinv_complex.o  $(FLOADOPTS) )
 
