@@ -481,7 +481,7 @@ namespace PEXSI{
   template<typename T>
   class PMatrix{
 
-    private:
+    protected:
       // *********************************************************************
       // Variables
       // *********************************************************************
@@ -596,12 +596,9 @@ namespace PEXSI{
 
       };
 
-      /// @brief SelInvIntra_Collectives
-      inline void SelInvIntra_Collectives(Int lidx);
 
       /// @brief SelInvIntra_P2p
       inline void SelInvIntra_P2p(Int lidx);
-
 
       /// @brief SelInv_lookup_indexes
       inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
@@ -618,16 +615,6 @@ namespace PEXSI{
       /// @brief SendRecvCD_UpdateU
       inline void SendRecvCD_UpdateU(std::vector<SuperNodeBufferType > & arrSuperNodes, Int stepSuper);
 
-      /// @brief getMaxCommunicatorSizes
-      void getMaxCommunicatorSizes();
-
-      /// @brief ConstructCommunicators_Collectives
-      void ConstructCommunicators_Collectives(Int lidx);
-
-      /// @brief DestructCommunicators_Collectives frees the MPI communicators allocated
-      /// by CreateCommunicators_Collectives.
-      void DestructCommunicators_Collectives( );
-
     public:
       // *********************************************************************
       // Public member functions 
@@ -637,7 +624,7 @@ namespace PEXSI{
 
       PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
-      ~PMatrix() {}
+      virtual ~PMatrix() {}
 
       void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
@@ -689,6 +676,10 @@ namespace PEXSI{
       /// to the right of current processor with which it has to communicate
       Int CountSendToRight(Int ksup) {  Int count= std::count (isSendToRight_.VecData(ksup), isSendToRight_.VecData(ksup) + grid_->numProcCol, true); return (isSendToRight_(MYCOL(grid_),ksup)?count-1:count); }
 
+      /// @brief CountSendToBelow returns the number of processors 
+      /// below current processor with which it has to communicate
+      Int CountSendToBelow(Int ksup) {  Int count= std::count (isSendToBelow_.VecData(ksup), isSendToBelow_.VecData(ksup) + grid_->numProcRow, true); return (isSendToBelow_(MYROW(grid_),ksup)?count-1:count); }
+
       /// @brief CountRecvFromBelow returns the number of processors 
       /// below the current processor from which it receives data
       Int CountRecvFromBelow(Int ksup) {  Int count= std::count (isRecvFromBelow_.VecData(ksup), isRecvFromBelow_.VecData(ksup) + grid_->numProcRow, true); return (isRecvFromBelow_(MYROW(grid_),ksup)?count-1:count); }
@@ -713,7 +704,7 @@ namespace PEXSI{
       /// pattern to be used later in the selected inversion stage.
       /// The supernodal elimination tree is used to add an additional level of parallelism between supernodes.
       /// [ConstructCommunicationPattern_P2p](@ref PEXSI::PMatrix::ConstructCommunicationPattern_P2p) is called by default.
-      void ConstructCommunicationPattern( );
+      virtual void ConstructCommunicationPattern( );
 
 
       /// @brief ConstructCommunicationPattern_P2p constructs the communication
@@ -721,16 +712,6 @@ namespace PEXSI{
       /// The supernodal elimination tree is used to add an additional level of parallelism between supernodes.
       void ConstructCommunicationPattern_P2p( );
 
-      /// @brief ConstructCommunicationPattern_Collectives constructs the communication
-      /// pattern to be used later in the selected inversion stage with the Collectives variant.
-      /// The supernodal elimination tree is used to add an additional level of parallelism between supernodes.
-      void ConstructCommunicationPattern_Collectives( );
-
-
-      /// @brief ConstructCommunicationPattern_Hybrid constructs the communication
-      /// pattern to be used later in the selected inversion stage with the Hybrid variant.
-      /// The supernodal elimination tree is used to schedule the pipelined supernodes.
-      void ConstructCommunicationPattern_Hybrid( );
 
 
       /// @brief PreSelInv prepares the structure in L_ and U_ so that
@@ -761,7 +742,7 @@ namespace PEXSI{
       ///
       /// PreSelInv assumes that
       /// PEXSI::PMatrix::ConstructCommunicationPattern has been executed.
-      void PreSelInv( );
+      virtual void PreSelInv( );
 
       /// @brief SelInv is the main function for the selected inversion.
       ///
@@ -887,14 +868,10 @@ namespace PEXSI{
       ///
       ///
       ///
-      void SelInv( );
-      /// @brief Collective communication version of the selected inversion.
-      void SelInv_Collectives( );
+      virtual void SelInv( );
+
       /// @brief Point-to-point version of the selected inversion.
       void SelInv_P2p( );
-      /// @brief Hybrid version of the selected inversion. This file is
-      /// obsolete.
-      void SelInv_Hybrid(Int threshold);
 
 
       /// @brief GetDiagonal extracts the diagonal elements of the PMatrix.
@@ -964,5 +941,6 @@ namespace PEXSI{
 
 
 #include "pselinv_impl.hpp"
+
 
 #endif //_PEXSI_PSELINV_HPP_
