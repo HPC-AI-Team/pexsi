@@ -56,10 +56,16 @@ PPEXSIData::PPEXSIData	( const GridType* g, Int nprow, Int npcol ): gridPole_(g)
 	PushCallStack("PPEXSIData::PPEXSIData");
 #endif
 	if( nprow != npcol ){
-		throw std::runtime_error( "PSelInv only allows to use square grid." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( "PSelInv only allows to use square grid." );
 	}
 	if( gridPole_->numProcCol != nprow * npcol ){
-		throw std::runtime_error( "The number of processors numProcCol do not match nprow * npcol." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( "The number of processors numProcCol do not match nprow * npcol." );
 	}
 	zGridSuperLU_  = new SuperLUGrid<Complex>( gridPole_->rowComm, nprow, npcol );
 	dGridSuperLU_  = new SuperLUGrid<Real>( gridPole_->rowComm, nprow, npcol );
@@ -223,7 +229,10 @@ void PPEXSIData::Solve(
 	// Check the input parameters
 	// *********************************************************************
 	if( numPole % 2 != 0 ){
-		throw std::logic_error( "Must be even number of poles!" );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "Must be even number of poles!" );
 	}
 
 	// TODO Check H and S have the same pattern
@@ -1390,7 +1399,10 @@ PPEXSIData::EstimateSpectralRadius(
 			<< "The sizes of H and S do not match." << std::endl
       << "H.size = " << HMat.size << std::endl
       << "S.size = " << SMat.size << std::endl;
-		throw std::runtime_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
   }
 
   // Locally Optimal Conjugate Gradient method
@@ -1427,7 +1439,10 @@ PPEXSIData::EstimateSpectralRadius(
           << "The sizes of H and v0 do not match." << std::endl
           << "H.size = " << HMat.size << std::endl
           << "v0.size = " << v0.m() << std::endl;
-        throw std::runtime_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
       }
       blas::Copy( n, v0.Data(), 1, X.Data(), 1 );
     }
@@ -1600,7 +1615,10 @@ PPEXSIData::EstimateSpectralRadius(
     sigma = QAQ(0,0) / QBQ(0,0);
   }
   else{
-    throw std::runtime_error( "Method != 0 is not yet supported." );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( "Method != 0 is not yet supported." );
   }
 
 

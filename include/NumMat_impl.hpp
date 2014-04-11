@@ -51,7 +51,12 @@ namespace  PEXSI{
 
   template <class F> inline void NumMat<F>::allocate(F* data) {
     if(owndata_) {
-      if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) throw std::runtime_error("Cannot allocate memory."); } else data_=NULL;
+      if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) {
+#ifdef USE_ABORT
+        abort();
+#endif
+        throw std::runtime_error("Cannot allocate memory.");}
+      } else data_=NULL;
       if(data!=NULL){std::copy(data,data+m_*n_,data_);}
     } else {
       data_ = data;
@@ -96,6 +101,9 @@ namespace  PEXSI{
 
   template <class F> void NumMat<F>::Resize(Int m, Int n)  {
     if( owndata_ == false ){
+#ifdef USE_ABORT
+      abort();
+#endif
       throw std::logic_error("Matrix being resized must own data.");
     }
 
@@ -112,6 +120,9 @@ namespace  PEXSI{
   template <class F> const F& NumMat<F>::operator()(Int i, Int j) const  { 
     if( i < 0 || i >= m_ ||
         j < 0 || j >= n_ ) {
+#ifdef USE_ABORT
+      abort();
+#endif
       throw std::logic_error( "Index is out of bound." );
     }
     return data_[i+j*m_];
@@ -120,6 +131,9 @@ namespace  PEXSI{
   template <class F> F& NumMat<F>::operator()(Int i, Int j)  { 
     if( i < 0 || i >= m_ ||
         j < 0 || j >= n_ ) {
+#ifdef USE_ABORT
+      abort();
+#endif
       throw std::logic_error( "Index is out of bound." );
     }
     return data_[i+j*m_];
@@ -128,6 +142,9 @@ namespace  PEXSI{
   template <class F> F* NumMat<F>::VecData(Int j)  const 
   { 
     if( j < 0 || j >= n_ ) {
+#ifdef USE_ABORT
+      abort();
+#endif
       throw std::logic_error( "Index is out of bound." );
     }
     return &(data_[j*m_]); 
@@ -183,6 +200,9 @@ namespace  PEXSI{
       PushCallStack("Symmetrize");
 #endif
       if( A.m() != A.n() ){
+#ifdef USE_ABORT
+        abort();
+#endif
         throw std::logic_error( "The matrix to be symmetrized should be a square matrix." );
       }
 

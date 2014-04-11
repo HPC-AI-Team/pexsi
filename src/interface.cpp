@@ -74,7 +74,10 @@ void ReadDistSparseMatrixFormattedHeadInterface (
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be openeded!" );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be openeded!" );
 		}
 		Int dummy;
 		fin >> *size >> dummy;
@@ -164,7 +167,10 @@ void ReadDistSparseMatrixHeadInterface (
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be openeded!" );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be openeded!" );
 		}
 		fin.read((char*)size, sizeof(int));
 		fin.read((char*)nnz,  sizeof(int));
@@ -179,7 +185,10 @@ void ReadDistSparseMatrixHeadInterface (
 		fin.read((char*)&tmp, sizeof(int));  
 
 		if( tmp != (*size)+1 ){
-			throw std::logic_error( "colptr is not of the right size." );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "colptr is not of the right size." );
 		}
 
 		Int* ptr = colptr.Data();

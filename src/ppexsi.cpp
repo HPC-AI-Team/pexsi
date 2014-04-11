@@ -73,7 +73,10 @@ PPEXSIData::PPEXSIData	(
       << "mpisize    = " << mpisize << std::endl
       << "npPerPole = " << npPerPole << std::endl
       << "mpisize is not divisible by npPerPole!" << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
   }
 
   gridPole_     = new GridType( comm, mpisize / npPerPole, npPerPole );
@@ -279,7 +282,10 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
   }
   
   // Real matrices
@@ -474,7 +480,10 @@ void PPEXSIData::CalculateNegativeInertiaReal(
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
   }
 
   if( isSymbolicFactorized_ == false ){
@@ -482,7 +491,10 @@ void PPEXSIData::CalculateNegativeInertiaReal(
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
       << "Call SymbolicFactorizeRealSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
   }
 
 
@@ -632,7 +644,10 @@ void PPEXSIData::CalculateFermiOperatorReal(
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
   }
 
   if( isSymbolicFactorized_ == false ){
@@ -640,14 +655,20 @@ void PPEXSIData::CalculateFermiOperatorReal(
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
       << "Call SymbolicFactorizeRealSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
   }
 
   // *********************************************************************
   // Check the input parameters
   // *********************************************************************
   if( numPole % 2 != 0 ){
-    throw std::logic_error( "Must be even number of poles!" );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "Must be even number of poles!" );
   }
 
   // *********************************************************************
@@ -1239,11 +1260,17 @@ PPEXSIData::DFTDriver (
       colPerm = "MMD_AT_PLUS_A";
       break;
     default:
-      throw std::logic_error("Unsupported ordering strategy.");
+      #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error("Unsupported ordering strategy.");
   }
 
   if( matrixType != 0 ){
-    throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
   }
 
   // Perform symbolic factorization first if required
@@ -1323,7 +1350,10 @@ PPEXSIData::DFTDriver (
             << " inertia counts have been proceeded." << std::endl
             << "Try to revise the initial interval for the chemical potential, "
             << "or increase muInertiaTolerance. " << std::endl;
-          throw std::runtime_error( msg.str().c_str() );
+          #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
         }
 
         numTotalInertiaIter++;

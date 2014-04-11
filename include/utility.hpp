@@ -1588,7 +1588,10 @@ namespace PEXSI{
           << "The size of the matrix A is " << AMat.size << std::endl
           << "The size of the vector B is " << B.m() << std::endl 
           << "and they must agree with each other.";
-          throw std::runtime_error( msg.str().c_str() );
+          #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
       }
       if( C.m() != AMat.size ){
         std::ostringstream msg;
@@ -1596,7 +1599,10 @@ namespace PEXSI{
           << "The size of the matrix A is " << AMat.size << std::endl
           << "The size of the vector C is " << C.m() << std::endl 
           << "and they must agree with each other.";
-          throw std::runtime_error( msg.str().c_str() );
+          #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
       }
 
       MPI_Comm  comm = AMat.comm;
@@ -1694,7 +1700,10 @@ namespace PEXSI{
           << "The root finding procedure cannot find the solution for y(x)=" 
           << val << std::endl << "here [min(y) max(y)] = [" << y[0] << ", "
           << y[numX-1] << "]" << std::endl;
-        throw std::runtime_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
       }
 
       std::vector<Real>::const_iterator vi = std::lower_bound( 

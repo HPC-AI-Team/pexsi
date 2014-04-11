@@ -50,6 +50,21 @@ namespace lapack {
 
 extern "C" {
 
+
+double LAPACK(slange)
+( const char *  norm, const Int* m,const Int* n,
+const float * A,const Int* lda, float* work);
+double LAPACK(dlange)
+( const char *  norm, const Int* m,const Int* n,
+const double * A,const Int* lda, double* work);
+double LAPACK(clange)
+( const char *  norm, const Int* m,const Int* n,
+const scomplex * A,const Int* lda, scomplex* work);
+double LAPACK(zlange)
+( const char *  norm, const Int* m,const Int* n,
+const dcomplex * A,const Int* lda, dcomplex* work);
+
+
 // Safely compute a Givens rotation
 void LAPACK(slartg)
 ( const float* phi, const float* gamma,
@@ -270,10 +285,16 @@ void Potrf( char uplo, Int n, const float* A, Int lda )
     {
         std::ostringstream msg;
         msg << "spotrf returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is not HPD.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is not HPD.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -290,10 +311,16 @@ void Potrf( char uplo, Int n, const double* A, Int lda )
     {
         std::ostringstream msg;
         msg << "dpotrf returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is not HPD.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is not HPD.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -310,10 +337,16 @@ void Potrf( char uplo, Int n, const scomplex* A, Int lda )
     {
         std::ostringstream msg;
         msg << "cpotrf returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is not HPD.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is not HPD.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -330,10 +363,16 @@ void Potrf( char uplo, Int n, const dcomplex* A, Int lda )
     {
         std::ostringstream msg;
         msg << "zpotrf returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is not HPD.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is not HPD.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -354,10 +393,16 @@ void Getrf( Int m, Int n, float* A, Int lda, Int* p )
     {
         std::ostringstream msg;
         msg << "sgetrf returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is singular.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is singular.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -374,10 +419,16 @@ void Getrf( Int m, Int n, double* A, Int lda, Int* p )
     {
         std::ostringstream msg;
         msg << "dgetrf returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is singular.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is singular.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -394,10 +445,16 @@ void Getrf( Int m, Int n, scomplex* A, Int lda, Int* p )
     {
         std::ostringstream msg;
         msg << "cgetrf returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is singular.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is singular.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -414,10 +471,16 @@ void Getrf( Int m, Int n, dcomplex* A, Int lda, Int* p )
     {
         std::ostringstream msg;
         msg << "zgetrf returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is singular.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is singular.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -441,7 +504,10 @@ void Hegst
     {
         std::ostringstream msg;
         msg << "ssygst returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -461,7 +527,10 @@ void Hegst
     {
         std::ostringstream msg;
         msg << "dsygst returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -481,7 +550,10 @@ void Hegst
     {
         std::ostringstream msg;
         msg << "chegst returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -501,7 +573,10 @@ void Hegst
     {
         std::ostringstream msg;
         msg << "zhegst returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -537,7 +612,10 @@ void Syevd
 	{
 		std::ostringstream msg;
 		msg << "syevd returned with info = " << info;
-		throw std::logic_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 	}
 #ifndef _RELEASE_
     PopCallStack();
@@ -575,7 +653,10 @@ void Sygvd
   {
     std::ostringstream msg;
     msg << "sygvd returned with info = " << info;
-    throw std::logic_error( msg.str().c_str() );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
   }
 #ifndef _RELEASE_
   PopCallStack();
@@ -598,10 +679,16 @@ void Trtri( char uplo, char diag, Int n, const float* A, Int lda )
     {
         std::ostringstream msg;
         msg << "strtri returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is singular.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is singular.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -618,10 +705,16 @@ void Trtri( char uplo, char diag, Int n, const double* A, Int lda )
     {
         std::ostringstream msg;
         msg << "dtrtri returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is singular.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is singular.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -639,10 +732,16 @@ void Trtri
     {
         std::ostringstream msg;
         msg << "ctrtri returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is singular.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is singular.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -660,10 +759,16 @@ void Trtri
     {
         std::ostringstream msg;
         msg << "ztrtri returned with info = " << info;
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
-        throw std::runtime_error("Matrix is singular.");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Matrix is singular.");
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -699,13 +804,19 @@ void BidiagQRAlg
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
         std::ostringstream msg;
         msg << "sbdsqr had " << info << " elements of e not converge";
-        throw std::runtime_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -738,13 +849,19 @@ void BidiagQRAlg
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
         std::ostringstream msg;
         msg << "dbdsqr had " << info << " elements of e not converge";
-        throw std::runtime_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -777,13 +894,19 @@ void BidiagQRAlg
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
         std::ostringstream msg;
         msg << "cbdsqr had " << info << " elements of e not converge";
-        throw std::runtime_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -816,13 +939,19 @@ void BidiagQRAlg
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
         std::ostringstream msg;
         msg << "zbdsqr had " << info << " elements of e not converge";
-        throw std::runtime_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -867,11 +996,17 @@ void DivideAndConquerSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("sgesdd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("sgesdd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -912,11 +1047,17 @@ void DivideAndConquerSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("dgesdd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("dgesdd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -960,11 +1101,17 @@ void DivideAndConquerSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("cgesdd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("cgesdd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -1008,11 +1155,17 @@ void DivideAndConquerSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("zgesdd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("zgesdd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -1055,11 +1208,17 @@ void QRSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("sgesvd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("sgesvd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -1098,11 +1257,17 @@ void QRSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("dgesvd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("dgesvd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -1143,11 +1308,17 @@ void QRSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("cgesvd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("cgesvd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -1188,11 +1359,17 @@ void QRSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("zgesvd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("zgesvd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -1233,11 +1410,17 @@ void SingularValues( Int m, Int n, float* A, Int lda, float* s )
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("sgesvd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("sgesvd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -1274,11 +1457,17 @@ void SingularValues( Int m, Int n, double* A, Int lda, double* s )
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("dgesvd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("dgesvd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -1317,11 +1506,17 @@ void SingularValues( Int m, Int n, scomplex* A, Int lda, float* s )
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("cgesvd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("cgesvd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -1360,11 +1555,17 @@ void SingularValues( Int m, Int n, dcomplex* A, Int lda, double* s )
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        throw std::logic_error( msg.str().c_str() );
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        throw std::runtime_error("zgesvd's updating process failed");
+        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("zgesvd's updating process failed");
     }
 #ifndef _RELEASE_
     PopCallStack();
@@ -1408,11 +1609,17 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, float * A, Int lda,
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		throw std::logic_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
-		throw std::runtime_error("sgelss's svd failed to converge.");
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("sgelss's svd failed to converge.");
 	}
 #ifndef _RELEASE_
 	PopCallStack();
@@ -1452,11 +1659,17 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, double * A, Int lda,
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		throw std::logic_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
-		throw std::runtime_error("dgelss's svd failed to converge.");
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("dgelss's svd failed to converge.");
 	}
 #ifndef _RELEASE_
 	PopCallStack();
@@ -1498,11 +1711,17 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, scomplex * A, Int lda,
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		throw std::logic_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
-		throw std::runtime_error("cgelss's svd failed to converge.");
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("cgelss's svd failed to converge.");
 	}
 #ifndef _RELEASE_
 	PopCallStack();
@@ -1544,11 +1763,17 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, dcomplex * A, Int lda,
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		throw std::logic_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
-		throw std::runtime_error("zgelss's svd failed to converge.");
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("zgelss's svd failed to converge.");
 	}
 #ifndef _RELEASE_
 	PopCallStack();
@@ -1604,13 +1829,19 @@ Getri ( Int n, double* A, Int lda, const Int* ipiv )
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		throw std::logic_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
 		std::ostringstream msg;
 		msg << "U(" << info << ", " << info << ") = 0. The matrix is singular and cannot be inverted.";
-		throw std::runtime_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 	}
 
 #ifndef _RELEASE_
@@ -1641,13 +1872,19 @@ Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv )
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		throw std::logic_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
 		std::ostringstream msg;
 		msg << "U(" << info << ", " << info << ") = 0. The matrix is singular and cannot be inverted.";
-		throw std::runtime_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 	}
 
 #ifndef _RELEASE_
@@ -1656,6 +1893,39 @@ Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv )
 
 	return ;
 }		// -----  end of function Getri  ----- 
+
+
+
+
+
+	double Lange ( char norm, Int m, Int n, float * A, Int lda, float* work){
+    return LAPACK(slange)(&norm,&m,&n,A,&lda,work);
+  }
+
+	double Lange ( char norm, Int m, Int n, double * A, Int lda, double* work){
+    return LAPACK(dlange)(&norm,&m,&n,A,&lda,work);
+  }
+
+	double Lange ( char norm, Int m, Int n, scomplex * A, Int lda, scomplex* work){
+    return LAPACK(clange)(&norm,&m,&n,A,&lda,work);
+  }
+
+	double Lange ( char norm, Int m, Int n, dcomplex * A, Int lda, dcomplex* work){
+    return LAPACK(zlange)(&norm,&m,&n,A,&lda,work);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 } // namespace lapack
 } // namespace PEXSI

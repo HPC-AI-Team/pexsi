@@ -352,7 +352,10 @@ void PPEXSIData::CalculateNegativeInertiaReal(
         if( info ){
           std::ostringstream msg;
           msg << "Numerical factorization error, info =  " << info << std::endl;
-          throw std::runtime_error( msg.str().c_str() );
+          #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
         }
       }
 #if ( _DEBUGlevel_ >= 1 )
@@ -405,7 +408,10 @@ void PPEXSIData::CalculateNegativeInertiaReal(
                   << "blockIdx  = " << blockIdx << std::endl
                   << "numRow    = " << numRow 
                   << ", numCol = " << numCol << std::endl;
-                throw std::runtime_error( msg.str().c_str() );
+                #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
               }
               NumMat<Real>  nzval( numRow, numCol );
 
@@ -482,7 +488,10 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 //
 //	try{
 //		if( mpisize != nprow * npcol ){
-//			throw std::runtime_error( " mpisize != nprow * npcol ." );
+//			#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( " mpisize != nprow * npcol ." );
 //		}
 //
 //    SuperMatrix         A;
@@ -529,7 +538,10 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 //        options.ColPerm           = MMD_AT_PLUS_A;
 //				break;
 //			default:
-//				throw std::logic_error("Unsupported ordering strategy.");
+//				#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error("Unsupported ordering strategy.");
 //		}
 //
 //
@@ -627,7 +639,10 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 //      if( info ){
 //        std::ostringstream msg;
 //        msg << "Numerical factorization error, info =  " << info << std::endl;
-//        throw std::runtime_error( msg.str().c_str() );
+//        #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 //      }
 //    }
 //#if ( _DEBUGlevel_ >= 1 )

@@ -89,12 +89,15 @@ SuperLUMatrix<Real>::Setup ( const SuperLUGrid<Real>& g, const SuperLUOptions& o
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix<Real>::Setup");
 #endif
-  if( ptrData == NULL ){
+//  if( ptrData == NULL ){
     ptrData = new RealSuperLUData(g,opt);
-  }
-  else{
-    throw std::logic_error("SuperLUMatrix has been set up before.");
-  }
+//  }
+//  else{
+//    #ifdef USE_ABORT
+//abort();
+//#endif
+//throw std::logic_error("SuperLUMatrix has been set up before.");
+//  }
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
@@ -327,12 +330,15 @@ inline SuperLUMatrix<Complex>::SuperLUMatrix	( const SuperLUGrid<Complex>& g, co
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix<Complex>::SuperLUMatrix");
 #endif
-  if( ptrData == NULL ){
+//  if( ptrData == NULL ){
     ptrData = new ComplexSuperLUData(g,opt);
-  }
-  else{
-    throw std::logic_error("SuperLUMatrix has been set up before.");
-  }
+//  }
+//  else{
+//    #ifdef USE_ABORT
+//abort();
+//#endif
+//throw std::logic_error("SuperLUMatrix has been set up before.");
+//  }
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
@@ -357,12 +363,15 @@ SuperLUMatrix<Complex>::Setup ( const SuperLUGrid<Complex>& g, const SuperLUOpti
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix<Complex>::Setup");
 #endif
-  if( ptrData == NULL ){
+//  if( ptrData == NULL ){
     ptrData = new ComplexSuperLUData(g,opt);
-  }
-  else{
-    throw std::logic_error("SuperLUMatrix has been set up before.");
-  }
+//  }
+//  else{
+//    #ifdef USE_ABORT
+//abort();
+//#endif
+//throw std::logic_error("SuperLUMatrix has been set up before.");
+//  }
 #ifndef _RELEASE_
 	PopCallStack();
 #endif

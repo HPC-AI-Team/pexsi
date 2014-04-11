@@ -227,6 +227,15 @@ namespace lapack {
 	void Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv );
 
 
+
+
+
+
+	double Lange ( char norm, Int m, Int n, float * A, Int lda, float* work);
+	double Lange ( char norm, Int m, Int n, double * A, Int lda, double* work);
+	double Lange ( char norm, Int m, Int n, scomplex * A, Int lda, scomplex* work);
+	double Lange ( char norm, Int m, Int n, dcomplex * A, Int lda, dcomplex* work);
+
 } // namespace lapack
 } // namespace PEXSI
 

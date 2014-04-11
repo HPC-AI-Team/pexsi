@@ -157,9 +157,13 @@ ComplexSuperLUData::ComplexSuperLUData( const SuperLUGrid<Complex>& g, const Sup
 #endif
   
   ptrData = new ComplexSuperLUData_internal();
-	if( ptrData == NULL )
-		throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
-	
+	if( ptrData == NULL ){
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
+	}
+
 	ptrData->isSuperMatrixAllocated     = false;
 	ptrData->isScalePermstructAllocated = false;
 	ptrData->isLUstructAllocated        = false;
@@ -203,7 +207,10 @@ ComplexSuperLUData::ComplexSuperLUData( const SuperLUGrid<Complex>& g, const Sup
 		std::ostringstream msg;
 		msg << opt.ColPerm << " is not a supported ColPerm type. Try (case sensitive) " << std::endl
 			  << "NATURAL | MMD_AT_PLUS_A | METIS_AT_PLUS_A | PARMETIS" << std::endl;
-		throw std::runtime_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 	}
 
 	// Setup grids
@@ -263,7 +270,10 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
 	PushCallStack( "ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc" );
 #endif
 	if( ptrData->isSuperMatrixAllocated == true ){
-		throw std::logic_error( "SuperMatrix is already allocated." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "SuperMatrix is already allocated." );
 	}
 	gridinfo_t* grid = ptrData->grid;
 
@@ -322,7 +332,10 @@ ComplexSuperLUData::DestroyAOnly	(  )
 	PushCallStack("ComplexSuperLUData::DestroyAOnly");
 #endif
 	if( ptrData->isSuperMatrixAllocated == false ){
-		throw std::logic_error( "SuperMatrix has not been allocated." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "SuperMatrix has not been allocated." );
 	}
 	switch ( ptrData->A.Stype ){
 		case SLU_NC:
@@ -335,7 +348,10 @@ ComplexSuperLUData::DestroyAOnly	(  )
 			std::ostringstream msg;
 			msg << "Type " << SLU_NR_loc << " is to be destroyed" << std::endl
 				<< "This is an unsupported SuperMatrix format to be destroyed." << std::endl;
-			throw std::runtime_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 	}
 	ptrData->isSuperMatrixAllocated = false;
 #ifndef _RELEASE_
@@ -352,13 +368,22 @@ ComplexSuperLUData::SymbolicFactorize	(  )
 	PushCallStack("ComplexSuperLUData::SymbolicFactorize");
 #endif
 	if( ptrData->isScalePermstructAllocated ){
-		throw std::logic_error( "ScalePermstruct is already allocated." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "ScalePermstruct is already allocated." );
 	}
 	if( ptrData->isLUstructAllocated){
-		throw std::logic_error( "LUstruct is already allocated." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "LUstruct is already allocated." );
 	}
 	if( ptrData->options.RowPerm != NOROWPERM ){
-		throw std::logic_error( "For PEXSI there must be no row permutation." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "For PEXSI there must be no row permutation." );
 	}
 	
 	SuperMatrix&  A = ptrData->A;
@@ -406,13 +431,22 @@ ComplexSuperLUData::Distribute	(  )
 	PushCallStack("ComplexSuperLUData::Distribute");
 #endif
 	if( ptrData->isScalePermstructAllocated == false ){
-		throw std::logic_error( "ScalePermstruct has not been allocated by SymbolicFactorize." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "ScalePermstruct has not been allocated by SymbolicFactorize." );
 	}	
 	if( ptrData->isLUstructAllocated == false ){
-		throw std::logic_error( "LUstruct has not been allocated by SymbolicFactorize." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "LUstruct has not been allocated by SymbolicFactorize." );
 	}	
 	if( ptrData->isSuperMatrixAllocated == false ){
-		throw std::logic_error( "SuperMatrix has not been allocated." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "SuperMatrix has not been allocated." );
 	}	
 
 	Int* perm_c = ptrData->ScalePermstruct.perm_c;
@@ -443,7 +477,10 @@ ComplexSuperLUData::NumericalFactorize	(  )
 	PushCallStack("ComplexSuperLUData::NumericalFactorize");
 #endif
 	if( !ptrData->isLUstructAllocated ){
-		throw std::logic_error( "LUstruct has not been allocated." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "LUstruct has not been allocated." );
 	}
 	// Estimate the 1-norm
 	char norm[1]; *norm = '1';
@@ -456,7 +493,10 @@ ComplexSuperLUData::NumericalFactorize	(  )
 	if( ptrData->info ){
 		std::ostringstream msg;
 		msg << "Numerical factorization error, info =  " << ptrData->info << std::endl;
-		throw std::runtime_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 	}
 	
 	// Prepare for Solve.
@@ -477,10 +517,16 @@ ComplexSuperLUData::ConvertNRlocToNC	( ComplexSuperLUData * aptrData )
 	PushCallStack("ComplexSuperLUData::ConvertNRlocToNC");
 #endif
   if( !ptrData->isSuperMatrixAllocated ){
-		throw std::runtime_error( "The local SuperMatrix has not been allocated." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( "The local SuperMatrix has not been allocated." );
 	}
   if( aptrData->ptrData->isSuperMatrixAllocated ){
-		throw std::runtime_error( "The global SuperMatrix has been allocated." );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( "The global SuperMatrix has been allocated." );
 	}
 	// TODO make sure the two grids are the same
   
@@ -514,7 +560,10 @@ ComplexSuperLUData::MultiplyGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat
 		msg << "MultiplyGlobalMultiVector requires SLU_NC matrix with type " << SLU_NC << std::endl
 			<< "The matrix is of type " << ptrData->A.Stype << std::endl
 			<< "Consider using ConvertNRlocToNC subroutine" << std::endl;
-		throw std::runtime_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 	}	
   zFillRHS_dist(trans, nrhs, (doublecomplex*)xGlobal.Data(), m, 
 			&ptrData->A, (doublecomplex*) bGlobal.Data(), m);
@@ -537,7 +586,10 @@ ComplexSuperLUData::DistributeGlobalMultiVector	( NumMat<Complex>& xGlobal, NumM
 		std::ostringstream msg;
 		msg << "DistributeGlobalMultiVector requires SLU_NR_loc matrix with type " << SLU_NR_loc << std::endl
 			<< "The matrix is of type " << ptrData->A.Stype << std::endl;
-		throw std::runtime_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 	}	
 
 	NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
@@ -571,7 +623,10 @@ void ComplexSuperLUData::GatherDistributedMultiVector	( NumMat<Complex>& xGlobal
 		std::ostringstream msg;
 		msg << "GatherDistributedMultiVector requires SLU_NR_loc matrix with type " << SLU_NR_loc << std::endl
 			<< "The matrix is of type " << ptrData->A.Stype << std::endl;
-		throw std::runtime_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 	}	
 
 	NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
@@ -632,7 +687,10 @@ ComplexSuperLUData::SolveDistMultiVector	( NumMat<Complex>& bLocal, DblNumVec& b
 	if( ptrData->info ){
 		std::ostringstream msg;
 		msg << "Numerical solve error, info =  " << ptrData->info << std::endl;
-		throw std::runtime_error( msg.str().c_str() );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 	}
 
 

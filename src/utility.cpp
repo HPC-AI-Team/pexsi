@@ -71,7 +71,10 @@ Int SeparateRead(std::string name, std::istringstream& is)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);  //cerr<<filename<<endl;
   ifstream fin(filename);
   if( !fin.good() ){
-    throw std::logic_error( "File cannot be opened!" );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be opened!" );
   }
 
   is.str( std::string(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>()) );
@@ -98,7 +101,10 @@ Int SeparateWrite(std::string name, std::ostringstream& os)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);
   ofstream fout(filename);
 	if( !fout.good() ){
-		throw std::logic_error( "File cannot be opened!" );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be opened!" );
 	}
   fout<<os.str();
   fout.close();
@@ -124,7 +130,10 @@ Int SharedRead(std::string name, std::istringstream& is)
   if(mpirank==0) {
     ifstream fin(name.c_str());
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be opened!" );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be opened!" );
 		}
     //std::string str(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>());
     //tmpstr.insert(tmpstr.end(), str.begin(), str.end());
@@ -161,7 +170,10 @@ Int SharedWrite(std::string name, std::ostringstream& os)
   if(mpirank==0) {
     ofstream fout(name.c_str());
 		if( !fout.good() ){
-			throw std::logic_error( "File cannot be opened!" );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be opened!" );
 		}
     fout<<os.str();
     fout.close();
@@ -188,7 +200,10 @@ Int SeparateWriteAscii(std::string name, std::ostringstream& os)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);
   ofstream fout(filename, ios::trunc);
 	if( !fout.good() ){
-		throw std::logic_error( "File cannot be opened!" );
+		#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be opened!" );
 	}
   fout<<os;
   fout.close();
@@ -220,12 +235,18 @@ LinearInterpolation (
 
   for( Int i = 1; i < numX; i++ ){
     if( x[i] <= x[i-1] ) 
-      throw std::runtime_error("x must be sorted strictly ascendingly.");
+      #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("x must be sorted strictly ascendingly.");
   }
 
   for( Int i = 1; i < numXX; i++){
     if( xx[i] < xx[i-1] )
-      throw std::runtime_error("xx must be sorted ascendingly.");
+      #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("xx must be sorted ascendingly.");
   }
 
 

@@ -191,7 +191,10 @@ Waitall ( std::vector<MPI_Request>& reqs, std::vector<MPI_Status>& stats )
 	PushCallStack("mpi::Waitall");
 #endif
   if( reqs.size() != stats.size() ){
-    throw std::runtime_error( "MPI_Request does not have the same as as MPI_Status." );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( "MPI_Request does not have the same as as MPI_Status." );
 	}
 	for( Int i = 0; i < reqs.size(); i++ ){
 		MPI_Wait( &reqs[i], &stats[i] );

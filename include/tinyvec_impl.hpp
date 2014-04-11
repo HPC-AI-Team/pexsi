@@ -59,7 +59,10 @@ namespace PEXSI{
 			PushCallStack("Vec3T::operator()");
 #endif  // ifndef _RELEASE_
 			if( i < 0 || i > 2 ){
-				throw std::logic_error( "Index is out of bound." );
+				#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "Index is out of bound." );
 			}
 #ifndef _RELEASE_
 			PopCallStack();
@@ -75,7 +78,10 @@ namespace PEXSI{
 			PushCallStack("Vec3T::operator()");
 #endif  // ifndef _RELEASE_
 			if( i < 0 || i > 2 ){
-				throw std::logic_error( "Index is out of bound." );
+				#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "Index is out of bound." );
 			}
 #ifndef _RELEASE_
 			PopCallStack();
@@ -91,7 +97,10 @@ namespace PEXSI{
 			PushCallStack("Vec3T::operator[]");
 #endif  // ifndef _RELEASE_
 			if( i < 0 || i > 2 ){
-				throw std::logic_error( "Index is out of bound." );
+				#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "Index is out of bound." );
 			}
 #ifndef _RELEASE_
 			PopCallStack();
@@ -107,7 +116,10 @@ namespace PEXSI{
 			PushCallStack("Vec3T::operator[]");
 #endif  // ifndef _RELEASE_
 			if( i < 0 || i > 2 ){
-				throw std::logic_error( "Index is out of bound." );
+				#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "Index is out of bound." );
 			}
 #ifndef _RELEASE_
 			PopCallStack();

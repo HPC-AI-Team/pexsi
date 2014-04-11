@@ -107,7 +107,10 @@ void ReadDistSparseMatrixFormattedHeadInterface (
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be openeded!" );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be openeded!" );
 		}
 		Int dummy;
 		fin >> *size >> dummy;
@@ -197,7 +200,10 @@ void ReadDistSparseMatrixHeadInterface (
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be openeded!" );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be openeded!" );
 		}
 		fin.read((char*)size, sizeof(int));
 		fin.read((char*)nnz,  sizeof(int));
@@ -212,7 +218,10 @@ void ReadDistSparseMatrixHeadInterface (
 		fin.read((char*)&tmp, sizeof(int));  
 
 		if( tmp != (*size)+1 ){
-			throw std::logic_error( "colptr is not of the right size." );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "colptr is not of the right size." );
 		}
 
 		Int* ptr = colptr.Data();
@@ -329,7 +338,10 @@ void PPEXSIInertiaCountInterface(
 				<< "mpisize    = " << mpisize << std::endl
 				<< "npPerPole = " << npPerPole << std::endl
 				<< "mpisize is not divisible by npPerPole!" << std::endl;
-			throw std::runtime_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 		}
 
 		if( numElectronTolerance < 1 ){
@@ -339,7 +351,10 @@ void PPEXSIInertiaCountInterface(
 				<< ", which is less than 1. " <<
 				"This is probably too tight for the purpose of inertia count." 
 				<< std::endl;
-			throw std::runtime_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 		}
 
 
@@ -449,7 +464,10 @@ void PPEXSIInertiaCountInterface(
 				colPerm = "MMD_AT_PLUS_A";
 				break;
 			default:
-				throw std::logic_error("Unsupported ordering strategy.");
+				#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error("Unsupported ordering strategy.");
 		}
 
 
@@ -557,7 +575,10 @@ void PPEXSIInertiaCountInterface(
 					<< " ) " << std::endl
 					<< "NeExact = " << numElectronExact << std::endl
 					<< "Try to increase numElectronTolerance or initial search interval for mu." << std::endl;
-				throw std::runtime_error( msg.str().c_str() );
+				#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 			}
 
 
@@ -750,7 +771,10 @@ void PPEXSIRawInertiaCountInterface(
 				<< "mpisize    = " << mpisize << std::endl
 				<< "npPerPole = " << npPerPole << std::endl
 				<< "mpisize is not divisible by npPerPole!" << std::endl;
-			throw std::runtime_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 		}
 
 		Int nprow = iround( std::sqrt( (double)npPerPole) );
@@ -857,7 +881,10 @@ void PPEXSIRawInertiaCountInterface(
 				colPerm = "MMD_AT_PLUS_A";
 				break;
 			default:
-				throw std::logic_error("Unsupported ordering strategy.");
+				#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error("Unsupported ordering strategy.");
 		}
 
 
@@ -982,7 +1009,10 @@ void PPEXSISolveInterface (
 				<< "mpisize    = " << mpisize << std::endl
 				<< "npPerPole  = " << npPerPole << std::endl
 				<< "mpisize is not divisible by npPerPole!" << std::endl;
-			throw std::runtime_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
 		}
 
 
@@ -1094,7 +1124,10 @@ void PPEXSISolveInterface (
 				colPerm = "MMD_AT_PLUS_A";
 				break;
 			default:
-				throw std::logic_error("Unsupported ordering strategy.");
+				#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error("Unsupported ordering strategy.");
 		}
 
 		std::vector<Real>  muVec;
@@ -1251,7 +1284,10 @@ void PPEXSISelInvInterface (
 	  Int nprow = iround( std::sqrt( (double)mpisize) );
 		Int npcol = mpisize / nprow;
 		if( mpisize != nprow * npcol || nprow != npcol ){
-			throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
 		}
 
 		SuperLUGrid<Scalar> g( comm, nprow, npcol );
@@ -1356,7 +1392,10 @@ void PPEXSISelInvInterface (
 				colPerm = "MMD_AT_PLUS_A";
 				break;
 			default:
-				throw std::logic_error("Unsupported ordering strategy.");
+				#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error("Unsupported ordering strategy.");
 		}
 
 
@@ -1523,7 +1562,10 @@ void PPEXSILocalDOSInterface (
 
 
 		if( *info ){
-			throw std::runtime_error("Error in SelInv!.");
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error("Error in SelInv!.");
 		}
 
 		// Get the imaginary part
@@ -1586,7 +1628,10 @@ void PSelInvComplexSymmetricInterface (
 
 	try{
 		if( mpisize != nprow * npcol ){
-			throw std::runtime_error( " mpisize != nprow * npcol ." );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( " mpisize != nprow * npcol ." );
 		}
 
 		SuperLUGrid<Complex> g( comm, nprow, npcol );
@@ -1620,7 +1665,10 @@ void PSelInvComplexSymmetricInterface (
 				colPerm = "MMD_AT_PLUS_A";
 				break;
 			default:
-				throw std::logic_error("Unsupported ordering strategy.");
+				#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error("Unsupported ordering strategy.");
 		}
 
 

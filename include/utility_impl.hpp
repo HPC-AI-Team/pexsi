@@ -127,7 +127,10 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be opened!" );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be opened!" );
 		}
 		fin.read((char*)&pspmat.size, sizeof(Int));
 		fin.read((char*)&pspmat.nnz,  sizeof(Int));
@@ -145,7 +148,10 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 		fin.read((char*)&tmp, sizeof(Int));  
 
 		if( tmp != pspmat.size+1 ){
-			throw std::logic_error( "colptr is not of the right size." );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "colptr is not of the right size." );
 		}
 
 		fin.read((char*)colptr.Data(), sizeof(Int)*tmp);
@@ -184,7 +190,10 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 				<< "The number of nonzeros in row indices do not match." << std::endl
 				<< "nnz = " << pspmat.nnz << std::endl
 				<< "size of row indices = " << tmp << std::endl;
-			throw std::logic_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 		}
 		IntNumVec buf;
 		Int numRead;
@@ -211,7 +220,10 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 			msg << "The number of columns in row indices do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
-			throw std::logic_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 		}
 
     pspmat.rowindLocal.Resize( numRead );
@@ -229,7 +241,10 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 				<< "The number of nonzeros in values do not match." << std::endl
 				<< "nnz = " << pspmat.nnz << std::endl
 				<< "size of values = " << tmp << std::endl;
-			throw std::logic_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 		}
 		NumVec<Real> buf;
 		Int numRead;
@@ -256,7 +271,10 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 			msg << "The number of columns in values do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
-			throw std::logic_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 		}
 
     pspmat.nzvalLocal.Resize( numRead );
@@ -303,7 +321,10 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<R
   err = MPI_File_open(comm,(char*) filename, filemode, MPI_INFO_NULL,  &fout);
 
   if (err != MPI_SUCCESS) {
-    throw std::logic_error( "File cannot be opened!" );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be opened!" );
   }
 
   // FIXME Note that nnz uses the Int data type for consistency of writing / reading
@@ -444,7 +465,10 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
   err = MPI_File_open(comm,(char*) filename, filemode, MPI_INFO_NULL,  &fin);
 
   if (err != MPI_SUCCESS) {
-    throw std::logic_error( "File cannot be opened!" );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be opened!" );
   }
 
   // FIXME Note that nnz uses the Int data type for consistency of writing / reading
@@ -497,7 +521,10 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
   err= MPI_File_read_at_all(fin, myColPtrOffset, MPI_BOTTOM, 1, type, &status);
 
   if (err != MPI_SUCCESS) {
-    throw std::logic_error( "error reading colptr" );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "error reading colptr" );
   }
   MPI_Type_free(&type);
 
@@ -523,7 +550,10 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
   err= MPI_File_read_at_all(fin, myRowIdxOffset, MPI_BOTTOM, 1, type,&status);
 
   if (err != MPI_SUCCESS) {
-    throw std::logic_error( "error reading rowind" );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "error reading rowind" );
   }
   MPI_Type_free(&type);
 
@@ -546,7 +576,10 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
   err = MPI_File_read_at_all(fin, myNzValOffset, MPI_BOTTOM, 1, type,&status);
 
   if (err != MPI_SUCCESS) {
-    throw std::logic_error( "error reading nzval" );
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "error reading nzval" );
   }
 
   MPI_Type_free(&type);
@@ -589,7 +622,10 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			throw std::logic_error( "File cannot be opened!" );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( "File cannot be opened!" );
 		}
 		Int dummy;
 
@@ -662,7 +698,10 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 			msg << "The number of columns in row indices do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
-			throw std::logic_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 		}
 
     pspmat.rowindLocal.Resize( numRead );
@@ -703,7 +742,10 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 			msg << "The number of columns in values do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
-			throw std::logic_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 		}
 
     pspmat.nzvalLocal.Resize( numRead );
@@ -763,7 +805,10 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 			msg << "Serious problem. Did not find the row corresponding to the column." << std::endl
 				<< "This happens when j = " << j << ", jcol = " << jcol << ", and the row indices are " << std::endl
 				<< IntNumVec( numRow, false, const_cast<Int*>(rowPtr) ) << std::endl;
-			throw std::logic_error( msg.str().c_str() );
+			#ifdef USE_ABORT
+abort();
+#endif
+throw std::logic_error( msg.str().c_str() );
 		}
 		Int diagIdx = ptr - A.rowindLocal.Data();
     diagLocal( jcol - 1 ) = A.nzvalLocal( diagIdx );
