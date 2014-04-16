@@ -1411,6 +1411,10 @@ throw std::runtime_error( msg.str().c_str() );
             std::stringstream sstm;
             std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
             std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
+            std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
+            
+            assert(Urow.size()==Lrow.size());
+
             // All blocks are to be sent down.
             serialize( (Int)Lrow.size(), sstm, NO_MASK );
             for( Int ib = 0; ib < Lrow.size(); ib++ ){
@@ -1424,6 +1428,7 @@ throw std::runtime_error( msg.str().c_str() );
             for( Int iProcRow = 0; iProcRow < this->grid_->numProcRow; iProcRow++ ){
               if( MYROW( this->grid_ ) != iProcRow &&
                   this->isSendToBelow_( iProcRow,snode.Index ) == true ){
+
                 // Use Isend to send to multiple targets
                 MPI_Isend( &snode.SizeSstrLrowSend, 1, MPI_INT,  
                     iProcRow, IDX_TO_TAG(supidx,SELINV_TAG_LROW_SIZE), this->grid_->colComm, &mpireqsSendLToBelow[2*iProcRow] );
@@ -1504,7 +1509,7 @@ throw std::runtime_error( msg.str().c_str() );
             // All blocks except for the diagonal block are to be sent right
 
             if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) )
-              serialize( (Int)Urow.size() - 1, sstm, NO_MASK );
+              serialize( (Int)Urow.size(), sstm, NO_MASK );
             else
               serialize( (Int)Urow.size(), sstm, NO_MASK );
 
@@ -1925,7 +1930,7 @@ throw std::runtime_error( msg.str().c_str() );
                 MPI_Isend( snode.LUpdateBuf.Data(), snode.LUpdateBuf.ByteSize(), MPI_BYTE, PCOL(snode.Index,this->grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), this->grid_->rowComm, &mpireqsSendToLeft );
 
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYCOL(this->grid_)<<" has sent "<< snode.LUpdateBuf.ByteSize() << " bytes to " << PCOL(snode.Index,this->grid_) << std::endl;
+                statusOFS << std::endl << "["<<snode.Index<<"] "<< " LReduce P"<<MYCOL(this->grid_)<<" has sent "<< snode.LUpdateBuf.ByteSize() << " bytes to " << PCOL(snode.Index,this->grid_) << std::endl;
 #endif
 
               }//Sender
@@ -1940,7 +1945,7 @@ throw std::runtime_error( msg.str().c_str() );
                 MPI_Isend( snode.UUpdateBuf.Data(), snode.UUpdateBuf.ByteSize(), MPI_BYTE, PROW(snode.Index,this->grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_U_REDUCE), this->grid_->colComm, &mpireqsSendToAbove );
 
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYROW(this->grid_)<<" has sent "<< snode.UUpdateBuf.ByteSize() << " bytes to " << PROW(snode.Index,this->grid_) << std::endl;
+                statusOFS << std::endl << "["<<snode.Index<<"] "<< " UReduce P"<<MYROW(this->grid_)<<" has sent "<< snode.UUpdateBuf.ByteSize() << " bytes to " << PROW(snode.Index,this->grid_) << std::endl;
 #endif
 
               }//Sender
@@ -2021,7 +2026,7 @@ throw std::runtime_error( msg.str().c_str() );
               if(size>0){
 
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYCOL(this->grid_)<<" has received "<< size << " bytes from " << stat.MPI_SOURCE << std::endl;
+                statusOFS << std::endl << "["<<snode.Index<<"] "<< " LReduce P"<<MYCOL(this->grid_)<<" has received "<< size << " bytes from " << stat.MPI_SOURCE << std::endl;
 #endif
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << std::endl << "["<<snode.Index<<"] "<<   "LUpdateBufRecv: " <<  LUpdateBufRecv << std::endl << std::endl; 
@@ -2109,6 +2114,10 @@ throw std::runtime_error( msg.str().c_str() );
           Int numRecv = this->CountSendToBelow(snode.Index);
 
             NumMat<T>  UUpdateBufRecv(SuperSize( snode.Index, this->super_ ),numColUUpdateBuf );
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<< " UReduce P"<<MYROW(this->grid_)<<" can receive "<< UUpdateBufRecv.ByteSize() << " bytes" << std::endl;
+#endif
             for( Int countRecv = 0; countRecv < numRecv ; ++countRecv ){
               //Do the blocking recv
               MPI_Status stat;
@@ -2121,7 +2130,7 @@ throw std::runtime_error( msg.str().c_str() );
               if(size>0){
 
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYROW(this->grid_)<<" has received "<< size << " bytes from " << stat.MPI_SOURCE << std::endl;
+                statusOFS << std::endl << "["<<snode.Index<<"] "<< " UReduce P"<<MYROW(this->grid_)<<" has received "<< size << " bytes from " << stat.MPI_SOURCE << std::endl;
 #endif
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << std::endl << "["<<snode.Index<<"] "<<   "UUpdateBufRecv: " <<  UUpdateBufRecv << std::endl << std::endl; 
@@ -3393,7 +3402,7 @@ throw std::runtime_error( msg.str().c_str() );
 
 //          gdb_lock();
 
-          if( MYCOL( this->grid_ ) != PCOL( ksup, this->grid_ ) ){
+//          if( MYCOL( this->grid_ ) != PCOL( ksup, this->grid_ ) ){
             //          std::vector< LBlock<T> > & Lcol = this->L( LBj(ksup, this->grid_ ) );
             std::vector< UBlock<T> > & Urow = this->U( LBi(ksup, this->grid_ ) );
             //Allocate Lrow and extend Urow
@@ -3425,8 +3434,9 @@ throw std::runtime_error( msg.str().c_str() );
             statusOFS<<"Lrow of "<<ksup<<std::endl;
             for(Int ib=0;ib<Lrow.size();++ib){statusOFS<<Lrow[ib].blockIdx<<" ";}
             statusOFS<<std::endl;
+
             assert(Urow.size() == Lrow.size());
-          }
+//          }
         } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
       } // for(ksup)
 

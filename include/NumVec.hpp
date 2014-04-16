@@ -71,7 +71,7 @@ namespace  PEXSI{
       Int  m_;                                
       ///
       /// @brief Whether it owns the data.
-      bool owndata_ = true;                          
+      bool owndata_;                          
 
       /// @brief The pointer for the actual data.
       F* data_;

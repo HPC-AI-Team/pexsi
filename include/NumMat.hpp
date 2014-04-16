@@ -62,7 +62,7 @@ namespace  PEXSI{
     {
       public:
         /// @brief Whether it owns the data.
-        bool owndata_ = true;
+        bool owndata_;
 
         /// @brief The size of the first dimension.
         Int m_; 
