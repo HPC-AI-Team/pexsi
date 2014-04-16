@@ -734,6 +734,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 #endif
 	const LocalLU_t* Llu   = ptrData->LUstruct.Llu;
 	const GridType* grid   = PMloc.Grid();
+	gridinfo_t* lugrid = ptrData->grid;
 	const SuperNodeType* super = PMloc.SuperNode();
 	Int numSuper = PMloc.NumSuper();
 
@@ -780,6 +781,36 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 				LB.numRow      = index[cnt++];
 				LB.numCol      = super->superPtr[bnum+1] - super->superPtr[bnum];
 				LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
+
+#ifdef SORT
+        LB.rowsPerm.Resize(LB.numRow);
+        IntNumVec rowsSorted(LB.numRow);
+        for(Int i = 0; i<LB.rowsPerm.m(); ++i){ LB.rowsPerm[i] = i;}
+        ULComparator cmp(LB.rows);
+        //sort the row indices (so as to speedup the index lookup
+        std::sort(LB.rowsPerm.Data(),LB.rowsPerm.Data()+LB.rowsPerm.m(),cmp);
+
+        for(Int i = 0; i<LB.rows.m(); ++i){ 
+          rowsSorted[i] = LB.rows[LB.rowsPerm[i]];
+        }
+
+        LB.rows = rowsSorted;
+
+				LB.nzval.Resize( LB.numRow, LB.numCol );   
+        SetValue( LB.nzval, ZERO<Complex>() ); 
+				cnt += LB.numRow;
+
+        //sort the nzval
+        for(Int j = 0; j<LB.numCol; ++j){
+          for(Int i = 0; i<LB.numRow; ++i){
+            LB.nzval(i,j) = ((Complex*)(Llu->Lnzval_bc_ptr[jb]+cntval))[LB.rowsPerm[i]+j*lda];
+          }
+        }
+
+//				lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
+//						(Complex*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
+//						LB.nzval.Data(), LB.numRow );
+#else
 				LB.nzval.Resize( LB.numRow, LB.numCol );   
 				SetValue( LB.nzval, SCALAR_ZERO ); 
 				cnt += LB.numRow;
@@ -788,6 +819,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 						(Complex*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
 						LB.nzval.Data(), LB.numRow );
 
+#endif
 				cntval += LB.numRow;
 
 
@@ -825,6 +857,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 		if( index ){ 
 			// Not an empty row
 			// Compute the number of nonzero columns 
+
 			std::vector<UBlock<Complex> >& Urow = PMloc.U(ib);
 			Urow.resize( index[cnt++] );
 			cnt = BR_HEADER;
@@ -833,12 +866,26 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 			std::vector<Int> cols;                    //Save the nonzero columns in the current block
 			for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
 				cols.clear();
+
+				Int blockIdx = index[cnt];
+        Int LBj = blockIdx / grid->numProcCol; 
+//			  std::vector<LBlock<Complex> >& Lcol = PMloc.L(LBj);
+//        //Find index in L
+//        Int indexL = jblk;
+//        Int offset = (MYCOL(lugrid->iam,lugrid) == PCOL(bnum,lugrid ) )?1:0;
+//			  for(Int iblk = 0; iblk < Lcol.size(); iblk++ ){
+//				  LBlock<Complex> & LB = Lcol[iblk];
+//          if(LB.blockIdx == blockIdx){
+//            indexL=iblk-offset;
+//            break;
+//          }
+//        }
+
 				UBlock<Complex> & UB = Urow[jblk];
-				UB.blockIdx = index[cnt];
+				UB.blockIdx = blockIdx;
 
 
         PMloc.RowBlockIdx(ib).push_back(UB.blockIdx);
-        Int LBj = UB.blockIdx / grid->numProcCol; 
         PMloc.ColBlockIdx( LBj ).push_back( bnum );
 
 

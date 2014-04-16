@@ -769,6 +769,35 @@ namespace PEXSI{
             LB.numRow      = index[cnt++];
             LB.numCol      = super->superPtr[bnum+1] - super->superPtr[bnum];
             LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
+
+#ifdef SORT
+        LB.rowsPerm.Resize(LB.numRow);
+        IntNumVec rowsSorted(LB.numRow);
+        for(Int i = 0; i<LB.rowsPerm.m(); ++i){ LB.rowsPerm[i] = i;}
+        ULComparator cmp(LB.rows);
+        //sort the row indices (so as to speedup the index lookup
+        std::sort(LB.rowsPerm.Data(),LB.rowsPerm.Data()+LB.rowsPerm.m(),cmp);
+
+        for(Int i = 0; i<LB.rows.m(); ++i){ 
+          rowsSorted[i] = LB.rows[LB.rowsPerm[i]];
+        }
+
+        LB.rows = rowsSorted;
+
+				LB.nzval.Resize( LB.numRow, LB.numCol );   
+        SetValue( LB.nzval, ZERO<Real>() ); 
+				cnt += LB.numRow;
+
+        //sort the nzval
+        for(Int j = 0; j<LB.numCol; ++j){
+          for(Int i = 0; i<LB.numRow; ++i){
+            LB.nzval(i,j) = ((Real*)(Llu->Lnzval_bc_ptr[jb]+cntval))[LB.rowsPerm[i]+j*lda];
+          }
+        }
+
+
+#else
+
             LB.nzval.Resize( LB.numRow, LB.numCol );   
             SetValue( LB.nzval, ZERO<Real>() ); 
             cnt += LB.numRow;
@@ -776,7 +805,7 @@ namespace PEXSI{
             lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
                 (Real*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
                 LB.nzval.Data(), LB.numRow );
-
+#endif
             cntval += LB.numRow;
 
 

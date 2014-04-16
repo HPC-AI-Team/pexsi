@@ -2133,6 +2133,8 @@ namespace PEXSI{
         Int stepSuper = superList[lidx].size(); 
 
         SelInvIntra_P2p(lidx);
+        
+//        if(lidx==1){ return;};
       }
 
 #ifndef _RELEASE_

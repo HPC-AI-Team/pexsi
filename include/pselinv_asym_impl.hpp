@@ -130,19 +130,60 @@ namespace PEXSI{
         colPtrL[jb+1] = colPtrL[jb] + LrowRecv[jb].numCol;
       }
 
-      std::vector<Int> rowPtrLrow(LrowRecv.size() + 1);
-      rowPtrLrow[0] = 0;
-      for( Int jb = 0; jb < LrowRecv.size(); jb++ ){
-        rowPtrLrow[jb+1] = rowPtrLrow[jb] + LrowRecv[jb].numRow;
+
+      statusOFS<<"UrowRecv blockIdx: "<<std::endl;
+      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+        statusOFS<<UrowRecv[jb].blockIdx<<" ";
       }
+      statusOFS<<std::endl;
+
+      statusOFS<<"UcolRecv blockIdx: "<<std::endl;
+      for( Int jb = 0; jb < UcolRecv.size(); jb++ ){
+        statusOFS<<UcolRecv[jb].blockIdx<<" ";
+      }
+      statusOFS<<std::endl;
+
+      statusOFS<<"LcolRecv blockIdx: "<<std::endl;
+      for( Int jb = 0; jb < LcolRecv.size(); jb++ ){
+        statusOFS<<LcolRecv[jb].blockIdx<<" ";
+      }
+      statusOFS<<std::endl;
+
+
+      statusOFS<<"LrowRecv blockIdx: "<<std::endl;
+      for( Int jb = 0; jb < LrowRecv.size(); jb++ ){
+        statusOFS<<LrowRecv[jb].blockIdx<<" ";
+      }
+      statusOFS<<std::endl;
+
+
+
+
+
+
+
 
       std::vector<Int> colPtrU(UcolRecv.size() + 1);
+//      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+//        UBlock<T>& UB = UrowRecv[jb];
+//        //Find the block in LrowRecv and put it at the same index
+//        Int indexL = 0;
+//        for( Int ib = 0; ib < LrowRecv.size(); ib++ ){
+//          LBlock<T>& LB = LrowRecv[ib];
+//          if(LB.blockIdx==UB.blockIdx){
+//            indexL = ib;
+//            break;
+//          }
+//        }
+//        
+//        colPtrU[jb] = colPtrL[indexL];
+//      }
+//      colPtrU[UrowRecv.size()] = colPtrL[UrowRecv.size()];
 
       colPtrU[0] = 0;
       for( Int jb = 0; jb < UcolRecv.size(); jb++ ){
         colPtrU[jb+1] = colPtrU[jb] + UcolRecv[jb].numCol;
       }
-
 
 
       Int numRowAinvBuf = *rowPtrL.rbegin();
@@ -168,11 +209,17 @@ namespace PEXSI{
         }
         lapack::Lacpy( 'A', LB.numRow, LB.numCol, LB.nzval.Data(),
             LB.numRow, LBuf.VecData( colPtrL[jb] ), SuperSize( snode.Index, this->super_ ) );
+
+
+        statusOFS<<"LB = "<<std::endl<<LB<<std::endl;
+        statusOFS<<"LBuf = "<<std::endl<<LBuf<<std::endl;
+
       }
       TIMER_STOP(Fill_LBuf);
 
       TIMER_START(Fill_UBuf);
-      // Fill UBuf first.  Make the transpose later in the Gemm phase.
+      // Fill UBuf first. 
+      SetValue(UBuf, ZERO<T>());
       for( Int jb = 0; jb < UcolRecv.size(); jb++ ){
         UBlock<T>& UB = UcolRecv[jb];
         if( UB.numRow != SuperSize(snode.Index, this->super_) ){
@@ -181,8 +228,14 @@ namespace PEXSI{
 #endif
           throw std::logic_error( "The size of UB is not right.  Something is seriously wrong." );
         }
+
+
         lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
             UB.numRow, UBuf.VecData( colPtrU[jb] ), SuperSize( snode.Index, this->super_ ) );
+
+        statusOFS<<"UB = "<<std::endl<<UB<<std::endl;
+        statusOFS<<"UBuf = "<<std::endl<<UBuf<<std::endl;
+
       }
       TIMER_STOP(Fill_UBuf);
 
@@ -190,7 +243,177 @@ namespace PEXSI{
       // Fill AinvBuf with the information in L or U block.
       TIMER_START(JB_Loop);
 
-#ifdef STDFIND
+
+#ifdef SORT
+    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+      LBlock<T>& LrowB = LrowRecv[jb];
+      Int jsup = LrowB.blockIdx;
+
+      Int SinvColsSta = FirstBlockCol( jsup, this->super_ );
+
+      // Column relative indicies
+      std::vector<Int> relCols( LrowB.numCol );
+      for( Int j = 0; j < LrowB.numCol; j++ ){
+        relCols[j] = LrowB.rows[j] - SinvColsSta;
+      }
+
+
+      for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+        LBlock<T>& LB = LcolRecv[ib];
+        Int isup = LB.blockIdx;
+        Int SinvRowsSta = FirstBlockCol( isup, this->super_ );
+        T* nzvalAinv = &AinvBuf( rowPtrL[ib], colPtrL[jb] );
+        Int     ldAinv    = numRowAinvBuf;
+
+        // Pin down the corresponding block in the part of Sinv.
+        if( isup >= jsup ){
+
+
+          std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, this->grid_ ) );
+          bool isBlockFound = false;
+          TIMER_START(PARSING_ROW_BLOCKIDX);
+          for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+            // Found the (isup, jsup) block in Sinv
+            if( LcolSinv[ibSinv].blockIdx == isup ){
+              LBlock<T>& SinvB = LcolSinv[ibSinv];
+
+              // Row relative indices
+              std::vector<Int> relRows( LB.numRow );
+              Int* rowsLBPtr    = LB.rows.Data();
+              Int* rowsSinvBPtr = SinvB.rows.Data();
+
+              TIMER_START(STDFIND_ROW);
+              Int * pos =&rowsSinvBPtr[0];
+              Int * last =&rowsSinvBPtr[SinvB.numRow];
+              for( Int i = 0; i < LB.numRow; i++ ){
+                //                pos = std::find(pos, &rowsSinvBPtr[SinvB.numRow-1], rowsLBPtr[i]);
+//                pos = std::find(pos/*rowsSinvBPtr*/, last, rowsLBPtr[LB.rowsPerm[i]]);
+
+                pos = std::upper_bound(pos/*rowsSinvBPtr*/, last, rowsLBPtr[i])-1;
+                if(pos != last){
+                  relRows[i] =  (Int)(pos - rowsSinvBPtr);
+                }
+                else{
+                  std::ostringstream msg;
+                  msg << "Row " << rowsLBPtr[i] <<
+                    " in LB cannot find the corresponding row in SinvB" << std::endl
+                    << "LB.rows    = " << LB.rows << std::endl
+                    << "SinvB.rows = " << SinvB.rows << std::endl;
+                  throw std::runtime_error( msg.str().c_str() );
+                }
+              }
+              TIMER_STOP(STDFIND_ROW);
+
+
+              // Column relative indicies
+              std::vector<Int> relCols( LrowB.numCol );
+              Int SinvColsSta = FirstBlockCol( jsup, this->super_ );
+              for( Int j = 0; j < LrowB.numCol; j++ ){
+                relCols[j] = LrowB.rows[j] - SinvColsSta;
+              }
+
+
+
+
+              TIMER_START(Copy_Sinv_to_Ainv);
+              // Transfer the values from Sinv to AinvBlock
+              T* nzvalSinv = SinvB.nzval.Data();
+              Int     ldSinv    = SinvB.numRow;
+              for( Int j = 0; j < LrowB.numCol; j++ ){
+                for( Int i = 0; i < LB.numRow; i++ ){
+//                  statusOFS<< "nzvalAinv["<<i<<","<<j<<"] = nzvalSinv["<<relRows[i]<<","<<relCols[j]<<"] = "<< nzvalSinv[relRows[i] + relCols[j] * ldSinv]<< std::endl;
+                  nzvalAinv[i+j*ldAinv] =
+                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                }
+              }
+              TIMER_STOP(Copy_Sinv_to_Ainv);
+
+
+
+
+              isBlockFound = true;
+              break;
+            }
+          } // for (ibSinv )
+          TIMER_STOP(PARSING_ROW_BLOCKIDX);
+          if( isBlockFound == false ){
+            std::ostringstream msg;
+            msg << "Block(" << isup << ", " << jsup
+              << ") did not find a matching block in Sinv." << std::endl;
+            throw std::runtime_error( msg.str().c_str() );
+          }
+        } // if (isup, jsup) is in L
+        else{
+          // Row relative indices
+          std::vector<Int> relRows( LB.numRow );
+          Int SinvRowsSta = FirstBlockCol( isup, this->super_ );
+          for( Int i = 0; i < LB.numRow; i++ ){
+            relRows[i] = LB.rows[i] - SinvRowsSta;
+          }
+          std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, this->grid_ ) );
+          bool isBlockFound = false;
+          TIMER_START(PARSING_COL_BLOCKIDX);
+          for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
+            // Found the (isup, jsup) block in Sinv
+            if( UrowSinv[jbSinv].blockIdx == jsup ){
+              UBlock<T>& SinvB = UrowSinv[jbSinv];
+
+              // Column relative indices
+              std::vector<Int> relCols( LrowB.numCol );
+              Int* rowsLrowBPtr    = LrowB.rows.Data();
+              Int* colsSinvBPtr = SinvB.cols.Data();
+
+              TIMER_START(STDFIND_COL);
+              Int * pos =&colsSinvBPtr[0];
+              Int * last =&colsSinvBPtr[SinvB.numCol];
+              for( Int j = 0; j < LrowB.numCol; j++ ){
+                //rowsLrowB is sorted
+                pos = std::upper_bound(pos, last, rowsLrowBPtr[j])-1;
+                if(pos !=last){
+                  relCols[j] = (Int)(pos - colsSinvBPtr);
+                }
+                else{
+                  std::ostringstream msg;
+                  msg << "Col " << rowsLrowBPtr[j] <<
+                    " in UB cannot find the corresponding row in SinvB" << std::endl
+                    << "LrowB.rows    = " << LrowB.rows << std::endl
+                    << "UinvB.cols = " << SinvB.cols << std::endl;
+                  throw std::runtime_error( msg.str().c_str() );
+                }
+              }
+              TIMER_STOP(STDFIND_COL);
+
+
+              TIMER_START(Copy_Sinv_to_Ainv);
+              // Transfer the values from Sinv to AinvBlock
+              T* nzvalSinv = SinvB.nzval.Data();
+              Int     ldSinv    = SinvB.numRow;
+              for( Int j = 0; j < LrowB.numCol; j++ ){
+                for( Int i = 0; i < LB.numRow; i++ ){
+//                  statusOFS<< "nzvalAinv["<<i<<","<<j<<"] = nzvalSinv["<<relRows[i]<<","<<relCols[j]<<"] = "<< nzvalSinv[relRows[i] + relCols[j] * ldSinv]<< std::endl;
+                  nzvalAinv[i+j*ldAinv] =
+                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                }
+              }
+              TIMER_STOP(Copy_Sinv_to_Ainv);
+
+              isBlockFound = true;
+              break;
+            }
+          } // for (jbSinv)
+          TIMER_STOP(PARSING_COL_BLOCKIDX);
+          if( isBlockFound == false ){
+            std::ostringstream msg;
+            msg << "Block(" << isup << ", " << jsup
+              << ") did not find a matching block in Sinv." << std::endl;
+            throw std::runtime_error( msg.str().c_str() );
+          }
+        } // if (isup, jsup) is in U
+
+      } // for( ib )
+    } // for ( jb )
+
+
       /*
       //    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
       //
@@ -495,7 +718,7 @@ throw std::runtime_error( msg.str().c_str() );
                 }
               } // for (jbSinv)
               TIMER_STOP(PARSING_COL_BLOCKIDX);
-              if( isBlockFound == false ){
+              if( !isBlockFound ){
                 std::ostringstream msg;
                 msg << "Block(" << isup << ", " << jsup 
                   << ") did not find a matching block in Sinv." << std::endl;
@@ -609,7 +832,7 @@ throw std::runtime_error( msg.str().c_str() );
                   arrMpiReqsSizeRecvUCD[sendOffset[supidx]+recvIdxU];
 
                 MPI_Irecv( &sstrSizeU, 1, MPI_INT, dest, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE), 
+                    IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE),
                     this->grid_->comm, &mpiReqSizeRecvU );
                 recvIdxU++;
               }
@@ -769,7 +992,7 @@ throw std::runtime_error( msg.str().c_str() );
 #endif
 
           std::vector<LBlock<T> >& Lrow = this->Lrow( LBi( snode.Index, this->grid_ ) );
-          std::vector<bool> isBlockFound(Lrow.size(),false);
+          std::vector<Int> isBlockFound(Lrow.size(),false);
           Int recvIdxL=0;
 
           for(Int srcRow = 0; srcRow<this->grid_->numProcRow; srcRow++){
@@ -832,7 +1055,7 @@ throw std::runtime_error( msg.str().c_str() );
                     lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
                         &(*pLUpdateBuf)( (*pRowLocalPtr)[ib], 0 ),
                         pLUpdateBuf->m(), Ltmp.Data(), Ltmp.m() );
-                    isBlockFound[ib] = true;
+                    isBlockFound[ib] = 1;
                     Transpose( Ltmp, LrowB.nzval );
                     break;
                   }
@@ -858,7 +1081,7 @@ throw std::runtime_error( msg.str().c_str() );
             this->isSendToCrossDiagonal_(this->grid_->numProcCol, snode.Index ) ){
 
           std::vector<UBlock<T> >& Ucol = this->Ucol( LBj( snode.Index, this->grid_ ) );
-          std::vector<bool> isBlockFound(Ucol.size(),false);
+          std::vector<Int> isBlockFound(Ucol.size(),false);
           Int recvIdxU=0;
 
           for(Int srcCol = 0; srcCol<this->grid_->numProcCol; srcCol++){
@@ -1081,11 +1304,12 @@ throw std::runtime_error( msg.str().c_str() );
           }
         
           assert(jb < Ucol.size());
+
           UBlock<T> & UcolB = Ucol[jb];
 
           //Compute U S-1 L
           blas::Gemm( 'N', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), 
-              Lcol[ib].numRow, MINUS_ONE<T>(),
+              LcolB.numRow, MINUS_ONE<T>(),
               UcolB.nzval.Data(), UcolB.nzval.m(), 
               &snode.LUpdateBuf( snode.RowLocalPtr[ib-startIb], 0 ),
               snode.LUpdateBuf.m(), 
@@ -1667,8 +1891,8 @@ throw std::runtime_error( msg.str().c_str() );
               TIMER_START(Compute_Sinv_LT_GEMM);
               blas::Gemm( 'N', 'T', AinvBuf.m(), LBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
                   AinvBuf.Data(), AinvBuf.m(), 
-                  LBuf.Data(), LBuf.m(), ZERO<T>(),
-                  snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
+                  LBuf.Data(), LBuf.m(),
+                  ZERO<T>(), snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
               TIMER_STOP(Compute_Sinv_LT_GEMM);
 
               snode.UUpdateBuf.Resize( SuperSize( snode.Index, this->super_ ), AinvBuf.m() );
@@ -1679,7 +1903,11 @@ throw std::runtime_error( msg.str().c_str() );
                   ZERO<T>(), snode.UUpdateBuf.Data(), snode.UUpdateBuf.m() ); 
               TIMER_STOP(Compute_Sinv_U_GEMM);
 
+              statusOFS<<"LBuf of "<<snode.Index<<":"<<std::endl;
+              statusOFS<<LBuf<<std::endl;
 
+              statusOFS<<"UBuf of "<<snode.Index<<":"<<std::endl;
+              statusOFS<<UBuf<<std::endl;
 
 #if ( _DEBUGlevel_ >= 2 )
               statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
@@ -1826,14 +2054,40 @@ throw std::runtime_error( msg.str().c_str() );
             Int numColUUpdateBuf;
             //FIXME U must be revised to store the same structure as L ?
             std::vector<UBlock<T> >&  Urow = this->U( LBi( snode.Index, this->grid_ ) );
+            std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi( snode.Index, this->grid_ ) );
             //if( MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
               snode.ColLocalPtr.resize( Urow.size() + 1 );
               snode.BlockIdxLocalU.resize( Urow.size() );
               snode.ColLocalPtr[0] = 0;
+
+              std::vector<Int> colPtrL(Lrow.size()+1);
+                colPtrL[0] = 0;
+                 for( Int ib = 0; ib < Lrow.size(); ib++ ){
+                colPtrL[ib+1] = colPtrL[ib] + Lrow[ib].numCol;
+                  }
+
+
+
               for( Int jb = 0; jb < Urow.size(); jb++ ){
-                snode.ColLocalPtr[jb+1] = snode.ColLocalPtr[jb] + Urow[jb].numCol;
-                snode.BlockIdxLocalU[jb] = Urow[jb].blockIdx;
+                 Int indexL =0;
+                 for( Int ib = 0; ib < Lrow.size(); ib++ ){
+                    if(Lrow[ib].blockIdx == Urow[jb].blockIdx){
+                      indexL = ib;
+                      break;
+                    }
+                  }
+                statusOFS<<jb<<" vs "<<indexL<<std::endl;
+
+                snode.ColLocalPtr[jb] = colPtrL[indexL];
+                //snode.ColLocalPtr[jb+1] = snode.ColLocalPtr[jb] + Urow[jb].numCol;
+                snode.BlockIdxLocalU[jb] = Lrow[jb].blockIdx;
               }
+              snode.ColLocalPtr.back()=colPtrL.back();
+
+            statusOFS<<colPtrL<<std::endl;
+            statusOFS<<snode.ColLocalPtr<<std::endl;
+            statusOFS<<snode.BlockIdxLocalU<<std::endl;
+
             //} // I do not own the diagonal block
             numColUUpdateBuf = *snode.ColLocalPtr.rbegin();
 
@@ -1969,7 +2223,7 @@ throw std::runtime_error( msg.str().c_str() );
 
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrixAsym::SelInv_P2p::UpdateU");
+      PushCallStack("PMatrixAsym::SelInv_P2p::SendRecvCD");
 #endif
 
       SendRecvCD(arrSuperNodes, stepSuper);
@@ -2033,8 +2287,13 @@ throw std::runtime_error( msg.str().c_str() );
         if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) 
             && snode.UUpdateBuf.m() > 0 ){
           std::vector<UBlock<T> >&  Urow = this->U( LBi( snode.Index, this->grid_ ) );
+          std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi( snode.Index, this->grid_ ) );
           for( Int jb = 0; jb < Urow.size(); jb++ ){
             UBlock<T> & UB = Urow[jb];
+
+            //assert(UB.blockIdx == snode.BlockIdxLocalU[jb]);
+            //Inndices follow L order... look at Lrow
+
             lapack::Lacpy( 'A', UB.numRow, UB.numCol, 
                 &snode.UUpdateBuf( 0, snode.ColLocalPtr[jb] ),
                 snode.UUpdateBuf.m(), UB.nzval.Data(), UB.numRow );
@@ -2117,6 +2376,8 @@ throw std::runtime_error( msg.str().c_str() );
         Int stepSuper = superList[lidx].size(); 
 
         this->SelInvIntra_P2p(lidx);
+
+//        if(lidx==1){ return;};
       }
 
 #ifndef _RELEASE_
@@ -2273,7 +2534,7 @@ throw std::runtime_error( msg.str().c_str() );
                   UB.nzval.Data(), UB.numRow );
 #if ( _DEBUGlevel_ >= 2 )
               NumMat<T> res = UB.nzval;
-              //Compute U(kk) * U'(kj) which should be Ukj
+              //Compute U(kk) * U^(kj) which should be Ukj
               blas::Trmm('L','U','N','N',res.m(),res.n(),ONE<T>(),nzvalUDiag.Data(),nzvalUDiag.m(),res.Data(),res.m());
               blas::Axpy(res.Size(), MINUS_ONE<T>(), Ukj.Data(), 1, res.Data(), 1 );
               double norm = lapack::Lange('F',res.m(),res.n(),res.Data(),res.m(),Ukj.Data());
@@ -2333,23 +2594,25 @@ throw std::runtime_error( msg.str().c_str() );
               NumMat<T> Akk (LB.nzval.m(), LB.nzval.n());
               //rebuild A
               SetValue(Akk,ZERO<T>());
+              //copy u into A
               for(Int i = 0; i<Akk.m();++i){
-                Akk(i,i)=ONE<T>();
+                for(Int j = i; j<Akk.n();++j){
+                  Akk(i,j)= Lkk(i,j);
+                }
               }
-              blas::Trmm('R','U','N','N',Akk.m(),Akk.n(),ONE<T>(),Lkk.Data(),Lkk.m(),Akk.Data(),Akk.m());
               blas::Trmm('L','L','N','U',Akk.m(),Akk.n(),ONE<T>(),Lkk.Data(),Lkk.m(),Akk.Data(),Akk.m());
             
-              statusOFS << "After inversion, original A(" << ksup << ", " << ksup
-                  << "): " << Akk << std::endl;
+//              statusOFS << "After inversion, original A(" << ksup << ", " << ksup
+//                  << "): " << Akk << std::endl;
 
               //Compute U(kk) * U'(kj) which should be Ukj
               blas::Gemm('N','N',res.m(),res.n(),res.m(),ONE<T>(),LB.nzval.Data(),res.m(),Akk.Data(),res.m(),ZERO<T>(),res.Data(),res.m());
-//              for(Int i = 0; i<res.m();++i){
-//                res(i,i)-=ONE<T>();
-//              }
+              for(Int i = 0; i<res.m();++i){
+                res(i,i)-=ONE<T>();
+              }
 
-              statusOFS << "After inversion, residual of A(" << ksup << ", " << ksup
-                  << "): " << res << std::endl;
+//              statusOFS << "After inversion, residual of A(" << ksup << ", " << ksup
+//                  << "): " << res << std::endl;
 
               double norm = lapack::Lange('F',res.m(),res.n(),res.Data(),res.m(),Lkk.Data());
               statusOFS << "After inversion, norm of residual of A(" << ksup << ", " << ksup
@@ -2445,6 +2708,7 @@ throw std::runtime_error( msg.str().c_str() );
 
                 //Skip the diagonal block if necessary 
                 Int startIdx = ( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ) ? 1:0;
+//                Int startIdx = ( MYPROC(this->grid_) == PNUM(ksupProcRow,ksupProcCol, this->grid_) ) ? 1:0;
                 Int count = 0;
                 for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
                   if( Lcol[ib].blockIdx > ksup && 
@@ -2496,8 +2760,20 @@ throw std::runtime_error( msg.str().c_str() );
             << std::endl;
 #endif
 
+          std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, this->grid_ ) );
           std::vector<LBlock<T> >& Lrow = this->Lrow( LBi( ksup, this->grid_ ) );
-          std::vector<bool> isBlockFound(Lrow.size(),false);
+          std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, this->grid_ ) );
+
+
+          statusOFS<<"Lrow : "<<std::endl;
+          for(Int ib=0;ib<Lrow.size();++ib){statusOFS<<Lrow[ib].blockIdx<<" ";}
+          statusOFS<<std::endl;
+
+          statusOFS<<"Lcol : "<<std::endl;
+          for(Int ib=0;ib<Lcol.size();++ib){statusOFS<<Lcol[ib].blockIdx<<" ";}
+          statusOFS<<std::endl;
+
+          std::vector<Int> isBlockFound(Lrow.size(),ZERO<Int>());
           //If I own the diagonal block, mark it as found
 //          if(MYPROC(this->grid_)== PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_)){
 //            isBlockFound[0] = true;
@@ -2542,7 +2818,6 @@ throw std::runtime_error( msg.str().c_str() );
 
           mpi::Waitall(arrMpiReqsRecv);
 
-          std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, this->grid_ ) );
 
           //Process the content
           recvIdx = 0;
@@ -2633,14 +2908,14 @@ throw std::runtime_error( msg.str().c_str() );
                     // Note that the order of the column indices of the U
                     // block may not follow the order of the row indices,
                     // overwrite the information in U.
-                    LrowB.rows = LB.rows;
+                    LrowB = LB;
                     //Store in "row major" format / i.e transpose is in col-major
                     Transpose(LB.nzval, LrowB.nzval);
-                    LrowB.numRow = LB.numCol;
                     LrowB.numCol = LB.numRow;
+                    LrowB.numRow = LB.numCol;
 
 #if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<"["<<ksup<<"] USING "<<LB.blockIdx<< std::endl;
+                    statusOFS<<"["<<ksup<<"] USING LB "<<LB.blockIdx<< std::endl;
 #endif
                     isBlockFound[iib] = 1;//true;
                     break;
@@ -2653,6 +2928,8 @@ throw std::runtime_error( msg.str().c_str() );
           for( Int ib = 0; ib < Lrow.size(); ib++ ){
             if( !isBlockFound[ib] ){
 #ifdef USE_ABORT
+              LBlock<T> & LB = Lrow[ib];
+              statusOFS<<isBlockFound<<std::endl;
               abort();
 #endif
               throw std::logic_error( 
@@ -2772,7 +3049,7 @@ throw std::runtime_error( msg.str().c_str() );
 #endif
 
           std::vector<UBlock<T> >& Ucol = this->Ucol( LBj( ksup, this->grid_ ) );
-          std::vector<int> isBlockFound(Ucol.size(),0);
+          std::vector<Int> isBlockFound(Ucol.size(),0);
 
           Int recvIdx = 0;
           //receive size first
@@ -2896,16 +3173,12 @@ throw std::runtime_error( msg.str().c_str() );
                     // Note that the order of the column indices of the U
                     // block may not follow the order of the row indices,
                     // overwrite the information in U.
-                    //UcolB = UB;
+                    UcolB = UB;
 
-                    UcolB.cols = UB.cols;
-                    UcolB.nzval = UB.nzval;
-                    UcolB.numRow = UB.numRow;
-                    UcolB.numCol = UB.numCol;
 #if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<"["<<ksup<<"] USING "<<UB.blockIdx<< std::endl;
+                    statusOFS<<"["<<ksup<<"] USING UB "<<UB.blockIdx<< std::endl;
 #endif
-                    isBlockFound[jjb] = true;
+                    isBlockFound[jjb] = 1;
                     break;
                   } // if( UB.blockIdx == UcolB.blockIdx )
                 } // for (jjb)
@@ -3065,14 +3338,37 @@ throw std::runtime_error( msg.str().c_str() );
           statusOFS << std::endl; 
 #endif
 
-          //Allocate Ucol
-          std::vector< UBlock<T> > & Ucol = this->Ucol( LBj(ksup, this->grid_ ) );
-          for(Int ib = 0; ib < tAllBlockRowIdx.size(); ++ib){
-            if(tAllBlockRowIdx[ib] > ksup){
-              Ucol.push_back(UBlock<T>());
-              Ucol.back().blockIdx = tAllBlockRowIdx[ib];
+            std::vector< LBlock<T> > & Lcol = this->L( LBj(ksup, this->grid_ ) );
+            statusOFS<<"Lcol of "<<ksup<<std::endl;
+            for(Int ib=0;ib<Lcol.size();++ib){statusOFS<<Lcol[ib].blockIdx<<" ";}
+            statusOFS<<std::endl;
+
+//          if( MYROW( this->grid_ ) != PROW( ksup, this->grid_ ) ){
+            std::vector< UBlock<T> > & Ucol = this->Ucol( LBj(ksup, this->grid_ ) );
+            //Allocate Ucol
+            for(Int ib = 0; ib < tAllBlockRowIdx.size(); ++ib){
+              if(tAllBlockRowIdx[ib] > ksup && 
+                   (tAllBlockRowIdx[ib] % this->grid_->numProcRow) == MYROW(this->grid_)  ){ 
+                Ucol.push_back(UBlock<T>());
+                Ucol.back().blockIdx = tAllBlockRowIdx[ib];
+              }
             }
-          }
+            statusOFS<<"Ucol of "<<ksup<<std::endl;
+            for(Int ib=0;ib<Ucol.size();++ib){statusOFS<<Ucol[ib].blockIdx<<" ";}
+            statusOFS<<std::endl;
+
+
+
+            if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
+              assert(Lcol.size() == Ucol.size()+1);
+            }
+            else{
+              assert(Lcol.size() == Ucol.size());
+            }
+
+
+//          }
+
         } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
 
         if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
@@ -3093,31 +3389,44 @@ throw std::runtime_error( msg.str().c_str() );
 
           TIMER_STOP(Allgatherv_Column_communication_row);
 
-//          std::vector< LBlock<T> > & Lcol = this->L( LBj(ksup, this->grid_ ) );
-          std::vector< UBlock<T> > & Urow = this->U( LBi(ksup, this->grid_ ) );
-          //Allocate Lrow and extend Urow
-          std::vector< LBlock<T> > & Lrow = this->Lrow( LBi(ksup, this->grid_ ) );
-          for(Int ib = 0; ib < tAllBlockRowIdx.size(); ++ib){
-            if(tAllBlockRowIdx[ib] > ksup){
-              Lrow.push_back(LBlock<T>());
-              Lrow.back().blockIdx = tAllBlockRowIdx[ib];
 
-              bool isFound = false;
-              for(Int jb = 0; jb < Urow.size(); ++jb){
-                if(Urow[jb].blockIdx == tAllBlockRowIdx[ib]){
-                  isFound = true;
-                  break;
+
+//          gdb_lock();
+
+          if( MYCOL( this->grid_ ) != PCOL( ksup, this->grid_ ) ){
+            //          std::vector< LBlock<T> > & Lcol = this->L( LBj(ksup, this->grid_ ) );
+            std::vector< UBlock<T> > & Urow = this->U( LBi(ksup, this->grid_ ) );
+            //Allocate Lrow and extend Urow
+            std::vector< LBlock<T> > & Lrow = this->Lrow( LBi(ksup, this->grid_ ) );
+            for(Int ib = 0; ib < tAllBlockRowIdx.size(); ++ib){
+              if(tAllBlockRowIdx[ib] > ksup && 
+                   (tAllBlockRowIdx[ib] % this->grid_->numProcCol) == MYCOL(this->grid_)  ){ 
+
+                Lrow.push_back(LBlock<T>());
+                Lrow.back().blockIdx = tAllBlockRowIdx[ib];
+
+
+                bool isFound = false;
+                for(Int jb = 0; jb < Urow.size(); ++jb){
+                  if(Urow[jb].blockIdx == tAllBlockRowIdx[ib]){
+                    isFound = true;
+                    break;
+                  }
                 }
-              }
-              if(!isFound){
-                Urow.push_back(UBlock<T>());
-                Urow.back().blockIdx = tAllBlockRowIdx[ib];
+                if(!isFound){
+                  Urow.push_back(UBlock<T>());
+                  Urow.back().blockIdx = tAllBlockRowIdx[ib];
+                }
+
               }
 
             }
 
+            statusOFS<<"Lrow of "<<ksup<<std::endl;
+            for(Int ib=0;ib<Lrow.size();++ib){statusOFS<<Lrow[ib].blockIdx<<" ";}
+            statusOFS<<std::endl;
+            assert(Urow.size() == Lrow.size());
           }
-
         } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
       } // for(ksup)
 
@@ -3172,6 +3481,10 @@ throw std::runtime_error( msg.str().c_str() );
           statusOFS << std::endl; 
 #endif
 
+            std::vector< UBlock<T> > & Urow = this->U( LBi(ksup, this->grid_ ) );
+            statusOFS<<"Urow of "<<ksup<<std::endl;
+            for(Int ib=0;ib<Urow.size();++ib){statusOFS<<Urow[ib].blockIdx<<" ";}
+            statusOFS<<std::endl;
         } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
       } // for(ksup)
 

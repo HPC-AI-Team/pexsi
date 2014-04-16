@@ -66,6 +66,16 @@
 namespace PEXSI{
 
 
+#if defined(SORT) 
+    struct ULComparator {
+      IntNumVec & lookup;
+      ULComparator(IntNumVec & v):lookup(v){}
+      bool operator() (int i,int j) { return ((lookup)(i)<(lookup)(j));}
+    };
+#endif
+
+
+
   typedef std::vector<bool> bitMask;
   typedef std::map<bitMask , std::vector<Int> > bitMaskSet;
 
@@ -147,6 +157,11 @@ namespace PEXSI{
     /// @brief Dimension numRow * 1, index (0-based) for the number of nonzero rows.
     IntNumVec         rows;
 
+#ifdef SORT
+    /// @brief Dimension numRow * 1, original index (0-based) for the number of nonzero rows before sorting.
+    IntNumVec         rowsPerm;
+#endif
+
     /// @brief Dimension numRow * numCol, nonzero elements.
     NumMat<T>    nzval;
 
@@ -158,6 +173,9 @@ namespace PEXSI{
       numRow      = LB.numRow;
       numCol      = LB.numCol;
       rows        = LB.rows;
+#ifdef SORT
+      rowsPerm    = LB.rowsPerm;
+#endif
       nzval       = LB.nzval;
       return *this;
     }
@@ -334,6 +352,9 @@ namespace PEXSI{
       NUMROW,
       NUMCOL,
       ROWS,
+#ifdef SORT
+      ROWSPERM,
+#endif
       NZVAL,
       TOTAL_NUMBER
     };
@@ -342,23 +363,27 @@ namespace PEXSI{
   
   template<typename T>
   Int inline serialize(LBlock<T>& val, std::ostream& os, const std::vector<Int>& mask){
-    Int i = 0;
-    if(mask[i]==1) serialize(val.blockIdx, os, mask); i++;
-    if(mask[i]==1) serialize(val.numRow,  os, mask); i++;
-    if(mask[i]==1) serialize(val.numCol,  os, mask); i++;
-    if(mask[i]==1) serialize(val.rows, os, mask);   i++;
-    if(mask[i]==1) serialize(val.nzval, os, mask);  i++;
+    if(mask[LBlockMask::BLOCKIDX]==1) serialize(val.blockIdx, os, mask);
+    if(mask[LBlockMask::NUMROW  ]==1) serialize(val.numRow,  os, mask);
+    if(mask[LBlockMask::NUMCOL  ]==1) serialize(val.numCol,  os, mask);
+    if(mask[LBlockMask::ROWS    ]==1) serialize(val.rows, os, mask); 
+    if(mask[LBlockMask::NZVAL   ]==1) serialize(val.nzval, os, mask); 
+#ifdef SORT
+    if(mask[LBlockMask::ROWSPERM]==1) serialize(val.rowsPerm, os, mask); 
+#endif
     return 0;
   }
 
   template<typename T>
   Int inline deserialize(LBlock<T>& val, std::istream& is, const std::vector<Int>& mask){
-    Int i = 0;
-    if(mask[i]==1) deserialize(val.blockIdx, is, mask); i++;
-    if(mask[i]==1) deserialize(val.numRow,  is, mask); i++;
-    if(mask[i]==1) deserialize(val.numCol,  is, mask); i++;
-    if(mask[i]==1) deserialize(val.rows,   is, mask); i++;
-    if(mask[i]==1) deserialize(val.nzval,  is, mask); i++; 
+    if(mask[LBlockMask::BLOCKIDX]==1) deserialize(val.blockIdx, is, mask);
+    if(mask[LBlockMask::NUMROW  ]==1) deserialize(val.numRow,  is, mask);
+    if(mask[LBlockMask::NUMCOL  ]==1) deserialize(val.numCol,  is, mask);
+    if(mask[LBlockMask::ROWS    ]==1) deserialize(val.rows,   is, mask);
+    if(mask[LBlockMask::NZVAL   ]==1) deserialize(val.nzval,  is, mask);
+#ifdef SORT
+    if(mask[LBlockMask::ROWSPERM]==1) deserialize(val.rowsPerm, is, mask); 
+#endif
     return 0;
   }
 
@@ -932,6 +957,38 @@ namespace PEXSI{
       /// PMatrix.  This can be used to estimate e.g. the number of
       /// eigenvalues of a matrix below a certain threshold.
       void GetNegativeInertia	( Real& inertia );
+
+
+
+      virtual void DumpSuperNodes(Int count){
+        Int first_snode = max(0,NumSuper() -count );
+        //dump the last supernodes
+        for(Int I = first_snode; I<NumSuper();++I){
+          statusOFS<<"****** "<<I<<" *******"<<std::endl;
+  
+          //I own blocks of that supernode
+          if(MYCOL(grid_) == PCOL(I,grid_)){
+            std::vector<LBlock<T> >&  Lcol = this->L( LBj( I, grid_ ) );
+            for(Int bidx = 0; bidx < Lcol.size(); ++bidx){
+              LBlock<T> & block = Lcol[bidx];
+              statusOFS<<block.blockIdx<<std::endl;
+              statusOFS<<block.nzval<<std::endl;
+            }
+
+
+            std::vector<UBlock<T> >&  Urow = this->U( LBi( I, this->grid_ ) );
+            for(Int bidx = 0; bidx < Urow.size(); ++bidx){
+              UBlock<T> & block = Urow[bidx];
+              statusOFS<<block.blockIdx<<std::endl;
+              statusOFS<<block.nzval<<std::endl;
+            }
+
+
+
+          }
+        }
+      }
+
 
   };
 

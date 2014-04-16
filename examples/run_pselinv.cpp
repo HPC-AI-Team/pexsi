@@ -900,7 +900,11 @@ int main(int argc, char **argv)
                  diffNorm = std::sqrt( diffNorm );
                  statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
                }
- 
+
+
+                //dump the last supernode
+                 statusOFS << "Ainv2 = "  << Ainv2.nzvalLocal << endl;
+
                Complex traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1,
                    Ainv2.nzvalLocal.Data(), 1 );
                Complex trace = Z_ZERO;
