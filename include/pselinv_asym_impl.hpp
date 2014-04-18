@@ -111,25 +111,14 @@ namespace PEXSI{
     {
       TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
 
+
+
+      if(MYPROC(this->grid_)==1 && snode.Index==100){
+//        gdb_lock();
+      }
+
+
       TIMER_START(Build_colptr_rowptr);
-      // rowPtrL[ib] gives the row index in snode.LUpdateBuf for the first
-      // nonzero row in LcolRecv[ib]. The total number of rows in
-      // snode.LUpdateBuf is given by rowPtr[end]-1
-      std::vector<Int> rowPtrL(LcolRecv.size() + 1);
-      // colPtrL[jb] gives the column index in LBuf for the first
-      // nonzero column in UrowRecv[jb]. The total number of rows in
-      // LBuf is given by colPtr[end]-1
-      std::vector<Int> colPtrL(LrowRecv.size() + 1);
-
-      rowPtrL[0] = 0;
-      for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
-        rowPtrL[ib+1] = rowPtrL[ib] + LcolRecv[ib].numRow;
-      }
-      colPtrL[0] = 0;
-      for( Int jb = 0; jb < LrowRecv.size(); jb++ ){
-        colPtrL[jb+1] = colPtrL[jb] + LrowRecv[jb].numCol;
-      }
-
 
       statusOFS<<"UrowRecv blockIdx: "<<std::endl;
       for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
@@ -158,32 +147,130 @@ namespace PEXSI{
 
 
 
-
-
-
-
-
-      std::vector<Int> colPtrU(UcolRecv.size() + 1);
-//      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-//        UBlock<T>& UB = UrowRecv[jb];
-//        //Find the block in LrowRecv and put it at the same index
-//        Int indexL = 0;
-//        for( Int ib = 0; ib < LrowRecv.size(); ib++ ){
-//          LBlock<T>& LB = LrowRecv[ib];
-//          if(LB.blockIdx==UB.blockIdx){
-//            indexL = ib;
-//            break;
-//          }
-//        }
-//        
-//        colPtrU[jb] = colPtrL[indexL];
-//      }
-//      colPtrU[UrowRecv.size()] = colPtrL[UrowRecv.size()];
-
-      colPtrU[0] = 0;
-      for( Int jb = 0; jb < UcolRecv.size(); jb++ ){
-        colPtrU[jb+1] = colPtrU[jb] + UcolRecv[jb].numCol;
+      // rowPtrL[ib] gives the row index in snode.LUpdateBuf for the first
+      // nonzero row in LcolRecv[ib]. The total number of rows in
+      // snode.LUpdateBuf is given by rowPtr[end]-1
+      std::vector<Int> rowPtrL(LcolRecv.size() + 1);
+      rowPtrL[0] = 0;
+      for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+        rowPtrL[ib+1] = rowPtrL[ib] + LcolRecv[ib].numRow;
       }
+
+      // colPtrL[jb] gives the column index in LBuf for the first
+      // nonzero column in UrowRecv[jb]. The total number of rows in
+      // LBuf is given by colPtr[end]-1
+      std::vector<Int> colPtrL(LrowRecv.size() + 1);
+      std::vector<Int> colPtrU(UcolRecv.size() + 1,-1);
+
+
+
+
+      colPtrL[0] = 0;
+      for( Int jb = 0; jb < LrowRecv.size(); jb++ ){
+        colPtrL[jb+1] = colPtrL[jb] + LrowRecv[jb].numCol;
+      }
+
+
+        colPtrU[0] = 0;
+        for( Int jb = 0; jb < UcolRecv.size(); jb++ ){
+          colPtrU[jb+1] = colPtrU[jb] + UcolRecv[jb].numCol;
+        }
+
+/*
+      //Put blocks in L first
+      for( Int ib = 0; ib < LrowRecv.size(); ib++ ){
+        LBlock<T>& LB = LrowRecv[ib];
+        
+        statusOFS<<"Looking for "<<LB.blockIdx<<" vs ";
+        Int indexU = -1;
+        for( Int jb = 0; jb < UcolRecv.size(); jb++ ){
+          UBlock<T>& UB = UcolRecv[jb];
+          statusOFS<<" "<<UB.blockIdx;
+          //Find the block in LrowRecv and put it at the same index
+            if(LB.blockIdx==UB.blockIdx){
+              indexU = jb;
+              break;
+            }
+        }
+        statusOFS<<std::endl;
+
+          if(indexU!=-1){
+            assert(colPtrU[indexU]==-1);
+            colPtrU[indexU] = colPtrL[ib];
+          }
+      }
+
+      Int prevPtr = colPtrL.back();
+      for( Int jb = 0; jb < UcolRecv.size(); jb++ ){
+        if(colPtrU[jb]==-1){
+
+        statusOFS<<"colPtrU["<<jb<<"] = "<<prevPtr<<std::endl;
+          colPtrU[jb] = prevPtr;
+          prevPtr += UcolRecv[jb].numCol;
+        }
+      }
+      colPtrU.back() = prevPtr;
+*/
+
+
+/*
+      //Build colPtrU with the same block order than colPtrL
+      if(colPtrL.size()>=colPtrU.size()){
+
+      
+      colPtrL[0] = 0;
+      for( Int jb = 0; jb < LrowRecv.size(); jb++ ){
+        colPtrL[jb+1] = colPtrL[jb] + LrowRecv[jb].numCol;
+      }
+
+
+      for( Int jb = 0; jb < UcolRecv.size(); jb++ ){
+        UBlock<T>& UB = UcolRecv[jb];
+        //Find the block in LrowRecv and put it at the same index
+        Int indexL = 0;
+        for( Int ib = 0; ib < colPtrL.size(); ib++ ){
+          LBlock<T>& LB = LrowRecv[ib];
+          if(LB.blockIdx==UB.blockIdx){
+            indexL = ib;
+            break;
+          }
+        }
+        
+        statusOFS<<jb<<" vs "<<indexL<<std::endl;
+        colPtrU[jb] = colPtrL[indexL];
+      }
+      colPtrU.back() = colPtrL.back();
+
+      }
+      else{
+        colPtrU[0] = 0;
+        for( Int jb = 0; jb < UcolRecv.size(); jb++ ){
+          colPtrU[jb+1] = colPtrU[jb] + UcolRecv[jb].numCol;
+        }
+
+
+        for( Int jb = 0; jb < LrowRecv.size(); jb++ ){
+          LBlock<T>& LB = LrowRecv[ib];
+          //Find the block in UcolRecv and put it at the same index
+          Int indexU = 0;
+          for( Int jb = 0; jb < colPtrU.size(); jb++ ){
+            UBlock<T>& UB = UcolRecv[jb];
+            if(LB.blockIdx==UB.blockIdx){
+              indexU = jb;
+              break;
+            }
+          }
+
+          statusOFS<<ib<<" vs "<<indexU<<std::endl;
+          colPtrL[ib] = colPtrU[indexU];
+        }
+        colPtrL.back() = colPtrU.back();
+      }
+
+*/
+      statusOFS<<colPtrL<<std::endl;
+
+      statusOFS<<colPtrU<<std::endl;
 
 
       Int numRowAinvBuf = *rowPtrL.rbegin();
@@ -194,7 +281,7 @@ namespace PEXSI{
       // Allocate for the computational storage
       AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
       LBuf.Resize( SuperSize( snode.Index, this->super_ ), numColAinvBuf );
-      UBuf.Resize( SuperSize( snode.Index, this->super_ ), numColAinvBuf );
+      UBuf.Resize( SuperSize( snode.Index, this->super_ ), numRowAinvBuf );
       TIMER_STOP(Allocate_lookup);
 
       TIMER_START(Fill_LBuf);
@@ -208,11 +295,11 @@ namespace PEXSI{
           throw std::logic_error( "The size of LB is not right.  Something is seriously wrong." );
         }
         lapack::Lacpy( 'A', LB.numRow, LB.numCol, LB.nzval.Data(),
-            LB.numRow, LBuf.VecData( colPtrL[jb] ), SuperSize( snode.Index, this->super_ ) );
+            LB.numRow, LBuf.VecData( colPtrL[jb] ), LBuf.m() );
 
 
-        statusOFS<<"LB = "<<std::endl<<LB<<std::endl;
-        statusOFS<<"LBuf = "<<std::endl<<LBuf<<std::endl;
+//        statusOFS<<"LB = "<<std::endl<<LB<<std::endl;
+//        statusOFS<<"LBuf = "<<std::endl<<LBuf<<std::endl;
 
       }
       TIMER_STOP(Fill_LBuf);
@@ -231,13 +318,16 @@ namespace PEXSI{
 
 
         lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
-            UB.numRow, UBuf.VecData( colPtrU[jb] ), SuperSize( snode.Index, this->super_ ) );
+            UB.numRow, UBuf.VecData( colPtrU[jb] ), UBuf.m() );
 
-        statusOFS<<"UB = "<<std::endl<<UB<<std::endl;
-        statusOFS<<"UBuf = "<<std::endl<<UBuf<<std::endl;
+//        statusOFS<<"UB = "<<std::endl<<UB<<std::endl;
+//        statusOFS<<"UBuf = "<<std::endl<<UBuf<<std::endl;
 
       }
       TIMER_STOP(Fill_UBuf);
+
+        statusOFS<<"LBuf = "<<std::endl<<LBuf<<std::endl;
+        statusOFS<<"UBuf = "<<std::endl<<UBuf<<std::endl;
 
       // Calculate the relative indices for (isup, jsup)
       // Fill AinvBuf with the information in L or U block.
@@ -322,8 +412,8 @@ namespace PEXSI{
               for( Int j = 0; j < LrowB.numCol; j++ ){
                 for( Int i = 0; i < LB.numRow; i++ ){
 //                  statusOFS<< "nzvalAinv["<<i<<","<<j<<"] = nzvalSinv["<<relRows[i]<<","<<relCols[j]<<"] = "<< nzvalSinv[relRows[i] + relCols[j] * ldSinv]<< std::endl;
-                  nzvalAinv[i+j*ldAinv] =
-                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                    AinvBuf( rowPtrL[ib] + i, colPtrL[jb] + j ) =
+                    SinvB.nzval(relRows[i],relCols[j]);
                 }
               }
               TIMER_STOP(Copy_Sinv_to_Ainv);
@@ -391,8 +481,11 @@ namespace PEXSI{
               for( Int j = 0; j < LrowB.numCol; j++ ){
                 for( Int i = 0; i < LB.numRow; i++ ){
 //                  statusOFS<< "nzvalAinv["<<i<<","<<j<<"] = nzvalSinv["<<relRows[i]<<","<<relCols[j]<<"] = "<< nzvalSinv[relRows[i] + relCols[j] * ldSinv]<< std::endl;
-                  nzvalAinv[i+j*ldAinv] =
-                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+
+                  AinvBuf( rowPtrL[ib] + i, colPtrL[jb] + j ) =
+                    SinvB.nzval(relRows[i],relCols[j]);
+//                  nzvalAinv[i+j*ldAinv] =
+//                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
                 }
               }
               TIMER_STOP(Copy_Sinv_to_Ainv);
@@ -1038,10 +1131,10 @@ throw std::runtime_error( msg.str().c_str() );
                 <<MYROW(this->grid_) <<","<<MYCOL(this->grid_)<<") <--- LBj("
                 <<snode.Index<<") <--- P"<<src<<std::endl;
               statusOFS << std::endl << " ["<<snode.Index<<"] "
-                << "rowLocalPtrRecv:" << pRowLocalPtr
+                << "rowLocalPtrRecv:" << *pRowLocalPtr
                 << std::endl << std::endl; 
               statusOFS << std::endl << " ["<<snode.Index<<"] "
-                << "blockIdxLocalRecv:" << pBlockIdxLocal
+                << "blockIdxLocalRecv:" << *pBlockIdxLocal
                 << std::endl << std::endl; 
 #endif
 
@@ -1055,7 +1148,7 @@ throw std::runtime_error( msg.str().c_str() );
                     lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
                         &(*pLUpdateBuf)( (*pRowLocalPtr)[ib], 0 ),
                         pLUpdateBuf->m(), Ltmp.Data(), Ltmp.m() );
-                    isBlockFound[ib] = 1;
+                    isBlockFound[iib] = 1;
                     Transpose( Ltmp, LrowB.nzval );
                     break;
                   }
@@ -1127,10 +1220,10 @@ throw std::runtime_error( msg.str().c_str() );
                 <<MYROW(this->grid_) <<","<<MYCOL(this->grid_)<<") <--- LBi("
                 <<snode.Index<<") <--- P"<<src<<std::endl;
               statusOFS << std::endl << " ["<<snode.Index<<"] "
-                << "colLocalPtrRecv:" << pColLocalPtr
+                << "colLocalPtrRecv:" << *pColLocalPtr
                 << std::endl << std::endl; 
               statusOFS << std::endl << " ["<<snode.Index<<"] "
-                << "blockIdxLocalRecv:" << pBlockIdxLocal
+                << "blockIdxLocalRecv:" << *pBlockIdxLocal
                 << std::endl << std::endl; 
 #endif
 
@@ -1142,7 +1235,7 @@ throw std::runtime_error( msg.str().c_str() );
                     lapack::Lacpy( 'A', UcolB.nzval.m(), UcolB.nzval.n(), 
                         &(*pUUpdateBuf)( 0, (*pColLocalPtr)[jb] ),
                         pUUpdateBuf->m(), UcolB.nzval.Data(), UcolB.nzval.m() );
-                    isBlockFound[jb] = true;
+                    isBlockFound[jjb] = true;
                     break;
                   }
                 }
@@ -1183,6 +1276,11 @@ throw std::runtime_error( msg.str().c_str() );
         )
     {
 
+
+
+
+
+
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
 #endif
@@ -1196,7 +1294,13 @@ throw std::runtime_error( msg.str().c_str() );
         LrowRecv.resize( numLBlock );
         for( Int ib = 0; ib < numLBlock; ib++ ){
           deserialize( LrowRecv[ib], sstm, mask );
-        } 
+        }
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<< "["<<snode.Index<<"] "<<"Lrow RECV "<<std::endl;
+                for(Int ib=0;ib<LrowRecv.size();++ib){statusOFS<<LrowRecv[ib].blockIdx<<" ";}
+                statusOFS<<std::endl;
+#endif
       } // sender is not the same as receiver
       else{
         // U is obtained locally, just make a copy. Include everything
@@ -1213,12 +1317,21 @@ throw std::runtime_error( msg.str().c_str() );
         std::stringstream     sstm;
         sstm.write( &snode.SstrLcolRecv[0], snode.SstrLcolRecv.size() );
         std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+        mask[LBlockMask::NZVAL] = 0; // nzval is excluded
         Int numLBlock;
         deserialize( numLBlock, sstm, NO_MASK );
         LcolRecv.resize( numLBlock );
         for( Int ib = 0; ib < numLBlock; ib++ ){
           deserialize( LcolRecv[ib], sstm, mask );
         }
+
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<< "["<<snode.Index<<"] "<<"Lcol RECV "<<std::endl;
+                for(Int ib=0;ib<LcolRecv.size();++ib){statusOFS<<LcolRecv[ib].blockIdx<<" ";}
+                statusOFS<<std::endl;
+#endif
+
       } // sender is not the same as receiver
       else{
         // L is obtained locally, just make a copy. 
@@ -1234,12 +1347,19 @@ throw std::runtime_error( msg.str().c_str() );
         std::stringstream sstm;
         sstm.write( &snode.SstrUrowRecv[0], snode.SstrUrowRecv.size() );
         std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+        mask[UBlockMask::NZVAL] = 0; // nzval is excluded
         Int numUBlock;
         deserialize( numUBlock, sstm, NO_MASK );
         UrowRecv.resize( numUBlock );
         for( Int jb = 0; jb < numUBlock; jb++ ){
           deserialize( UrowRecv[jb], sstm, mask );
         } 
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<< "["<<snode.Index<<"] "<<"Urow RECV "<<std::endl;
+                for(Int ib=0;ib<UrowRecv.size();++ib){statusOFS<<UrowRecv[ib].blockIdx<<" ";}
+                statusOFS<<std::endl;
+#endif
       } // sender is not the same as receiver
       else{
         // U is obtained locally, just make a copy. Include everything
@@ -1262,6 +1382,12 @@ throw std::runtime_error( msg.str().c_str() );
         for( Int jb = 0; jb < numUBlock; jb++ ){
           deserialize( UcolRecv[jb], sstm, mask );
         }
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<< "["<<snode.Index<<"] "<<"Ucol RECV "<<std::endl;
+                for(Int ib=0;ib<UcolRecv.size();++ib){statusOFS<<UcolRecv[ib].blockIdx<<" ";}
+                statusOFS<<std::endl;
+#endif
       } // sender is not the same as receiver
       else{
         // Ucol is obtained locally, just make a copy. 
@@ -1418,6 +1544,7 @@ throw std::runtime_error( msg.str().c_str() );
             // All blocks are to be sent down.
             serialize( (Int)Lrow.size(), sstm, NO_MASK );
             for( Int ib = 0; ib < Lrow.size(); ib++ ){
+              assert( Lrow[ib].blockIdx > snode.Index );
               serialize( Lrow[ib], sstm, mask );
             }
             snode.SstrLrowSend.resize( Size( sstm ) );
@@ -1436,7 +1563,12 @@ throw std::runtime_error( msg.str().c_str() );
                     iProcRow, IDX_TO_TAG(supidx,SELINV_TAG_LROW_CONTENT), 
                     this->grid_->colComm, &mpireqsSendLToBelow[2*iProcRow+1] );
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending Lrow " << snode.SizeSstrLrowSend << " BYTES"<< std::endl <<  std::endl; 
+                statusOFS<< "["<<snode.Index<<"] "<<"Lrow SENT "<<std::endl;
+                for(Int ib=0;ib<Lrow.size();++ib){statusOFS<<Lrow[ib].blockIdx<<" ";}
+                statusOFS<<std::endl;
+                statusOFS << "["<<snode.Index<<"] "<<  "Sending Lrow "
+                          << snode.SizeSstrLrowSend << " BYTES to P" << PNUM(iProcRow,MYCOL(this->grid_),this->grid_)
+                          << std::endl <<  std::endl; 
 #endif
               } // Send 
             } // for (iProcRow)
@@ -1448,7 +1580,7 @@ throw std::runtime_error( msg.str().c_str() );
           // Communication for the L (Lcol) part.
           if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
 
-            TIMER_START(Serialize_LrowL);
+            TIMER_START(Serialize_LcolL);
             // Pack the data in L 
             std::stringstream sstm;
             std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
@@ -1457,23 +1589,24 @@ throw std::runtime_error( msg.str().c_str() );
             std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, this->grid_) );
             // All blocks except for the diagonal block are to be sent right
 
-            if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) )
-              serialize( (Int)Lcol.size() - 1, sstm, NO_MASK );
-            else
-              serialize( (Int)Lcol.size(), sstm, NO_MASK );
+      if(MYPROC(this->grid_)==0 && snode.Index==100){
+//        gdb_lock();
+      }
 
-            for( Int ib = 0; ib < Lcol.size(); ib++ ){
-              if( Lcol[ib].blockIdx > snode.Index ){
+            Int startIdx = ( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) )?1:0;
+            serialize( (Int)Lcol.size() - startIdx, sstm, NO_MASK );
+            for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
+              assert( Lcol[ib].blockIdx > snode.Index );
+
 #if ( _DEBUGlevel_ >= 2 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Serializing Block index " << Lcol[ib].blockIdx << std::endl;
+//                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Serializing Block index " << Lcol[ib].blockIdx << std::endl;
 #endif
                 serialize( Lcol[ib], sstm, mask );
-              }
             }
             snode.SstrLcolSend.resize( Size( sstm ) );
             sstm.read( &snode.SstrLcolSend[0], snode.SstrLcolSend.size() );
             snode.SizeSstrLcolSend = snode.SstrLcolSend.size();
-            TIMER_STOP(Serialize_LrowL);
+            TIMER_STOP(Serialize_LcolL);
 
             for( Int iProcCol = 0; iProcCol < this->grid_->numProcCol ; iProcCol++ ){
               if( MYCOL( this->grid_ ) != iProcCol &&
@@ -1486,7 +1619,12 @@ throw std::runtime_error( msg.str().c_str() );
                     iProcCol, IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), 
                     this->grid_->rowComm, &mpireqsSendLToRight[2*iProcCol+1] );
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend<< " BYTES"  << std::endl <<  std::endl; 
+                statusOFS<< "["<<snode.Index<<"] "<<"L SENT "<<std::endl;
+                for(Int ib=startIdx;ib<Lcol.size();++ib){statusOFS<<Lcol[ib].blockIdx<<" ";}
+                statusOFS<<std::endl;
+                statusOFS << "["<<snode.Index<<"] "<<  "Sending L "
+                          << snode.SizeSstrLcolSend << " BYTES to P" << PNUM(MYROW(this->grid_),iProcCol,this->grid_)
+                          << std::endl <<  std::endl; 
 #endif
               } // Send 
             } // for (iProcCol)
@@ -1508,18 +1646,13 @@ throw std::runtime_error( msg.str().c_str() );
             std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
             // All blocks except for the diagonal block are to be sent right
 
-            if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) )
-              serialize( (Int)Urow.size(), sstm, NO_MASK );
-            else
-              serialize( (Int)Urow.size(), sstm, NO_MASK );
-
+            serialize( (Int)Urow.size(), sstm, NO_MASK );
             for( Int jb = 0; jb < Urow.size(); jb++ ){
-              if( Urow[jb].blockIdx > snode.Index ){
+              assert( Urow[jb].blockIdx > snode.Index );
 #if ( _DEBUGlevel_ >= 2 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Serializing Block index " << Urow[jb].blockIdx << std::endl;
+//                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Serializing Block index " << Urow[jb].blockIdx << std::endl;
 #endif
                 serialize( Urow[jb], sstm, mask );
-              }
             }
             snode.SstrUrowSend.resize( Size( sstm ) );
             sstm.read( &snode.SstrUrowSend[0], snode.SstrUrowSend.size() );
@@ -1537,6 +1670,12 @@ throw std::runtime_error( msg.str().c_str() );
                     this->grid_->colComm, &mpireqsSendUToBelow[2*iProcRow+1] );
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES"<< std::endl <<  std::endl; 
+                statusOFS<< "["<<snode.Index<<"] "<<"U SENT "<<std::endl;
+                for(Int ib=0;ib<Urow.size();++ib){statusOFS<<Urow[ib].blockIdx<<" ";}
+                statusOFS<<std::endl;
+                statusOFS << "["<<snode.Index<<"] "<<  "Sending U "
+                          << snode.SizeSstrUrowSend << " BYTES to P" << PNUM(iProcRow,MYCOL(this->grid_),this->grid_)
+                          << std::endl <<  std::endl; 
 #endif
               } // Send 
             } // for (iProcRow)
@@ -1555,6 +1694,7 @@ throw std::runtime_error( msg.str().c_str() );
             // All blocks are to be sent down.
             serialize( (Int)Ucol.size(), sstm, NO_MASK );
             for( Int jb = 0; jb < Ucol.size(); jb++ ){
+              assert( Ucol[jb].blockIdx > snode.Index );
               serialize( Ucol[jb], sstm, mask );
             }
             snode.SstrUcolSend.resize( Size( sstm ) );
@@ -1573,7 +1713,12 @@ throw std::runtime_error( msg.str().c_str() );
                     iProcCol, IDX_TO_TAG(supidx,SELINV_TAG_UCOL_CONTENT), 
                     this->grid_->rowComm, &mpireqsSendUToRight[2*iProcCol+1] );
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending Ucol " << snode.SizeSstrUcolSend<< " BYTES"  << std::endl <<  std::endl; 
+                statusOFS<< "["<<snode.Index<<"] "<<"Ucol SENT "<<std::endl;
+                for(Int ib=0;ib<Ucol.size();++ib){statusOFS<<Ucol[ib].blockIdx<<" ";}
+                statusOFS<<std::endl;
+                statusOFS << "["<<snode.Index<<"] "<<  "Sending Ucol "
+                          << snode.SizeSstrUcolSend << " BYTES to P" << PNUM(MYROW(this->grid_),iProcCol,this->grid_)
+                          << std::endl <<  std::endl; 
 #endif
               } // Send 
             } // for (iProcCol)
@@ -1595,34 +1740,48 @@ throw std::runtime_error( msg.str().c_str() );
           // Receive the size first
           if( this->isRecvFromAbove_( snode.Index ) && 
               MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
-            MPI_Irecv( &snode.SizeSstrLrowRecv, 1, MPI_INT, PROW( snode.Index, this->grid_ ), 
+            Int sender = PROW( snode.Index, this->grid_ ); 
+            MPI_Irecv( &snode.SizeSstrLrowRecv, 1, MPI_INT, sender, 
                 IDX_TO_TAG(supidx,SELINV_TAG_LROW_SIZE),
                 this->grid_->colComm, mpireqsRecvLFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving Lrow size on tag " << IDX_TO_TAG(supidx,SELINV_TAG_LROW_SIZE)<< std::endl <<  std::endl; 
+            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving Lrow"
+                      <<" size on tag "<<IDX_TO_TAG(supidx,SELINV_TAG_LROW_SIZE)
+                      <<" from P" << PNUM(sender,MYCOL(this->grid_),this->grid_)
+                      << std::endl << std::endl; 
 #endif
-            MPI_Irecv( &snode.SizeSstrUrowRecv, 1, MPI_INT, PROW( snode.Index, this->grid_ ), 
+            MPI_Irecv( &snode.SizeSstrUrowRecv, 1, MPI_INT, sender, 
                 IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE),
                 this->grid_->colComm, mpireqsRecvUFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U size on tag " << IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE)<< std::endl <<  std::endl; 
+            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U"
+                      <<" size on tag "<<IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE)
+                      <<" from P" << PNUM(sender,MYCOL(this->grid_),this->grid_)
+                      << std::endl << std::endl; 
 #endif
           } // if I need to receive from up
 
 
           if( this->isRecvFromLeft_( snode.Index ) &&
               MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
-            MPI_Irecv( &snode.SizeSstrLcolRecv, 1, MPI_INT, PCOL( snode.Index, this->grid_ ), 
+            Int sender = PCOL( snode.Index, this->grid_ ); 
+            MPI_Irecv( &snode.SizeSstrLcolRecv, 1, MPI_INT, sender, 
                 IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),
                 this->grid_->rowComm, mpireqsRecvLFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L size on tag " << IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE)<< std::endl <<  std::endl; 
+            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L"
+                      <<" size on tag "<<IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE)
+                      <<" from P" << PNUM(MYROW(this->grid_),sender,this->grid_)
+                      << std::endl << std::endl; 
 #endif
-            MPI_Irecv( &snode.SizeSstrUcolRecv, 1, MPI_INT, PCOL( snode.Index, this->grid_ ), 
+            MPI_Irecv( &snode.SizeSstrUcolRecv, 1, MPI_INT, sender, 
                 IDX_TO_TAG(supidx,SELINV_TAG_UCOL_SIZE),
                 this->grid_->rowComm, mpireqsRecvUFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving Ucol size on tag " << IDX_TO_TAG(supidx,SELINV_TAG_UCOL_SIZE)<< std::endl <<  std::endl; 
+            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving Ucol"
+                      <<" size on tag "<<IDX_TO_TAG(supidx,SELINV_TAG_UCOL_SIZE)
+                      <<" from P" << PNUM(MYROW(this->grid_),sender,this->grid_)
+                      << std::endl << std::endl; 
 #endif
           } // if I need to receive from left
         }
@@ -1642,23 +1801,31 @@ throw std::runtime_error( msg.str().c_str() );
           if( this->isRecvFromAbove_( snode.Index ) && 
               MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
             snode.SstrLrowRecv.resize( snode.SizeSstrLrowRecv );
+            Int sender = PROW( snode.Index, this->grid_ ); 
             MPI_Irecv( &snode.SstrLrowRecv[0], snode.SizeSstrLrowRecv, MPI_BYTE, 
-                PROW( snode.Index, this->grid_ ), IDX_TO_TAG(supidx,SELINV_TAG_LROW_CONTENT), 
+                sender, IDX_TO_TAG(supidx,SELINV_TAG_LROW_CONTENT), 
                 this->grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving Lrow " << snode.SizeSstrLrowRecv << " BYTES"<< std::endl <<  std::endl; 
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving Lrow "
+                      << snode.SizeSstrLrowRecv << " BYTES from P" 
+                      << PNUM(sender,MYCOL(this->grid_),this->grid_)
+                      << std::endl <<  std::endl; 
 #endif
           } // if I need to receive from up
 
           if( this->isRecvFromLeft_( snode.Index ) &&
               MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
             snode.SstrLcolRecv.resize( snode.SizeSstrLcolRecv );
+            Int sender = PCOL( snode.Index, this->grid_ ); 
             MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
-                PCOL( snode.Index, this->grid_ ), IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), 
+                sender, IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), 
                 this->grid_->rowComm,
                 mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L " << snode.SizeSstrLcolRecv << " BYTES"<< std::endl <<  std::endl; 
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving L "
+                      << snode.SizeSstrLcolRecv << " BYTES from P" 
+                      << PNUM(MYROW(this->grid_),sender,this->grid_)
+                      << std::endl <<  std::endl; 
 #endif
           } // if I need to receive from left
         }
@@ -1679,23 +1846,31 @@ throw std::runtime_error( msg.str().c_str() );
           if( this->isRecvFromAbove_( snode.Index ) && 
               MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
             snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv );
+            Int sender = PROW( snode.Index, this->grid_ ); 
             MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
-                PROW( snode.Index, this->grid_ ), IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT), 
+                sender, IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT), 
                 this->grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U " << snode.SizeSstrUrowRecv << " BYTES"<< std::endl <<  std::endl; 
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving U "
+                      << snode.SizeSstrUrowRecv << " BYTES from P" 
+                      << PNUM(sender,MYCOL(this->grid_),this->grid_)
+                      << std::endl <<  std::endl; 
 #endif
           } // if I need to receive from up
 
           if( this->isRecvFromLeft_( snode.Index ) &&
               MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
             snode.SstrUcolRecv.resize( snode.SizeSstrUcolRecv );
+            Int sender = PCOL( snode.Index, this->grid_ ); 
             MPI_Irecv( &snode.SstrUcolRecv[0], snode.SizeSstrUcolRecv, MPI_BYTE, 
-                PCOL( snode.Index, this->grid_ ), IDX_TO_TAG(supidx,SELINV_TAG_UCOL_CONTENT), 
+                sender, IDX_TO_TAG(supidx,SELINV_TAG_UCOL_CONTENT), 
                 this->grid_->rowComm,
                 mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving Ucol " << snode.SizeSstrUcolRecv << " BYTES"<< std::endl <<  std::endl; 
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving Ucol "
+                      << snode.SizeSstrUcolRecv << " BYTES from P" 
+                      << PNUM(MYROW(this->grid_),sender,this->grid_)
+                      << std::endl <<  std::endl; 
 #endif
           } // if I need to receive from left
         }
@@ -1747,7 +1922,7 @@ throw std::runtime_error( msg.str().c_str() );
               MPI_Isend( NULL, 0, MPI_BYTE, PCOL(snode.Index,this->grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), this->grid_->rowComm, &mpireqsSendToLeft );
 
 #if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYPROC(this->grid_)<<" has sent "<< 0 << " bytes to " << PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_) << std::endl;
+              statusOFS << std::endl << "["<<snode.Index<<"] "<< " LReduce P"<<MYPROC(this->grid_)<<" has sent "<< 0 << " bytes to " << PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_) << std::endl;
 #endif
             }// if( isRecvFromLeft_( snode.Index ))
 
@@ -1758,7 +1933,7 @@ throw std::runtime_error( msg.str().c_str() );
               MPI_Isend( NULL, 0, MPI_BYTE, PROW(snode.Index,this->grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_U_REDUCE), this->grid_->colComm, &mpireqsSendToAbove );
 
 #if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYPROC(this->grid_)<<" has sent "<< 0 << " bytes to " << PNUM(PROW(snode.Index,this->grid_),MYCOL(this->grid_),this->grid_) << std::endl;
+              statusOFS << std::endl << "["<<snode.Index<<"] "<< " UReduce P"<<MYPROC(this->grid_)<<" has sent "<< 0 << " bytes to " << PNUM(PROW(snode.Index,this->grid_),MYCOL(this->grid_),this->grid_) << std::endl;
 #endif
             }// if( isRecvFromAbove_( snode.Index ) )
 
@@ -1769,7 +1944,6 @@ throw std::runtime_error( msg.str().c_str() );
 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS<<std::endl<<"gemmToDo ="<<gemmToDo<<std::endl;
-        //      statusOFS<<std::endl<<"toRecvGemm ="<<toRecvGemm<<std::endl;
 #endif
 
 
@@ -1887,6 +2061,12 @@ throw std::runtime_error( msg.str().c_str() );
               // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
               // The size will be updated in the Gemm phase and the reduce phase
 
+
+      if(MYPROC(this->grid_)==1 && snode.Index==101){
+//        gdb_lock();
+      }
+
+
               UnpackData(snode, LcolRecv, LrowRecv, UcolRecv, UrowRecv);
 
               //NumMat<T> AinvBuf, UBuf;
@@ -1900,9 +2080,9 @@ throw std::runtime_error( msg.str().c_str() );
                   ZERO<T>(), snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
               TIMER_STOP(Compute_Sinv_LT_GEMM);
 
-              snode.UUpdateBuf.Resize( SuperSize( snode.Index, this->super_ ), AinvBuf.m() );
+              snode.UUpdateBuf.Resize( SuperSize( snode.Index, this->super_ ), AinvBuf.n() );
               TIMER_START(Compute_Sinv_U_GEMM);
-              blas::Gemm( 'N', 'T', UBuf.m(), AinvBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
+              blas::Gemm( 'N', 'N', UBuf.m(), AinvBuf.n(), AinvBuf.m(), MINUS_ONE<T>(), 
                   UBuf.Data(), UBuf.m(),
                   AinvBuf.Data(), AinvBuf.m(), 
                   ZERO<T>(), snode.UUpdateBuf.Data(), snode.UUpdateBuf.m() ); 
@@ -1930,7 +2110,7 @@ throw std::runtime_error( msg.str().c_str() );
                 MPI_Isend( snode.LUpdateBuf.Data(), snode.LUpdateBuf.ByteSize(), MPI_BYTE, PCOL(snode.Index,this->grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), this->grid_->rowComm, &mpireqsSendToLeft );
 
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<< " LReduce P"<<MYCOL(this->grid_)<<" has sent "<< snode.LUpdateBuf.ByteSize() << " bytes to " << PCOL(snode.Index,this->grid_) << std::endl;
+                statusOFS << std::endl << "["<<snode.Index<<"] "<< " LReduce P"<<MYPROC(this->grid_)<<" has sent "<< snode.LUpdateBuf.ByteSize() << " bytes to " << PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_) << std::endl;
 #endif
 
               }//Sender
@@ -1945,7 +2125,7 @@ throw std::runtime_error( msg.str().c_str() );
                 MPI_Isend( snode.UUpdateBuf.Data(), snode.UUpdateBuf.ByteSize(), MPI_BYTE, PROW(snode.Index,this->grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_U_REDUCE), this->grid_->colComm, &mpireqsSendToAbove );
 
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<< " UReduce P"<<MYROW(this->grid_)<<" has sent "<< snode.UUpdateBuf.ByteSize() << " bytes to " << PROW(snode.Index,this->grid_) << std::endl;
+                statusOFS << std::endl << "["<<snode.Index<<"] "<< " UReduce P"<<MYPROC(this->grid_)<<" has sent "<< snode.UUpdateBuf.ByteSize() << " bytes to " << PNUM(PROW(snode.Index,this->grid_),MYCOL(this->grid_),this->grid_) << std::endl;
 #endif
 
               }//Sender
@@ -2008,7 +2188,7 @@ throw std::runtime_error( msg.str().c_str() );
             }
 
 #if ( _DEBUGlevel_ >= 2 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<   "LUpdateBuf Before Reduction: " <<  snode.LUpdateBuf << std::endl << std::endl; 
+//            statusOFS << std::endl << "["<<snode.Index<<"] "<<   "LUpdateBuf Before Reduction: " <<  snode.LUpdateBuf << std::endl << std::endl; 
 #endif
 
             Int totCountRecv = 0;
@@ -2026,7 +2206,7 @@ throw std::runtime_error( msg.str().c_str() );
               if(size>0){
 
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<< " LReduce P"<<MYCOL(this->grid_)<<" has received "<< size << " bytes from " << stat.MPI_SOURCE << std::endl;
+                statusOFS << std::endl << "["<<snode.Index<<"] "<< " LReduce P"<<MYPROC(this->grid_)<<" has received "<< size << " bytes from " << PNUM(MYROW(this->grid_),stat.MPI_SOURCE,this->grid_) << std::endl;
 #endif
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << std::endl << "["<<snode.Index<<"] "<<   "LUpdateBufRecv: " <<  LUpdateBufRecv << std::endl << std::endl; 
@@ -2061,37 +2241,50 @@ throw std::runtime_error( msg.str().c_str() );
             std::vector<UBlock<T> >&  Urow = this->U( LBi( snode.Index, this->grid_ ) );
             std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi( snode.Index, this->grid_ ) );
             //if( MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
-              snode.ColLocalPtr.resize( Urow.size() + 1 );
-              snode.BlockIdxLocalU.resize( Urow.size() );
-              snode.ColLocalPtr[0] = 0;
+            snode.ColLocalPtr.resize( Urow.size() + 1 );
+            snode.BlockIdxLocalU.resize( Urow.size() );
+            snode.ColLocalPtr[0] = 0;
 
+            if(Lrow.size()>=Urow.size()){
+              statusOFS<<"UReduce first case"<<std::endl;
               std::vector<Int> colPtrL(Lrow.size()+1);
-                colPtrL[0] = 0;
-                 for( Int ib = 0; ib < Lrow.size(); ib++ ){
+              colPtrL[0] = 0;
+              for( Int ib = 0; ib < Lrow.size(); ib++ ){
                 colPtrL[ib+1] = colPtrL[ib] + Lrow[ib].numCol;
-                  }
+              }
 
 
 
               for( Int jb = 0; jb < Urow.size(); jb++ ){
-                 Int indexL =0;
-                 for( Int ib = 0; ib < Lrow.size(); ib++ ){
-                    if(Lrow[ib].blockIdx == Urow[jb].blockIdx){
-                      indexL = ib;
-                      break;
-                    }
+                Int indexL =0;
+                for( Int ib = 0; ib < Lrow.size(); ib++ ){
+                  if(Lrow[ib].blockIdx == Urow[jb].blockIdx){
+                    indexL = ib;
+                    break;
                   }
+                }
                 statusOFS<<jb<<" vs "<<indexL<<std::endl;
 
                 snode.ColLocalPtr[jb] = colPtrL[indexL];
                 //snode.ColLocalPtr[jb+1] = snode.ColLocalPtr[jb] + Urow[jb].numCol;
-                snode.BlockIdxLocalU[jb] = Lrow[jb].blockIdx;
+                snode.BlockIdxLocalU[jb] = Lrow[indexL].blockIdx;
+                //snode.BlockIdxLocalU[jb] = Urow[jb].blockIdx;
               }
               snode.ColLocalPtr.back()=colPtrL.back();
 
-            statusOFS<<colPtrL<<std::endl;
-            statusOFS<<snode.ColLocalPtr<<std::endl;
-            statusOFS<<snode.BlockIdxLocalU<<std::endl;
+              statusOFS<<colPtrL<<std::endl;
+            }
+            else{
+              statusOFS<<"UReduce second case"<<std::endl;
+              snode.ColLocalPtr[0] = 0;
+              for( Int jb = 0; jb < Urow.size(); jb++ ){
+                snode.ColLocalPtr[jb+1] = snode.ColLocalPtr[jb] +Urow[jb].numCol;
+                snode.BlockIdxLocalU[jb] = Urow[jb].blockIdx;
+              }
+            }
+
+            statusOFS<<"UReduce collocalptr "<<snode.ColLocalPtr<<std::endl;
+            statusOFS<<"UReduce blockidxlocalU "<<snode.BlockIdxLocalU<<std::endl;
 
             //} // I do not own the diagonal block
             numColUUpdateBuf = *snode.ColLocalPtr.rbegin();
@@ -2130,7 +2323,7 @@ throw std::runtime_error( msg.str().c_str() );
               if(size>0){
 
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<< " UReduce P"<<MYROW(this->grid_)<<" has received "<< size << " bytes from " << stat.MPI_SOURCE << std::endl;
+                statusOFS << std::endl << "["<<snode.Index<<"] "<< " UReduce P"<<MYPROC(this->grid_)<<" has received "<< size << " bytes from " << PNUM(stat.MPI_SOURCE,MYCOL(this->grid_),this->grid_) << std::endl;
 #endif
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << std::endl << "["<<snode.Index<<"] "<<   "UUpdateBufRecv: " <<  UUpdateBufRecv << std::endl << std::endl; 
@@ -2215,9 +2408,7 @@ throw std::runtime_error( msg.str().c_str() );
               }
             }
             LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) )[0];
-            // Symmetrize LB
             blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-            //Symmetrize( LB.nzval );
           }
 
         } 
@@ -2300,12 +2491,17 @@ throw std::runtime_error( msg.str().c_str() );
           for( Int jb = 0; jb < Urow.size(); jb++ ){
             UBlock<T> & UB = Urow[jb];
 
-            //assert(UB.blockIdx == snode.BlockIdxLocalU[jb]);
-            //Inndices follow L order... look at Lrow
-
-            lapack::Lacpy( 'A', UB.numRow, UB.numCol, 
-                &snode.UUpdateBuf( 0, snode.ColLocalPtr[jb] ),
-                snode.UUpdateBuf.m(), UB.nzval.Data(), UB.numRow );
+            Int jjb = jb;
+//            for( Int jjb = 0; jjb < snode.BlockIdxLocalU.size(); jjb++ ){
+//              if(UB.blockIdx == snode.BlockIdxLocalU[jjb]){
+                statusOFS<<"Putting col ptr "<< snode.ColLocalPtr[jjb] << " of UUpdateBuf in UB "<<UB.blockIdx<<std::endl; 
+                //Indices follow L order... look at Lrow
+                lapack::Lacpy( 'A', UB.numRow, UB.numCol, 
+                    &snode.UUpdateBuf( 0, snode.ColLocalPtr[jjb] ),
+                    snode.UUpdateBuf.m(), UB.nzval.Data(), UB.numRow );
+                statusOFS<<"UB is now "<<UB.nzval<<std::endl; 
+//              }
+//            }
           }
         } // Finish updating U
       } // for (snode.Index) : Main loop
@@ -3347,13 +3543,23 @@ throw std::runtime_error( msg.str().c_str() );
           statusOFS << std::endl; 
 #endif
 
+
+
+            std::sort(tAllBlockRowIdx.begin(),tAllBlockRowIdx.end());
+
+
             std::vector< LBlock<T> > & Lcol = this->L( LBj(ksup, this->grid_ ) );
             statusOFS<<"Lcol of "<<ksup<<std::endl;
             for(Int ib=0;ib<Lcol.size();++ib){statusOFS<<Lcol[ib].blockIdx<<" ";}
             statusOFS<<std::endl;
 
+
+
+
+
 //          if( MYROW( this->grid_ ) != PROW( ksup, this->grid_ ) ){
             std::vector< UBlock<T> > & Ucol = this->Ucol( LBj(ksup, this->grid_ ) );
+
             //Allocate Ucol
             for(Int ib = 0; ib < tAllBlockRowIdx.size(); ++ib){
               if(tAllBlockRowIdx[ib] > ksup && 

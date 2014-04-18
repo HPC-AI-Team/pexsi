@@ -771,15 +771,15 @@ namespace PEXSI{
             LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
 
 #ifdef SORT
-        LB.rowsPerm.Resize(LB.numRow);
+        IntNumVec rowsPerm(LB.numRow);
         IntNumVec rowsSorted(LB.numRow);
-        for(Int i = 0; i<LB.rowsPerm.m(); ++i){ LB.rowsPerm[i] = i;}
+        for(Int i = 0; i<rowsPerm.m(); ++i){ rowsPerm[i] = i;}
         ULComparator cmp(LB.rows);
         //sort the row indices (so as to speedup the index lookup
-        std::sort(LB.rowsPerm.Data(),LB.rowsPerm.Data()+LB.rowsPerm.m(),cmp);
+        std::sort(rowsPerm.Data(),rowsPerm.Data()+rowsPerm.m(),cmp);
 
         for(Int i = 0; i<LB.rows.m(); ++i){ 
-          rowsSorted[i] = LB.rows[LB.rowsPerm[i]];
+          rowsSorted[i] = LB.rows[rowsPerm[i]];
         }
 
         LB.rows = rowsSorted;
@@ -791,7 +791,7 @@ namespace PEXSI{
         //sort the nzval
         for(Int j = 0; j<LB.numCol; ++j){
           for(Int i = 0; i<LB.numRow; ++i){
-            LB.nzval(i,j) = ((Real*)(Llu->Lnzval_bc_ptr[jb]+cntval))[LB.rowsPerm[i]+j*lda];
+            LB.nzval(i,j) = ((Real*)(Llu->Lnzval_bc_ptr[jb]+cntval))[rowsPerm[i]+j*lda];
           }
         }
 

@@ -157,10 +157,6 @@ namespace PEXSI{
     /// @brief Dimension numRow * 1, index (0-based) for the number of nonzero rows.
     IntNumVec         rows;
 
-#ifdef SORT
-    /// @brief Dimension numRow * 1, original index (0-based) for the number of nonzero rows before sorting.
-    IntNumVec         rowsPerm;
-#endif
 
     /// @brief Dimension numRow * numCol, nonzero elements.
     NumMat<T>    nzval;
@@ -173,9 +169,6 @@ namespace PEXSI{
       numRow      = LB.numRow;
       numCol      = LB.numCol;
       rows        = LB.rows;
-#ifdef SORT
-      rowsPerm    = LB.rowsPerm;
-#endif
       nzval       = LB.nzval;
       return *this;
     }
@@ -352,9 +345,6 @@ namespace PEXSI{
       NUMROW,
       NUMCOL,
       ROWS,
-#ifdef SORT
-      ROWSPERM,
-#endif
       NZVAL,
       TOTAL_NUMBER
     };
@@ -368,9 +358,6 @@ namespace PEXSI{
     if(mask[LBlockMask::NUMCOL  ]==1) serialize(val.numCol,  os, mask);
     if(mask[LBlockMask::ROWS    ]==1) serialize(val.rows, os, mask); 
     if(mask[LBlockMask::NZVAL   ]==1) serialize(val.nzval, os, mask); 
-#ifdef SORT
-    if(mask[LBlockMask::ROWSPERM]==1) serialize(val.rowsPerm, os, mask); 
-#endif
     return 0;
   }
 
@@ -381,9 +368,6 @@ namespace PEXSI{
     if(mask[LBlockMask::NUMCOL  ]==1) deserialize(val.numCol,  is, mask);
     if(mask[LBlockMask::ROWS    ]==1) deserialize(val.rows,   is, mask);
     if(mask[LBlockMask::NZVAL   ]==1) deserialize(val.nzval,  is, mask);
-#ifdef SORT
-    if(mask[LBlockMask::ROWSPERM]==1) deserialize(val.rowsPerm, is, mask); 
-#endif
     return 0;
   }
 
