@@ -469,7 +469,6 @@ int main(int argc, char **argv)
           SuperNodeType * superPtr;
           GridType * g1Ptr;
 
-            GetTime( timeTotalSelInvSta );
 
             g1Ptr = new GridType( world_comm, nprow, npcol );
             GridType &g1 = *g1Ptr;
@@ -480,6 +479,7 @@ int main(int argc, char **argv)
             GetTime( timeSta );
             luMat.SymbolicToSuperNode( super );
 
+            GetTime( timeTotalSelInvSta );
 
 
             PMlocPtr = new PMatrixAsym<MYSCALAR>( &g1, &super, &luOpt  );
@@ -554,6 +554,7 @@ int main(int argc, char **argv)
 
 
 
+            GetTime( timeTotalSelInvSta );
 
             GetTime( timeSta );
             PMatrix<MYSCALAR> PMlocSymm( &g1, &super, &luOpt  );
@@ -591,23 +592,16 @@ int main(int argc, char **argv)
             if( mpirank == 0 )
               cout << "Time for total selected inversion (Symm) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
-//            GetTime( timeSta );
-//            DistSparseMatrix<MYSCALAR> Ainv2Symm;
-//            PMlocSymm.PMatrixToDistSparseMatrix2( AMat, AinvSymm );
-//            GetTime( timeEnd );
-// 
-//            if( mpirank == 0 )
-//              cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) (Symm) is " << timeEnd  - timeSta << endl;
- 
-            statusOFS<<"=================================="<<std::endl<<std::endl;
 
-            PMloc.DumpSuperNodes(4);
-
-            statusOFS<<"=================================="<<std::endl<<std::endl;
-
-            PMlocSymm.DumpSuperNodes(4);
-
-            statusOFS<<"=================================="<<std::endl<<std::endl;
+//            statusOFS<<"=================================="<<std::endl<<std::endl;
+//
+//            PMloc.DumpSuperNodes(4);
+//
+//            statusOFS<<"=================================="<<std::endl<<std::endl;
+//
+//            PMlocSymm.DumpSuperNodes(4);
+//
+//            statusOFS<<"=================================="<<std::endl<<std::endl;
 
 
 

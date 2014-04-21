@@ -785,7 +785,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 				cnt += numRow;
         LIndices[iblk] = blockIdx;
       }
-      statusOFS<<"Unsorted blockidx for L are: "<<LIndices<<std::endl;
+//      statusOFS<<"Unsorted blockidx for L are: "<<LIndices<<std::endl;
       //sort the array
       IntNumVec sortedIndices(Lcol.size());
         for(Int i = 0; i<sortedIndices.m(); ++i){ sortedIndices[i] = i;}
@@ -793,7 +793,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
         //sort the row indices (so as to speedup the index lookup
         std::sort(sortedIndices.Data(),sortedIndices.Data()+sortedIndices.m(),cmp2);
 
-      statusOFS<<"Sorted indices for L are: "<<sortedIndices<<std::endl;
+//      statusOFS<<"Sorted indices for L are: "<<sortedIndices<<std::endl;
       //get the inverse perm
       IntNumVec tmp = sortedIndices;
       for(Int i = 0; i<sortedIndices.m(); ++i){ tmp[sortedIndices[i]] = i;}
@@ -802,14 +802,6 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
       cnt = savCnt;
 			for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
 				Int blockIdx    = index[cnt++];
-
-//        Int sorted_iblk = 0;
-//        if(index!=bnum){
-//          Int offset = (MYROW(lugrid)==PROW(bnum,lugrid))?1:0;
-//          //find the corresponding index in U and possibly add one
-//          
-//        }
-
         //determine where to put it
 				LBlock<Complex> & LB     = Lcol[sortedIndices[iblk]];
 				LB.blockIdx    = blockIdx;
@@ -823,7 +815,6 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 				LB.numCol      = super->superPtr[bnum+1] - super->superPtr[bnum];
 				LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
 
-#ifdef SORT
         IntNumVec rowsPerm(LB.numRow);
         IntNumVec rowsSorted(LB.numRow);
         for(Int i = 0; i<rowsPerm.m(); ++i){ rowsPerm[i] = i;}
@@ -848,19 +839,6 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
           }
         }
 
-//				lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
-//						(Complex*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
-//						LB.nzval.Data(), LB.numRow );
-#else
-				LB.nzval.Resize( LB.numRow, LB.numCol );   
-				SetValue( LB.nzval, SCALAR_ZERO ); 
-				cnt += LB.numRow;
-				
-				lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
-						(Complex*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
-						LB.nzval.Data(), LB.numRow );
-
-#endif
 				cntval += LB.numRow;
 
 
@@ -875,12 +853,13 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 			} // for(iblk)
 
 
+#if ( _DEBUGlevel_ >= 2 )
       statusOFS<<"Real Sorted blockidx for L are: ";
       for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
         statusOFS<<Lcol[iblk].blockIdx<<" ";
       }
       statusOFS<<std::endl;
-
+#endif
 
 
 		}  // if(index)

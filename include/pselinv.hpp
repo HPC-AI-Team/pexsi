@@ -66,13 +66,11 @@
 namespace PEXSI{
 
 
-#if defined(SORT) 
     struct ULComparator {
       IntNumVec & lookup;
       ULComparator(IntNumVec & v):lookup(v){}
       bool operator() (int i,int j) { return ((lookup)(i)<(lookup)(j));}
     };
-#endif
 
 
 

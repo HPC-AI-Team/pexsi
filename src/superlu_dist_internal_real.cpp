@@ -757,9 +757,35 @@ namespace PEXSI{
           Int lda = index[cnt++];
 
 
+      Int savCnt = cnt;
+      IntNumVec LIndices(Lcol.size());
+			for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
+				Int blockIdx    = index[cnt++];
+				Int numRow      = index[cnt++];
+				cnt += numRow;
+        LIndices[iblk] = blockIdx;
+      }
+//      statusOFS<<"Unsorted blockidx for L are: "<<LIndices<<std::endl;
+      //sort the array
+      IntNumVec sortedIndices(Lcol.size());
+        for(Int i = 0; i<sortedIndices.m(); ++i){ sortedIndices[i] = i;}
+      ULComparator cmp2(LIndices);
+        //sort the row indices (so as to speedup the index lookup
+        std::sort(sortedIndices.Data(),sortedIndices.Data()+sortedIndices.m(),cmp2);
+
+//      statusOFS<<"Sorted indices for L are: "<<sortedIndices<<std::endl;
+      //get the inverse perm
+      IntNumVec tmp = sortedIndices;
+      for(Int i = 0; i<sortedIndices.m(); ++i){ tmp[sortedIndices[i]] = i;}
+      sortedIndices = tmp;
+
+      cnt = savCnt;
           for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
-            LBlock<Real> & LB     = Lcol[iblk];
-            LB.blockIdx    = index[cnt++];
+
+				Int blockIdx    = index[cnt++];
+        //determine where to put it
+				LBlock<Real> & LB     = Lcol[sortedIndices[iblk]];
+				LB.blockIdx    = blockIdx;
 
             PMloc.ColBlockIdx(jb).push_back(LB.blockIdx);
             Int LBi = LB.blockIdx / grid->numProcRow; 
@@ -770,7 +796,6 @@ namespace PEXSI{
             LB.numCol      = super->superPtr[bnum+1] - super->superPtr[bnum];
             LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
 
-#ifdef SORT
         IntNumVec rowsPerm(LB.numRow);
         IntNumVec rowsSorted(LB.numRow);
         for(Int i = 0; i<rowsPerm.m(); ++i){ rowsPerm[i] = i;}
@@ -795,17 +820,6 @@ namespace PEXSI{
           }
         }
 
-
-#else
-
-            LB.nzval.Resize( LB.numRow, LB.numCol );   
-            SetValue( LB.nzval, ZERO<Real>() ); 
-            cnt += LB.numRow;
-
-            lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
-                (Real*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
-                LB.nzval.Data(), LB.numRow );
-#endif
             cntval += LB.numRow;
 
 
@@ -819,7 +833,13 @@ namespace PEXSI{
 
           } // for(iblk)
 
-
+#if ( _DEBUGlevel_ >= 2 )
+      statusOFS<<"Real Sorted blockidx for L are: ";
+      for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
+        statusOFS<<Lcol[iblk].blockIdx<<" ";
+      }
+      statusOFS<<std::endl;
+#endif
         }  // if(index)
       } // for(jb)
 #ifndef _RELEASE_
@@ -911,6 +931,16 @@ namespace PEXSI{
 #ifndef _RELEASE_
       PopCallStack();
 #endif
+
+	for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
+        std::vector<Int> & rowBlockIdx = PMloc.RowBlockIdx(ib);
+        std::sort(rowBlockIdx.begin(),rowBlockIdx.end());
+  }
+
+	for( Int jb = 0; jb < PMloc.NumLocalBlockCol(); jb++ ){
+        std::vector<Int> & colBlockIdx = PMloc.ColBlockIdx(jb);
+        std::sort(colBlockIdx.begin(),colBlockIdx.end());
+  }
 
 #ifndef _RELEASE_
       PopCallStack();
