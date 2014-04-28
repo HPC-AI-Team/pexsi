@@ -106,7 +106,7 @@ interface
       bind(C, Name="f_read_distsparsematrix_formatted_head")
     use, intrinsic :: iso_c_binding
     implicit none
-    character(kind=c_char), intent(in) :: filename(*)
+    character(c_char), intent(in) :: filename(*)
     integer(c_int), intent(out)        :: nrows, nnz, nnzLocal, numColLocal
     integer, intent(in)                :: fcomm
   end subroutine 
