@@ -553,7 +553,7 @@ int main(int argc, char **argv)
 
 
 
-
+/*
             GetTime( timeTotalSelInvSta );
 
             GetTime( timeSta );
@@ -605,7 +605,7 @@ int main(int argc, char **argv)
 
 
 
-
+*/
 
 
 
@@ -667,7 +667,7 @@ int main(int argc, char **argv)
              }
 
 
-
+/*
              if(doToDist){
                // Convert to DistSparseMatrix in the 2nd format and get the diagonal
                GetTime( timeSta );
@@ -718,7 +718,7 @@ int main(int argc, char **argv)
                }
              }
 
-
+*/
 
 
 

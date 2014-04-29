@@ -288,6 +288,8 @@ namespace PEXSI{
                 for( Int i = 0; i < LB.numRow; i++ ){
                     AinvBuf( rowPtrL[ib] + i, colPtrL[jb] + j ) =
                                   SinvB.nzval(relRows[i],relCols[j]);
+//                    nzvalAinv[rowPtrL[ib] + i + (colPtrL[jb] + j )*ldAinv] =
+//                                  nzvalSinv[relRows[i]+relCols[j]*ldSinv];
                 }
               }
               TIMER_STOP(Copy_Sinv_to_Ainv);
@@ -354,6 +356,9 @@ namespace PEXSI{
                 for( Int i = 0; i < LB.numRow; i++ ){
                   AinvBuf( rowPtrL[ib] + i, colPtrL[jb] + j ) =
                                 SinvB.nzval(relRows[i],relCols[j]);
+
+//                  nzvalAinv[rowPtrL[ib] + i + (colPtrL[jb] + j )*ldAinv] =
+//                                  nzvalSinv[relRows[i]+relCols[j]*ldSinv];
                 }
               }
               TIMER_STOP(Copy_Sinv_to_Ainv);

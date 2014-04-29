@@ -284,12 +284,59 @@ throw std::logic_error( "SuperMatrix is already allocated." );
 	Int numRowLocalFirst = sparseA.size / mpisize;
 	Int firstRow = mpirank * numRowLocalFirst;
 
+
   int_t *colindLocal, *rowptrLocal;
 	doublecomplex *nzvalLocal;
 	rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 	colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal); 
 	nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(sparseA.nnzLocal);
   
+
+//
+//  //compute the number of nz per row
+//  IntNumVec nnzRow(sparseA.size /*numRowLocal*/ +1);
+//  for(Int i=0;i<sparseA.rowindLocal.m();++i){
+//    Int row = sparseA.rowindLocal(i);
+//    ++nnzRow[row-1];
+//  }
+//
+//// this is wrong > Do we need to communicate ?
+//  //initiate csr row pointers and reset nnzRow to zero
+//  rowptrLocal[0] = 0;
+//  for(Int i=1;i<sparseA.colptrLocal.m();++i){
+//    rowptrLocal[i] = rowptrLocal[i-1] + nnzRow[i-1];
+//    nnzRow[i-1]=0;
+//  }
+//  
+//  // convert from CSC to CSR.
+//  // use nnzRow to keep track of the number of non-zeros
+//  // added to each row.
+//
+//  for(Int j=1;j<sparseA.colptrLocal.m();++j){
+//    Int nnz_col;    /* # of non-zeros in column j of A */
+//    nnz_col = sparseA.colptrLocal[j] - sparseA.colptrLocal[j-1];
+//
+//    for (Int k = sparseA.colptrLocal[j-1]; k < (sparseA.colptrLocal[j-1]+nnz_col); k++){    
+//      Int i = sparseA.rowindLocal[ k - 1 ];   /* row index */
+//      Int h = rowptrLocal[i-1] + nnzRow[i-1];  /* non-zero position */
+//
+//      /* add the non-zero A(i,j) to B */
+//
+//      colindLocal[h-1] = j;
+//      ((Complex*)nzvalLocal)[h-1] = sparseA.nzvalLocal[k-1]; 
+//      nnzRow[i-1]++;
+//    }    
+//  }
+//
+//
+
+
+
+
+
+
+
+
 	std::copy( sparseA.colptrLocal.Data(), sparseA.colptrLocal.Data() + sparseA.colptrLocal.m(),
 			rowptrLocal );
 	std::copy( sparseA.rowindLocal.Data(), sparseA.rowindLocal.Data() + sparseA.rowindLocal.m(),
@@ -490,11 +537,12 @@ throw std::logic_error( "LUstruct has not been allocated." );
 	pzgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol, 
 			anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info); 
 	PStatFree(&ptrData->stat);
-	if( ptrData->info ){
+	if( ptrData->info != 0 ){
 		std::ostringstream msg;
 		msg << "Numerical factorization error, info =  " << ptrData->info << std::endl;
-		#ifdef USE_ABORT
-abort();
+#ifdef USE_ABORT
+    printf("P%d %s\n",ptrData->grid->iam,msg.str().c_str());
+    abort();
 #endif
 throw std::runtime_error( msg.str().c_str() );
 	}

@@ -942,34 +942,34 @@ namespace PEXSI{
 
 
 
-      virtual void DumpSuperNodes(Int count){
-        Int first_snode = max(0,NumSuper() -count );
-        //dump the last supernodes
-        for(Int I = first_snode; I<NumSuper();++I){
-          statusOFS<<"****** "<<I<<" *******"<<std::endl;
-  
-          //I own blocks of that supernode
-          if(MYCOL(grid_) == PCOL(I,grid_)){
-            std::vector<LBlock<T> >&  Lcol = this->L( LBj( I, grid_ ) );
-            for(Int bidx = 0; bidx < Lcol.size(); ++bidx){
-              LBlock<T> & block = Lcol[bidx];
-              statusOFS<<block.blockIdx<<std::endl;
-              statusOFS<<block.nzval<<std::endl;
-            }
-
-
-            std::vector<UBlock<T> >&  Urow = this->U( LBi( I, this->grid_ ) );
-            for(Int bidx = 0; bidx < Urow.size(); ++bidx){
-              UBlock<T> & block = Urow[bidx];
-              statusOFS<<block.blockIdx<<std::endl;
-              statusOFS<<block.nzval<<std::endl;
-            }
-
-
-
-          }
-        }
-      }
+//      virtual void DumpSuperNodes(Int count){
+//        Int first_snode = max(0,NumSuper() -count );
+//        //dump the last supernodes
+//        for(Int I = first_snode; I<NumSuper();++I){
+//          statusOFS<<"****** "<<I<<" *******"<<std::endl;
+//  
+//          //I own blocks of that supernode
+//          if(MYCOL(grid_) == PCOL(I,grid_)){
+//            std::vector<LBlock<T> >&  Lcol = this->L( LBj( I, grid_ ) );
+//            for(Int bidx = 0; bidx < Lcol.size(); ++bidx){
+//              LBlock<T> & block = Lcol[bidx];
+//              statusOFS<<block.blockIdx<<std::endl;
+//              statusOFS<<block.nzval<<std::endl;
+//            }
+//
+//
+//            std::vector<UBlock<T> >&  Urow = this->U( LBi( I, this->grid_ ) );
+//            for(Int bidx = 0; bidx < Urow.size(); ++bidx){
+//              UBlock<T> & block = Urow[bidx];
+//              statusOFS<<block.blockIdx<<std::endl;
+//              statusOFS<<block.nzval<<std::endl;
+//            }
+//
+//
+//
+//          }
+//        }
+//      }
 
 
   };
