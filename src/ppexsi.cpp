@@ -1062,14 +1062,16 @@ void PPEXSIData::CalculateFermiOperatorReal(
     } while( numPoleSignificant < numPole );
 
 
-    // Compute the relative error 
-    std::vector<Real>  fdPoleGrid( numX );
-    Real errRel, errorRelMax;
-    Real errAbs, errorAbsMax;
-    Real errorTotal;
-    Real errEPS = 1e-1;
+    // Estimate the error of the number of electrons and the band energy
+    // by assuming a flat density of states within a interval of size
+    // deltaE, i.e. each unit interval contains 
+    // HMat.size / deltaE 
+    // number of electrons
 
-    errorRelMax = 0.0;
+    std::vector<Real>  fdPoleGrid( numX );
+    Real errAbs, errorAbsMax;
+    Real errorNumElectron, errorBandEnergy;
+
     errorAbsMax = 0.0; 
     for( Int i = 0; i < numX; i++ ){
       fdPoleGrid[i] = 0.0;
@@ -1080,27 +1082,27 @@ void PPEXSIData::CalculateFermiOperatorReal(
       }
       errAbs = std::abs( fdPoleGrid[i] - fdGrid[i] );
       errorAbsMax = ( errorAbsMax >= errAbs ) ? errorAbsMax : errAbs;
-
-      if( std::abs(fdGrid[i]) > errEPS ){
-        errRel = std::abs( fdPoleGrid[i] - fdGrid[i] ) / ( std::abs( fdGrid[i] ) );
-        errorRelMax = ( errorRelMax >= errRel ) ? errorRelMax : errRel;
-      }
     }
 
-    errorTotal = errorRelMax * numElectronExact + errorAbsMax * HMat.size;
+    errorNumElectron = errorAbsMax * HMat.size;
+    errorBandEnergy  = 0.5 * deltaE * errorAbsMax * HMat.size;
 
     if( verbosity >= 1 ){
-      statusOFS << "Pole expansion indicates that the error "
-        << "of numElectron is bounded by "
-        << errorTotal << std::endl;
-      statusOFS << "Required accuracy: numElectronTolerance is "
-        << numElectronTolerance << std::endl << std::endl;
+      statusOFS 
+        << std::endl 
+        << "Estimated error of pole expansion by assuming a flat spectrum."
+        << std::endl;
 
-      if( errorTotal > numElectronTolerance ){
+      Print( statusOFS, "Error of num electron             = ", errorNumElectron );
+      Print( statusOFS, "Error of band energy              = ", errorBandEnergy );
+      Print( statusOFS, "Required accuracy (num electron)  = ", numElectronTolerance );
+
+      statusOFS << std::endl;
+
+      if( errorNumElectron > numElectronTolerance ){
         statusOFS << "WARNING!!! " 
           << "Pole expansion may not be accurate enough to reach numElectronTolerance. " << std::endl
           << "Try to increase numPole or increase numElectronTolerance." << std::endl << std::endl;
-
       }
       statusOFS << "numPoleInput =" << numPoleInput << std::endl;
       statusOFS << "numPoleSignificant = " << numPoleSignificant << std::endl;
