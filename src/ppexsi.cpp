@@ -1020,6 +1020,12 @@ void PPEXSIData::CalculateFermiOperatorReal(
       GetPoleDensity( &zshift_[0], &zweightRho_[0],
           numPoleInput, temperature, gap, deltaE, mu ); 
 
+      std::vector<Complex>  zshiftTmp( numPoleInput );
+      zweightForce_.resize( numPoleInput );
+      GetPoleForce( &zshiftTmp[0], &zweightForce_[0],
+          numPoleInput, temperature, gap, deltaE, mu ); 
+
+
       std::vector<Real>  maxMagPole(numPoleInput);
       for( Int l = 0; l < numPoleInput; l++ ){
         maxMagPole[l] = 0.0;
@@ -1069,23 +1075,35 @@ void PPEXSIData::CalculateFermiOperatorReal(
     // number of electrons
 
     std::vector<Real>  fdPoleGrid( numX );
-    Real errAbs, errorAbsMax;
-    Real errorNumElectron, errorBandEnergy;
+    std::vector<Real>  fdEPoleGrid( numX );
+    std::vector<Real>  fdTimesEPoleGrid( numX );
+    Real errAbs1, errorAbsMax1;
+    Real errAbs2, errorAbsMax2;
+    Real errorNumElectron, errorBandEnergy, errorBandEnergy2;
+    Complex cpxmag1, cpxmag2;
 
-    errorAbsMax = 0.0; 
+    errorAbsMax1 = 0.0; 
+    errorAbsMax2 = 0.0; 
     for( Int i = 0; i < numX; i++ ){
       fdPoleGrid[i] = 0.0;
+      fdEPoleGrid[i] = 0.0;
       for( Int lidx = 0; lidx < numPoleInput; lidx++ ){
         Int l = lidx;
-        Complex cpxmag = zweightRho_[l] / ( xGrid[i] - zshift_[l] );
-        fdPoleGrid[i] += cpxmag.imag();
+        cpxmag1 = zweightRho_[l] / ( xGrid[i] - zshift_[l] );
+        cpxmag2 = zweightForce_[l] / ( xGrid[i] - zshift_[l] );
+        fdPoleGrid[i] += cpxmag1.imag();
+        fdTimesEPoleGrid[i] += cpxmag1.imag() * xGrid[i];
+        fdEPoleGrid[i]      += cpxmag2.imag();
       }
-      errAbs = std::abs( fdPoleGrid[i] - fdGrid[i] );
-      errorAbsMax = ( errorAbsMax >= errAbs ) ? errorAbsMax : errAbs;
+      errAbs1 = std::abs( fdPoleGrid[i] - fdGrid[i] );
+      errorAbsMax1 = ( errorAbsMax1 >= errAbs1 ) ? errorAbsMax1 : errAbs1;
+      errAbs2 = std::abs( fdEPoleGrid[i] - fdTimesEPoleGrid[i] );
+      errorAbsMax2 = ( errorAbsMax2 >= errAbs2 ) ? errorAbsMax2 : errAbs2;
     }
 
-    errorNumElectron = errorAbsMax * HMat.size;
-    errorBandEnergy  = 0.5 * deltaE * errorAbsMax * HMat.size;
+    errorNumElectron = errorAbsMax1 * HMat.size;
+    errorBandEnergy  = 0.5 * deltaE * errorAbsMax1 * HMat.size;
+    errorBandEnergy2 = errorAbsMax2 * HMat.size;
 
     if( verbosity >= 1 ){
       statusOFS 
@@ -1093,8 +1111,11 @@ void PPEXSIData::CalculateFermiOperatorReal(
         << "Estimated error of pole expansion by assuming a flat spectrum."
         << std::endl;
 
+      // The estimation of energy using the difference of DM and EDM
+      // seems to be more reliable
       Print( statusOFS, "Error of num electron             = ", errorNumElectron );
-      Print( statusOFS, "Error of band energy              = ", errorBandEnergy );
+//      Print( statusOFS, "Error of band energy (DM only)    = ", errorBandEnergy );
+      Print( statusOFS, "Error of band energy (DM and EDM) = ", errorBandEnergy2 );
       Print( statusOFS, "Required accuracy (num electron)  = ", numElectronTolerance );
 
       statusOFS << std::endl;
