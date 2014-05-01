@@ -1494,7 +1494,7 @@ namespace PEXSI{
 	// Sparse Matrix
 	// *********************************************************************
 
-	// TODO Complex format
+  // Real format
 	void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat );
 
 	void ReadDistSparseMatrix( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
@@ -1504,6 +1504,14 @@ namespace PEXSI{
 	void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
 
 	void ReadDistSparseMatrixFormatted( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm );
+
+  // Complex format
+	void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm );
+
+	void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm );
+
+  void ReadDistSparseMatrixFormatted( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm );
+
 
 	template <class F1, class F2> 
 		void

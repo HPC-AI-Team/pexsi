@@ -262,12 +262,13 @@ int main(int argc, char **argv)
       int      m, n;
       DistSparseMatrix<MYSCALAR>  AMat;
 
-      DistSparseMatrix<Real> HMat;
-      DistSparseMatrix<Real> SMat;
+      DistSparseMatrix<Complex> HMat;
+      DistSparseMatrix<Complex> SMat;
       Real timeSta, timeEnd;
       GetTime( timeSta );
-      if(isCSC)
+      if(isCSC){
         ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
+      }
       else{
         ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, world_comm ); 
         ParaWriteDistSparseMatrix( "H.csc", HMat, world_comm ); 
@@ -279,8 +280,9 @@ int main(int argc, char **argv)
         SMat.size = 0;  
       }
       else{
-        if(isCSC)
+        if(isCSC){
           ParaReadDistSparseMatrix( Sfile.c_str(), SMat, world_comm ); 
+        }
         else{
           ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, world_comm ); 
           ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
@@ -317,6 +319,18 @@ int main(int argc, char **argv)
         } // for (j)
       }
 
+      // DEBUG
+      if(0)
+      { 
+        Int numColLocal      = HMat.colptrLocal.m() - 1;
+
+        for( Int j = 0; j < numColLocal; j++ ){
+          statusOFS  << "H("<<j<<","<<j<<")="<<
+            HMat.nzvalLocal(diagIdxLocal[j])<<std::endl;
+        } // for (j)
+      }
+
+
 
       GetTime( timeSta );
 
@@ -329,8 +343,8 @@ int main(int argc, char **argv)
       AMat.comm = world_comm;
 
       MYSCALAR *ptr0 = AMat.nzvalLocal.Data();
-      Real *ptr1 = HMat.nzvalLocal.Data();
-      Real *ptr2 = SMat.nzvalLocal.Data();
+      Complex *ptr1 = HMat.nzvalLocal.Data();
+      Complex *ptr2 = SMat.nzvalLocal.Data();
 
 #ifdef _MYCOMPLEX_
       Complex zshift = Complex(rshift, ishift);
