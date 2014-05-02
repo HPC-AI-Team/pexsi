@@ -120,7 +120,7 @@ int main(int argc, char **argv)
       MPI_COMM_WORLD );
 
 
-  /* Step 1. Initialize PEXSI */
+  /* Initialize PEXSI */
 
   PPEXSIOptions  options;
   PPEXSISetDefaultOptions( &options );
@@ -193,6 +193,18 @@ int main(int argc, char **argv)
       }
     } // for (j)
   }
+
+  /* Clean up */
+
+  PPEXSIPlanFinalize( 
+      plan,
+      &info );
+  
+  if( mpirank == 0 ){ 
+    printf("\nAll calculation is finished. Exit the program.\n");
+  }
+
+
 
   /* Deallocate memory */
   free( colptrLocal );

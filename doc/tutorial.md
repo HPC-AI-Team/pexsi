@@ -1,12 +1,126 @@
 Tutorial              {#pageTutorial}
 ========
 
-- @subpage pagePselinvComplex
+- @subpage pagePEXSIPlan
+- @subpage pagePselinvRealSymmetric
+- @subpage pagePselinvComplexSymmetric
 - @subpage pagePEXSISolve
+
+<!-- ************************************************************ -->
+@page pagePEXSIPlan Using plans
+\tableofcontents
+
+%PEXSI is written in C++, and the subroutines cannot directly interface
+with other programming languages such as C or FORTRAN.  To facilitate
+this problem, the %PEXSI internal data structure is handled using a
+datatype PPEXSIPlan.  The idea and the usage of PPEXSIPlan is similar to
+`fftw_plan` in the
+[FFTW](http://www.fftw.org/~fftw/fftw3_doc/Using-Plans.html#Using-Plans)
+package.
+
+Here is an example for the basic usage of PPEXSIPlan. 
+
+~~~~~~~~~~{.c}
+#include  "c_pexsi_interface.h"
+...
+{
+  PPEXSIPlan   plan;
+  
+  plan = PPEXSIPlanInitialize( 
+      MPI_COMM_WORLD, 
+      nprow,
+      npcol,
+      mpirank, 
+      &info );
+
+  /* ... Computation using plan ... */
+
+  PPEXSIPlanFinalize(
+      plan,
+      &info );
+} 
+~~~~~~~~~~ 
 
 
 <!-- ************************************************************ -->
-@page pagePselinvComplex Parallel selected inversion for a complex matrix
+@page pagePselinvRealSymmetric Parallel selected inversion for a real symmetric matrix
+\tableofcontents
+
+The computation of @ref defSelectedElem "selected elements" of an
+inverse matrix is a standalone functionality of %PEXSI. For 
+C/C++ programmers, the parallel selected inversion routine for a real
+symmetric matrix can be used as follows.
+
+~~~~~~~~~~{.c}
+#include  "c_pexsi_interface.h"
+...
+{
+  /* Setup the input matrix in distributed compressed sparse column (CSC) format */ 
+  ...;
+  /* Initialize PEXSI. 
+   * PPEXSIPlan is a handle communicating with the C++ internal data structure */
+  PPEXSIPlan   plan;
+  /* Tuning parameters of PEXSI. Not all parameters are needed for PSelInv */
+  PPEXSIOptions  options;
+  PPEXSISetDefaultOptions( &options );
+  
+  plan = PPEXSIPlanInitialize( 
+      MPI_COMM_WORLD, 
+      nprow,
+      npcol,
+      mpirank, 
+      &info );
+
+  /* Load the matrix into the internal data structure */
+  PPEXSILoadRealSymmetricHSMatrix( 
+      plan, 
+      options,
+      nrows,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      AnzvalLocal,
+      1,     // S is an identity matrix here
+      NULL,  // S is an identity matrix here
+      &info );
+
+  /* Factorize the matrix symbolically */
+  PPEXSISymbolicFactorizeRealSymmetricMatrix( 
+      plan,
+      options,
+      &info );
+
+  /* Main routine for computing selected elements and save into AinvnzvalLocal */
+  PPEXSISelInvRealSymmetricMatrix (
+      plan,
+      options,
+      AnzvalLocal,
+      AinvnzvalLocal,
+      &info );
+
+  ...;
+  /* Post processing AinvnzvalLocal */
+  ...; 
+} 
+~~~~~~~~~~ 
+
+This routine computes the selected elements of the matrix 
+\f$A^{-1}=(H - z S)^{-1}\f$ in parallel.  The input matrix \f$H\f$
+follows the @ref secDistCSC, defined through the variables `colptrLocal`,
+`rowindLocal`, `HnzvalLocal`.  The input matrix \f$S\f$ can be omitted if it
+is an identity matrix and by setting `isSIdentity=1`. If \f$S\f$ is not
+an identity matrix, the nonzero sparsity pattern is assumed to be the
+same as the nonzero sparsity pattern of \f$H\f$.  Both `HnzvalLocal` and
+`SnzvalLocal` are double precision arrays.  
+
+An example is given in driver_pselinv_real.c. See also 
+@ref PPEXSISelInvRealSymmetricMatrix for detailed information of its usage.
+
+
+<!-- ************************************************************ -->
+@page pagePselinvComplexSymmetric Parallel selected inversion for a complex symmetric matrix
 \tableofcontents
 
 The computation of @ref defSelectedElem "selected elements" of an

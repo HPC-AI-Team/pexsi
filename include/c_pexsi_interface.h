@@ -199,7 +199,7 @@ typedef struct {
      */ 
     int           isInertiaCount;
     /** 
-     * @brief  Maximum number of PEXSI iterations after each inertia
+     * @brief  Maximum number of %PEXSI iterations after each inertia
      * counting procedure.
      */ 
     int           maxPEXSIIter;
@@ -281,11 +281,12 @@ void PPEXSISetDefaultOptions(
 
 /**
  * @brief Initialize the %PEXSI plan.
+ * 
+ * In %PEXSI, ``pole'' 
  *
- * @todo A specicial FORTRAN interface for this routine.  This is
- * because the comm between C and FORTRAN are different.  All subsequent
- * interface routines do not require anymore interface in this routine,
- * but should be taken care of using ISO_C_BINDING.
+ * @note When only PSelInv is used, 
+ * 
+ * 
  *
  * @param[in] comm  (global) Communicator used for the entire %PEXSI procedure.  The
  * size of this communicator should be a multiple of npPerPole =
@@ -303,8 +304,6 @@ void PPEXSISetDefaultOptions(
  * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
- *
- *
  *
  * @return (local) The plan holding the internal data structure for the %PEXSI
  * data structure.

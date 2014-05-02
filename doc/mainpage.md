@@ -11,7 +11,9 @@ Main Page           {#mainpage}
   - @ref pageDependency
   - @ref pageBuild
 - @subpage pageTutorial
-  - @ref pagePselinvComplex
+  - @ref pagePEXSIPlan
+  - @ref pagePselinvRealSymmetric
+  - @ref pagePselinvComplexSymmetric
   - @ref pagePEXSISolve
 - @subpage pageCoreFunction
   - @ref pageBasicCore
