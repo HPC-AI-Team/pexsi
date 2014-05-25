@@ -3,7 +3,8 @@ Introduction      {#pageIntro}
 
 - @subpage pageOverview
 - @subpage pageLicense
-
+- @subpage pageReference
+- @subpage pageChangeLog
 
 <!-- ************************************************************ -->
 @page pageOverview Overview
@@ -141,3 +142,69 @@ National Laboratory).
     royalty-free perpetual license to install, use, modify, prepare derivative
     works, incorporate into other computer software, distribute, and sublicense
     such enhancements or derivative works thereof, in binary and source code form.
+
+
+<!-- ************************************************************ -->
+@page pageReference References
+
+**Selected Inversion**
+
+M. Jacquelin, L. Lin and C. Yang, PSelInv -- A Distributed Memory
+Parallel Algorithm for Selected Inversion : the Symmetric Case
+[<a href="http://arxiv.org/abs/1404.0447">arXiv</a>]
+
+L. Lin, C. Yang, J. Meza, J. Lu, L. Ying and W. E, SelInv -- An
+algorithm for selected inversion of a sparse symmetric matrix, ACM
+Trans. Math. Software 37, 40, 2011
+[<a href="http://doi.acm.org/10.1145/1916461.1916464">journal</a>]
+
+L. Lin, A. Garcia, G. Huhs and C. Yang, SIESTA-PEXSI: Massively parallel
+method for efficient and accurate ab initio materials simulation without
+matrix diagonalization, [<a href="http://arxiv.org/abs/1405.0194">arXiv</a>]
+
+L. Lin, M. Chen, C. Yang and L. He, Accelerating atomic
+orbital-based electronic structure calculation via pole expansion
+and elected inversion, J. Phys. Condens. Matter 25, 295501, 2013 
+[<a href="http://dx.doi.org/10.1088/0953-8984/25/29/295501">journal</a>]
+
+L. Lin, C. Yang, J. Lu, L. Ying and W. E, A Fast  Parallel
+algorithm for selected inversion of structured sparse matrices with
+application to 2D electronic structure
+calculations, SIAM J. Sci. Comput. 33, 1329, 2011 
+[<a href="http://dx.doi.org/10.1137/09077432X">journal</a>]
+
+L. Lin, J. Lu, L. Ying, R. Car and W. E, Fast algorithm for
+extracting the diagonal of the inverse matrix with application to
+the electronic structure analysis of metallic systems, 
+Commun. Math. Sci. 7, 755, 2009
+[<a href ="http://projecteuclid.org/euclid.cms/1256562822">journal</a>]
+
+L. Lin, J. Lu, L. Ying and W. E, Pole-based approximation of the
+Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009 
+[<a href="http://dx.doi.org/10.1007/s11401-009-0201-7">journal</a>]
+
+
+<!-- ************************************************************ -->
+@page pageChangeLog Change Log
+
+- v0.6.0 (03/11/2014)
+  - First release of %PEXSI.
+  - Version integrated with the SIESTA package for Kohn-Sham density
+    functional theory (KSDFT) calculation.
+  - Parallel selected inversion for complex symmetric matrices.
+  - Estimate the density of state profile via inertia counting.
+  - Compute the density of states and local density of states.
+
+- v0.7.0 (05/24/2014)
+  - Use PPEXSIPlan to coordinate the computation, and allows the code to
+    be used for C/C++/FORTRAN.
+  - Templated implementation and support for both real and complex arithmetic.
+  - New interface routines for FORTRAN based on ISO_C_BINDING (FORTRAN
+    2003 and later).
+  - Basic interface for KSDFT calculation, with a small number of input
+    parameters and built-in heuristic strategies.
+  - Expert interface for KSDFT calculation, providing full-control of
+    the heuristics. 
+  - Symbolic factorization can be reused for multiple calculations.
+  - Enhanced error estimate for the pole expansion using energy as a
+    guidance.

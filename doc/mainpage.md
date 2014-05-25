@@ -1,11 +1,13 @@
 Main Page           {#mainpage}
 =========
 
-**Welcome to the documentation of %PEXSI**
+**Welcome to the documentation of %PEXSI (current version: v0.7.0)**
 
 - @subpage pageIntro
   - @ref pageOverview
   - @ref pageLicense
+  - @ref pageReference
+  - @ref pageChangeLog
 - @subpage pageInstall
   - @ref pageDownload
   - @ref pageDependency
@@ -14,13 +16,15 @@ Main Page           {#mainpage}
   - @ref pagePEXSIPlan
   - @ref pagePselinvRealSymmetric
   - @ref pagePselinvComplexSymmetric
-  - @ref pagePEXSISolve
+  - @ref pageDFT1
+  - @ref pageDFT2
 - @subpage pageCoreFunction
   - @ref pageBasicCore
   - @ref pageDataType
   - @ref pagePole
   - @ref pageFactor
   - @ref pageSelInv
+  - @ref pageCCPP
   - @ref pageFORTRAN
 <!--
 - @subpage pageUtility

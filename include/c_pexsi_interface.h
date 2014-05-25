@@ -232,9 +232,9 @@ typedef struct {
      */ 
     double        numElectronPEXSITolerance;
     /**
-     * @param[in] matrixType (global) Type of input H and S matrices.
+     * @brief  matrixType (global) Type of input H and S matrices.
      * - = 0   : Real symmetric (default)
-     * - = 1   : Complex Hermitian (not implemented yet)
+     * - = 1   : General complex matrices (not implemented yet)
      */
     int           matrixType;
     /** 
@@ -282,10 +282,18 @@ void PPEXSISetDefaultOptions(
 /**
  * @brief Initialize the %PEXSI plan.
  * 
- * In %PEXSI, ``pole'' 
+ * In %PEXSI, a matrix is generally referred to as a "pole". The 
+ * factorization and selected inversion procedure for a pole is computed
+ * in parallel using `numProcRow * numProcCol` processors.  
  *
- * @note When only PSelInv is used, 
- * 
+ * When only selected inversion (PSelInv) is used, it is recommended to
+ * set the mpisize of the communicator `comm` to be 
+ * `numProcRow * numProcCol`.
+ *
+ * When %PEXSI is used to evaluate a large number of inverse matrices
+ * such as in the electronic structure calculation, mpisize should be 
+ * `numPole*numProcRow * numProcCol`, where `numPole` inverse matrices
+ * can be processed in parallel.
  * 
  *
  * @param[in] comm  (global) Communicator used for the entire %PEXSI procedure.  The

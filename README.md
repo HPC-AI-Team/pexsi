@@ -19,7 +19,7 @@ http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.2.tar.gz
 
 Follow the installation step to install ParMETIS.
 
-@attention After untar the ParMETIS package, in Install.txt
+After untar the ParMETIS package, in Install.txt
 
     Edit the file metis/include/metis.h and specify the width (32 or
     64 bits) of the elementary data type used in ParMetis (and
@@ -29,7 +29,7 @@ Follow the installation step to install ParMETIS.
     of 32, whereas for a 64 bit architecture you can specify a width
     of either 32 or 64 bits.
 
-@attention In our experience for most cases, the following setup work
+In our experience for most cases, the following setup work
 fine.
 
     #define IDXTYPEWIDTH 32
@@ -44,7 +44,7 @@ http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_3.3.tar.gz
 
 Follow the installation step to install SuperLU_DIST.
 
-@attention Our experience shows that on some machines it may be better
+Our experience shows that on some machines it may be better
 to build SuperLU_DIST with -O2 option than the more aggresive
 optimization options provided by vendors.
 
@@ -60,7 +60,7 @@ https://gforge.inria.fr/frs/download.php/31831/scotch_6.0.0.tar.gz
 
 Follow the installation step to install PT-Scotch.
 
-@attention In INSTALL.TXT, pay special attention to the following
+In INSTALL.TXT, pay special attention to the following
 sections in order to compile PT-Scotch correctly.
 
     2.3) Integer size issues
@@ -97,13 +97,13 @@ Edit the variables in make.inc.
     PTSCOTCH_DIR  = Main directory for PT-Scotch
 
 
-@note PEXSI can be compiled using `debug` or `release` mode in
+PEXSI can be compiled using `debug` or `release` mode in
 by the variable `COMPILE_MODE` in `make.inc`.  This variable mainly controls the
 compiling flag `-DRELEASE`.  The `debug` mode introduces tracing of call
 stacks at all levels of functions, and may significantly slow down the
 code.  For production runs, use `release` mode.
 
-@note The `*.profile` configuration files are for debugging purpose and
+The `*.profile` configuration files are for debugging purpose and
 can be ignored.
 
 Build the PEXSI library

@@ -47,8 +47,8 @@
  *
  * This file is eventually going to be merged with the driver_ksdft.c
  *
- *
  * @date 2014-03-07
+ * @date 2014-04-01  Compatible with v0.7.0 new interface.
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
-  /* Below is the data used for the toy g20 matrix */
+  /* Below is the data used for the toy matrix */
 
   numElectronExact    = 12.0;
   nprow               = 1;

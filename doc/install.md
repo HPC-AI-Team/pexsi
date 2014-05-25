@@ -8,10 +8,14 @@ Installation       {#pageInstall}
 <!-- ************************************************************ -->
 @page pageDownload Obtaining the source code
 
-The tarball file for the most recent version (v0.6.0) of the %PEXSI
+The tarball file for the most recent version (v0.7.0) of the %PEXSI
 package can be downloaded here:
 
-<a href="http://pexsi.github.io/pexsi/pexsi_v0.6.0.tar.gz">pexsi_v0.6.0.tar.gz</a>
+<a href="http://pexsi.github.io/pexsi/pexsi_v0.7.0.tar.gz">pexsi_v0.7.0.tar.gz</a>
+
+Older version of %PEXSI:
+
+<a href="http://pexsi.github.io/pexsi/pexsi_v0.6.0.tar.gz">pexsi_v0.6.0.tar.gz</a> 
 
 @htmlonly
 <!-- Start of StatCounter Code for Default Guide -->

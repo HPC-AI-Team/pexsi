@@ -218,8 +218,12 @@ int main(int argc, char **argv)
     } // for (j)
   }
   
-  // Finalize PPEXSI
-  PPEXSIPlanFinalize( plan, &info );
+  /* Clean up */
+
+  PPEXSIPlanFinalize( 
+      plan,
+      &info );
+  
   
   
   /* Deallocate memory */
