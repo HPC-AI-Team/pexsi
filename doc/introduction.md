@@ -147,8 +147,6 @@ National Laboratory).
 <!-- ************************************************************ -->
 @page pageReference References
 
-**Selected Inversion**
-
 M. Jacquelin, L. Lin and C. Yang, PSelInv -- A Distributed Memory
 Parallel Algorithm for Selected Inversion : the Symmetric Case
 [<a href="http://arxiv.org/abs/1404.0447">arXiv</a>]

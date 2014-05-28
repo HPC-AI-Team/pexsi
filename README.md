@@ -72,9 +72,6 @@ INSTALL.TXT for more information.
 
     2.9) MeTiS compatibility library
 
-<!-- ************************************************************ -->
-@page pageBuild Build PEXSI
-
 Edit make.inc
 -------------
 
