@@ -217,14 +217,9 @@ int main(int argc, char **argv)
         numProcSymbFact = 0;
       }
 
-      Int doConstructPattern = 1;
-      if( options.find("-Pattern") != options.end() ){ 
-        doConstructPattern = atoi(options["-Pattern"].c_str());
-      }
-
-      Int doPreSelinv = 1;
-      if( options.find("-PreSelinv") != options.end() ){ 
-        doPreSelinv = atoi(options["-PreSelinv"].c_str());
+      Int isReal = 0;
+      if( options.find("-Real") != options.end() ){ 
+        isReal = atoi(options["-Real"].c_str());
       }
 
       Int doSelinv = 1;
@@ -261,10 +256,12 @@ int main(int argc, char **argv)
 
       int      m, n;
       DistSparseMatrix<MYSCALAR>  AMat;
+      Real timeSta, timeEnd;
 
+
+      if(!isReal){
       DistSparseMatrix<Complex> HMat;
       DistSparseMatrix<Complex> SMat;
-      Real timeSta, timeEnd;
       GetTime( timeSta );
       if(isCSC){
         ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
@@ -368,6 +365,115 @@ int main(int argc, char **argv)
           AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
         }
       } // if (SMat.size != 0 )
+}
+else{
+      DistSparseMatrix<Real> HMat;
+      DistSparseMatrix<Real> SMat;
+      Real timeSta, timeEnd;
+      GetTime( timeSta );
+      if(isCSC){
+        ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
+      }
+      else{
+        ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, world_comm ); 
+        ParaWriteDistSparseMatrix( "H.csc", HMat, world_comm ); 
+      }
+
+      if( Sfile.empty() ){
+        // Set the size to be zero.  This will tell PPEXSI.Solve to treat
+        // the overlap matrix as an identity matrix implicitly.
+        SMat.size = 0;  
+      }
+      else{
+        if(isCSC){
+          ParaReadDistSparseMatrix( Sfile.c_str(), SMat, world_comm ); 
+        }
+        else{
+          ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, world_comm ); 
+          ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
+        }
+      }
+
+      GetTime( timeEnd );
+      LongInt nnzH = HMat.Nnz();
+      if( mpirank == 0 ){
+        cout << "Time for reading H and S is " << timeEnd - timeSta << endl;
+        cout << "H.size = " << HMat.size << endl;
+        cout << "H.nnz  = " << nnzH  << endl;
+      }
+
+      // Get the diagonal indices for H and save it n diagIdxLocal_
+
+      std::vector<Int>  diagIdxLocal;
+      { 
+        Int numColLocal      = HMat.colptrLocal.m() - 1;
+        Int numColLocalFirst = HMat.size / mpisize;
+        Int firstCol         = mpirank * numColLocalFirst;
+
+        diagIdxLocal.clear();
+
+        for( Int j = 0; j < numColLocal; j++ ){
+          Int jcol = firstCol + j + 1;
+          for( Int i = HMat.colptrLocal(j)-1; 
+              i < HMat.colptrLocal(j+1)-1; i++ ){
+            Int irow = HMat.rowindLocal(i);
+            if( irow == jcol ){
+              diagIdxLocal.push_back( i );
+            }
+          }
+        } // for (j)
+      }
+
+      // DEBUG
+      if(0)
+      { 
+        Int numColLocal      = HMat.colptrLocal.m() - 1;
+
+        for( Int j = 0; j < numColLocal; j++ ){
+          statusOFS  << "H("<<j<<","<<j<<")="<<
+            HMat.nzvalLocal(diagIdxLocal[j])<<std::endl;
+        } // for (j)
+      }
+
+
+
+      GetTime( timeSta );
+
+      AMat.size          = HMat.size;
+      AMat.nnz           = HMat.nnz;
+      AMat.nnzLocal      = HMat.nnzLocal;
+      AMat.colptrLocal   = HMat.colptrLocal;
+      AMat.rowindLocal   = HMat.rowindLocal;
+      AMat.nzvalLocal.Resize( HMat.nnzLocal );
+      AMat.comm = world_comm;
+
+      MYSCALAR *ptr0 = AMat.nzvalLocal.Data();
+      Real *ptr1 = HMat.nzvalLocal.Data();
+      Real *ptr2 = SMat.nzvalLocal.Data();
+
+#ifdef _MYCOMPLEX_
+      Complex zshift = Complex(rshift, ishift);
+#else
+      Real zshift = Real(rshift);
+#endif
+
+      if( SMat.size != 0 ){
+        // S is not an identity matrix
+        for( Int i = 0; i < HMat.nnzLocal; i++ ){
+          AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift * SMat.nzvalLocal(i);
+        }
+      }
+      else{
+        // S is an identity matrix
+        for( Int i = 0; i < HMat.nnzLocal; i++ ){
+          AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+        }
+
+        for( Int i = 0; i < diagIdxLocal.size(); i++ ){
+          AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
+        }
+      } // if (SMat.size != 0 )
+}
 
       LongInt nnzA = AMat.Nnz();
       if( mpirank == 0 ){
@@ -670,12 +776,12 @@ int main(int argc, char **argv)
                  statusOFS << "Ainv2 = "  << Ainv2.nzvalLocal << endl;
                if( mpirank == 0 ){
  
-                 cout << "H.size = "  << HMat.size << endl;
+                 cout << "H.size = "  << AMat.size << endl;
                  cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
                  statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
  
-                 cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
-                 statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
+                 cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
+                 statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
  
                }
              }

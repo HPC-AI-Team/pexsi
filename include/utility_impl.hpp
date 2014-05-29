@@ -1194,19 +1194,29 @@ throw std::logic_error( "File cannot be opened!" );
 		for( Int ip = 0; ip < mpisize; ip++ ){
 			numRead = 2* (colptr[ip*numColFirst + numColLocalVec[ip]] - 
 				colptr[ip*numColFirst]);
-			buf.Resize(numRead);
-			Real *ptr = buf.Data();
+			Real *ptr;
+      if( ip > 0 ){
+        buf.Resize(numRead);
+        ptr = buf.Data();
+      }
+      else{
+        ptr = reinterpret_cast<Real*>(pspmat.nzvalLocal.Data());
+      }
+
+      //read data in either buf or pspmat.nzvalLocal
 			for( Int i = 0; i < numRead; i++ ){
 				fin >> *(ptr++);
 			}
+
 			if( ip > 0 ){
 				MPI_Send(&numRead, 1, MPI_INT, ip, 0, comm);
 				MPI_Send(buf.Data(), numRead, MPI_DOUBLE, ip, 1, comm);
 			}
-			else{
-        memcpy( (void*)( pspmat.nzvalLocal.Data() ),
-            (void*)buf.Data(), sizeof(Real)*numRead );
-			}
+//			else{
+//        std::copy( buf.Data(), buf.Data() + numRead,  pspmat.nzvalLocal.Data()  );
+//        memcpy( (void*)( pspmat.nzvalLocal.Data() ),
+//            (void*)buf.Data(), sizeof(Real)*numRead );
+//			}
 		}
 	}
 	else{

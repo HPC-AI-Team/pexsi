@@ -201,7 +201,6 @@ throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
 	else if( opt.ColPerm == "PARMETIS" ){
 		options.ColPerm           = PARMETIS;
 		options.ParSymbFact       = YES;
-//		options.ParSymbFact       = NO;
 	}
 	else{
 		std::ostringstream msg;
