@@ -3241,9 +3241,10 @@ namespace PEXSI{
 #endif
 
 
-
+          TIMER_START(Sorting_column_structure);
             std::sort(tAllBlockRowIdx.begin(),tAllBlockRowIdx.end());
-
+          TIMER_STOP(Sorting_column_structure);
+          
 
 #if ( _DEBUGlevel_ >= 2 )
             std::vector< LBlock<T> > & Lcol = this->L( LBj(ksup, this->grid_ ) );
@@ -3255,6 +3256,7 @@ namespace PEXSI{
 
 
 
+          TIMER_START(Allocating_Ucol);
             std::vector< UBlock<T> > & Ucol = this->Ucol( LBj(ksup, this->grid_ ) );
 
             //Allocate Ucol
@@ -3265,6 +3267,7 @@ namespace PEXSI{
                 Ucol.back().blockIdx = tAllBlockRowIdx[ib];
               }
             }
+          TIMER_STOP(Allocating_Ucol);
 
 #if ( _DEBUGlevel_ >= 2 )
             statusOFS<<"Ucol of "<<ksup<<std::endl;
@@ -3282,12 +3285,17 @@ namespace PEXSI{
 #endif
 
 
-
         } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
-
+    }
+#if 1
+      for( Int ksup = 0; ksup < numSuper; ksup++ ){
+        // All block columns perform independently
+        std::vector<Int> tAllBlockRowIdx;
         if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
+          tAllBlockRowIdx.insert(tAllBlockRowIdx.begin(),localColBlockRowIdx[LBj( ksup, this->grid_ )].begin(),localColBlockRowIdx[LBj( ksup, this->grid_ )].end());
+
           // Communication
-          TIMER_START(Allgatherv_Column_communication_row);
+          TIMER_START(Bcast_Column_communication_row);
           if( this->grid_ -> mpisize != 1 )
           {
             //Broadcast size
@@ -3301,11 +3309,12 @@ namespace PEXSI{
             }
           }
 
-          TIMER_STOP(Allgatherv_Column_communication_row);
+          TIMER_STOP(Bcast_Column_communication_row);
 
 
 
 
+          TIMER_START(Allocating_Lrow);
             std::vector< UBlock<T> > & Urow = this->U( LBi(ksup, this->grid_ ) );
             //Allocate Lrow and extend Urow
             std::vector< LBlock<T> > & Lrow = this->Lrow( LBi(ksup, this->grid_ ) );
@@ -3317,7 +3326,9 @@ namespace PEXSI{
                 Lrow.back().blockIdx = tAllBlockRowIdx[ib];
               }
             }
+          TIMER_STOP(Allocating_Lrow);
 
+          TIMER_START(Extending_Urow);
             //Lrow is denser than Urow
             Urow.resize(Lrow.size());
             for(Int ib = 0; ib < tAllBlockRowIdx.size(); ++ib){
@@ -3349,6 +3360,7 @@ namespace PEXSI{
               }
 
             }
+          TIMER_STOP(Extending_Urow);
 
 #if ( _DEBUGlevel_ >= 2 )
             statusOFS<<"Lrow of "<<ksup<<std::endl;
@@ -3358,6 +3370,8 @@ namespace PEXSI{
 #endif
 
         } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
+#endif
+
       } // for(ksup)
 
 
