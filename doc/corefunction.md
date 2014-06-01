@@ -701,6 +701,64 @@ routines are in @ref f_interface.f90.
 For instance, the subroutine @ref PPEXSIPlanInitialize (C/C++) corresponds to
 the subroutine @ref f_ppexsi_plan_initialize (FORTRAN).
 
+Example: Parallel selected inversion for a real symmetric matrix
+
+~~~~~~~~~~{.f90}
+integer(c_intptr_t)    :: plan
+type(f_ppexsi_options) :: options
+
+! Initialize PEXSI. 
+! PPEXSIPlan is a handle communicating with the C++ internal data structure 
+
+plan = f_ppexsi_plan_initialize(&
+  MPI_COMM_WORLD,&
+  nprow,&
+  npcol,&
+  mpirank,&
+  info )
+
+! Tuning parameters of PEXSI. The default options is reasonable to
+! start, and the parameters in options can be changed. 
+call f_ppexsi_set_default_options(&
+  options )
+
+! Load the matrix into the internal data structure 
+call f_ppexsi_load_real_symmetric_hs_matrix(&
+      plan,&       
+      options,&
+      nrows,&
+      nnz,&
+      nnzLocal,&
+      numColLocal,&
+      colptrLocal,& 
+      rowindLocal,&
+      HnzvalLocal,&
+      1,&
+      SnzvalLocal,&
+      info ) 
+
+! Factorize the matrix symbolically
+call f_ppexsi_symbolic_factorize_real_symmetric_matrix(&
+  plan,&
+  options,&
+  info)
+
+! Main routine for computing selected elements and save into AinvnzvalLocal
+call f_ppexsi_selinv_real_symmetric_matrix(& plan,&
+  options,&
+  AnzvalLocal,&
+  AinvnzvalLocal,&
+  info)
+
+! Post processing step...
+
+! Release the data saved in the plan
+call f_ppexsi_plan_finalize( plan, info )
+
+
+~~~~~~~~~~ 
+
+
 The examples of the FORTRAN interface can be found under `fortran/`
 directory, including @ref f_driver_pselinv_real.f90, 
 @ref f_driver_pselinv_complex.f90, 

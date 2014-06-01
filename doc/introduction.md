@@ -147,23 +147,23 @@ National Laboratory).
 <!-- ************************************************************ -->
 @page pageReference References
 
-M. Jacquelin, L. Lin and C. Yang, PSelInv -- A Distributed Memory
-Parallel Algorithm for Selected Inversion : the Symmetric Case
-[<a href="http://arxiv.org/abs/1404.0447">arXiv</a>]
-
-L. Lin, C. Yang, J. Meza, J. Lu, L. Ying and W. E, SelInv -- An
-algorithm for selected inversion of a sparse symmetric matrix, ACM
-Trans. Math. Software 37, 40, 2011
-[<a href="http://doi.acm.org/10.1145/1916461.1916464">journal</a>]
-
 L. Lin, A. Garcia, G. Huhs and C. Yang, SIESTA-PEXSI: Massively parallel
 method for efficient and accurate ab initio materials simulation without
 matrix diagonalization, [<a href="http://arxiv.org/abs/1405.0194">arXiv</a>]
+
+M. Jacquelin, L. Lin and C. Yang, PSelInv -- A Distributed Memory
+Parallel Algorithm for Selected Inversion : the Symmetric Case
+[<a href="http://arxiv.org/abs/1404.0447">arXiv</a>]
 
 L. Lin, M. Chen, C. Yang and L. He, Accelerating atomic
 orbital-based electronic structure calculation via pole expansion
 and elected inversion, J. Phys. Condens. Matter 25, 295501, 2013 
 [<a href="http://dx.doi.org/10.1088/0953-8984/25/29/295501">journal</a>]
+
+L. Lin, C. Yang, J. Meza, J. Lu, L. Ying and W. E, SelInv -- An
+algorithm for selected inversion of a sparse symmetric matrix, ACM
+Trans. Math. Software 37, 40, 2011
+[<a href="http://doi.acm.org/10.1145/1916461.1916464">journal</a>]
 
 L. Lin, C. Yang, J. Lu, L. Ying and W. E, A Fast  Parallel
 algorithm for selected inversion of structured sparse matrices with
