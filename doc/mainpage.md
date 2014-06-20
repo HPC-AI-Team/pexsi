@@ -8,8 +8,8 @@ Main Page           {#mainpage}
   - @ref pageLicense
   - @ref pageReference
   - @ref pageChangeLog
+- @subpage pageDownload
 - @subpage pageInstall
-  - @ref pageDownload
   - @ref pageDependency
   - @ref pageBuild
 - @subpage pageTutorial

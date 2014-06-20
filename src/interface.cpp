@@ -286,7 +286,7 @@ PPEXSIPlan PPEXSIPlanInitialize(
   PPEXSIData *ptrData;
 
   try{
-    ptrData = new PPEXSIData( comm, numProcRow, numProcCol, mpirank );
+    ptrData = new PPEXSIData( comm, numProcRow, numProcCol, outputFileIndex );
   }
 	catch( std::exception& e )
 	{

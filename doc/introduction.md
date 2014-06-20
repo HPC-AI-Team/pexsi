@@ -206,3 +206,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
   - Symbolic factorization can be reused for multiple calculations.
   - Enhanced error estimate for the pole expansion using energy as a
     guidance.
+
+- v0.7.1 
+  - Bug fix: PPEXSIPlanInitialize specifics the input according to
+    mpirank instead of outputFileIndex.
