@@ -95,6 +95,13 @@ PPEXSIData::PPEXSIData	(
   isMatrixLoaded_       = false;
   isRealSymmetricSymbolicFactorized_ = false;
   isComplexSymmetricSymbolicFactorized_ = false;
+
+  // Initialize the empty matrices
+  luRealMat_ = new SuperLUMatrix<Real>;
+  luComplexMat_ = new SuperLUMatrix<Complex>;
+
+  PMRealMat_ = new PMatrix<Real>;
+  PMComplexMat_ = new PMatrix<Complex>;
   
 #ifndef _RELEASE_
 	PopCallStack();
@@ -109,6 +116,22 @@ PPEXSIData::~PPEXSIData	(  )
 #ifndef _RELEASE_
 	PushCallStack("PPEXSIData::~PPEXSIData");
 #endif
+  if( luRealMat_ != NULL ){
+    delete luRealMat_;
+  }
+
+  if( luComplexMat_ != NULL ){
+    delete luComplexMat_;
+  }
+
+  if( PMRealMat_ != NULL ){
+    delete PMRealMat_;
+  }
+
+  if( PMComplexMat_ != NULL ){
+    delete PMComplexMat_;
+  }
+
 	if( gridSuperLUReal_ != NULL ){
 		delete gridSuperLUReal_;
 	}
@@ -289,8 +312,8 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
       statusOFS << "Symbolic factorization for the real matrix."  << std::endl;
     }
 
-    SuperLUMatrix<Real>&    luMat     = luRealMat_;
-    PMatrix<Real>&          PMloc     = PMRealMat_;
+    SuperLUMatrix<Real>&    luMat     = *luRealMat_;
+    PMatrix<Real>&          PMloc     = *PMRealMat_;
     SuperNodeType&          super     = superReal_;
 
     // Clear the matrices first
@@ -399,8 +422,8 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
       statusOFS << "Symbolic factorization for the complex matrix."  << std::endl;
     }
 
-    SuperLUMatrix<Complex>&    luMat     = luComplexMat_;
-    PMatrix<Complex>&          PMloc     = PMComplexMat_;
+    SuperLUMatrix<Complex>&    luMat     = *luComplexMat_;
+    PMatrix<Complex>&          PMloc     = *PMComplexMat_;
     SuperNodeType&             super     = superComplex_;
 
     // Clear the matrices first
@@ -517,8 +540,8 @@ PPEXSIData::SelInvRealSymmetricMatrix(
 
     DistSparseMatrix<Real>& AMat      = shiftRealMat_;
     DistSparseMatrix<Real>& AinvMat   = shiftInvRealMat_;
-    SuperLUMatrix<Real>&    luMat     = luRealMat_;
-    PMatrix<Real>&          PMloc     = PMRealMat_;
+    SuperLUMatrix<Real>&    luMat     = *luRealMat_;
+    PMatrix<Real>&          PMloc     = *PMRealMat_;
 
     // Copy the pattern
     CopyPattern( HRealMat_, AMat );
@@ -633,8 +656,8 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
 
     DistSparseMatrix<Complex>& AMat      = shiftComplexMat_;
     DistSparseMatrix<Complex>& AinvMat   = shiftInvComplexMat_;
-    SuperLUMatrix<Complex>&    luMat     = luComplexMat_;
-    PMatrix<Complex>&          PMloc     = PMComplexMat_;
+    SuperLUMatrix<Complex>&    luMat     = *luComplexMat_;
+    PMatrix<Complex>&          PMloc     = *PMComplexMat_;
 
     // Copy the pattern
     CopyPattern( HRealMat_, AMat );
@@ -755,8 +778,8 @@ void PPEXSIData::CalculateNegativeInertiaReal(
   DistSparseMatrix<Real>&  HMat     = HRealMat_;
   DistSparseMatrix<Real>&  SMat     = SRealMat_;
   DistSparseMatrix<Real>& AMat      = shiftRealMat_;  // A = H - \lambda  S
-  SuperLUMatrix<Real>&    luMat     = luRealMat_;
-  PMatrix<Real>&          PMloc     = PMRealMat_;
+  SuperLUMatrix<Real>&    luMat     = *luRealMat_;
+  PMatrix<Real>&          PMloc     = *PMRealMat_;
 
   CopyPattern( HMat, AMat );
 
@@ -931,8 +954,8 @@ void PPEXSIData::CalculateFermiOperatorReal(
   DistSparseMatrix<Complex>& AinvMat   = shiftInvComplexMat_;
 
   // The symbolic information should have already been there.
-  SuperLUMatrix<Complex>& luMat        = luComplexMat_;
-  PMatrix<Complex>&       PMloc        = PMComplexMat_;
+  SuperLUMatrix<Complex>& luMat        = *luComplexMat_;
+  PMatrix<Complex>&       PMloc        = *PMComplexMat_;
 
   // 
   bool isFreeEnergyDensityMatrix = true;
