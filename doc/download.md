@@ -2,9 +2,9 @@ Download       {#pageDownload}
 ========
 
 
-**Current version (v0.7.0)**:
+**Current version (v0.7.1)**:
 
-<a href="http://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v0.7.0.tar.gz">pexsi_v0.7.0.tar.gz</a>
+<a href="http://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v0.7.1.tar.gz">pexsi_v0.7.1.tar.gz</a>
 
 **Older version of %PEXSI**:
 

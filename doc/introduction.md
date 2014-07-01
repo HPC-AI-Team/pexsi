@@ -210,3 +210,5 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 - v0.7.1 
   - Bug fix: PPEXSIPlanInitialize specifics the input according to
     mpirank instead of outputFileIndex.
+  - Bug fix: PPEXSIPlanFinalize gives floating point error due to the
+    double deallocation of SuperLUGrid.
