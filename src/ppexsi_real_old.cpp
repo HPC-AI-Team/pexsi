@@ -57,8 +57,8 @@
 // NOTE: IMPORTANT: Since some macros in pselinv.hpp and superlu_ddefs.h
 // share the same name (such as MYROW, MYCOL), superlu_ddefs.h MUST be
 // included AFTER ppexsi.hpp
-#include "superlu_ddefs.h"
-#include "Cnames.h"
+#include "pexsi/superlu_ddefs.h"
+#include "pexsi/Cnames.h"
 
 extern "C"{
 void

@@ -47,7 +47,7 @@
 /// factorization is still possible.
 /// @date 2014-01-24
 #include  "ppexsi.hpp"
-#include "timer.h"
+#include "pexsi/timer.h"
 
 using namespace PEXSI;
 using namespace std;

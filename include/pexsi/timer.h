@@ -51,7 +51,7 @@
 #define TOSTRING(str) VAL(str)
 
 #ifdef USE_TAU
-#include "TAU.h"
+#include "pexsi/TAU.h"
 #define TIMER_START(a) TAU_START(TOSTRING(a));
 #define TIMER_STOP(a) TAU_STOP(TOSTRING(a));
 
@@ -68,7 +68,7 @@
 
 
 
-#include "mpi.h"
+#include <mpi.h>"
 
 
 class CTF_timer{

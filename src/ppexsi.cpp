@@ -49,7 +49,7 @@
 #define _DEBUGlevel_ 0
 
 #include "ppexsi.hpp"
-#include "utility.hpp"
+#include "pexsi/utility.hpp"
 
 namespace PEXSI{
 

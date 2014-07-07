@@ -46,8 +46,8 @@
 #ifndef _PEXSI_PSELINV_IMPL_HPP_
 #define _PEXSI_PSELINV_IMPL_HPP_
 
-#include "timer.h"
-#include "superlu_dist_interf.hpp"
+#include "pexsi/timer.h"
+#include "pexsi/superlu_dist_interf.hpp"
 
 #define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
 #define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 

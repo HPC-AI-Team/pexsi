@@ -43,13 +43,13 @@
 /// @file mpi_interf.cpp
 /// @brief Interface with MPI to facilitate communication.
 /// @date 2012-11-03
-#include  "mpi_interf.hpp"
+#include "pexsi/mpi_interf.hpp"
 
 #ifdef USE_TAU
-  #include "TAU.h"
+  #include "pexsi/TAU.h"
 #elif defined (PROFILE) || defined(PMPI)
   #define TAU
-  #include "timer.h"
+  #include "pexsi/timer.h"
 #endif
 
 

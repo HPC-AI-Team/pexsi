@@ -50,16 +50,16 @@
 //  Common utilities
 // *********************************************************************
 
-#include  "environment.hpp"
-#include	"NumVec.hpp"
-#include	"NumMat.hpp" 
-#include  "sparse_matrix.hpp"
+#include "pexsi/environment.hpp"
+#include "pexsi/NumVec.hpp"
+#include "pexsi/NumMat.hpp" 
+#include "pexsi/sparse_matrix.hpp"
 
-#include  "superlu_dist_interf.hpp"
-#include  "mpi_interf.hpp"
-#include	"utility.hpp"
-#include	"blas.hpp"
-#include	"lapack.hpp"
+#include "pexsi/superlu_dist_interf.hpp"
+#include "pexsi/mpi_interf.hpp"
+#include "pexsi/utility.hpp"
+#include "pexsi/blas.hpp"
+#include "pexsi/lapack.hpp"
 #include <set>
 
 
@@ -963,6 +963,6 @@ namespace PEXSI{
 } // namespace PEXSI
 
 
-#include "pselinv_impl.hpp"
+#include "pexsi/pselinv_impl.hpp"
 
 #endif //_PEXSI_PSELINV_HPP_

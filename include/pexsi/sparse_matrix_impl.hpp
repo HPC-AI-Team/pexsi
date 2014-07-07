@@ -2,7 +2,7 @@
 	 Copyright (c) 2012 The Regents of the University of California,
 	 through Lawrence Berkeley National Laboratory.  
 
-   Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
+   Author: Mathias Jacquelin and Lin Lin
 	 
    This file is part of PEXSI. All rights reserved.
 
@@ -40,80 +40,45 @@
 	 works, incorporate into other computer software, distribute, and sublicense
 	 such enhancements or derivative works thereof, in binary and source code form.
 */
-/// @file NumTns.hpp
-/// @brief Numerical tensor
-/// @date 2010-09-27
-#ifndef _PEXSI_NUMTNS_HPP_
-#define _PEXSI_NUMTNS_HPP_
+/// @file sparse_matrix_impl.hpp
+/// @brief Implementation of sparse matrices.
+/// @date 2012-11-28
+#ifndef _PEXSI_SPARSE_MATRIX_IMPL_HPP_
+#define _PEXSI_SPARSE_MATRIX_IMPL_HPP_
 
-#include "environment.hpp"
-#include "NumMat.hpp"
+#include <iostream>
+#include "pexsi/environment.hpp"
+
+using std::ifstream;
+using std::ofstream;
+
+#include "pexsi/utility.hpp"
 
 
 namespace  PEXSI{
 
-	/// @class NumTns
-	///
-	/// @brief Numerical tensor.
-	///
-	/// NumTns is a portable encapsulation of a pointer to represent a 3D
-	/// tensor, which can either own (owndata == true) or view (owndata ==
-	/// false) a piece of data.  
-	template <class F>
-		class NumTns
-		{
-		public:
-			/// @brief The size of the first dimension.
-			Int m_; 
+template <class F> inline LongInt DistSparseMatrix<F>::Nnz ( )
+{
+#ifndef _RELEASE_
+	PushCallStack("DistSparseMatrix<F>::Nnz");
+#endif  
+  LongInt nnzLocalLong = nnzLocal;
+  LongInt nnz;
 
-			/// @brief The size of second dimension.
-			Int n_; 
+  MPI_Allreduce( &nnzLocalLong, &nnz, 1, MPI_LONG_LONG, MPI_SUM,
+      comm );
 
-			/// @brief The size of third dimension.
-			Int p_;
+#ifndef _RELEASE_
+	PopCallStack();
+#endif  
 
-			/// @brief Whether it owns the data.
-			bool owndata_;
-
-			/// @brief The pointer for the actual data.
-			F* data_;
-		public:
-			NumTns(Int m=0, Int n=0, Int p=0);
-			NumTns(Int m, Int n, Int p, bool owndata, F* data);
-			NumTns(const NumTns& C);
-			~NumTns();
-			NumTns& operator=(const NumTns& C);
-			void Resize(Int m, Int n, Int p);
-			const F& operator()(Int i, Int j, Int k) const;
-			F& operator()(Int i, Int j, Int k);
-			F* Data() const { return data_; }
-			F* MatData (Int j) const;
-			F* VecData (Int j, Int k) const;
-
-			Int m() const { return m_; }
-			Int n() const { return n_; }
-			Int p() const { return p_; }
-      Int ByteSize() const { return p_*m_*n_*sizeof(F);}
-
-		};
+  return nnz;
+} 		// -----  end of method DistSparseMatrix<F>::Nnz  ----- 
 
 
-	typedef NumTns<bool>       BolNumTns;
-	typedef NumTns<Int>        IntNumTns;
-	typedef NumTns<Real>       DblNumTns;
-	typedef NumTns<Complex>    CpxNumTns;
 
-	// *********************************************************************
-	// Utility functions
-	// *********************************************************************
-	/// @brief SetValue sets a numerical tensor to a constant val.
-	template <class F> inline void SetValue(NumTns<F>& T, F val);
 
-	/// @brief Energy computes the L2 norm of a tensor (treated as a vector).
-	template <class F> inline Real Energy(const NumTns<F>& T);
 
 } // namespace PEXSI
 
-#include "NumTns_impl.hpp"
-
-#endif // _PEXSI_NUMTNS_HPP_
+#endif // _PEXSI_SPARSE_MATRIX_IMPL_HPP_

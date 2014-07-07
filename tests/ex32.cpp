@@ -6,34 +6,16 @@
 #include <mpi.h>
 
 #include <complex>
+#include <string>
+#include <sstream>
 
 // Libraries from NGCHOL BEGIN
-//#include <time.h>
-//#include <random>
-//#include <omp.h>
+#include  "ppexsi.hpp"
 
 #include "ngchol.hpp"
-
-//#include  "Environment.hpp"
-//#include  "DistSparseMatrix.hpp"
-////#include  "NumVec.hpp"
-////#include  "NumMat.hpp"
-//#include  "utility.hpp"
-////#include  "ETree.hpp"
-//#include  "Mapping.hpp"
-//
-////#include  "blas.hpp"
-////#include  "lapack.hpp"
-//////#include  "NZBlock.hpp"
-//
-//#include  "SuperNode.hpp"
-//#include  "SupernodalMatrix.hpp"
-//
-//#include  "LogFile.hpp"
+#include "ngchol/sp_blas.hpp"
 
 
-
-//using namespace LIBCHOLESKY;
 using namespace PEXSI;
 using namespace std;
 
@@ -68,26 +50,77 @@ int main(int argc, char **argv)
     Usage();
   }
 
-  LIBCHOLESKY::logfileptr = new LIBCHOLESKY::LogFile(mpirank);
+
+
+  //Temporarily required
+  MPI_Comm_size(world_comm, &LIBCHOLESKY::np);
+  MPI_Comm_rank(world_comm, &LIBCHOLESKY::iam);
+
+  std::stringstream suffix;
+  suffix<<mpirank;
+  LIBCHOLESKY::logfileptr = new LIBCHOLESKY::LogFile("status",suffix.str().c_str());
   LIBCHOLESKY::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<endl;
   LIBCHOLESKY::logfileptr->OFS()<<"**********************************"<<endl;
 
 
 
 
-  //LIBCHOLESKY::Modwrap2D * mapping = new LIBCHOLESKY::Modwrap2D(mpisize, mpisize, mpisize, 1);
-  LIBCHOLESKY::Modwrap2D * mapping = new LIBCHOLESKY::Modwrap2D(mpisize, sqrt(mpisize), mpisize, 1);
+  LIBCHOLESKY::Modwrap2D * mapping = new LIBCHOLESKY::Modwrap2D(mpisize, mpisize, mpisize, 1);
+  //LIBCHOLESKY::Modwrap2D * mapping = new LIBCHOLESKY::Modwrap2D(mpisize, sqrt(mpisize), mpisize, 1);
   LIBCHOLESKY::DistSparseMatrix<SCALAR > HMat(world_comm);
   LIBCHOLESKY::ParaReadDistSparseMatrix( argv[1], HMat, world_comm ); 
 
+
+  //Prepare for a solve
+  Int n = HMat.size;
+  Int nrhs = 5;
+  LIBCHOLESKY::DblNumMat RHS(n,nrhs);
+  LIBCHOLESKY::DblNumMat XTrue(n,nrhs);
+  LIBCHOLESKY::UniformRandom(XTrue);
+  LIBCHOLESKY::sp_dgemm_dist("N","N", n, XTrue.n(), n, 
+      LIBCHOLESKY::ONE<SCALAR>(), HMat, XTrue.Data(), XTrue.m(), 
+      LIBCHOLESKY::ZERO<SCALAR>(), RHS.Data(), RHS.m());
+
+
+  //Create the supernodal matrix
   LIBCHOLESKY::SupernodalMatrix<SCALAR> SMat(HMat,-1,*mapping,0,0,world_comm);
-  statusOFS<<"Hello"<<endl;
-  for(Int i = 0; i<SMat.SupernodeCnt();++i){
-    LIBCHOLESKY::SuperNode<SCALAR> curSnode = SMat.GetLocalSupernode(i);
-    statusOFS<<curSnode<<endl;
+
+  //sort X the same way (permute rows)
+  LIBCHOLESKY::DblNumMat X(RHS.m(),RHS.n());
+  for(Int row = 1; row<= RHS.m(); ++row){
+    for(Int col = 1; col<= RHS.n(); ++col){
+      X(row-1,col-1) = RHS(SMat.perm_[row-1]-1,col-1);
+    }
   }
 
-  delete mapping;
+
+  //Factorize the matrix
+  SMat.FanOut(world_comm);
+
+  //Do a solve 
+  SMat.Solve(&X,world_comm);
+  SMat.GetSolution(X,world_comm);
+
+  //Sort back X
+  LIBCHOLESKY::DblNumMat X2(X.m(),X.n());
+  for(Int row = 1; row<= X.m(); ++row){
+    for(Int col = 1; col<= X.n(); ++col){
+      X2(SMat.perm_[row-1]-1,col-1) = X(row-1,col-1);
+    }
+  }
+
+  //Check the error
+  LIBCHOLESKY::blas::Axpy(X2.m()*X2.n(),-1.0,&XTrue(0,0),1,&X2(0,0),1);
+  double norm = LIBCHOLESKY::lapack::Lange('F',X2.m(),X2.n(),&X2(0,0),X2.m());
+  if(mpirank==0){
+    cout<<"Norm of residual after SPCHOL is "<<norm<<std::endl;
+  }
+
+  //sample loop to convert it to PMatrix
+  //for(Int i = 0; i<SMat.SupernodeCnt();++i){
+  //  LIBCHOLESKY::SuperNode<SCALAR> curSnode = SMat.GetLocalSupernode(i);
+  //}
+
 
   try{
   }
@@ -100,6 +133,7 @@ int main(int argc, char **argv)
 #endif
   }
 
+  delete mapping;
   delete LIBCHOLESKY::logfileptr;
   statusOFS.close();
 

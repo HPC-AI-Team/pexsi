@@ -46,19 +46,19 @@
 #ifndef _PEXSI_SUPERLU_DIST_INTERF_HPP_
 #define _PEXSI_SUPERLU_DIST_INTERF_HPP_
 
-#include  "superlu_dist_internal.hpp"
+#include "pexsi/superlu_dist_internal.hpp"
 
 // Interface with PSelInv
-#include "pselinv.hpp"
+#include "pexsi/pselinv.hpp"
 
 // Interface with sparse matrix (CSC format)
-#include  "sparse_matrix.hpp"
+#include "pexsi/sparse_matrix.hpp"
 
 // Interface with LAPACK
-#include  "lapack.hpp"
+#include "pexsi/lapack.hpp"
 
-#include  "SuperLUGrid.hpp"
-#include  "SuperLUMatrix.hpp"
+#include "pexsi/SuperLUGrid.hpp"
+#include "pexsi/SuperLUMatrix.hpp"
 
 #endif //_PEXSI_SUPERLU_DIST_INTERF_HPP_
 

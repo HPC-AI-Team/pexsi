@@ -49,11 +49,11 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <time.h>
-#include "string.h"
-#include "assert.h"
+#include <string.h>
+#include <assert.h>
 #include <iostream>
 #include <vector>
-#include "timer.h"
+#include "pexsi/timer.h"
 
 #define MAX_NAME_LENGTH 64
 

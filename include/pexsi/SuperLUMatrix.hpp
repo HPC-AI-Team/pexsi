@@ -47,18 +47,18 @@
 #define _PEXSI_SUPERLUMATRIX_HPP_
 
 // Interface with PSelInv
-#include "pselinv.hpp"
+#include "pexsi/pselinv.hpp"
 
 // Interface with sparse matrix (CSC format)
-#include  "sparse_matrix.hpp"
+#include "pexsi/sparse_matrix.hpp"
 
 // Interface with LAPACK
-#include  "lapack.hpp"
+#include "pexsi/lapack.hpp"
 
 
-#include "superlu_dist_internal.hpp"
-#include "SuperLUGrid.hpp"
-//#include "SuperLUData.hpp"
+#include "pexsi/superlu_dist_internal.hpp"
+#include "pexsi/SuperLUGrid.hpp"
+//#include "pexsi/SuperLUData.hpp"
 
 namespace PEXSI{
 
@@ -491,7 +491,7 @@ namespace PEXSI{
 
   } // namespace PEXSI
 
-#include "SuperLUMatrix_impl.hpp"
+#include "pexsi/SuperLUMatrix_impl.hpp"
 
 #endif // _PEXSI_SUPERLUMATRIX_HPP_
 

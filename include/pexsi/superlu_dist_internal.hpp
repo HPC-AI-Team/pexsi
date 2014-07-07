@@ -47,12 +47,12 @@
 #ifndef _PEXSI_SUPERLU_INTERNAL_HPP_
 #define _PEXSI_SUPERLU_INTERNAL_HPP_
 
-#include  "environment.hpp"
+#include "pexsi/environment.hpp"
 #include <string>
-#include "sparse_matrix.hpp"
-#include "NumMat.hpp"
-#include "NumVec.hpp"
-#include "SuperLUGrid.hpp"
+#include "pexsi/sparse_matrix.hpp"
+#include "pexsi/NumMat.hpp"
+#include "pexsi/NumVec.hpp"
+#include "pexsi/SuperLUGrid.hpp"
 
 namespace PEXSI{
   /// @struct SuperLUOptions

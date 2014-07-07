@@ -43,7 +43,7 @@
 /// @file pole.cpp
 /// @brief Implementation of the pole expansion subroutines.
 /// @date 2011-11-15
-#include "pole.hpp"
+#include "pexsi/pole.hpp"
 
 namespace PEXSI{
 

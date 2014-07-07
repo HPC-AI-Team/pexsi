@@ -49,7 +49,7 @@
  */
 #ifndef _PEXSI_C_PEXSI_INTERFACE_H_ 
 #define _PEXSI_C_PEXSI_INTERFACE_H_
-#include "mpi.h"
+#include <mpi.h>"
 #include <stdint.h>
 
 #ifdef __cplusplus

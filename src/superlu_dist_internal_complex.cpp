@@ -43,13 +43,13 @@
 /// @file superlu_dist_internal_complex.cpp
 /// @brief Implementation of internal structures for interfacing with SuperLU_Dist (version 3.0 and later) for complex arithmetic
 /// @date 2014-03-17
-#include "SuperLUGrid.hpp"
-#include "superlu_dist_internal.hpp"
+#include "pexsi/SuperLUGrid.hpp"
+#include "pexsi/superlu_dist_internal.hpp"
 
-#include "pselinv.hpp"
+#include "pexsi/pselinv.hpp"
 
-#include "superlu_zdefs.h"
-#include "Cnames.h"
+#include <superlu_zdefs.h>
+#include <Cnames.h>
 extern "C"{ void
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
 		ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,

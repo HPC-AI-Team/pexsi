@@ -46,16 +46,16 @@
 /// @date Revision:      2014-03-09  Second generation interface.
 #ifndef _PPEXSI_HPP_
 #define _PPEXSI_HPP_
-#include  "environment.hpp"
-#include  "sparse_matrix.hpp"
-#include  "NumVec.hpp"
-#include  "utility.hpp"
-#include  "pole.hpp"
-#include	"mpi_interf.hpp"
-#include  "SuperLUGrid.hpp"
-#include  "superlu_dist_interf.hpp"
-#include	"pselinv.hpp"
-//#include  "c_pexsi_interface.h"
+#include "pexsi/environment.hpp"
+#include "pexsi/sparse_matrix.hpp"
+#include "pexsi/NumVec.hpp"
+#include "pexsi/utility.hpp"
+#include "pexsi/pole.hpp"
+#include "pexsi/mpi_interf.hpp"
+#include "pexsi/SuperLUGrid.hpp"
+#include "pexsi/superlu_dist_interf.hpp"
+#include "pexsi/pselinv.hpp"
+//#include "pexsi/c_pexsi_interface.h"
 
 namespace PEXSI{
 

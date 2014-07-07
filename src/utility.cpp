@@ -43,7 +43,7 @@
 /// @file utility.cpp
 /// @brief Implementation of the non-templated utility subroutines.
 /// @date 2012-09-20
-#include "utility.hpp"
+#include "pexsi/utility.hpp"
 
 using namespace std;
 using std::ifstream;

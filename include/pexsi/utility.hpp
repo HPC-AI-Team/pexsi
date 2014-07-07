@@ -47,13 +47,13 @@
 #define _PEXSI_UTILITY_HPP_
 
 #include  <stdlib.h>
-#include  "environment.hpp"
-#include  "tinyvec.hpp"
-#include  "NumVec.hpp"
-#include  "NumMat.hpp"
-#include  "NumTns.hpp"
-#include  "sparse_matrix.hpp"
-#include	"mpi_interf.hpp"
+#include "pexsi/environment.hpp"
+#include "pexsi/tinyvec.hpp"
+#include "pexsi/NumVec.hpp"
+#include "pexsi/NumMat.hpp"
+#include "pexsi/NumTns.hpp"
+#include "pexsi/sparse_matrix.hpp"
+#include "pexsi/mpi_interf.hpp"
 
 namespace PEXSI{
 
@@ -1723,6 +1723,6 @@ namespace PEXSI{
 
 } // namespace PEXSI
 
-#include "utility_impl.hpp"
+#include "pexsi/utility_impl.hpp"
 
 #endif // _PEXSI_UTILITY_HPP_
