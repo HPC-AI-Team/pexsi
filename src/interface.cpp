@@ -47,7 +47,7 @@
 /// @date Original:      2013-02-03
 /// @date Revision:      2014-01-01 
 /// @date Revision:      2014-03-07  Second generation interface.
-#include "pexsi/c_pexsi_interface.h"
+#include "c_pexsi_interface.h"
 #include "ppexsi.hpp"
 #include "pexsi/blas.hpp"
 

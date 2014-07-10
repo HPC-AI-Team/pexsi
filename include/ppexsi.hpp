@@ -55,6 +55,7 @@
 #include "pexsi/SuperLUGrid.hpp"
 #include "pexsi/superlu_dist_interf.hpp"
 #include "pexsi/pselinv.hpp"
+//#include "pexsi/ngchol_interf.hpp"
 //#include "pexsi/c_pexsi_interface.h"
 
 namespace PEXSI{
