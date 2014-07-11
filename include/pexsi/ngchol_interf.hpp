@@ -68,6 +68,7 @@ namespace PEXSI{
         LIBCHOLESKY::SupernodalMatrix<T>& SMat,
         PMatrix<T>& PMat );
 
+  template<typename T> void PMatrixLtoU( PMatrix<T>& PMat );
 }
 
 #include "ngchol_interf_impl.hpp"

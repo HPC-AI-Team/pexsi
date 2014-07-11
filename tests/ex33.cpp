@@ -48,6 +48,10 @@ int main(int argc, char **argv)
 
   // FIXME
   Int nprow = 1, npcol = mpisize;
+  if(argc>2){
+    nprow = atoi(argv[2]);
+    npcol = atoi(argv[3]);
+  }
 
   if( mpirank == 0 ) {
     Usage();
@@ -104,6 +108,17 @@ int main(int argc, char **argv)
         statusOFS << LB << std::endl;
       }
     }
+
+    // Dump out the U factor
+    for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
+      statusOFS << "------------ SuperNode " << GBi( ib, PMat.Grid() ) << std::endl;
+      std::vector<UBlock<SCALAR> >& Urow = PMat.U(ib);
+      for( Int jb = 0; jb < PMat.NumBlockU(ib); jb++ ){
+        UBlock<SCALAR>& UB = Urow[jb];
+        statusOFS << UB << std::endl;
+      }
+    }
+
 
 
     delete superPtr;

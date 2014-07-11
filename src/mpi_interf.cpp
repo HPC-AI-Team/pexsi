@@ -66,6 +66,102 @@ namespace mpi{
 // *********************************************************************
 
 void
+Gatherv ( 
+		std::vector<Int>& localVec, 
+		std::vector<Int>& allVec,
+    Int root,
+		MPI_Comm          comm )
+{
+#ifndef _RELEASE_
+  PushCallStack("mpi::Gatherv");
+#endif
+  Int mpirank, mpisize;
+  MPI_Comm_rank( comm, &mpirank );
+  MPI_Comm_size( comm, &mpisize );
+
+  Int localSize = localVec.size();
+  std::vector<Int>  localSizeVec( mpisize );
+  MPI_Gather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT,root, comm );
+
+  if(mpirank==root){
+    std::vector<Int>  localSizeDispls( mpisize );
+    localSizeDispls[0] = 0;
+    for( Int ip = 1; ip < mpisize; ip++ ){
+      localSizeDispls[ip] = localSizeDispls[ip-1] + localSizeVec[ip-1];
+    }
+    Int totalSize = localSizeDispls[mpisize-1] + localSizeVec[mpisize-1];
+
+    allVec.clear();
+    allVec.resize( totalSize );
+
+    MPI_Gatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
+        &localSizeVec[0], &localSizeDispls[0], MPI_INT, root, comm	);
+  }
+  else{
+    MPI_Gatherv( &localVec[0], localSize, MPI_INT, NULL, 
+        NULL, NULL, MPI_INT, root, comm	);
+  }
+#ifndef _RELEASE_
+  PopCallStack();
+#endif
+
+  return ;
+}		// -----  end of function Gatherv  ----- 
+
+
+
+void
+Gatherv ( 
+		std::vector<Int>& localVec, 
+		std::vector<Int>& allVec,
+		std::vector<Int>& sizes,
+		std::vector<Int>& displs,
+    Int root,
+		MPI_Comm          comm )
+{
+#ifndef _RELEASE_
+  PushCallStack("mpi::Gatherv");
+#endif
+  Int mpirank, mpisize;
+  MPI_Comm_rank( comm, &mpirank );
+  MPI_Comm_size( comm, &mpisize );
+
+  Int localSize = localVec.size();
+
+  if(mpirank==root){
+    std::vector<Int> & localSizeVec = sizes;
+    localSizeVec.resize( mpisize );
+    MPI_Gather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT,root, comm );
+    std::vector<Int> &  localSizeDispls = displs;
+    localSizeDispls.resize( mpisize );
+    localSizeDispls[0] = 0;
+    for( Int ip = 1; ip < mpisize; ip++ ){
+      localSizeDispls[ip] = localSizeDispls[ip-1] + localSizeVec[ip-1];
+    }
+    Int totalSize = localSizeDispls[mpisize-1] + localSizeVec[mpisize-1];
+
+    allVec.clear();
+    allVec.resize( totalSize);
+
+    MPI_Gatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
+        &localSizeVec[0], &localSizeDispls[0], MPI_INT, root, comm	);
+  }
+  else{
+    MPI_Gather( &localSize, 1, MPI_INT, NULL, 1, MPI_INT,root, comm );
+    MPI_Gatherv( &localVec[0], localSize, MPI_INT, NULL, 
+        NULL, NULL, MPI_INT, root, comm	);
+  }
+#ifndef _RELEASE_
+  PopCallStack();
+#endif
+
+  return ;
+}		// -----  end of function Gatherv  ----- 
+
+
+
+
+void
 Allgatherv ( 
 		std::vector<Int>& localVec, 
 		std::vector<Int>& allVec,

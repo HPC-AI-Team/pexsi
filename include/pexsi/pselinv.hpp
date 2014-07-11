@@ -480,6 +480,21 @@ namespace PEXSI{
 
   template<typename T>
   class PMatrix{
+     public:
+      // This is the tag used for mpi communication for selinv
+
+      enum{
+        SELINV_TAG_U_SIZE,
+        SELINV_TAG_U_CONTENT,
+        SELINV_TAG_L_SIZE,
+        SELINV_TAG_L_CONTENT,
+        SELINV_TAG_L_REDUCE,
+        SELINV_TAG_D_SIZE,
+        SELINV_TAG_D_CONTENT,
+        SELINV_TAG_D_REDUCE,
+        SELINV_TAG_COUNT
+      };
+
 
     private:
       // *********************************************************************
@@ -543,20 +558,6 @@ namespace PEXSI{
       std::vector<bitMask>         commSendToRightMask_;
 
       //NumVec<Int>                       countCrossDiag_;
-
-      // This is the tag used for mpi communication for selinv
-
-      enum{
-        SELINV_TAG_U_SIZE,
-        SELINV_TAG_U_CONTENT,
-        SELINV_TAG_L_SIZE,
-        SELINV_TAG_L_CONTENT,
-        SELINV_TAG_L_REDUCE,
-        SELINV_TAG_D_SIZE,
-        SELINV_TAG_D_CONTENT,
-        SELINV_TAG_D_REDUCE,
-        SELINV_TAG_COUNT
-      };
 
 
 
@@ -956,6 +957,7 @@ namespace PEXSI{
       /// eigenvalues of a matrix below a certain threshold.
       void GetNegativeInertia	( Real& inertia );
 
+      inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
   };
 
 
