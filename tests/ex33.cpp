@@ -46,12 +46,6 @@ int main(int argc, char **argv)
   ss << "logTest" << mpirank;
   statusOFS.open( ss.str().c_str() );
 
-  // FIXME
-  Int nprow = 1, npcol = mpisize;
-  if(argc>2){
-    nprow = atoi(argv[2]);
-    npcol = atoi(argv[3]);
-  }
 
   if( mpirank == 0 ) {
     Usage();
@@ -63,6 +57,45 @@ int main(int argc, char **argv)
     MPI_Comm_size(world_comm, &LIBCHOLESKY::np);
     MPI_Comm_rank(world_comm, &LIBCHOLESKY::iam);
 
+    std::map<std::string,std::string> options;
+    OptionsCreate(argc, argv, options);
+  
+    Int nprow = 1, npcol = mpisize;
+
+    if( options.find("-r") != options.end() ){
+      if( options.find("-c") != options.end() ){
+        nprow= atoi(options["-r"].c_str());
+        npcol= atoi(options["-c"].c_str());
+        if(nprow*npcol != mpisize){
+          throw std::runtime_error("The number of used processors must be the same as the total number of available processors." );
+        } 
+      }
+      else{
+        throw std::runtime_error( "When using -r option, -c also needs to be provided." );
+      }
+    }
+    else if( options.find("-c") != options.end() ){
+      if( options.find("-r") != options.end() ){
+        nprow= atoi(options["-r"].c_str());
+        npcol= atoi(options["-c"].c_str());
+        if(nprow*npcol != mpisize){
+          throw std::runtime_error("The number of used processors must be the same as the total number of available processors." );
+        } 
+      }
+      else{
+        throw std::runtime_error( "When using -c option, -r also needs to be provided." );
+      }
+    }
+
+    std::string Hfile;
+    if( options.find("-H") != options.end() ){ 
+      Hfile = options["-H"];
+    }
+    else{
+      throw std::logic_error("Hfile must be provided.");
+    }
+
+
     std::stringstream suffix;
     suffix<<mpirank;
     LIBCHOLESKY::logfileptr = new LIBCHOLESKY::LogFile("status",suffix.str().c_str());
@@ -73,7 +106,7 @@ int main(int argc, char **argv)
     LIBCHOLESKY::Modwrap2D * mapping = new LIBCHOLESKY::Modwrap2D(mpisize, mpisize, mpisize, 1);
     //LIBCHOLESKY::Modwrap2D * mapping = new LIBCHOLESKY::Modwrap2D(mpisize, sqrt(mpisize), mpisize, 1);
     LIBCHOLESKY::DistSparseMatrix<SCALAR > HMat(world_comm);
-    LIBCHOLESKY::ParaReadDistSparseMatrix( argv[1], HMat, world_comm ); 
+    LIBCHOLESKY::ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
 
 //    statusOFS << "size = " << HMat.size << std::endl;
 //    statusOFS << "nzvalLocal = " << HMat.nzvalLocal << std::endl;
@@ -81,7 +114,7 @@ int main(int argc, char **argv)
     LIBCHOLESKY::SupernodalMatrix<SCALAR> SMat(HMat,-1,*mapping,0,0,world_comm);
 
 
-    GridType *gPtr = new GridType( world_comm, nprow, npcol );;
+    GridType *gPtr = new GridType( world_comm, nprow, npcol );
     SuperNodeType *superPtr = new SuperNodeType();
 
     // deprecated options

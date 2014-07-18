@@ -304,12 +304,14 @@ template<typename T> void NGCHOLMatrixToPMatrix(
         std::vector<Int>::iterator vi;
         Int pos;
         for( Int i = firstRow; i <= lastRow; i++ ){
-          vi = lower_bound( blkVec.begin(), blkVec.end(), superIdx(i) );
-          pos = vi - blkVec.begin();
-          rowsBlk[pos].push_back(i);
-          nzvalBlk[pos].insert(
-              nzvalBlk[pos].end(),
-              nzval, nzval + superSize ); 
+          vi = find( blkVec.begin(), blkVec.end(), superIdx(i) );
+          if( vi != blkVec.end() ){
+            pos = vi - blkVec.begin();
+            rowsBlk[pos].push_back(i);
+            nzvalBlk[pos].insert(
+                nzvalBlk[pos].end(),
+                nzval, nzval + superSize ); 
+          }
           nzval += superSize;
         }
       } // for ( blkidx )
@@ -341,7 +343,7 @@ template<typename T> void NGCHOLMatrixToPMatrix(
   }
 
 
-//  PMatrixLtoU( PMat );
+  PMatrixLtoU( PMat );
 
 #ifndef _RELEASE_
 	PopCallStack();
