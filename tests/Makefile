@@ -24,7 +24,7 @@ EXES = ${SRCS:.cpp=}	 ${SRCS_C:.c=}   ${SRCS_F:.f90=}
 %.o: %.F90
 	${FC} -c ${FFLAGS} $<
 
-ex33: ex33.o ${PEXSI_LIB} 
+ex33: ex33.o ${PEXSI_LIB} ../include/pexsi/ngchol_interf_impl.hpp 
 	($(LOADER) -o $@ ex33.o  $(LOADOPTS) )
 
 ex32: ex32.o ${PEXSI_LIB} 

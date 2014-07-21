@@ -144,11 +144,11 @@ int main(int argc, char **argv)
 
     // Dump out the U factor
     for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
-      statusOFS << "------------ SuperNode " << GBi( ib, PMat.Grid() ) << std::endl;
+      LIBCHOLESKY::logfileptr->OFS() << "------------ SuperNode " << GBi( ib, PMat.Grid() ) << std::endl;
       std::vector<UBlock<SCALAR> >& Urow = PMat.U(ib);
       for( Int jb = 0; jb < PMat.NumBlockU(ib); jb++ ){
         UBlock<SCALAR>& UB = Urow[jb];
-        statusOFS << UB << std::endl;
+        LIBCHOLESKY::logfileptr->OFS() << UB << std::endl;
       }
     }
 

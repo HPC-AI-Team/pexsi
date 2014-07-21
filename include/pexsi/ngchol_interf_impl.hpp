@@ -144,6 +144,9 @@ template<typename T> void NGCHOLMatrixToPMatrix(
 
   Int nprow = g->numProcRow, npcol = g->numProcCol;
 
+  Int mpirow = mpirank / npcol;  
+  Int mpicol = mpirank % npcol;
+
   Int n = SMat.Size();
   PMat.ColBlockIdx().clear();
   PMat.RowBlockIdx().clear();
@@ -257,7 +260,7 @@ template<typename T> void NGCHOLMatrixToPMatrix(
 #endif
 
     // Local operation from now
-    if( ( mpirank % npcol ) == ( iSuper % npcol ) ){
+    if( mpicol == ( iSuper % npcol ) ){
       Int jb = iSuper / npcol;
       std::vector<LBlock<T> >& Lcol = PMat.L(jb);
       std::set<Int> blkSet;
@@ -274,7 +277,7 @@ template<typename T> void NGCHOLMatrixToPMatrix(
     statusOFS << "firstRow = " << firstRow << ", lastRow = " << lastRow << std::endl;
 #endif
         for( Int i = superIdx(firstRow); i <= superIdx(lastRow); i++ ){
-          if( ( mpirank % nprow ) == ( i % nprow ) ){
+          if( mpirow == ( i % nprow ) ){
             blkSet.insert( i );
           } // if the current processor is in the right processor row
         }
@@ -399,7 +402,8 @@ statusOFS<<"----------------------- "<< ksup<<std::endl;
         for ( Int iblk = startBlk; iblk < Lcol.size(); iblk++ ){
           LBlock<T>& LB = Lcol[iblk];
           //column of the target processor
-          Int tgt_pcol = LB.blockIdx % npcol;
+          Int snode_idx = LBi(LB.blockIdx, g);
+          Int tgt_pcol =  snode_idx % npcol;
           blocks_to_receiver[tgt_pcol].push_back(&LB);
           proc_set.insert(tgt_pcol);
         }
@@ -515,28 +519,6 @@ statusOFS<<"Sent LB: "<<LB<<std::endl;
                   PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_CONTENT), comm);
             }
           }
-          else{
-            //do the copy locally
-            Int ib = ksup / nprow;
-            std::vector<UBlock<T> >& Urow = PMat.U(ib);
-            //Serialize everything in the blocks_to_receiver list
-            std::list<LBlock<T> *> & blocks = blocks_to_receiver[pcol];
-            if(blocks.size()>0){
-              typename std::list<LBlock<T> *>::iterator it;
-              Int idx = 0;
-              for(it = blocks.begin(), idx=0; 
-                  it!=blocks.end();++it,++idx){
-                LBlock<T> & LB = *(*it);
-                UBlock<T> & UB = Urow[idx];
-
-                UB.blockIdx = LB.blockIdx;
-                UB.numCol = LB.numRow;
-                UB.numRow = LB.numCol;
-                UB.cols = LB.rows;
-                Transpose(LB.nzval,UB.nzval);
-              }
-            }
-          }
         }
      }
      //If I'm a receiver 
@@ -548,14 +530,13 @@ statusOFS<<"Sent LB: "<<LB<<std::endl;
         //for each target row
         Int idx = 0;
         for(Int i = 0; i < sender_proc.size(); ++i){
+
           Int prow = sender_proc[i];
           Int pnum = (prow)*npcol + (ksup % npcol);
           if(pnum != mpirank){
             std::stringstream sstm;
             mpi::Recv(sstm,pnum,PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_SIZE),
                 PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_CONTENT), comm);
-
-
 
             //now deserialize and put everything in U
             Int numLBlocks = 0;
@@ -578,9 +559,33 @@ statusOFS<<"Received LB: "<<LB<<std::endl;
                 UB.numRow = LB.numCol;
                 UB.cols = LB.rows;
                 Transpose(LB.nzval,UB.nzval);
-                ++idx;       
+                ++idx; 
             }
           }
+          else{
+            Int pcol = mpicol ;
+            //do the copy locally
+            Int ib = ksup / nprow;
+            std::vector<UBlock<T> >& Urow = PMat.U(ib);
+            //Serialize everything in the blocks_to_receiver list
+            std::list<LBlock<T> *> & blocks = blocks_to_receiver[pcol];
+            if(blocks.size()>0){
+              typename std::list<LBlock<T> *>::iterator it;
+              for(it = blocks.begin(); 
+                  it!=blocks.end();++it){
+                LBlock<T> & LB = *(*it);
+                UBlock<T> & UB = Urow[idx];
+
+                UB.blockIdx = LB.blockIdx;
+                UB.numCol = LB.numRow;
+                UB.numRow = LB.numCol;
+                UB.cols = LB.rows;
+                Transpose(LB.nzval,UB.nzval);
+                ++idx; 
+              }
+            }
+          }
+
           
         }
      }
