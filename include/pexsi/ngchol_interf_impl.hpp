@@ -324,7 +324,7 @@ template<typename T> void NGCHOLMatrixToPMatrix(
         std::vector<Int>& rows = rowsBlk[iblk];
         std::vector<T>& nzval = nzvalBlk[iblk];
         LBlock<T>& LB = Lcol[iblk];
-        LB.blockIdx = GBi( blkVec[iblk], g );
+        LB.blockIdx = blkVec[iblk];
         LB.numRow = rows.size();
         LB.numCol = superSize;
         LB.rows = IntNumVec( LB.numRow, true, &rows[0] );
@@ -402,7 +402,7 @@ statusOFS<<"----------------------- "<< ksup<<std::endl;
         for ( Int iblk = startBlk; iblk < Lcol.size(); iblk++ ){
           LBlock<T>& LB = Lcol[iblk];
           //column of the target processor
-          Int snode_idx = LBi(LB.blockIdx, g);
+          Int snode_idx = LB.blockIdx;
           Int tgt_pcol =  snode_idx % npcol;
           blocks_to_receiver[tgt_pcol].push_back(&LB);
           proc_set.insert(tgt_pcol);
