@@ -629,8 +629,8 @@ throw std::logic_error( "File cannot be opened!" );
 		}
 		Int dummy;
 
-		fin >> pspmat.size >> dummy;
-		fin >> pspmat.nnz;
+		fin >> pspmat.size >> dummy ;
+		fin >> pspmat.nnz >> dummy;
 		// FIXME this is temporary and only applies to 4*4 matrix.
 //	  fin	>> dummy;
 	}
@@ -1104,7 +1104,7 @@ throw std::logic_error( "File cannot be opened!" );
 		Int dummy;
 
 		fin >> pspmat.size >> dummy;
-		fin >> pspmat.nnz;
+		fin >> pspmat.nnz >> dummy;
 		// FIXME this is temporary and only applies to 4*4 matrix.
 //	  fin	>> dummy;
 	}
