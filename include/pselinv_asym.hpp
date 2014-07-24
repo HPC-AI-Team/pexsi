@@ -148,6 +148,11 @@ namespace PEXSI{
       std::vector<std::vector<UBlock<T> > > Ucol_;
       std::vector<std::vector<LBlock<T> > > Lrow_;
 
+#ifdef _DYN_ALLOC_LU_
+      std::vector<Int > UcolSize_;
+      std::vector<Int > LrowSize_;
+#endif
+
       // Communication variables
       // This is the tag used for mpi communication for selinv
 
