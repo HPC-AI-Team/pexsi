@@ -68,6 +68,18 @@
 namespace PEXSI{
 
 
+#ifdef _DYN_ALLOC_LU_
+    template<typename T>
+    bool LBlockComparator(const LBlock<T> & a,const LBlock<T> & b){
+      return a.blockIdx<b.blockIdx;
+    }
+
+    template<typename T>
+    bool UBlockComparator(const UBlock<T> & a,const UBlock<T> & b){
+      return a.blockIdx<b.blockIdx;
+    }
+#endif
+
 
 
   /**********************************************************************

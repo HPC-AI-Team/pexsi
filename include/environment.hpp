@@ -174,6 +174,21 @@ const Real PI = 3.141592653589793;
 namespace PEXSI{
 
 
+
+
+
+
+  inline void gdb_lock(){
+    volatile int lock = 1;
+    while (lock == 1){ }
+  }
+
+
+
+
+
+
+
 #ifndef _RELEASE_
   void PushCallStack( std::string s );
   void PopCallStack();

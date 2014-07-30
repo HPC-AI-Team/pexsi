@@ -48,6 +48,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "timer.h"
 #include "superlu_dist_interf.hpp"
+#include <algorithm>
 
 namespace PEXSI{
   template<typename T>
@@ -150,6 +151,14 @@ namespace PEXSI{
       statusOFS<<std::endl;
 #endif
 
+#ifdef _DYN_ALLOC_LU_
+      TIMER_START(Sort_LrowRecv_UcolRecv);
+      //LrowRecv should be sorted by blockIdx, same for UcolRecv
+      std::sort(LrowRecv.begin(),LrowRecv.end(),LBlockComparator<T>);
+      std::sort(UcolRecv.begin(),UcolRecv.end(),UBlockComparator<T>);
+      TIMER_STOP(Sort_LrowRecv_UcolRecv);
+#endif
+
       // rowPtrL[ib] gives the row index in snode.LUpdateBuf for the first
       // nonzero row in LcolRecv[ib]. The total number of rows in
       // snode.LUpdateBuf is given by rowPtr[end]-1
@@ -162,9 +171,9 @@ namespace PEXSI{
       // colPtrL[jb] gives the column index in LBuf for the first
       // nonzero column in UrowRecv[jb]. The total number of rows in
       // LBuf is given by colPtr[end]-1
+
       std::vector<Int> colPtrL(LrowRecv.size() + 1);
       std::vector<Int> colPtrU(UcolRecv.size() + 1,-1);
-
       colPtrL[0] = 0;
       for( Int jb = 0; jb < LrowRecv.size(); jb++ ){
         colPtrL[jb+1] = colPtrL[jb] + LrowRecv[jb].numCol;
@@ -191,6 +200,8 @@ namespace PEXSI{
       LBuf.Resize( SuperSize( snode.Index, this->super_ ), numColAinvBuf );
       UBuf.Resize( SuperSize( snode.Index, this->super_ ), numRowAinvBuf );
       TIMER_STOP(Allocate_lookup);
+
+
 
       TIMER_START(Fill_LBuf);
       // Fill LBuf first. Make the transpose later in the Gemm phase.
@@ -227,11 +238,25 @@ namespace PEXSI{
       }
       TIMER_STOP(Fill_UBuf);
 
+
+//DEBUG MATHIAS
+//#if ( _DEBUGlevel_ >= 0 )
+//      statusOFS<<"colPtrL: "<<colPtrL<<std::endl;
+//      statusOFS<<"colPtrU: "<<colPtrU<<std::endl;
+//      statusOFS<<"LrowRecv: "<<LrowRecv<<std::endl;
+//      statusOFS<<"UcolRecv: "<<UcolRecv<<std::endl;
+//      statusOFS<<"LBuf: "<<LBuf<<std::endl;
+//      statusOFS<<"UBuf: "<<UBuf<<std::endl;
+//#endif
+
+
+
+
       // Calculate the relative indices for (isup, jsup)
       // Fill AinvBuf with the information in L or U block.
       TIMER_START(JB_Loop);
-
-    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+//    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+    for( Int jb = 0; jb < LrowRecv.size(); jb++ ){
       LBlock<T>& LrowB = LrowRecv[jb];
       Int jsup = LrowB.blockIdx;
 
@@ -612,6 +637,8 @@ namespace PEXSI{
       mpi::Waitall(arrMpiReqsSizeRecvLCD);
       TIMER_STOP(Wait_Size_L_CrossDiag);
 
+//if(this->grid_->mpirank==0){gdb_lock();}
+
       //Allocate content and do Irecv for content of L
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
@@ -636,6 +663,7 @@ namespace PEXSI{
                     IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT),
                     this->grid_->comm, &mpiReqRecvL );
                 recvIdxL++;
+
               }
             }
           }
@@ -710,10 +738,10 @@ namespace PEXSI{
           std::vector<LBlock<T> >& Lcol = this->L( LBj(snode.Index, this->grid_) );
           std::vector<LBlock<T> >& Lrow = this->Lrow( LBi( snode.Index, this->grid_ ) );
 
-          if(Lrow.size() == 0){
-            Int& LrowSize = this->LrowSize_[ LBi( snode.Index, this->grid_ ) ];
-            Lrow.resize(LrowSize);
-          }
+//          if(Lrow.size() == 0){
+//            Int& LrowSize = this->LrowSize_[ LBi( snode.Index, this->grid_ ) ];
+//            Lrow.resize(LrowSize);
+//          }
 
           std::vector<Int> isBlockFound(Lrow.size(),false);
           Int recvIdxL=0;
@@ -783,6 +811,13 @@ namespace PEXSI{
                   throw std::logic_error( "LcolRecv contains the wrong blocks." );
                 }
 
+                //check that LB would be on this proc if it was a UB
+                if(PCOL(LB.blockIdx, this->grid_) != MYCOL(this->grid_)){
+                  continue;
+                }
+
+
+
                 //std::vector<LBlock<T> > &  LrowCD = this->Lrow( LBi( ksup, super_ ) );
                 for( Int iib = 0; iib < Lrow.size(); iib++ ){
                   LBlock<T> &  LrowB = Lrow[ iib ];
@@ -796,11 +831,14 @@ namespace PEXSI{
                     // Note that the order of the column indices of the U
                     // block may not follow the order of the row indices,
                     // overwrite the information in U.
+//                    LrowB = LB;
                     LrowB.rows = LB.rows;
                     //Store in "row major" format / i.e transpose is in col-major
                     Transpose(LB.nzval, LrowB.nzval);
                     LrowB.numCol = LB.numRow;
                     LrowB.numRow = LB.numCol;
+
+//                    SetValue(LrowB.nzval,ZERO<T>());
 
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS<<"["<<snode.Index<<"] USING LB "<<LB.blockIdx<< std::endl;
@@ -826,7 +864,7 @@ namespace PEXSI{
         } // Done copying L
       }
 
-      //waitall content of L
+      //waitall content of U
       TIMER_START(Wait_U_CrossDiag);
       mpi::Waitall(arrMpiReqsRecvUCD);
       TIMER_STOP(Wait_U_CrossDiag);
@@ -844,10 +882,10 @@ namespace PEXSI{
 
           std::vector<UBlock<T> >& Ucol = this->Ucol( LBj( snode.Index, this->grid_ ) );
 
-          if(Ucol.size() == 0){
-            Int& UcolSize = this->UcolSize_[ LBj( snode.Index, this->grid_ ) ];
-            Ucol.resize(UcolSize);
-          }
+//          if(Ucol.size() == 0){
+//            Int& UcolSize = this->UcolSize_[ LBj( snode.Index, this->grid_ ) ];
+//            Ucol.resize(UcolSize);
+//          }
 
           std::vector<Int> isBlockFound(Ucol.size(),false);
           Int recvIdxU=0;
@@ -903,9 +941,6 @@ namespace PEXSI{
               } // sender is the same as receiver
 
 
-
-
-
               TIMER_STOP(Recv_U_CrossDiag);
 
               //We can directly put UrowRecv in Ucol
@@ -917,6 +952,12 @@ namespace PEXSI{
 #endif
                   throw std::logic_error( "UrowRecv contains the wrong blocks." );
                 }
+
+                //check that UB would be on this proc if it was a LB
+                if(PROW(UB.blockIdx, this->grid_) != MYROW(this->grid_)){
+                  continue;
+                }
+
 
                 //std::vector<UBlock<T> > &  UcolCD = this->Ucol( LBi( ksup, super_ ) );
                 for( Int jjb = 0; jjb < Ucol.size(); jjb++ ){
@@ -936,6 +977,7 @@ namespace PEXSI{
                     // overwrite the information in U.
                     UcolB = UB;
 
+//SetValue(UcolB.nzval,ZERO<T>());
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS<<"["<<snode.Index<<"] USING UB "<<UB.blockIdx<< std::endl;
 #endif
@@ -1296,12 +1338,16 @@ namespace PEXSI{
                   LBlock<T> &  LrowB = Lrow[iib];
                   if( LrowB.blockIdx == (*pBlockIdxLocal)[ib] ){
 
+#if 0
                     Ltmp.Resize( LrowB.numCol, LrowB.numRow );
                     lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
                         &(*pLUpdateBuf)( (*pRowLocalPtr)[ib], 0 ),
                         pLUpdateBuf->m(), Ltmp.Data(), Ltmp.m() );
-                    isBlockFound[iib] = 1;
                     Transpose( Ltmp, LrowB.nzval );
+#endif
+//SetValue(LrowB.nzval,ZERO<T>());
+
+                    isBlockFound[iib] = 1;
                     break;
                   }
                 }
@@ -1408,10 +1454,15 @@ namespace PEXSI{
 
 
                   if( UcolB.blockIdx == (*pBlockIdxLocal)[jb] ){
+#if 0
                     lapack::Lacpy( 'A', UcolB.nzval.m(), UcolB.nzval.n(), 
                         &(*pUUpdateBuf)( 0, (*pColLocalPtr)[jb] ),
                         pUUpdateBuf->m(), UcolB.nzval.Data(), UcolB.nzval.m() );
+#endif
+
+//SetValue(UcolB.nzval,ZERO<T>());
                     isBlockFound[jjb] = true;
+
                     break;
                   }
                 }
@@ -1609,7 +1660,8 @@ namespace PEXSI{
               break;
             }
           }
-        
+       
+ 
           assert(jb < Ucol.size());
 
           UBlock<T> & UcolB = Ucol[jb];
@@ -1688,14 +1740,17 @@ namespace PEXSI{
         arrSuperNodes[supidx].Index = superList[lidx][supidx];  
 #ifdef _DYN_ALLOC_LU_
         SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
-        std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
-        Int&  LrowSize = this->LrowSize_[ LBi(snode.Index, this->grid_) ];
-        Lrow.resize(LrowSize);
+        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
+          std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
+          Int&  LrowSize = this->LrowSize_[ LBi(snode.Index, this->grid_) ];
+          Lrow.resize(LrowSize,LBlock<T>());
+        }
 
-        std::vector<UBlock<T> >&  Ucol = this->Ucol( LBj(snode.Index, this->grid_) );
-        Int&  UcolSize = this->UcolSize_[ LBj(snode.Index, this->grid_) ];
-        Ucol.resize(UcolSize);
-
+        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
+          std::vector<UBlock<T> >&  Ucol = this->Ucol( LBj(snode.Index, this->grid_) );
+          Int&  UcolSize = this->UcolSize_[ LBj(snode.Index, this->grid_) ];
+          Ucol.resize(UcolSize,UBlock<T>());
+        }
         //Load Lcol in LUpdateBuf
         //Load Urow in UUpdateBuf
 
@@ -1722,6 +1777,65 @@ namespace PEXSI{
 
 #endif
 
+
+
+//Dump the Blocks in Ucol and Lrow
+//#if ( _DEBUGlevel_ >= 1 )
+//
+//      for (Int supidx=0; supidx<stepSuper; supidx++){
+//        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//        statusOFS<<"--------- LCOL SuperNode "<<snode.Index<<" ---------"<<std::endl;
+//        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
+//          std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, this->grid_) );
+//          for(Int idx = 0; idx<Lcol.size(); ++idx){
+//            LBlock<T> & LB = Lcol[idx];
+//            statusOFS<<LB<<std::endl;
+//          }
+//        }
+//      }
+//      statusOFS<<std::endl;
+//      statusOFS<<std::endl;
+//
+//      for (Int supidx=0; supidx<stepSuper; supidx++){
+//        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//        statusOFS<<"--------- UROW SuperNode "<<snode.Index<<" ---------"<<std::endl;
+//        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
+//          std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
+//          for(Int idx = 0; idx<Urow.size(); ++idx){
+//            UBlock<T> & UB = Urow[idx];
+//            statusOFS<<UB<<std::endl;
+//          }
+//        }
+//      }
+//      statusOFS<<std::endl;
+//      statusOFS<<std::endl;
+//      for (Int supidx=0; supidx<stepSuper; supidx++){
+//        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//        statusOFS<<"--------- LROW SuperNode "<<snode.Index<<" ---------"<<std::endl;
+//        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
+//          std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
+//          for(Int idx = 0; idx<Lrow.size(); ++idx){
+//            LBlock<T> & LB = Lrow[idx];
+//            statusOFS<<LB<<std::endl;
+//          }
+//        }
+//      }
+//      statusOFS<<std::endl;
+//      statusOFS<<std::endl;
+//
+//
+//      for (Int supidx=0; supidx<stepSuper; supidx++){
+//        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//        statusOFS<<"--------- UCOL SuperNode "<<snode.Index<<" ---------"<<std::endl;
+//        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
+//          std::vector<UBlock<T> >&  Ucol = this->Ucol( LBj(snode.Index, this->grid_) );
+//          for(Int idx = 0; idx<Ucol.size(); ++idx){
+//            UBlock<T> & UB = Ucol[idx];
+//            statusOFS<<UB<<std::endl;
+//          }
+//        }
+//      }
+//#endif
 
 
 
@@ -2754,10 +2868,14 @@ namespace PEXSI{
       //Deallocate Lrow and Ucol
       for (Int supidx=0; supidx<stepSuper; supidx++){ 
         SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
-        std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
-        Lrow.clear();
-        std::vector<UBlock<T> >&  Ucol = this->Ucol( LBj(snode.Index, this->grid_) );
-        Ucol.clear();
+        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ )){ 
+          std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
+          Lrow.clear();
+        }
+        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ )){ 
+          std::vector<UBlock<T> >&  Ucol = this->Ucol( LBj(snode.Index, this->grid_) );
+          Ucol.clear();
+        }
       }
 #endif
 
@@ -2874,6 +2992,42 @@ namespace PEXSI{
       TIMER_STOP(Barrier);
 
 
+
+////Dump the Blocks in Ucol and Lrow
+////#if ( _DEBUGlevel_ >= 1 )
+//
+//        for (Int supidx=0; supidx<stepSuper; supidx++){
+//          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//          statusOFS<<"--------- LCOL SuperNode "<<snode.Index<<" ---------"<<std::endl;
+//        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
+//          std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, this->grid_) );
+//          for(Int idx = 0; idx<Lcol.size(); ++idx){
+//            LBlock<T> & LB = Lcol[idx];
+//            statusOFS<<LB<<std::endl;
+//          }
+//        }
+//        }
+//            statusOFS<<std::endl;
+//            statusOFS<<std::endl;
+//
+//            for (Int supidx=0; supidx<stepSuper; supidx++){
+//              SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//              statusOFS<<"--------- UROW SuperNode "<<snode.Index<<" ---------"<<std::endl;
+//              if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
+//                std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
+//                for(Int idx = 0; idx<Urow.size(); ++idx){
+//                  UBlock<T> & UB = Urow[idx];
+//                  statusOFS<<UB<<std::endl;
+//                }
+//              }
+//            }
+////#endif
+
+
+
+
+
+
 #ifdef LIST_BARRIER
 #ifndef ALL_BARRIER
       if (this->options_->maxPipelineDepth!=-1)
@@ -2927,6 +3081,12 @@ namespace PEXSI{
   template<typename T> 
     void PMatrixAsym<T>::PreSelInv	(  )
     {
+
+
+
+
+
+
 #ifndef _RELEASE_
       PushCallStack("PMatrixAsym::PreSelInv");
 #endif
@@ -2940,6 +3100,7 @@ namespace PEXSI{
       statusOFS << std::endl << "L(i,k) <- L(i,k) * L(k,k)^{-1}"
         << std::endl << std::endl; 
 #endif
+
 
 
 
@@ -3196,7 +3357,7 @@ namespace PEXSI{
 
 
 
-#ifndef _DYN_ALLOC_LU_
+#if !defined(_DYN_ALLOC_LU_) 
 
 #ifndef _RELEASE_
       PushCallStack("Lrow(k,i) <- L(i,k)");
@@ -3221,7 +3382,6 @@ namespace PEXSI{
         std::vector<MPI_Request > arrMpiReqsSizeRecv(recvCount, MPI_REQUEST_NULL);
         std::vector<std::vector<char> > arrSstrLcolRecv(recvCount);
         std::vector<Int > arrSstrLcolSizeRecv(recvCount);
-
 
 
         // Sender of L
@@ -3369,6 +3529,9 @@ namespace PEXSI{
           recvIdx = 0;
           for(Int srcRow = 0; srcRow<this->grid_->numProcRow; srcRow++){
             if(this->isRecvFromCrossDiagonal_(srcRow,ksup) ){
+
+if(this->grid_->mpirank==0 && ksup==101){gdb_lock();}
+
               std::vector<LBlock<T> > * pLcol;
               std::vector<LBlock<T> > LcolRecv;
               Int src = PNUM(srcRow,PCOL(ksup,this->grid_),this->grid_);
@@ -3431,6 +3594,11 @@ namespace PEXSI{
                   throw std::logic_error( "LcolRecv contains the wrong blocks." );
                 }
 
+                //check that LB would be on this proc if it was a UB
+                if(PCOL(LB.blockIdx, this->grid_) != MYCOL(this->grid_)){
+                  continue;
+                }
+
                 //std::vector<LBlock<T> > &  LrowCD = this->Lrow( LBi( ksup, super_ ) );
                 for( Int iib = 0; iib < Lrow.size(); iib++ ){
                   LBlock<T> &  LrowB = Lrow[ iib ];
@@ -3459,6 +3627,8 @@ namespace PEXSI{
                     Transpose(LB.nzval, LrowB.nzval);
                     LrowB.numCol = LB.numRow;
                     LrowB.numRow = LB.numCol;
+
+//SetValue(LrowB.nzval,ZERO<T>());
 
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS<<"["<<ksup<<"] USING LB "<<LB.blockIdx<< std::endl;
@@ -3696,6 +3866,14 @@ namespace PEXSI{
                   throw std::logic_error( "UrowRecv contains the wrong blocks." );
                 }
 
+                //check that UB would be on this proc if it was a LB
+                if(PROW(UB.blockIdx, this->grid_) != MYROW(this->grid_)){
+                  continue;
+                }
+
+
+
+
                 //std::vector<UBlock<T> > &  UcolCD = this->Ucol( LBi( ksup, super_ ) );
                 for( Int jjb = 0; jjb < Ucol.size(); jjb++ ){
                   UBlock<T> &  UcolB = Ucol[jjb];
@@ -3720,6 +3898,8 @@ namespace PEXSI{
                     // block may not follow the order of the row indices,
                     // overwrite the information in U.
                     UcolB = UB;
+
+//SetValue(UcolB.nzval,ZERO<T>());
 
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS<<"["<<ksup<<"] USING UB "<<UB.blockIdx<< std::endl;
@@ -3758,6 +3938,10 @@ namespace PEXSI{
 #ifndef _RELEASE_
       PopCallStack();
 #endif
+
+
+
+
 
       return ;
     } 		// -----  end of method PMatrixAsym::PreSelInv  ----- 
@@ -3874,7 +4058,7 @@ namespace PEXSI{
           localColBlockRowIdx[LBj( ksup, this->grid_ )].insert(
               tAllBlockRowIdx.begin(), tAllBlockRowIdx.end() );
 
-#if ( _DEBUGlevel_ >= 1 )
+#if ( _DEBUGlevel_ >= 2 )
           statusOFS 
             << " Column block " << ksup 
             << " has the following nonzero block rows" << std::endl;
@@ -3924,30 +4108,54 @@ namespace PEXSI{
             }
           TIMER_STOP(Allocating_Ucol);
 
+
+
+#if ( _DEBUGlevel_ >= 1  )
+#ifdef _DYN_ALLOC_LU_
+            statusOFS<<"["<<ksup<<"] "<<"UcolSize = "<<UcolSize<<std::endl;
+#else
+            statusOFS<<"["<<ksup<<"] "<<"UcolSize = "<<Ucol.size()<<std::endl;
+#endif
+#endif
+
+
 #if ( _DEBUGlevel_ >= 2 )
-{
+
             statusOFS<<"Ucol of "<<ksup<<std::endl;
             for(Int ib=0;ib<Ucol.size();++ib){statusOFS<<Ucol[ib].blockIdx<<" ";}
             statusOFS<<std::endl;
+#endif
 
-
-            std::vector< LBlock<T> > & Lcol = this->L( LBj(ksup, this->grid_ ) );
-
+#if ( _DEBUGlevel_ >= 1 )
+{
 #ifndef _DYN_ALLOC_LU_
+            Int UcolSize = Ucol.size();
+#endif
+            std::vector< LBlock<T> > & Lcol = this->L( LBj(ksup, this->grid_ ) );
             if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
-              assert(Lcol.size() == Ucol.size()+1);
+              assert(Lcol.size() == UcolSize+1);
             }
             else{
-              assert(Lcol.size() == Ucol.size());
+              assert(Lcol.size() == UcolSize);
             }
-#endif
 }
 #endif
 
 
         } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
     }
-#if 1
+
+
+
+
+
+
+
+
+
+
+
+
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
         // All block columns perform independently
         std::vector<Int> tAllBlockRowIdx;
@@ -3994,6 +4202,19 @@ namespace PEXSI{
               }
             }
           TIMER_STOP(Allocating_Lrow);
+
+#if ( _DEBUGlevel_ >= 1  )
+#ifdef _DYN_ALLOC_LU_
+            statusOFS<<"["<<ksup<<"] "<<"LrowSize = "<<LrowSize<<std::endl;
+#else
+            statusOFS<<"["<<ksup<<"] "<<"LrowSize = "<<Lrow.size()<<std::endl;
+#endif
+#endif
+
+
+
+
+
 
           TIMER_START(Extending_Urow);
             //Lrow is denser than Urow
@@ -4042,9 +4263,10 @@ namespace PEXSI{
 #endif
 #endif
         } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
-#endif
 
       } // for(ksup)
+
+
 
 
 #ifndef _RELEASE_
@@ -4085,7 +4307,7 @@ namespace PEXSI{
           localRowBlockColIdx[LBi( ksup, this->grid_ )].insert(
               tAllBlockColIdx.begin(), tAllBlockColIdx.end() );
 
-#if ( _DEBUGlevel_ >= 1 )
+#if ( _DEBUGlevel_ >= 2 )
           statusOFS 
             << " Row block " << ksup 
             << " has the following nonzero block columns" << std::endl;
@@ -4342,6 +4564,24 @@ namespace PEXSI{
 
       //Build the list of supernodes based on the elimination tree from SuperLU
       this->GetWorkSet(snodeEtree,this->WorkingSet());
+
+//DEBUG MATHIAS
+//            statusOFS<<std::endl;
+//            statusOFS<<std::endl;
+//
+//      for( Int ksup = 0; ksup < numSuper; ksup++ ){
+//          statusOFS<<"----AFTER COMM PATTERN----- LROW SuperNode "<<ksup<<" ---------"<<std::endl;
+//        if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
+//          std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(ksup, this->grid_) );
+//          for(Int idx = 0; idx<Lrow.size(); ++idx){
+//            LBlock<T> & LB = Lrow[idx];
+//            statusOFS<<LB<<std::endl;
+//          }
+//        }
+//        }
+//            statusOFS<<std::endl;
+//            statusOFS<<std::endl;
+
 
       return ;
     } 		// -----  end of method PMatrix::ConstructCommunicationPattern_P2p  ----- 

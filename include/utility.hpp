@@ -1737,14 +1737,6 @@ throw std::runtime_error( msg.str().c_str() );
     }		// -----  end of function MonotoneRootFinding  ----- 
 
 
- inline void gdb_lock(){
-    int lock = 1;
-    while (lock == 1){
-      lock =1;
-    }
-  }
-
-
 
 
 
