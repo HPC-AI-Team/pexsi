@@ -69,6 +69,8 @@ namespace PEXSI{
 
 
 #ifdef _DYN_ALLOC_LU_
+    struct CDBuffers;
+
     template<typename T>
     bool LBlockComparator(const LBlock<T> & a,const LBlock<T> & b){
       return a.blockIdx<b.blockIdx;
@@ -231,6 +233,19 @@ namespace PEXSI{
               std::vector<SuperNodeBufferTypeAsym > & arrSuperNodes,
               Int stepSuper
                             );
+
+
+#ifdef _DYN_ALLOC_LU_
+    inline void SendRecvSizesCD(std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
+    inline void IRecvContentCD( std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
+    inline void WaitContentLCD( std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
+    inline void WaitContentUCD( std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
+#endif
+
+
+
+
+
 
     public:
       // *********************************************************************
