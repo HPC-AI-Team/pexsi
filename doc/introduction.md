@@ -149,7 +149,8 @@ National Laboratory).
 
 L. Lin, A. Garcia, G. Huhs and C. Yang, SIESTA-PEXSI: Massively parallel
 method for efficient and accurate ab initio materials simulation without
-matrix diagonalization, [<a href="http://arxiv.org/abs/1405.0194">arXiv</a>]
+matrix diagonalization, J. Phys. Condens.  Matter 26, 305503, 2014 [<a
+href="http://dx.doi.org/10.1088/0953-8984/26/30/305503">journal</a>]
 
 M. Jacquelin, L. Lin and C. Yang, PSelInv -- A Distributed Memory
 Parallel Algorithm for Selected Inversion : the Symmetric Case
@@ -185,13 +186,17 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
-- v0.6.0 (03/11/2014)
-  - First release of %PEXSI.
-  - Version integrated with the SIESTA package for Kohn-Sham density
-    functional theory (KSDFT) calculation.
-  - Parallel selected inversion for complex symmetric matrices.
-  - Estimate the density of state profile via inertia counting.
-  - Compute the density of states and local density of states.
+- v0.7.2 (08/27/2014)
+  - Bug fix: Two temporary variables were not initialized during the
+    computation of the number of electrons and its derivatives. 
+  - Add test matrices to the fortran/ folder as well.
+  - Update the configuration files.
+
+- v0.7.1 (07/01/2014)
+  - Bug fix: PPEXSIPlanInitialize specifics the input according to
+    mpirank instead of outputFileIndex.
+  - Bug fix: PPEXSIPlanFinalize gives floating point error due to the
+    double deallocation of SuperLUGrid.
 
 - v0.7.0 (05/24/2014)
   - Use PPEXSIPlan to coordinate the computation, and allows the code to
@@ -207,8 +212,13 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
   - Enhanced error estimate for the pole expansion using energy as a
     guidance.
 
-- v0.7.1 
-  - Bug fix: PPEXSIPlanInitialize specifics the input according to
-    mpirank instead of outputFileIndex.
-  - Bug fix: PPEXSIPlanFinalize gives floating point error due to the
-    double deallocation of SuperLUGrid.
+
+- v0.6.0 (03/11/2014)
+  - First release of %PEXSI.
+  - Version integrated with the SIESTA package for Kohn-Sham density
+    functional theory (KSDFT) calculation.
+  - Parallel selected inversion for complex symmetric matrices.
+  - Estimate the density of state profile via inertia counting.
+  - Compute the density of states and local density of states.
+
+

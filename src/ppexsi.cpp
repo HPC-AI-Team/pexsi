@@ -1384,6 +1384,8 @@ void PPEXSIData::CalculateFermiOperatorReal(
       }
 
     } // if I am in charge of this pole
+
+
   } // for(lidx)
 
   // Reduce the density matrix across the processor rows in gridPole_
@@ -1436,7 +1438,7 @@ void PPEXSIData::CalculateFermiOperatorReal(
   // Compute the number of electrons
   // The number of electrons is computed by Tr[DM*S]
   {
-    Real numElecLocal;
+    Real numElecLocal = 0.0;
     if( SMat.size != 0 ){
       // S is not an identity matrix
       numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
@@ -1459,7 +1461,7 @@ void PPEXSIData::CalculateFermiOperatorReal(
   // Compute the derivative of the number of electrons with respect to mu
   // The number of electrons is computed by Tr[f'(H-\muS)*S]
   {
-    Real numElecDrvLocal;
+    Real numElecDrvLocal = 0.0;
     if( SMat.size != 0 ){
       // S is not an identity matrix
       numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),

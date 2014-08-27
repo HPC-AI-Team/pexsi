@@ -8,7 +8,7 @@ SEQ_ND_LIBRARY   = scotch
 
 
 # Different compiling and linking options.
-SUFFIX       = linux_v0.5.5
+SUFFIX       = linux_v0.7.2
 
 #compiler and tools
 ################################################################
@@ -31,17 +31,16 @@ RMFLAGS      = -f
 ################################################################
 
 
-#pexsi directory
-PEXSI_DIR     = $(HOME)/Work/postdoc-lbl/pexsi/pexsi_src
+# PEXSI directory
+PEXSI_DIR     = $(HOME)/Projects/pexsi
 
 #required libraries directories
-GFORTRAN_DIR  = 
-DSUPERLU_DIR  = $(HOME)/software/release/SuperLU_DIST_3.3
-METIS_DIR     = $(HOME)/software/release/parmetis-4.0.3/build/Darwin-x86_64
-PARMETIS_DIR  = $(HOME)/software/release/parmetis-4.0.3/build/Darwin-x86_64
-SCOTCH_DIR    = $(HOME)/software/release/scotch_6.0.0
-LAPACK_DIR    = 
-BLAS_DIR      = ${HOME}/software/OpenBLAS 
+DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_3.3
+METIS_DIR     = $(HOME)/Software/metis-5.1.0/build_release
+PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.3/build_release
+PTSCOTCH_DIR  = $(HOME)/Software/scotch_6.0.0/build_release
+LAPACK_DIR    = $(HOME)/Software/lapack-3.5.0
+BLAS_DIR      = $(HOME)/Software/OpenBLAS/build_release
 
 # Includes
 PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
@@ -49,17 +48,18 @@ DSUPERLU_INCLUDE = -I${DSUPERLU_DIR}/SRC
 INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} 
 
 # Libraries
-GFORTRAN_LIB     = -L${GFORTRAN_DIR} -lgfortran
-LAPACK_LIB       = 
-BLAS_LIB         = -L${BLAS_DIR} -lopenblas
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_3.3.a
+CPP_LIB          = -lstdc++ -lmpi -lmpi_cxx
+GFORTRAN_LIB     = /usr/lib/gcc/x86_64-linux-gnu/4.8/libgfortran.a
+LAPACK_LIB       = ${LAPACK_DIR}/liblapack.a
+BLAS_LIB         = ${BLAS_DIR}/lib/libopenblas.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_3.3.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
 # Graph partitioning libraries
-METIS_LIB        = -L${METIS_DIR}/libmetis -lmetis
+METIS_LIB        = -L${METIS_DIR}/lib -lmetis
 PARMETIS_LIB     = -L${PARMETIS_DIR}/libparmetis -lparmetis 
-SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lscotchmetis -lscotch -lscotcherr
-PTSCOTCH_LIB     = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch
+SCOTCH_LIB       = -L${PTSCOTCH_DIR}/lib -lscotchmetis -lscotch -lscotcherr
+PTSCOTCH_LIB     = -L${PTSCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch
 
 
 # Different compiling and linking options.
