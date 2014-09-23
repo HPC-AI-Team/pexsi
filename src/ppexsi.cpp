@@ -1329,7 +1329,7 @@ throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
       std::vector<Real>  inertiaFTVec( numShift ); // Finite temperature
       Int maxInertiaIter = std::max( 1, (Int)std::ceil( 
             std::log( (muMax0 - muMin0) / muInertiaTolerance ) /
-            std::log( numShift ) ) ); 
+            std::log( static_cast<Real>(numShift) ) ) ); 
 
       if( verbosity >= 1 ){
         statusOFS << std::endl

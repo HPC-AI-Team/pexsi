@@ -49,8 +49,6 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "timer.h"
 #include "superlu_dist_interf.hpp"
 
-#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
-#define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 
 
 #define MPI_MAX_COMM (1024)
 #define BCAST_THRESHOLD 20
@@ -58,8 +56,6 @@ such enhancements or derivative works thereof, in binary and source code form.
 #define MOD(a,b) \
   ( ((a)%(b)+(b))%(b))
 
-#define LIST_BARRIER
-//#define ALL_BARRIER
 
 namespace PEXSI{
   inline GridType::GridType	( MPI_Comm Bcomm, int nprow, int npcol )

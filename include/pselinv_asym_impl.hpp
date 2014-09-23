@@ -574,10 +574,10 @@ struct CDBuffers{
 
 
                 MPI_Isend( &sstrSizeL, 1, MPI_INT, dest, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_SIZE),
                     this->grid_->comm, &mpiReqSizeSendL );
                 MPI_Isend( (void*)&sstrLcolSend[0], sstrSizeL, MPI_BYTE, dest,
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_CONTENT),
                     this->grid_->comm, &mpiReqSendL );
                 sendIdxL++;
 
@@ -588,7 +588,7 @@ struct CDBuffers{
                   buffers.arrMpiReqsSizeRecvUCD[buffers.sendOffset[supidx]+recvIdxU];
 
                 MPI_Irecv( &sstrSizeU, 1, MPI_INT, dest, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_SIZE),
                     this->grid_->comm, &mpiReqSizeRecvU );
                 recvIdxU++;
               }
@@ -619,7 +619,7 @@ struct CDBuffers{
                   buffers.arrMpiReqsSizeRecvLCD[buffers.recvOffset[supidx]+recvIdxL];
 
                 MPI_Irecv( &sstrSizeL, 1, MPI_INT, src, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_SIZE),
                     this->grid_->comm, &mpiReqSizeRecvL );
                 recvIdxL++;
 
@@ -669,10 +669,10 @@ struct CDBuffers{
 
 
                 MPI_Isend( &sstrSizeU, 1, MPI_INT, src, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE), 
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_SIZE), 
                     this->grid_->comm, &mpiReqSizeSendU );
                 MPI_Isend( (void*)&sstrUrowSend[0], sstrSizeU, MPI_BYTE, src,
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_CONTENT),
                     this->grid_->comm, &mpiReqSendU );
                 sendIdxU++;
               }
@@ -719,7 +719,7 @@ struct CDBuffers{
                 sstrLrowRecv.resize( sstrSizeL);
 
                 MPI_Irecv( (void*)&sstrLrowRecv[0], sstrSizeL, MPI_BYTE, src,
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_CONTENT),
                     this->grid_->comm, &mpiReqRecvL );
                 recvIdxL++;
 
@@ -755,7 +755,7 @@ struct CDBuffers{
                 sstrUcolRecv.resize( sstrSizeU );
 
                 MPI_Irecv( (void*)&sstrUcolRecv[0], sstrSizeU, MPI_BYTE, src,
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_CONTENT),
                     this->grid_->comm, &mpiReqRecvU );
                 recvIdxU++;
               }
@@ -796,10 +796,10 @@ struct CDBuffers{
             << "Update the upper triangular block" 
             << std::endl << std::endl; 
           statusOFS << std::endl << " ["<<snode_index<<"] "
-            << "blockIdxLocal:" << snode.BlockIdxLocal
+//            << "blockIdxLocal:" << snode.BlockIdxLocal
             << std::endl << std::endl; 
           statusOFS << std::endl << " ["<<snode_index<<"] "
-            << "rowLocalPtr:" << snode.RowLocalPtr
+//            << "rowLocalPtr:" << snode.RowLocalPtr
             << std::endl << std::endl; 
 #endif
 
@@ -1199,10 +1199,10 @@ struct CDBuffers{
 
 
                 MPI_Isend( &sstrSizeL, 1, MPI_INT, dest, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE),
                     this->grid_->comm, &mpiReqSizeSendL );
                 MPI_Isend( (void*)&sstrLcolSend[0], sstrSizeL, MPI_BYTE, dest,
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT),
                     this->grid_->comm, &mpiReqSendL );
                 sendIdxL++;
 
@@ -1213,7 +1213,7 @@ struct CDBuffers{
                   arrMpiReqsSizeRecvUCD[sendOffset[supidx]+recvIdxU];
 
                 MPI_Irecv( &sstrSizeU, 1, MPI_INT, dest, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE),
                     this->grid_->comm, &mpiReqSizeRecvU );
                 recvIdxU++;
               }
@@ -1244,7 +1244,7 @@ struct CDBuffers{
                   arrMpiReqsSizeRecvLCD[recvOffset[supidx]+recvIdxL];
 
                 MPI_Irecv( &sstrSizeL, 1, MPI_INT, src, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE),
                     this->grid_->comm, &mpiReqSizeRecvL );
                 recvIdxL++;
 
@@ -1294,10 +1294,10 @@ struct CDBuffers{
 
 
                 MPI_Isend( &sstrSizeU, 1, MPI_INT, src, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE), 
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE), 
                     this->grid_->comm, &mpiReqSizeSendU );
                 MPI_Isend( (void*)&sstrUrowSend[0], sstrSizeU, MPI_BYTE, src,
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT),
                     this->grid_->comm, &mpiReqSendU );
                 sendIdxU++;
               }
@@ -1335,7 +1335,7 @@ struct CDBuffers{
                 sstrLrowRecv.resize( sstrSizeL);
 
                 MPI_Irecv( (void*)&sstrLrowRecv[0], sstrSizeL, MPI_BYTE, src,
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT),
                     this->grid_->comm, &mpiReqRecvL );
                 recvIdxL++;
 
@@ -1371,7 +1371,7 @@ struct CDBuffers{
                 sstrUcolRecv.resize( sstrSizeU );
 
                 MPI_Irecv( (void*)&sstrUcolRecv[0], sstrSizeU, MPI_BYTE, src,
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT),
                     this->grid_->comm, &mpiReqRecvU );
                 recvIdxU++;
               }
@@ -1768,10 +1768,10 @@ struct CDBuffers{
                 sstrSizeL = sstrLcolSend.size();
 
                 MPI_Isend( &sstrSizeL, 1, MPI_INT, dest, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE),
                     this->grid_->comm, &mpiReqSizeSendL );
                 MPI_Isend( (void*)&sstrLcolSend[0], sstrSizeL, MPI_BYTE, dest,
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT),
                     this->grid_->comm, &mpiReqSendL );
                 sendIdxL++;
 
@@ -1782,7 +1782,7 @@ struct CDBuffers{
                   arrMpiReqsSizeRecvUCD[sendOffset[supidx]+recvIdxU];
 
                 MPI_Irecv( &sstrSizeU, 1, MPI_INT, dest, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE),
                     this->grid_->comm, &mpiReqSizeRecvU );
                 recvIdxU++;
               }
@@ -1813,7 +1813,7 @@ struct CDBuffers{
                   arrMpiReqsSizeRecvLCD[recvOffset[supidx]+recvIdxL];
 
                 MPI_Irecv( &sstrSizeL, 1, MPI_INT, src, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE),
                     this->grid_->comm, &mpiReqSizeRecvL );
                 recvIdxL++;
 
@@ -1837,10 +1837,10 @@ struct CDBuffers{
                 sstrSizeU = sstrUrowSend.size();
 
                 MPI_Isend( &sstrSizeU, 1, MPI_INT, src, 
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE), 
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE), 
                     this->grid_->comm, &mpiReqSizeSendU );
                 MPI_Isend( (void*)&sstrUrowSend[0], sstrSizeU, MPI_BYTE, src,
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT),
                     this->grid_->comm, &mpiReqSendU );
                 sendIdxU++;
               }
@@ -1876,7 +1876,7 @@ struct CDBuffers{
                 sstrLrowRecv.resize( sstrSizeL);
 
                 MPI_Irecv( (void*)&sstrLrowRecv[0], sstrSizeL, MPI_BYTE, src,
-                    IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT),
                     this->grid_->comm, &mpiReqRecvL );
                 recvIdxL++;
               }
@@ -1911,7 +1911,7 @@ struct CDBuffers{
                 sstrUcolRecv.resize( sstrSizeU );
 
                 MPI_Irecv( (void*)&sstrUcolRecv[0], sstrSizeU, MPI_BYTE, src,
-                    IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT),
                     this->grid_->comm, &mpiReqRecvU );
                 recvIdxU++;
               }
@@ -2625,9 +2625,9 @@ struct CDBuffers{
 
                 // Use Isend to send to multiple targets
                 MPI_Isend( &snode.SizeSstrLrowSend, 1, MPI_INT,  
-                    iProcRow, IDX_TO_TAG(supidx,SELINV_TAG_LROW_SIZE), this->grid_->colComm, &mpireqsSendLToBelow[2*iProcRow] );
+                    iProcRow, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_SIZE), this->grid_->colComm, &mpireqsSendLToBelow[2*iProcRow] );
                 MPI_Isend( (void*)&snode.SstrLrowSend[0], snode.SizeSstrLrowSend, MPI_BYTE, 
-                    iProcRow, IDX_TO_TAG(supidx,SELINV_TAG_LROW_CONTENT), 
+                    iProcRow, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_CONTENT), 
                     this->grid_->colComm, &mpireqsSendLToBelow[2*iProcRow+1] );
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS<< "["<<snode.Index<<"] "<<"Lrow SENT "<<std::endl;
@@ -2677,10 +2677,10 @@ struct CDBuffers{
                   this->isSendToRight_( iProcCol, snode.Index ) == true ){
                 // Use Isend to send to multiple targets
                 MPI_Isend( &snode.SizeSstrLcolSend, 1, MPI_INT,  
-                    iProcCol, IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE), 
+                    iProcCol, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE), 
                     this->grid_->rowComm, &mpireqsSendLToRight[2*iProcCol] );
                 MPI_Isend( (void*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, MPI_BYTE, 
-                    iProcCol, IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), 
+                    iProcCol, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT), 
                     this->grid_->rowComm, &mpireqsSendLToRight[2*iProcCol+1] );
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS<< "["<<snode.Index<<"] "<<"L SENT "<<std::endl;
@@ -2728,9 +2728,9 @@ struct CDBuffers{
                   this->isSendToBelow_( iProcRow,snode.Index ) == true ){
                 // Use Isend to send to multiple targets
                 MPI_Isend( &snode.SizeSstrUrowSend, 1, MPI_INT,  
-                    iProcRow, IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE), this->grid_->colComm, &mpireqsSendUToBelow[2*iProcRow] );
+                    iProcRow, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE), this->grid_->colComm, &mpireqsSendUToBelow[2*iProcRow] );
                 MPI_Isend( (void*)&snode.SstrLrowSend[0], snode.SizeSstrUrowSend, MPI_BYTE, 
-                    iProcRow, IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT), 
+                    iProcRow, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT), 
                     this->grid_->colComm, &mpireqsSendUToBelow[2*iProcRow+1] );
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES"<< std::endl <<  std::endl; 
@@ -2775,11 +2775,11 @@ struct CDBuffers{
                   this->isSendToRight_( iProcCol, snode.Index ) == true ){
                 // Use Isend to send to multiple targets
                 MPI_Isend( &snode.SizeSstrUcolSend, 1, MPI_INT,  
-                    iProcCol, IDX_TO_TAG(supidx,SELINV_TAG_UCOL_SIZE), 
+                    iProcCol, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_SIZE), 
                     this->grid_->rowComm, &mpireqsSendUToRight[2*iProcCol] );
                 MPI_Isend( &snode.SstrUcolSend[0],snode.SizeSstrUcolSend,
                              MPI_BYTE, iProcCol, 
-                               IDX_TO_TAG(supidx,SELINV_TAG_UCOL_CONTENT), 
+                               IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_CONTENT), 
                                  this->grid_->rowComm, 
                                     &mpireqsSendUToRight[2*iProcCol+1] );
 #if ( _DEBUGlevel_ >= 2 )
@@ -2823,20 +2823,20 @@ struct CDBuffers{
               MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
             Int sender = PROW( snode.Index, this->grid_ ); 
             MPI_Irecv( &snode.SizeSstrLrowRecv, 1, MPI_INT, sender, 
-                IDX_TO_TAG(supidx,SELINV_TAG_LROW_SIZE),
+                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_SIZE),
                 this->grid_->colComm, mpireqsRecvLFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving Lrow"
-                      <<" size on tag "<<IDX_TO_TAG(supidx,SELINV_TAG_LROW_SIZE)
+                      <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_SIZE)
                       <<" from P" << PNUM(sender,MYCOL(this->grid_),this->grid_)
                       << std::endl << std::endl; 
 #endif
             MPI_Irecv( &snode.SizeSstrUrowRecv, 1, MPI_INT, sender, 
-                IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE),
+                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE),
                 this->grid_->colComm, mpireqsRecvUFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving U"
-                      <<" size on tag "<<IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE)
+                      <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE)
                       <<" from P" << PNUM(sender,MYCOL(this->grid_),this->grid_)
                       << std::endl << std::endl; 
 #endif
@@ -2847,20 +2847,20 @@ struct CDBuffers{
               MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
             Int sender = PCOL( snode.Index, this->grid_ ); 
             MPI_Irecv( &snode.SizeSstrLcolRecv, 1, MPI_INT, sender, 
-                IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),
+                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE),
                 this->grid_->rowComm, mpireqsRecvLFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving L"
-                      <<" size on tag "<<IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE)
+                      <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE)
                       <<" from P" << PNUM(MYROW(this->grid_),sender,this->grid_)
                       << std::endl << std::endl; 
 #endif
             MPI_Irecv( &snode.SizeSstrUcolRecv, 1, MPI_INT, sender, 
-                IDX_TO_TAG(supidx,SELINV_TAG_UCOL_SIZE),
+                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_SIZE),
                 this->grid_->rowComm, mpireqsRecvUFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving Ucol"
-                      <<" size on tag "<<IDX_TO_TAG(supidx,SELINV_TAG_UCOL_SIZE)
+                      <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_SIZE)
                       <<" from P" << PNUM(MYROW(this->grid_),sender,this->grid_)
                       << std::endl << std::endl; 
 #endif
@@ -2887,7 +2887,7 @@ struct CDBuffers{
             snode.SstrLrowRecv.resize( snode.SizeSstrLrowRecv );
             Int sender = PROW( snode.Index, this->grid_ ); 
             MPI_Irecv( &snode.SstrLrowRecv[0], snode.SizeSstrLrowRecv, MPI_BYTE, 
-                sender, IDX_TO_TAG(supidx,SELINV_TAG_LROW_CONTENT), 
+                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_CONTENT), 
                 this->grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving Lrow "
@@ -2904,7 +2904,7 @@ struct CDBuffers{
             snode.SstrLcolRecv.resize( snode.SizeSstrLcolRecv );
             Int sender = PCOL( snode.Index, this->grid_ ); 
             MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
-                sender, IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), 
+                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT), 
                 this->grid_->rowComm,
                 mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
@@ -2938,7 +2938,7 @@ struct CDBuffers{
             snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv );
             Int sender = PROW( snode.Index, this->grid_ ); 
             MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE,
-                        sender, IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT), 
+                        sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT), 
                           this->grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving U "
@@ -2955,7 +2955,7 @@ struct CDBuffers{
             snode.SstrUcolRecv.resize( snode.SizeSstrUcolRecv );
             Int sender = PCOL( snode.Index, this->grid_ ); 
             MPI_Irecv( &snode.SstrUcolRecv[0], snode.SizeSstrUcolRecv, MPI_BYTE, 
-                sender, IDX_TO_TAG(supidx,SELINV_TAG_UCOL_CONTENT), 
+                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_CONTENT), 
                 this->grid_->rowComm,
                 mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
@@ -3007,7 +3007,7 @@ struct CDBuffers{
               // Dummy 0-b send If I was a receiver, I need to send my data to
               // proc in column of snode.Index
               MPI_Isend( NULL, 0, MPI_BYTE, PCOL(snode.Index,this->grid_),
-                          IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), 
+                          IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_REDUCE), 
                               this->grid_->rowComm, &mpireqsSendToLeft );
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -3198,7 +3198,7 @@ struct CDBuffers{
                 MPI_Request & reqsSendToLeft = arrMpireqsSendLToLeft[supidx];
                 MPI_Isend( snode.LUpdateBuf.Data(), snode.LUpdateBuf.ByteSize(),
                              MPI_BYTE, PCOL(snode.Index,this->grid_),
-                                IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), 
+                                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_REDUCE), 
                                     this->grid_->rowComm, &reqsSendToLeft );
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -3274,7 +3274,7 @@ struct CDBuffers{
               TIMER_START(L_RECV);
               MPI_Recv(LUpdateBufRecv.Data(), LUpdateBufRecv.ByteSize(), 
                         MPI_BYTE, MPI_ANY_SOURCE,
-                           IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE),
+                           IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_REDUCE),
                                              this->grid_->rowComm,&stat);
               TIMER_STOP(L_RECV);
               MPI_Get_count(&stat, MPI_BYTE, &size);
@@ -3336,7 +3336,7 @@ struct CDBuffers{
               MPI_Request & mpireqsSendToAbove = arrMpireqsSendToAbove[supidx];
               MPI_Isend( snode.DiagBuf.Data(), snode.DiagBuf.ByteSize(), 
                             MPI_BYTE, PROW(snode.Index,this->grid_) ,
-                                IDX_TO_TAG(supidx,SELINV_TAG_D_REDUCE), 
+                                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_D_REDUCE), 
                                     this->grid_->colComm, &mpireqsSendToAbove );
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -3376,7 +3376,7 @@ struct CDBuffers{
               Int size = 0;
               TIMER_START(D_RECV);
               MPI_Recv(DiagBufRecv.Data(), DiagBufRecv.ByteSize(), MPI_BYTE, 
-                        MPI_ANY_SOURCE,IDX_TO_TAG(supidx,SELINV_TAG_D_REDUCE),
+                        MPI_ANY_SOURCE,IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_D_REDUCE),
                                                     this->grid_->colComm,&stat);
               TIMER_STOP(D_RECV);
               MPI_Get_count(&stat, MPI_BYTE, &size);
@@ -3504,7 +3504,7 @@ struct CDBuffers{
               TIMER_START(U_RECV);
               MPI_Recv(UUpdateBufRecv.Data(), UUpdateBufRecv.ByteSize(),
                              MPI_BYTE, MPI_ANY_SOURCE,
-                                   IDX_TO_TAG(supidx,SELINV_TAG_U_REDUCE),
+                                   IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_REDUCE),
                                                this->grid_->colComm,&stat);
               TIMER_STOP(U_RECV);
               MPI_Get_count(&stat, MPI_BYTE, &size);
@@ -3542,7 +3542,7 @@ struct CDBuffers{
               // Dummy 0-b send If I was a receiver, I need to send my data to 
               // proc in row of snode.Index
               MPI_Isend( NULL, 0, MPI_BYTE, PROW(snode.Index,this->grid_),
-                          IDX_TO_TAG(supidx,SELINV_TAG_U_REDUCE), 
+                          IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_REDUCE), 
                                 this->grid_->colComm, &mpireqsSendToAbove );
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -3565,7 +3565,7 @@ struct CDBuffers{
             TIMER_START(Reduce_Sinv_U_Send_Isend);
                 MPI_Isend( snode.UUpdateBuf.Data(), snode.UUpdateBuf.ByteSize(),
                               MPI_BYTE, PROW(snode.Index,this->grid_),
-                                IDX_TO_TAG(supidx,SELINV_TAG_U_REDUCE), 
+                                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_REDUCE), 
                                   this->grid_->colComm, &reqsSendToAbove );
             TIMER_STOP(Reduce_Sinv_U_Send_Isend);
 #if ( _DEBUGlevel_ >= 1 )
@@ -3738,7 +3738,7 @@ struct CDBuffers{
 
 
         if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) ){
-          MPI_Barrier(this->grid_->colComm);
+//          MPI_Barrier(this->grid_->colComm);
         }
 
         mpi::Waitall( mpireqsSendLToRight );

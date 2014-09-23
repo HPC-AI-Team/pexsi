@@ -62,6 +62,15 @@
 #include	"lapack.hpp"
 #include <set>
 
+#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
+#define IDX_TO_TAG2(sidx,lidx,tag) (SELINV_TAG_COUNT*(sidx)+(tag)) 
+#define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 
+
+
+//#define LIST_BARRIER
+//#define ALL_BARRIER
+
+
 
 namespace PEXSI{
 
