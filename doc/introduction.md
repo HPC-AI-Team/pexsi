@@ -9,10 +9,31 @@ Introduction      {#pageIntro}
 <!-- ************************************************************ -->
 @page pageOverview Overview
 
-The Pole EXpansion and Selected Inversion method (%PEXSI) is a fast
-method for evaluating certain [selected elements](@ref defSelectedElem)
-of a matrix function.  %PEXSI is highly scalable on distributed memory
-parallel machines. 
+The Pole EXpansion and Selected Inversion (%PEXSI) method is a fast
+method for electronic structure calculation based on Kohn-Sham density
+functional theory.  It efficiently evaluates certain [selected elements](@ref defSelectedElem)
+of matrix functions, e.g., the Fermi-Dirac function of the KS
+Hamiltonian, which yields a density matrix.  It can be used as an
+alternative to diagonalization methods for obtaining the density, energy
+and forces in electronic structure calculations.  The PEXSI library is
+written in C++, and uses message passing interface (MPI) to parallelize
+the computation on distributed memory computing systems and achieve
+scalability on more than 10,000 processors. 
+
+The %PEXSI library has been integrated into the Siesta package for
+demonstrating efficient and accurate ab initio materials simulation on
+massively parallel machines, and can regularly handle systems with
+10,000 to 100,000 electrons. 
+
+L. Lin, A. Garcia, G. Huhs and C. Yang, <a
+href="http://dx.doi.org/10.1088/0953-8984/26/30/305503">SIESTA-PEXSI: Massively parallel
+method for efficient and accurate ab initio materials simulation without
+matrix diagonalization</a>, J. Phys. Condens.  Matter 26, 305503, 2014.
+
+
+From numerical linear algebra perspective, the %PEXSI library can be
+used as a general tool for evaluating certain [selected elements](@ref defSelectedElem) of a matrix function, and therefore has application
+beyond electronic structure calculation as well.  
 
 Given a sparse square matrix \f$A\f$ and a certain function
 \f$f(\cdot)\f$, the basic idea of %PEXSI is to
@@ -37,7 +58,7 @@ The currently supported form of \f$f(\cdot)\f$ include:
   used as a "smeared" matrix sign function at \f$z=\mu\f$, without
   assuming a spectral gap near \f$z=\mu\f$.  This can be used for
   evaluating the electron density for electronic structure calculation.
-  See @ref pagePEXSISolve for an example using %PEXSI for electronic
+  See @ref pageDFT1 for an example using %PEXSI for electronic
   structure calculation. 
 
   @image html FermiDirac.png "Red: Fermi-Dirac function. Black: Matrix sign function" 
@@ -96,7 +117,9 @@ elements of a matrix \f$B\f$ with respect to a matrix \f$A\f$ as the set
 \f$\{B_{i,j}\vert A_{i,j}\ne 0\}\f$.
 
 A commonly used case in %PEXSI is the selected elements of
-\f$A^{-1}\f$, which corresponds to the set \f$\{A^{-1}_{i,j}\vert A_{i,j}\ne 0\}\f$.
+\f$A^{-1}\f$ with respect to \f$A\f$, or simply the selected elements of
+\f$A^{-1}\f$, which corresponds to the set \f$\{A^{-1}_{i,j}\vert
+A_{i,j}\ne 0\}\f$.
 
 
 <!-- ************************************************************ -->
