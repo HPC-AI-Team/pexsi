@@ -184,6 +184,12 @@ namespace PEXSI{
         SELINV_TAG_D_SIZE,
         SELINV_TAG_D_CONTENT,
         SELINV_TAG_D_REDUCE,
+#ifdef _DYN_ALLOC_LU_
+        SELINV_TAG_U_SIZE_CD,
+        SELINV_TAG_U_CONTENT_CD,
+        SELINV_TAG_L_SIZE_CD,
+        SELINV_TAG_L_CONTENT_CD,
+#endif
         SELINV_TAG_COUNT
       };
 

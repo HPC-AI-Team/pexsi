@@ -180,6 +180,7 @@ namespace PEXSI{
 
   inline void gdb_lock(){
     volatile int lock = 1;
+    statusOFS<<"LOCKED"<<std::endl;
     while (lock == 1){ }
   }
 

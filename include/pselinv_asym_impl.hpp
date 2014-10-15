@@ -561,6 +561,7 @@ struct CDBuffers{
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS << "["<<snode_index<<"] SEND contains "<<Lcol[ib].blockIdx
                       << " which corresponds to "<<GBj(ib,this->grid_)
+                      << " to P"<<dest
                       << std::endl;
 #endif
                     serialize( Lcol[ib], sstm, mask );
@@ -574,10 +575,10 @@ struct CDBuffers{
 
 
                 MPI_Isend( &sstrSizeL, 1, MPI_INT, dest, 
-                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_SIZE),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_SIZE_CD),
                     this->grid_->comm, &mpiReqSizeSendL );
                 MPI_Isend( (void*)&sstrLcolSend[0], sstrSizeL, MPI_BYTE, dest,
-                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_CONTENT),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_CONTENT_CD),
                     this->grid_->comm, &mpiReqSendL );
                 sendIdxL++;
 
@@ -588,7 +589,7 @@ struct CDBuffers{
                   buffers.arrMpiReqsSizeRecvUCD[buffers.sendOffset[supidx]+recvIdxU];
 
                 MPI_Irecv( &sstrSizeU, 1, MPI_INT, dest, 
-                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_SIZE),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_SIZE_CD),
                     this->grid_->comm, &mpiReqSizeRecvU );
                 recvIdxU++;
               }
@@ -619,7 +620,7 @@ struct CDBuffers{
                   buffers.arrMpiReqsSizeRecvLCD[buffers.recvOffset[supidx]+recvIdxL];
 
                 MPI_Irecv( &sstrSizeL, 1, MPI_INT, src, 
-                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_SIZE),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_SIZE_CD),
                     this->grid_->comm, &mpiReqSizeRecvL );
                 recvIdxL++;
 
@@ -657,6 +658,7 @@ struct CDBuffers{
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS << "["<<snode_index<<"] SEND contains "<<Urow[jb].blockIdx
                       << " which corresponds to "<<GBi(jb,this->grid_)
+                      << " to P"<<src
                       << std::endl;
 #endif
                     serialize( Urow[jb], sstm, mask );
@@ -669,10 +671,10 @@ struct CDBuffers{
 
 
                 MPI_Isend( &sstrSizeU, 1, MPI_INT, src, 
-                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_SIZE), 
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_SIZE_CD), 
                     this->grid_->comm, &mpiReqSizeSendU );
                 MPI_Isend( (void*)&sstrUrowSend[0], sstrSizeU, MPI_BYTE, src,
-                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_CONTENT),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_CONTENT_CD),
                     this->grid_->comm, &mpiReqSendU );
                 sendIdxU++;
               }
@@ -719,7 +721,7 @@ struct CDBuffers{
                 sstrLrowRecv.resize( sstrSizeL);
 
                 MPI_Irecv( (void*)&sstrLrowRecv[0], sstrSizeL, MPI_BYTE, src,
-                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_CONTENT),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_CONTENT_CD),
                     this->grid_->comm, &mpiReqRecvL );
                 recvIdxL++;
 
@@ -755,7 +757,7 @@ struct CDBuffers{
                 sstrUcolRecv.resize( sstrSizeU );
 
                 MPI_Irecv( (void*)&sstrUcolRecv[0], sstrSizeU, MPI_BYTE, src,
-                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_CONTENT),
+                    IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_CONTENT_CD),
                     this->grid_->comm, &mpiReqRecvU );
                 recvIdxU++;
               }
@@ -1186,6 +1188,7 @@ struct CDBuffers{
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS << "["<<snode.Index<<"] SEND contains "<<Lcol[ib].blockIdx
                       << " which corresponds to "<<GBj(ib,this->grid_)
+                      << " to P"<<dest
                       << std::endl;
 #endif
                     serialize( Lcol[ib], sstm, mask );
@@ -1199,10 +1202,10 @@ struct CDBuffers{
 
 
                 MPI_Isend( &sstrSizeL, 1, MPI_INT, dest, 
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE_CD),
                     this->grid_->comm, &mpiReqSizeSendL );
                 MPI_Isend( (void*)&sstrLcolSend[0], sstrSizeL, MPI_BYTE, dest,
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT_CD),
                     this->grid_->comm, &mpiReqSendL );
                 sendIdxL++;
 
@@ -1213,7 +1216,7 @@ struct CDBuffers{
                   arrMpiReqsSizeRecvUCD[sendOffset[supidx]+recvIdxU];
 
                 MPI_Irecv( &sstrSizeU, 1, MPI_INT, dest, 
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE_CD),
                     this->grid_->comm, &mpiReqSizeRecvU );
                 recvIdxU++;
               }
@@ -1244,7 +1247,7 @@ struct CDBuffers{
                   arrMpiReqsSizeRecvLCD[recvOffset[supidx]+recvIdxL];
 
                 MPI_Irecv( &sstrSizeL, 1, MPI_INT, src, 
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE_CD),
                     this->grid_->comm, &mpiReqSizeRecvL );
                 recvIdxL++;
 
@@ -1282,6 +1285,7 @@ struct CDBuffers{
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS << "["<<snode.Index<<"] SEND contains "<<Urow[jb].blockIdx
                       << " which corresponds to "<<GBi(jb,this->grid_)
+                      << " to P"<<src
                       << std::endl;
 #endif
                     serialize( Urow[jb], sstm, mask );
@@ -1294,10 +1298,10 @@ struct CDBuffers{
 
 
                 MPI_Isend( &sstrSizeU, 1, MPI_INT, src, 
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE), 
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE_CD), 
                     this->grid_->comm, &mpiReqSizeSendU );
                 MPI_Isend( (void*)&sstrUrowSend[0], sstrSizeU, MPI_BYTE, src,
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT_CD),
                     this->grid_->comm, &mpiReqSendU );
                 sendIdxU++;
               }
@@ -1335,7 +1339,7 @@ struct CDBuffers{
                 sstrLrowRecv.resize( sstrSizeL);
 
                 MPI_Irecv( (void*)&sstrLrowRecv[0], sstrSizeL, MPI_BYTE, src,
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT_CD),
                     this->grid_->comm, &mpiReqRecvL );
                 recvIdxL++;
 
@@ -1371,7 +1375,7 @@ struct CDBuffers{
                 sstrUcolRecv.resize( sstrSizeU );
 
                 MPI_Irecv( (void*)&sstrUcolRecv[0], sstrSizeU, MPI_BYTE, src,
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT),
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT_CD),
                     this->grid_->comm, &mpiReqRecvU );
                 recvIdxU++;
               }
@@ -2399,6 +2403,7 @@ struct CDBuffers{
       //------------------------------------------------------------------------
 
       //This is required to receive the size and content of U/L
+#ifndef FULL_ASYNC
       std::vector<MPI_Request>   arrMpireqsRecvLSizeFromAny;
       arrMpireqsRecvLSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
       std::vector<MPI_Request>   arrMpireqsRecvLContentFromAny;
@@ -2408,6 +2413,13 @@ struct CDBuffers{
       arrMpireqsRecvUSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
       std::vector<MPI_Request>   arrMpireqsRecvUContentFromAny;
       arrMpireqsRecvUContentFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
+#else
+      std::vector<MPI_Request>   arrMpireqsRecvLUFromAny;
+      arrMpireqsRecvLUFromAny.resize(stepSuper*MSGCOUNT , MPI_REQUEST_NULL);
+#endif
+
+
+
 
       //allocate the buffers for this supernode
       std::vector<SuperNodeBufferTypeAsym> arrSuperNodes(stepSuper);
@@ -2582,7 +2594,6 @@ struct CDBuffers{
       statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
 #endif
 
-      {
         // Senders
         for (Int supidx=0; supidx<stepSuper; supidx++){
           SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
@@ -2803,9 +2814,11 @@ struct CDBuffers{
 
         } //Senders
 
+#ifndef FULL_ASYNC
         //TODO Ideally, we should not receive data in sequence 
         // but in any order with ksup packed with the data
 
+        TIMER_START(WaitContentLU);
         // Receivers (Size)
         for (Int supidx=0; supidx<stepSuper ; supidx++){
           SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
@@ -2866,8 +2879,10 @@ struct CDBuffers{
 #endif
           } // if I need to receive from left
         }
+        TIMER_STOP(WaitContentLU);
 
         //Wait to receive all the sizes for L
+        TIMER_START(WaitContentLU);
         TIMER_START(WaitSize_LrowL);
         mpi::Waitall(arrMpireqsRecvLSizeFromAny);
         TIMER_STOP(WaitSize_LrowL);
@@ -2916,9 +2931,11 @@ struct CDBuffers{
           } // if I need to receive from left
         TIMER_STOP(Alloc_Buffer_Recv_LcolL);
         }
+        TIMER_STOP(WaitContentLU);
 
 
         //Wait to receive all the sizes for U
+        TIMER_START(WaitContentLU);
         TIMER_START(WaitSize_UcolU);
         mpi::Waitall(arrMpireqsRecvUSizeFromAny);
         TIMER_STOP(WaitSize_UcolU);
@@ -2967,8 +2984,8 @@ struct CDBuffers{
           } // if I need to receive from left
         TIMER_STOP(Alloc_Buffer_Recv_UcolL);
         }
-      }
 
+        TIMER_STOP(WaitContentLU);
 
 
       TIMER_START(Compute_Sinv_LU);
@@ -3041,6 +3058,7 @@ struct CDBuffers{
           Int reqidx = MPI_UNDEFINED;
           Int supidx = -1;
 
+          TIMER_START(WaitContentLU);
           //while I don't have anything to do, wait for data to arrive 
           do{
             int reqIndicesL[arrMpireqsRecvLContentFromAny.size()];
@@ -3126,6 +3144,7 @@ struct CDBuffers{
             TIMER_STOP(WaitContent_UcolU);
 
           } while(readySupidx.size()==0);
+          TIMER_STOP(WaitContentLU);
 
           //If I have some work to do 
           if(readySupidx.size()>0)
@@ -3223,6 +3242,432 @@ struct CDBuffers{
 
       }
       TIMER_STOP(Compute_Sinv_LU);
+#else
+        TIMER_START(WaitContentLU);
+        // Receivers (Size)
+        for (Int supidx=0; supidx<stepSuper ; supidx++){
+          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+          MPI_Request * mpireqsRecvLFromAbove = 
+                                  &arrMpireqsRecvLUFromAny[supidx*MSGCOUNT+LROWSIZE];
+          MPI_Request * mpireqsRecvLFromLeft = 
+                                  &arrMpireqsRecvLUFromAny[supidx*MSGCOUNT+LSIZE];
+          MPI_Request * mpireqsRecvUFromAbove = 
+                                  &arrMpireqsRecvLUFromAny[supidx*MSGCOUNT+USIZE];
+          MPI_Request * mpireqsRecvUFromLeft = 
+                                  &arrMpireqsRecvLUFromAny[supidx*MSGCOUNT+UCOLSIZE];
+
+          // Receive the size first
+          if( this->isRecvFromAbove_( snode.Index ) && 
+              MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
+            Int sender = PROW( snode.Index, this->grid_ ); 
+            MPI_Irecv( &snode.SizeSstrLrowRecv, 1, MPI_INT, sender, 
+                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_SIZE),
+                this->grid_->colComm, mpireqsRecvLFromAbove );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving Lrow"
+                      <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_SIZE)
+                      <<" from P" << PNUM(sender,MYCOL(this->grid_),this->grid_)
+                      << std::endl << std::endl; 
+#endif
+            MPI_Irecv( &snode.SizeSstrUrowRecv, 1, MPI_INT, sender, 
+                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE),
+                this->grid_->colComm, mpireqsRecvUFromAbove );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving U"
+                      <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE)
+                      <<" from P" << PNUM(sender,MYCOL(this->grid_),this->grid_)
+                      << std::endl << std::endl; 
+#endif
+          } // if I need to receive from up
+
+
+          if( this->isRecvFromLeft_( snode.Index ) &&
+              MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
+            Int sender = PCOL( snode.Index, this->grid_ ); 
+            MPI_Irecv( &snode.SizeSstrLcolRecv, 1, MPI_INT, sender, 
+                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE),
+                this->grid_->rowComm, mpireqsRecvLFromLeft );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving L"
+                      <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE)
+                      <<" from P" << PNUM(MYROW(this->grid_),sender,this->grid_)
+                      << std::endl << std::endl; 
+#endif
+            MPI_Irecv( &snode.SizeSstrUcolRecv, 1, MPI_INT, sender, 
+                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_SIZE),
+                this->grid_->rowComm, mpireqsRecvUFromLeft );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving Ucol"
+                      <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_SIZE)
+                      <<" from P" << PNUM(MYROW(this->grid_),sender,this->grid_)
+                      << std::endl << std::endl; 
+#endif
+          } // if I need to receive from left
+        }
+        TIMER_STOP(WaitContentLU);
+
+
+
+      TIMER_START(Compute_Sinv_LU);
+      {
+        Int gemmProcessed = 0;
+        Int gemmToDo = 0;
+        //      Int toRecvGemm = 0;
+        //copy the list of supernodes we need to process
+        std::vector<Int> readySupidx;
+        //find local things to do
+        for(Int supidx = 0;supidx<stepSuper;supidx++){
+          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+          if( this->isRecvFromAbove_( snode.Index ) 
+                                  && this->isRecvFromLeft_( snode.Index )){
+            gemmToDo+=2;
+            if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
+              snode.isReady+=2;
+            }
+
+            if(  MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
+              snode.isReady+=2;
+            }
+
+            if(snode.isReady==4){
+              readySupidx.push_back(supidx);
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
+#endif
+            }
+          }
+          else{
+            TIMER_START(Reduce_Sinv_L_Send);
+            if( this->isRecvFromLeft_( snode.Index )  
+                 && MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
+              MPI_Request & mpireqsSendToLeft = arrMpireqsSendLToLeft[supidx];
+              // Dummy 0-b send If I was a receiver, I need to send my data to
+              // proc in column of snode.Index
+              MPI_Isend( NULL, 0, MPI_BYTE, PCOL(snode.Index,this->grid_),
+                          IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_REDUCE), 
+                              this->grid_->rowComm, &mpireqsSendToLeft );
+
+#if ( _DEBUGlevel_ >= 1 )
+              Int dst = PNUM(MYROW(this->grid_),
+                         PCOL(snode.Index,this->grid_),this->grid_);
+              statusOFS << "["<<snode.Index<<"] "<< " LReduce P"
+                        << MYPROC(this->grid_) << " has sent "
+                        << 0 << " bytes to "
+                        << dst << std::endl;
+#endif
+            }// if( isRecvFromLeft_( snode.Index ))
+            TIMER_STOP(Reduce_Sinv_L_Send);
+          }
+        }
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<std::endl<<"gemmToDo ="<<gemmToDo<<std::endl;
+#endif
+
+        while(gemmProcessed<gemmToDo)
+        {
+          Int reqidx = MPI_UNDEFINED;
+          Int supidx = -1;
+
+          //while I don't have anything to do, wait for data to arrive 
+          TIMER_START(WaitContentLU);
+          do{
+            int reqIndices[MSGCOUNT*stepSuper];
+            int numRecv = 0; 
+
+            //then process with the remote ones
+
+            MPI_Waitsome(MSGCOUNT*stepSuper, &arrMpireqsRecvLUFromAny[0],
+                                    &numRecv, reqIndices, MPI_STATUSES_IGNORE);
+
+            for(int i =0;i<numRecv;i++){
+              reqidx = reqIndices[i];
+              //I've received something
+              if(reqidx!=MPI_UNDEFINED){ 
+                //determine the type of message
+                MSGTYPE msgtype= (MSGTYPE)(reqidx%MSGCOUNT);
+                supidx = reqidx/MSGCOUNT;
+
+//statusOFS<<"reqidx "<<reqidx<<endl;
+//statusOFS<<"msgtype "<<msgtype<<endl;
+//statusOFS<<"supidx "<<supidx<<endl;
+
+                SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+
+                switch(msgtype){
+                  case LROWSIZE:
+                    {
+
+//#if ( _DEBUGlevel_ >= 1 )
+//                statusOFS << "["<<snode.Index<<"] "<<"Received size for LROW"<<std::endl;
+//#endif
+                      MPI_Request * mpireqsRecvFromAbove =
+                                &arrMpireqsRecvLUFromAny[supidx*MSGCOUNT+LROWCONTENT];
+
+
+                      TIMER_START(Alloc_Buffer_Recv_LrowL);
+//                      if( this->isRecvFromAbove_( snode.Index ) && 
+//                          MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
+                        snode.SstrLrowRecv.resize( snode.SizeSstrLrowRecv );
+                        Int sender = PROW( snode.Index, this->grid_ ); 
+                        MPI_Irecv( &snode.SstrLrowRecv[0], snode.SizeSstrLrowRecv, MPI_BYTE, 
+                            sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_CONTENT), 
+                            this->grid_->colComm, mpireqsRecvFromAbove );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving Lrow "
+                      << snode.SizeSstrLrowRecv << " BYTES from P" 
+                      << PNUM(sender,MYCOL(this->grid_),this->grid_)
+                      << std::endl <<  std::endl; 
+#endif
+
+//                      } // if I need to receive from up
+                      TIMER_STOP(Alloc_Buffer_Recv_LrowL);
+
+                    }
+                  break;
+                  case LSIZE:
+                  {
+
+//#if ( _DEBUGlevel_ >= 1 )
+//                statusOFS << "["<<snode.Index<<"] "<<"Received size for L"<<std::endl;
+//#endif
+                    MPI_Request * mpireqsRecvFromLeft = 
+                                &arrMpireqsRecvLUFromAny[supidx*MSGCOUNT+LCONTENT];
+                    TIMER_START(Alloc_Buffer_Recv_LcolL);
+//                    if( this->isRecvFromLeft_( snode.Index ) &&
+//                        MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
+                      snode.SstrLcolRecv.resize( snode.SizeSstrLcolRecv );
+                      Int sender = PCOL( snode.Index, this->grid_ ); 
+                      MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
+                          sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT), 
+                          this->grid_->rowComm, mpireqsRecvFromLeft );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving L "
+                      << snode.SizeSstrLcolRecv << " BYTES from P" 
+                      << PNUM(MYROW(this->grid_),sender,this->grid_)
+                      << std::endl <<  std::endl; 
+#endif
+
+//                    } // if I need to receive from left
+                    TIMER_STOP(Alloc_Buffer_Recv_LcolL);
+                  }
+                  break;
+                  case USIZE:
+                  {
+
+//#if ( _DEBUGlevel_ >= 1 )
+//                statusOFS << "["<<snode.Index<<"] "<<"Received size for U"<<std::endl;
+//#endif
+                    MPI_Request * mpireqsRecvFromAbove = 
+                                &arrMpireqsRecvLUFromAny[supidx*MSGCOUNT+UCONTENT];
+
+                    TIMER_START(Alloc_Buffer_Recv_UrowL);
+
+//                    if( this->isRecvFromAbove_( snode.Index ) && 
+//                      MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
+                      snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv );
+                      Int sender = PROW( snode.Index, this->grid_ ); 
+                      MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE,
+                        sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT), 
+                          this->grid_->colComm, mpireqsRecvFromAbove );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving U "
+                      << snode.SizeSstrUrowRecv << " BYTES from P" 
+                      << PNUM(sender,MYCOL(this->grid_),this->grid_)
+                      << std::endl <<  std::endl; 
+#endif
+//                    } // if I need to receive from up
+                    TIMER_STOP(Alloc_Buffer_Recv_UrowL);
+                  }
+                  break;
+                  case UCOLSIZE:
+                  {
+
+//#if ( _DEBUGlevel_ >= 1 )
+//                statusOFS << "["<<snode.Index<<"] "<<"Received size for UCOL"<<std::endl;
+//#endif
+                    MPI_Request * mpireqsRecvFromLeft = 
+                                &arrMpireqsRecvLUFromAny[supidx*MSGCOUNT+UCOLCONTENT];
+
+                    TIMER_START(Alloc_Buffer_Recv_UcolL);
+//                    if( this->isRecvFromLeft_( snode.Index ) &&
+//                        MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
+                      snode.SstrUcolRecv.resize( snode.SizeSstrUcolRecv );
+                      Int sender = PCOL( snode.Index, this->grid_ ); 
+                      MPI_Irecv( &snode.SstrUcolRecv[0], snode.SizeSstrUcolRecv, MPI_BYTE, 
+                          sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_CONTENT), 
+                          this->grid_->rowComm, mpireqsRecvFromLeft );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "["<<snode.Index<<"] "<<  "Receiving Ucol "
+                      << snode.SizeSstrUcolRecv << " BYTES from P" 
+                      << PNUM(MYROW(this->grid_),sender,this->grid_)
+                      << std::endl <<  std::endl; 
+#endif
+//                    } // if I need to receive from left
+                    TIMER_STOP(Alloc_Buffer_Recv_UcolL);
+                  }
+                  break;
+                  default:
+                  {
+                    snode.isReady++;
+#if ( _DEBUGlevel_ >= 1 )
+                    switch(msgtype){
+                      case LCONTENT:
+                        {
+                          Int sender = PCOL( snode.Index, this->grid_ ); 
+                          statusOFS << "["<<snode.Index<<"] "<<"Received data for L"
+                            <<" from P" << PNUM(MYROW(this->grid_),sender,this->grid_)
+                            << ". is ready ?"<<snode.isReady<<std::endl;
+                        }  
+                        break;
+                      case LROWCONTENT:
+                        {
+                          Int sender = PROW( snode.Index, this->grid_ ); 
+                          statusOFS << "["<<snode.Index<<"] "<<"Received data for LROW"
+                            <<" from P" << PNUM(sender,MYCOL(this->grid_),this->grid_)
+                            << ". is ready ?"<<snode.isReady<<std::endl;
+                        }
+                        break;
+                      case UCONTENT:
+                        {
+                          Int sender = PROW( snode.Index, this->grid_ ); 
+                          statusOFS << "["<<snode.Index<<"] "<<"Received data for U"
+                            <<" from P" << PNUM(sender,MYCOL(this->grid_),this->grid_)
+                            << ". is ready ?"<<snode.isReady<<std::endl;
+                        }
+                        break;
+                      case UCOLCONTENT:
+                        {
+                          Int sender = PCOL( snode.Index, this->grid_ ); 
+                          statusOFS << "["<<snode.Index<<"] "<<"Received data for UCOL"
+                            <<" from P" << PNUM(MYROW(this->grid_),sender,this->grid_)
+                            << ". is ready ?"<<snode.isReady<<std::endl;
+                        }
+                      break;
+                    }
+#endif
+
+                    //if we received both L and U, the supernode is ready
+                    if(snode.isReady==4){
+                      readySupidx.push_back(supidx);
+                    }
+
+                  }
+                  break;
+                }
+
+              }
+              else{
+
+                statusOFS<<"PROBLEM HERE: ALL NULL"<<endl;
+              }
+                arrMpireqsRecvLUFromAny[reqidx] = MPI_REQUEST_NULL;
+            }//end for waitsome
+          } while(readySupidx.size()==0);
+          TIMER_STOP(WaitContentLU);
+
+          //If I have some work to do 
+          if(readySupidx.size()>0)
+          {
+            supidx = readySupidx.back();
+            readySupidx.pop_back();
+            SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+
+
+            // Only the processors received information participate in the Gemm 
+            if( this->isRecvFromAbove_( snode.Index )
+                                      && this->isRecvFromLeft_( snode.Index ) ){
+              std::vector<LBlock<T> > LcolRecv;
+              std::vector<LBlock<T> > LrowRecv;
+              std::vector<UBlock<T> > UcolRecv;
+              std::vector<UBlock<T> > UrowRecv;
+
+              UnpackData(snode, LcolRecv, LrowRecv, UcolRecv, UrowRecv);
+
+              SelInv_lookup_indexes(snode, LcolRecv, LrowRecv, 
+                                       UcolRecv, UrowRecv,AinvBuf,LBuf, UBuf);
+
+
+#if ( _DEBUGlevel_ >= 2 )
+              statusOFS << "["<<snode.Index<<"] " << "LBuf: ";
+              statusOFS << LBuf << std::endl;
+              statusOFS << "["<<snode.Index<<"] " << "UBuf: ";
+              statusOFS << UBuf << std::endl;
+#endif
+
+              TIMER_START(Compute_Sinv_L_Resize);
+              snode.LUpdateBuf.Resize( AinvBuf.m(), 
+                            SuperSize( snode.Index, this->super_ ) );
+              TIMER_STOP(Compute_Sinv_L_Resize);
+
+              TIMER_START(Compute_Sinv_LT_GEMM);
+              blas::Gemm('N', 'T', AinvBuf.m(), LBuf.m(), AinvBuf.n(),
+                           MINUS_ONE<T>(), AinvBuf.Data(), AinvBuf.m(), 
+                             LBuf.Data(), LBuf.m(), ZERO<T>(), 
+                                snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() );
+              TIMER_STOP(Compute_Sinv_LT_GEMM);
+
+              TIMER_START(Compute_Sinv_U_Resize);
+              snode.UUpdateBuf.Resize( SuperSize( snode.Index, this->super_ ),
+                                                                  AinvBuf.n() );
+              TIMER_STOP(Compute_Sinv_U_Resize);
+
+              TIMER_START(Compute_Sinv_U_GEMM);
+              blas::Gemm('N', 'N', UBuf.m(), AinvBuf.n(), AinvBuf.m(),
+                           MINUS_ONE<T>(), UBuf.Data(), UBuf.m(),
+                             AinvBuf.Data(), AinvBuf.m(), ZERO<T>(),
+                                snode.UUpdateBuf.Data(), snode.UUpdateBuf.m() );
+              TIMER_STOP(Compute_Sinv_U_GEMM);
+
+#if ( _DEBUGlevel_ >= 2 )
+              statusOFS << "["<<snode.Index<<"] " << "snode.LUpdateBuf: ";
+              statusOFS << snode.LUpdateBuf << std::endl;
+              statusOFS << "["<<snode.Index<<"] " << "snode.UUpdateBuf: ";
+              statusOFS << snode.UUpdateBuf << std::endl;
+#endif
+            } // if Gemm is to be done locally
+
+
+            TIMER_START(Reduce_Sinv_L_Send);
+            // If I was a receiver, I need to send my data to proc in column
+            // of snode.Index
+            if( this->isRecvFromAbove_( snode.Index )  ){
+              if( this->isRecvFromLeft_( snode.Index ) 
+                  && MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
+                MPI_Request & reqsSendToLeft = arrMpireqsSendLToLeft[supidx];
+                MPI_Isend( snode.LUpdateBuf.Data(), snode.LUpdateBuf.ByteSize(),
+                             MPI_BYTE, PCOL(snode.Index,this->grid_),
+                                IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_REDUCE), 
+                                    this->grid_->rowComm, &reqsSendToLeft );
+
+#if ( _DEBUGlevel_ >= 1 )
+                Int dst = PNUM(MYROW(this->grid_),
+                                PCOL(snode.Index,this->grid_),this->grid_);
+                statusOFS << "["<<snode.Index<<"] "<< " LReduce P"
+                          << MYPROC(this->grid_) << " has sent "
+                          << snode.LUpdateBuf.ByteSize() << " bytes to "
+                          << dst << std::endl;
+#endif
+              }//Sender
+            }
+            TIMER_STOP(Reduce_Sinv_L_Send);
+
+            gemmProcessed+=2;
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "["<<snode.Index<<"] "<<"gemmProcessed = "
+                      << gemmProcessed<<"/"<<gemmToDo<<std::endl;
+#endif
+          }
+        }
+
+      }
+      TIMER_STOP(Compute_Sinv_LU);
+#endif
+
+
+
+
+
 
       //Reduce Sinv L to the processors in PCOL(ksup,this->grid_)
       TIMER_START(Reduce_Sinv_L);
@@ -3713,8 +4158,6 @@ struct CDBuffers{
 
 
 
-
-
       TIMER_START(Barrier);
 #ifdef _DYN_ALLOC_LU_
         if(next_lidx < superList.size()){
@@ -3722,8 +4165,77 @@ struct CDBuffers{
         }
 #endif
 
+#ifndef FULL_ASYNC
       mpi::Waitall(arrMpireqsRecvLContentFromAny);
       mpi::Waitall(arrMpireqsRecvUContentFromAny);
+#else
+
+      bool alldone = false;
+      while(!alldone){
+        alldone=true;;
+        for(Int i = 0; i< arrMpireqsRecvLUFromAny.size();++i){
+          MPI_Request & req = arrMpireqsRecvLUFromAny[i];
+          if(MPI_REQUEST_NULL != req){
+            MPI_Status stat;
+            int flag = 0;
+
+            MSGTYPE msgtype= (MSGTYPE)(i%MSGCOUNT);
+            Int supidx = i/MSGCOUNT;
+            SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+
+            Int sender;
+            Int gSender;
+            switch(msgtype){
+              case LROWSIZE: case LROWCONTENT:
+                {
+                  sender = PROW( snode.Index, this->grid_ ); 
+                  gSender = PNUM(sender,MYCOL(this->grid_),this->grid_);
+                }
+                break;
+              case LSIZE: case LCONTENT:
+                {
+
+                  sender = PCOL( snode.Index, this->grid_ ); 
+                  gSender = PNUM(MYROW(this->grid_),sender,this->grid_);
+                }
+                break;
+              case USIZE: case UCONTENT:
+                {
+                  sender = PROW( snode.Index, this->grid_ ); 
+                  gSender = PNUM(sender,MYCOL(this->grid_),this->grid_);
+                }
+                break;
+              case UCOLSIZE: case UCOLCONTENT:
+                {
+                  sender = PCOL( snode.Index, this->grid_ ); 
+                  gSender = PNUM(MYROW(this->grid_),sender,this->grid_);
+                }
+                break;
+            }
+
+
+
+
+            MPI_Test(&req, &flag, &stat);
+            if(flag){
+              statusOFS<<"["<<snode.Index<<"] RECV from P"<<gSender<<" done"<<endl;
+            }
+            else{
+              Int statsender = stat.MPI_SOURCE;
+              statusOFS<<sender<<" vs "<<statsender<<endl;
+              assert(sender == statsender);
+              statusOFS<<"["<<snode.Index<<"] RECV from P"<<gSender<<" not done"<<endl;
+              alldone=false;
+              break;
+            }
+          }
+        }
+      }
+
+
+
+      mpi::Waitall(arrMpireqsRecvLUFromAny);
+#endif
       //Sync for reduce L
       //      mpi::Waitall( arrMpireqsSendToLeft );
       //Sync for reduce D
@@ -3747,7 +4259,6 @@ struct CDBuffers{
         mpi::Waitall( mpireqsSendUToBelow );
 
       }
-
       TIMER_STOP(Barrier);
 
 
@@ -3823,7 +4334,23 @@ struct CDBuffers{
       for (Int lidx=0; lidx<numSteps ; lidx++){
         Int stepSuper = superList[lidx].size(); 
 
+statusOFS<<"AT BEG BARRIER C "<<lidx<<endl;
+MPI_Barrier(this->grid_->colComm);
+statusOFS<<"AT BEG BARRIER R "<<lidx<<endl;
+MPI_Barrier(this->grid_->rowComm);
+statusOFS<<"AT BEG BARRIER "<<lidx<<endl;
+MPI_Barrier(this->grid_->comm);
+
+
         this->SelInvIntra_P2p(lidx);
+
+statusOFS<<"AT END BARRIER C "<<lidx<<endl;
+MPI_Barrier(this->grid_->colComm);
+statusOFS<<"AT END BARRIER R "<<lidx<<endl;
+MPI_Barrier(this->grid_->rowComm);
+statusOFS<<"AT END BARRIER "<<lidx<<endl;
+MPI_Barrier(this->grid_->comm);
+
 
         //if(lidx==1){ return;};
       }
@@ -4187,6 +4714,7 @@ struct CDBuffers{
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS << "["<<ksup<<"] SEND contains "<<Lcol[ib].blockIdx
                       << " which corresponds to "<<GBj(ib,this->grid_)
+                      << " to P"<<dst
                       << std::endl;
 #endif
                     serialize( Lcol[ib], sstm, mask );
@@ -4289,7 +4817,6 @@ struct CDBuffers{
           for(Int srcRow = 0; srcRow<this->grid_->numProcRow; srcRow++){
             if(this->isRecvFromCrossDiagonal_(srcRow,ksup) ){
 
-if(this->grid_->mpirank==0 && ksup==101){gdb_lock();}
 
               std::vector<LBlock<T> > * pLcol;
               std::vector<LBlock<T> > LcolRecv;
@@ -4487,6 +5014,7 @@ if(this->grid_->mpirank==0 && ksup==101){gdb_lock();}
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS << "["<<ksup<<"] SEND contains "<<Urow[jb].blockIdx
                       << " which corresponds to "<<GBi(jb,this->grid_)
+                      << " to P"<<dst
                       << std::endl;
 #endif
                     serialize( Urow[jb], sstm, mask );

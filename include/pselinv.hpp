@@ -74,6 +74,7 @@
 
 namespace PEXSI{
 
+  enum MSGTYPE {LSIZE=0,LROWSIZE,USIZE,UCOLSIZE,LCONTENT,LROWCONTENT,UCONTENT,UCOLCONTENT,MSGCOUNT};
 
     struct ULComparator {
       IntNumVec & lookup;

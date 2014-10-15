@@ -38,11 +38,17 @@ run_pselinv: run_pselinv.o ${PEXSI_LIB}
 run_pselinv_asym: run_pselinv_asym.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ run_pselinv_asym.o  $(LOADOPTS) )
 
+run_mumps: run_mumps.o ${PEXSI_LIB}
+	($(LOADER) -o $@ run_mumps.o $(DMUMPS_LIB) $(MUMPS_ORDERINGS) $(LOADOPTS)    )
+
 run_inertia.o: run_inertia.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 run_pselinv.o: run_pselinv.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
+
+run_mumps.o: run_mumps.cpp
+	${CXX} -c $(DMUMPS_INCLUDE)  ${CXXFLAGS} ${CPPDEFS} $<
 
 run_pselinv_asym.o: run_pselinv_asym.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
