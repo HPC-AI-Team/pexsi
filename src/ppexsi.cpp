@@ -86,9 +86,23 @@ PPEXSIData::PPEXSIData	(
       numProcRow, numProcCol );
 
   // Start the log file. Append to previous log files
-  std::stringstream ss;
-	ss << "logPEXSI" << outputFileIndex;
-	statusOFS.open( ss.str().c_str(), std::ios_base::app );
+#ifndef _RELEASE_
+  // All processors output
+  {
+    std::stringstream ss;
+    ss << "logPEXSI" << outputFileIndex;
+    statusOFS.open( ss.str().c_str(), std::ios_base::app );
+  }
+#else
+  // Only master processor output
+  {
+    if( mpirank == 0 ){
+      std::stringstream ss;
+      ss << "logPEXSI" << outputFileIndex;
+      statusOFS.open( ss.str().c_str(), std::ios_base::app );
+    }
+  }
+#endif
 
   // Initialize the saved variables
   muPEXSISave_ = 0.0;
@@ -1723,14 +1737,14 @@ PPEXSIData::DFTDriver (
         if( inertiaFTVec[0] > numElectronExact ||
             inertiaVec[0] > numElectronExact - EPS ){
           isBadBound = true;
-          muMaxInertia = muMinInertia;
+          muMaxInertia = muMaxInertia;
           muMinInertia = muMinInertia - muInertiaExpansion;
         }
 
         if( inertiaFTVec[numShift-1] < numElectronExact ||
             inertiaVec[numShift-1] < numElectronExact + EPS ){
           isBadBound = true;
-          muMinInertia = muMaxInertia;
+          muMinInertia = muMinInertia;
           muMaxInertia = muMaxInertia + muInertiaExpansion;
         }
 
