@@ -810,113 +810,113 @@ int main(int argc, char **argv)
              }
 
 
-            GetTime( timeSta );
-            luMat.LUstructToPMatrix( PMloc );
-            GetTime( timeEnd );
-
-            nnzLU = PMloc.Nnz();
-            if( mpirank == 0 ){
-              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
-            }
-
-
-            if( mpirank == 0 )
-              cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
-
-
-
-             GetTime( timeSta );
-             PMloc.PreSelInv();
-             GetTime( timeEnd );
- 
-             if( mpirank == 0 )
-               cout << "Time for pre-selected inversion 2 is " << timeEnd  - timeSta << endl;
- 
-             // Main subroutine for selected inversion
-             GetTime( timeSta );
-             PMloc.SelInv();
-             GetTime( timeEnd );
-             if( mpirank == 0 )
-               cout << "Time for numerical selected inversion 2 is " << timeEnd  - timeSta << endl;
- 
- 
-             GetTime( timeTotalSelInvEnd );
-             if( mpirank == 0 )
-               cout << "Time for total selected inversion 2 is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
- 
- 
- 
- 
- 
-             if(doToDist){
-               // Convert to DistSparseMatrix and get the diagonal
-               GetTime( timeSta );
-               DistSparseMatrix<MYSCALAR> Ainv;
-               PMloc.PMatrixToDistSparseMatrix( Ainv );
-               GetTime( timeEnd );
- 
-               if( mpirank == 0 )
-                 cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
- 
-               NumVec<MYSCALAR> diagDistSparse;
-               GetTime( timeSta );
-               GetDiagonal( Ainv, diagDistSparse );
-               GetTime( timeEnd );
-               if( mpirank == 0 )
-                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
- 
-               if( mpirank == 0 ){
-                 statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-                 Real diffNorm = 0.0;;
-                 for( Int i = 0; i < diag.m(); i++ ){
-                   diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
-                 }
-                 diffNorm = std::sqrt( diffNorm );
-                 statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-               }
- 
-               // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-               GetTime( timeSta );
-               DistSparseMatrix<MYSCALAR> Ainv2;
-               PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
-               GetTime( timeEnd );
- 
-               if( mpirank == 0 )
-                 cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
- 
-               NumVec<MYSCALAR> diagDistSparse2;
-               GetTime( timeSta );
-               GetDiagonal( Ainv2, diagDistSparse2 );
-               GetTime( timeEnd );
-               if( mpirank == 0 )
-                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
- 
-               if( mpirank == 0 ){
-                 statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-                 Real diffNorm = 0.0;;
-                 for( Int i = 0; i < diag.m(); i++ ){
-                   diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
-                 }
-                 diffNorm = std::sqrt( diffNorm );
-                 statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-               }
- 
-               Complex traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1,
-                   Ainv2.nzvalLocal.Data(), 1 );
-               Complex trace = Z_ZERO;
-               mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
- 
-               if( mpirank == 0 ){
- 
-                 cout << "H.size = "  << HMat.size << endl;
-                 cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
-                 statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
- 
-                 cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
-                 statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
- 
-               }
-             }
+////            GetTime( timeSta );
+////            luMat.LUstructToPMatrix( PMloc );
+////            GetTime( timeEnd );
+////
+////            nnzLU = PMloc.Nnz();
+////            if( mpirank == 0 ){
+////              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
+////            }
+////
+////
+////            if( mpirank == 0 )
+////              cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
+////
+////
+////
+////             GetTime( timeSta );
+////             PMloc.PreSelInv();
+////             GetTime( timeEnd );
+//// 
+////             if( mpirank == 0 )
+////               cout << "Time for pre-selected inversion 2 is " << timeEnd  - timeSta << endl;
+//// 
+////             // Main subroutine for selected inversion
+////             GetTime( timeSta );
+////             PMloc.SelInv();
+////             GetTime( timeEnd );
+////             if( mpirank == 0 )
+////               cout << "Time for numerical selected inversion 2 is " << timeEnd  - timeSta << endl;
+//// 
+//// 
+////             GetTime( timeTotalSelInvEnd );
+////             if( mpirank == 0 )
+////               cout << "Time for total selected inversion 2 is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+//// 
+//// 
+//// 
+//// 
+//// 
+////             if(doToDist){
+////               // Convert to DistSparseMatrix and get the diagonal
+////               GetTime( timeSta );
+////               DistSparseMatrix<MYSCALAR> Ainv;
+////               PMloc.PMatrixToDistSparseMatrix( Ainv );
+////               GetTime( timeEnd );
+//// 
+////               if( mpirank == 0 )
+////                 cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
+//// 
+////               NumVec<MYSCALAR> diagDistSparse;
+////               GetTime( timeSta );
+////               GetDiagonal( Ainv, diagDistSparse );
+////               GetTime( timeEnd );
+////               if( mpirank == 0 )
+////                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+//// 
+////               if( mpirank == 0 ){
+////                 statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+////                 Real diffNorm = 0.0;;
+////                 for( Int i = 0; i < diag.m(); i++ ){
+////                   diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+////                 }
+////                 diffNorm = std::sqrt( diffNorm );
+////                 statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+////               }
+//// 
+////               // Convert to DistSparseMatrix in the 2nd format and get the diagonal
+////               GetTime( timeSta );
+////               DistSparseMatrix<MYSCALAR> Ainv2;
+////               PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
+////               GetTime( timeEnd );
+//// 
+////               if( mpirank == 0 )
+////                 cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
+//// 
+////               NumVec<MYSCALAR> diagDistSparse2;
+////               GetTime( timeSta );
+////               GetDiagonal( Ainv2, diagDistSparse2 );
+////               GetTime( timeEnd );
+////               if( mpirank == 0 )
+////                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+//// 
+////               if( mpirank == 0 ){
+////                 statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+////                 Real diffNorm = 0.0;;
+////                 for( Int i = 0; i < diag.m(); i++ ){
+////                   diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
+////                 }
+////                 diffNorm = std::sqrt( diffNorm );
+////                 statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
+////               }
+//// 
+////               Complex traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1,
+////                   Ainv2.nzvalLocal.Data(), 1 );
+////               Complex trace = Z_ZERO;
+////               mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
+//// 
+////               if( mpirank == 0 ){
+//// 
+////                 cout << "H.size = "  << HMat.size << endl;
+////                 cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
+////                 statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
+//// 
+////                 cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
+////                 statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
+//// 
+////               }
+////             }
  
 
 
