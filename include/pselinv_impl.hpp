@@ -1564,7 +1564,9 @@ namespace PEXSI{
             LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
             // Symmetrize LB
             blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
+#ifndef _NO_SYMMETRIZATION_
             Symmetrize( LB.nzval );
+#endif
           }
 
         } 
@@ -2501,7 +2503,10 @@ namespace PEXSI{
               SuperSize( ksup, super_ ), ipiv.Data() );
 
           // Symmetrize the diagonal block
+#ifndef _NO_SYMMETRIZATION_
           Symmetrize( LB.nzval );
+#endif
+
 #if ( _DEBUGlevel_ >= 2 )
           // Check the correctness of the matrix inversion for the first local column
           statusOFS << "Inversed   A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;

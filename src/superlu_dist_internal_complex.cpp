@@ -179,8 +179,8 @@ throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
 	options.RowPerm           = NOROWPERM; // IMPORTANT for symmetric matrices
 	options.IterRefine        = NOREFINE;
 	options.ParSymbFact       = NO;
-	options.Equil             = NO; 
-	options.ReplaceTinyPivot  = NO;
+	options.Equil             = YES; 
+	options.ReplaceTinyPivot  = YES;
 	// For output information such as # of nonzeros in L and U
 	// and the memory cost, set PrintStat = YES
 	options.PrintStat         = NO;
@@ -450,6 +450,10 @@ throw std::logic_error( "For PEXSI there must be no row permutation." );
 			&totalMemory, &maxMemory);
 	PStatFree(&ptrData->stat);
 
+
+//assert(ptrData->ScalePermstruct.DiagScale == BOTH );
+
+
 #if ( _DEBUGlevel_ >= 0 )
 	statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
 	statusOFS << "Total: " << totalMemory << ", Average: " << 
@@ -545,6 +549,8 @@ throw std::logic_error( "LUstruct has not been allocated." );
 #endif
 throw std::runtime_error( msg.str().c_str() );
 	}
+
+//assert(ptrData->ScalePermstruct.DiagScale == BOTH );
 	
 	// Prepare for Solve.
 	ptrData->options.Fact = FACTORED;

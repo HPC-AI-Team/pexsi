@@ -172,8 +172,9 @@ namespace PEXSI{
     options.RowPerm           = NOROWPERM; // IMPORTANT for symmetric matrices
     options.IterRefine        = NOREFINE;
     options.ParSymbFact       = NO;
-    options.Equil             = NO; 
-    options.ReplaceTinyPivot  = NO;
+    options.Equil             = YES; 
+    options.ReplaceTinyPivot  = YES; //TODO might be safe to turn on
+
     // For output information such as # of nonzeros in L and U
     // and the memory cost, set PrintStat = YES
     options.PrintStat         = NO;
@@ -397,6 +398,10 @@ namespace PEXSI{
           &totalMemory, &maxMemory);
       PStatFree(&ptrData->stat);
 
+
+//assert(ptrData->ScalePermstruct.DiagScale == BOTH );
+
+
 #if ( _DEBUGlevel_ >= 0 )
       statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
       statusOFS << "Total: " << totalMemory << ", Average: " << 
@@ -481,6 +486,9 @@ namespace PEXSI{
       pdgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol, 
           anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info); 
       PStatFree(&ptrData->stat);
+
+
+
       if( ptrData->info ){
         std::ostringstream msg;
         msg << "Numerical factorization error, info =  " << ptrData->info << std::endl;
@@ -489,6 +497,8 @@ namespace PEXSI{
 #endif
         throw std::runtime_error( msg.str().c_str() );
       }
+
+//assert(ptrData->ScalePermstruct.DiagScale == BOTH );
 
       // Prepare for Solve.
       ptrData->options.Fact = FACTORED;
