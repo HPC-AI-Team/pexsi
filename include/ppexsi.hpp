@@ -139,7 +139,6 @@ namespace PEXSI{
 		// *********************************************************************
 		// Saved variables for nonlinear iterations
 		// *********************************************************************
-    Real                       muPEXSISave_;
 
 	public:
     PPEXSIData(
@@ -296,6 +295,7 @@ namespace PEXSI{
         Int        maxPEXSIIter,
         Real       muMin0,
         Real       muMax0,
+        Real       mu0,
         Real       muInertiaTolerance,
         Real       muInertiaExpansion,
         Real       muPEXSISafeGuard,

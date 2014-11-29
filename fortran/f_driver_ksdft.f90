@@ -80,6 +80,7 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 Hfile            = "lap2dr.matrix"
 
+! Only use one processor in this example
 nprow = 1
 npcol = 1
 
@@ -151,6 +152,7 @@ call f_ppexsi_set_default_options(&
 numElectronExact = 12d0
 options%muMin0   = 0d0
 options%muMax0   = 0.5d0 
+options%mu0      = 1.0d0
 options%deltaE   = 20d0 
 options%numPole  = 60
 options%temperature = 0.019d0   ! 3000 K

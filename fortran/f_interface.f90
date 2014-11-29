@@ -65,6 +65,8 @@ module f_ppexsi_interface
 use, intrinsic :: iso_c_binding
 
 ! Struct for PPEXSIOptions
+! NOTE: The order and the type of the parameters must be strictly the same as in PPEXSIOptions in 
+! c_pexsi_interface.h
 type, bind(C) :: f_ppexsi_options
   real(c_double)         :: temperature
   real(c_double)         :: gap
@@ -74,6 +76,7 @@ type, bind(C) :: f_ppexsi_options
   integer(c_int)         :: maxPEXSIIter
   real(c_double)         :: muMin0
   real(c_double)         :: muMax0
+  real(c_double)         :: mu0
   real(c_double)         :: muInertiaTolerance
   real(c_double)         :: muInertiaExpansion
   real(c_double)         :: muPEXSISafeGuard

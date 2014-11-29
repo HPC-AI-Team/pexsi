@@ -168,7 +168,35 @@ National Laboratory).
 
 
 <!-- ************************************************************ -->
-@page pageReference References
+@page pageReference Citing %PEXSI
+
+If you use %PEXSI for electronic structure calculation in general,
+**please cite the following two papers.**
+
+@verbatim
+@Article{CMS2009,
+  Title                    = {Fast algorithm for extracting the diagonal of the inverse matrix with application to the electronic structure analysis of metallic systems},
+  Author                   = {Lin, L. and Lu, J. and Ying, L. and Car, R. and E, W.},
+  Journal                  = {Comm. Math. Sci.},
+  Year                     = {2009},
+  Pages                    = {755},
+  Volume                   = {7}
+}
+@endverbatim
+
+@verbatim
+@Article{JCPM2013,
+  Title                    = {Accelerating atomic orbital-based electronic structure calculation via pole expansion and selected inversion},
+  Author                   = {Lin, L. and Chen, M. and Yang, C. and He, L.},
+  Journal                  = {J. Phys. Condens. Matter},
+  Year                     = {2013},
+  Pages                    = {295501},
+  Volume                   = {25}
+}
+@endverbatim
+
+
+**More references:**
 
 L. Lin, A. Garcia, G. Huhs and C. Yang, SIESTA-PEXSI: Massively parallel
 method for efficient and accurate ab initio materials simulation without
@@ -208,6 +236,18 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
+
+- v0.7.3 (11/27/2014)
+  - Multiple patches suggested by Alberto Garcia.
+    - Fix a bug in the "lateral expansion" for locating the bracket for
+      the chemical potential.
+    - Search for band edges of the chemical potential, which serve both
+      for metals and for systems with a gap. 
+    - Add a paramter (mu0 in in %PPEXSIOptions) to provide the starting
+      guess of chemical potential.  This can be used for the case in
+      which the %PEXSI solver is invoked directly, without an inertia-counting
+      phase. 
+  - Update the example drivers accordingly to these bug fixes.
 
 - v0.7.2 (08/27/2014)
   - Bug fix: Two temporary variables were not initialized during the

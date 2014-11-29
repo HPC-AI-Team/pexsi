@@ -233,6 +233,7 @@ int main(int argc, char **argv)
   PPEXSISetDefaultOptions( &options );
   options.muMin0 = 0.0;
   options.muMax0 = 0.5;
+  options.mu0    = 0.0;
   options.npSymbFact = 1;
   options.ordering = 0;
   options.isInertiaCount = 1;
@@ -333,6 +334,8 @@ int main(int argc, char **argv)
     options.muMax0 = muMaxInertia;
     options.isInertiaCount = 0;
     options.isSymbolicFactorize = 0;
+    // Reuse previous mu to start
+    options.mu0 = muPEXSI;
 
     PPEXSIDFTDriver(
         plan,

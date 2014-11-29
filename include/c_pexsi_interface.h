@@ -211,6 +211,10 @@ typedef struct {
      * @brief  Initial guess of upper bound for mu.
      */ 
     double        muMax0;
+     /** 
+     * @brief  Initial guess for mu (for the solver) (AG)
+     */ 
+    double        mu0;
     /** 
      * @brief  Stopping criterion in terms of the chemical potential
      * for the inertia counting procedure.
