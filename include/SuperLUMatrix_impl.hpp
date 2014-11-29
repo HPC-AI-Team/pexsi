@@ -65,7 +65,7 @@ inline SuperLUMatrix<Real>::SuperLUMatrix	( const SuperLUGrid<Real>& g, const Su
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix<Real>::SuperLUMatrix");
 #endif
-  ptrData = new RealSuperLUData(g,opt);
+    ptrData = new RealSuperLUData(g,opt);
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
@@ -327,12 +327,7 @@ inline SuperLUMatrix<Complex>::SuperLUMatrix	( const SuperLUGrid<Complex>& g, co
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix<Complex>::SuperLUMatrix");
 #endif
-  if( ptrData == NULL ){
     ptrData = new ComplexSuperLUData(g,opt);
-  }
-  else{
-    throw std::logic_error("SuperLUMatrix has been set up before.");
-  }
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
