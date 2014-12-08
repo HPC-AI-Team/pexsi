@@ -46,7 +46,7 @@
 #ifndef  _PEXSI_TINYVEC_HPP_
 #define  _PEXSI_TINYVEC_HPP_
 
-#include "environment.hpp"
+#include "pexsi/environment.hpp"
 
 namespace PEXSI{
 
@@ -225,6 +225,6 @@ namespace PEXSI{
 
 } // namespace PEXSI
 
-#include "tinyvec_impl.hpp"
+#include "pexsi/tinyvec_impl.hpp"
 
 #endif // _PEXSI_TINYVEC_HPP_

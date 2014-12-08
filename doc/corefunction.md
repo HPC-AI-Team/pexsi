@@ -6,6 +6,7 @@ Core Functionality            {#pageCoreFunction}
 - @subpage pagePole
 - @subpage pageFactor
 - @subpage pageSelInv
+- @subpage pageCCPP
 - @subpage pageFORTRAN
 
 
@@ -46,7 +47,9 @@ set shiftwidth=2
 set expandtab 
 ~~~~~~~~~~
  
+<!--
 - For EMACS users or users of other text editors, **to be added**.
+-->
 
 
 <!-- ************************************************************ -->
@@ -351,10 +354,10 @@ Example
   ...;
 
   // Setup SuperLU
-  SuperLUGrid g( comm, nprow, npcol );
+  SuperLUGrid<Complex> g( comm, nprow, npcol );
   SuperLUOptions luOpt;
   luOpt.ColPerm = "MMD_AT_PLUS_A";
-  SuperLUMatrix luMat( g );
+  SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
   luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
@@ -414,10 +417,10 @@ Example
   ...;
 
   // Setup SuperLU
-  SuperLUGrid g( comm, nprow, npcol );
+  SuperLUGrid<Complex> g( comm, nprow, npcol );
   SuperLUOptions luOpt;
   luOpt.ColPerm = "MMD_AT_PLUS_A";
-  SuperLUMatrix luMat( g );
+  SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
   luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
@@ -445,6 +448,7 @@ Example
 }
 ~~~~~~~~~~
 
+<!--
 Triangular solve and accuracy check    {#secTriangularSolve}
 ===================================
 
@@ -456,10 +460,13 @@ inversion.
 - Construct the distributed right hand sides.
 - Solve \f$Ax=b\f$. Multiple right hand sides can be solved
   simultaneously.
+-->
 
+<!--
 Related structures and subroutines
-----------------------------------
+---------------------------------->
 
+<!--
 > @ref PEXSI::SuperLUMatrix::SolveDistMultiVector "SuperLUMatrix::SolveDistMultiVector"
 
 Solve A x = b with b overwritten by x for distributed multivector.
@@ -470,8 +477,9 @@ Print out the error by direct comparison with the true solution in
 distributed format.
 
 Example
--------
+------->
 
+<!--
 The following example performs factorization, solves for a series of
 right hand sides and compare the accuracy.
 
@@ -519,6 +527,7 @@ right hand sides and compare the accuracy.
   ...;
 }
 ~~~~~~~~~~
+-->
 
 
 <!-- ************************************************************ -->
@@ -622,10 +631,10 @@ Example
 
   /****** NUMERICAL FACTORIZATION ******/
   // Setup SuperLU
-  SuperLUGrid g( comm, nprow, npcol );
+  SuperLUGrid<Complex> g( comm, nprow, npcol );
   SuperLUOptions luOpt;
   luOpt.ColPerm = "MMD_AT_PLUS_A";
-  SuperLUMatrix luMat( g );
+  SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
   luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
@@ -638,7 +647,7 @@ Example
 
   /****** SELECTED INVERSION ******/
 
-  PMatrix PMloc;
+  PMatrix<Complex> PMloc;
 
   // Conversion to PMatrix
   luMat.LUstructToPMatrix( PMloc );
@@ -665,19 +674,92 @@ Example
 
 
 
+<!-- ************************************************************ -->
+@page pageCCPP C/C++ interface
+\tableofcontents
 
+The main interface routines are given in @ref c_pexsi_interface.h.  The
+routines are callable from C/C++.  
+
+@note C++ users also have the option of directly using the subroutines
+provided in @ref ppexsi.cpp.  The usage can be obtained from 
+@ref interface.cpp.
 
 <!-- ************************************************************ -->
 @page pageFORTRAN FORTRAN interface
 \tableofcontents
 
-All the interface routines in C has its FORTRAN version, given in
-interface.cpp.  All FORTRAN interface routines start with `f_` and can
-be called in FORTRAN directly.  
+The FORTRAN interface is based on the ISO_C_BINDING feature, which is
+available for FORTRAN 2003 or later.  The usage of FORTRAN interface is
+very similar to the C interface as given in the @ref pageTutorial
+section. 
 
-@note Most FORTRAN compilers mangles the subroutine names in a way that
-in the corresponding C code, the subroutine name should end with an
-underscore "_".  This is controlled in `make.inc`, by adding `-DAdd_` in
-the `COMMONDEFS` variable.  This macro controls the behavior of
-`FORTRAN()` as defined in environment.hpp, as well as the internal
-routines such as `BLAS()` and `LAPACK()`.
+In FORTRAN, the PPEXSIPlan data type is `c_intptr_t` (or equivalently
+`INTEGER*8`). The naming of the subroutines is  similar to the C
+interface as in @ref c_pexsi_interface.h.  All FORTRAN interface
+routines are in @ref f_interface.f90.  
+For instance, the subroutine @ref PPEXSIPlanInitialize (C/C++) corresponds to
+the subroutine @ref f_ppexsi_plan_initialize (FORTRAN).
+
+Example: Parallel selected inversion for a real symmetric matrix
+
+~~~~~~~~~~{.f90}
+integer(c_intptr_t)    :: plan
+type(f_ppexsi_options) :: options
+
+! Initialize PEXSI. 
+! PPEXSIPlan is a handle communicating with the C++ internal data structure 
+
+plan = f_ppexsi_plan_initialize(&
+  MPI_COMM_WORLD,&
+  nprow,&
+  npcol,&
+  mpirank,&
+  info )
+
+! Tuning parameters of PEXSI. The default options is reasonable to
+! start, and the parameters in options can be changed. 
+call f_ppexsi_set_default_options(&
+  options )
+
+! Load the matrix into the internal data structure 
+call f_ppexsi_load_real_symmetric_hs_matrix(&
+      plan,&       
+      options,&
+      nrows,&
+      nnz,&
+      nnzLocal,&
+      numColLocal,&
+      colptrLocal,& 
+      rowindLocal,&
+      HnzvalLocal,&
+      1,&
+      SnzvalLocal,&
+      info ) 
+
+! Factorize the matrix symbolically
+call f_ppexsi_symbolic_factorize_real_symmetric_matrix(&
+  plan,&
+  options,&
+  info)
+
+! Main routine for computing selected elements and save into AinvnzvalLocal
+call f_ppexsi_selinv_real_symmetric_matrix(& plan,&
+  options,&
+  AnzvalLocal,&
+  AinvnzvalLocal,&
+  info)
+
+! Post processing step...
+
+! Release the data saved in the plan
+call f_ppexsi_plan_finalize( plan, info )
+
+
+~~~~~~~~~~ 
+
+
+The examples of the FORTRAN interface can be found under `fortran/`
+directory, including @ref f_driver_pselinv_real.f90, 
+@ref f_driver_pselinv_complex.f90, 
+@ref f_driver_ksdft.f90.

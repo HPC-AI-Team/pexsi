@@ -40,7 +40,7 @@
 	 works, incorporate into other computer software, distribute, and sublicense
 	 such enhancements or derivative works thereof, in binary and source code form.
 */
-#include	"environment.hpp"
+#include "pexsi/environment.hpp"
 
 namespace PEXSI{
 

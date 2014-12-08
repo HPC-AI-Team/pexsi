@@ -46,7 +46,7 @@
 #ifndef _PEXSI_MPI_HPP_
 #define _PEXSI_MPI_HPP_
 
-#include  "environment.hpp"
+#include "pexsi/environment.hpp"
 
 namespace PEXSI{
 
@@ -54,6 +54,128 @@ namespace PEXSI{
 ///
 /// @brief Interface with MPI to facilitate communication.
 namespace mpi{
+
+
+// *********************************************************************
+// Gatherv
+//
+// NOTE: The interface is quite preliminary.
+// *********************************************************************
+void Gatherv( 
+		std::vector<Int>& localVec, 
+		std::vector<Int>& allVec,
+    Int root,
+		MPI_Comm          comm );
+
+
+
+template<typename T>
+void
+Gatherv ( 
+		std::vector<T>& localVec, 
+		std::vector<T>& allVec,
+    Int root,
+		MPI_Comm          comm )
+{
+#ifndef _RELEASE_
+  PushCallStack("mpi::Gatherv");
+#endif
+  Int mpirank, mpisize;
+  MPI_Comm_rank( comm, &mpirank );
+  MPI_Comm_size( comm, &mpisize );
+
+  Int localSize = localVec.size()*sizeof(T);
+  std::vector<Int>  localSizeVec( mpisize );
+  MPI_Gather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT,root, comm );
+
+  if(mpirank==root){
+    std::vector<Int>  localSizeDispls( mpisize );
+    localSizeDispls[0] = 0;
+    for( Int ip = 1; ip < mpisize; ip++ ){
+      localSizeDispls[ip] = localSizeDispls[ip-1] + localSizeVec[ip-1]*sizeof(T);
+    }
+    Int totalSize = localSizeDispls[mpisize-1] + localSizeVec[mpisize-1]*sizeof(T);
+
+    allVec.clear();
+    allVec.resize( totalSize / sizeof(T) );
+
+    MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, &allVec[0], 
+        &localSizeVec[0], &localSizeDispls[0], MPI_BYTE, root, comm	);
+  }
+  else{
+    MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, NULL, 
+        NULL, NULL, MPI_INT, root, comm	);
+  }
+#ifndef _RELEASE_
+  PopCallStack();
+#endif
+
+  return ;
+}		// -----  end of function Gatherv  ----- 
+
+
+void
+Gatherv ( 
+		std::vector<Int>& localVec, 
+		std::vector<Int>& allVec,
+		std::vector<Int>& sizes,
+		std::vector<Int>& displs,
+    Int root,
+		MPI_Comm          comm );
+
+
+template<typename T>
+void
+Gatherv ( 
+		std::vector<T>& localVec, 
+		std::vector<T>& allVec,
+		std::vector<T>& sizes,
+		std::vector<T>& displs,
+    Int root,
+		MPI_Comm          comm )
+{
+#ifndef _RELEASE_
+  PushCallStack("mpi::Gatherv");
+#endif
+  Int mpirank, mpisize;
+  MPI_Comm_rank( comm, &mpirank );
+  MPI_Comm_size( comm, &mpisize );
+
+  Int localSize = localVec.size()*sizeof(T);
+
+  if(mpirank==root){
+    std::vector<Int> & localSizeVec = sizes;
+    localSizeVec.resize( mpisize );
+    MPI_Gather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT,root, comm );
+    std::vector<Int> &  localSizeDispls = displs;
+    localSizeDispls.resize( mpisize );
+    localSizeDispls[0] = 0;
+    for( Int ip = 1; ip < mpisize; ip++ ){
+      localSizeDispls[ip] = localSizeDispls[ip-1] + localSizeVec[ip-1]*sizeof(T);
+    }
+    Int totalSize = localSizeDispls[mpisize-1] + localSizeVec[mpisize-1]*sizeof(T);
+
+    allVec.clear();
+    allVec.resize( totalSize / sizeof(T) );
+
+    MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, &allVec[0], 
+        &localSizeVec[0], &localSizeDispls[0], MPI_BYTE, root, comm	);
+  }
+  else{
+    MPI_Gather( &localSize, 1, MPI_INT, NULL, 1, MPI_INT,root, comm );
+    MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, NULL, 
+        NULL, NULL, MPI_INT, root, comm	);
+  }
+#ifndef _RELEASE_
+  PopCallStack();
+#endif
+
+  return ;
+}		// -----  end of function Gatherv  ----- 
+
+
+
+
 
 // *********************************************************************
 // Allgatherv

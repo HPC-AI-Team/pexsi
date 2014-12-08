@@ -45,7 +45,7 @@
 /// @date 2013-04-15
 #include  "ppexsi.hpp"
 
-#include "timer.h"
+#include "pexsi/timer.h"
 
 #define _MYCOMPLEX_
 

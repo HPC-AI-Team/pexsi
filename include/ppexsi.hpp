@@ -46,17 +46,18 @@
 /// @date Revision:      2014-03-09  Second generation interface.
 #ifndef _PPEXSI_HPP_
 #define _PPEXSI_HPP_
-#include  "environment.hpp"
-#include  "sparse_matrix.hpp"
-#include  "NumVec.hpp"
-#include  "utility.hpp"
-#include  "pole.hpp"
-#include	"mpi_interf.hpp"
-#include  "SuperLUGrid.hpp"
-#include  "superlu_dist_interf.hpp"
-#include	"pselinv.hpp"
-#include	"pselinv_asym.hpp"
-#include  "c_pexsi_interface.h"
+#include "pexsi/environment.hpp"
+#include "pexsi/sparse_matrix.hpp"
+#include "pexsi/NumVec.hpp"
+#include "pexsi/utility.hpp"
+#include "pexsi/pole.hpp"
+#include "pexsi/mpi_interf.hpp"
+#include "pexsi/SuperLUGrid.hpp"
+#include "pexsi/superlu_dist_interf.hpp"
+#include "pexsi/pselinv.hpp"
+#include	"pexsi/pselinv_asym.hpp"
+//#include "pexsi/ngchol_interf.hpp"
+//#include "pexsi/c_pexsi_interface.h"
 
 namespace PEXSI{
 
@@ -106,18 +107,19 @@ namespace PEXSI{
     // SuperLUMatrix and PMatrix structures These structures are saved
     // to avoid repetitive symbolic factorization process, and saved in
     // pointer form because of the constructors.
-    SuperLUMatrix<Real>        luRealMat_;
-    SuperLUMatrix<Complex>     luComplexMat_;
+    SuperLUMatrix<Real>*       luRealMat_;
+    SuperLUMatrix<Complex>*    luComplexMat_;
 
-    PMatrix<Real>              PMRealMat_;
-    PMatrix<Complex>           PMComplexMat_;
+    PMatrix<Real>*             PMRealMat_;
+    PMatrix<Complex>*          PMComplexMat_;
 
     // Whether the matrices have been loaded into HRealMat_ and
     // SRealMat_
     bool                       isMatrixLoaded_;
     // Whether the matrices (luMat and PMat) have obtained symbolic
     // information
-    bool                       isSymbolicFactorized_;
+    bool                       isRealSymmetricSymbolicFactorized_;
+    bool                       isComplexSymmetricSymbolicFactorized_;
     // Supernode partition for the real matrix
     SuperNodeType              superReal_;             
     // Supernode partition for the complex matrix
@@ -159,15 +161,15 @@ namespace PEXSI{
         Int*          rowindLocal,                  
         Real*         HnzvalLocal,                  
         Int           isSIdentity,                  
-        Real*         SnzvalLocal );
+        Real*         SnzvalLocal,
+        Int           verbosity );
 
     
-    /// @brief Symbolically factorize the loaded matrices 
+    /// @brief Symbolically factorize the loaded matrices for real
+    /// arithmetic factorization and selected inversion.
     ///
-    /// Both luRealMat_ and luComplexMat_ will be factorized.
-    ///
-    /// The symbolic information will be passed to PMRealMat_ and
-    /// PMComplexMat_, respectively.
+    /// The symbolic information is saved internally at luRealMat_ and
+    /// PMRealMat_.
     ///
 		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
 		///
@@ -181,6 +183,37 @@ namespace PEXSI{
 				std::string                    ColPerm,
 				Int                            numProcSymbFact,
         Int                            verbosity );
+    
+    /// @brief Symbolically factorize the loaded matrices for complex
+    /// arithmetic factorization and selected inversion.
+    ///
+    /// The symbolic information is saved internally at luComplexMat_ and
+    /// PMComplexMat_.
+    ///
+		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		///
+		/// @param[in] numProcSymbFact Number of processors used for parallel
+		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+    /// @param[in] verbosity The level of output information.
+    /// - = 0   : No output.
+    /// - = 1   : Basic output (default)
+    /// - = 2   : Detailed output.
+    void SymbolicFactorizeComplexSymmetricMatrix(
+				std::string                    ColPerm,
+				Int                            numProcSymbFact,
+        Int                            verbosity );
+
+
+    void SelInvRealSymmetricMatrix(
+          double*           AnzvalLocal,                  
+          Int               verbosity,
+          double*           AinvnzvalLocal );
+
+    void SelInvComplexSymmetricMatrix(
+          double*           AnzvalLocal,                  
+          Int               verbosity,
+          double*           AinvnzvalLocal );
+
 
 		/// @brief Compute the negative inertia (the number of eigenvalues
 		/// below a shift) for real symmetric matrices.  The factorization

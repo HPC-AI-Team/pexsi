@@ -45,7 +45,7 @@
 /// @date 2012-09-12
 #ifndef _PEXSI_BLAS_HPP_ 
 #define _PEXSI_BLAS_HPP_
-#include  "environment.hpp"
+#include "pexsi/environment.hpp"
 
 namespace PEXSI {
 

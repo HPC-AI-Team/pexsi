@@ -40,8 +40,8 @@
    works, incorporate into other computer software, distribute, and sublicense
    such enhancements or derivative works thereof, in binary and source code form.
  */
-/// @file SuperLUMatrix.hpp
-/// @brief Wrapper class for SuperLU internal data structures.
+/// @file SuperLUMatrix_impl.hpp
+/// @brief Implementation of the wrapper class for SuperLU internal data structures.
 /// @date 2014-03-17
 #ifndef _PEXSI_SUPERLUMATRIX_IMPL_HPP_
 #define _PEXSI_SUPERLUMATRIX_IMPL_HPP_

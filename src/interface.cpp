@@ -49,7 +49,7 @@
 /// @date Revision:      2014-03-07  Second generation interface.
 #include "c_pexsi_interface.h"
 #include "ppexsi.hpp"
-#include "blas.hpp"
+#include "pexsi/blas.hpp"
 
 // FIXME
 // Error handling used in the C interface that is different from the
@@ -295,7 +295,7 @@ PPEXSIPlan PPEXSIPlanInitialize(
   PPEXSIData *ptrData;
 
   try{
-    ptrData = new PPEXSIData( comm, numProcRow, numProcCol, mpirank );
+    ptrData = new PPEXSIData( comm, numProcRow, numProcCol, outputFileIndex );
   }
 	catch( std::exception& e )
 	{
@@ -314,6 +314,7 @@ PPEXSIPlan PPEXSIPlanInitialize(
 extern "C"
 void PPEXSILoadRealSymmetricHSMatrix(
     PPEXSIPlan    plan,
+    PPEXSIOptions options,
     int           nrows,                        
     int           nnz,                          
     int           nnzLocal,                     
@@ -341,7 +342,8 @@ void PPEXSILoadRealSymmetricHSMatrix(
           rowindLocal,                  
           HnzvalLocal,                  
           isSIdentity,                  
-          SnzvalLocal );
+          SnzvalLocal,
+          options.verbosity );
   }
 	catch( std::exception& e )
 	{
@@ -357,13 +359,262 @@ void PPEXSILoadRealSymmetricHSMatrix(
   return;
 }   // -----  end of function PPEXSILoadRealSymmetricHSMatrix  ----- 
 
+extern "C"
+void PPEXSISymbolicFactorizeRealSymmetricMatrix(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info ) {
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  *info = 0;
+
+  try{
+    std::string colPerm;
+    switch (options.ordering){
+      case 0:
+        colPerm = "PARMETIS";
+        break;
+      case 1:
+        colPerm = "METIS_AT_PLUS_A";
+        break;
+      case 2:
+        colPerm = "MMD_AT_PLUS_A";
+        break;
+      default:
+        throw std::logic_error("Unsupported ordering strategy.");
+    }
+
+    reinterpret_cast<PPEXSIData*>(plan)->
+      SymbolicFactorizeRealSymmetricMatrix(
+          colPerm,
+          options.npSymbFact,
+          options.verbosity );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSISymbolicFactorizeRealSymmetricMatrix  ----- 
+
+
+extern "C"
+void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info ) {
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  *info = 0;
+
+  try{
+    std::string colPerm;
+    switch (options.ordering){
+      case 0:
+        colPerm = "PARMETIS";
+        break;
+      case 1:
+        colPerm = "METIS_AT_PLUS_A";
+        break;
+      case 2:
+        colPerm = "MMD_AT_PLUS_A";
+        break;
+      default:
+        throw std::logic_error("Unsupported ordering strategy.");
+    }
+
+    reinterpret_cast<PPEXSIData*>(plan)->
+      SymbolicFactorizeComplexSymmetricMatrix(
+          colPerm,
+          options.npSymbFact,
+          options.verbosity );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSISymbolicFactorizeRealSymmetricMatrix  ----- 
+
+
+extern "C"
+void PPEXSIInertiaCountRealSymmetricMatrix(
+    /* Input parameters */
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int               numShift,
+    double*           shiftList,
+    /* Output parameters */
+    double*           inertiaList,
+    int*              info ) {
+
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  *info = 0;
+
+  try{
+    std::vector<Real>    shiftVec(numShift);
+    std::vector<Real>    inertiaVec(numShift);
+    for( Int i = 0; i < numShift; i++ ){
+      shiftVec[i] = shiftList[i];
+    }
+
+    reinterpret_cast<PPEXSIData*>(plan)->
+      CalculateNegativeInertiaReal(
+          shiftVec,
+          inertiaVec,
+          options.verbosity );
+
+    for( Int i = 0; i < numShift; i++ ){
+      inertiaList[i] = inertiaVec[i];
+    }
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSIInertiaCountRealSymmetricMatrix  ----- 
+
+extern "C"
+void PPEXSICalculateFermiOperatorReal(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double            mu,
+    double            numElectronExact,
+    double*           numElectronPEXSI,
+    double*           numElectronDrvMuPEXSI,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->CalculateFermiOperatorReal(
+        options.numPole,
+        options.temperature,
+        options.gap,
+        options.deltaE,
+        mu,
+        numElectronExact,
+        options.numElectronPEXSITolerance,
+        options.verbosity,
+        *numElectronPEXSI,
+        *numElectronDrvMuPEXSI );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSICalculateFermiOperatorReal  ----- 
+
+
+
+extern "C"
+void PPEXSISelInvRealSymmetricMatrix (
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
+    double*           AinvnzvalLocal,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->SelInvRealSymmetricMatrix(
+        AnzvalLocal,
+        options.verbosity,
+        AinvnzvalLocal );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSISelInvRealSymmetricMatrix  ----- 
+
+
+extern "C"
+void PPEXSISelInvComplexSymmetricMatrix (
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
+    double*           AinvnzvalLocal,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexSymmetricMatrix(
+        AnzvalLocal,
+        options.verbosity,
+        AinvnzvalLocal );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+	return ;
+}		// -----  end of function PPEXSISelInvComplexSymmetricMatrix  ----- 
+
 
 extern "C"
 void PPEXSIDFTDriver(
     /* Input parameters */
     PPEXSIPlan        plan,
-    double            numElectronExact,
     PPEXSIOptions     options,
+    double            numElectronExact,
     /* Output parameters */
 		double*           muPEXSI,                   
 		double*           numElectronPEXSI,         
@@ -464,36 +715,6 @@ void PPEXSIRetrieveRealSymmetricDFTMatrix(
 }   // -----  end of function PPEXSIRetrieveRealSymmetricDFTMatrix  ----- 
 
 
-// FIXME
-extern "C"
-void PPEXSIRealSymmetricRawInertiaCount(
-    PPEXSIPlan        plan,
-    int               numShift,
-		double*           shiftVec,            
-    PPEXSIOptions     options,
-		int*              inertiaVec,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  
-  try{
-    // FIXME
-    delete reinterpret_cast<PPEXSIData*>(plan);
-  }
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-			<< std::endl << e.what() << std::endl;
-		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
-  return;
-}   // -----  end of function PPEXSIRealSymmetricRawInertiaCount  ----- 
-
 
 extern "C"
 void PPEXSIPlanFinalize( 
@@ -519,3 +740,145 @@ void PPEXSIPlanFinalize(
 	}
   return;
 }   // -----  end of function PPEXSIPlanFinalize  ----- 
+
+// ********************************************************************* 
+// FORTRAN interface
+// 
+// NOTE: 
+// 
+// 1. Most of the interface routines do not explicitly depend on the MPI
+// communicators, and therefore can be called directly through the
+// ISO_C_BINDING feature as in f_interface.f90.
+//
+// 2. For routines use MPI communicators, the communicators from FORTRAN
+// must be transferred to C communicators using f2c_comm, and the
+// FORTRAN version is given below.
+//
+// 3. In ISO_C_BINDING, passing by value is allowed and it is not
+// required that all arguments by given in the form of pointers.
+//
+// 4. The following routines need not be defined in the C header file.
+// *********************************************************************
+
+/// @brief Internal subroutine to convert FORTRAN communicator to C
+extern "C" 
+MPI_Comm f2c_comm(MPI_Fint* Fcomm)
+{
+	return MPI_Comm_f2c((*Fcomm));
+}  // -----  end of function f2c_comm ----- 
+
+
+/// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedHeadInterface.
+extern "C"
+void f_read_distsparsematrix_formatted_head (
+		char*    filename,
+		int*     size,
+		int*     nnz,
+		int*     nnzLocal,
+		int*     numColLocal,
+		MPI_Fint* Fcomm )
+{
+  ReadDistSparseMatrixFormattedHeadInterface(
+			filename,
+			size,
+			nnz,
+			nnzLocal,
+			numColLocal,
+			f2c_comm( Fcomm ) );
+
+	return;
+}  // -----  end of function f_read_distsparsematrix_formatted_head  
+
+
+/// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedInterface.
+extern "C"
+void f_read_distsparsematrix_formatted (
+		char*    filename,
+		int      size,
+		int      nnz,
+		int      nnzLocal,
+		int      numColLocal,
+		int*     colptrLocal,
+		int*     rowindLocal,
+		double*  nzvalLocal,
+    MPI_Fint* Fcomm )
+{
+	ReadDistSparseMatrixFormattedInterface(
+			filename,
+			size,
+			nnz,
+			nnzLocal,
+			numColLocal,
+			colptrLocal,
+			rowindLocal,
+			nzvalLocal,
+			f2c_comm( Fcomm ) );
+	return;
+} // -----  end of function f_read_distsparsematrix_formatted  ----- 
+
+/// @brief FORTRAN interface for @ref ReadDistSparseMatrixHeadInterface.
+extern "C"
+void f_read_distsparsematrix_head (
+		char*    filename,
+		int*     size,
+		int*     nnz,
+		int*     nnzLocal,
+		int*     numColLocal,
+		MPI_Fint* Fcomm )
+{
+  ReadDistSparseMatrixHeadInterface(
+			filename,
+			size,
+			nnz,
+			nnzLocal,
+			numColLocal,
+			f2c_comm( Fcomm ) );
+
+	return;
+}  // -----  end of function f_read_distsparsematrix_head  
+
+
+/// @brief FORTRAN interface for @ref ParaReadDistSparseMatrixInterface.
+extern "C"
+void f_para_read_distsparsematrix (
+		char*    filename,
+		int      size,
+		int      nnz,
+		int      nnzLocal,
+		int      numColLocal,
+		int*     colptrLocal,
+		int*     rowindLocal,
+		double*  nzvalLocal,
+		MPI_Fint* Fcomm )
+{
+	ParaReadDistSparseMatrixInterface(
+			filename,
+			size,
+			nnz,
+			nnzLocal,
+			numColLocal,
+			colptrLocal,
+			rowindLocal,
+			nzvalLocal,
+			f2c_comm( Fcomm ) );
+	return;
+} // -----  end of function f_para_read_distsparsematrix  ----- 
+
+
+/// @brief FORTRAN interface for @ref PPEXSIPlanInitialize
+extern "C"
+PPEXSIPlan f_ppexsi_plan_initialize (
+    MPI_Fint*     Fcomm,
+    int           numProcRow,
+    int           numProcCol,
+    int           outputFileIndex, 
+    int*          info ){
+  return PPEXSIPlanInitialize(
+      f2c_comm( Fcomm ),
+      numProcRow,
+      numProcCol,
+      outputFileIndex,
+      info );
+}		// -----  end of function f_ppexsi_plan_initialize  ----- 
+
+

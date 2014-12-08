@@ -41,14 +41,14 @@
    such enhancements or derivative works thereof, in binary and source code form.
 */
 /**
- * @file driver_ksdft_new.c
+ * @file driver_ksdft.c
  * @brief Example for using the new driver interface for performing KSDFT
  * calculations.
  *
  * This file is eventually going to be merged with the driver_ksdft.c
  *
- *
  * @date 2014-03-07
+ * @date 2014-04-01  Compatible with v0.7.0 new interface.
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -66,7 +66,6 @@ int main(int argc, char **argv)
   double*       HnzvalLocal;                  
   int           isSIdentity;                  
   double*       SnzvalLocal;                  
-  double*       AinvnzvalLocal;
 
   double*       DMnzvalLocal;
   double*       EDMnzvalLocal;
@@ -94,6 +93,9 @@ int main(int argc, char **argv)
   int           isFormatted;
 
 
+  PPEXSIPlan    plan;
+  PPEXSIOptions options;
+
   int           i, j;
   int           nprow, npcol;
   MPI_Comm      readComm;
@@ -105,7 +107,7 @@ int main(int argc, char **argv)
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
-  /* Below is the data used for the toy g20 matrix */
+  /* Below is the data used for the toy matrix */
 
   numElectronExact    = 12.0;
   nprow               = 1;
@@ -228,7 +230,6 @@ int main(int argc, char **argv)
 
   /* Step 1. Initialize PEXSI */
 
-  PPEXSIOptions  options;
   PPEXSISetDefaultOptions( &options );
   options.muMin0 = 0.0;
   options.muMax0 = 0.5;
@@ -243,8 +244,6 @@ int main(int argc, char **argv)
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;
 
-  PPEXSIPlan   plan;
-
   plan = PPEXSIPlanInitialize( 
       MPI_COMM_WORLD, 
       nprow,
@@ -254,6 +253,7 @@ int main(int argc, char **argv)
 
   PPEXSILoadRealSymmetricHSMatrix( 
       plan, 
+      options,
       nrows,
       nnz,
       nnzLocal,
@@ -269,8 +269,8 @@ int main(int argc, char **argv)
 
   PPEXSIDFTDriver(
       plan,
-      numElectronExact,
       options,
+      numElectronExact,
       &muPEXSI,                   
       &numElectronPEXSI,         
       &muMinInertia,              
@@ -278,6 +278,15 @@ int main(int argc, char **argv)
       &numTotalInertiaIter,   
       &numTotalPEXSIIter,   
       &info );
+
+  if( info != 0 ){
+    if( mpirank == 0 ){
+      printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
+    }
+    MPI_Finalize();
+    return info;
+  }
+
 
   if( isProcRead == 1 ){
     PPEXSIRetrieveRealSymmetricDFTMatrix(
@@ -298,7 +307,7 @@ int main(int argc, char **argv)
     }
   }
 
-  // Solve the problem once again without symbolic factorization
+  /* Step 3. Solve the problem once again without symbolic factorization */
   {
     if( mpirank == 0 ){
       printf("To test the correctness of the program, solve the problem \n");
@@ -307,6 +316,7 @@ int main(int argc, char **argv)
 
     PPEXSILoadRealSymmetricHSMatrix( 
         plan, 
+        options,
         nrows,
         nnz,
         nnzLocal,
@@ -326,8 +336,8 @@ int main(int argc, char **argv)
 
     PPEXSIDFTDriver(
         plan,
-        numElectronExact,
         options,
+        numElectronExact,
         &muPEXSI,                   
         &numElectronPEXSI,         
         &muMinInertia,              
@@ -335,6 +345,15 @@ int main(int argc, char **argv)
         &numTotalInertiaIter,   
         &numTotalPEXSIIter,   
         &info );
+
+
+    if( info != 0 ){
+      if( mpirank == 0 ){
+        printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
+      }
+      MPI_Finalize();
+      return info;
+    }
 
     if( isProcRead == 1 ){
       PPEXSIRetrieveRealSymmetricDFTMatrix(
@@ -355,24 +374,6 @@ int main(int argc, char **argv)
       }
     }
   }
-
-//  if( info != 0 ){
-//    if( mpirank == 0 ){
-//      printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
-//    }
-//    MPI_Finalize();
-//    return info;
-//  }
-//
-//  if( mpirank == 0 ){ 
-//    printf("PEXSI Solve finished. \n");
-//  }
-
-
-  /* Step 3. Post processing */
-  
-  /* Compute the density of states (DOS) via inertia counting (without
-   * including finite temperature effects) */
 
   /* Step 4. Clean up */
 

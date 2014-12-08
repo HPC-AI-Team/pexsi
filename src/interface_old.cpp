@@ -44,9 +44,9 @@
 /// @brief Interface subroutines of PPEXSI that can be called by both C and FORTRAN.
 /// @date 2013-02-03
 /// @date Last revision: 2014-01-01
-#include "c_pexsi_interface.h"
+#include "pexsi/c_pexsi_interface.h"
 #include "ppexsi.hpp"
-#include "blas.hpp"
+#include "pexsi/blas.hpp"
 
 // FIXME
 // Error handling used in the C interface that is different from the

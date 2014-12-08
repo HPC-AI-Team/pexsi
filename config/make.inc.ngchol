@@ -1,0 +1,138 @@
+#/usr/bin/bash
+COMPILE_MODE     = debug
+USE_PROFILE      = 0
+PAR_ND_LIBRARY   = ptscotch
+SEQ_ND_LIBRARY   = scotch
+USE_PAPI         = 0
+
+
+
+# Different compiling and linking options.
+SUFFIX       = linux_v0.5.5
+
+#compiler and tools
+################################################################
+CC           = mpicc 
+CXX          = mpic++
+FC           = mpif90
+LOADER       = mpic++
+
+
+AR           = ar 
+ARFLAGS      = rvcu
+# For System V based machine without ranlib, like Cray and SGI,
+# use touch instead.
+#RANLIB      = touch
+RANLIB       = ranlib
+
+CP           = cp
+RM           = rm
+RMFLAGS      = -f
+################################################################
+
+
+#pexsi directory
+PEXSI_DIR     = $(HOME)/Work/postdoc-lbl/pexsi/pexsi_src
+
+#required libraries directories
+GFORTRAN_DIR  = 
+DSUPERLU_DIR  = $(HOME)/software/release/SuperLU_DIST_3.3
+METIS_DIR     = $(HOME)/software/release/parmetis-4.0.3/build/Darwin-x86_64
+PARMETIS_DIR  = $(HOME)/software/release/parmetis-4.0.3/build/Darwin-x86_64
+SCOTCH_DIR    = $(HOME)/software/release/scotch_6.0.0
+LAPACK_DIR    = 
+BLAS_DIR      = ${HOME}/software/OpenBLAS 
+PAPI_DIR      = ${HOME}/software/papi-5.1.1/install
+NGCHOL_DIR    = ${HOME}/Work/postdoc-lbl/cholesky
+
+
+# Includes
+PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
+DSUPERLU_INCLUDE = -I${DSUPERLU_DIR}/SRC
+NGCHOL_INCLUDE = -I${NGCHOL_DIR}/include
+INCLUDES         = ${PEXSI_INCLUDE} ${NGCHOL_INCLUDE} ${DSUPERLU_INCLUDE} 
+
+# Libraries
+GFORTRAN_LIB     = -lgfortran
+LAPACK_LIB       = 
+BLAS_LIB         = -L${HOME}/software/lapack-3.4.2/lib -llapack -llapacke -ltmglib -lblas 
+#-L${BLAS_DIR} -lopenblas
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_3.3.a
+PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
+NGCHOL_LIB        = ${NGCHOL_DIR}/src/libcholesky_release_Mjacquel-desktop.a
+
+# Graph partitioning libraries
+METIS_LIB        = -L${METIS_DIR}/libmetis -lmetis
+PARMETIS_LIB     = -L${PARMETIS_DIR}/libparmetis -lparmetis 
+SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lscotchmetis -lscotch -lscotcherr
+PTSCOTCH_LIB     = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch
+
+#utility libraries and includes
+PAPI_INCLUDE     = -I${PAPI_DIR}/include
+INCLUDES        += ${PAPI_INCLUDE}  
+PAPI_LIB         = -L${PAPI_DIR}/lib -lpapi
+UTIL_LIB         = ${PAPI_LIB}
+
+
+#NGCHOL_DEF       = -DRELAXED_SNODE  -DINTERVAL_TREE -DSINGLE_BLAS -DDELAY_SNODES -std=c++11 
+NGCHOL_DEF       = -DINTERVAL_TREE -DSINGLE_BLAS -DDELAY_SNODES -std=c++11 
+
+
+
+# Different compiling and linking options.
+ifeq (${COMPILE_MODE}, release)
+  COMPILE_DEF    = -DRELEASE
+  COMPILE_FLAG   = -O3 -w 
+endif
+ifeq (${COMPILE_MODE}, debug)
+  COMPILE_DEF    = -DDEBUG=2 -DUSE_ABORT
+  COMPILE_FLAG   = -O0 -w -g 
+endif
+
+ifeq (${PAR_ND_LIBRARY}, ptscotch)
+  PAR_ND_LIB = ${PTSCOTCH_LIB}
+else
+  PAR_ND_LIB = ${PARMETIS_LIB}
+endif 
+
+ifeq (${SEQ_ND_LIBRARY}, scotch)
+  SEQ_ND_LIB = ${SCOTCH_LIB}
+else
+  SEQ_ND_LIB = ${METIS_LIB}
+endif 
+
+ifeq (${USE_PROFILE}, 1)
+  PROFILE_FLAG  = -DPROFILE
+endif
+
+ifeq (${USE_PAPI}, 1)
+  PAPI_FLAG  = -D_PAPI_
+endif
+
+LIBS  = ${PEXSI_LIB} ${NGCHOL_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${UTIL_LIB} ${GFORTRAN_LIB}
+
+
+COMPILE_DEF  += -DAdd_ ${NGCHOL_DEF}
+
+#FLOADOPTS    = ${LIBS} -L/usr/local/lib  -lstdc++ 
+
+CFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${PAPI_FLAG} ${INCLUDES}
+FFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${PAPI_FLAG} ${INCLUDES}
+CXXFLAGS     = ${COMPILE_FLAG} ${PROFILE_FLAG} ${PAPI_FLAG} ${INCLUDES} 
+CCDEFS       = ${COMPILE_DEF} 
+CPPDEFS      = ${COMPILE_DEF} 
+LOADOPTS     = ${PROFILE_FLAG} ${LIBS}
+
+
+# Generate auto-dependencies 
+%.d: %.c
+	@set -e; rm -f $@; \
+	$(CC) -M $(CCDEFS) $(CFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
+	rm -f $@.$$$$
+
+%.d: %.cpp
+	@set -e; rm -f $@; \
+	$(CXX) -M $(CPPDEFS) $(CXXFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
+	rm -f $@.$$$$

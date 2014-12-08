@@ -1,18 +1,67 @@
 Tutorial              {#pageTutorial}
 ========
 
-- @subpage pagePselinvComplex
-- @subpage pagePEXSISolve
+- @subpage pagePEXSIPlan
+- @subpage pagePselinvRealSymmetric
+- @subpage pagePselinvComplexSymmetric
+- @subpage pageDFT1
+- @subpage pageDFT2
+
+<!-- ************************************************************ -->
+@page pagePEXSIPlan Using plans
+\tableofcontents
+
+%PEXSI is written in C++, and the subroutines cannot directly interface
+with other programming languages such as C or FORTRAN.  To solve
+this problem, the %PEXSI internal data structure is handled using a
+datatype @ref PPEXSIPlan.  The idea and the usage of PPEXSIPlan is similar to
+`fftw_plan` in the
+[FFTW](http://www.fftw.org/~fftw/fftw3_doc/Using-Plans.html#Using-Plans)
+package.
+
+In %PEXSI, a matrix is generally referred to as a "pole". The 
+factorization and selected inversion procedure for a pole is computed
+in parallel using `numProcRow * numProcCol` processors.
+ 
+When only selected inversion (PSelInv) is used, it is recommended to
+set the mpisize of the communicator `comm` to be just `numProcRow * numProcCol`.
+ 
+When %PEXSI is used to evaluate a large number of inverse matrices
+such as in the electronic structure calculation, mpisize should be 
+`numPole*numProcRow*numProcCol`, where `numPole` inverse matrices
+can be processed in parallel.
+
+~~~~~~~~~~{.c}
+#include  "c_pexsi_interface.h"
+...
+{
+  PPEXSIPlan   plan;
+
+  plan = PPEXSIPlanInitialize( 
+      comm, 
+      numProcRow,
+      numProcCol,
+      outputFileIndex, 
+      &info );
+
+  /* ... Computation using plan ... */
+
+  PPEXSIPlanFinalize(
+      plan,
+      &info );
+} 
+~~~~~~~~~~ 
+
+
 
 
 <!-- ************************************************************ -->
-@page pagePselinvComplex Parallel selected inversion for a complex matrix
+@page pagePselinvRealSymmetric Parallel selected inversion for a real symmetric matrix
 \tableofcontents
 
-The computation of @ref defSelectedElem "selected elements" of an
-inverse matrix is a standalone functionality of %PEXSI. For 
-C/C++ programmers, the parallel selected inversion routine can be used as
-follows.
+The parallel selected inversion routine for a real symmetric matrix can
+be used as follows. This assumes that the size of `MPI_COMM_WORLD` is
+`nprow * npcol`.
 
 ~~~~~~~~~~{.c}
 #include  "c_pexsi_interface.h"
@@ -20,8 +69,27 @@ follows.
 {
   /* Setup the input matrix in distributed compressed sparse column (CSC) format */ 
   ...;
-  /* Main routine for computing selected elements and save into AinvnzvalLocal */
-  PSelInvComplexSymmetricInterface(
+  /* Initialize PEXSI. 
+   * PPEXSIPlan is a handle communicating with the C++ internal data structure */
+  PPEXSIPlan   plan;
+  
+  plan = PPEXSIPlanInitialize( 
+      MPI_COMM_WORLD, 
+      nprow,
+      npcol,
+      mpirank, 
+      &info );
+
+  /* Tuning parameters of PEXSI. The default options is reasonable to
+   * start, and the parameters in options can be changed.  */
+  PPEXSIOptions  options;
+  PPEXSISetDefaultOptions( &options );
+
+
+  /* Load the matrix into the internal data structure */
+  PPEXSILoadRealSymmetricHSMatrix( 
+      plan, 
+      options,
       nrows,
       nnz,
       nnzLocal,
@@ -29,16 +97,31 @@ follows.
       colptrLocal,
       rowindLocal,
       AnzvalLocal,
-      ordering,
-      npSymbFact,
-      MPI_COMM_WORLD,
-      nprow,
-      npcol,
+      1,     // S is an identity matrix here
+      NULL,  // S is an identity matrix here
+      &info );
+
+  /* Factorize the matrix symbolically */
+  PPEXSISymbolicFactorizeRealSymmetricMatrix( 
+      plan,
+      options,
+      &info );
+
+  /* Main routine for computing selected elements and save into AinvnzvalLocal */
+  PPEXSISelInvRealSymmetricMatrix (
+      plan,
+      options,
+      AnzvalLocal,
       AinvnzvalLocal,
       &info );
+
   ...;
   /* Post processing AinvnzvalLocal */
   ...; 
+
+  PPEXSIPlanFinalize(
+      plan,
+      &info );
 } 
 ~~~~~~~~~~ 
 
@@ -49,31 +132,43 @@ follows the @ref secDistCSC, defined through the variables `colptrLocal`,
 is an identity matrix and by setting `isSIdentity=1`. If \f$S\f$ is not
 an identity matrix, the nonzero sparsity pattern is assumed to be the
 same as the nonzero sparsity pattern of \f$H\f$.  Both `HnzvalLocal` and
-`SnzvalLocal` are double precision arrays.  The output array `AinvnzvalLocal` is a
-double array which is twice the size of  `HnzvalLocal` due to the usage
-of complex format.
+`SnzvalLocal` are double precision arrays.  
 
-An example is given in driver_pselinv_complex.c. See also 
-@ref PSelInvComplexSymmetricInterface for detailed information of its usage.
+An example is given in driver_pselinv_real.c, which evaluates the
+selected elements of the inverse of the matrix saved in
+`examples/lap2dr.matrix`.  See also @ref PPEXSISelInvRealSymmetricMatrix
+for detailed information of its usage.
 
-@note Currently there is no driver routine for real arithmetic selected
-inversion.  For the explanation of this please see the page @ref pageFAQ.
 
 
 
 <!-- ************************************************************ -->
-@page pagePEXSISolve Solving Kohn-Sham density functional theory
+@page pagePselinvComplexSymmetric Parallel selected inversion for a complex symmetric matrix
+\tableofcontents
 
-%PEXSI provides the following interface routines for electronic
-structure calculation based on the Kohn-Sham density functional theory.
-An example routine is given in driver_ksdft.c.
+The parallel selected inversion routine for a complex symmetric matrix
+is very similar to the real symmetric case. An example is given in
+driver_pselinv_complex.c. See also @ref PPEXSISelInvComplexSymmetricMatrix
+for detailed information of its usage.
 
-1) Estimate the range of chemical potential
--------------------------------------------
 
-Starting from a rough estimate of the chemical potential \f$\mu\f$,
-[muMin0, muMax0], obtain a refined interval for the chemical potential
-[muMinInertia, muMaxInertia].
+<!-- ************************************************************ -->
+@page pageDFT1 Solving Kohn-Sham density functional theory: I
+
+The simplest way to use %PEXSI to solve Kohn-Sham density functional
+theory is to use the @ref PPEXSIDFTDriver routine. This routine uses
+built-in heuristics to obtain values of some parameters in %PEXSI and
+provides a relatively small set of adjustable parameters for users to
+tune.  This routine estimates the chemical potential self-consistently
+using a combined approach of inertia counting procedure and Newton's
+iteration through %PEXSI. Some heuristic approach is also implemented in
+this routine for dynamic adjustment of the chemical potential and some
+stopping criterion.
+
+An example routine is given in driver_ksdft.c, which solves a fake DFT
+problem by taking a Hamiltonian matrix from `examples/lap2dr.matrix`.
+
+Here is the structure of the code using the simple driver routine.
 
 ~~~~~~~~~~{.c}
 #include  "c_pexsi_interface.h"
@@ -81,79 +176,31 @@ Starting from a rough estimate of the chemical potential \f$\mu\f$,
 {
   /* Setup the input matrix in distributed compressed sparse column (CSC) format */ 
   ...;
-  /* Step 1. Estimate the range of chemical potential */
-  PPEXSIInertiaCountInterface(
-    nrows,  
-    nnz,    
-    nnzLocal, 
-    numColLocal,
-    colptrLocal,
-    rowindLocal,
-    HnzvalLocal,
-    isSIdentity,
-    SnzvalLocal,
-    temperature,
-    numElectronExact,
-    muMin0,          
-    muMax0,         
-    numPole,       
-    maxIter,      
-    numElectronTolerance,
-    ordering,           
-    npPerPole,         
-    npSymbFact,       
-    comm,            
-    &muMinInertia,                
-    &muMaxInertia,               
-    &muLowerEdge,               
-    &muUpperEdge,              
-    &numIter,                 
-    &muList,                 
-    &numElectronList,       
-    &info                  
-    );
-  ...; 
-} 
-~~~~~~~~~~ 
+  /* Initialize PEXSI. 
+   * PPEXSIPlan is a handle communicating with the C++ internal data structure */
+  PPEXSIPlan   plan;
+  
+  plan = PPEXSIPlanInitialize( 
+      MPI_COMM_WORLD, 
+      nprow,
+      npcol,
+      mpirank, 
+      &info );
 
-See @ref PPEXSIInertiaCountInterface for detailed information of its usage.
+  /* Tuning parameters of PEXSI. See PPEXSIOption for explanation of the
+   * parameters */
+  PPEXSIOptions  options;
+  PPEXSISetDefaultOptions( &options );
 
+  options.numPole  = 60;
+  options.temperature  = 0.019; // 3000K
+  options.muPEXSISafeGuard  = 0.2; 
+  options.numElectronPEXSITolerance = 0.001;
 
-@note The main purpose of the step of estimating the range of chemical
-potential is to allow a wide range of initial guess of the chemical
-potential.  When the guess of the chemical potential is already accurate,
-such as the case in consecutive steps of the self-consistent-field (SCF)
-iteration, the Newton iteration used in the next step will be efficient
-enough.  In such case the step of estimating the range of chemical
-potential can be skipped. 
-
-
-2) Solve electronic structure problem
--------------------------------------
-
-After obtaining the range of the chemical potential and a reasonably
-accurate guess for the chemical potential.  The electronic structure
-problem for obtaining the selected elements of the Fermi operator
-(a.k.a. the single particle density matrix) can be
-computed using %PEXSI.  The chemical potential is refined at the same
-time using Newton's method.  Besides the Fermi operator, the energy
-density matrix (for computing the force) and the free energy density
-matrix (for computing the Helmholtz free energy) can be computed at the
-same time.
-
-@note The iteration of the chemical potential is usually in the inner
-loop of an electronic structure calculation.  The self-consistent field
-(SCF) iteration serves as an outer loop.  Because it usually takes
-a few SCF steps to converge the electron density, it is not necessary to
-achieve very high accuracy in the inner loop, especially during the
-initial few SCF steps.
-
-~~~~~~~~~~{.c}
-#include  "c_pexsi_interface.h"
-...
-{
-  /* Step 2. Solve KSDFT using PEXSI */
-  PPEXSISolveInterface(
+  /* Load the matrix into the internal data structure */
+  PPEXSILoadRealSymmetricHSMatrix( 
+      plan, 
+      options,
       nrows,
       nnz,
       nnzLocal,
@@ -163,57 +210,65 @@ initial few SCF steps.
       HnzvalLocal,
       isSIdentity,
       SnzvalLocal,
-      temperature,
+      &info );
+
+  /* Call the simple DFT driver using PEXSI */
+  PPEXSIDFTDriver(
+      plan,
+      options,
       numElectronExact,
-      muInertia,
-      muMinInertia,
-      muMaxInertia,
-      gap,
-      deltaE,
-      numPole,
-      muMaxIter,
-      PEXSINumElectronTolerance,
-      ordering,
-      npPerPole,
-      npSymbFact,
-      MPI_COMM_WORLD,
+      &muPEXSI,                   
+      &numElectronPEXSI,         
+      &muMinInertia,              
+      &muMaxInertia,             
+      &numTotalInertiaIter,   
+      &numTotalPEXSIIter,   
+      &info );
+
+  /* Retrieve the density matrix and other quantities from the plan */
+
+  PPEXSIRetrieveRealSymmetricDFTMatrix(
+      plan,
       DMnzvalLocal,
       EDMnzvalLocal,
       FDMnzvalLocal,
-      &muPEXSI,
-      &numElectron,
-      &muMinPEXSI,
-      &muMaxPEXSI,
-      &muIter,
-      muList,
-      numElectronList,
-      numElectronDrvList,
+      &totalEnergyH,
+      &totalEnergyS,
+      &totalFreeEnergy,
       &info );
-  ...; 
+
+  /* Clean up */
+  PPEXSIPlanFinalize(
+      plan,
+      &info );
 } 
 ~~~~~~~~~~ 
 
 
-See @ref PPEXSISolveInterface for detailed information of its usage.
+<!-- ************************************************************ -->
+@page pageDFT2 Solving Kohn-Sham density functional theory: II
+\tableofcontents
 
+In a DFT calculation, the information of the symbolic factorization can
+be reused for different \f$(H,S)\f$ matrix pencil if the sparsity pattern does
+not change.  An example routine is given in driver_ksdft.c, which solves
+a fake DFT problem by taking a Hamiltonian matrix from
+`examples/lap2dr.matrix`.
 
-3) Post processing (optional)
------------------------------
-
-After the chemical potential has converged, post-processing steps can be
-performed.  Currently %PEXSI supports the computation of the density of
-states (zero temperature) via counting the negative inertia.  
+Here is the structure of the code using the simple driver routine.
 
 ~~~~~~~~~~{.c}
 #include  "c_pexsi_interface.h"
 ...
 {
-  /* Step 3. Post processing */
+  /* Perform DFT calculation as in the previous note */
 
-  /* Compute the density of states (DOS) via inertia counting (without
-   * including finite temperature effects) */
+  /* Update and obtain another set of H and S */
 
-  PPEXSISolveInterface(
+  /* Solve the problem once again without symbolic factorization */
+  PPEXSILoadRealSymmetricHSMatrix( 
+      plan, 
+      options,
       nrows,
       nnz,
       nnzLocal,
@@ -223,79 +278,40 @@ states (zero temperature) via counting the negative inertia.
       HnzvalLocal,
       isSIdentity,
       SnzvalLocal,
-      temperature,
-      numElectronExact,
-      muInertia,
-      muMinInertia,
-      muMaxInertia,
-      gap,
-      deltaE,
-      numPole,
-      muMaxIter,
-      PEXSINumElectronTolerance,
-      ordering,
-      npPerPole,
-      npSymbFact,
-      MPI_COMM_WORLD,
-      DMnzvalLocal,
-      EDMnzvalLocal,
-      FDMnzvalLocal,
-      &muPEXSI,
-      &numElectron,
-      &muMinPEXSI,
-      &muMaxPEXSI,
-      &muIter,
-      muList,
-      numElectronList,
-      numElectronDrvList,
       &info );
-  ...; 
+
+  // No need to perform symbolic factorization 
+  options.isSymbolicFactorize = 0;
+  // Given a good guess of the chemical potential, no need to perform 
+  // inertia counting.
+  options.isInertiaCount = 0;
+
+  PPEXSIDFTDriver(
+      plan,
+      options,
+      numElectronExact,
+      &muPEXSI,                   
+      &numElectronPEXSI,         
+      &muMinInertia,              
+      &muMaxInertia,             
+      &numTotalInertiaIter,   
+      &numTotalPEXSIIter,   
+      &info );
+
+  /* Postprocessing */
+  
 } 
 ~~~~~~~~~~ 
 
-
-See @ref PPEXSIRawInertiaCountInterface for detailed information of its usage.
-
-Besides the DOS, the spatially resolved local DOS can also be computed
-without computing eigenvalues or eigenvectors.
-
-
-~~~~~~~~~~{.c}
-#include  "c_pexsi_interface.h"
-...
-{
-  /* Step 3. Post processing */
-
-  /* Compute the local density of states (LDOS).
-   *
-   * Only the first pole group participates in the computation of the
-   * selected inversion for a single shift. */
-
-    PPEXSILocalDOSInterface(
-        nrows,
-        nnz,
-        nnzLocal,
-        numColLocal,
-        colptrLocal,
-        rowindLocal,
-        HnzvalLocal,
-        isSIdentity,
-        SnzvalLocal,
-        Energy,
-        eta,
-        ordering,
-        npSymbFact,
-        readComm,
-        localDOSnzvalLocal,
-        &info);
-
-  ...; 
-} 
-~~~~~~~~~~ 
-
-
-See @ref PPEXSILocalDOSInterface for detailed information of its usage.
-
-@note When `mpisize > npPerPole`, @ref PPEXSILocalDOSInterface should
-not be executed by all processors, but only by a subgroup of processors.
-For more information see driver_ksdft.c.
+@note The built-in heuristics in @ref PPEXSIDFTDriver may not be
+optimal. It handles only one \f$(H,S)\f$ pair at a time, and does
+not accept multiple matrix pairs \f$\{(H_l,S_l)\}\f$ as in the case of
+spin-orbit polarized calculations.  For expert users and developers, it
+should be relatively easy to dig into the driver routine, and only use
+@ref PEXSI::PPEXSIData::SymbolicFactorizeRealSymmetricMatrix "SymbolicFactorizeRealSymmetricMatrix" 
+(for symbolic factorization), 
+@ref PEXSI::PPEXSIData::CalculateNegativeInertiaReal "CalculateNegativeInertiaReal" 
+(for inertia counting), and
+@ref PEXSI::PPEXSIData::CalculateFermiOperatorReal "CalculateFermiOperatorReal" 
+(for one-shot %PEXSI calculation) to improve heuristics and extend the
+functionalities.

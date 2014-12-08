@@ -46,7 +46,7 @@
 #ifndef _PEXSI_LAPACK_HPP_
 #define _PEXSI_LAPACK_HPP_
 
-#include  "environment.hpp"
+#include "pexsi/environment.hpp"
 
 namespace PEXSI {
 

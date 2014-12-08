@@ -40,64 +40,31 @@
     works, incorporate into other computer software, distribute, and sublicense
     such enhancements or derivative works thereof, in binary and source code form.
  */
-/// @file superlu_dist_interf.hpp
-/// @brief Inteface with SuperLU_Dist (version 3.0 and later)
+/// @file SuperLUMatrix.hpp
+/// @brief Wrapper class for SuperLU internal data structures.
 /// @date 2012-11-12
 #ifndef _PEXSI_SUPERLUMATRIX_HPP_
 #define _PEXSI_SUPERLUMATRIX_HPP_
 
 // Interface with PSelInv
-#include "pselinv.hpp"
+#include "pexsi/pselinv.hpp"
 
 // Interface with sparse matrix (CSC format)
-#include  "sparse_matrix.hpp"
+#include "pexsi/sparse_matrix.hpp"
 
 // Interface with LAPACK
-#include  "lapack.hpp"
+#include "pexsi/lapack.hpp"
 
 
-#include "superlu_dist_internal.hpp"
-#include "SuperLUGrid.hpp"
-//#include "SuperLUData.hpp"
+#include "pexsi/superlu_dist_internal.hpp"
+#include "pexsi/SuperLUGrid.hpp"
+//#include "pexsi/SuperLUData.hpp"
 
 namespace PEXSI{
 
 
   struct SuperNodeType;
   template<typename T>  class PMatrix;
-
-
-//  class RealSuperLUData_internal;
-//
-//class RealSuperLUData{
-//  protected:
-//    RealSuperLUData_internal * ptrData;
-//  public:
-//    RealSuperLUData( const SuperLUGrid<Real>& g, const SuperLUOptions& opt );
-//    ~RealSuperLUData();
-//  
-//		Int m() const;
-//		Int n() const;
-//		void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA ); 
-//		void DestroyAOnly(); 
-//		void SymbolicFactorize(); 
-//		void Distribute(); 
-//		void NumericalFactorize(); 
-//    void ConvertNRlocToNC	( RealSuperLUData * aptrData );
-//		void MultiplyGlobalMultiVector( NumMat<Real>& xGlobal, NumMat<Real>& bGlobal ); 
-//		void DistributeGlobalMultiVector( NumMat<Real>& xGlobal, NumMat<Real>& xLocal ); 
-//		void GatherDistributedMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& xLocal ); 
-//		void SolveDistMultiVector( NumMat<Real>& bLocal, DblNumVec& berr ); 
-//		void CheckErrorDistMultiVector( NumMat<Real>& xLocal, NumMat<Real>& xTrueLocal ); 
-//		void LUstructToPMatrix( PMatrix<Real>& PMloc ); 
-//		void SymbolicToSuperNode( SuperNodeType& super );
-//};
-
-
-
-
-
-
 
 
 
@@ -491,7 +458,7 @@ namespace PEXSI{
 
   } // namespace PEXSI
 
-#include "SuperLUMatrix_impl.hpp"
+#include "pexsi/SuperLUMatrix_impl.hpp"
 
 #endif // _PEXSI_SUPERLUMATRIX_HPP_
 

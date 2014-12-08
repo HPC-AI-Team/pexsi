@@ -56,7 +56,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #define CNTL(I) cntl[(I)-1] /* macro s.t. indices match documentation */
 
 
-#include "timer.h"
+#include "pexsi/timer.h"
 
 #define _MYCOMPLEX_
 

@@ -1,37 +1,9 @@
 Installation       {#pageInstall}
 ============
 
-- @subpage pageDownload
 - @subpage pageDependency
 - @subpage pageBuild
 
-<!-- ************************************************************ -->
-@page pageDownload Obtaining the source code
-
-The tarball file for the most recent version (v0.6.0) of the %PEXSI
-package can be downloaded here:
-
-<a href="http://pexsi.github.io/pexsi/pexsi_v0.6.0.tar.gz">pexsi_v0.6.0.tar.gz</a>
-
-@htmlonly
-<!-- Start of StatCounter Code for Default Guide -->
-<script type="text/javascript">
-var sc_project=9519165; 
-var sc_invisible=1; 
-var sc_security="aa052b1d"; 
-var scJsHost = (("https:" == document.location.protocol) ?
-"https://secure." : "http://www.");
-document.write("<sc"+"ript type='text/javascript' src='" +
-scJsHost+
-"statcounter.com/counter/counter.js'></"+"script>");
-</script>
-<noscript><div class="statcounter"><a title="web stats"
-href="http://statcounter.com/free-web-stats/"
-target="_blank"><img class="statcounter"
-src="http://c.statcounter.com/9519165/0/aa052b1d/1/"
-alt="web stats"></a></div></noscript>
-<!-- End of StatCounter Code for Default Guide -->
-@endhtmlonly
 
 <!-- ************************************************************ -->
 @page pageDependency Dependencies

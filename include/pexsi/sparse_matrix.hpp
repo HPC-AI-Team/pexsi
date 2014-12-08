@@ -47,8 +47,8 @@
 #ifndef _PEXSI_SPARSE_MATRIX_HPP_
 #define _PEXSI_SPARSE_MATRIX_HPP_
 
-#include "environment.hpp"
-#include "NumVec.hpp"
+#include "pexsi/environment.hpp"
+#include "pexsi/NumVec.hpp"
 
 namespace  PEXSI{
 
@@ -131,6 +131,6 @@ namespace  PEXSI{
 
 } // namespace PEXSI
 
-#include "sparse_matrix_impl.hpp"
+#include "pexsi/sparse_matrix_impl.hpp"
 
 #endif // _PEXSI_SPARSE_MATRIX_HPP_

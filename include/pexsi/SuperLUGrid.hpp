@@ -46,10 +46,10 @@ such enhancements or derivative works thereof, in binary and source code form.
 #ifndef _PEXSI_SUPERLUGRID_HPP_
 #define _PEXSI_SUPERLUGRID_HPP_
 
-#include "environment.hpp"
+#include "pexsi/environment.hpp"
 
-//#include "superlu_RealGridData.hpp"
-//#include "superlu_ComplexGridData.hpp"
+//#include "pexsi/superlu_RealGridData.hpp"
+//#include "pexsi/superlu_ComplexGridData.hpp"
 
 
 namespace PEXSI{
@@ -121,6 +121,6 @@ class RealGridData{
 }
 
 
-#include "SuperLUGrid_impl.hpp"
+#include "pexsi/SuperLUGrid_impl.hpp"
 
 #endif //_PEXSI_SUPERLUGRID_HPP_

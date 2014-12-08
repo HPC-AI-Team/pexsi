@@ -43,13 +43,13 @@ such enhancements or derivative works thereof, in binary and source code form.
 /// @file superlu_dist_internal_real.cpp
 /// @brief Implementation of internal structures for interfacing with SuperLU_Dist (version 3.0 and later) for real arithmetic
 /// @date 2014-03-17
-#include "SuperLUGrid.hpp"
-#include "superlu_dist_internal.hpp"
+#include "pexsi/SuperLUGrid.hpp"
+#include "pexsi/superlu_dist_internal.hpp"
 
-#include "pselinv.hpp"
+#include "pexsi/pselinv.hpp"
 
-#include "superlu_ddefs.h"
-#include "Cnames.h"
+#include <superlu_ddefs.h>
+#include <Cnames.h>
 extern "C"{ void
 pdsymbfact(superlu_options_t *options, SuperMatrix *A, 
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
@@ -86,7 +86,6 @@ namespace PEXSI{
   void RealGridData::GridExit(  ){
     superlu_gridexit(&info_->grid);
   }
-
 }
 
 // SuperLUData class
@@ -275,15 +274,23 @@ namespace PEXSI{
     Int mpirank = grid->iam;
     Int mpisize = grid->nprow * grid->npcol;
 
-    Int numRowLocal = sparseA.colptrLocal.m() - 1;
-    Int numRowLocalFirst = sparseA.size / mpisize;
-    Int firstRow = mpirank * numRowLocalFirst;
-
     int_t *colindLocal, *rowptrLocal;
     double *nzvalLocal;
-    rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
+
+    Int numRowLocalFirst = sparseA.size / mpisize;
+    Int firstRow = mpirank * numRowLocalFirst;
+    Int numRowLocal = -1;
+    Int nnzLocal = -1;
+#define ASYM
+
+#ifndef ASYM
+
+    numRowLocal = sparseA.colptrLocal.m() - 1;
+    nnzLocal = sparseA.nnzLocal;
+
     colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal); 
     nzvalLocal  = (double*)doubleMalloc_dist(sparseA.nnzLocal);
+    rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 
     std::copy( sparseA.colptrLocal.Data(), sparseA.colptrLocal.Data() + sparseA.colptrLocal.m(),
         rowptrLocal );
@@ -291,6 +298,262 @@ namespace PEXSI{
         colindLocal );
     std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
         (Real*)nzvalLocal );
+#else
+  //Need to get Global CSC structure
+
+    LongInt nnz = 0;
+    IntNumVec rowindGlobal;
+    IntNumVec colptrGlobal;
+    TIMER_START(ToGlobalStructure);
+    {
+      colptrGlobal.Resize(sparseA.size+1);
+
+      /* Allgatherv for row indices. */ 
+      IntNumVec prevnz(mpisize);
+      IntNumVec rcounts(mpisize);
+      MPI_Allgather(&sparseA.nnzLocal, 1, MPI_INT, rcounts.Data(), 1, MPI_INT, grid->comm);
+
+      prevnz[0] = 0;
+      for (Int i = 0; i < mpisize-1; ++i) { prevnz[i+1] = prevnz[i] + rcounts[i]; } 
+
+      nnz = 0;
+      for (Int i = 0; i < mpisize; ++i) { nnz += rcounts[i]; } 
+      rowindGlobal.Resize(nnz);
+
+      MPI_Allgatherv(sparseA.rowindLocal.Data(), sparseA.nnzLocal, MPI_INT, rowindGlobal.Data(),rcounts.Data(), prevnz.Data(), MPI_INT, grid->comm); 
+
+      /* Allgatherv for colptr */
+      // Compute the number of columns on each processor
+      Int numColFirst = std::max(1,sparseA.size / mpisize);
+      SetValue( rcounts, numColFirst );
+      rcounts[mpisize-1] = sparseA.size - numColFirst * (mpisize-1);  // Modify the last entry     
+
+      IntNumVec rdispls(mpisize);
+      rdispls[0] = 0;
+      for (Int i = 0; i < mpisize-1; ++i) { rdispls[i+1] = rdispls[i] + rcounts[i]; } 
+
+      MPI_Allgatherv(sparseA.colptrLocal.Data(), sparseA.colptrLocal.m()-1, MPI_INT, colptrGlobal.Data(),
+          rcounts.Data(), rdispls.Data(), MPI_INT, grid->comm);
+
+      /* Recompute column pointers. */
+      for (Int p = 1; p < mpisize; p++) {
+        Int idx = rdispls[p];
+        for (Int j = 0; j < rcounts[p]; ++j) colptrGlobal[idx++] += prevnz[p];
+      }
+      colptrGlobal(sparseA.size)= nnz+1;
+    }
+    TIMER_STOP(ToGlobalStructure);
+
+
+    IntNumVec rowptrGlobal;
+    IntNumVec colindGlobal;
+    //Compute Global CSR structure and Local CSR structure
+    {
+      Int i, j;
+
+      colindGlobal.Resize(nnz);
+      rowptrGlobal.Resize(sparseA.size+1);
+      IntNumVec row_nnz(sparseA.size);
+      SetValue(row_nnz,I_ZERO);
+
+      for (i = 0; i < nnz; i++) { 
+        Int k = rowindGlobal[i];
+        row_nnz[k-1]++;
+      }
+
+      rowptrGlobal[0]=1;
+      for (i = 1; i <= sparseA.size; i++)
+      {
+        rowptrGlobal[i] = rowptrGlobal[i-1] + row_nnz[i-1];
+        row_nnz[i-1] = 0;
+      }
+
+      /*
+       *  convert from CSC to CSR.
+       *  use row_nnz to keep track of the number of non-zeros
+       *  added to each row.
+       */
+      for (j = 0; j < colptrGlobal.m()-1; j++)
+      {
+        Int k;
+        Int nnz_col;    /* # of non-zeros in column j of A */
+
+        nnz_col = colptrGlobal[j+1] - colptrGlobal[j];
+
+        for (k = colptrGlobal[j]; k < colptrGlobal[j+1]; k++)
+        {
+          Int i = rowindGlobal[ k - 1 ];               /* row index */
+          Int h = rowptrGlobal[i-1] + row_nnz[i-1];    /* non-zero position */
+
+          /* add the non-zero A(i,j) to B */
+          colindGlobal[ h - 1 ] = j+1;
+          row_nnz[i-1]++;
+        }
+      }
+
+
+
+    } 
+
+    for(int i=0;i<rowptrGlobal.m();++i){
+      assert(rowptrGlobal[i]==colptrGlobal[i]);
+    }
+
+    for(int i=1;i<rowptrGlobal.m();++i){
+      Int colbeg = rowptrGlobal[i-1];
+      Int colend = rowptrGlobal[i]-1;
+      for(Int j=colbeg;j<=colend;++j){
+        Int row = colindGlobal[j-1];
+
+        Int * ptr = std::find(&rowindGlobal[colbeg-1],&rowindGlobal[colend-1]+1,row);
+        if(ptr==&rowindGlobal[colend-1]+1){
+          abort();
+        }
+      }
+    }
+
+    //compute the local CSR structure
+    std::vector<Int > numRowVec(mpisize,numRowLocalFirst);
+    numRowVec[mpisize-1] = sparseA.size - (mpisize-1)*numRowLocalFirst;
+
+    numRowLocal = numRowVec[mpirank];
+    Int myFirstCol = mpirank*numRowLocalFirst+1;
+    Int myLastCol = myFirstCol + numRowLocal -1;
+
+    rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
+
+    //copy local chunk of rowptr
+    std::copy(&rowptrGlobal[myFirstCol-1],
+        &rowptrGlobal[myLastCol]+1,
+        rowptrLocal);
+
+    nnzLocal = rowptrLocal[numRowLocal] - rowptrLocal[0];
+    colindLocal = (int_t*)intMalloc_dist(nnzLocal); 
+    nzvalLocal  = (double*)doubleMalloc_dist(nnzLocal);
+    //copy local chunk of colind
+    std::copy(&colindGlobal[rowptrLocal[0]-1],
+        &colindGlobal[rowptrLocal[0]-1]+nnzLocal,
+        colindLocal);
+
+    //convert rowptr to local references
+    for( Int i = 1; i < numRowLocal + 1; i++ ){
+      rowptrLocal[i] = rowptrLocal[i] -  rowptrLocal[0] + 1;
+    }
+    rowptrLocal[0]=1;
+
+    for(int i=0;i<numRowLocal;++i){
+      Int col = i+myFirstCol;
+      Int colbeg = rowptrLocal[i];
+      Int colend = rowptrLocal[i+1]-1;
+
+      for(Int j=colbeg;j<=colend;++j){
+        Int row = colindLocal[j-1];
+
+        Int * ptr = std::find(&sparseA.rowindLocal[colbeg-1],&sparseA.rowindLocal[colend-1]+1,row);
+        if(ptr==&sparseA.rowindLocal[colend-1]+1){
+          abort();
+        }
+      }
+
+    }
+
+
+    {
+      //Redistribute the data
+      //local pointer to head to rows in local CSR structure
+      std::vector<Int> * row_nnz = new std::vector<Int>(numRowLocal,0);
+
+      for(int p =0; p<mpisize;p++){
+        std::vector< char > send_buffer;
+        std::vector< char > recv_buffer;
+        std::vector<int> displs(mpisize+1,0);
+        std::vector<int> bufsizes(mpisize,0);
+
+        //parse the Global CSC structure to count
+        Int firstCol = p*numRowLocalFirst+1;
+        Int lastCol = firstCol + numRowVec[p]-1;
+        for(Int col = 1; col<colptrGlobal.m();++col){
+          if(col>= firstCol && col<= lastCol){
+            Int colbeg = colptrGlobal[col-1];
+            Int colend = colptrGlobal[col]-1;
+            for(Int i=colbeg;i<=colend;++i){
+              Int row = rowindGlobal[i-1];  
+              //determine where it should be packed ?
+              Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
+              bufsizes[p_dest]+=sizeof(Real);
+            }
+          }
+          else if(col>lastCol){
+            break;
+          }
+        }
+
+        //compute displacement (cum sum)
+        std::partial_sum(bufsizes.begin(),bufsizes.end(),displs.begin()+1);
+
+        if(mpirank==p){
+          std::vector<int> bufpos(mpisize,0);
+
+          //resize buffers
+          Int send_buffer_size = displs[mpisize];
+          send_buffer.resize(displs[mpisize]);
+
+          //fill the buffers by parsing local CSC structure
+          for(Int j = 1; j<sparseA.colptrLocal.m();++j){
+            Int gCol = mpirank*numRowLocalFirst + j;
+            Int colbeg = sparseA.colptrLocal[j-1];
+            Int colend = sparseA.colptrLocal[j]-1;
+            for(Int i=colbeg;i<=colend;++i){
+              Int row = sparseA.rowindLocal[i-1];  
+              //determine where it should be packed ?
+              Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
+              Int p_displs = displs[p_dest];
+              Int p_bufpos = bufpos[p_dest];
+              *((Real *)&send_buffer.at( displs[p_dest] + bufpos[p_dest] )) = sparseA.nzvalLocal[i-1];
+              //advance position
+              bufpos[p_dest]+= sizeof(Real);
+            }
+          }
+        }
+
+
+
+        Int recv_buffer_size = bufsizes[mpirank];
+        recv_buffer.resize(bufsizes[mpirank]);
+
+        //scatterv
+        MPI_Scatterv(&send_buffer[0], &bufsizes[0], &displs[0], MPI_BYTE, &recv_buffer[0], bufsizes[mpirank], MPI_BYTE, p, grid->comm);
+
+        //process data
+        Int recv_pos = 0;
+        //parse the Global CSC structure to count
+        for(Int col = 1; col<colptrGlobal.m();++col){
+          if(col>= firstCol && col<= lastCol){
+            Int colbeg = colptrGlobal[col-1];
+            Int colend = colptrGlobal[col]-1;
+            for(Int i=colbeg;i<=colend;++i){
+              Int row = rowindGlobal[i-1];  
+              Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
+              if(p_dest==mpirank){
+                //compute local CSR coordinates
+                Int local_row = row - mpirank*numRowLocalFirst;
+                Int h = rowptrLocal[local_row-1] + row_nnz->at(local_row-1);    /* non-zero position */
+                *((Real*)&nzvalLocal[h-1]) = *((Real*)&recv_buffer.at(recv_pos));
+                //advance position in CSR buffer
+                row_nnz->at(local_row-1)++;
+                //advance position in CSC recv_buffer
+                recv_pos+=sizeof(Real);
+              }
+            }
+          }
+          else if(col>lastCol){
+            break;
+          }
+        }
+      }
+      delete row_nnz;
+    }
+#endif
 
 
 
@@ -399,7 +662,7 @@ namespace PEXSI{
       PStatFree(&ptrData->stat);
 
 
-//assert(ptrData->ScalePermstruct.DiagScale == BOTH );
+      //assert(ptrData->ScalePermstruct.DiagScale == BOTH );
 
 
 #if ( _DEBUGlevel_ >= 0 )
@@ -485,6 +748,16 @@ namespace PEXSI{
       PStatInit(&ptrData->stat);
       pdgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol, 
           anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info); 
+
+#ifdef _PRINT_STATS_
+      statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;  
+      statusOFS<<"Number of tiny pivots: "<<ptrData->stat.TinyPivots<<std::endl;  
+      statusOFS<<"Number of look aheads: "<<ptrData->stat.num_look_aheads<<std::endl;  
+      statusOFS<<"Number of FLOPS during factorization: "<<ptrData->stat.ops[FACT]<<std::endl;  
+      statusOFS<<"****************************************************"<<std::endl;  
+#endif
+
+
       PStatFree(&ptrData->stat);
 
 
@@ -498,7 +771,7 @@ namespace PEXSI{
         throw std::runtime_error( msg.str().c_str() );
       }
 
-//assert(ptrData->ScalePermstruct.DiagScale == BOTH );
+      //assert(ptrData->ScalePermstruct.DiagScale == BOTH );
 
       // Prepare for Solve.
       ptrData->options.Fact = FACTORED;
@@ -767,35 +1040,35 @@ namespace PEXSI{
           Int lda = index[cnt++];
 
 
-      Int savCnt = cnt;
-      IntNumVec LIndices(Lcol.size());
-			for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
-				Int blockIdx    = index[cnt++];
-				Int numRow      = index[cnt++];
-				cnt += numRow;
-        LIndices[iblk] = blockIdx;
-      }
-//      statusOFS<<"Unsorted blockidx for L are: "<<LIndices<<std::endl;
-      //sort the array
-      IntNumVec sortedIndices(Lcol.size());
-        for(Int i = 0; i<sortedIndices.m(); ++i){ sortedIndices[i] = i;}
-      ULComparator cmp2(LIndices);
-        //sort the row indices (so as to speedup the index lookup
-        std::sort(sortedIndices.Data(),sortedIndices.Data()+sortedIndices.m(),cmp2);
+          Int savCnt = cnt;
+          IntNumVec LIndices(Lcol.size());
+          for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
+            Int blockIdx    = index[cnt++];
+            Int numRow      = index[cnt++];
+            cnt += numRow;
+            LIndices[iblk] = blockIdx;
+          }
+          //      statusOFS<<"Unsorted blockidx for L are: "<<LIndices<<std::endl;
+          //sort the array
+          IntNumVec sortedIndices(Lcol.size());
+          for(Int i = 0; i<sortedIndices.m(); ++i){ sortedIndices[i] = i;}
+          ULComparator cmp2(LIndices);
+          //sort the row indices (so as to speedup the index lookup
+          std::sort(sortedIndices.Data(),sortedIndices.Data()+sortedIndices.m(),cmp2);
 
-//      statusOFS<<"Sorted indices for L are: "<<sortedIndices<<std::endl;
-      //get the inverse perm
-      IntNumVec tmp = sortedIndices;
-      for(Int i = 0; i<sortedIndices.m(); ++i){ tmp[sortedIndices[i]] = i;}
-      sortedIndices = tmp;
+          //      statusOFS<<"Sorted indices for L are: "<<sortedIndices<<std::endl;
+          //get the inverse perm
+          IntNumVec tmp = sortedIndices;
+          for(Int i = 0; i<sortedIndices.m(); ++i){ tmp[sortedIndices[i]] = i;}
+          sortedIndices = tmp;
 
-      cnt = savCnt;
+          cnt = savCnt;
           for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
 
-				Int blockIdx    = index[cnt++];
-        //determine where to put it
-				LBlock<Real> & LB     = Lcol[sortedIndices[iblk]];
-				LB.blockIdx    = blockIdx;
+            Int blockIdx    = index[cnt++];
+            //determine where to put it
+            LBlock<Real> & LB     = Lcol[sortedIndices[iblk]];
+            LB.blockIdx    = blockIdx;
 
             PMloc.ColBlockIdx(jb).push_back(LB.blockIdx);
             Int LBi = LB.blockIdx / grid->numProcRow; 
@@ -806,29 +1079,29 @@ namespace PEXSI{
             LB.numCol      = super->superPtr[bnum+1] - super->superPtr[bnum];
             LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
 
-        IntNumVec rowsPerm(LB.numRow);
-        IntNumVec rowsSorted(LB.numRow);
-        for(Int i = 0; i<rowsPerm.m(); ++i){ rowsPerm[i] = i;}
-        ULComparator cmp(LB.rows);
-        //sort the row indices (so as to speedup the index lookup
-        std::sort(rowsPerm.Data(),rowsPerm.Data()+rowsPerm.m(),cmp);
+            IntNumVec rowsPerm(LB.numRow);
+            IntNumVec rowsSorted(LB.numRow);
+            for(Int i = 0; i<rowsPerm.m(); ++i){ rowsPerm[i] = i;}
+            ULComparator cmp(LB.rows);
+            //sort the row indices (so as to speedup the index lookup
+            std::sort(rowsPerm.Data(),rowsPerm.Data()+rowsPerm.m(),cmp);
 
-        for(Int i = 0; i<LB.rows.m(); ++i){ 
-          rowsSorted[i] = LB.rows[rowsPerm[i]];
-        }
+            for(Int i = 0; i<LB.rows.m(); ++i){ 
+              rowsSorted[i] = LB.rows[rowsPerm[i]];
+            }
 
-        LB.rows = rowsSorted;
+            LB.rows = rowsSorted;
 
-				LB.nzval.Resize( LB.numRow, LB.numCol );   
-        SetValue( LB.nzval, ZERO<Real>() ); 
-				cnt += LB.numRow;
+            LB.nzval.Resize( LB.numRow, LB.numCol );   
+            SetValue( LB.nzval, ZERO<Real>() ); 
+            cnt += LB.numRow;
 
-        //sort the nzval
-        for(Int j = 0; j<LB.numCol; ++j){
-          for(Int i = 0; i<LB.numRow; ++i){
-            LB.nzval(i,j) = ((Real*)(Llu->Lnzval_bc_ptr[jb]+cntval))[rowsPerm[i]+j*lda];
-          }
-        }
+            //sort the nzval
+            for(Int j = 0; j<LB.numCol; ++j){
+              for(Int i = 0; i<LB.numRow; ++i){
+                LB.nzval(i,j) = ((Real*)(Llu->Lnzval_bc_ptr[jb]+cntval))[rowsPerm[i]+j*lda];
+              }
+            }
 
             cntval += LB.numRow;
 
@@ -844,11 +1117,11 @@ namespace PEXSI{
           } // for(iblk)
 
 #if ( _DEBUGlevel_ >= 2 )
-      statusOFS<<"Real Sorted blockidx for L are: ";
-      for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
-        statusOFS<<Lcol[iblk].blockIdx<<" ";
-      }
-      statusOFS<<std::endl;
+          statusOFS<<"Real Sorted blockidx for L are: ";
+          for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
+            statusOFS<<Lcol[iblk].blockIdx<<" ";
+          }
+          statusOFS<<std::endl;
 #endif
         }  // if(index)
       } // for(jb)
@@ -942,15 +1215,15 @@ namespace PEXSI{
       PopCallStack();
 #endif
 
-	for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
+      for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
         std::vector<Int> & rowBlockIdx = PMloc.RowBlockIdx(ib);
         std::sort(rowBlockIdx.begin(),rowBlockIdx.end());
-  }
+      }
 
-	for( Int jb = 0; jb < PMloc.NumLocalBlockCol(); jb++ ){
+      for( Int jb = 0; jb < PMloc.NumLocalBlockCol(); jb++ ){
         std::vector<Int> & colBlockIdx = PMloc.ColBlockIdx(jb);
         std::sort(colBlockIdx.begin(),colBlockIdx.end());
-  }
+      }
 
 #ifndef _RELEASE_
       PopCallStack();

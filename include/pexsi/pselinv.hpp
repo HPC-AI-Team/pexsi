@@ -50,16 +50,16 @@
 //  Common utilities
 // *********************************************************************
 
-#include  "environment.hpp"
-#include	"NumVec.hpp"
-#include	"NumMat.hpp" 
-#include  "sparse_matrix.hpp"
+#include "pexsi/environment.hpp"
+#include "pexsi/NumVec.hpp"
+#include "pexsi/NumMat.hpp" 
+#include "pexsi/sparse_matrix.hpp"
 
-#include  "superlu_dist_interf.hpp"
-#include  "mpi_interf.hpp"
-#include	"utility.hpp"
-#include	"blas.hpp"
-#include	"lapack.hpp"
+#include "pexsi/superlu_dist_interf.hpp"
+#include "pexsi/mpi_interf.hpp"
+#include "pexsi/utility.hpp"
+#include "pexsi/blas.hpp"
+#include "pexsi/lapack.hpp"
 #include <set>
 
 #define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
@@ -497,6 +497,21 @@ namespace PEXSI{
 
   template<typename T>
   class PMatrix{
+     public:
+      // This is the tag used for mpi communication for selinv
+
+      enum{
+        SELINV_TAG_U_SIZE,
+        SELINV_TAG_U_CONTENT,
+        SELINV_TAG_L_SIZE,
+        SELINV_TAG_L_CONTENT,
+        SELINV_TAG_L_REDUCE,
+        SELINV_TAG_D_SIZE,
+        SELINV_TAG_D_CONTENT,
+        SELINV_TAG_D_REDUCE,
+        SELINV_TAG_COUNT
+      };
+
 
     protected:
       // *********************************************************************
@@ -560,20 +575,6 @@ namespace PEXSI{
       std::vector<bitMask>         commSendToRightMask_;
 
       //NumVec<Int>                       countCrossDiag_;
-
-      // This is the tag used for mpi communication for selinv
-
-      enum{
-        SELINV_TAG_U_SIZE,
-        SELINV_TAG_U_CONTENT,
-        SELINV_TAG_L_SIZE,
-        SELINV_TAG_L_CONTENT,
-        SELINV_TAG_L_REDUCE,
-        SELINV_TAG_D_SIZE,
-        SELINV_TAG_D_CONTENT,
-        SELINV_TAG_D_REDUCE,
-        SELINV_TAG_COUNT
-      };
 
 
 
@@ -982,6 +983,7 @@ namespace PEXSI{
 //      }
 
 
+      inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
   };
 
 
@@ -989,7 +991,7 @@ namespace PEXSI{
 } // namespace PEXSI
 
 
-#include "pselinv_impl.hpp"
+#include "pexsi/pselinv_impl.hpp"
 
 
 #endif //_PEXSI_PSELINV_HPP_

@@ -9,7 +9,11 @@ N = fscanf(fid, '%g', 1);
 N = fscanf(fid, '%g', 1);
 Annz = fscanf(fid, '%g', 1);
 colptr = fscanf(fid, '%g', N+1);
+<<<<<<< HEAD
 rowind = fscanf(fid, '%g', Annz);
+=======
+drowind = fscanf(fid, '%g', Annz);
+>>>>>>> ngchol_interf
 Aval   = fscanf(fid, '%g', 2*Annz);
 fclose(fid);
 toc

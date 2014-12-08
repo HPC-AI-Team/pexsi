@@ -46,8 +46,8 @@ such enhancements or derivative works thereof, in binary and source code form.
 #ifndef _PEXSI_PSELINV_IMPL_HPP_
 #define _PEXSI_PSELINV_IMPL_HPP_
 
-#include "timer.h"
-#include "superlu_dist_interf.hpp"
+#include "pexsi/timer.h"
+#include "pexsi/superlu_dist_interf.hpp"
 
 
 #define MPI_MAX_COMM (1024)

@@ -40,86 +40,84 @@ royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
  */
-/// @file NumMat.hpp
-/// @brief Numerical matrix.
+/// @file NumVec.hpp
+/// @brief  Numerical vector.
 /// @date 2010-09-27
-#ifndef _PEXSI_NUMMAT_HPP_
-#define _PEXSI_NUMMAT_HPP_
+#ifndef _PEXSI_NUMVEC_HPP_
+#define _PEXSI_NUMVEC_HPP_
 
-#include "environment.hpp"
-
+#include "pexsi/environment.hpp"
 
 namespace  PEXSI{
-  /// @class NumMat
+  /// @class NumVec
   ///
-  /// @brief Numerical matrix.
-  ///
-  /// NumMat is a portable encapsulation of a pointer to represent a 2D
-  /// matrix, which can either own (owndata == true) or view (owndata ==
-  /// false) a piece of data.  
-  template <class F>
-    class NumMat
-    {
-      public:
-        /// @brief Whether it owns the data.
-        bool owndata_;
+  /// @brief Numerical vector.
+  /// 
+  /// NumVec is a portable encapsulation of a pointer to represent a 1D
+  /// vector. The main difference between NumVec<F> and std::vector<F> is
+  /// that NumVec<F> allows the vector to not owning the data, by
+  /// specifying (owndata_ == false).
+  template <class F> class NumVec
+  {
+    protected:
 
-        /// @brief The size of the first dimension.
-        Int m_; 
+      /// @brief Helper function allocating the memory pointed by the data_ attribute
+      inline void allocate(F* data=NULL);
 
-        /// @brief The size of second dimension.
-        Int n_;
+      /// @brief Helper function freeing memory pointed by the data_ attribute
+      inline void deallocate();
 
-        /// @brief The pointer for the actual data.
-        F* data_;
+      /// @brief The size of the vector.
+      Int  m_;                                
+      ///
+      /// @brief Whether it owns the data.
+      bool owndata_;                          
 
-        /// @brief Actual size of the allocated buffer. Similar to the capacity of a std::vector
-        Int bufsize_; 
+      /// @brief The pointer for the actual data.
+      F* data_;
 
-        /// @brief Helper function allocating the memory pointed by the data_ attribute
-        void allocate(F* data=NULL);
+      /// @brief The actual storage space allocated                          
+      Int bufsize_;
+    public:
+      NumVec(Int m = 0);
+      NumVec(Int m, bool owndata, F* data);
+      NumVec(const NumVec& C);
+      ~NumVec();
 
-        /// @brief Helper function freeing memory pointed by the data_ attribute
-        void deallocate();
+      NumVec& operator=(const NumVec& C);
 
-      public:
-        NumMat(Int m=0, Int n=0);
-        NumMat(Int m, Int n, bool owndata, F* data);
-        NumMat(const NumMat& C);
-        ~NumMat();
-        NumMat& Copy(const NumMat& C);
-        NumMat& operator=(const NumMat& C);
-        void Resize(Int m, Int n);
-        const F& operator()(Int i, Int j) const;
-        F& operator()(Int i, Int j);
-        F* Data() const { return data_; }
-        F* VecData(Int j)  const; 
-        Int m() const { return m_; }
-        Int n() const { return n_; }
-        Int Size() const {return m_*n_;}
-        Int ByteSize() const { return m_*n_*sizeof(F);}
-        Int AllocatedSize() const {return bufsize_;}
-    };
+      void Resize ( Int m );
+
+      const F& operator()(Int i) const;  
+      F& operator()(Int i);  
+      const F& operator[](Int i) const;
+      F& operator[](Int i);
+
+      bool IsOwnData() const { return owndata_; }
+      F*   Data() const { return data_; }
+      Int  m () const { return m_; }
+      Int ByteSize() const { return m_*sizeof(F);}
+  };
 
   // Commonly used
-  typedef NumMat<bool>     BolNumMat;
-  typedef NumMat<Int>      IntNumMat;
-  typedef NumMat<Real>     DblNumMat;
-  typedef NumMat<Complex>  CpxNumMat;
+  typedef NumVec<bool>       BolNumVec;
+  typedef NumVec<Int>        IntNumVec;
+  typedef NumVec<Real>       DblNumVec;
+  typedef NumVec<Complex>    CpxNumVec;
+
 
   // *********************************************************************
   // Utility functions
   // *********************************************************************
-  /// @brief SetValue sets a numerical matrix to a constant val.
-  template <class F> inline void SetValue(NumMat<F>& M, F val);
+  /// @brief SetValue sets a numerical vector to a constant val.
+  template <class F> inline void SetValue( NumVec<F>& vec, F val );
 
-  /// @brief Energy computes the L2 norm of a matrix (treated as a vector).
-  template <class F> inline Real Energy(const NumMat<F>& M);
+  /// @brief Energy computes the L2 norm of a vector.
+  template <class F> inline Real Energy( const NumVec<F>& vec );
+
 
 } // namespace PEXSI
 
+#include "pexsi/NumVec_impl.hpp"
 
-
-#include  "NumMat_impl.hpp"
-
-#endif // _PEXSI_NUMMAT_HPP_
+#endif // _PEXSI_NUMVEC_HPP_
