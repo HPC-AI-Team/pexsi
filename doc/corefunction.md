@@ -20,9 +20,9 @@ in @ref c_pexsi_interface.h.
 
 In such case for C/C++ programmers, include the interface file:
 
-~~~~~~~~~~{.c}
+@code{.c}
 #include  "c_pexsi_interface.h"
-~~~~~~~~~~
+@endcode
 
 For FORTRAN programmers, there is no interface routines such as
 `f_pexsi_interface.F90` yet.  However, the FORTRAN routines can directly
@@ -32,9 +32,9 @@ The remaining section is mainly for C++ developers to have more detailed control
 of the %PEXSI package.  
 
 For C++ and usage beyond the driver routines, include the following file
-~~~~~~~~~~{.cpp}
+@code{.cpp}
 #include  "ppexsi.hpp"
-~~~~~~~~~~
+@endcode
 
 For developers, 
 
@@ -73,12 +73,12 @@ library.  The complex data type is `std::complex<double>`, and is
 redefined as `Complex` in the implementation.  
 
 
-~~~~~~~~~~{.cpp}
+@code{.cpp}
 typedef    int                   Int;
 typedef    int64_t               LongInt;
 typedef    double                Real;
 typedef    std::complex<double>  Complex; 
-~~~~~~~~~~
+@endcode
 
 NumVec, NumMat, NumTns             {#secNumStructure}
 ======================
@@ -106,30 +106,30 @@ The underlying pointer can be accessed using the member function `Data()`.
 
 `NumVec`:
 
-~~~~~~~~~~{.cpp}
+@code{.cpp}
 typedef NumVec<bool>       BolNumVec;
 typedef NumVec<Int>        IntNumVec;
 typedef NumVec<Real>       DblNumVec;
 typedef NumVec<Complex>    CpxNumVec;
-~~~~~~~~~~
+@endcode
 
 `NumMat`:
 
-~~~~~~~~~~{.cpp}
+@code{.cpp}
 typedef NumMat<bool>       BolNumMat;
 typedef NumMat<Int>        IntNumMat;
 typedef NumMat<Real>       DblNumMat;
 typedef NumMat<Complex>    CpxNumMat;
-~~~~~~~~~~
+@endcode
 
 `NumTns`:
 
-~~~~~~~~~~{.cpp}
+@code{.cpp}
 typedef NumTns<bool>       BolNumTns;
 typedef NumTns<Int>        IntNumTns;
 typedef NumTns<Real>       DblNumTns;
 typedef NumTns<Complex>    CpxNumTns;
-~~~~~~~~~~
+@endcode
 
 
 Distributed compressed sparse column (CSC) format    {#secDistCSC}
@@ -345,7 +345,7 @@ Example
 -------
 
 
-~~~~~~~~~~{.cpp}
+@code{.cpp}
 #include "ppexsi.hpp"
 {
   ...;
@@ -370,7 +370,7 @@ Example
 
   ...;
 }
-~~~~~~~~~~
+@endcode
 
 Reuse symbolic factorization      {#secSymbolicReuse}
 ============================
@@ -408,7 +408,7 @@ for the numerical factorization.
 Example
 -------
 
-~~~~~~~~~~{.cpp}
+@code{.cpp}
 #include "ppexsi.hpp"
 {
   ...;
@@ -446,7 +446,7 @@ Example
 
   ...;
 }
-~~~~~~~~~~
+@endcode
 
 <!--
 Triangular solve and accuracy check    {#secTriangularSolve}
@@ -621,7 +621,7 @@ The supernodal elimination tree is exploited to add an additional level of paral
 Example
 -------
 
-~~~~~~~~~~{.cpp}
+@code{.cpp}
 #include "ppexsi.hpp"
 {
   ...;
@@ -667,7 +667,7 @@ Example
 
   ...;
 }
-~~~~~~~~~~
+@endcode
 
 
 
@@ -703,7 +703,7 @@ the subroutine @ref f_ppexsi_plan_initialize (FORTRAN).
 
 Example: Parallel selected inversion for a real symmetric matrix
 
-~~~~~~~~~~{.f90}
+@code{.f90}
 integer(c_intptr_t)    :: plan
 type(f_ppexsi_options) :: options
 
@@ -756,7 +756,7 @@ call f_ppexsi_selinv_real_symmetric_matrix(& plan,&
 call f_ppexsi_plan_finalize( plan, info )
 
 
-~~~~~~~~~~ 
+@endcode
 
 
 The examples of the FORTRAN interface can be found under `fortran/`

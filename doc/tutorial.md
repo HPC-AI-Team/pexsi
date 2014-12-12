@@ -31,7 +31,7 @@ such as in the electronic structure calculation, mpisize should be
 `numPole*numProcRow*numProcCol`, where `numPole` inverse matrices
 can be processed in parallel.
 
-~~~~~~~~~~{.c}
+@code{.c}
 #include  "c_pexsi_interface.h"
 ...
 {
@@ -50,7 +50,7 @@ can be processed in parallel.
       plan,
       &info );
 } 
-~~~~~~~~~~ 
+@endcode
 
 
 
@@ -63,7 +63,7 @@ The parallel selected inversion routine for a real symmetric matrix can
 be used as follows. This assumes that the size of `MPI_COMM_WORLD` is
 `nprow * npcol`.
 
-~~~~~~~~~~{.c}
+@code{.c}
 #include  "c_pexsi_interface.h"
 ...
 {
@@ -123,7 +123,7 @@ be used as follows. This assumes that the size of `MPI_COMM_WORLD` is
       plan,
       &info );
 } 
-~~~~~~~~~~ 
+@endcode
 
 This routine computes the selected elements of the matrix 
 \f$A^{-1}=(H - z S)^{-1}\f$ in parallel.  The input matrix \f$H\f$
@@ -170,7 +170,7 @@ problem by taking a Hamiltonian matrix from `examples/lap2dr.matrix`.
 
 Here is the structure of the code using the simple driver routine.
 
-~~~~~~~~~~{.c}
+@code{.c}
 #include  "c_pexsi_interface.h"
 ...
 {
@@ -242,7 +242,7 @@ Here is the structure of the code using the simple driver routine.
       plan,
       &info );
 } 
-~~~~~~~~~~ 
+@endcode
 
 
 <!-- ************************************************************ -->
@@ -257,7 +257,7 @@ a fake DFT problem by taking a Hamiltonian matrix from
 
 Here is the structure of the code using the simple driver routine.
 
-~~~~~~~~~~{.c}
+@code{.c}
 #include  "c_pexsi_interface.h"
 ...
 {
@@ -301,7 +301,7 @@ Here is the structure of the code using the simple driver routine.
   /* Postprocessing */
   
 } 
-~~~~~~~~~~ 
+@endcode
 
 @note The built-in heuristics in @ref PPEXSIDFTDriver may not be
 optimal. It handles only one \f$(H,S)\f$ pair at a time, and does
