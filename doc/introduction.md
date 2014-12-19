@@ -237,6 +237,10 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
+
+- v0.7.4
+  - Fix the bug of MPI communicator in f_driver_ksdft.f90. 
+
 - v0.7.3 (11/27/2014)
   - Multiple patches suggested by Alberto Garcia.
     - Fix a bug in the "lateral expansion" for locating the bracket for

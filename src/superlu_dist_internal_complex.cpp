@@ -371,7 +371,7 @@ ComplexSuperLUData::SymbolicFactorize	(  )
 	statusOFS << "Before symbfact subroutine." << std::endl;
 #endif
 
-	double totalMemory, maxMemory;
+	double totalMemory = 0.0, maxMemory = 0.0;
 
 
 	pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 

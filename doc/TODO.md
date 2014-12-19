@@ -6,3 +6,8 @@ TODO List   {#pageTODO}
 - When the inertia counting keeps failing, return a nonzero info to make
   the external routine stop.
 - Add a routine to estimate the spectral radius.
+
+- (By Seewald Patrick) maxTotalInertiaIter should be a controllable
+  parameter in PPEXSIOptions.
+- (By Seewald Patrick) Uninitialized values in TotalMemory and
+  MaxMemory.
