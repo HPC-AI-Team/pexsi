@@ -89,9 +89,23 @@ throw std::runtime_error( msg.str().c_str() );
       numProcRow, numProcCol );
 
   // Start the log file. Append to previous log files
-  std::stringstream ss;
-	ss << "logPEXSI" << outputFileIndex;
-	statusOFS.open( ss.str().c_str(), std::ios_base::app );
+#ifndef _RELEASE_
+  // All processors output
+  {
+    std::stringstream ss;
+    ss << "logPEXSI" << outputFileIndex;
+    statusOFS.open( ss.str().c_str(), std::ios_base::app );
+  }
+#else
+  // Only master processor output
+  {
+    if( mpirank == 0 ){
+      std::stringstream ss;
+      ss << "logPEXSI" << outputFileIndex;
+      statusOFS.open( ss.str().c_str(), std::ios_base::app );
+    }
+  }
+#endif
 
   // Initialize the saved variables
   muPEXSISave_ = 0.0;
@@ -1402,6 +1416,8 @@ throw std::logic_error( "Must be even number of poles!" );
       }
 
     } // if I am in charge of this pole
+
+
   } // for(lidx)
 
   // Reduce the density matrix across the processor rows in gridPole_
@@ -1454,7 +1470,7 @@ throw std::logic_error( "Must be even number of poles!" );
   // Compute the number of electrons
   // The number of electrons is computed by Tr[DM*S]
   {
-    Real numElecLocal;
+    Real numElecLocal = 0.0;
     if( SMat.size != 0 ){
       // S is not an identity matrix
       numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
@@ -1477,7 +1493,7 @@ throw std::logic_error( "Must be even number of poles!" );
   // Compute the derivative of the number of electrons with respect to mu
   // The number of electrons is computed by Tr[f'(H-\muS)*S]
   {
-    Real numElecDrvLocal;
+    Real numElecDrvLocal = 0.0;
     if( SMat.size != 0 ){
       // S is not an identity matrix
       numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
@@ -1748,14 +1764,14 @@ throw std::runtime_error( msg.str().c_str() );
         if( inertiaFTVec[0] > numElectronExact ||
             inertiaVec[0] > numElectronExact - EPS ){
           isBadBound = true;
-          muMaxInertia = muMinInertia;
+          muMaxInertia = muMaxInertia;
           muMinInertia = muMinInertia - muInertiaExpansion;
         }
 
         if( inertiaFTVec[numShift-1] < numElectronExact ||
             inertiaVec[numShift-1] < numElectronExact + EPS ){
           isBadBound = true;
-          muMinInertia = muMaxInertia;
+          muMinInertia = muMinInertia;
           muMaxInertia = muMaxInertia + muInertiaExpansion;
         }
 

@@ -236,7 +236,7 @@ int main(int argc, char **argv)
   options.npSymbFact = 1;
   options.ordering = 0;
   options.isInertiaCount = 1;
-  options.verbosity = 1;
+  options.verbosity = 2;
   options.deltaE   = 20.0;
   options.numPole  = 60;
   options.temperature  = 0.019; // 3000K

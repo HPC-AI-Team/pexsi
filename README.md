@@ -3,7 +3,7 @@ PEXSI: Pole EXpansion and Selected Inversion
 
 For full documentation, including instructions for installation please see
 
-http://pexsi.github.io/pexsi/
+http://www.pexsi.org
 
 Installation       
 ============

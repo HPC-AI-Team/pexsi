@@ -49,6 +49,8 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "pexsi/pselinv.hpp"
 
 #include <superlu_ddefs.h>
+#include <numeric>
+
 #include <Cnames.h>
 extern "C"{ void
 pdsymbfact(superlu_options_t *options, SuperMatrix *A, 

@@ -21,7 +21,7 @@ run_inertia: run_inertia.o ${PEXSI_LIB}
 	($(LOADER) -o $@_${SUFFIX} run_inertia.o  $(LOADOPTS) )
 
 run_pselinv: run_pselinv.o ${PEXSI_LIB} 
-	($(LOADER) -o $@ run_pselinv.o  $(LOADOPTS) )
+	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS) )
 
 run_pselinv_asym: run_pselinv_asym.o ${PEXSI_LIB} 
 	($(LOADER) -o $@ run_pselinv_asym.o  $(LOADOPTS) )
@@ -34,6 +34,9 @@ compare_csc: compare_csc.o ${PEXSI_LIB}
 run_mumps: run_mumps.o ${PEXSI_LIB}
 	($(LOADER) -o $@ run_mumps.o  $(DMUMPS_LIB) $(ZMUMPS_LIB) $(MUMPS_ORDERINGS) ${LOADOPTS} )
 
+run_mumps.o: run_mumps.cpp
+	${CXX} -c $(MUMPS_INCLUDE)  ${CXXFLAGS} ${CPPDEFS} $<
+
 run_inertia.o: run_inertia.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
@@ -43,8 +46,6 @@ run_pselinv.o: run_pselinv.cpp
 compare_csc.o: compare_csc.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
-run_mumps.o: run_mumps.cpp
-	${CXX} -c $(MUMPS_INCLUDE)  ${CXXFLAGS} ${CPPDEFS} $<
 
 run_pselinv_asym.o: run_pselinv_asym.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
