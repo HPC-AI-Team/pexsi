@@ -269,7 +269,7 @@ namespace PEXSI{
 
 
 //TODO can be optimized if we were able to determine if sparseA was symmetric or not
-  void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA ){
+  void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA, const SuperLUOptions & options ){
 #ifndef _RELEASE_
     PushCallStack( "ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc" );
 #endif
@@ -293,10 +293,10 @@ namespace PEXSI{
     Int firstRow = mpirank * numRowLocalFirst;
     Int numRowLocal = -1;
     Int nnzLocal = -1;
-#define ASYM
 
-#ifndef ASYM
-
+////#define ASYM
+////#ifndef ASYM
+if(options.symPattern == 1){
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
 
@@ -308,11 +308,21 @@ namespace PEXSI{
         rowptrLocal );
     std::copy( sparseA.rowindLocal.Data(), sparseA.rowindLocal.Data() + sparseA.rowindLocal.m(),
         colindLocal );
-    std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
-        (Complex*)nzvalLocal );
-#else
 
 
+    if(options.symValue == 1){
+      std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
+          (Complex*)nzvalLocal );
+    }
+    else{
+      //TODO This has to be replaced I guess...
+      std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
+          (Complex*)nzvalLocal );
+
+    }
+
+}
+else{
   //Need to get Global CSC structure
 
     LongInt nnz = 0;
@@ -568,7 +578,268 @@ namespace PEXSI{
       delete row_nnz;
     }
 
-#endif
+
+}
+
+////#else
+////
+////
+////  //Need to get Global CSC structure
+////
+////    LongInt nnz = 0;
+////    IntNumVec rowindGlobal;
+////    IntNumVec colptrGlobal;
+////    TIMER_START(ToGlobalStructure);
+////    {
+////      colptrGlobal.Resize(sparseA.size+1);
+////
+////      /* Allgatherv for row indices. */ 
+////      IntNumVec prevnz(mpisize);
+////      IntNumVec rcounts(mpisize);
+////      MPI_Allgather(&sparseA.nnzLocal, 1, MPI_INT, rcounts.Data(), 1, MPI_INT, grid->comm);
+////
+////      prevnz[0] = 0;
+////      for (Int i = 0; i < mpisize-1; ++i) { prevnz[i+1] = prevnz[i] + rcounts[i]; } 
+////
+////      nnz = 0;
+////      for (Int i = 0; i < mpisize; ++i) { nnz += rcounts[i]; } 
+////      rowindGlobal.Resize(nnz);
+////
+////      MPI_Allgatherv(sparseA.rowindLocal.Data(), sparseA.nnzLocal, MPI_INT, rowindGlobal.Data(),rcounts.Data(), prevnz.Data(), MPI_INT, grid->comm); 
+////
+////      /* Allgatherv for colptr */
+////      // Compute the number of columns on each processor
+////      Int numColFirst = std::max(1,sparseA.size / mpisize);
+////      SetValue( rcounts, numColFirst );
+////      rcounts[mpisize-1] = sparseA.size - numColFirst * (mpisize-1);  // Modify the last entry     
+////
+////      IntNumVec rdispls(mpisize);
+////      rdispls[0] = 0;
+////      for (Int i = 0; i < mpisize-1; ++i) { rdispls[i+1] = rdispls[i] + rcounts[i]; } 
+////
+////      MPI_Allgatherv(sparseA.colptrLocal.Data(), sparseA.colptrLocal.m()-1, MPI_INT, colptrGlobal.Data(),
+////          rcounts.Data(), rdispls.Data(), MPI_INT, grid->comm);
+////
+////      /* Recompute column pointers. */
+////      for (Int p = 1; p < mpisize; p++) {
+////        Int idx = rdispls[p];
+////        for (Int j = 0; j < rcounts[p]; ++j) colptrGlobal[idx++] += prevnz[p];
+////      }
+////      colptrGlobal(sparseA.size)= nnz+1;
+////    }
+////    TIMER_STOP(ToGlobalStructure);
+////
+////
+////    IntNumVec rowptrGlobal;
+////    IntNumVec colindGlobal;
+////    //Compute Global CSR structure and Local CSR structure
+////    {
+////      Int i, j;
+////
+////      colindGlobal.Resize(nnz);
+////      rowptrGlobal.Resize(sparseA.size+1);
+////      IntNumVec row_nnz(sparseA.size);
+////      SetValue(row_nnz,I_ZERO);
+////
+////      for (i = 0; i < nnz; i++) { 
+////        Int k = rowindGlobal[i];
+////        row_nnz[k-1]++;
+////      }
+////
+////      rowptrGlobal[0]=1;
+////      for (i = 1; i <= sparseA.size; i++)
+////      {
+////        rowptrGlobal[i] = rowptrGlobal[i-1] + row_nnz[i-1];
+////        row_nnz[i-1] = 0;
+////      }
+////
+////      /*
+////       *  convert from CSC to CSR.
+////       *  use row_nnz to keep track of the number of non-zeros
+////       *  added to each row.
+////       */
+////      for (j = 0; j < colptrGlobal.m()-1; j++)
+////      {
+////        Int k;
+////        Int nnz_col;    /* # of non-zeros in column j of A */
+////
+////        nnz_col = colptrGlobal[j+1] - colptrGlobal[j];
+////
+////        for (k = colptrGlobal[j]; k < colptrGlobal[j+1]; k++)
+////        {
+////          Int i = rowindGlobal[ k - 1 ];               /* row index */
+////          Int h = rowptrGlobal[i-1] + row_nnz[i-1];    /* non-zero position */
+////
+////          /* add the non-zero A(i,j) to B */
+////          colindGlobal[ h - 1 ] = j+1;
+////          row_nnz[i-1]++;
+////        }
+////      }
+////
+////
+////
+////    } 
+////
+////    for(int i=0;i<rowptrGlobal.m();++i){
+////      assert(rowptrGlobal[i]==colptrGlobal[i]);
+////    }
+////
+////    for(int i=1;i<rowptrGlobal.m();++i){
+////      Int colbeg = rowptrGlobal[i-1];
+////      Int colend = rowptrGlobal[i]-1;
+////      for(Int j=colbeg;j<=colend;++j){
+////        Int row = colindGlobal[j-1];
+////
+////        Int * ptr = std::find(&rowindGlobal[colbeg-1],&rowindGlobal[colend-1]+1,row);
+////        if(ptr==&rowindGlobal[colend-1]+1){
+////          abort();
+////        }
+////      }
+////    }
+////
+////    //compute the local CSR structure
+////    std::vector<Int > numRowVec(mpisize,numRowLocalFirst);
+////    numRowVec[mpisize-1] = sparseA.size - (mpisize-1)*numRowLocalFirst;
+////
+////    numRowLocal = numRowVec[mpirank];
+////    Int myFirstCol = mpirank*numRowLocalFirst+1;
+////    Int myLastCol = myFirstCol + numRowLocal -1;
+////
+////    rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
+////
+////    //copy local chunk of rowptr
+////    std::copy(&rowptrGlobal[myFirstCol-1],
+////        &rowptrGlobal[myLastCol]+1,
+////        rowptrLocal);
+////
+////    nnzLocal = rowptrLocal[numRowLocal] - rowptrLocal[0];
+////    colindLocal = (int_t*)intMalloc_dist(nnzLocal); 
+////    nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(nnzLocal);
+////    //copy local chunk of colind
+////    std::copy(&colindGlobal[rowptrLocal[0]-1],
+////        &colindGlobal[rowptrLocal[0]-1]+nnzLocal,
+////        colindLocal);
+////
+////    //convert rowptr to local references
+////    for( Int i = 1; i < numRowLocal + 1; i++ ){
+////      rowptrLocal[i] = rowptrLocal[i] -  rowptrLocal[0] + 1;
+////    }
+////    rowptrLocal[0]=1;
+////
+////    for(int i=0;i<numRowLocal;++i){
+////      Int col = i+myFirstCol;
+////      Int colbeg = rowptrLocal[i];
+////      Int colend = rowptrLocal[i+1]-1;
+////
+////      for(Int j=colbeg;j<=colend;++j){
+////        Int row = colindLocal[j-1];
+////
+////        Int * ptr = std::find(&sparseA.rowindLocal[colbeg-1],&sparseA.rowindLocal[colend-1]+1,row);
+////        if(ptr==&sparseA.rowindLocal[colend-1]+1){
+////          abort();
+////        }
+////      }
+////
+////    }
+////
+////
+////    {
+////      //Redistribute the data
+////      //local pointer to head to rows in local CSR structure
+////      std::vector<Int> * row_nnz = new std::vector<Int>(numRowLocal,0);
+////
+////      for(int p =0; p<mpisize;p++){
+////        std::vector< char > send_buffer;
+////        std::vector< char > recv_buffer;
+////        std::vector<int> displs(mpisize+1,0);
+////        std::vector<int> bufsizes(mpisize,0);
+////
+////        //parse the Global CSC structure to count
+////        Int firstCol = p*numRowLocalFirst+1;
+////        Int lastCol = firstCol + numRowVec[p]-1;
+////        for(Int col = 1; col<colptrGlobal.m();++col){
+////          if(col>= firstCol && col<= lastCol){
+////            Int colbeg = colptrGlobal[col-1];
+////            Int colend = colptrGlobal[col]-1;
+////            for(Int i=colbeg;i<=colend;++i){
+////              Int row = rowindGlobal[i-1];  
+////              //determine where it should be packed ?
+////              Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
+////              bufsizes[p_dest]+=sizeof(Complex);
+////            }
+////          }
+////          else if(col>lastCol){
+////            break;
+////          }
+////        }
+////
+////        //compute displacement (cum sum)
+////        std::partial_sum(bufsizes.begin(),bufsizes.end(),displs.begin()+1);
+////
+////        if(mpirank==p){
+////          std::vector<int> bufpos(mpisize,0);
+////
+////          //resize buffers
+////          Int send_buffer_size = displs[mpisize];
+////          send_buffer.resize(displs[mpisize]);
+////
+////          //fill the buffers by parsing local CSC structure
+////          for(Int j = 1; j<sparseA.colptrLocal.m();++j){
+////            Int gCol = mpirank*numRowLocalFirst + j;
+////            Int colbeg = sparseA.colptrLocal[j-1];
+////            Int colend = sparseA.colptrLocal[j]-1;
+////            for(Int i=colbeg;i<=colend;++i){
+////              Int row = sparseA.rowindLocal[i-1];  
+////              //determine where it should be packed ?
+////              Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
+////              Int p_displs = displs[p_dest];
+////              Int p_bufpos = bufpos[p_dest];
+////              *((Complex *)&send_buffer.at( displs[p_dest] + bufpos[p_dest] )) = sparseA.nzvalLocal[i-1];
+////              //advance position
+////              bufpos[p_dest]+= sizeof(Complex);
+////            }
+////          }
+////        }
+////
+////
+////
+////        Int recv_buffer_size = bufsizes[mpirank];
+////        recv_buffer.resize(bufsizes[mpirank]);
+////
+////        //scatterv
+////        MPI_Scatterv(&send_buffer[0], &bufsizes[0], &displs[0], MPI_BYTE, &recv_buffer[0], bufsizes[mpirank], MPI_BYTE, p, grid->comm);
+////
+////        //process data
+////        Int recv_pos = 0;
+////        //parse the Global CSC structure to count
+////        for(Int col = 1; col<colptrGlobal.m();++col){
+////          if(col>= firstCol && col<= lastCol){
+////            Int colbeg = colptrGlobal[col-1];
+////            Int colend = colptrGlobal[col]-1;
+////            for(Int i=colbeg;i<=colend;++i){
+////              Int row = rowindGlobal[i-1];  
+////              Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
+////              if(p_dest==mpirank){
+////                //compute local CSR coordinates
+////                Int local_row = row - mpirank*numRowLocalFirst;
+////                Int h = rowptrLocal[local_row-1] + row_nnz->at(local_row-1);    /* non-zero position */
+////                *((Complex*)&nzvalLocal[h-1]) = *((Complex*)&recv_buffer.at(recv_pos));
+////                //advance position in CSR buffer
+////                row_nnz->at(local_row-1)++;
+////                //advance position in CSC recv_buffer
+////                recv_pos+=sizeof(Complex);
+////              }
+////            }
+////          }
+////          else if(col>lastCol){
+////            break;
+////          }
+////        }
+////      }
+////      delete row_nnz;
+////    }
+////
+////#endif
 
 
 

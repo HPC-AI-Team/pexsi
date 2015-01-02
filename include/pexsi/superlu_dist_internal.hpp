@@ -86,6 +86,13 @@ namespace PEXSI{
     ///
     std::string      ColPerm;
 
+
+    /// @brief Option to specify if matrix has asymmetric pattern.
+    Int              symPattern;
+
+    /// @brief Option to specify if matrix has asymmetric values.
+    Int              symValues;
+
     // Member functions to setup the default value
     SuperLUOptions(): numProcSymbFact(0), maxPipelineDepth(-1), ColPerm("MMD_AT_PLUS_A") {}
   };
@@ -106,7 +113,7 @@ class RealSuperLUData{
   
 		Int m() const;
 		Int n() const;
-		void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA ); 
+		void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA , const SuperLUOptions& opt); 
 		void DestroyAOnly(); 
 		void SymbolicFactorize(); 
 		void Distribute(); 
@@ -131,7 +138,7 @@ class ComplexSuperLUData{
 
 		Int m() const;
 		Int n() const;
-		void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA ); 
+		void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA , const SuperLUOptions& opt); 
 		void DestroyAOnly(); 
 		void SymbolicFactorize(); 
 		void Distribute(); 

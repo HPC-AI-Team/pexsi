@@ -340,13 +340,12 @@ throw std::runtime_error( msg.str().c_str() );
     luMat = SuperLUMatrix<Real>();
     PMloc = PMatrix<Real>();
 
-    SuperLUOptions   luOpt;
 
-    luOpt.ColPerm = ColPerm;
-    luOpt.numProcSymbFact = numProcSymbFact;
-    luOpt.maxPipelineDepth = -1;
+    luOpt_.ColPerm = ColPerm;
+    luOpt_.numProcSymbFact = numProcSymbFact;
+    luOpt_.maxPipelineDepth = -1;
 
-    luMat.Setup( *gridSuperLUReal_, luOpt );  // SuperLU matrix.
+    luMat.Setup( *gridSuperLUReal_, luOpt_ );  // SuperLU matrix.
 
     DistSparseMatrix<Real> AMat;
     CopyPattern( HRealMat_, AMat );
@@ -355,7 +354,7 @@ throw std::runtime_error( msg.str().c_str() );
 
     Real timeSta, timeEnd;
     GetTime( timeSta );
-    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
     GetTime( timeEnd );
     if( verbosity >= 1 ){
       statusOFS << "Time for SuperMatrix conversion is " <<
@@ -371,7 +370,7 @@ throw std::runtime_error( msg.str().c_str() );
     }
     luMat.SymbolicToSuperNode( super );
     
-    PMloc.Setup( gridSelInv_, &super , &luOpt );
+    PMloc.Setup( gridSelInv_, &super , &luOpt_ );
     GetTime( timeSta );
     luMat.LUstructToPMatrix( PMloc );
     GetTime( timeEnd );
@@ -450,13 +449,12 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
     luMat = SuperLUMatrix<Complex>();
     PMloc = PMatrix<Complex>();
 
-    SuperLUOptions   luOpt;
 
-    luOpt.ColPerm = ColPerm;
-    luOpt.numProcSymbFact = numProcSymbFact;
-    luOpt.maxPipelineDepth = -1;
+    luOpt_.ColPerm = ColPerm;
+    luOpt_.numProcSymbFact = numProcSymbFact;
+    luOpt_.maxPipelineDepth = -1;
 
-    luMat.Setup( *gridSuperLUComplex_, luOpt );  // SuperLU matrix.
+    luMat.Setup( *gridSuperLUComplex_, luOpt_ );  // SuperLU matrix.
 
     DistSparseMatrix<Complex> AMat;
     CopyPattern( HRealMat_, AMat );
@@ -465,7 +463,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
 
     Real timeSta, timeEnd;
     GetTime( timeSta );
-    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
     GetTime( timeEnd );
     if( verbosity >= 1 ){
       statusOFS << "Time for SuperMatrix conversion is " <<
@@ -481,7 +479,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
     }
     luMat.SymbolicToSuperNode( super );
     
-    PMloc.Setup( gridSelInv_, &super , &luOpt );
+    PMloc.Setup( gridSelInv_, &super , &luOpt_ );
     GetTime( timeSta );
     luMat.LUstructToPMatrix( PMloc );
     GetTime( timeEnd );
@@ -571,7 +569,7 @@ PPEXSIData::SelInvRealSymmetricMatrix(
     if( verbosity >= 2 ){
       statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
     }
-    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
     if( verbosity >= 2 ){
       statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
     }
@@ -688,7 +686,7 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
     if( verbosity >= 2 ){
       statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
     }
-    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
     if( verbosity >= 2 ){
       statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
     }
@@ -855,7 +853,7 @@ throw std::runtime_error( msg.str().c_str() );
       if( verbosity >= 2 ){
         statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
       }
-			luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+			luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
       if( verbosity >= 2 ){
         statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
       }
@@ -1275,7 +1273,7 @@ throw std::logic_error( "Must be even number of poles!" );
         if( verbosity >= 2 ){
           statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
         }
-        luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+        luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
         if( verbosity >= 2 ){
           statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
         }

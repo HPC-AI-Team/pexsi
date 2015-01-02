@@ -495,12 +495,14 @@ else{
       luOpt.ColPerm = ColPerm;
       luOpt.maxPipelineDepth = maxPipelineDepth;
       luOpt.numProcSymbFact = numProcSymbFact;
+      luOpt.symPattern = 1;
+      luOpt.symValues = 0;
 
 
       SuperLUMatrix<MYSCALAR> luMat(g, luOpt );
 
 
-      luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+      luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
       GetTime( timeEnd );
       if( mpirank == 0 )
         cout << "Time for converting to SuperLU format is " << timeEnd - timeSta << endl;
@@ -526,7 +528,7 @@ else{
 
         // Important: the distribution in pzsymbfact is going to mess up the
         // A matrix.  Recompute the matrix A here.
-        luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+        luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
 
         GetTime( timeTotalFactorizationSta );
 
@@ -557,7 +559,7 @@ else{
         if( checkAccuracy ) {
           SuperLUMatrix<MYSCALAR> A1( g, luOpt );
           SuperLUMatrix<MYSCALAR> GA( g, luOpt );
-          A1.DistSparseMatrixToSuperMatrixNRloc( AMat );
+          A1.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
           A1.ConvertNRlocToNC( GA );
 
           int n = A1.n();

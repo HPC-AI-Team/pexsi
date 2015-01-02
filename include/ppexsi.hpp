@@ -110,6 +110,8 @@ namespace PEXSI{
     SuperLUMatrix<Real>*       luRealMat_;
     SuperLUMatrix<Complex>*    luComplexMat_;
 
+    SuperLUOptions             luOpt_;
+
     PMatrix<Real>*             PMRealMat_;
     PMatrix<Complex>*          PMComplexMat_;
 

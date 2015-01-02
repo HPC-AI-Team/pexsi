@@ -83,6 +83,8 @@ namespace PEXSI{
       ///
       /// @brief Actual pointer to save the data related to SuperLU.
       void *  ptrData;
+
+
     public:
 
       SuperLUMatrix( const SuperLUGrid<T>& g, const SuperLUOptions& opt = SuperLUOptions() ){ }
@@ -110,7 +112,7 @@ namespace PEXSI{
       ///
       /// @todo 
       /// Better way to incorporate both real and complex arithmetic.
-      void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<T>& sparseA ){ }
+      void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<T>& sparseA , const SuperLUOptions & options){ }
 
       /// @brief Releases the data in A but keeps other data,
       /// such as LUstruct. 
@@ -210,6 +212,7 @@ namespace PEXSI{
       ///
       /// @brief Actual pointer to save the data related to SuperLU.
       RealSuperLUData*  ptrData;
+
     public:
 
       SuperLUMatrix();
@@ -239,7 +242,7 @@ namespace PEXSI{
       ///
       /// @todo 
       /// Better way to incorporate both real and complex arithmetic.
-      void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA );
+      void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA , const SuperLUOptions & opt);
 
       /// @brief Releases the data in A but keeps other data,
       /// such as LUstruct. 
@@ -338,6 +341,8 @@ namespace PEXSI{
       ///
       /// @brief Actual pointer to save the data related to SuperLU.
       ComplexSuperLUData*  ptrData;
+      
+
     public:
 
       SuperLUMatrix();
@@ -367,7 +372,7 @@ namespace PEXSI{
       ///
       /// @todo 
       /// Better way to incorporate both real and complex arithmetic.
-      void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA );
+      void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA , const SuperLUOptions & options);
 
       /// @brief Releases the data in A but keeps other data,
       /// such as LUstruct. 

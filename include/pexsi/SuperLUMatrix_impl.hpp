@@ -119,12 +119,12 @@ inline Int SuperLUMatrix<Real>::n (  ) const
 } 		// -----  end of method SuperLUMatrix<Real>::n  ----- 
 
 inline void
-SuperLUMatrix<Real>::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA )
+SuperLUMatrix<Real>::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA , const SuperLUOptions& opt )
 {
 #ifndef _RELEASE_
 	PushCallStack( "SuperLUMatrix<Real>::DistSparseMatrixToSuperMatrixNRloc" );
 #endif
-  ptrData->DistSparseMatrixToSuperMatrixNRloc(sparseA );
+  ptrData->DistSparseMatrixToSuperMatrixNRloc(sparseA, opt );
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
@@ -381,12 +381,12 @@ inline Int SuperLUMatrix<Complex>::n (  ) const
 } 		// -----  end of method SuperLUMatrix<Complex>::n  ----- 
 
 inline void
-SuperLUMatrix<Complex>::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA )
+SuperLUMatrix<Complex>::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA , const SuperLUOptions& opt)
 {
 #ifndef _RELEASE_
 	PushCallStack( "SuperLUMatrix<Complex>::DistSparseMatrixToSuperMatrixNRloc" );
 #endif
-  ptrData->DistSparseMatrixToSuperMatrixNRloc(sparseA );
+  ptrData->DistSparseMatrixToSuperMatrixNRloc(sparseA, opt);
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
