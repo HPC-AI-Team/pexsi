@@ -1494,6 +1494,8 @@ namespace PEXSI{
 	// Sparse Matrix
 	// *********************************************************************
 
+  template <typename T> void CSCToCSR(const DistSparseMatrix<T>& sparseA, DistSparseMatrix<T> & sparseB );
+
   // Real format
 	void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat );
 

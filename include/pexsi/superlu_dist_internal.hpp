@@ -87,14 +87,12 @@ namespace PEXSI{
     std::string      ColPerm;
 
 
-    /// @brief Option to specify if matrix has asymmetric pattern.
-    Int              symPattern;
+    /// @brief Option to specify if matrix is symmetric or not.
+    Int              symmetric;
 
-    /// @brief Option to specify if matrix has asymmetric values.
-    Int              symValues;
 
     // Member functions to setup the default value
-    SuperLUOptions(): numProcSymbFact(0), maxPipelineDepth(-1), ColPerm("MMD_AT_PLUS_A") {}
+    SuperLUOptions(): numProcSymbFact(0), maxPipelineDepth(-1), ColPerm("MMD_AT_PLUS_A"), symmetric(1) {}
   };
 
 

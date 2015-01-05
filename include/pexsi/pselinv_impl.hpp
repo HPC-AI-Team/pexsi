@@ -2088,6 +2088,11 @@ namespace PEXSI{
   template<typename T> 
     void PMatrix<T>::SelInv	(  )
     {
+
+      if (options_->symmetric!=1){
+          throw std::logic_error( "The matrix is not symmetric, this routine can't handle it !" );
+      }
+
       SelInv_P2p	(  );
     } 		// -----  end of method PMatrix::SelInv  ----- 
 
@@ -3142,7 +3147,6 @@ namespace PEXSI{
   // A (maybe) more memory efficient way for converting the PMatrix to a
   // DistSparseMatrix structure.
   //
-  // FIXME NOTE: This routine assumes the matrix to be symmetric!
   template<typename T>
     void PMatrix<T>::PMatrixToDistSparseMatrix2 ( const DistSparseMatrix<T>& A, DistSparseMatrix<T>& B )
     {
