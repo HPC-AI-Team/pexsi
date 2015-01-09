@@ -57,6 +57,53 @@ using std::ofstream;
 
 namespace  PEXSI{
 
+    struct IndexComparator {
+      Int * lookup;
+      IndexComparator(Int * v):lookup(v){}
+      bool operator() (int i,int j) { return (lookup[i]<lookup[j]);}
+    };
+
+
+
+template <typename F> inline void DistSparseMatrix<F>::SortIndices()
+{
+
+#ifndef _RELEASE_
+	PushCallStack("DistSparseMatrix<F>::SortIndices");
+#endif  
+
+  for(Int col = 0; col<colptrLocal.m()-1;++col){
+    Int colbeg = colptrLocal[col]-1;
+    Int colend = colptrLocal[col+1]-1;
+
+    Int numRow = colend - colbeg;
+
+    std::vector<Int> rowsPerm(numRow);
+    std::vector<Int> rowsSorted(numRow);
+    std::vector<F> valsSorted(numRow);
+    Int * rows = &rowindLocal[colbeg];
+    F * vals = &nzvalLocal[colbeg];
+
+    for(Int i = 0; i<rowsPerm.size(); ++i){ rowsPerm[i] = i;}
+    IndexComparator cmp(rows);
+    //sort the row indices
+    std::sort(rowsPerm.begin(),rowsPerm.end(),cmp);
+
+    for(Int i = 0; i<numRow; ++i){ rowsSorted[i] = rows[rowsPerm[i]]; }
+    std::copy(rowsSorted.begin(),rowsSorted.end(),rows);
+
+    for(Int i = 0; i<numRow; ++i){ valsSorted[i] = vals[rowsPerm[i]]; }
+    std::copy(valsSorted.begin(),valsSorted.end(),vals);
+  }
+
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif  
+
+
+}
+
 template <class F> inline LongInt DistSparseMatrix<F>::Nnz ( )
 {
 #ifndef _RELEASE_

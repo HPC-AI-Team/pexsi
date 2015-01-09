@@ -121,6 +121,9 @@ namespace  PEXSI{
     /// @brief Compute the total number of nonzeros through
     /// MPI_Allreduce
     LongInt      Nnz();
+
+    /// @brief Locally sorts the row indices within every column
+    void         SortIndices();
 	};
 
 	// Commonly used

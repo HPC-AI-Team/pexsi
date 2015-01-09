@@ -316,7 +316,7 @@ namespace PEXSI{
       std::copy( sparseB.rowindLocal.Data(), sparseB.rowindLocal.Data() + sparseB.rowindLocal.m(),
           colindLocal );
       std::copy( sparseB.nzvalLocal.Data(), sparseB.nzvalLocal.Data() + sparseB.nzvalLocal.m(),
-          (Complex*)nzvalLocal );
+          (double*)nzvalLocal );
     }
 
 

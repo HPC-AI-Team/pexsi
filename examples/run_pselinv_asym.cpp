@@ -148,6 +148,13 @@ int main(int argc, char **argv)
         isCSC= ! atoi(options["-T"].c_str());
       }
 
+
+      int isSym = 0;
+      if( options.find("-Symm") != options.end() ){ 
+        isSym = atoi(options["-Symm"].c_str());
+      }
+
+
       int checkAccuracy = false;
       if( options.find("-E") != options.end() ){ 
         checkAccuracy= atoi(options["-E"].c_str());
@@ -259,114 +266,117 @@ int main(int argc, char **argv)
       Real timeSta, timeEnd;
 
 
+#ifdef _MYCOMPLEX_
       if(!isReal){
-      DistSparseMatrix<Complex> HMat;
-      DistSparseMatrix<Complex> SMat;
-      GetTime( timeSta );
-      if(isCSC){
-        ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
-      }
-      else{
-        ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, world_comm ); 
-        ParaWriteDistSparseMatrix( "H.csc", HMat, world_comm ); 
-      }
-
-      if( Sfile.empty() ){
-        // Set the size to be zero.  This will tell PPEXSI.Solve to treat
-        // the overlap matrix as an identity matrix implicitly.
-        SMat.size = 0;  
-      }
-      else{
+        DistSparseMatrix<Complex> HMat;
+        DistSparseMatrix<Complex> SMat;
+        GetTime( timeSta );
         if(isCSC){
-          ParaReadDistSparseMatrix( Sfile.c_str(), SMat, world_comm ); 
+          ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
         }
         else{
-          ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, world_comm ); 
-          ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
+          ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, world_comm ); 
+          ParaWriteDistSparseMatrix( "H.csc", HMat, world_comm ); 
         }
-      }
 
-      GetTime( timeEnd );
-      LongInt nnzH = HMat.Nnz();
-      if( mpirank == 0 ){
-        cout << "Time for reading H and S is " << timeEnd - timeSta << endl;
-        cout << "H.size = " << HMat.size << endl;
-        cout << "H.nnz  = " << nnzH  << endl;
-      }
-
-      // Get the diagonal indices for H and save it n diagIdxLocal_
-
-      std::vector<Int>  diagIdxLocal;
-      { 
-        Int numColLocal      = HMat.colptrLocal.m() - 1;
-        Int numColLocalFirst = HMat.size / mpisize;
-        Int firstCol         = mpirank * numColLocalFirst;
-
-        diagIdxLocal.clear();
-
-        for( Int j = 0; j < numColLocal; j++ ){
-          Int jcol = firstCol + j + 1;
-          for( Int i = HMat.colptrLocal(j)-1; 
-              i < HMat.colptrLocal(j+1)-1; i++ ){
-            Int irow = HMat.rowindLocal(i);
-            if( irow == jcol ){
-              diagIdxLocal.push_back( i );
-            }
+        if( Sfile.empty() ){
+          // Set the size to be zero.  This will tell PPEXSI.Solve to treat
+          // the overlap matrix as an identity matrix implicitly.
+          SMat.size = 0;  
+        }
+        else{
+          if(isCSC){
+            ParaReadDistSparseMatrix( Sfile.c_str(), SMat, world_comm ); 
           }
-        } // for (j)
-      }
+          else{
+            ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, world_comm ); 
+            ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
+          }
+        }
 
-      // DEBUG
-      if(0)
-      { 
-        Int numColLocal      = HMat.colptrLocal.m() - 1;
+        GetTime( timeEnd );
+        LongInt nnzH = HMat.Nnz();
+        if( mpirank == 0 ){
+          cout << "Time for reading H and S is " << timeEnd - timeSta << endl;
+          cout << "H.size = " << HMat.size << endl;
+          cout << "H.nnz  = " << nnzH  << endl;
+        }
 
-        for( Int j = 0; j < numColLocal; j++ ){
-          statusOFS  << "H("<<j<<","<<j<<")="<<
-            HMat.nzvalLocal(diagIdxLocal[j])<<std::endl;
-        } // for (j)
-      }
+        // Get the diagonal indices for H and save it n diagIdxLocal_
+
+        std::vector<Int>  diagIdxLocal;
+        { 
+          Int numColLocal      = HMat.colptrLocal.m() - 1;
+          Int numColLocalFirst = HMat.size / mpisize;
+          Int firstCol         = mpirank * numColLocalFirst;
+
+          diagIdxLocal.clear();
+
+          for( Int j = 0; j < numColLocal; j++ ){
+            Int jcol = firstCol + j + 1;
+            for( Int i = HMat.colptrLocal(j)-1; 
+                i < HMat.colptrLocal(j+1)-1; i++ ){
+              Int irow = HMat.rowindLocal(i);
+              if( irow == jcol ){
+                diagIdxLocal.push_back( i );
+              }
+            }
+          } // for (j)
+        }
+
+        // DEBUG
+        if(0)
+        { 
+          Int numColLocal      = HMat.colptrLocal.m() - 1;
+
+          for( Int j = 0; j < numColLocal; j++ ){
+            statusOFS  << "H("<<j<<","<<j<<")="<<
+              HMat.nzvalLocal(diagIdxLocal[j])<<std::endl;
+          } // for (j)
+        }
 
 
 
-      GetTime( timeSta );
+        GetTime( timeSta );
 
-      AMat.size          = HMat.size;
-      AMat.nnz           = HMat.nnz;
-      AMat.nnzLocal      = HMat.nnzLocal;
-      AMat.colptrLocal   = HMat.colptrLocal;
-      AMat.rowindLocal   = HMat.rowindLocal;
-      AMat.nzvalLocal.Resize( HMat.nnzLocal );
-      AMat.comm = world_comm;
+        AMat.size          = HMat.size;
+        AMat.nnz           = HMat.nnz;
+        AMat.nnzLocal      = HMat.nnzLocal;
+        AMat.colptrLocal   = HMat.colptrLocal;
+        AMat.rowindLocal   = HMat.rowindLocal;
+        AMat.nzvalLocal.Resize( HMat.nnzLocal );
+        AMat.comm = world_comm;
 
-      MYSCALAR *ptr0 = AMat.nzvalLocal.Data();
-      Complex *ptr1 = HMat.nzvalLocal.Data();
-      Complex *ptr2 = SMat.nzvalLocal.Data();
+        MYSCALAR *ptr0 = AMat.nzvalLocal.Data();
+        Complex *ptr1 = HMat.nzvalLocal.Data();
+        Complex *ptr2 = SMat.nzvalLocal.Data();
 
 #ifdef _MYCOMPLEX_
-      Complex zshift = Complex(rshift, ishift);
+        Complex zshift = Complex(rshift, ishift);
 #else
-      Real zshift = Real(rshift);
+        Real zshift = Real(rshift);
 #endif
 
-      if( SMat.size != 0 ){
-        // S is not an identity matrix
-        for( Int i = 0; i < HMat.nnzLocal; i++ ){
-          AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift * SMat.nzvalLocal(i);
+        if( SMat.size != 0 ){
+          // S is not an identity matrix
+          for( Int i = 0; i < HMat.nnzLocal; i++ ){
+            AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift * SMat.nzvalLocal(i);
+          }
         }
-      }
-      else{
-        // S is an identity matrix
-        for( Int i = 0; i < HMat.nnzLocal; i++ ){
-          AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
-        }
+        else{
+          // S is an identity matrix
+          for( Int i = 0; i < HMat.nnzLocal; i++ ){
+            AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+          }
 
-        for( Int i = 0; i < diagIdxLocal.size(); i++ ){
-          AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
-        }
-      } // if (SMat.size != 0 )
-}
-else{
+          for( Int i = 0; i < diagIdxLocal.size(); i++ ){
+            AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
+          }
+        } // if (SMat.size != 0 )
+      }
+else
+#endif
+{
       DistSparseMatrix<Real> HMat;
       DistSparseMatrix<Real> SMat;
       Real timeSta, timeEnd;
@@ -423,19 +433,6 @@ else{
           }
         } // for (j)
       }
-
-      // DEBUG
-      if(0)
-      { 
-        Int numColLocal      = HMat.colptrLocal.m() - 1;
-
-        for( Int j = 0; j < numColLocal; j++ ){
-          statusOFS  << "H("<<j<<","<<j<<")="<<
-            HMat.nzvalLocal(diagIdxLocal[j])<<std::endl;
-        } // for (j)
-      }
-
-
 
       GetTime( timeSta );
 
@@ -495,7 +492,7 @@ else{
       luOpt.ColPerm = ColPerm;
       luOpt.maxPipelineDepth = maxPipelineDepth;
       luOpt.numProcSymbFact = numProcSymbFact;
-      luOpt.symmetric = 0;
+      luOpt.symmetric = isSym;
 
 
       SuperLUMatrix<MYSCALAR> luMat(g, luOpt );
@@ -572,7 +569,7 @@ else{
 
           A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
           A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
-
+          if(mpirank==0){std::cout<<"Starting solve"<<std::endl;}
           luMat.SolveDistMultiVector( bLocal, berr );
           luMat.CheckErrorDistMultiVector( bLocal, xTrueLocal );
         }
@@ -665,8 +662,9 @@ else{
                // Convert to DistSparseMatrix in the 2nd format and get the diagonal
                GetTime( timeSta );
                DistSparseMatrix<MYSCALAR> Ainv2;
-               PMloc.PMatrixToDistSparseMatrix( AMat, Ainv2 );
-                ParaWriteDistSparseMatrix( "Ainv.csc", Ainv2, world_comm ); 
+               PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
+
+
                GetTime( timeEnd );
                //Ainv2 is Ainv^T
  
@@ -694,14 +692,50 @@ else{
                }
 
                //Trick to get rows of Ainv by converting it to CSR 
-               DistSparseMatrix<MYSCALAR> Ainv2csr;
-               CSCToCSR(Ainv2,Ainv2csr);
+               MYSCALAR traceLocal;
+               if(luOpt.symmetric==1){
 
-               Complex traceLocal = blas::Dotu( AMat.nnzLocal, Ainv2csr.nzvalLocal.Data(), 1,
-                   AMat.nzvalLocal.Data(), 1 );
-          
+                 traceLocal = blas::Dotu( AMat.nnzLocal, Ainv2.nzvalLocal.Data(), 1,
+                     AMat.nzvalLocal.Data(), 1 );
+               }
+               else{
+                 DistSparseMatrix<MYSCALAR> Ainv2csr;
+                 CSCToCSR(Ainv2,Ainv2csr);
 
-               Complex trace = Z_ZERO;
+                AMat.SortIndices();
+                Ainv2csr.SortIndices();
+
+                //cant use dotu if matrix is really unsymmetric, have to do it by hand
+                traceLocal = ZERO<MYSCALAR>();
+                for(Int row = 0; row<Ainv2csr.colptrLocal.m()-1; ++row){
+                  Int rowbeg = Ainv2csr.colptrLocal[row]-1;
+                  Int rowend = Ainv2csr.colptrLocal[row+1]-1;
+
+                  Int colbegA = AMat.colptrLocal[row]-1;
+                  Int colendA = AMat.colptrLocal[row+1]-1;
+                  
+                  Int rowIdxA = colbegA;
+                  Int colIdx = rowbeg;
+                  while(colIdx<rowend && rowIdxA<colendA){
+                      Int col = Ainv2csr.rowindLocal[colIdx]-1;
+                      Int rowA = AMat.rowindLocal[rowIdxA]-1;
+                      
+                      if(col<rowA){
+                        ++colIdx;
+                      }
+                      else if(rowA<col){
+                        ++rowIdxA;
+                      }
+                      else if(col == rowA){
+                        traceLocal += Ainv2csr.nzvalLocal[colIdx]*AMat.nzvalLocal[rowIdxA];
+                        ++colIdx;
+                        ++rowIdxA;
+                      }
+                  }
+                }
+               }
+
+               MYSCALAR trace = ZERO<MYSCALAR>();
                mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
  
                if( mpirank == 0 ){
@@ -709,10 +743,13 @@ else{
                  cout << "H.size = "  << AMat.size << endl;
                  cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
                  statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
- 
+#ifdef _MYCOMPLEX_ 
                  cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
                  statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
- 
+ #else
+                 cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
+                 statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
+#endif
                }
              }
 

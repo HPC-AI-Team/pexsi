@@ -1430,23 +1430,22 @@ template <typename T> void CSCToCSR(const DistSparseMatrix<T>& sparseA, DistSpar
 
 
     } 
+    
+    //This assertion is only ok for structurally symmetric matrices
+    //for(int i=0;i<rowptrGlobal.m();++i){ assert(rowptrGlobal[i]==colptrGlobal[i]); }
 
-    for(int i=0;i<rowptrGlobal.m();++i){
-      assert(rowptrGlobal[i]==colptrGlobal[i]);
-    }
+    //for(int i=1;i<rowptrGlobal.m();++i){
+    //  Int colbeg = rowptrGlobal[i-1];
+    //  Int colend = rowptrGlobal[i]-1;
+    //  for(Int j=colbeg;j<=colend;++j){
+    //    Int row = colindGlobal[j-1];
 
-    for(int i=1;i<rowptrGlobal.m();++i){
-      Int colbeg = rowptrGlobal[i-1];
-      Int colend = rowptrGlobal[i]-1;
-      for(Int j=colbeg;j<=colend;++j){
-        Int row = colindGlobal[j-1];
-
-        Int * ptr = std::find(&rowindGlobal[colbeg-1],&rowindGlobal[colend-1]+1,row);
-        if(ptr==&rowindGlobal[colend-1]+1){
-          abort();
-        }
-      }
-    }
+    //    Int * ptr = std::find(&rowindGlobal[colbeg-1],&rowindGlobal[colend-1]+1,row);
+    //    if(ptr==&rowindGlobal[colend-1]+1){
+    //      abort();
+    //    }
+    //  }
+    //}
 
     //compute the local CSR structure
     std::vector<Int > numRowVec(mpisize,numRowLocalFirst);
@@ -1485,21 +1484,21 @@ template <typename T> void CSCToCSR(const DistSparseMatrix<T>& sparseA, DistSpar
     }
     rowptrLocal[0]=1;
 
-    for(int i=0;i<numRowLocal;++i){
-      Int col = i+myFirstCol;
-      Int colbeg = rowptrLocal[i];
-      Int colend = rowptrLocal[i+1]-1;
+    //for(int i=0;i<numRowLocal;++i){
+    //  Int col = i+myFirstCol;
+    //  Int colbeg = rowptrLocal[i];
+    //  Int colend = rowptrLocal[i+1]-1;
 
-      for(Int j=colbeg;j<=colend;++j){
-        Int row = colindLocal[j-1];
+    //  for(Int j=colbeg;j<=colend;++j){
+    //    Int row = colindLocal[j-1];
 
-        const Int * ptr = std::find(&sparseA.rowindLocal[colbeg-1],&sparseA.rowindLocal[colend-1]+1,row);
-        if(ptr==&sparseA.rowindLocal[colend-1]+1){
-          abort();
-        }
-      }
+    //    const Int * ptr = std::find(&sparseA.rowindLocal[colbeg-1],&sparseA.rowindLocal[colend-1]+1,row);
+    //    if(ptr==&sparseA.rowindLocal[colend-1]+1){
+    //      abort();
+    //    }
+    //  }
 
-    }
+    //}
 
 
     {
@@ -1524,7 +1523,7 @@ template <typename T> void CSCToCSR(const DistSparseMatrix<T>& sparseA, DistSpar
               Int row = rowindGlobal[i-1];  
               //determine where it should be packed ?
               Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
-              bufsizes[p_dest]+=sizeof(Complex);
+              bufsizes[p_dest]+=sizeof(T);
             }
           }
           else if(col>lastCol){
@@ -1553,9 +1552,9 @@ template <typename T> void CSCToCSR(const DistSparseMatrix<T>& sparseA, DistSpar
               Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
               Int p_displs = displs[p_dest];
               Int p_bufpos = bufpos[p_dest];
-              *((Complex *)&send_buffer.at( displs[p_dest] + bufpos[p_dest] )) = sparseA.nzvalLocal[i-1];
+              *((T *)&send_buffer.at( displs[p_dest] + bufpos[p_dest] )) = sparseA.nzvalLocal[i-1];
               //advance position
-              bufpos[p_dest]+= sizeof(Complex);
+              bufpos[p_dest]+= sizeof(T);
             }
           }
         }
@@ -1582,11 +1581,11 @@ template <typename T> void CSCToCSR(const DistSparseMatrix<T>& sparseA, DistSpar
                 //compute local CSR coordinates
                 Int local_row = row - mpirank*numRowLocalFirst;
                 Int h = rowptrLocal[local_row-1] + row_nnz->at(local_row-1);    /* non-zero position */
-                *((Complex*)&nzvalLocal[h-1]) = *((Complex*)&recv_buffer.at(recv_pos));
+                *((T*)&nzvalLocal[h-1]) = *((T*)&recv_buffer.at(recv_pos));
                 //advance position in CSR buffer
                 row_nnz->at(local_row-1)++;
                 //advance position in CSC recv_buffer
-                recv_pos+=sizeof(Complex);
+                recv_pos+=sizeof(T);
               }
             }
           }
