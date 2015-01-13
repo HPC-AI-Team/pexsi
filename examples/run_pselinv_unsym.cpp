@@ -583,7 +583,7 @@ else
 
           Real timeTotalSelInvSta, timeTotalSelInvEnd;
           NumVec<MYSCALAR> diag;
-          PMatrixAsym<MYSCALAR> * PMlocPtr;
+          PMatrixUnsym<MYSCALAR> * PMlocPtr;
           SuperNodeType * superPtr;
           GridType * g1Ptr;
 
@@ -600,9 +600,9 @@ else
             GetTime( timeTotalSelInvSta );
 
 
-            PMlocPtr = new PMatrixAsym<MYSCALAR>( &g1, &super, &luOpt  );
+            PMlocPtr = new PMatrixUnsym<MYSCALAR>( &g1, &super, &luOpt  );
 
-            PMatrixAsym<MYSCALAR> & PMloc = *PMlocPtr;
+            PMatrixUnsym<MYSCALAR> & PMloc = *PMlocPtr;
 
             luMat.LUstructToPMatrix( PMloc );
             GetTime( timeEnd );
@@ -621,11 +621,6 @@ else
 
             if( mpirank == 0 )
               cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
-
-                    statusOFS << "perm: " << endl << super.perm << endl;
-                    statusOFS << "permInv: " << endl << super.permInv << endl;
-                    statusOFS << "superIdx:" << endl << super.superIdx << endl;
-                    statusOFS << "superPtr:" << endl << super.superPtr << endl; 
 
 
             // Preparation for the selected inversion

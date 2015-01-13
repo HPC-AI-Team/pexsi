@@ -40,11 +40,11 @@
    works, incorporate into other computer software, distribute, and sublicense
    such enhancements or derivative works thereof, in binary and source code form.
 */
-/// @file pselinv_asym.hpp
+/// @file pselinv_unsym.hpp
 /// @brief Main file for parallel selected inversion on asymmetric matrices.
 /// @date 2013-08-05
-#ifndef _PEXSI_PSELINV_ASYM_HPP_
-#define _PEXSI_PSELINV_ASYM_HPP_
+#ifndef _PEXSI_PSELINV_UNSYM_HPP_
+#define _PEXSI_PSELINV_UNSYM_HPP_
 
 // *********************************************************************
 //  Common utilities
@@ -89,9 +89,9 @@ namespace PEXSI{
    * Main data structure in PSelInv: PMatrix
    **********************************************************************/
 
-  /// @class PMatrixAsym
+  /// @class PMatrixUnsym
   ///
-  /// @brief PMatrixAsym contains the main data structure and the
+  /// @brief PMatrixUnsym contains the main data structure and the
   /// computational routine for the parallel selected inversion.  
   /// 
   /// **NOTE** The following is a bit obsolete.
@@ -152,7 +152,7 @@ namespace PEXSI{
   /// This assumption can be relaxed later.
 
   template<typename T>
-  class PMatrixAsym: public PMatrix<T>{
+  class PMatrixUnsym: public PMatrix<T>{
 
     protected:
       // *********************************************************************
@@ -197,7 +197,7 @@ namespace PEXSI{
 
 
 
-      struct SuperNodeBufferTypeAsym:public PMatrix<T>::SuperNodeBufferType {
+      struct SuperNodeBufferTypeUnsym:public PMatrix<T>::SuperNodeBufferType {
         NumMat<T>    UUpdateBuf;
         std::vector<Int>  ColLocalPtr;
         std::vector<Int>  BlockIdxLocalU;
@@ -215,7 +215,7 @@ namespace PEXSI{
       inline void SelInvIntra_P2p(Int lidx);
 
       /// @brief SelInv_lookup_indexes
-      inline void SelInv_lookup_indexes(SuperNodeBufferTypeAsym & snode,
+      inline void SelInv_lookup_indexes(SuperNodeBufferTypeUnsym & snode,
                                         std::vector<LBlock<T> > & LcolRecv,
                                         std::vector<LBlock<T> > & LrowRecv,
                                         std::vector<UBlock<T> > & UcolRecv,
@@ -225,7 +225,7 @@ namespace PEXSI{
                                         NumMat<T> & UBuf);
 
       /// @brief UnpackData
-      inline void UnpackData( SuperNodeBufferTypeAsym & snode,
+      inline void UnpackData( SuperNodeBufferTypeUnsym & snode,
                               std::vector<LBlock<T> > & LcolRecv,
                               std::vector<LBlock<T> > & LrowRecv,
                               std::vector<UBlock<T> > & UcolRecv,
@@ -233,11 +233,11 @@ namespace PEXSI{
                             );
 
       /// @brief ComputeDiagUpdate
-      inline void ComputeDiagUpdate(SuperNodeBufferTypeAsym & snode);
+      inline void ComputeDiagUpdate(SuperNodeBufferTypeUnsym & snode);
 
       /// @brief SendRecvCD_UpdateU
       inline void SendRecvCD(
-              std::vector<SuperNodeBufferTypeAsym > & arrSuperNodes,
+              std::vector<SuperNodeBufferTypeUnsym > & arrSuperNodes,
               Int stepSuper
                             );
 
@@ -259,11 +259,11 @@ namespace PEXSI{
       // Public member functions 
       // *********************************************************************
 
-      PMatrixAsym():PMatrix<T>() {}
+      PMatrixUnsym():PMatrix<T>() {}
 
-      PMatrixAsym( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
+      PMatrixUnsym( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
-      virtual ~PMatrixAsym() {  }
+      virtual ~PMatrixUnsym() {  }
 
       void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
@@ -507,6 +507,6 @@ namespace PEXSI{
 } // namespace PEXSI
 
 
-#include "pexsi/pselinv_asym_impl.hpp"
+#include "pexsi/pselinv_unsym_impl.hpp"
 
-#endif //_PEXSI_PSELINV_ASYM_HPP_
+#endif //_PEXSI_PSELINV_UNSYM_HPP_

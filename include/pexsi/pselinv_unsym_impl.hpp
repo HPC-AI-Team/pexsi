@@ -40,11 +40,11 @@ royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
  */
-/// @file pselinv_asym_impl.hpp
+/// @file pselinv_unsym_impl.hpp
 /// @brief Implementation of the parallel SelInv.
 /// @date 2013-08-05
-#ifndef _PEXSI_PSELINV_ASYM_IMPL_HPP_
-#define _PEXSI_PSELINV_ASYM_IMPL_HPP_
+#ifndef _PEXSI_PSELINV_UNSYM_IMPL_HPP_
+#define _PEXSI_PSELINV_UNSYM_IMPL_HPP_
 
 #include "pexsi/timer.h"
 #include "pexsi/superlu_dist_interf.hpp"
@@ -52,7 +52,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 namespace PEXSI{
   template<typename T>
-    PMatrixAsym<T>::PMatrixAsym ( 
+    PMatrixUnsym<T>::PMatrixUnsym ( 
         const GridType* g, 
         const SuperNodeType* s, 
         const PEXSI::SuperLUOptions * o 
@@ -68,11 +68,11 @@ namespace PEXSI{
       PopCallStack();
 #endif
       return ;
-    } 		// -----  end of method PMatrixAsym::PMatrixAsym  ----- 
+    } 		// -----  end of method PMatrixUnsym::PMatrixUnsym  ----- 
 
 
   template<typename T>
-    void PMatrixAsym<T>::Setup( 
+    void PMatrixUnsym<T>::Setup( 
         const GridType* g, 
         const SuperNodeType* s, 
         const PEXSI::SuperLUOptions * o 
@@ -101,13 +101,13 @@ namespace PEXSI{
       PopCallStack();
 #endif
       return ;
-    } 		// -----  end of method PMatrixAsym::Setup   ----- 
+    } 		// -----  end of method PMatrixUnsym::Setup   ----- 
 
 
   ///////////// Utility functions ///////////////////
   template<typename T>
-    inline  void PMatrixAsym<T>::SelInv_lookup_indexes(
-        SuperNodeBufferTypeAsym & snode, 
+    inline  void PMatrixUnsym<T>::SelInv_lookup_indexes(
+        SuperNodeBufferTypeUnsym & snode, 
         std::vector<LBlock<T> > & LcolRecv, 
         std::vector<LBlock<T> > & LrowRecv, 
         std::vector<UBlock<T> > & UcolRecv, 
@@ -412,7 +412,7 @@ namespace PEXSI{
       TIMER_STOP(JB_Loop);
 
       TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
-    } // End of method PMatrixAsym::Selinv_lookup_indexes
+    } // End of method PMatrixUnsym::Selinv_lookup_indexes
 
 
 
@@ -487,7 +487,7 @@ struct CDBuffers{
 
 
   template<typename T>
-    inline void PMatrixAsym<T>::SendRecvSizesCD(
+    inline void PMatrixUnsym<T>::SendRecvSizesCD(
         std::vector<Int > & arrSuperNodes, 
         Int stepSuper, CDBuffers & buffers) 
     {
@@ -687,7 +687,7 @@ struct CDBuffers{
   }
 
   template<typename T>
-    inline void PMatrixAsym<T>::IRecvContentCD(
+    inline void PMatrixUnsym<T>::IRecvContentCD(
         std::vector<Int > & arrSuperNodes, 
         Int stepSuper, CDBuffers & buffers) {
       TIMER_START(IrecvContentCD);
@@ -772,7 +772,7 @@ struct CDBuffers{
 
 
   template<typename T>
-    inline void PMatrixAsym<T>::WaitContentLCD(
+    inline void PMatrixUnsym<T>::WaitContentLCD(
         std::vector<Int > & arrSuperNodes, 
         Int stepSuper, CDBuffers & buffers) {
       TIMER_START(WaitContentLCD);
@@ -940,7 +940,7 @@ struct CDBuffers{
 
 
   template<typename T>
-    inline void PMatrixAsym<T>::WaitContentUCD(
+    inline void PMatrixUnsym<T>::WaitContentUCD(
         std::vector<Int > & arrSuperNodes, 
         Int stepSuper, CDBuffers & buffers) {
 
@@ -1093,8 +1093,8 @@ struct CDBuffers{
 #endif
 
   template<typename T>
-    inline void PMatrixAsym<T>::SendRecvCD(
-        std::vector<SuperNodeBufferTypeAsym > & arrSuperNodes, 
+    inline void PMatrixUnsym<T>::SendRecvCD(
+        std::vector<SuperNodeBufferTypeUnsym > & arrSuperNodes, 
         Int stepSuper)
 #ifdef _DYN_ALLOC_LU_
     {
@@ -1108,7 +1108,7 @@ struct CDBuffers{
       Int recvIdxL=0;
       Int recvIdxU=0;
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         sendOffset[supidx]=sendCount;
         recvOffset[supidx]=recvCount;
         sendCount+= this->CountSendToCrossDiagonal(snode.Index);
@@ -1139,7 +1139,7 @@ struct CDBuffers{
 
       //Do Isend for size and content of L and Irecv for sizes of U 
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
         TIMER_START(Send_L_Recv_Size_U_CrossDiag);
 
@@ -1229,7 +1229,7 @@ struct CDBuffers{
 
       //Do Irecv for sizes of L and Isend for size and content of U
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         TIMER_START(Send_U_Recv_Size_L_CrossDiag);
         //If I'm a receiver
         if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) 
@@ -1320,7 +1320,7 @@ struct CDBuffers{
 
       //Allocate content and do Irecv for content of L
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         //If I'm a receiver
         TIMER_START(Recv_L_CrossDiag);
         if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) 
@@ -1357,7 +1357,7 @@ struct CDBuffers{
 
       //Allocate content and do Irecv for content of U
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         TIMER_START(Recv_U_CrossDiag);
         if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) 
             && this->isSendToCrossDiagonal_(this->grid_->numProcCol, snode.Index ) ){
@@ -1395,7 +1395,7 @@ struct CDBuffers{
       //Do the work for Lrow
       NumMat<T> Ltmp;
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         Int ksupProcRow = PROW( snode.Index, this->grid_ );
         Int ksupProcCol = PCOL( snode.Index, this->grid_ );
 
@@ -1551,7 +1551,7 @@ struct CDBuffers{
 
       //Do the work for U
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         Int ksupProcRow = PROW( snode.Index, this->grid_ );
         Int ksupProcCol = PCOL( snode.Index, this->grid_ );
 
@@ -1692,7 +1692,7 @@ struct CDBuffers{
       mpi::Waitall(arrMpiReqsSendUCD);
 
 
-    } // End of method PMatrixAsym::SendRecvCD
+    } // End of method PMatrixUnsym::SendRecvCD
 
 
 
@@ -1708,7 +1708,7 @@ struct CDBuffers{
       Int recvIdxL=0;
       Int recvIdxU=0;
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         sendOffset[supidx]=sendCount;
         recvOffset[supidx]=recvCount;
         sendCount+= this->CountSendToCrossDiagonal(snode.Index);
@@ -1739,7 +1739,7 @@ struct CDBuffers{
 
       //Do Isend for size and content of L and Irecv for sizes of U 
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
         TIMER_START(Send_L_Recv_Size_U_CrossDiag);
 
@@ -1799,7 +1799,7 @@ struct CDBuffers{
 
       //Do Irecv for sizes of L and Isend for size and content of U
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         TIMER_START(Send_U_Recv_Size_L_CrossDiag);
         //If I'm a receiver
         if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) 
@@ -1861,7 +1861,7 @@ struct CDBuffers{
 
       //Allocate content and do Irecv for content of L
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         //If I'm a receiver
         TIMER_START(Recv_L_CrossDiag);
         if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) 
@@ -1897,7 +1897,7 @@ struct CDBuffers{
 
       //Allocate content and do Irecv for content of U
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         TIMER_START(Recv_U_CrossDiag);
         if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) 
             && this->isSendToCrossDiagonal_(this->grid_->numProcCol, snode.Index ) ){
@@ -1938,7 +1938,7 @@ struct CDBuffers{
       //Do the work for Lrow
       NumMat<T> Ltmp;
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
         if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) &&
             this->isRecvFromCrossDiagonal_(this->grid_->numProcRow, snode.Index ) ){
@@ -2064,7 +2064,7 @@ struct CDBuffers{
 
       //Do the work for U
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
 
         if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) &&
@@ -2170,12 +2170,12 @@ struct CDBuffers{
 
       mpi::Waitall(arrMpiReqsSizeSendUCD);
       mpi::Waitall(arrMpiReqsSendUCD);
-    } // End of method PMatrixAsym::SendRecvCD 
+    } // End of method PMatrixUnsym::SendRecvCD 
 #endif
 
   template<typename T>
-    inline void PMatrixAsym<T>::UnpackData(
-        SuperNodeBufferTypeAsym & snode, 
+    inline void PMatrixUnsym<T>::UnpackData(
+        SuperNodeBufferTypeUnsym & snode, 
         std::vector<LBlock<T> > & LcolRecv, 
         std::vector<LBlock<T> > & LrowRecv,
         std::vector<UBlock<T> > & UcolRecv, 
@@ -2306,10 +2306,10 @@ struct CDBuffers{
 
     TIMER_STOP(Unpack_data);
 
-    } // End of method PMatrixAsym<T>::UnpackData
+    } // End of method PMatrixUnsym<T>::UnpackData
 
   template<typename T>
-    inline void PMatrixAsym<T>::ComputeDiagUpdate(SuperNodeBufferTypeAsym & snode)
+    inline void PMatrixUnsym<T>::ComputeDiagUpdate(SuperNodeBufferTypeUnsym & snode)
     {
 
     TIMER_START(ComputeDiagUpdate);
@@ -2360,11 +2360,11 @@ struct CDBuffers{
 #endif
       }
     TIMER_STOP(ComputeDiagUpdate);
-    } // End of method PMatrixAsym<T>::ComputeDiagUpdate 
+    } // End of method PMatrixUnsym<T>::ComputeDiagUpdate 
 
 
   template<typename T>
-    inline void PMatrixAsym<T>::SelInvIntra_P2p(Int lidx)
+    inline void PMatrixUnsym<T>::SelInvIntra_P2p(Int lidx)
     {
 
 #if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
@@ -2422,11 +2422,11 @@ struct CDBuffers{
 
 
       //allocate the buffers for this supernode
-      std::vector<SuperNodeBufferTypeAsym> arrSuperNodes(stepSuper);
+      std::vector<SuperNodeBufferTypeUnsym> arrSuperNodes(stepSuper);
       for (Int supidx=0; supidx<stepSuper; supidx++){ 
         arrSuperNodes[supidx].Index = superList[lidx][supidx];  
 //#ifdef _DYN_ALLOC_LU_
-//        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 //        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
 //          std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
 //          Int&  LrowSize = this->LrowSize_[ LBi(snode.Index, this->grid_) ];
@@ -2455,7 +2455,7 @@ struct CDBuffers{
         CDBuffers nextCDBuffers;
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrixAsym::SelInv_P2p::SendRecvCD");
+      PushCallStack("PMatrixUnsym::SelInv_P2p::SendRecvCD");
 #endif
 
 //Perhaps this should be done for the next step super in a non blocking way
@@ -2530,7 +2530,7 @@ struct CDBuffers{
 //#if ( _DEBUGlevel_ >= 1 )
 //
 //      for (Int supidx=0; supidx<stepSuper; supidx++){
-//        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 //        statusOFS<<"--------- LCOL SuperNode "<<snode.Index<<" ---------"<<std::endl;
 //        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
 //          std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, this->grid_) );
@@ -2544,7 +2544,7 @@ struct CDBuffers{
 //      statusOFS<<std::endl;
 //
 //      for (Int supidx=0; supidx<stepSuper; supidx++){
-//        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 //        statusOFS<<"--------- UROW SuperNode "<<snode.Index<<" ---------"<<std::endl;
 //        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
 //          std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
@@ -2557,7 +2557,7 @@ struct CDBuffers{
 //      statusOFS<<std::endl;
 //      statusOFS<<std::endl;
 //      for (Int supidx=0; supidx<stepSuper; supidx++){
-//        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 //        statusOFS<<"--------- LROW SuperNode "<<snode.Index<<" ---------"<<std::endl;
 //        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
 //          std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
@@ -2572,7 +2572,7 @@ struct CDBuffers{
 //
 //
 //      for (Int supidx=0; supidx<stepSuper; supidx++){
-//        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 //        statusOFS<<"--------- UCOL SuperNode "<<snode.Index<<" ---------"<<std::endl;
 //        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
 //          std::vector<UBlock<T> >&  Ucol = this->Ucol( LBj(snode.Index, this->grid_) );
@@ -2596,7 +2596,7 @@ struct CDBuffers{
 
         // Senders
         for (Int supidx=0; supidx<stepSuper; supidx++){
-          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
           std::vector<MPI_Request> & mpireqsSendLToBelow = arrMpireqsSendLToBelow[supidx];
           std::vector<MPI_Request> & mpireqsSendLToRight = arrMpireqsSendLToRight[supidx];
           std::vector<MPI_Request> & mpireqsSendUToBelow = arrMpireqsSendUToBelow[supidx];
@@ -2821,7 +2821,7 @@ struct CDBuffers{
         TIMER_START(WaitContentLU);
         // Receivers (Size)
         for (Int supidx=0; supidx<stepSuper ; supidx++){
-          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
           MPI_Request * mpireqsRecvLFromAbove = 
                                   &arrMpireqsRecvLSizeFromAny[supidx*2];
           MPI_Request * mpireqsRecvLFromLeft = 
@@ -2889,7 +2889,7 @@ struct CDBuffers{
 
         // Receivers (Content)
         for (Int supidx=0; supidx<stepSuper ; supidx++){
-          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
           MPI_Request * mpireqsRecvFromAbove =
                            &arrMpireqsRecvLContentFromAny[supidx*2];
@@ -2942,7 +2942,7 @@ struct CDBuffers{
 
         // Receivers (Content)
         for (Int supidx=0; supidx<stepSuper ; supidx++){
-          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
           MPI_Request * mpireqsRecvFromAbove = 
                                 &arrMpireqsRecvUContentFromAny[supidx*2];
@@ -2997,7 +2997,7 @@ struct CDBuffers{
         std::vector<Int> readySupidx;
         //find local things to do
         for(Int supidx = 0;supidx<stepSuper;supidx++){
-          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
           if( this->isRecvFromAbove_( snode.Index ) 
                                   && this->isRecvFromLeft_( snode.Index )){
             gemmToDo+=2;
@@ -3083,7 +3083,7 @@ struct CDBuffers{
               if(reqidx!=MPI_UNDEFINED){ 
 
                 supidx = reqidx/2;
-                SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+                SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
                 snode.isReady++;
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -3120,7 +3120,7 @@ struct CDBuffers{
               //I've received something
               if(reqidx!=MPI_UNDEFINED){ 
                 supidx = reqidx/2;
-                SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+                SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
                 snode.isReady++;
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -3151,7 +3151,7 @@ struct CDBuffers{
           {
             supidx = readySupidx.back();
             readySupidx.pop_back();
-            SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+            SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
 
             // Only the processors received information participate in the Gemm 
@@ -3246,7 +3246,7 @@ struct CDBuffers{
         TIMER_START(WaitContentLU);
         // Receivers (Size)
         for (Int supidx=0; supidx<stepSuper ; supidx++){
-          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
           MPI_Request * mpireqsRecvLFromAbove = 
                                   &arrMpireqsRecvLUFromAny[supidx*MSGCOUNT+LROWSIZE];
           MPI_Request * mpireqsRecvLFromLeft = 
@@ -3317,7 +3317,7 @@ struct CDBuffers{
         std::vector<Int> readySupidx;
         //find local things to do
         for(Int supidx = 0;supidx<stepSuper;supidx++){
-          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
           if( this->isRecvFromAbove_( snode.Index ) 
                                   && this->isRecvFromLeft_( snode.Index )){
             gemmToDo+=2;
@@ -3392,7 +3392,7 @@ struct CDBuffers{
 //statusOFS<<"msgtype "<<msgtype<<endl;
 //statusOFS<<"supidx "<<supidx<<endl;
 
-                SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+                SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
                 switch(msgtype){
                   case LROWSIZE:
@@ -3571,7 +3571,7 @@ struct CDBuffers{
           {
             supidx = readySupidx.back();
             readySupidx.pop_back();
-            SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+            SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
 
             // Only the processors received information participate in the Gemm 
@@ -3673,7 +3673,7 @@ struct CDBuffers{
       TIMER_START(Reduce_Sinv_L);
 
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
             //determine the number of rows in LUpdateBufReduced
             Int numRowLUpdateBuf;
@@ -3765,12 +3765,12 @@ struct CDBuffers{
 
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrixAsym::SelInv_P2p::UpdateD");
+      PushCallStack("PMatrixUnsym::SelInv_P2p::UpdateD");
 #endif
 
       TIMER_START(Update_Diagonal);
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
         ComputeDiagUpdate(snode);
 
@@ -3802,7 +3802,7 @@ struct CDBuffers{
       TIMER_START(Reduce_Diagonal);
 
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
           if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
             if(snode.DiagBuf.Size()==0){
@@ -3854,7 +3854,7 @@ struct CDBuffers{
       TIMER_START(Reduce_Sinv_U);
 
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
 
         if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
@@ -4041,7 +4041,7 @@ struct CDBuffers{
 #ifndef _DYN_ALLOC_LU_
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrixAsym::SelInv_P2p::SendRecvCD");
+      PushCallStack("PMatrixUnsym::SelInv_P2p::SendRecvCD");
 #endif
 
 //      SendRecvCD(arrSuperNodes, stepSuper);
@@ -4053,7 +4053,7 @@ struct CDBuffers{
 #else
       //Deallocate Lrow and Ucol
       for (Int supidx=0; supidx<stepSuper; supidx++){ 
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
         if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ )){ 
           std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
           Lrow.clear();
@@ -4066,13 +4066,13 @@ struct CDBuffers{
 #endif
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrixAsym::SelInv_P2p::UpdateLFinal");
+      PushCallStack("PMatrixUnsym::SelInv_P2p::UpdateLFinal");
 #endif
 
       TIMER_START(Update_L);
 
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "["<<snode.Index<<"] "
@@ -4104,13 +4104,13 @@ struct CDBuffers{
 
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrixAsym::SelInv_P2p::UpdateUFinal");
+      PushCallStack("PMatrixUnsym::SelInv_P2p::UpdateUFinal");
 #endif
 
       TIMER_START(Update_U);
 
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << "["<<snode.Index<<"] "
@@ -4181,7 +4181,7 @@ struct CDBuffers{
 
             MSGTYPE msgtype= (MSGTYPE)(i%MSGCOUNT);
             Int supidx = i/MSGCOUNT;
-            SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+            SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
             Int sender;
             Int gSender;
@@ -4267,7 +4267,7 @@ struct CDBuffers{
 ////#if ( _DEBUGlevel_ >= 1 )
 //
 //        for (Int supidx=0; supidx<stepSuper; supidx++){
-//          SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 //          statusOFS<<"--------- LCOL SuperNode "<<snode.Index<<" ---------"<<std::endl;
 //        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
 //          std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, this->grid_) );
@@ -4281,7 +4281,7 @@ struct CDBuffers{
 //            statusOFS<<std::endl;
 //
 //            for (Int supidx=0; supidx<stepSuper; supidx++){
-//              SuperNodeBufferTypeAsym & snode = arrSuperNodes[supidx];
+//              SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 //              statusOFS<<"--------- UROW SuperNode "<<snode.Index<<" ---------"<<std::endl;
 //              if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
 //                std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
@@ -4310,18 +4310,18 @@ struct CDBuffers{
     }
 
   template<typename T> 
-    void PMatrixAsym<T>::SelInv	(  )
+    void PMatrixUnsym<T>::SelInv	(  )
     {
       this->SelInv_P2p	(  );
-    } 		// -----  end of method PMatrixAsym::SelInv  ----- 
+    } 		// -----  end of method PMatrixUnsym::SelInv  ----- 
 
   template<typename T> 
-    void PMatrixAsym<T>::SelInv_P2p	(  )
+    void PMatrixUnsym<T>::SelInv_P2p	(  )
     {
       TIMER_START(SelInv_P2p);
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrixAsym::SelInv_P2p");
+      PushCallStack("PMatrixUnsym::SelInv_P2p");
 #endif
 
 
@@ -4362,10 +4362,10 @@ MPI_Barrier(this->grid_->comm);
       TIMER_STOP(SelInv_P2p);
 
       return ;
-    } 		// -----  end of method PMatrixAsym::SelInv_P2p  ----- 
+    } 		// -----  end of method PMatrixUnsym::SelInv_P2p  ----- 
 
   template<typename T> 
-    void PMatrixAsym<T>::PreSelInv	(  )
+    void PMatrixUnsym<T>::PreSelInv	(  )
     {
 
 
@@ -4374,7 +4374,7 @@ MPI_Barrier(this->grid_->comm);
 
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrixAsym::PreSelInv");
+      PushCallStack("PMatrixUnsym::PreSelInv");
 #endif
 
       Int numSuper = this->NumSuper(); 
@@ -4627,8 +4627,8 @@ MPI_Barrier(this->grid_->comm);
 
 /*
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
-        //Build an array of SuperNodeBufferTypeAsym
-        std::vector<SuperNodeBufferTypeAsym> arrSuperNodes(1);
+        //Build an array of SuperNodeBufferTypeUnsym
+        std::vector<SuperNodeBufferTypeUnsym> arrSuperNodes(1);
         //allocate the buffers for this supernode
         for (Int supidx=0; supidx<arrSuperNodes.size(); supidx++){ 
           arrSuperNodes[supidx].Index = ksup;  
@@ -5231,11 +5231,11 @@ MPI_Barrier(this->grid_->comm);
 
 
       return ;
-    } 		// -----  end of method PMatrixAsym::PreSelInv  ----- 
+    } 		// -----  end of method PMatrixUnsym::PreSelInv  ----- 
 
 
   template<typename T>
-    void PMatrixAsym<T>::ConstructCommunicationPattern	(  )
+    void PMatrixUnsym<T>::ConstructCommunicationPattern	(  )
     {
       ConstructCommunicationPattern_P2p();
     } 		// -----  end of method PMatrix::ConstructCommunicationPattern  ----- 
@@ -5243,7 +5243,7 @@ MPI_Barrier(this->grid_->comm);
 
 
   template<typename T>
-    void PMatrixAsym<T>::ConstructCommunicationPattern_P2p	(  )
+    void PMatrixUnsym<T>::ConstructCommunicationPattern_P2p	(  )
     {
 #ifndef _RELEASE_
       PushCallStack("PMatrix::ConstructCommunicationPattern_P2p");
@@ -5879,4 +5879,4 @@ MPI_Barrier(this->grid_->comm);
 
 } // namespace PEXSI
 
-#endif //_PEXSI_PSELINV_ASYM_IMPL_HPP_
+#endif //_PEXSI_PSELINV_UNSYM_IMPL_HPP_

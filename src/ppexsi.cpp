@@ -120,6 +120,8 @@ throw std::runtime_error( msg.str().c_str() );
   PMRealMat_ = new PMatrix<Real>;
   PMComplexMat_ = new PMatrix<Complex>;
   
+  PMRealUnsymMat_ = new PMatrixUnsym<Real>;
+  PMComplexUnsymMat_ = new PMatrixUnsym<Complex>;
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
@@ -148,6 +150,15 @@ PPEXSIData::~PPEXSIData	(  )
   if( PMComplexMat_ != NULL ){
     delete PMComplexMat_;
   }
+
+  if( PMRealUnsymMat_ != NULL ){
+    delete PMRealUnsymMat_;
+  }
+
+  if( PMComplexUnsymMat_ != NULL ){
+    delete PMComplexUnsymMat_;
+  }
+
 
 	if( gridSuperLUReal_ != NULL ){
 		delete gridSuperLUReal_;
@@ -307,6 +318,143 @@ PPEXSIData::LoadRealSymmetricMatrix	(
 }    	// -----  end of method PPEXSIData::LoadRealSymmetricMatrix  ----- 
 
 
+
+
+void
+PPEXSIData::LoadRealUnsymmetricMatrix	(
+    Int           nrows,                        
+    Int           nnz,                          
+    Int           nnzLocal,                     
+    Int           numColLocal,                  
+    Int*          colptrLocal,                  
+    Int*          rowindLocal,                  
+    Real*         HnzvalLocal,                  
+    Int           isSIdentity,                  
+    Real*         SnzvalLocal,
+    Int           verbosity )
+{
+#ifndef _RELEASE_
+  PushCallStack("PPEXSIData::LoadRealUnsymmetricMatrix");
+#endif
+  // Clear the previously saved information
+  HRealMat_ = DistSparseMatrix<Real>();
+  SRealMat_ = DistSparseMatrix<Real>();
+
+  // Data communication
+  std::vector<char> sstr;
+  Int sizeStm;
+  if( MYROW( gridPole_ ) == 0 ){
+    std::stringstream sstm;
+
+    HRealMat_.size        = nrows;
+    HRealMat_.nnz         = nnz;
+    HRealMat_.nnzLocal    = nnzLocal;
+    // The first row processor does not need extra copies of the index /
+    // value of the matrix. 
+    HRealMat_.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
+    HRealMat_.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
+    // H value
+    HRealMat_.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
+    HRealMat_.comm        = gridPole_->rowComm;
+
+    // Serialization will copy the values regardless of the ownership
+    serialize( HRealMat_, sstm, NO_MASK );
+
+    // S value
+    if( isSIdentity ){
+      SRealMat_.size = 0;
+      SRealMat_.nnz  = 0;
+      SRealMat_.nnzLocal = 0;
+      SRealMat_.comm = HRealMat_.comm; 
+    }
+    else{
+      CopyPattern( HRealMat_, SRealMat_ );
+      SRealMat_.comm = HRealMat_.comm; 
+      SRealMat_.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+      serialize( SRealMat_.nzvalLocal, sstm, NO_MASK );
+    }
+
+    sstr.resize( Size( sstm ) );
+    sstm.read( &sstr[0], sstr.size() ); 	
+    sizeStm = sstr.size();
+  }
+
+  MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole_->colComm );
+
+  if( verbosity >= 2 ){
+    statusOFS << "sizeStm = " << sizeStm << std::endl;
+  }
+
+  if( MYROW( gridPole_ ) != 0 ) sstr.resize( sizeStm );
+
+  MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole_->colComm );
+
+  if( MYROW( gridPole_ ) != 0 ){
+    std::stringstream sstm;
+    sstm.write( &sstr[0], sizeStm );
+    deserialize( HRealMat_, sstm, NO_MASK );
+    // Communicator
+    HRealMat_.comm = gridPole_->rowComm;
+    if( isSIdentity ){
+      SRealMat_.size = 0;    // Means S is an identity matrix
+      SRealMat_.nnz  = 0;
+      SRealMat_.nnzLocal = 0;
+      SRealMat_.comm = HRealMat_.comm;
+    }
+    else{
+      CopyPattern( HRealMat_, SRealMat_ );
+      SRealMat_.comm = HRealMat_.comm;
+      deserialize( SRealMat_.nzvalLocal, sstm, NO_MASK );
+    }
+  }
+  sstr.clear();
+
+
+  if( verbosity >= 1 ){
+    statusOFS << "H.size     = " << HRealMat_.size     << std::endl;
+    statusOFS << "H.nnzLocal = " << HRealMat_.nnzLocal << std::endl;
+    statusOFS << "S.size     = " << SRealMat_.size     << std::endl;
+    statusOFS << "S.nnzLocal = " << SRealMat_.nnzLocal << std::endl;
+    statusOFS << std::endl << std::endl;
+  }
+
+
+  // Record the index for the diagonal elements to handle the case if S
+  // is identity.
+	{
+		Int numColLocal      = HRealMat_.colptrLocal.m() - 1;
+		Int numColLocalFirst = HRealMat_.size / gridSelInv_->mpisize;
+		Int firstCol         = gridSelInv_->mpirank * numColLocalFirst;
+		
+		diagIdxLocal_.clear();
+
+		for( Int j = 0; j < numColLocal; j++ ){
+			Int jcol = firstCol + j + 1;
+			for( Int i = HRealMat_.colptrLocal(j)-1; 
+				 	 i < HRealMat_.colptrLocal(j+1)-1; i++ ){
+				Int irow = HRealMat_.rowindLocal(i);
+				if( irow == jcol ){
+					diagIdxLocal_.push_back( i );
+				}
+			}
+		} // for (j)
+	}
+
+  isMatrixLoaded_ = true;
+
+#ifndef _RELEASE_
+  PopCallStack();
+#endif
+
+  return ;
+}    	// -----  end of method PPEXSIData::LoadRealUnsymmetricMatrix  ----- 
+
+
+
+
+
+
+
 void
 PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
     std::string                    ColPerm,
@@ -418,6 +566,127 @@ throw std::runtime_error( msg.str().c_str() );
 } 		// -----  end of method PPEXSIData::SymbolicFactorizeRealSymmetricMatrix  ----- 
 
 
+
+
+void
+PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix	(
+    std::string                    ColPerm,
+    Int                            numProcSymbFact,
+    Int                            verbosity )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix");
+#endif
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealUnsymmetricMatrix first." << std::endl;
+    #ifdef USE_ABORT
+abort();
+#endif
+throw std::runtime_error( msg.str().c_str() );
+  }
+  
+  {
+    if( verbosity >= 1 ){
+      statusOFS << "Symbolic factorization for the real matrix."  << std::endl;
+    }
+
+    SuperLUMatrix<Real>&    luMat     = *luRealMat_;
+    PMatrixUnsym<Real>&     PMloc     = *PMRealUnsymMat_;
+    SuperNodeType&          super     = superReal_;
+
+    // Clear the matrices first
+    luMat = SuperLUMatrix<Real>();
+    PMloc = PMatrixUnsym<Real>();
+
+
+    luOpt_.ColPerm = ColPerm;
+    luOpt_.numProcSymbFact = numProcSymbFact;
+    luOpt_.maxPipelineDepth = -1;
+    luOpt_.symmetric = 0;
+
+    luMat.Setup( *gridSuperLUReal_, luOpt_ );  // SuperLU matrix.
+
+    DistSparseMatrix<Real> AMat;
+    CopyPattern( HRealMat_, AMat );
+
+    SetValue( AMat.nzvalLocal, D_ZERO );          // Symbolic factorization does not need value
+
+    Real timeSta, timeEnd;
+    GetTime( timeSta );
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS << "Time for SuperMatrix conversion is " <<
+        timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    GetTime( timeSta );
+    luMat.SymbolicFactorize();
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for symbolic factorization is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    luMat.SymbolicToSuperNode( super );
+    
+    PMloc.Setup( gridSelInv_, &super , &luOpt_ );
+    GetTime( timeSta );
+    luMat.LUstructToPMatrix( PMloc );
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for converting LUstruct to PMatrix is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    GetTime( timeSta );
+    PMloc.ConstructCommunicationPattern();
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for constructing communication pattern is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+
+    // Compute the number of nonzeros from PMatrix
+    if( verbosity >= 1 ) {
+      Int nnzLocal = PMloc.NnzLocal();
+      statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
+      LongInt nnz  = PMloc.Nnz();
+      statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+    }
+
+    // Get ready for the factorization for another matrix using the same
+    // sparsity pattern
+    luMat.DestroyAOnly();
+
+    if( verbosity >= 2 ){
+      statusOFS << "perm: "    << std::endl << super.perm     << std::endl;
+      statusOFS << "permInv: " << std::endl << super.permInv  << std::endl;
+      statusOFS << "superIdx:" << std::endl << super.superIdx << std::endl;
+      statusOFS << "superPtr:" << std::endl << super.superPtr << std::endl; 
+    }
+  }
+
+  isRealUnsymmetricSymbolicFactorized_ = true;
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix  ----- 
+
+
+
+
+
+
+
+
+
 void
 PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
     std::string                    ColPerm,
@@ -526,6 +795,117 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
 
 	return ;
 } 		// -----  end of method PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix  ----- 
+
+void
+PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
+    std::string                    ColPerm,
+    Int                            numProcSymbFact,
+    Int                            verbosity )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix");
+#endif
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealUnsymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+  
+  // Complex matrices
+  {
+    if( verbosity >= 1 ){
+      statusOFS << "Symbolic factorization for the complex matrix."  << std::endl;
+    }
+
+    SuperLUMatrix<Complex>&    luMat     = *luComplexMat_;
+    PMatrixUnsym<Complex>&     PMloc     = *PMComplexUnsymMat_;
+    SuperNodeType&             super     = superComplex_;
+
+    // Clear the matrices first
+    luMat = SuperLUMatrix<Complex>();
+    PMloc = PMatrixUnsym<Complex>();
+
+
+    luOpt_.ColPerm = ColPerm;
+    luOpt_.numProcSymbFact = numProcSymbFact;
+    luOpt_.maxPipelineDepth = -1;
+    luOpt_.symmetric = 0;
+
+    luMat.Setup( *gridSuperLUComplex_, luOpt_ );  // SuperLU matrix.
+
+    DistSparseMatrix<Complex> AMat;
+    CopyPattern( HRealMat_, AMat );
+
+    SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
+
+    Real timeSta, timeEnd;
+    GetTime( timeSta );
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS << "Time for SuperMatrix conversion is " <<
+        timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    GetTime( timeSta );
+    luMat.SymbolicFactorize();
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for symbolic factorization is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    luMat.SymbolicToSuperNode( super );
+    
+    PMloc.Setup( gridSelInv_, &super , &luOpt_ );
+    GetTime( timeSta );
+    luMat.LUstructToPMatrix( PMloc );
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for converting LUstruct to PMatrix is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+    GetTime( timeSta );
+    PMloc.ConstructCommunicationPattern();
+    GetTime( timeEnd );
+    if( verbosity >= 1 ){
+      statusOFS 
+        << "Time for constructing communication pattern is " 
+        << timeEnd - timeSta << " [s]" << std::endl << std::endl;
+    }
+
+    // Compute the number of nonzeros from PMatrix
+    if( verbosity >= 1 ) {
+      Int nnzLocal = PMloc.NnzLocal();
+      statusOFS << "Number of local nonzeros (L+U) = " << nnzLocal << std::endl;
+      LongInt nnz  = PMloc.Nnz();
+      statusOFS << "Number of nonzeros (L+U)       = " << nnz << std::endl;
+    }
+
+    // Get ready for the factorization for another matrix using the same
+    // sparsity pattern
+    luMat.DestroyAOnly();
+
+    if( verbosity >= 2 ){
+      statusOFS << "perm: "    << std::endl << super.perm     << std::endl;
+      statusOFS << "permInv: " << std::endl << super.permInv  << std::endl;
+      statusOFS << "superIdx:" << std::endl << super.superIdx << std::endl;
+      statusOFS << "superPtr:" << std::endl << super.superPtr << std::endl; 
+    }
+  }
+
+
+  isComplexUnsymmetricSymbolicFactorized_ = true;
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix  ----- 
+
 
 
 void 
@@ -645,6 +1025,123 @@ PPEXSIData::SelInvRealSymmetricMatrix(
 } 		// -----  end of method PPEXSIData::SelInvRealSymmetricMatrix  ----- 
 
 void 
+PPEXSIData::SelInvRealUnsymmetricMatrix(
+    double*           AnzvalLocal,                  
+    Int               verbosity,
+    double*           AinvnzvalLocal )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::SelInvRealUnsymmetricMatrix");
+#endif
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealUnsymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+
+  if( isRealUnsymmetricSymbolicFactorized_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been factorized symbolically." << std::endl
+      << "Call SymbolicFactorizeRealUnsymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+  
+  // Only the processor group corresponding to the first pole participate
+  if( MYROW( gridPole_ ) == 0 ){
+
+    DistSparseMatrix<Real>& AMat      = shiftRealMat_;
+    DistSparseMatrix<Real>& AinvMat   = shiftInvRealMat_;
+    SuperLUMatrix<Real>&    luMat     = *luRealMat_;
+    PMatrixUnsym<Real>&          PMloc     = *PMRealUnsymMat_;
+
+    // Copy the pattern
+    CopyPattern( HRealMat_, AMat );
+
+    blas::Copy( AMat.nnzLocal, AnzvalLocal, 1, AMat.nzvalLocal.Data(), 1 );
+    
+    if( verbosity >= 2 ){
+      statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+    }
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+    if( verbosity >= 2 ){
+      statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+    }
+
+    Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+    GetTime( timeTotalFactorizationSta );
+
+    // Data redistribution
+    if( verbosity >= 2 ){
+      statusOFS << "Before Distribute." << std::endl;
+    }
+    luMat.Distribute();
+    if( verbosity >= 2 ){
+      statusOFS << "After Distribute." << std::endl;
+    }
+
+    // Numerical factorization
+    if( verbosity >= 2 ){
+      statusOFS << "Before NumericalFactorize." << std::endl;
+    }
+    luMat.NumericalFactorize();
+    if( verbosity >= 2 ){
+      statusOFS << "After NumericalFactorize." << std::endl;
+    }
+    luMat.DestroyAOnly();
+
+    GetTime( timeTotalFactorizationEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+    }
+
+    Real timeTotalSelInvSta, timeTotalSelInvEnd;
+    GetTime( timeTotalSelInvSta );
+
+    luMat.LUstructToPMatrix( PMloc );
+
+    PMloc.PreSelInv();
+    
+    PMloc.SelInv();
+
+    GetTime( timeTotalSelInvEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for total selected inversion is " <<
+        timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
+    }
+
+
+    Real timePostProcessingSta, timePostProcessingEnd;
+
+    GetTime( timePostProcessingSta );
+
+    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+
+    GetTime( timePostProcessingEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for postprocessing is " <<
+        timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
+    }
+
+    // Return the data to AinvnzvalLocal
+    blas::Copy( AMat.nnzLocal, AinvMat.nzvalLocal.Data(), 1, AinvnzvalLocal, 1 );
+  }
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PPEXSIData::SelInvRealUnsymmetricMatrix  ----- 
+
+
+void 
 PPEXSIData::SelInvComplexSymmetricMatrix(
     double*           AnzvalLocal,                  
     Int               verbosity,
@@ -761,6 +1258,125 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
 
 	return ;
 } 		// -----  end of method PPEXSIData::SelInvComplexSymmetricMatrix  ----- 
+
+void 
+PPEXSIData::SelInvComplexUnsymmetricMatrix(
+    double*           AnzvalLocal,                  
+    Int               verbosity,
+    double*           AinvnzvalLocal )
+{
+#ifndef _RELEASE_
+	PushCallStack("PPEXSIData::SelInvComplexUnsymmetricMatrix");
+#endif
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealUnsymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+
+  if( isComplexUnsymmetricSymbolicFactorized_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been factorized symbolically." << std::endl
+      << "Call SymbolicFactorizeComplexUnsymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+  
+  // Only the processor group corresponding to the first pole participate
+  if( MYROW( gridPole_ ) == 0 ){
+
+    DistSparseMatrix<Complex>& AMat      = shiftComplexMat_;
+    DistSparseMatrix<Complex>& AinvMat   = shiftInvComplexMat_;
+    SuperLUMatrix<Complex>&    luMat     = *luComplexMat_;
+    PMatrixUnsym<Complex>&          PMloc     = *PMComplexUnsymMat_;
+
+    // Copy the pattern
+    CopyPattern( HRealMat_, AMat );
+
+    blas::Copy( 2*AMat.nnzLocal, AnzvalLocal, 1, 
+       reinterpret_cast<double*>(AMat.nzvalLocal.Data()), 1 );
+    
+    if( verbosity >= 2 ){
+      statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+    }
+    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+    if( verbosity >= 2 ){
+      statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+    }
+
+    Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+    GetTime( timeTotalFactorizationSta );
+
+    // Data redistribution
+    if( verbosity >= 2 ){
+      statusOFS << "Before Distribute." << std::endl;
+    }
+    luMat.Distribute();
+    if( verbosity >= 2 ){
+      statusOFS << "After Distribute." << std::endl;
+    }
+
+    // Numerical factorization
+    if( verbosity >= 2 ){
+      statusOFS << "Before NumericalFactorize." << std::endl;
+    }
+    luMat.NumericalFactorize();
+    if( verbosity >= 2 ){
+      statusOFS << "After NumericalFactorize." << std::endl;
+    }
+    luMat.DestroyAOnly();
+
+    GetTime( timeTotalFactorizationEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+    }
+
+    Real timeTotalSelInvSta, timeTotalSelInvEnd;
+    GetTime( timeTotalSelInvSta );
+
+    luMat.LUstructToPMatrix( PMloc );
+
+    PMloc.PreSelInv();
+    
+    PMloc.SelInv();
+
+    GetTime( timeTotalSelInvEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for total selected inversion is " <<
+        timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
+    }
+
+
+    Real timePostProcessingSta, timePostProcessingEnd;
+
+    GetTime( timePostProcessingSta );
+
+    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+
+    GetTime( timePostProcessingEnd );
+
+    if( verbosity >= 1 ){
+      statusOFS << "Time for postprocessing is " <<
+        timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
+    }
+
+    // Return the data to AinvnzvalLocal
+    blas::Copy( 2*AMat.nnzLocal, reinterpret_cast<double*>(AinvMat.nzvalLocal.Data()), 1, 
+        AinvnzvalLocal, 1 );
+  }
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+} 		// -----  end of method PPEXSIData::SelInvComplexUnsymmetricMatrix  ----- 
+
 
 
 void PPEXSIData::CalculateNegativeInertiaReal(

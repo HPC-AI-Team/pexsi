@@ -258,6 +258,12 @@ typedef struct {
      */ 
     int           npSymbFact;
     /** 
+     * @brief  Matrix structure.
+     * - = 0   : Unsymmetric matrix
+     * - = 1   : Symmetric matrix (default).
+     */ 
+    int           symmetric;
+    /** 
      * @brief  The level of output information.
      * - = 0   : No output.
      * - = 1   : Basic output (default)
@@ -432,6 +438,131 @@ void PPEXSIInertiaCountRealSymmetricMatrix(
     int*              info );
 
 
+
+
+
+
+
+
+
+/**
+ * @brief Load the real unsymmetric H and S matrices into the %PEXSI
+ * internal data structure.
+ *
+ * @note Only input from the processors associated with the first pole
+ * is required. The information will be broadcast to the other
+ * processors in the communicator.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] nrows (global) Number of rows and columns of the matrix.
+ * @param[in] nnz (global) Total number of nonzeros of H.
+ * @param[in] nnzLocal (local) Number of local nonzeros of H.
+ * @param[in] numColLocal (local) Number of local columns for H.
+ * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
+ * pointer in CSC format.
+ * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
+ * pointer in CSC format.
+ * @param[in] HnzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values of H in CSC format.
+ * @param[in] isSIdentity (global) Whether S is an identity matrix. 
+ * If so, the variable SnzvalLocal is omitted.
+ * @param[in] SnzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * value of S in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSILoadRealUnsymmetricHSMatrix(
+    PPEXSIPlan    plan,
+    PPEXSIOptions options,
+    int           nrows,                        
+    int           nnz,                          
+    int           nnzLocal,                     
+    int           numColLocal,                  
+    int*          colptrLocal,                  
+    int*          rowindLocal,                  
+    double*       HnzvalLocal,                  
+    int           isSIdentity,                  
+    double*       SnzvalLocal,
+    int*          info );
+
+/**
+ * @brief Separately perform symbolic factorization to prepare
+ * factorization and selected inversion for real arithmetic matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info );
+
+/**
+ * @brief Separately perform symbolic factorization to prepare
+ * factorization and selected inversion for complex arithmetic matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info );
+
+
+/**
+ * @brief Directly compute the negative inertia at a set of shifts.
+ *
+ * This can be used as an "expert" interface for solving KSDFT with
+ * user-implemented heuristics strategies.
+ *
+ * @note Only input from the processors associated with the first pole
+ * is required. The information will be broadcast to the other
+ * processors in the communicator.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] numShift (global) Number of shifts.
+ * @param[in] shiftList (global) The list of shifts. Size: numShift
+ * @param[out] inertiaList (global) The list of inertia counts (in
+ * double precision but are of integer values). Size: numShift
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIInertiaCountRealUnsymmetricMatrix(
+    /* Input parameters */
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int               numShift,
+    double*           shiftList,
+    /* Output parameters */
+    double*           inertiaList,
+    int*              info );
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * @brief Compute the density matrices and number of electrons for a
  * given chemical potential.
@@ -578,6 +709,108 @@ void PPEXSISelInvComplexSymmetricMatrix (
     double*           AnzvalLocal,                  
     double*           AinvnzvalLocal,
     int*              info );
+
+
+
+
+
+
+
+/**
+ * @brief Simplified driver interface for computing the selected
+ * elements of a real unsymmetric matrix.
+ *
+ * @note The computation is only performed using the group of processors
+ * corresponding to the first pole.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] AnzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values of A in CSC format.  
+ * @param[out] AinvnzvalLocal (local) Dimension: nnzLocal. 
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISelInvRealUnsymmetricMatrix (
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
+    double*           AinvnzvalLocal,
+    int*              info );
+
+
+/**
+ * @brief Simplified driver interface for computing the selected
+ * elements of a complex unsymmetric matrix.
+ *
+ * @note The computation is only performed using the group of processors
+ * corresponding to the first pole.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] AnzvalLocal (local) Dimension: nnzLocal. Local nonzero
+ * values of A in CSC format.  
+ * - Use 2 double for one complex number. This
+ * ensures the compatibility with FORTRAN.  
+ * - Real part: AnzvalLocal[2*k]. Imag part: AnzvalLocal[2*k+1].
+ * @param[out] AinvnzvalLocal (local) Dimension: 2*nnzLocal. 
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISelInvComplexUnsymmetricMatrix (
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
+    double*           AinvnzvalLocal,
+    int*              info );
+
+
+/**
+ * @brief Simplified driver interface for computing the selected
+ * elements of a complex unsymmetric matrix.
+ *
+ * @note The computation is only performed using the group of processors
+ * corresponding to the first pole.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] AnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * values of A in CSC format.  
+ * - Use 2 double for one complex number. This
+ * ensures the compatibility with FORTRAN.  
+ * - Real part: AnzvalLocal[2*k]. Imag part: AnzvalLocal[2*k+1].
+ * @param[out] AinvnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * values of the selected elements of \f$A^{-1}\f$. The format is the same as of AnzvalLocal.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSISelInvComplexUnsymmetricMatrix (
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
+    double*           AinvnzvalLocal,
+    int*              info );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /**
