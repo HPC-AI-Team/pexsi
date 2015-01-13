@@ -152,6 +152,110 @@ driver_pselinv_complex.c. See also @ref PPEXSISelInvComplexSymmetricMatrix
 for detailed information of its usage.
 
 
+
+<!-- ************************************************************ -->
+@page pagePselinvRealUnsymmetric Parallel selected inversion for a real unsymmetric matrix
+\tableofcontents
+
+The parallel selected inversion routine for a real unsymmetric matrix can
+be used as follows. This assumes that the size of `MPI_COMM_WORLD` is
+`nprow * npcol`.
+
+~~~~~~~~~~{.c}
+#include  "c_pexsi_interface.h"
+...
+{
+  /* Setup the input matrix in distributed compressed sparse column (CSC) format */ 
+  ...;
+  /* Initialize PEXSI. 
+   * PPEXSIPlan is a handle communicating with the C++ internal data structure */
+  PPEXSIPlan   plan;
+  
+  plan = PPEXSIPlanInitialize( 
+      MPI_COMM_WORLD, 
+      nprow,
+      npcol,
+      mpirank, 
+      &info );
+
+  /* Tuning parameters of PEXSI. The default options is reasonable to
+   * start, and the parameters in options can be changed.  */
+  PPEXSIOptions  options;
+  PPEXSISetDefaultOptions( &options );
+  
+
+  /* Load the matrix into the internal data structure */
+  PPEXSILoadRealUnsymmetricHSMatrix( 
+      plan, 
+      options,
+      nrows,
+      nnz,
+      nnzLocal,
+      numColLocal,
+      colptrLocal,
+      rowindLocal,
+      AnzvalLocal,
+      1,     // S is an identity matrix here
+      NULL,  // S is an identity matrix here
+      &info );
+
+  /* Factorize the matrix symbolically */
+  PPEXSISymbolicFactorizeRealUnsymmetricMatrix( 
+      plan,
+      options,
+      &info );
+
+  /* Main routine for computing selected elements and save into AinvnzvalLocal */
+  PPEXSISelInvRealUnsymmetricMatrix (
+      plan,
+      options,
+      AnzvalLocal,
+      AinvnzvalLocal,
+      &info );
+
+  ...;
+  /* Post processing AinvnzvalLocal */
+  ...; 
+
+  PPEXSIPlanFinalize(
+      plan,
+      &info );
+} 
+~~~~~~~~~~ 
+
+This routine computes the selected elements of the matrix 
+\f$A^{-1}=(H - z S)^{-1}\f$ in parallel.  The input matrix \f$H\f$
+follows the @ref secDistCSC, defined through the variables `colptrLocal`,
+`rowindLocal`, `HnzvalLocal`.  The input matrix \f$S\f$ can be omitted if it
+is an identity matrix and by setting `isSIdentity=1`. If \f$S\f$ is not
+an identity matrix, the nonzero sparsity pattern is assumed to be the
+same as the nonzero sparsity pattern of \f$H\f$.  Both `HnzvalLocal` and
+`SnzvalLocal` are double precision arrays.  
+
+An example is given in driver_pselinv_real_unsym.c, which evaluates the
+selected elements of the inverse of the matrix saved in
+`examples/lap2dr.matrix`.  See also @ref PPEXSISelInvRealUnsymmetricMatrix
+for detailed information of its usage.
+
+
+
+
+<!-- ************************************************************ -->
+@page pagePselinvComplexUnsymmetric Parallel selected inversion for a complex unsymmetric matrix
+\tableofcontents
+
+The parallel selected inversion routine for a complex unsymmetric matrix
+is very similar to the real unsymmetric case. An example is given in
+driver_pselinv_complex_unsym.c. See also @ref PPEXSISelInvComplexUnsymmetricMatrix
+for detailed information of its usage.
+
+
+
+
+
+
+
+
 <!-- ************************************************************ -->
 @page pageDFT1 Solving Kohn-Sham density functional theory: I
 

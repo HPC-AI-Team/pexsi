@@ -81,7 +81,7 @@ throw std::logic_error( "File cannot be openeded!" );
 		}
 		Int dummy;
 		fin >> *size >> dummy;
-		fin >> *nnz;
+		fin >> *nnz >> dummy;
 	}
 	
 	MPI_Bcast( &(*size), 1, MPI_INT, 0, comm);
