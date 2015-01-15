@@ -85,6 +85,7 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 	sizes   = NULL;
 	fstVtxSep = NULL;
 	symb_comm = MPI_COMM_NULL;
+	symb_mem_usage.total = 0.;
 
 	/* Test the input parameters. */
 	*info = 0;
