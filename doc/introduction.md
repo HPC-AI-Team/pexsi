@@ -238,8 +238,13 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 @page pageChangeLog Change Log
 
 
-- v0.7.4
-  - Fix the bug of MPI communicator in f_driver_ksdft.f90. 
+- v0.8.0 (01/20/2015) **Major update**
+    - Add support of selected inversion for unsymmetric matrices, with
+      real or complex arithmetic operations.
+    - Update the structure of the include/ folder to avoid conflict.
+
+- v0.7.4 (12/18/2014)
+  - Fix the bug of MPI communicator in %f_driver_ksdft.f90. 
 
 - v0.7.3 (11/27/2014)
   - Multiple patches suggested by Alberto Garcia.
@@ -259,7 +264,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
   - Add test matrices to the fortran/ folder as well.
   - Update the configuration files.
 
-- v0.7.1 (07/01/2014)
+- v0.7.1 (07/01/2014) **Major update**
   - Bug fix: PPEXSIPlanInitialize specifics the input according to
     mpirank instead of outputFileIndex.
   - Bug fix: PPEXSIPlanFinalize gives floating point error due to the
@@ -280,8 +285,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
     guidance.
 
 
-- v0.6.0 (03/11/2014)
-  - First release of %PEXSI.
+- v0.6.0 (03/11/2014) **Initial release of %PEXSI**
   - Version integrated with the SIESTA package for Kohn-Sham density
     functional theory (KSDFT) calculation.
   - Parallel selected inversion for complex symmetric matrices.

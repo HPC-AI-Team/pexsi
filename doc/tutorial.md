@@ -161,7 +161,7 @@ The parallel selected inversion routine for a real unsymmetric matrix can
 be used as follows. This assumes that the size of `MPI_COMM_WORLD` is
 `nprow * npcol`.
 
-~~~~~~~~~~{.c}
+@code{.c}
 #include  "c_pexsi_interface.h"
 ...
 {
@@ -221,7 +221,7 @@ be used as follows. This assumes that the size of `MPI_COMM_WORLD` is
       plan,
       &info );
 } 
-~~~~~~~~~~ 
+@endcode
 
 This routine computes the selected elements of the matrix 
 \f$A^{-1}=(H - z S)^{-1}\f$ in parallel.  The input matrix \f$H\f$
