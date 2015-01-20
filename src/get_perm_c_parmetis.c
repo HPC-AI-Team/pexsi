@@ -129,6 +129,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 	m = A->nrow;
 	if ( m != n ) ABORT("Matrix is not square");
 	mem = 0.;
+	dist_order = 0;
 
 #if ( DEBUGlevel>=1 )
 	CHECK_MALLOC(iam, "Enter get_perm_c_parmetis()");

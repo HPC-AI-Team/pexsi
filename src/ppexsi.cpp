@@ -108,7 +108,6 @@ throw std::runtime_error( msg.str().c_str() );
 #endif
 
   // Initialize the saved variables
-  muPEXSISave_ = 0.0;
   isMatrixLoaded_       = false;
   isRealSymmetricSymbolicFactorized_ = false;
   isComplexSymmetricSymbolicFactorized_ = false;
@@ -2148,6 +2147,7 @@ PPEXSIData::DFTDriver (
     Int        maxPEXSIIter,
     Real       muMin0,
     Real       muMax0,
+    Real       mu0,
     Real       muInertiaTolerance,
     Real       muInertiaExpansion,
     Real       muPEXSISafeGuard,
@@ -2177,10 +2177,13 @@ PPEXSIData::DFTDriver (
   Real timeInertia = 0.0;
   Real timePEXSI   = 0.0;
 
+  Real muLower;
+  Real muUpper;
+
   // Initial setup
   muMinInertia = muMin0;
   muMaxInertia = muMax0;
-  muPEXSI = muPEXSISave_;
+  muPEXSI = mu0;        
 
   Real numElectronDrvMuPEXSI;
 
@@ -2419,12 +2422,9 @@ throw std::runtime_error( msg.str().c_str() );
           }
         }
 
-        Int idxMid = iround( Real(idxMin + idxMax)/2.0 );
-
         if( verbosity >= 1 ){
           statusOFS << "idxMin = " << idxMin << ", inertiaVec = " << inertiaVec[idxMin] << std::endl;
           statusOFS << "idxMax = " << idxMax << ", inertiaVec = " << inertiaVec[idxMax] << std::endl;
-          statusOFS << "idxMid = " << idxMid << ", inertiaVec = " << inertiaVec[idxMid] << std::endl;
         }
 
 
@@ -2433,7 +2433,20 @@ throw std::runtime_error( msg.str().c_str() );
 //        muMaxInertia = shiftVec[idxMax] + 5 * temperature;
         muMinInertia = shiftVec[idxMin];
         muMaxInertia = shiftVec[idxMax];
-        muPEXSI      = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact );
+        // Search instead for the band edges which is more stable
+        muLower      = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact - 0.01);
+        muUpper      = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact + 0.01 );
+        muPEXSI =      (muLower + muUpper)/2.0;
+
+        if( verbosity >= 1 ){
+          statusOFS << "muLower = " << muLower << std::endl;
+          statusOFS << "muUpper = " << muUpper << std::endl;
+          statusOFS << "mu guessed by IC = " << muPEXSI << std::endl;
+          statusOFS << "|ivec(idxMax)-Ne_exact| = " << 
+                      std::abs( inertiaVec[idxMax] - numElectronExact ) << std::endl;
+          statusOFS << "ivec(idxMax)-ivec(idxMin) = " << 
+                       shiftVec[idxMax] - shiftVec[idxMin] << std::endl;
+        }
 
         // Check convergence. Stop the inertia count after convergence.
         if( ( std::abs( inertiaVec[idxMax] - numElectronExact ) < EPS ) ||
@@ -2625,8 +2638,6 @@ throw std::runtime_error( msg.str().c_str() );
     statusOFS << std::endl << std::endl;
   }
 
-  // Save the PEXSI variable
-  muPEXSISave_ = muPEXSI;
 
 #ifndef _RELEASE_
 	PopCallStack();

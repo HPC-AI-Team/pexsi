@@ -267,6 +267,7 @@ void PPEXSISetDefaultOptions(
   options->maxPEXSIIter          = 3;
   options->muMin0                = -10.0; 
   options->muMax0                = +10.0; 
+  options->mu0                   =  0.0;  // For more control by the user
   options->muInertiaTolerance    = 0.05;
   options->muInertiaExpansion    = 0.3;      
   options->muPEXSISafeGuard      = 0.05;
@@ -897,6 +898,7 @@ void PPEXSIDFTDriver(
         options.maxPEXSIIter,
         options.muMin0,
         options.muMax0,
+        options.mu0,
         options.muInertiaTolerance,
         options.muInertiaExpansion,
         options.muPEXSISafeGuard,

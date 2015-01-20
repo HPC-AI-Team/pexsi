@@ -1,8 +1,13 @@
 TODO List   {#pageTODO}
 =========
 @todo
-- Add the verbose level to control the amount of output.
-- Reuse the symbolic factorization.
-- Allow nprow != npcol in the driver routines.
 - Add support of 64-bit integer.
+- Control the output file in a better way.
+- When the inertia counting keeps failing, return a nonzero info to make
+  the external routine stop.
+- Add a routine to estimate the spectral radius.
 
+- (By Seewald Patrick) maxTotalInertiaIter should be a controllable
+  parameter in PPEXSIOptions.
+- (By Seewald Patrick) Uninitialized values in TotalMemory and
+  MaxMemory.

@@ -80,8 +80,9 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 Hfile            = "lap2dr.matrix"
 
-nprow = 1
-npcol = 1
+! Only use one processor in this example
+nprow = 2
+npcol = 2
 
 ! Split the processors to read matrix
 if( mpirank < nprow * npcol ) then
@@ -100,7 +101,7 @@ if( isProcRead == 1 ) then
     nnz,&
     nnzLocal,&
     numColLocal,&
-    MPI_COMM_WORLD )
+    readComm )
 
   if( mpirank .eq. 0 ) then
     write(*,*) "Matrix size (local data on proc 0):" 
@@ -127,7 +128,7 @@ if( isProcRead == 1 ) then
     colptrLocal,&
     rowindLocal,&
     HnzvalLocal,&
-    MPI_COMM_WORLD )
+    readComm )
 
 endif
 
@@ -151,6 +152,7 @@ call f_ppexsi_set_default_options(&
 numElectronExact = 12d0
 options%muMin0   = 0d0
 options%muMax0   = 0.5d0 
+options%mu0      = 1.0d0
 options%deltaE   = 20d0 
 options%numPole  = 60
 options%temperature = 0.019d0   ! 3000 K
@@ -233,12 +235,14 @@ call f_ppexsi_plan_finalize( plan, info )
 call mpi_comm_free( readComm, ierr )
 call mpi_finalize( ierr )
 
-deallocate( colptrLocal )
-deallocate( rowindLocal )
-deallocate( HnzvalLocal )
-deallocate( DMnzvalLocal )
-deallocate( EDMnzvalLocal )
-deallocate( FDMnzvalLocal )
+if( isProcRead == 1 ) then
+  deallocate( colptrLocal )
+  deallocate( rowindLocal )
+  deallocate( HnzvalLocal )
+  deallocate( DMnzvalLocal )
+  deallocate( EDMnzvalLocal )
+  deallocate( FDMnzvalLocal )
+endif
 
 end program f_driver_pselinv_ksdft
 
