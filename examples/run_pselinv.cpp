@@ -47,7 +47,7 @@
 
 #include "pexsi/timer.h"
 
-#define _MYCOMPLEX_
+#define _MYCOMPLEX_ 1
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex

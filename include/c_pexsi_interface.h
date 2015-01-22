@@ -546,15 +546,15 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
+/*
 void PPEXSIInertiaCountRealUnsymmetricMatrix(
-    /* Input parameters */
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
     int               numShift,
     double*           shiftList,
-    /* Output parameters */
     double*           inertiaList,
     int*              info );
+*/
 
 
 
@@ -688,40 +688,6 @@ void PPEXSISelInvComplexSymmetricMatrix (
 
 /**
  * @brief Simplified driver interface for computing the selected
- * elements of a complex symmetric matrix.
- *
- * @note The computation is only performed using the group of processors
- * corresponding to the first pole.
- *
- * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
- * data structure.
- * @param[in] options (global) Other input parameters for the DFT driver.  
- * @param[in] AnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
- * values of A in CSC format.  
- * - Use 2 double for one complex number. This
- * ensures the compatibility with FORTRAN.  
- * - Real part: AnzvalLocal[2*k]. Imag part: AnzvalLocal[2*k+1].
- * @param[out] AinvnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
- * values of the selected elements of \f$A^{-1}\f$. The format is the same as of AnzvalLocal.
- * @param[out] info (local) whether the current processor returns the correct information.
- * - = 0: successful exit.  
- * - > 0: unsuccessful.
- */
-void PPEXSISelInvComplexSymmetricMatrix (
-    PPEXSIPlan        plan,
-    PPEXSIOptions     options,
-    double*           AnzvalLocal,                  
-    double*           AinvnzvalLocal,
-    int*              info );
-
-
-
-
-
-
-
-/**
- * @brief Simplified driver interface for computing the selected
  * elements of a real unsymmetric matrix.
  *
  * @note The computation is only performed using the group of processors
@@ -771,49 +737,6 @@ void PPEXSISelInvComplexUnsymmetricMatrix (
     double*           AnzvalLocal,                  
     double*           AinvnzvalLocal,
     int*              info );
-
-
-/**
- * @brief Simplified driver interface for computing the selected
- * elements of a complex unsymmetric matrix.
- *
- * @note The computation is only performed using the group of processors
- * corresponding to the first pole.
- *
- * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
- * data structure.
- * @param[in] options (global) Other input parameters for the DFT driver.  
- * @param[in] AnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
- * values of A in CSC format.  
- * - Use 2 double for one complex number. This
- * ensures the compatibility with FORTRAN.  
- * - Real part: AnzvalLocal[2*k]. Imag part: AnzvalLocal[2*k+1].
- * @param[out] AinvnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
- * values of the selected elements of \f$A^{-1}\f$. The format is the same as of AnzvalLocal.
- * @param[out] info (local) whether the current processor returns the correct information.
- * - = 0: successful exit.  
- * - > 0: unsuccessful.
- */
-void PPEXSISelInvComplexUnsymmetricMatrix (
-    PPEXSIPlan        plan,
-    PPEXSIOptions     options,
-    double*           AnzvalLocal,                  
-    double*           AinvnzvalLocal,
-    int*              info );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
