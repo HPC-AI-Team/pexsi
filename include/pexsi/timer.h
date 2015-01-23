@@ -68,7 +68,7 @@
 
 
 
-#include <mpi.h>"
+#include <mpi.h>
 
 
 class CTF_timer{

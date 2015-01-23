@@ -180,7 +180,7 @@ namespace PEXSI{
     options.RowPerm           = NOROWPERM; // IMPORTANT for symmetric matrices
     options.IterRefine        = NOREFINE;
     options.ParSymbFact       = NO;
-    options.Equil             = YES; 
+    options.Equil             = NO; 
     options.ReplaceTinyPivot  = YES;
     // For output information such as # of nonzeros in L and U
     // and the memory cost, set PrintStat = YES

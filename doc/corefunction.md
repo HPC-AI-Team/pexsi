@@ -360,7 +360,7 @@ Example
   SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
-  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
 
   // Symbolic factorization
   luMat.SymbolicFactorize();
@@ -423,7 +423,7 @@ Example
   SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
-  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
 
   // Symbolic factorization
   luMat.SymbolicFactorize();
@@ -436,7 +436,7 @@ Example
   DistSparseMatrix<Complex>  BMat; 
   ...;
   // Matrix conversion
-  luMat.DistSparseMatrixToSuperMatrixNRloc( BMat );
+  luMat.DistSparseMatrixToSuperMatrixNRloc( BMat, luOpt );
   // Redistribute into 2D block cyclic format.
   luMat.Distribute();
 
@@ -492,13 +492,13 @@ right hand sides and compare the accuracy.
   ...;
 
   // Setup SuperLU
-  SuperLUGrid g( comm, nprow, npcol );
+  SuperLUGrid<Complex> g( comm, nprow, npcol );
   SuperLUOptions luOpt;
   luOpt.ColPerm = "MMD_AT_PLUS_A";
-  SuperLUMatrix luMat( g );
+  SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
-  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
 
   // Symbolic factorization
   luMat.SymbolicFactorize();
@@ -507,8 +507,8 @@ right hand sides and compare the accuracy.
   luMat.NumericalFactorize();
   
   // Construct a global matrix (for error checking)
-  SuperLUMatrix A1( g ), GA( g );
-  A1.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  SuperLUMatrix<Complex> A1( g ), GA( g );
+  A1.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
   A1.ConvertNRlocToNC( GA );
   
   // Construct the distributed right hand sides and the exact solution.
@@ -637,7 +637,7 @@ Example
   SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
-  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
 
   // Symbolic factorization
   luMat.SymbolicFactorize();

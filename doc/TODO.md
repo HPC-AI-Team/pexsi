@@ -12,7 +12,7 @@ TODO List   {#pageTODO}
 - Resolve the conflict in data format between symmetric and unsymmetric
   matrices.
 - Add an sample matrix for the unsymmetric case.
-- (Mathias) Update the functionality documentation (templated class, conversion to SuperLU, distinction between the symmetric and asymmetric PMatrix class).
+- (Mathias) Update the functionality documentation (templated class DONE, conversion to SuperLU DONE, distinction between the symmetric and asymmetric PMatrix class).
 - (Lin) Add the FORTRAN interface for the support of unsymmetric matrices.
 - (future) Add expert user interface for PEXSI for k-point sampling and for spin
   related calculations.

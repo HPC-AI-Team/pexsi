@@ -173,7 +173,7 @@ namespace PEXSI{
     options.RowPerm           = NOROWPERM; // IMPORTANT for symmetric matrices
     options.IterRefine        = NOREFINE;
     options.ParSymbFact       = NO;
-    options.Equil             = YES; 
+    options.Equil             = NO; 
     options.ReplaceTinyPivot  = YES; //TODO might be safe to turn on
 
     // For output information such as # of nonzeros in L and U
