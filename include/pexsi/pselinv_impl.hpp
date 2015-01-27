@@ -3559,7 +3559,33 @@ namespace PEXSI{
       return ;
     } 		// -----  end of method PMatrix::GetNegativeInertia  ----- 
 
+  template<typename T>
+    inline PMatrix<T> * PMatrix<T>::Create(const GridType * pGridType, const SuperNodeType * pSuper, const SuperLUOptions * pLuOpt){ 
+      PMatrix<T> * pMat = NULL;
+      if(pLuOpt->symmetric == 0){
+        pMat = new PMatrixUnsym<T>( pGridType, pSuper, pLuOpt  );
+      }
+      else{
+        pMat = new PMatrix<T>( pGridType, pSuper, pLuOpt  );
+      }
 
+      return pMat;
+    } 		// -----  end of factory method PMatrix::Create  ----- 
+
+  template<typename T>
+    inline PMatrix<T> * PMatrix<T>::Create(const SuperLUOptions * pLuOpt){ 
+      PMatrix<T> * pMat = NULL;
+      if(pLuOpt->symmetric == 0){
+        pMat = new PMatrixUnsym<T>();
+      }
+      else{
+        pMat = new PMatrix<T>();
+      }
+
+      return pMat;
+    } 		// -----  end of factory method PMatrix::Create  ----- 
 } // namespace PEXSI
+
+
 
 #endif //_PEXSI_PSELINV_IMPL_HPP_

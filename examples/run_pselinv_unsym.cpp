@@ -483,9 +483,6 @@ else
         cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;
 
 
-      // *********************************************************************
-      // Symbolic factorization 
-      // *********************************************************************
 
       GetTime( timeSta );
       SuperLUOptions luOpt;
@@ -495,10 +492,21 @@ else
       luOpt.symmetric = isSym;
 
 
-      SuperLUMatrix<MYSCALAR> luMat(g, luOpt );
+      //Initialize SuperLU data structures
+      //SuperLUGrid<MYSCALAR> * pLuGrid;
+      //SuperLUMatrix<MYSCALAR> * pLuMat;
+      //SuperNodeType * pSuper;
+      //PEXSICreator<MYSCALAR>::CreateSuperLUMatrix(world_comm, nprow, npcol, luOpt, pLuMat, pLuGrid, pSuper);
 
+      SuperLUGrid<MYSCALAR> * pLuGrid = new SuperLUGrid<MYSCALAR>(world_comm,nprow,npcol);
+      SuperLUMatrix<MYSCALAR> * pLuMat = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
+      SuperNodeType * pSuper = new SuperNodeType();
 
-      luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
+      // *********************************************************************
+      // Symbolic factorization 
+      // *********************************************************************
+
+      pLuMat->DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
       GetTime( timeEnd );
       if( mpirank == 0 )
         cout << "Time for converting to SuperLU format is " << timeEnd - timeSta << endl;
@@ -506,8 +514,8 @@ else
 
       if(doSymbfact){
         GetTime( timeSta );
-        luMat.SymbolicFactorize();
-        luMat.DestroyAOnly();
+        pLuMat->SymbolicFactorize();
+        pLuMat->DestroyAOnly();
         GetTime( timeEnd );
 
         if( mpirank == 0 )
@@ -524,12 +532,12 @@ else
 
         // Important: the distribution in pzsymbfact is going to mess up the
         // A matrix.  Recompute the matrix A here.
-        luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
+        pLuMat->DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
 
         GetTime( timeTotalFactorizationSta );
 
         GetTime( timeSta );
-        luMat.Distribute();
+        pLuMat->Distribute();
         GetTime( timeEnd );
         if( mpirank == 0 )
           cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
@@ -537,7 +545,7 @@ else
 
 
         GetTime( timeSta );
-        luMat.NumericalFactorize();
+        pLuMat->NumericalFactorize();
         GetTime( timeEnd );
 
         if( mpirank == 0 )
@@ -553,8 +561,8 @@ else
         // *********************************************************************
 
         if( checkAccuracy ) {
-          SuperLUMatrix<MYSCALAR> A1( g, luOpt );
-          SuperLUMatrix<MYSCALAR> GA( g, luOpt );
+          SuperLUMatrix<MYSCALAR> A1( *pLuGrid, luOpt );
+          SuperLUMatrix<MYSCALAR> GA( *pLuGrid, luOpt );
           A1.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
           A1.ConvertNRlocToNC( GA );
 
@@ -570,8 +578,8 @@ else
           A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
           A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
           if(mpirank==0){std::cout<<"Starting solve"<<std::endl;}
-          luMat.SolveDistMultiVector( bLocal, berr );
-          luMat.CheckErrorDistMultiVector( bLocal, xTrueLocal );
+          pLuMat->SolveDistMultiVector( bLocal, berr );
+          pLuMat->CheckErrorDistMultiVector( bLocal, xTrueLocal );
         }
 
         // *********************************************************************
@@ -583,37 +591,26 @@ else
 
           Real timeTotalSelInvSta, timeTotalSelInvEnd;
           NumVec<MYSCALAR> diag;
-          PMatrixUnsym<MYSCALAR> * PMlocPtr;
-          SuperNodeType * superPtr;
-          GridType * g1Ptr;
 
-
-            g1Ptr = new GridType( world_comm, nprow, npcol );
-            GridType &g1 = *g1Ptr;
-
-            superPtr = new SuperNodeType();
-            SuperNodeType & super = *superPtr;
 
             GetTime( timeSta );
-            luMat.SymbolicToSuperNode( super );
+            pLuMat->SymbolicToSuperNode( *pSuper );
 
             GetTime( timeTotalSelInvSta );
 
 
-            PMlocPtr = new PMatrixUnsym<MYSCALAR>( &g1, &super, &luOpt  );
+            //Initialize PEXSI/PSelInv data structures
+            //PMatrix<MYSCALAR> * pMat;
+            //GridType * pGrid;
+            //PEXSICreator<MYSCALAR>::CreatePMatrix(world_comm, nprow, npcol, luOpt, pSuper, pMat, pGrid);
 
-            PMatrixUnsym<MYSCALAR> & PMloc = *PMlocPtr;
+            GridType * pGrid = new GridType(world_comm,nprow,npcol);
+            PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
 
-            luMat.LUstructToPMatrix( PMloc );
+            pLuMat->LUstructToPMatrix( *pMat );
             GetTime( timeEnd );
 
-
-
-
-
-
-
-            LongInt nnzLU = PMloc.Nnz();
+            LongInt nnzLU = pMat->Nnz();
             if( mpirank == 0 ){
               cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
             }
@@ -625,7 +622,7 @@ else
 
             // Preparation for the selected inversion
             GetTime( timeSta );
-            PMloc.ConstructCommunicationPattern();
+            pMat->ConstructCommunicationPattern();
             GetTime( timeEnd );
 
             if( mpirank == 0 )
@@ -633,7 +630,7 @@ else
 
 
             GetTime( timeSta );
-            PMloc.PreSelInv();
+            pMat->PreSelInv();
             GetTime( timeEnd );
 
             if( mpirank == 0 )
@@ -641,7 +638,7 @@ else
 
             // Main subroutine for selected inversion
             GetTime( timeSta );
-            PMloc.SelInv();
+            pMat->SelInv();
             GetTime( timeEnd );
             if( mpirank == 0 )
               cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
@@ -657,7 +654,7 @@ else
                // Convert to DistSparseMatrix in the 2nd format and get the diagonal
                GetTime( timeSta );
                DistSparseMatrix<MYSCALAR> Ainv2;
-               PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
+               pMat->PMatrixToDistSparseMatrix2( AMat, Ainv2 );
 
 
                GetTime( timeEnd );
@@ -672,9 +669,6 @@ else
                GetTime( timeEnd );
                if( mpirank == 0 )
                  cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-
-
  
                if( mpirank == 0 ){
                  statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
@@ -689,7 +683,6 @@ else
                //Trick to get rows of Ainv by converting it to CSR 
                MYSCALAR traceLocal;
                if(luOpt.symmetric==1){
-
                  traceLocal = blas::Dotu( AMat.nnzLocal, Ainv2.nzvalLocal.Data(), 1,
                      AMat.nzvalLocal.Data(), 1 );
                }
@@ -697,37 +690,37 @@ else
                  DistSparseMatrix<MYSCALAR> Ainv2csr;
                  CSCToCSR(Ainv2,Ainv2csr);
 
-                AMat.SortIndices();
-                Ainv2csr.SortIndices();
+                 AMat.SortIndices();
+                 Ainv2csr.SortIndices();
 
-                //cant use dotu if matrix is really unsymmetric, have to do it by hand
-                traceLocal = ZERO<MYSCALAR>();
-                for(Int row = 0; row<Ainv2csr.colptrLocal.m()-1; ++row){
-                  Int rowbeg = Ainv2csr.colptrLocal[row]-1;
-                  Int rowend = Ainv2csr.colptrLocal[row+1]-1;
+                 //cant use dotu if matrix is really unsymmetric, have to do it by hand
+                 traceLocal = ZERO<MYSCALAR>();
+                 for(Int row = 0; row<Ainv2csr.colptrLocal.m()-1; ++row){
+                   Int rowbeg = Ainv2csr.colptrLocal[row]-1;
+                   Int rowend = Ainv2csr.colptrLocal[row+1]-1;
 
-                  Int colbegA = AMat.colptrLocal[row]-1;
-                  Int colendA = AMat.colptrLocal[row+1]-1;
-                  
-                  Int rowIdxA = colbegA;
-                  Int colIdx = rowbeg;
-                  while(colIdx<rowend && rowIdxA<colendA){
-                      Int col = Ainv2csr.rowindLocal[colIdx]-1;
-                      Int rowA = AMat.rowindLocal[rowIdxA]-1;
-                      
-                      if(col<rowA){
-                        ++colIdx;
-                      }
-                      else if(rowA<col){
-                        ++rowIdxA;
-                      }
-                      else if(col == rowA){
-                        traceLocal += Ainv2csr.nzvalLocal[colIdx]*AMat.nzvalLocal[rowIdxA];
-                        ++colIdx;
-                        ++rowIdxA;
-                      }
-                  }
-                }
+                   Int colbegA = AMat.colptrLocal[row]-1;
+                   Int colendA = AMat.colptrLocal[row+1]-1;
+
+                   Int rowIdxA = colbegA;
+                   Int colIdx = rowbeg;
+                   while(colIdx<rowend && rowIdxA<colendA){
+                     Int col = Ainv2csr.rowindLocal[colIdx]-1;
+                     Int rowA = AMat.rowindLocal[rowIdxA]-1;
+
+                     if(col<rowA){
+                       ++colIdx;
+                     }
+                     else if(rowA<col){
+                       ++rowIdxA;
+                     }
+                     else if(col == rowA){
+                       traceLocal += Ainv2csr.nzvalLocal[colIdx]*AMat.nzvalLocal[rowIdxA];
+                       ++colIdx;
+                       ++rowIdxA;
+                     }
+                   }
+                 }
                }
 
                MYSCALAR trace = ZERO<MYSCALAR>();
@@ -754,7 +747,7 @@ else
               NumVec<MYSCALAR> diag;
 
               GetTime( timeSta );
-              PMloc.GetDiagonal( diag );
+              pMat->GetDiagonal( diag );
               GetTime( timeEnd );
 
 
@@ -773,18 +766,17 @@ else
             }
 
 
-
-
-
-            delete PMlocPtr;
-            delete superPtr;
-            delete g1Ptr;
+            delete pMat;
+            delete pGrid;
 
         }
 
 
       }
 
+      delete pSuper;
+      delete pLuMat;
+      delete pLuGrid;
 
       statusOFS.close();
     }

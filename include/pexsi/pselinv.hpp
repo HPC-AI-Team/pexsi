@@ -428,7 +428,6 @@ namespace PEXSI{
     return 0;
   }
 
-
   /**********************************************************************
    * Main data structure in PSelInv: PMatrix
    **********************************************************************/
@@ -497,6 +496,12 @@ namespace PEXSI{
 
   template<typename T>
   class PMatrix{
+     public:
+      /// @brief Create is a factory method which returns a pointer either to a new PMatrix or to a new PMatrixUnsym
+      /// depending on the pLuOpt parameter.
+      static PMatrix<T> * Create(const GridType * pGridType, const SuperNodeType * pSuper, const SuperLUOptions * pLuOpt);
+      static PMatrix<T> * Create(const SuperLUOptions * pLuOpt);
+
      public:
       // This is the tag used for mpi communication for selinv
 
@@ -951,41 +956,10 @@ namespace PEXSI{
       /// eigenvalues of a matrix below a certain threshold.
       void GetNegativeInertia	( Real& inertia );
 
-
-
-//      virtual void DumpSuperNodes(Int count){
-//        Int first_snode = max(0,NumSuper() -count );
-//        //dump the last supernodes
-//        for(Int I = first_snode; I<NumSuper();++I){
-//          statusOFS<<"****** "<<I<<" *******"<<std::endl;
-//  
-//          //I own blocks of that supernode
-//          if(MYCOL(grid_) == PCOL(I,grid_)){
-//            std::vector<LBlock<T> >&  Lcol = this->L( LBj( I, grid_ ) );
-//            for(Int bidx = 0; bidx < Lcol.size(); ++bidx){
-//              LBlock<T> & block = Lcol[bidx];
-//              statusOFS<<block.blockIdx<<std::endl;
-//              statusOFS<<block.nzval<<std::endl;
-//            }
-//
-//
-//            std::vector<UBlock<T> >&  Urow = this->U( LBi( I, this->grid_ ) );
-//            for(Int bidx = 0; bidx < Urow.size(); ++bidx){
-//              UBlock<T> & block = Urow[bidx];
-//              statusOFS<<block.blockIdx<<std::endl;
-//              statusOFS<<block.nzval<<std::endl;
-//            }
-//
-//
-//
-//          }
-//        }
-//      }
-
-
       inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
   };
 
+  template<typename T>  class PMatrixUnsym;
 
 
 } // namespace PEXSI

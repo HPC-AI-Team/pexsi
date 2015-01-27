@@ -549,6 +549,10 @@ information on how to perform factorization), the parallel selected inversion ca
 To provide a layer of abstraction from the matrix format used during the factorization, the [PMatrix](@ref PEXSI::PMatrix) class is used during the selected inversion.
 
 @note
+If the matrix is unsymmetric, the derived [PMatrixUnsym](@ref PEXSI::PMatrixUnsym) class is used instead.
+The factory method [PMatrix::Create](@ref PEXSI::PMatrix::Create) is available to instantiate the correct object type depending on matrix structure. 
+
+@note
 All major operations of [PMatrix](@ref PEXSI::PMatrix), including the selected inversion, are defined directly as member functions of [PMatrix](@ref PEXSI::PMatrix).
 
 The basic steps for selected inversion are:
@@ -574,6 +578,13 @@ GridType should be consistent with the grid used by SuperLU.
 @note
 It is the user's responsibility to enforce the coherence between [SuperLUGrid](@ref PEXSI::SuperLUGrid) and GridType.
 
+> @ref PEXSI::SuperNodeType "SuperNodeType"
+
+A data structure containing the supernodal partitioning of the matrix.
+
+@note
+It is the user's responsibility to initialize this data structure after [SuperLUMatrix::SymbolicFactorize](@ref PEXSI::SuperLUMatrix::SymbolicFactorize) has been called.
+This is done using the [SuperLUMatrix::SymbolicToSuperNode](@ref PEXSI::SuperLUMatrix::SymbolicToSuperNode] utility routine.
 
 > @ref PEXSI::PMatrix "PMatrix"
 
@@ -592,6 +603,11 @@ compressed sparse row (CSR) format, used by SuperLU_DIST, gives
 exactly the same matrix as formed by the compresed sparse column
 format (CSC).
 
+> @ref PEXSI::PMatrix::Create "PMatrix::Create"
+
+This static factory routine instantiates the correct PMatrix object type depending on matrix structure.
+The matrix structure is specified by the [SuperLUOptions::symmetric](@ref PEXSI::SuperLUOptions::symmetric) attribute of the [SuperLUOptions](@ref PEXSI::SuperLUOptions) data structure.
+ 
 > @ref PEXSI::PMatrix::ConstructCommunicationPattern "PMatrix::ConstructCommunicationPattern" 
 
 This routine creates the MPI_Communicators and communication pattern used later by both PreSelInv and SelInv routines.
@@ -634,6 +650,8 @@ Example
   SuperLUGrid<Complex> g( comm, nprow, npcol );
   SuperLUOptions luOpt;
   luOpt.ColPerm = "MMD_AT_PLUS_A";
+  luOpt.symmetric = 0;
+
   SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
@@ -642,30 +660,37 @@ Example
   // Symbolic factorization
   luMat.SymbolicFactorize();
 
+
   // Numerical factorization
   luMat.NumericalFactorize();
 
   /****** SELECTED INVERSION ******/
+  GridType gPM( comm, nprow, npcol );
 
-  PMatrix<Complex> PMloc;
+  SuperNodeType super;
+  luMat.SymbolicToSuperNode( super );
+
+  PMatrix<Complex> * PMloc = PMatrix<Complex>::Create(&gPM, &super, &luOpt);
 
   // Conversion to PMatrix
-  luMat.LUstructToPMatrix( PMloc );
+  luMat.LUstructToPMatrix( *PMloc );
    
   //Create the communication pattern
-  PMloc.ConstructCommunicationPattern();
+  PMloc->ConstructCommunicationPattern();
 
   //Prepare for parallel selected inversion 
-  PMloc.PreSelInv();
+  PMloc->PreSelInv();
 
   //Perform the parallel selected inversion
-  PMloc.SelInv();
+  PMloc->SelInv();
 
   //Get the result back in DistSparseMatrix format
   DistSparseMatrix<Scalar> Ainv;
-  PMloc.PMatrixToDistSparseMatrix( Ainv );
+  PMloc->PMatrixToDistSparseMatrix( Ainv );
 
   ...;
+
+  delete PMloc;
 }
 @endcode
 

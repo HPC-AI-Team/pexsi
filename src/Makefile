@@ -24,13 +24,16 @@ DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F90:.f90=.d}
 %.o: %.F90
 	${FC} -c ${FFLAGS} $<
 
-all: libpexsi.a 
+all: ${PEXSI_LIB} 
 
 -include ${DEPS}
 
-libpexsi.a: ${OBJS}
+#libpexsi.a: ${OBJS}
+${PEXSI_LIB}: ${OBJS}
 	$(AR) $(ARFLAGS) $(PEXSI_LIB) ${OBJS} 
-	$(RANLIB) $(shell basename $@ .a)_${SUFFIX}.a
+	$(RANLIB) $(PEXSI_LIB)
+
+#	$(RANLIB) $(shell basename $@ .a)_${SUFFIX}.a
 #ifeq (${MODE},release)
 #ifneq ($(USE_TAU),1)
 #	${CP} $(shell basename $@ .a)_${SUFFIX}.a ${PEXSI_LIB}
@@ -41,4 +44,4 @@ clean:
 	${RM} -f ${OBJS} ${DEPS} *.d.*
 
 cleanall:
-	${RM} -f ${OBJS} ${DEPS} libpexsi.a *.d.*
+	${RM} -f ${OBJS} ${DEPS} ${PEXSI_DIR}/lib/libpexsi.a *.d.*
