@@ -2257,8 +2257,6 @@ throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
     if( isInertiaCount == 1 ){
       GetTime( timeInertiaSta );
 
-      numTotalInertiaIter++;
-
       if( verbosity >= 1 ){
         PrintBlock( statusOFS, "Inertia counting phase" );
       }
