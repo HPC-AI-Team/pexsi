@@ -311,6 +311,9 @@ namespace PEXSI{
                     << std::endl
                     << "LB.rows    = " << LB.rows << std::endl
                     << "SinvB.rows = " << SinvB.rows << std::endl;
+#ifdef USE_ABORT
+            abort();
+#endif
                   throw std::runtime_error( msg.str().c_str() );
                 }
               }
@@ -339,6 +342,10 @@ namespace PEXSI{
             std::ostringstream msg;
             msg << "Block(" << isup << ", " << jsup
               << ") did not find a matching block in Sinv." << std::endl;
+
+#ifdef USE_ABORT
+            abort();
+#endif
             throw std::runtime_error( msg.str().c_str() );
           }
         } // if (isup, jsup) is in L
@@ -379,6 +386,9 @@ namespace PEXSI{
                     << std::endl
                     << "LrowB.rows    = " << LrowB.rows << std::endl
                     << "UinvB.cols = " << SinvB.cols << std::endl;
+#ifdef USE_ABORT
+            abort();
+#endif
                   throw std::runtime_error( msg.str().c_str() );
                 }
               }
@@ -408,6 +418,9 @@ namespace PEXSI{
             std::ostringstream msg;
             msg << "Block(" << isup << ", " << jsup
               << ") did not find a matching block in Sinv." << std::endl;
+#ifdef USE_ABORT
+            abort();
+#endif
             throw std::runtime_error( msg.str().c_str() );
           }
         } // if (isup, jsup) is in U
@@ -5065,6 +5078,9 @@ MPI_Barrier(this->grid_->comm);
                   UB.numCol = it->numRow;
                   UB.cols = it->rows;
                   Urow.push_back(UB);
+                  UBlock<T> & UBl = Urow.back();
+                  UBl.nzval.Resize(UB.numRow,UB.numCol);
+                  SetValue(UBl.nzval,ZERO<T>());
                 }
               }
             }
@@ -5119,6 +5135,9 @@ MPI_Barrier(this->grid_->comm);
                 if(!isFound){
                   //push_back
                   Lcol.push_back(*it);
+                  LBlock<T> & LB = Lcol.back();
+                  LB.nzval.Resize(LB.numRow,LB.numCol);
+                  SetValue(LB.nzval,ZERO<T>());
                 }
               }
             }
