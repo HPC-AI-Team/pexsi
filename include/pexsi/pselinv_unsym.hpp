@@ -69,9 +69,12 @@
 namespace PEXSI{
 
 
-#ifdef _DYN_ALLOC_LU_
     struct CDBuffers;
 
+    template<typename T>
+    bool LBlockEqualComparator(const LBlock<T> & a,const LBlock<T> & b){
+      return a.blockIdx==b.blockIdx;
+    }
     template<typename T>
     bool LBlockComparator(const LBlock<T> & a,const LBlock<T> & b){
       return a.blockIdx<b.blockIdx;
@@ -81,7 +84,6 @@ namespace PEXSI{
     bool UBlockComparator(const UBlock<T> & a,const UBlock<T> & b){
       return a.blockIdx<b.blockIdx;
     }
-#endif
 
 
 
@@ -163,10 +165,8 @@ namespace PEXSI{
       std::vector<std::vector<UBlock<T> > > Ucol_;
       std::vector<std::vector<LBlock<T> > > Lrow_;
 
-#ifdef _DYN_ALLOC_LU_
       std::vector<Int > UcolSize_;
       std::vector<Int > LrowSize_;
-#endif
 
       // Communication variables
       // This is the tag used for mpi communication for selinv
@@ -185,12 +185,10 @@ namespace PEXSI{
         SELINV_TAG_D_SIZE,
         SELINV_TAG_D_CONTENT,
         SELINV_TAG_D_REDUCE,
-#ifdef _DYN_ALLOC_LU_
         SELINV_TAG_U_SIZE_CD,
         SELINV_TAG_U_CONTENT_CD,
         SELINV_TAG_L_SIZE_CD,
         SELINV_TAG_L_CONTENT_CD,
-#endif
         SELINV_TAG_COUNT
       };
 
@@ -242,12 +240,10 @@ namespace PEXSI{
                             );
 
 
-#ifdef _DYN_ALLOC_LU_
     inline void SendRecvSizesCD(std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
     inline void IRecvContentCD( std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
     inline void WaitContentLCD( std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
     inline void WaitContentUCD( std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
-#endif
 
 
 

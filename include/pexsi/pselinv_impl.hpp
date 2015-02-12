@@ -124,6 +124,11 @@ namespace PEXSI{
 
 
 namespace PEXSI{
+
+
+
+
+
   template<typename T>
     PMatrix<T>::PMatrix ( 
         const GridType* g, 
@@ -944,11 +949,14 @@ namespace PEXSI{
       if (options_->maxPipelineDepth!=1){
         //find roots in the supernode etree (it must be postordered)
         //initialize the parent we are looking at 
-        Int rootParent = snodeEtree[numSuper-2];
+        //Int rootParent = snodeEtree[numSuper-2];
+        Int rootParent = numSuper;
 
         //compute the level of each supernode and the total number of levels
-        IntNumVec level(numSuper);
-        level(rootParent)=0;
+        //IntNumVec level(numSuper);
+        //level(rootParent)=0;
+        IntNumVec level(numSuper+1);
+        level(rootParent)=-1;
         Int numLevel = 0; 
         for(Int i=rootParent-1; i>=0; i-- ){ level(i) = level(snodeEtree[i])+1; numLevel = std::max(numLevel, level(i)); }
         numLevel++;
@@ -956,7 +964,8 @@ namespace PEXSI{
         //Compute the number of supernodes at each level
         IntNumVec levelSize(numLevel);
         SetValue(levelSize,I_ZERO);
-        for(Int i=rootParent-1; i>=0; i-- ){ levelSize(level(i))++; }
+        //for(Int i=rootParent-1; i>=0; i-- ){ levelSize(level(i))++; } 
+        for(Int i=rootParent-1; i>=0; i-- ){ if(level[i]>=0){ levelSize(level(i))++; } }
 
         //Allocate memory
         WSet.resize(numLevel,std::vector<Int>());
@@ -1004,6 +1013,7 @@ namespace PEXSI{
       }
 #endif
     }
+
 
   template<typename T>
     inline void PMatrix<T>::SelInvIntra_P2p(Int lidx)

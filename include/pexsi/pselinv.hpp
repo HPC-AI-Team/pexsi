@@ -218,7 +218,9 @@ namespace PEXSI{
     NumMat<T>    nzval;
 
     // Member functions;
-    UBlock() {blockIdx = -1; numRow = 0; numCol =0;}
+    UBlock() {
+      blockIdx = -1; numRow = 0; numCol =0;
+    }
     ~UBlock() {}
     UBlock& operator = (const UBlock& UB) {
       blockIdx    = UB.blockIdx;

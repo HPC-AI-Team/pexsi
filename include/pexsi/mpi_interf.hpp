@@ -233,6 +233,38 @@ Allgatherv (
 
 
 
+template <typename T>
+void
+Bcast ( 
+		std::vector<T>& dataVec,
+    Int root, 
+		MPI_Comm          comm )
+{
+#ifndef _RELEASE_
+	PushCallStack("mpi::Bcast");
+#endif
+	Int mpirank, mpisize;
+	MPI_Comm_rank( comm, &mpirank );
+	MPI_Comm_size( comm, &mpisize );
+
+	Int localSize = dataVec.size();
+	MPI_Bcast( &localSize, sizeof(localSize), MPI_BYTE, root , comm );
+
+  if(mpirank!=root){
+    dataVec.clear();
+    dataVec.resize(localSize);
+  }
+
+	MPI_Bcast( &dataVec[0], localSize*sizeof(T), MPI_BYTE, root , comm );
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+
+	return ;
+};		// -----  end of function Bcast  ----- 
+
+
 
 
 

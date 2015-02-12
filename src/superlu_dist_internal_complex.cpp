@@ -407,7 +407,7 @@ namespace PEXSI{
 #endif
         throw std::logic_error( "LUstruct is already allocated." );
       }
-      if( ptrData->options.RowPerm != NOROWPERM ){
+      if(ptrData->options.RowPerm != NOROWPERM ){
 #ifdef USE_ABORT
         abort();
 #endif

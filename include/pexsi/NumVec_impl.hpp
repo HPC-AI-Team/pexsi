@@ -55,7 +55,19 @@ namespace  PEXSI{
   // either own (owndata == true) or view (owndata == false) a piece of
   // data.
 
-  template <class F> NumVec<F>::NumVec	( Int m ) : m_(m), owndata_(true)
+  template <class F> NumVec<F>::NumVec	() : m_(0), owndata_(true), data_(NULL), bufsize_(0)
+  {
+#ifndef _RELEASE_
+    PushCallStack("NumVec<F>::NumVec");
+#endif  // ifndef _RELEASE_
+    m_ = 0;
+#ifndef _RELEASE_
+    PopCallStack();
+#endif  // ifndef _RELEASE_
+  } 		// -----  end of method NumVec<F>::NumVec  ----- 
+
+
+  template <class F> NumVec<F>::NumVec	( Int m ) : m_(m), owndata_(true), data_(NULL), bufsize_(0)
   {
 #ifndef _RELEASE_
     PushCallStack("NumVec<F>::NumVec");
@@ -68,7 +80,7 @@ namespace  PEXSI{
 #endif  // ifndef _RELEASE_
   } 		// -----  end of method NumVec<F>::NumVec  ----- 
 
-  template <class F> NumVec<F>::NumVec	( Int m, bool owndata, F* data ) : m_(m), owndata_(owndata)
+  template <class F> NumVec<F>::NumVec	( Int m, bool owndata, F* data ) : m_(m), owndata_(owndata), data_(NULL), bufsize_(0)
   {
 #ifndef _RELEASE_
     PushCallStack("NumVec<F>::NumVec");
@@ -81,7 +93,7 @@ namespace  PEXSI{
 #endif  // ifndef _RELEASE_
   } 		// -----  end of method NumVec<F>::NumVec  ----- 
 
-  template <class F> NumVec<F>::NumVec	( const NumVec<F>& C ) : m_(C.m_), owndata_(C.owndata_)
+  template <class F> NumVec<F>::NumVec	( const NumVec<F>& C ) : m_(C.m_), owndata_(C.owndata_), data_(NULL), bufsize_(0)
   {
 #ifndef _RELEASE_
     PushCallStack("NumVec<F>::NumVec");
@@ -219,14 +231,23 @@ namespace  PEXSI{
 
   template <class F> inline void NumVec<F>::allocate(F* data) {
     if(owndata_) {
-      if(m_>0) { data_ = new F[m_]; if( data_ == NULL ) {
+      if(m_>0) { 
+        data_ = new F[m_]; 
+        if( data_ == NULL ) {
 #ifdef USE_ABORT
-        abort();
+          abort();
 #endif
-        throw std::runtime_error("Cannot allocate memory.");}
-      } else data_=NULL;
-      if(data!=NULL){std::copy(data,data+m_,data_);}
-    } else {
+          throw std::runtime_error("Cannot allocate memory.");
+        }
+      } 
+      else{
+       data_=NULL;
+      }
+      if(data!=NULL){
+        std::copy(data,data+m_,data_);
+      }
+    } 
+    else {
       data_ = data;
     }
     bufsize_ = m_;

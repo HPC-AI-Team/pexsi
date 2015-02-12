@@ -79,7 +79,8 @@ namespace  PEXSI{
       /// @brief The actual storage space allocated                          
       Int bufsize_;
     public:
-      NumVec(Int m = 0);
+      NumVec();
+      NumVec(Int m);
       NumVec(Int m, bool owndata, F* data);
       NumVec(const NumVec& C);
       ~NumVec();
