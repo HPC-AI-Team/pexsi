@@ -140,6 +140,8 @@ namespace PEXSI{
   struct SuperNodeType{
     IntNumVec   perm;              
     IntNumVec   permInv;
+    IntNumVec   perm_r;              
+    IntNumVec   permInv_r;
     IntNumVec   superIdx;
     IntNumVec   superPtr;
     IntNumVec   etree;
@@ -170,7 +172,10 @@ namespace PEXSI{
     NumMat<T>    nzval;
 
     // Member functions;
-    LBlock() {blockIdx = -1; numRow = 0; numCol =0;}
+    LBlock() {
+      blockIdx = -1; numRow = 0; numCol =0; 
+      nzval.Resize(0,0); 
+    }
     ~LBlock() {}
     LBlock& operator = (const LBlock& LB) {
       blockIdx    = LB.blockIdx;

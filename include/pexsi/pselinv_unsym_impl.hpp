@@ -50,6 +50,10 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "pexsi/superlu_dist_interf.hpp"
 #include <algorithm>
 
+#include <mcheck.h>
+
+
+
 namespace PEXSI{
   template<typename T>
     PMatrixUnsym<T>::PMatrixUnsym ( 
@@ -184,6 +188,7 @@ namespace PEXSI{
       }
 
 #if ( _DEBUGlevel_ >= 1 )
+      statusOFS<<rowPtrL<<std::endl;
       statusOFS<<colPtrL<<std::endl;
       statusOFS<<colPtrU<<std::endl;
 #endif
@@ -210,6 +215,7 @@ namespace PEXSI{
         if(1 || (LB.numRow>0 && LB.numCol>0)){
           if( LB.numRow != SuperSize(snode.Index, this->super_) ){
 #ifdef USE_ABORT
+            statusOFS<<"The size of LB is not right. Something is seriously wrong."<<std::endl;
             abort();
 #endif
             throw std::logic_error( 
@@ -230,6 +236,7 @@ namespace PEXSI{
         if(1||(UB.numRow>0 && UB.numCol>0)){
           if( UB.numRow != SuperSize(snode.Index, this->super_) ){
 #ifdef USE_ABORT
+            statusOFS<<"The size of UB is not right. Something is seriously wrong."<<std::endl;
             abort();
 #endif
             throw std::logic_error( 
@@ -312,7 +319,7 @@ namespace PEXSI{
                     << "LB.rows    = " << LB.rows << std::endl
                     << "SinvB.rows = " << SinvB.rows << std::endl;
 #ifdef USE_ABORT
-            abort();
+                  abort();
 #endif
                   throw std::runtime_error( msg.str().c_str() );
                 }
@@ -340,13 +347,15 @@ namespace PEXSI{
           TIMER_STOP(PARSING_ROW_BLOCKIDX);
           if( isBlockFound == false ){
             std::ostringstream msg;
-            msg << "Block(" << isup << ", " << jsup
+            msg << "["<<snode.Index<<"] "<<"Block(" << isup << ", " << jsup
               << ") did not find a matching block in Sinv." << std::endl;
-
-#ifdef USE_ABORT
-            abort();
-#endif
-            throw std::runtime_error( msg.str().c_str() );
+//#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<msg.str();
+//#endif
+//#ifdef USE_ABORT
+//            abort();
+//#endif
+//            throw std::runtime_error( msg.str().c_str() );
           }
         } // if (isup, jsup) is in L
         else{
@@ -416,12 +425,13 @@ namespace PEXSI{
           TIMER_STOP(PARSING_COL_BLOCKIDX);
           if( isBlockFound == false ){
             std::ostringstream msg;
-            msg << "Block(" << isup << ", " << jsup
+            msg << "["<<snode.Index<<"] "<< "Block(" << isup << ", " << jsup
               << ") did not find a matching block in Sinv." << std::endl;
-#ifdef USE_ABORT
-            abort();
-#endif
-            throw std::runtime_error( msg.str().c_str() );
+                  statusOFS<<msg.str();
+//#ifdef USE_ABORT
+//            abort();
+//#endif
+//            throw std::runtime_error( msg.str().c_str() );
           }
         } // if (isup, jsup) is in U
 
@@ -2567,7 +2577,7 @@ struct CDBuffers{
             }
 
             if(snode.isReady==4){
-              readySupidx.push_back(supidx);
+              readySupidx.emplace_back(supidx);
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
 #endif
@@ -2650,7 +2660,7 @@ struct CDBuffers{
 #endif
                 //if we received both L and U, the supernode is ready
                 if(snode.isReady==4){
-                  readySupidx.push_back(supidx);
+                  readySupidx.emplace_back(supidx);
 #if defined(PROFILE)
                   if(end_SendULWaitContentFirst==0){
                     TIMER_STOP(WaitContent_LrowL_First);
@@ -2687,7 +2697,7 @@ struct CDBuffers{
 #endif
                 //if we received both L and U, the supernode is ready
                 if(snode.isReady==4){
-                  readySupidx.push_back(supidx);
+                  readySupidx.emplace_back(supidx);
 #if defined(PROFILE)
                   if(end_SendULWaitContentFirst==0){
                     TIMER_STOP(WaitContent_LrowL_First);
@@ -2718,6 +2728,14 @@ struct CDBuffers{
               std::vector<LBlock<T> > LrowRecv;
               std::vector<UBlock<T> > UcolRecv;
               std::vector<UBlock<T> > UrowRecv;
+      
+//TODO REMOVE THIS THIS IS ONLY FOR DEBUGING PURPOSE
+NumMat<T> * pAinvBuf = new NumMat<T>();
+NumMat<T> * pUBuf = new NumMat<T>();
+NumMat<T> * pLBuf = new NumMat<T>();
+NumMat<T> & AinvBuf = *pAinvBuf;
+NumMat<T> & UBuf = *pUBuf;
+NumMat<T> & LBuf = *pLBuf;
 
               UnpackData(snode, LcolRecv, LrowRecv, UcolRecv, UrowRecv);
 
@@ -2731,6 +2749,15 @@ struct CDBuffers{
               statusOFS << "["<<snode.Index<<"] " << "UBuf: ";
               statusOFS << UBuf << std::endl;
 #endif
+
+//TODO REMOVE THIS THIS IS ONLY FOR DEBUGING PURPOSE
+mcheck_check_all();
+              NumMat<T> LUpdateBuf;
+mcheck_check_all();
+              LUpdateBuf.Resize( AinvBuf.m(), 
+                            SuperSize( snode.Index, this->super_ ) );
+
+
 
               TIMER_START(Compute_Sinv_L_Resize);
               snode.LUpdateBuf.Resize( AinvBuf.m(), 
@@ -2762,6 +2789,13 @@ struct CDBuffers{
               statusOFS << "["<<snode.Index<<"] " << "snode.UUpdateBuf: ";
               statusOFS << snode.UUpdateBuf << std::endl;
 #endif
+
+//TODO REMOVE THIS THIS IS ONLY FOR DEBUGING PURPOSE
+delete pLBuf;
+delete pUBuf;
+delete pAinvBuf;
+
+
             } // if Gemm is to be done locally
 
 
@@ -2887,7 +2921,7 @@ struct CDBuffers{
             }
 
             if(snode.isReady==4){
-              readySupidx.push_back(supidx);
+              readySupidx.emplace_back(supidx);
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
 #endif
@@ -3106,7 +3140,7 @@ struct CDBuffers{
 
                     //if we received both L and U, the supernode is ready
                     if(snode.isReady==4){
-                      readySupidx.push_back(supidx);
+                      readySupidx.emplace_back(supidx);
                     }
 
                   }
@@ -3878,22 +3912,22 @@ struct CDBuffers{
       for (Int lidx=0; lidx<numSteps ; lidx++){
         Int stepSuper = superList[lidx].size(); 
 
-statusOFS<<"AT BEG BARRIER C "<<lidx<<endl;
-MPI_Barrier(this->grid_->colComm);
-statusOFS<<"AT BEG BARRIER R "<<lidx<<endl;
-MPI_Barrier(this->grid_->rowComm);
-statusOFS<<"AT BEG BARRIER "<<lidx<<endl;
-MPI_Barrier(this->grid_->comm);
+//statusOFS<<"AT BEG BARRIER C "<<lidx<<endl;
+//MPI_Barrier(this->grid_->colComm);
+//statusOFS<<"AT BEG BARRIER R "<<lidx<<endl;
+//MPI_Barrier(this->grid_->rowComm);
+//statusOFS<<"AT BEG BARRIER "<<lidx<<endl;
+//MPI_Barrier(this->grid_->comm);
 
 
         this->SelInvIntra_P2p(lidx);
 
-statusOFS<<"AT END BARRIER C "<<lidx<<endl;
-MPI_Barrier(this->grid_->colComm);
-statusOFS<<"AT END BARRIER R "<<lidx<<endl;
-MPI_Barrier(this->grid_->rowComm);
-statusOFS<<"AT END BARRIER "<<lidx<<endl;
-MPI_Barrier(this->grid_->comm);
+//statusOFS<<"AT END BARRIER C "<<lidx<<endl;
+//MPI_Barrier(this->grid_->colComm);
+//statusOFS<<"AT END BARRIER R "<<lidx<<endl;
+//MPI_Barrier(this->grid_->rowComm);
+//statusOFS<<"AT END BARRIER "<<lidx<<endl;
+//MPI_Barrier(this->grid_->comm);
 
 
         //if(lidx==1){ return;};
@@ -4218,6 +4252,7 @@ MPI_Barrier(this->grid_->comm);
       PushCallStack("PMatrix::ConstructCommunicationPattern_P2p");
 #endif
 
+      TIMER_START(ConstructCommunicationPattern);
 
       Int numSuper = this->NumSuper();
 
@@ -4273,7 +4308,7 @@ MPI_Barrier(this->grid_->comm);
           std::vector<Int> colBlockIdx;
           colBlockIdx.reserve(this->L(LBj(ksup, this->grid_)).size());
           for(auto it = this->L(LBj(ksup, this->grid_)).begin();it!=this->L(LBj(ksup, this->grid_)).end();++it){
-                colBlockIdx.push_back(it->blockIdx);
+                colBlockIdx.emplace_back(it->blockIdx);
           }
           TIMER_START(Allgatherv_Column_communication);
           if( this->grid_ -> mpisize != 1 )
@@ -4311,7 +4346,7 @@ MPI_Barrier(this->grid_->comm);
           std::vector<Int> rowBlockIdx;
           rowBlockIdx.reserve(this->U(LBi(ksup, this->grid_)).size());
           for(auto it = this->U(LBi(ksup, this->grid_)).begin();it!=this->U(LBi(ksup, this->grid_)).end();++it){
-                rowBlockIdx.push_back(it->blockIdx);
+                rowBlockIdx.emplace_back(it->blockIdx);
           }
 
           TIMER_START(Allgatherv_Row_communication);
@@ -4561,9 +4596,6 @@ MPI_Barrier(this->grid_->comm);
 #ifndef _RELEASE_
       PushCallStack( "Local column communication" );
 #endif
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "Local column communication" << std::endl;
-#endif
       // localColBlockRowIdx stores the nonzero block indices for each local block column.
       // The nonzero block indices including contribution from both L and U.
       // Dimension: numLocalBlockCol x numNonzeroBlock
@@ -4806,7 +4838,20 @@ MPI_Barrier(this->grid_->comm);
               ++firstLcol; 
             }
             else {
-              *result = *firstLcol; 
+              //compute set union between rows and cols
+              std::set<Int> uRowCol;
+              uRowCol.insert(&firstLcol->rows[0],
+                  &firstLcol->rows[0]+firstLcol->numRow);
+              uRowCol.insert(&firstUrow->cols[0],
+                  &firstUrow->cols[0]+firstUrow->numCol);
+
+              LBlock<T> LB;
+              LB.blockIdx = firstUrow->blockIdx;
+              LB.numRow = uRowCol.size();
+              LB.numCol = firstUrow->numRow;
+              LB.rows.Resize(uRowCol.size());
+              std::copy(uRowCol.begin(),uRowCol.end(),&LB.rows[0]);
+              *result = LB;
               ++firstUrow; 
               ++firstLcol; 
             }
@@ -5009,7 +5054,8 @@ MPI_Barrier(this->grid_->comm);
           }
 
 
-            UnionSend.swap(*pUnionRecv);
+            UnionSend.resize(pUnionRecv->size());
+            std::copy(pUnionRecv->begin(),pUnionRecv->end(),UnionSend.begin());
           }
           else{
             pUnionRecv = &UnionSend;
@@ -5063,6 +5109,7 @@ MPI_Barrier(this->grid_->comm);
                   UBlock<T> & UB = Urow[jb];
                   if(UB.blockIdx == Idx){
                     isFound = true;
+                    nextIdx = jb;
                     break;
                   }
                   if(UB.blockIdx > Idx){
@@ -5071,16 +5118,51 @@ MPI_Barrier(this->grid_->comm);
                   }
                 }
                 if(!isFound){
-                  //push_back
+                  //emplace_back
                   UBlock<T> UB;
                   UB.blockIdx = Idx;
                   UB.numRow = it->numCol;
                   UB.numCol = it->numRow;
                   UB.cols = it->rows;
-                  Urow.push_back(UB);
+                  Urow.emplace_back(UB);
                   UBlock<T> & UBl = Urow.back();
                   UBl.nzval.Resize(UB.numRow,UB.numCol);
                   SetValue(UBl.nzval,ZERO<T>());
+                }
+                else{
+                  //make sure blocks are the same size
+                  UBlock<T> & UB = Urow[nextIdx];
+                  assert(UB.numRow == it->numCol);
+                  if( UB.numCol != it->numRow ){
+                    NumMat<T> tmpNzval = UB.nzval;
+                    IntNumVec tmpCols = UB.cols;
+                  
+                    UB.numRow = it->numCol;
+                    UB.numCol = it->numRow;
+                    UB.cols = it->rows;
+                    UB.nzval.Resize(UB.numRow,UB.numCol);
+                    SetValue(UB.nzval,ZERO<T>());
+  
+                    //now put nzvals back in place
+                    Int jOldCols = 0;
+                    for(Int j = 0; j<UB.numCol; ++j){
+                      Int newCol = UB.cols[j];
+                      if(jOldCols<tmpCols.m()){
+                        Int oldCol = tmpCols[jOldCols];
+                        if(newCol == oldCol){
+                          T * nzcolPtr = tmpNzval.VecData(jOldCols);
+                          std::copy(nzcolPtr,nzcolPtr+UB.numRow,UB.nzval.VecData(j));
+                          jOldCols++;
+                        }
+                      }
+                      else{
+                        break;
+                      }
+                    }
+                    assert(jOldCols>=tmpCols.m());
+                
+                  }
+  
                 }
               }
             }
@@ -5125,6 +5207,7 @@ MPI_Barrier(this->grid_->comm);
                   LBlock<T> & LB = Lcol[ib];
                   if(LB.blockIdx == Idx){
                     isFound = true;
+                    nextIdx = ib;
                     break;
                   }
                   if(LB.blockIdx > Idx){
@@ -5133,11 +5216,47 @@ MPI_Barrier(this->grid_->comm);
                   }
                 }
                 if(!isFound){
-                  //push_back
-                  Lcol.push_back(*it);
+                  //emplace_back
+                  Lcol.emplace_back(*it);
                   LBlock<T> & LB = Lcol.back();
                   LB.nzval.Resize(LB.numRow,LB.numCol);
                   SetValue(LB.nzval,ZERO<T>());
+                }
+                else{
+                  //make sure blocks are the same size
+                  LBlock<T> & LB = Lcol[nextIdx];
+                  assert(LB.numCol == it->numCol);
+                  if( LB.numRow != it->numRow ){
+                    NumMat<T> tmpNzval = LB.nzval;
+                    IntNumVec tmpRows = LB.rows;
+                  
+                    LB.numRow = it->numRow;
+                    LB.numCol = it->numCol;
+                    LB.rows = it->rows;
+                    LB.nzval.Resize(LB.numRow,LB.numCol);
+                    SetValue(LB.nzval,ZERO<T>());
+  
+                    //now put nzvals back in place
+                    Int iOldRows = 0;
+                    for(Int i = 0; i<LB.numRow; ++i){
+                      Int newRow = LB.rows[i];
+                      if(iOldRows<tmpRows.m()){
+                        Int oldRow = tmpRows[iOldRows];
+                        if(newRow == oldRow){
+                          for(Int j = 0; j<LB.numCol; ++j){
+                            LB.nzval(i,j) = tmpNzval(iOldRows,j);
+                          }
+                          iOldRows++;
+                        }
+                      }
+                      else{
+                        break;
+                      }
+                    }
+                    assert(iOldRows>=tmpRows.m());
+                
+                  }
+  
                 }
               }
             }
@@ -5204,7 +5323,7 @@ MPI_Barrier(this->grid_->comm);
                 }
                 if(nextIdx<Urow.size()){
                   if(Urow[nextIdx].blockIdx == ksup){
-                    tlocalBlockRowIdx.push_back(jsup);
+                    tlocalBlockRowIdx.emplace_back(jsup);
                   }
                 }
                 //            }
@@ -5231,7 +5350,7 @@ MPI_Barrier(this->grid_->comm);
               LB.numCol = 0;
               LB.numRow = 0;
               LB.blockIdx = *it;
-              Union.push_back(LB);
+              Union.emplace_back(LB);
             }
 
             std::sort(Union.begin(),Union.end(),LBlockComparator<T>);
@@ -5278,7 +5397,7 @@ MPI_Barrier(this->grid_->comm);
               }
               if(nextIdx<Lcol.size()){
                 if(Lcol[nextIdx].blockIdx == ksup){
-                  tlocalBlockColIdx.push_back(jsup);
+                  tlocalBlockColIdx.emplace_back(jsup);
                 }
               }
             }
@@ -5309,7 +5428,7 @@ MPI_Barrier(this->grid_->comm);
             LB.numCol = 0;
             LB.numRow = 0;
             LB.blockIdx = *it;
-            Union.push_back(LB);
+            Union.emplace_back(LB);
           }
 
           std::sort(Union.begin(),Union.end(),LBlockComparator<T>);
@@ -5854,6 +5973,8 @@ MPI_Barrier(this->grid_->comm);
 //        }
 //            statusOFS<<std::endl;
 //            statusOFS<<std::endl;
+
+      TIMER_STOP(ConstructCommunicationPattern);
 
 #ifndef _RELEASE_
       PopCallStack();

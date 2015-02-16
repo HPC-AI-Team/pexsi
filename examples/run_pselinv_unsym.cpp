@@ -60,7 +60,7 @@ using namespace PEXSI;
 using namespace std;
 
 void Usage(){
-  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -r [nprow] -c [npcol] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag] -Real [isReal] -Symm [isSymm]" << std::endl;
+  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -r [nprow] -c [npcol] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag] -Real [isReal] -Symm [isSymm] -rowperm [rowperm]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -253,6 +253,21 @@ int main(int argc, char **argv)
           << std::endl << std::endl;
         ColPerm = "MMD_AT_PLUS_A";
       }
+
+
+
+      std::string RowPerm;
+      if( options.find("-rowperm") != options.end() ){ 
+        RowPerm = options["-rowperm"];
+      }
+      else{
+        statusOFS << "-rowperm option is not given. " 
+          << "Use NOROWPERM." 
+          << std::endl << std::endl;
+        RowPerm = "NOROWPERM";
+      }
+
+
 
       // *********************************************************************
       // Read input matrix
@@ -487,6 +502,7 @@ else
       GetTime( timeSta );
       SuperLUOptions luOpt;
       luOpt.ColPerm = ColPerm;
+      luOpt.RowPerm = RowPerm;
       luOpt.maxPipelineDepth = maxPipelineDepth;
       luOpt.numProcSymbFact = numProcSymbFact;
       luOpt.symmetric = isSym;

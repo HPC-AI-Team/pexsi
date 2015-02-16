@@ -177,7 +177,13 @@ namespace PEXSI{
 
     // The default value of ColPerm uses the default value from SuperLUOptions
     options.Fact              = DOFACT;
-    options.RowPerm           = NOROWPERM; // IMPORTANT for symmetric matrices
+    if(opt.RowPerm == "LargeDiag"){
+      options.RowPerm         = LargeDiag;
+    }
+    else{
+      options.RowPerm         = NOROWPERM;
+    }
+
     options.IterRefine        = NOREFINE;
     options.ParSymbFact       = NO;
     options.Equil             = NO; 
@@ -407,12 +413,12 @@ namespace PEXSI{
 #endif
         throw std::logic_error( "LUstruct is already allocated." );
       }
-      if(ptrData->options.RowPerm != NOROWPERM ){
-#ifdef USE_ABORT
-        abort();
-#endif
-        throw std::logic_error( "For PEXSI there must be no row permutation." );
-      }
+//      if(ptrData->options.RowPerm != NOROWPERM ){
+//#ifdef USE_ABORT
+//        abort();
+//#endif
+//        throw std::logic_error( "For PEXSI there must be no row permutation." );
+//      }
 
       SuperMatrix&  A = ptrData->A;
 
@@ -645,7 +651,7 @@ namespace PEXSI{
       Int nrhs = xGlobal.n();
 
       xLocal.Resize( numRowLocal, nrhs );
-      SetValue( xLocal, SCALAR_ZERO );
+      SetValue( xLocal, ZERO<Complex>() );
       for( Int j = 0; j < nrhs; j++ ){
         std::copy( xGlobal.VecData(j)+firstRow, xGlobal.VecData(j)+firstRow+numRowLocal,
             xLocal.VecData(j) );
@@ -689,7 +695,7 @@ namespace PEXSI{
 
 
     NumMat<Complex> tmpLocal(xGlobal.m(),nrhs);
-    SetValue( tmpLocal, SCALAR_ZERO );
+    SetValue( tmpLocal, ZERO<Complex>() );
     for( Int j = 0; j < nrhs; j++ ){
       std::copy( xLocal.VecData(j), xLocal.VecData(j)+numRowLocal, tmpLocal.VecData(j)+firstRow );
     }
@@ -780,7 +786,6 @@ namespace PEXSI{
 #endif
       const LocalLU_t* Llu   = ptrData->LUstruct.Llu;
       const GridType* grid   = PMloc.Grid();
-      gridinfo_t* lugrid = ptrData->grid;
       const SuperNodeType* super = PMloc.SuperNode();
       Int numSuper = PMloc.NumSuper();
 
@@ -852,9 +857,9 @@ namespace PEXSI{
             LBlock<Complex> & LB     = Lcol[sortedIndices[iblk]];
             LB.blockIdx    = blockIdx;
 
-            PMloc.ColBlockIdx(jb).push_back(LB.blockIdx);
+            PMloc.ColBlockIdx(jb).emplace_back(LB.blockIdx);
             Int LBi = LB.blockIdx / grid->numProcRow; 
-            PMloc.RowBlockIdx( LBi ).push_back( bnum );
+            PMloc.RowBlockIdx( LBi ).emplace_back( bnum );
 
 
             LB.numRow      = index[cnt++];
@@ -954,26 +959,52 @@ namespace PEXSI{
             UB.blockIdx = blockIdx;
 
 
-            PMloc.RowBlockIdx(ib).push_back(UB.blockIdx);
-            PMloc.ColBlockIdx( LBj ).push_back( bnum );
+            PMloc.RowBlockIdx(ib).emplace_back(UB.blockIdx);
+            PMloc.ColBlockIdx( LBj ).emplace_back( bnum );
 
 
 
             UB.numRow = super->superPtr[bnum+1] - super->superPtr[bnum];
             cnt += UB_DESCRIPTOR;
+//            for( Int j = FirstBlockCol( UB.blockIdx, super ); 
+//                j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
+//              Int firstRow = index[cnt++];
+//              if( firstRow != FirstBlockCol( bnum+1, super ) )
+//                cols.emplace_back(j);
+//            }
+//            // Rewind the index
+//            cnt -= super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx];
+
+            int pos = 0;
             for( Int j = FirstBlockCol( UB.blockIdx, super ); 
                 j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
               Int firstRow = index[cnt++];
               if( firstRow != FirstBlockCol( bnum+1, super ) )
-                cols.push_back(j);
+                pos++;
+            }
+            // Rewind the index
+            cnt -= super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx];
+            UB.cols.Resize(pos);
+            UB.numCol = pos;
+
+
+            pos = 0;
+            for( Int j = FirstBlockCol( UB.blockIdx, super ); 
+                j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
+              Int firstRow = index[cnt++];
+              if( firstRow != FirstBlockCol( bnum+1, super ) )
+                UB.cols[pos++] = j;
             }
             // Rewind the index
             cnt -= super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx];
 
-            UB.numCol = cols.size();
-            UB.cols   = IntNumVec( cols.size(), true, &cols[0] );
+
+//            UB.numCol = cols.size();
+//            UB.cols.Resize(cols.size());
+//            std::copy(&cols[0],&cols[0]+cols.size(),&UB.cols[0]);
+//            //UB.cols   = IntNumVec( cols.size(), true, &cols[0] );
             UB.nzval.Resize( UB.numRow, UB.numCol );
-            SetValue( UB.nzval, SCALAR_ZERO );
+            SetValue( UB.nzval, ZERO<Complex>() );
 
             Int cntcol = 0;
             for( Int j = 0; 
@@ -1054,6 +1085,21 @@ namespace PEXSI{
 
       std::sort( super.permInv.Data(), super.permInv.Data() + n,
           IndexComp<IntNumVec&>(super.perm) );
+
+      // Row Permutation vector
+      Int *perm_r = ptrData->ScalePermstruct.perm_r;
+      super.perm_r.Resize( n );
+      std::copy( perm_r, perm_r + n, super.perm_r.Data() );
+
+      // Construct the inverse row permutation vector
+      super.permInv_r.Resize( n );
+      for( Int i = 0; i < n; i++ ){
+        super.permInv_r(i) = i;
+      }
+
+      std::sort( super.permInv_r.Data(), super.permInv_r.Data() + n,
+          IndexComp<IntNumVec&>(super.perm_r) );
+
 
 
       // Supernodal information

@@ -973,7 +973,7 @@ namespace PEXSI{
 
         //Fill the worklist based on the level of each supernode
         for(Int i=rootParent-1; i>=0; i-- ){
-          WSet[level(i)].push_back(i);  
+          WSet[level(i)].emplace_back(i);  
         }
 
         //Constrain the size of each list to be min(MPI_MAX_COMM,options_->maxPipelineDepth)
@@ -993,8 +993,8 @@ namespace PEXSI{
       }
       else{
         for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
-          WSet.push_back(std::vector<Int>());
-          WSet.back().push_back(ksup);
+          WSet.emplace_back(std::vector<Int>());
+          WSet.back().emplace_back(ksup);
         }
 
       }
@@ -1269,7 +1269,7 @@ namespace PEXSI{
             }
 
             if(snode.isReady==2){
-              readySupidx.push_back(supidx);
+              readySupidx.emplace_back(supidx);
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS<<std::endl<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
 #endif
@@ -1342,7 +1342,7 @@ namespace PEXSI{
 #endif
                 //if we received both L and U, the supernode is ready
                 if(snode.isReady==2){
-                  readySupidx.push_back(supidx);
+                  readySupidx.emplace_back(supidx);
 
 #if defined(PROFILE)
                   if(end_SendULWaitContentFirst==0){
@@ -2552,7 +2552,24 @@ namespace PEXSI{
       Int numSuper = this->NumSuper(); 
 
       Int numCol = this->NumCol();
+      const IntNumVec& perm    = super_->perm;
       const IntNumVec& permInv = super_->permInv;
+
+      const IntNumVec * pPerm_r;
+      const IntNumVec * pPermInv_r;
+
+      if(options_->RowPerm=="NOROWPERM"){
+        pPerm_r = &super_->perm;
+        pPermInv_r = &super_->permInv;
+      }
+      else{
+        pPerm_r = &super_->perm_r;
+        pPermInv_r = &super_->permInv_r;
+      }
+
+      const IntNumVec& perm_r    = *pPerm_r;
+      const IntNumVec& permInv_r = *pPermInv_r;
+
 
       NumVec<T> diagLocal( numCol );
       SetValue( diagLocal, ZERO<T>() );
@@ -2560,14 +2577,14 @@ namespace PEXSI{
       diag.Resize( numCol );
       SetValue( diag, ZERO<T>() );
 
-
+      //TODO This doesnt work with row perm
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
         // I own the diagonal block	
         if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
             MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
           LBlock<T> & LB = this->L( LBj( ksup, grid_ ) )[0];
           for( Int i = 0; i < LB.numRow; i++ ){
-            diagLocal( permInv( LB.rows(i) ) ) = LB.nzval( i, i );
+            diagLocal( permInv_r( LB.rows(i) ) ) = LB.nzval( i, perm(permInv_r(i)) );
           }
         }
       }
@@ -2610,6 +2627,18 @@ namespace PEXSI{
 
       Int numSuper = this->NumSuper();
       const IntNumVec& permInv = super_->permInv;
+      const IntNumVec * pPermInv_r;
+
+      if(options_->RowPerm=="NOROWPERM"){
+        pPermInv_r = &super_->permInv;
+      }
+      else{
+        pPermInv_r = &super_->permInv_r;
+      }
+
+      const IntNumVec& permInv_r = *pPermInv_r;
+
+
 
       // The number of local columns in DistSparseMatrix format for the
       // processor with rank 0.  This number is the same for processors
@@ -2699,7 +2728,7 @@ namespace PEXSI{
               Int jcol = permInv( j + FirstBlockCol( ksup, super_ ) );
               Int dest = std::min( jcol / numColFirst, mpisize - 1 );
               for( Int i = 0; i < rows.m(); i++ ){
-                rowSend[displsSend[dest] + cntSize[dest]] = permInv( rows(i) );
+                rowSend[displsSend[dest] + cntSize[dest]] = permInv_r( rows(i) );
                 colSend[displsSend[dest] + cntSize[dest]] = jcol;
                 valSend[displsSend[dest] + cntSize[dest]] = nzval( i, j );
                 cntSize[dest]++;
@@ -2719,7 +2748,7 @@ namespace PEXSI{
               Int dest = std::min( jcol / numColFirst, mpisize - 1 );
               for( Int i = 0; i < Urow[jb].numRow; i++ ){
                 rowSend[displsSend[dest] + cntSize[dest]] = 
-                  permInv( i + FirstBlockCol( ksup, super_ ) );
+                  permInv_r( i + FirstBlockCol( ksup, super_ ) );
                 colSend[displsSend[dest] + cntSize[dest]] = jcol;
                 valSend[displsSend[dest] + cntSize[dest]] = nzval( i, j );
                 cntSize[dest]++;
@@ -2786,8 +2815,8 @@ namespace PEXSI{
         Int*     colRecvCur = &colRecv[displsRecv[ip]];
         T*  valRecvCur = &valRecv[displsRecv[ip]];
         for( Int i = 0; i < sizeRecv[ip]; i++ ){
-          rows[colRecvCur[i]-firstCol].push_back( rowRecvCur[i] );
-          vals[colRecvCur[i]-firstCol].push_back( valRecvCur[i] );
+          rows[colRecvCur[i]-firstCol].emplace_back( rowRecvCur[i] );
+          vals[colRecvCur[i]-firstCol].emplace_back( valRecvCur[i] );
         } // for (i)
       } // for (ip)
 
@@ -2883,6 +2912,24 @@ namespace PEXSI{
       Int numSuper = this->NumSuper();
       const IntNumVec& permInv = super_->permInv;
 
+
+
+      const IntNumVec * pPermInv_r;
+
+      if(options_->RowPerm=="NOROWPERM"){
+        pPermInv_r = &super_->permInv;
+      }
+      else{
+        pPermInv_r = &super_->permInv_r;
+      }
+
+      const IntNumVec& permInv_r = *pPermInv_r;
+
+
+
+
+
+
       // The number of local columns in DistSparseMatrix format for the
       // processor with rank 0.  This number is the same for processors
       // with rank ranging from 0 to mpisize - 2, and may or may not differ
@@ -2972,7 +3019,7 @@ namespace PEXSI{
               Int jcol = permInv( j + FirstBlockCol( ksup, super_ ) );
               Int dest = std::min( jcol / numColFirst, mpisize - 1 );
               for( Int i = 0; i < rows.m(); i++ ){
-                rowSend[displsSend[dest] + cntSize[dest]] = permInv( rows(i) );
+                rowSend[displsSend[dest] + cntSize[dest]] = permInv_r( rows(i) );
                 colSend[displsSend[dest] + cntSize[dest]] = jcol;
                 valSend[displsSend[dest] + cntSize[dest]] = nzval( i, j );
                 cntSize[dest]++;
@@ -2993,7 +3040,7 @@ namespace PEXSI{
               Int dest = std::min( jcol / numColFirst, mpisize - 1 );
               for( Int i = 0; i < Urow[jb].numRow; i++ ){
                 rowSend[displsSend[dest] + cntSize[dest]] = 
-                  permInv( i + FirstBlockCol( ksup, super_ ) );
+                  permInv_r( i + FirstBlockCol( ksup, super_ ) );
                 colSend[displsSend[dest] + cntSize[dest]] = jcol;
                 valSend[displsSend[dest] + cntSize[dest]] = nzval( i, j );
                 cntSize[dest]++;
@@ -3060,8 +3107,8 @@ namespace PEXSI{
         Int*     colRecvCur = &colRecv[displsRecv[ip]];
         T*  valRecvCur = &valRecv[displsRecv[ip]];
         for( Int i = 0; i < sizeRecv[ip]; i++ ){
-          rows[colRecvCur[i]-firstCol].push_back( rowRecvCur[i] );
-          vals[colRecvCur[i]-firstCol].push_back( valRecvCur[i] );
+          rows[colRecvCur[i]-firstCol].emplace_back( rowRecvCur[i] );
+          vals[colRecvCur[i]-firstCol].emplace_back( valRecvCur[i] );
         } // for (i)
       } // for (ip)
 
@@ -3185,6 +3232,20 @@ namespace PEXSI{
       const IntNumVec& perm    = super_->perm;
       const IntNumVec& permInv = super_->permInv;
 
+      const IntNumVec * pPerm_r;
+      const IntNumVec * pPermInv_r;
+
+      if(options_->RowPerm=="NOROWPERM"){
+        pPerm_r = &super_->perm;
+        pPermInv_r = &super_->permInv;
+      }
+      else{
+        pPerm_r = &super_->perm_r;
+        pPermInv_r = &super_->permInv_r;
+      }
+
+      const IntNumVec& perm_r    = *pPerm_r;
+      const IntNumVec& permInv_r = *pPermInv_r;
 
       // Count the sizes from the A matrix first
       Int numColFirst = this->NumCol() / mpisize;
@@ -3203,7 +3264,7 @@ namespace PEXSI{
         Int blockColIdx = BlockIdx( col, super_ );
         Int procCol     = PCOL( blockColIdx, grid_ );
         for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int row         = perm( *(rowPtr++) - 1 );
+          Int row         = perm_r( *(rowPtr++) - 1 );
           Int blockRowIdx = BlockIdx( row, super_ );
           Int procRow     = PROW( blockRowIdx, grid_ );
           Int dest = PNUM( procRow, procCol, grid_ );
@@ -3272,7 +3333,7 @@ namespace PEXSI{
         Int blockColIdx = BlockIdx( col, super_ );
         Int procCol     = PCOL( blockColIdx, grid_ );
         for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int row         = perm( *(rowPtr++) - 1 );
+          Int row         = perm_r( *(rowPtr++) - 1 );
           Int blockRowIdx = BlockIdx( row, super_ );
           Int procRow     = PROW( blockRowIdx, grid_ );
           Int dest = PNUM( procRow, procCol, grid_ );
@@ -3423,7 +3484,7 @@ namespace PEXSI{
         Int blockColIdx = BlockIdx( col, super_ );
         Int procCol     = PCOL( blockColIdx, grid_ );
         for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int row         = perm( *(rowPtr++) - 1 );
+          Int row         = perm_r( *(rowPtr++) - 1 );
           Int blockRowIdx = BlockIdx( row, super_ );
           Int procRow     = PROW( blockRowIdx, grid_ );
           Int dest = PNUM( procRow, procCol, grid_ );

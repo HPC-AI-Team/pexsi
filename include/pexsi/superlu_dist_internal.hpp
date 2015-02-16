@@ -86,13 +86,14 @@ namespace PEXSI{
     ///
     std::string      ColPerm;
 
+    std::string      RowPerm;
 
     /// @brief Option to specify if matrix is symmetric or not.
     Int              symmetric;
 
 
     // Member functions to setup the default value
-    SuperLUOptions(): numProcSymbFact(0), maxPipelineDepth(-1), ColPerm("MMD_AT_PLUS_A"), symmetric(1) {}
+    SuperLUOptions(): numProcSymbFact(0), maxPipelineDepth(-1), ColPerm("MMD_AT_PLUS_A"), symmetric(1), RowPerm("NOROWPERM") {}
   };
 
 
