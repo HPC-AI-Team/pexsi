@@ -20,5 +20,5 @@ TODO List   {#pageTODO}
 - x Update software dependence in the config files
 - (Mathias) More "standard" config/make/make install process --> cmake option?
 - (Lin) MultiSolve routine does not work for complex arithmetic.
-- Equibration option should be turn on for symm / asymm matrix? asymm for sure.
+- (Mathias) Equibration option should be turn on for symm / asymm matrix? asymm for sure. CAN'T BE USED
 - ROWPERM option for asymm matrices -- example for a ill-conditioned matrix: test the efficiency v.s. accuracy

@@ -48,6 +48,11 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 namespace PEXSI{
 
+
+
+
+
+
   inline SuperLUGrid<Real>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
   {
 #ifndef _RELEASE_
@@ -87,6 +92,68 @@ namespace PEXSI{
 #endif
     return ;
   } 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
+
+
+
+
+
+
+  inline SuperLUGrid<Real>::SuperLUGrid(const SuperLUGrid<Real> & g)
+  {
+#ifndef _RELEASE_
+    PushCallStack("SuperLUGrid::SuperLUGrid");
+#endif
+
+    if(g.ptrData == NULL){
+      throw std::runtime_error( "Original SuperLUGrid not allocated." );
+    }
+
+    ptrData = new RealGridData(*g.ptrData);
+    if( ptrData == NULL ){
+#ifdef USE_ABORT
+      abort();
+#endif
+      throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+    }
+
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
+
+    return ;
+  } 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+
+  inline SuperLUGrid<Real> & SuperLUGrid<Real>::operator = (const SuperLUGrid<Real> & g){
+
+    if(&g!=this){
+      if(this->ptrData!=NULL){
+        ptrData->GridExit();
+        delete ptrData;
+      }
+
+    if(g.ptrData == NULL){
+      throw std::runtime_error( "Original SuperLUGrid not allocated." );
+    }
+    else{
+        ptrData = new RealGridData(*g.ptrData);
+        if( ptrData == NULL ){
+          throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+        }
+      }
+    }
+
+    return *this;
+  }
+
+
+
+
+
+
+
+
+
+
 
   inline SuperLUGrid<Complex>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
   {
@@ -128,6 +195,64 @@ namespace PEXSI{
 #endif
     return ;
   } 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
+
+
+  inline SuperLUGrid<Complex>::SuperLUGrid(const SuperLUGrid<Complex> & g)
+  {
+#ifndef _RELEASE_
+    PushCallStack("SuperLUGrid::SuperLUGrid");
+#endif
+
+    if(g.ptrData == NULL){
+      throw std::runtime_error( "Original SuperLUGrid not allocated." );
+    }
+
+    ptrData = new ComplexGridData(*g.ptrData);
+    if( ptrData == NULL ){
+#ifdef USE_ABORT
+      abort();
+#endif
+      throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+    }
+
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
+
+    return ;
+  } 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+
+  inline SuperLUGrid<Complex> & SuperLUGrid<Complex>::operator = (const SuperLUGrid<Complex> & g){
+
+    if(&g!=this){
+      if(this->ptrData!=NULL){
+        ptrData->GridExit();
+        delete ptrData;
+      }
+
+    if(g.ptrData == NULL){
+      throw std::runtime_error( "Original SuperLUGrid not allocated." );
+    }
+    else{
+        ptrData = new ComplexGridData(*g.ptrData);
+        if( ptrData == NULL ){
+          throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+        }
+      }
+    }
+
+    return *this;
+  }
+
+
+
+
+
+
+
+
+
+
 
 }
 

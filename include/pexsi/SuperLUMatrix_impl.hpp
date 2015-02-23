@@ -83,6 +83,46 @@ inline SuperLUMatrix<Real>::~SuperLUMatrix	(  )
 #endif
 } 		// -----  end of method SuperLUMatrix<Real>::~SuperLUMatrix  ----- 
 
+
+
+
+inline SuperLUMatrix<Real>::SuperLUMatrix(const SuperLUMatrix<Real> & g){
+#ifndef _RELEASE_
+	PushCallStack("SuperLUMatrix<Real>::SuperLUMatrix");
+#endif
+    if(g.ptrData==NULL){
+      ptrData=NULL;
+    }
+    else{
+      ptrData = new RealSuperLUData(*g.ptrData);
+    }
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+}
+
+inline SuperLUMatrix<Real> & SuperLUMatrix<Real>::operator = (const SuperLUMatrix<Real> & g){
+    
+  if(this!=&g){
+    if(ptrData!=NULL){
+      delete ptrData;
+    }
+
+    if(g.ptrData==NULL){
+      ptrData=NULL;
+    }
+    else{
+      ptrData = new RealSuperLUData(*g.ptrData);
+    }
+  }
+    return *this;
+}
+
+
+
+
+
+
 inline void 
 SuperLUMatrix<Real>::Setup ( const SuperLUGrid<Real>& g, const SuperLUOptions& opt )
 {
@@ -341,12 +381,50 @@ inline SuperLUMatrix<Complex>::~SuperLUMatrix	(  )
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix<Complex>::~SuperLUMatrix");
 #endif
-  if( ptrData != NULL )
+  if( ptrData != NULL ){
     delete ptrData;
+  }
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
 } 		// -----  end of method SuperLUMatrix<Complex>::~SuperLUMatrix  ----- 
+
+
+inline SuperLUMatrix<Complex>::SuperLUMatrix(const SuperLUMatrix<Complex> & g){
+#ifndef _RELEASE_
+	PushCallStack("SuperLUMatrix<Complex>::SuperLUMatrix");
+#endif
+    if(g.ptrData==NULL){
+      ptrData=NULL;
+    }
+    else{
+      ptrData = new ComplexSuperLUData(*g.ptrData);
+    }
+#ifndef _RELEASE_
+	PopCallStack();
+#endif
+}
+
+inline SuperLUMatrix<Complex> & SuperLUMatrix<Complex>::operator = (const SuperLUMatrix<Complex> & g){
+    
+  std::cout<<"ENTERING OPERATOR = "<<this<<std::endl;
+  if(this!=&g){
+    if(ptrData!=NULL){
+      delete ptrData;
+    }
+
+    if(g.ptrData==NULL){
+      ptrData=NULL;
+    }
+    else{
+      ptrData = new ComplexSuperLUData(*g.ptrData);
+    }
+  }
+    return *this;
+}
+
+
+
 
 
 inline void

@@ -654,7 +654,7 @@ namespace PEXSI{
 
       PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
-      virtual ~PMatrix() {}
+      //virtual ~PMatrix() { statusOFS<<"DESTRUCTOR CALLED"<<std::endl;    }
 
       void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 

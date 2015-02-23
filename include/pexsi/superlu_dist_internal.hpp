@@ -109,6 +109,9 @@ class RealSuperLUData{
   public:
     RealSuperLUData( const SuperLUGrid<Real>& g, const SuperLUOptions& opt );
     ~RealSuperLUData();
+    RealSuperLUData(const RealSuperLUData & g);
+    RealSuperLUData & operator = (const RealSuperLUData & g);
+    RealSuperLUData & operator = (RealSuperLUData & g);
   
 		Int m() const;
 		Int n() const;
@@ -134,6 +137,9 @@ class ComplexSuperLUData{
   public:
     ComplexSuperLUData( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt );
     ~ComplexSuperLUData();
+    ComplexSuperLUData(const ComplexSuperLUData & g);
+    ComplexSuperLUData & operator = (const ComplexSuperLUData & g);
+    ComplexSuperLUData & operator = (ComplexSuperLUData & g);
 
 		Int m() const;
 		Int n() const;

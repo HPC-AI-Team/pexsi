@@ -135,6 +135,19 @@ int main(int argc, char **argv)
       ss << "logTest" << mpirank;
       statusOFS.open( ss.str().c_str() );
 
+#ifdef GEMM_PROFILE
+      stringstream  ss2;
+      ss2 << "gemm_stat" << mpirank;
+      statOFS.open( ss2.str().c_str());
+#endif
+
+#ifdef COMM_PROFILE
+      stringstream  ss3;
+      ss3 << "comm_stat" << mpirank;
+      commOFS.open( ss3.str().c_str());
+#endif
+
+
       //if( mpisize != nprow * npcol || nprow != npcol ){
       //  throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
       //}
@@ -623,6 +636,15 @@ else
             GridType * pGrid = new GridType(world_comm,nprow,npcol);
             PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
 
+//            {
+//              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
+//              *pLuMat2 = *pLuMat;
+//              //PMatrix<MYSCALAR> Mat = PMatrix<MYSCALAR>(pGrid,pSuper, &luOpt);
+//              //Mat = *pMat2; //should call the copy constructor and the destructor
+//              MPI_Barrier(world_comm);
+//              exit(0);
+//            }
+
             pLuMat->LUstructToPMatrix( *pMat );
             GetTime( timeEnd );
 
@@ -795,6 +817,15 @@ else
       delete pLuGrid;
 
       statusOFS.close();
+#ifdef GEMM_PROFILE
+      statOFS.close();
+#endif
+
+#ifdef COMM_PROFILE
+      commOFS.close();
+#endif
+
+
     }
   }
   catch( std::exception& e )

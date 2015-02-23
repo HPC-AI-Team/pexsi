@@ -67,7 +67,7 @@ namespace PEXSI{
 
   class ComplexGridInfo{
     friend class ComplexGridData;
-    friend class ComplexSuperLUData;
+    friend class ComplexSuperLUData_internal;
     protected:
     gridinfo_t          grid;
   };
@@ -80,6 +80,26 @@ namespace PEXSI{
     delete info_;
   }
 
+
+
+  ComplexGridData::ComplexGridData(const ComplexGridData & g)
+  {
+    this->info_ = new ComplexGridInfo;
+    this->info_->grid = g.info_->grid;
+  }
+
+  ComplexGridData & ComplexGridData::operator = (const ComplexGridData & g)
+  {
+    //if this is the same object, skip the thing
+    if(&g != this){
+      delete info_;
+      this->info_ = new ComplexGridInfo;
+      this->info_->grid = g.info_->grid;
+    }
+
+    return *this;
+  }
+
   void ComplexGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
     superlu_gridinit(comm, nprow, npcol, &info_->grid);
   }
@@ -89,8 +109,6 @@ namespace PEXSI{
   }
 
 }
-
-
 
 
 
@@ -148,31 +166,23 @@ namespace PEXSI{
 
     Int maxDomains;
 
+    ComplexSuperLUData_internal(const SuperLUGrid<Complex>& g, const SuperLUOptions& opt);
+    ~ComplexSuperLUData_internal();
+    ComplexSuperLUData_internal(const ComplexSuperLUData_internal& g);
+    ComplexSuperLUData_internal & operator = (const ComplexSuperLUData_internal& g);
+
+    void DestroyAOnly();
+
   };
 
+ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Complex>& g, const SuperLUOptions& opt){
 
-
-  ComplexSuperLUData::ComplexSuperLUData( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt ){
-#ifndef _RELEASE_
-    PushCallStack("ComplexSuperLUData::ComplexSuperLUData");
-#endif
-
-    ptrData = new ComplexSuperLUData_internal();
-    if( ptrData == NULL ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
-    }
-
-    ptrData->isSuperMatrixAllocated     = false;
-    ptrData->isScalePermstructAllocated = false;
-    ptrData->isLUstructAllocated        = false;
-    ptrData->numProcSymbFact            = opt.numProcSymbFact;
+    isSuperMatrixAllocated     = false;
+    isScalePermstructAllocated = false;
+    isLUstructAllocated        = false;
+    numProcSymbFact            = opt.numProcSymbFact;
 
     // Options
-    superlu_options_t& options = ptrData->options;
-
     set_default_options_dist(&options);
 
     // The default value of ColPerm uses the default value from SuperLUOptions
@@ -220,15 +230,98 @@ namespace PEXSI{
     }
 
     // Setup grids
-    ptrData->grid = &(g.ptrData->info_->grid);
+    grid = &(g.ptrData->info_->grid);
+}
 
+ComplexSuperLUData_internal::~ComplexSuperLUData_internal(){
+    if( isLUstructAllocated ){
+      Destroy_LU(A.ncol, grid, &LUstruct);
+      LUstructFree(&LUstruct); 
+    }
+    if( isScalePermstructAllocated ){
+      ScalePermstructFree(&ScalePermstruct);
+    }
+    if( options.SolveInitialized ){
+      // TODO real arithmetic
+      zSolveFinalize(&options, &SOLVEstruct);
+    }
+    if( isSuperMatrixAllocated ){
+      DestroyAOnly();
+    }
+}
+
+
+ComplexSuperLUData_internal::ComplexSuperLUData_internal(const ComplexSuperLUData_internal& g){
+    memcpy(this,&g,sizeof(ComplexSuperLUData_internal));
+}
+
+ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const ComplexSuperLUData_internal& g){
+  if(this!=&g){
+    memcpy(this,&g,sizeof(ComplexSuperLUData_internal));
+  }
+
+  return *this;
+}
+
+
+
+
+  void ComplexSuperLUData_internal::DestroyAOnly	(  )
+    {
+#ifndef _RELEASE_
+      PushCallStack("ComplexSuperLUData_internal::DestroyAOnly");
+#endif
+      if( isSuperMatrixAllocated == false ){
+#ifdef USE_ABORT
+        abort();
+#endif
+        throw std::logic_error( "SuperMatrix has not been allocated." );
+      }
+      switch ( A.Stype ){
+        case SLU_NC:
+          Destroy_CompCol_Matrix_dist(&A);
+          break;
+        case SLU_NR_loc:
+          Destroy_CompRowLoc_Matrix_dist(&A);
+          break;
+        default:
+          std::ostringstream msg;
+          msg << "Type " << SLU_NR_loc << " is to be destroyed" << std::endl
+            << "This is an unsupported SuperMatrix format to be destroyed." << std::endl;
+#ifdef USE_ABORT
+          abort();
+#endif
+          throw std::runtime_error( msg.str().c_str() );
+      }
+      isSuperMatrixAllocated = false;
+#ifndef _RELEASE_
+      PopCallStack();
+#endif
+
+      return ;
+    } 		// -----  end of method ComplexSuperLUData_internal::DestroyAOnly  ----- 
+
+
+
+
+
+
+  ComplexSuperLUData::ComplexSuperLUData( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt ){
+#ifndef _RELEASE_
+    PushCallStack("ComplexSuperLUData::ComplexSuperLUData");
+#endif
+
+    ptrData = new ComplexSuperLUData_internal(g,opt);
+    if( ptrData == NULL ){
+#ifdef USE_ABORT
+      abort();
+#endif
+      throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
+    }
 
 #ifndef _RELEASE_
     PopCallStack();
 #endif
-
-
-
   }
 
 
@@ -236,28 +329,62 @@ namespace PEXSI{
 #ifndef _RELEASE_
     PushCallStack("ComplexSuperLUData::~ComplexSuperLUData");
 #endif
-    SuperMatrix& A = ptrData->A;
-    if( ptrData->isLUstructAllocated ){
-      Destroy_LU(A.ncol, ptrData->grid, &ptrData->LUstruct);
-      LUstructFree(&ptrData->LUstruct); 
-    }
-    if( ptrData->isScalePermstructAllocated ){
-      ScalePermstructFree(&ptrData->ScalePermstruct);
-    }
-    if( ptrData->options.SolveInitialized ){
-      // TODO real arithmetic
-      zSolveFinalize(&ptrData->options, &ptrData->SOLVEstruct);
-    }
-    if( ptrData->isSuperMatrixAllocated ){
-      this->DestroyAOnly();
-    }
-
     delete ptrData;
 
 #ifndef _RELEASE_
     PopCallStack();
 #endif
   }
+
+
+
+  ComplexSuperLUData::ComplexSuperLUData(const ComplexSuperLUData & g)
+  {
+#ifndef _RELEASE_
+    PushCallStack("ComplexSuperLUData::ComplexSuperLUData");
+#endif
+    
+    if( g.ptrData == NULL ){
+      throw std::runtime_error( "Copied SuperLUMatrix is not allocated." );
+    }
+
+    ptrData = new ComplexSuperLUData_internal(*g.ptrData);
+
+    if( ptrData == NULL ){
+#ifdef USE_ABORT
+      abort();
+#endif
+      throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
+    }
+
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
+  }
+
+  ComplexSuperLUData & ComplexSuperLUData::operator = (const ComplexSuperLUData & g)
+  {
+    //if this is the same object, skip the thing
+    if(&g == this){
+      return *this;
+    }
+
+    if( g.ptrData == NULL ){
+      throw std::runtime_error( "Copied SuperLUMatrix is not allocated." );
+    }
+    
+    delete ptrData;
+    ptrData = new ComplexSuperLUData_internal(*g.ptrData);
+    if( ptrData == NULL ){
+#ifdef USE_ABORT
+      abort();
+#endif
+      throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
+    }
+
+    return *this;
+  }
+
 
 
   Int ComplexSuperLUData::m (  ) const	
@@ -365,33 +492,10 @@ namespace PEXSI{
 #ifndef _RELEASE_
       PushCallStack("ComplexSuperLUData::DestroyAOnly");
 #endif
-      if( ptrData->isSuperMatrixAllocated == false ){
-#ifdef USE_ABORT
-        abort();
-#endif
-        throw std::logic_error( "SuperMatrix has not been allocated." );
-      }
-      switch ( ptrData->A.Stype ){
-        case SLU_NC:
-          Destroy_CompCol_Matrix_dist(&ptrData->A);
-          break;
-        case SLU_NR_loc:
-          Destroy_CompRowLoc_Matrix_dist(&ptrData->A);
-          break;
-        default:
-          std::ostringstream msg;
-          msg << "Type " << SLU_NR_loc << " is to be destroyed" << std::endl
-            << "This is an unsupported SuperMatrix format to be destroyed." << std::endl;
-#ifdef USE_ABORT
-          abort();
-#endif
-          throw std::runtime_error( msg.str().c_str() );
-      }
-      ptrData->isSuperMatrixAllocated = false;
+      ptrData->DestroyAOnly();
 #ifndef _RELEASE_
       PopCallStack();
 #endif
-
       return ;
     } 		// -----  end of method ComplexSuperLUData::DestroyAOnly  ----- 
 
@@ -857,9 +961,9 @@ namespace PEXSI{
             LBlock<Complex> & LB     = Lcol[sortedIndices[iblk]];
             LB.blockIdx    = blockIdx;
 
-            PMloc.ColBlockIdx(jb).emplace_back(LB.blockIdx);
+            PMloc.ColBlockIdx(jb).push_back(LB.blockIdx);
             Int LBi = LB.blockIdx / grid->numProcRow; 
-            PMloc.RowBlockIdx( LBi ).emplace_back( bnum );
+            PMloc.RowBlockIdx( LBi ).push_back( bnum );
 
 
             LB.numRow      = index[cnt++];
@@ -959,8 +1063,8 @@ namespace PEXSI{
             UB.blockIdx = blockIdx;
 
 
-            PMloc.RowBlockIdx(ib).emplace_back(UB.blockIdx);
-            PMloc.ColBlockIdx( LBj ).emplace_back( bnum );
+            PMloc.RowBlockIdx(ib).push_back(UB.blockIdx);
+            PMloc.ColBlockIdx( LBj ).push_back( bnum );
 
 
 
@@ -970,7 +1074,7 @@ namespace PEXSI{
 //                j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
 //              Int firstRow = index[cnt++];
 //              if( firstRow != FirstBlockCol( bnum+1, super ) )
-//                cols.emplace_back(j);
+//                cols.push_back(j);
 //            }
 //            // Rewind the index
 //            cnt -= super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx];

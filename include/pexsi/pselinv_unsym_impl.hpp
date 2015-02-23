@@ -2577,7 +2577,7 @@ struct CDBuffers{
             }
 
             if(snode.isReady==4){
-              readySupidx.emplace_back(supidx);
+              readySupidx.push_back(supidx);
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
 #endif
@@ -2660,7 +2660,7 @@ struct CDBuffers{
 #endif
                 //if we received both L and U, the supernode is ready
                 if(snode.isReady==4){
-                  readySupidx.emplace_back(supidx);
+                  readySupidx.push_back(supidx);
 #if defined(PROFILE)
                   if(end_SendULWaitContentFirst==0){
                     TIMER_STOP(WaitContent_LrowL_First);
@@ -2697,7 +2697,7 @@ struct CDBuffers{
 #endif
                 //if we received both L and U, the supernode is ready
                 if(snode.isReady==4){
-                  readySupidx.emplace_back(supidx);
+                  readySupidx.push_back(supidx);
 #if defined(PROFILE)
                   if(end_SendULWaitContentFirst==0){
                     TIMER_STOP(WaitContent_LrowL_First);
@@ -2921,7 +2921,7 @@ delete pAinvBuf;
             }
 
             if(snode.isReady==4){
-              readySupidx.emplace_back(supidx);
+              readySupidx.push_back(supidx);
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
 #endif
@@ -3140,7 +3140,7 @@ delete pAinvBuf;
 
                     //if we received both L and U, the supernode is ready
                     if(snode.isReady==4){
-                      readySupidx.emplace_back(supidx);
+                      readySupidx.push_back(supidx);
                     }
 
                   }
@@ -4308,7 +4308,7 @@ delete pAinvBuf;
           std::vector<Int> colBlockIdx;
           colBlockIdx.reserve(this->L(LBj(ksup, this->grid_)).size());
           for(auto it = this->L(LBj(ksup, this->grid_)).begin();it!=this->L(LBj(ksup, this->grid_)).end();++it){
-                colBlockIdx.emplace_back(it->blockIdx);
+                colBlockIdx.push_back(it->blockIdx);
           }
           TIMER_START(Allgatherv_Column_communication);
           if( this->grid_ -> mpisize != 1 )
@@ -4346,7 +4346,7 @@ delete pAinvBuf;
           std::vector<Int> rowBlockIdx;
           rowBlockIdx.reserve(this->U(LBi(ksup, this->grid_)).size());
           for(auto it = this->U(LBi(ksup, this->grid_)).begin();it!=this->U(LBi(ksup, this->grid_)).end();++it){
-                rowBlockIdx.emplace_back(it->blockIdx);
+                rowBlockIdx.push_back(it->blockIdx);
           }
 
           TIMER_START(Allgatherv_Row_communication);
@@ -5118,13 +5118,13 @@ delete pAinvBuf;
                   }
                 }
                 if(!isFound){
-                  //emplace_back
+                  //push_back
                   UBlock<T> UB;
                   UB.blockIdx = Idx;
                   UB.numRow = it->numCol;
                   UB.numCol = it->numRow;
                   UB.cols = it->rows;
-                  Urow.emplace_back(UB);
+                  Urow.push_back(UB);
                   UBlock<T> & UBl = Urow.back();
                   UBl.nzval.Resize(UB.numRow,UB.numCol);
                   SetValue(UBl.nzval,ZERO<T>());
@@ -5216,8 +5216,8 @@ delete pAinvBuf;
                   }
                 }
                 if(!isFound){
-                  //emplace_back
-                  Lcol.emplace_back(*it);
+                  //push_back
+                  Lcol.push_back(*it);
                   LBlock<T> & LB = Lcol.back();
                   LB.nzval.Resize(LB.numRow,LB.numCol);
                   SetValue(LB.nzval,ZERO<T>());
@@ -5323,7 +5323,7 @@ delete pAinvBuf;
                 }
                 if(nextIdx<Urow.size()){
                   if(Urow[nextIdx].blockIdx == ksup){
-                    tlocalBlockRowIdx.emplace_back(jsup);
+                    tlocalBlockRowIdx.push_back(jsup);
                   }
                 }
                 //            }
@@ -5350,7 +5350,7 @@ delete pAinvBuf;
               LB.numCol = 0;
               LB.numRow = 0;
               LB.blockIdx = *it;
-              Union.emplace_back(LB);
+              Union.push_back(LB);
             }
 
             std::sort(Union.begin(),Union.end(),LBlockComparator<T>);
@@ -5397,7 +5397,7 @@ delete pAinvBuf;
               }
               if(nextIdx<Lcol.size()){
                 if(Lcol[nextIdx].blockIdx == ksup){
-                  tlocalBlockColIdx.emplace_back(jsup);
+                  tlocalBlockColIdx.push_back(jsup);
                 }
               }
             }
@@ -5428,7 +5428,7 @@ delete pAinvBuf;
             LB.numCol = 0;
             LB.numRow = 0;
             LB.blockIdx = *it;
-            Union.emplace_back(LB);
+            Union.push_back(LB);
           }
 
           std::sort(Union.begin(),Union.end(),LBlockComparator<T>);

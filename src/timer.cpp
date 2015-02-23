@@ -155,7 +155,7 @@ CTF_timer::CTF_timer(const char * name){
     original = 1;
     index = 0;
     excl_time = 0.0;
-    function_timers.emplace_back(function_timer(name, MPI_Wtime(), 0.0)); 
+    function_timers.push_back(function_timer(name, MPI_Wtime(), 0.0)); 
   } else {
     for (i=0; i<(int)function_timers.size(); i++){
       if (strcmp(function_timers[i].name, name) == 0){
@@ -168,7 +168,7 @@ CTF_timer::CTF_timer(const char * name){
     original = (index==0);
   }
   if (index == (int)function_timers.size()) {
-    function_timers.emplace_back(function_timer(name, MPI_Wtime(), excl_time)); 
+    function_timers.push_back(function_timer(name, MPI_Wtime(), excl_time)); 
   }
   timer_name = name;
   exited = 0;

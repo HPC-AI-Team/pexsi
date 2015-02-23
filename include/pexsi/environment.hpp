@@ -130,6 +130,34 @@ typedef    double                Scalar;
 
 // IO
 extern  std::ofstream  statusOFS;
+#ifdef GEMM_PROFILE
+extern  std::ofstream  statOFS;
+#include <deque>
+extern std::deque<int > gemm_stat;
+#endif
+
+#ifdef COMM_PROFILE
+extern  std::ofstream  commOFS;
+#include <deque>
+extern std::deque<int > comm_stat;
+
+#define PROFILE_COMM(sender,receiver,tag,size)\
+do{\
+  comm_stat.push_back(sender);\
+  comm_stat.push_back(receiver);\
+  comm_stat.push_back(tag);\
+  comm_stat.push_back(size);\
+}while(0)
+
+#define HEADER_COMM "Sender\tReceiver\tTag\tSize"
+#define LINE_COMM(it) *it<<"\t"<<*(it+1)<<"\t"<<*(it+2)<<"\t"<<*(it+3)
+
+#else
+
+#define PROFILE_COMM(sender,receiver,tag,size)
+
+#endif
+
 
 // *********************************************************************
 // Define constants

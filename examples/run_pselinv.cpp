@@ -134,6 +134,11 @@ int main(int argc, char **argv)
       stringstream  ss;
       ss << "logTest" << mpirank;
       statusOFS.open( ss.str().c_str() );
+#ifdef GEMM_PROFILE
+      stringstream  ss2;
+      ss2 << "gemm_stat" << mpirank;
+      statOFS.open( ss2.str().c_str());
+#endif
 
       //if( mpisize != nprow * npcol || nprow != npcol ){
       //  throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
@@ -998,6 +1003,9 @@ int main(int argc, char **argv)
 
 
       statusOFS.close();
+#ifdef GEMM_PROFILE
+      statOFS.close()
+#endif
     }
   }
   catch( std::exception& e )

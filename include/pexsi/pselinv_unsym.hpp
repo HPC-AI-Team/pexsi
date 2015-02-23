@@ -259,7 +259,7 @@ namespace PEXSI{
 
       PMatrixUnsym( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
-      virtual ~PMatrixUnsym() {  }
+      //virtual ~PMatrixUnsym() { statusOFS<<"DESTRUCTOR UNSYM CALLED"<<std::endl;    }
 
       void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 

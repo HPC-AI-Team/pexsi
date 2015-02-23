@@ -89,6 +89,8 @@ namespace PEXSI{
 
       SuperLUMatrix( const SuperLUGrid<T>& g, const SuperLUOptions& opt = SuperLUOptions() ){ }
       ~SuperLUMatrix(){ }
+      SuperLUMatrix(const SuperLUMatrix & g){};
+      SuperLUMatrix & operator = (const SuperLUMatrix & g){};
 
       Int m() const {return -1;}
 
@@ -218,6 +220,8 @@ namespace PEXSI{
       SuperLUMatrix();
       SuperLUMatrix( const SuperLUGrid<Real>& g, const SuperLUOptions& opt = SuperLUOptions() ); 
       ~SuperLUMatrix();
+      SuperLUMatrix(const SuperLUMatrix & g);
+      SuperLUMatrix & operator = (const SuperLUMatrix & g);
 
       void Setup( const SuperLUGrid<Real>& g, const SuperLUOptions& opt = SuperLUOptions() );
 
@@ -348,6 +352,8 @@ namespace PEXSI{
       SuperLUMatrix();
       SuperLUMatrix( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt = SuperLUOptions() );
       ~SuperLUMatrix();
+      SuperLUMatrix(const SuperLUMatrix & g);
+      SuperLUMatrix & operator = (const SuperLUMatrix & g);
       
       void Setup( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt = SuperLUOptions() );
 

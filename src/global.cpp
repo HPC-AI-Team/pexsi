@@ -41,6 +41,7 @@
 	 such enhancements or derivative works thereof, in binary and source code form.
 */
 #include "pexsi/environment.hpp"
+  #include <deque>
 
 namespace PEXSI{
 
@@ -48,6 +49,17 @@ namespace PEXSI{
 // IO
 // *********************************************************************
   std::ofstream  statusOFS;
+
+#ifdef GEMM_PROFILE
+  std::ofstream  statOFS;
+  std::deque<int > gemm_stat;
+#endif
+
+#ifdef COMM_PROFILE
+  std::ofstream  commOFS;
+  std::deque<int > comm_stat;
+#endif
+
 
 // *********************************************************************
 // Error handling

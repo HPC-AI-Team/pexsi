@@ -68,6 +68,9 @@ class ComplexGridData{
 
     ComplexGridData();
     ~ComplexGridData();
+    ComplexGridData(const ComplexGridData & g);
+    ComplexGridData & operator = (const ComplexGridData & g);
+
     void GridInit( MPI_Comm comm, Int nprow, Int npcol );
     void GridExit(  );
 };
@@ -80,6 +83,9 @@ class RealGridData{
 
     RealGridData();
     ~RealGridData();
+    RealGridData(const RealGridData & g);
+    RealGridData & operator = (const RealGridData & g);
+
     void GridInit( MPI_Comm comm, Int nprow, Int npcol );
     void GridExit(  );
 };
@@ -96,6 +102,9 @@ class RealGridData{
     public:
     SuperLUGrid( MPI_Comm comm, int nprow, int npcol ){};
     ~SuperLUGrid(){};
+
+    SuperLUGrid(const SuperLUGrid & g){};
+    SuperLUGrid & operator = (const SuperLUGrid & g){};
   };
 
 
@@ -106,6 +115,9 @@ class RealGridData{
     public:
     SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
     ~SuperLUGrid();
+
+    SuperLUGrid(const SuperLUGrid & g);
+    SuperLUGrid & operator = (const SuperLUGrid & g);
   };
 
 
@@ -116,6 +128,10 @@ class RealGridData{
     public:
     SuperLUGrid( MPI_Comm comm, int nprow, int npcol );
     ~SuperLUGrid();
+
+
+    SuperLUGrid(const SuperLUGrid & g);
+    SuperLUGrid & operator = (const SuperLUGrid & g);
   };
 
 }
