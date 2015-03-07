@@ -60,6 +60,12 @@
 #include "pexsi/utility.hpp"
 #include "pexsi/blas.hpp"
 #include "pexsi/lapack.hpp"
+
+#ifdef BUILD_BCAST_TREE
+#include "pexsi/TreeBcast.hpp"
+#endif
+
+
 #include <set>
 
 #define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
@@ -521,6 +527,8 @@ namespace PEXSI{
         SELINV_TAG_D_SIZE,
         SELINV_TAG_D_CONTENT,
         SELINV_TAG_D_REDUCE,
+        SELINV_TAG_L_SIZE_CD,
+        SELINV_TAG_L_CONTENT_CD,
         SELINV_TAG_COUNT
       };
 
@@ -555,6 +563,14 @@ namespace PEXSI{
       BolNumVec                       isRecvFromAbove_;
       BolNumVec                       isRecvFromLeft_;
       BolNumMat                       isRecvFromCrossDiagonal_;
+
+
+#ifdef BUILD_BCAST_TREE
+      std::vector<std::vector<Int> > fwdToBelow_;
+      std::vector<Int >                rootFromAbove_;
+      std::vector<TreeBcast *> fwdToBelowTree_; 
+#endif
+
 
       //Communicators for the Bcast variant
 

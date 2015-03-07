@@ -407,7 +407,6 @@ inline SuperLUMatrix<Complex>::SuperLUMatrix(const SuperLUMatrix<Complex> & g){
 
 inline SuperLUMatrix<Complex> & SuperLUMatrix<Complex>::operator = (const SuperLUMatrix<Complex> & g){
     
-  std::cout<<"ENTERING OPERATOR = "<<this<<std::endl;
   if(this!=&g){
     if(ptrData!=NULL){
       delete ptrData;

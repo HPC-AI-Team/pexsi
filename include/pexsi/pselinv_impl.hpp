@@ -46,6 +46,8 @@ such enhancements or derivative works thereof, in binary and source code form.
 #ifndef _PEXSI_PSELINV_IMPL_HPP_
 #define _PEXSI_PSELINV_IMPL_HPP_
 
+#include <list>
+
 #include "pexsi/timer.h"
 #include "pexsi/superlu_dist_interf.hpp"
 
@@ -629,11 +631,11 @@ namespace PEXSI{
                 sstrSize = sstrLcolSend.size();
 
 
-                MPI_Isend( &sstrSize, sizeof(sstrSize), MPI_BYTE, dest, IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE), grid_->comm, &mpiReqSizeSend );
-                MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dest, IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), grid_->comm, &mpiReqSend );
+                MPI_Isend( &sstrSize, sizeof(sstrSize), MPI_BYTE, dest, IDX_TO_TAG(snode.Index,SELINV_TAG_L_SIZE_CD), grid_->comm, &mpiReqSizeSend );
+                MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dest, IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT_CD), grid_->comm, &mpiReqSend );
 
-                PROFILE_COMM(MYPROC(this->grid_),dest,IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),sizeof(sstrSize));
-                PROFILE_COMM(MYPROC(this->grid_),dest,IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT),sstrSize);
+                PROFILE_COMM(MYPROC(this->grid_),dest,IDX_TO_TAG(snode.Index,SELINV_TAG_L_SIZE_CD),sizeof(sstrSize));
+                PROFILE_COMM(MYPROC(this->grid_),dest,IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT_CD),sstrSize);
 
 
                 sendIdx++;
@@ -659,7 +661,7 @@ namespace PEXSI{
               if( MYPROC( grid_ ) != src ){
                 Int & sstrSize = arrSstrLcolSizeRecvCD[recvOffset[supidx]+recvIdx];
                 MPI_Request & mpiReqSizeRecv = arrMpiReqsSizeRecvCD[recvOffset[supidx]+recvIdx];
-                MPI_Irecv( &sstrSize, 1, MPI_INT, src, IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE), grid_->comm, &mpiReqSizeRecv );
+                MPI_Irecv( &sstrSize, 1, MPI_INT, src, IDX_TO_TAG(snode.Index,SELINV_TAG_L_SIZE_CD), grid_->comm, &mpiReqSizeRecv );
                 recvIdx++;
               }
             }
@@ -683,7 +685,7 @@ namespace PEXSI{
                 std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvOffset[supidx]+recvIdx];
                 MPI_Request & mpiReqRecv = arrMpiReqsRecvCD[recvOffset[supidx]+recvIdx];
                 sstrLcolRecv.resize( sstrSize);
-                MPI_Irecv( (void*)&sstrLcolRecv[0], sstrSize, MPI_BYTE, src, IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), grid_->comm, &mpiReqRecv );
+                MPI_Irecv( (void*)&sstrLcolRecv[0], sstrSize, MPI_BYTE, src, IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT_CD), grid_->comm, &mpiReqRecv );
                 //statusOFS<<"P"<<MYPROC(grid_)<<" received "<<sstrSize<<" bytes of L/U from CD P"<<src<<std::endl;               
                 recvIdx++;
               }
@@ -850,7 +852,7 @@ namespace PEXSI{
 
       //---------Computing  Diagonal block, all processors in the column are participating to all pipelined supernodes
       if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-#if ( _DEBUGlevel_ >= 1 )
+#if ( _DEBUGlevel_ >= 2 )
         statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updating the diagonal block" << std::endl << std::endl; 
 #endif
         std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
@@ -1088,8 +1090,43 @@ namespace PEXSI{
 #endif
 
       {
+
+        //TODO Ideally, we should not receive data in sequence but in any order with ksup packed with the data
+        // Receivers (Size)
+        TIMER_START(IRecv_Size_UL);
+        for (Int supidx=0; supidx<stepSuper ; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+          MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvSizeFromAny[supidx*2];
+          MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvSizeFromAny[supidx*2+1];
+
+          // Receive the size first
+          if( isRecvFromAbove_( snode.Index ) && 
+              MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
+            MPI_Irecv( &snode.SizeSstrUrowRecv, 1, MPI_INT, PROW( snode.Index, grid_ ), 
+                IDX_TO_TAG(snode.Index,SELINV_TAG_U_SIZE),
+                grid_->colComm, mpireqsRecvFromAbove );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U size on tag " << IDX_TO_TAG(snode.Index,SELINV_TAG_U_SIZE)<< std::endl <<  std::endl; 
+#endif
+          } // if I need to receive from up
+
+
+          if( isRecvFromLeft_( snode.Index ) &&
+              MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
+            MPI_Irecv( &snode.SizeSstrLcolRecv, 1, MPI_INT, PCOL( snode.Index, grid_ ), 
+                IDX_TO_TAG(snode.Index,SELINV_TAG_L_SIZE),
+                grid_->rowComm, mpireqsRecvFromLeft );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L size on tag " << IDX_TO_TAG(snode.Index,SELINV_TAG_L_SIZE)<< std::endl <<  std::endl; 
+#endif
+          } // if I need to receive from left
+        }
+        TIMER_STOP(IRecv_Size_UL);
+
+
+#if 1
         // Senders
-        TIMER_START(ISend_ContentSize_UL);
+        TIMER_START(ISend_Size_UL);
         for (Int supidx=0; supidx<stepSuper; supidx++){
           SuperNodeBufferType & snode = arrSuperNodes[supidx];
           std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
@@ -1105,6 +1142,7 @@ namespace PEXSI{
             // Pack the data in U
             TIMER_START(Serialize_UL);
             std::stringstream sstm;
+
             std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
             std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, grid_) );
             // All blocks are to be sent down.
@@ -1122,20 +1160,12 @@ namespace PEXSI{
                   isSendToBelow_( iProcRow,snode.Index ) == true ){
                 // Use Isend to send to multiple targets
                 MPI_Isend( &snode.SizeSstrUrowSend, sizeof(snode.SizeSstrUrowSend), MPI_BYTE,  
-                    iProcRow, IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE), grid_->colComm, &mpireqsSendToBelow[2*iProcRow] );
-                MPI_Isend( (void*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, MPI_BYTE, 
-                    iProcRow, IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT), 
-                    grid_->colComm, &mpireqsSendToBelow[2*iProcRow+1] );
+                    iProcRow, IDX_TO_TAG(snode.Index,SELINV_TAG_U_SIZE), grid_->colComm, &mpireqsSendToBelow[2*iProcRow] );
 
-                PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE),sizeof(snode.SizeSstrUrowSend));
-                PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowSend);
-
-
-
-
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_SIZE),sizeof(snode.SizeSstrUrowSend));
 
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES"<< std::endl <<  std::endl; 
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending SIZE U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_SIZE)<< std::endl <<  std::endl; 
 #endif
               } // Send 
             } // for (iProcRow)
@@ -1182,14 +1212,345 @@ namespace PEXSI{
                   isSendToRight_( iProcCol, snode.Index ) == true ){
                 // Use Isend to send to multiple targets
                 MPI_Isend( &snode.SizeSstrLcolSend, sizeof(snode.SizeSstrLcolSend), MPI_BYTE,  
-                    iProcCol, IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE), 
+                    iProcCol, IDX_TO_TAG(snode.Index,SELINV_TAG_L_SIZE), 
                     grid_->rowComm, &mpireqsSendToRight[2*iProcCol] );
+
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_SIZE),sizeof(snode.SizeSstrLcolSend));
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend<< " BYTES"  << std::endl <<  std::endl; 
+#endif
+              } // Send 
+            } // for (iProcCol)
+          } // if I am the sender
+        } //Senders
+        TIMER_STOP(ISend_Size_UL);
+
+
+#ifdef SEPARATE_SIZE_SEND
+        //Waitall on size sent
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+          if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+            mpi::Waitall( mpireqsSendToRight );
+          }
+          if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+            mpi::Waitall( mpireqsSendToBelow );
+          }
+        }
+#endif
+
+
+
+          //prepost receive content
+        //Wait to receive all the sizes
+        TIMER_START(WaitSize_UL);
+        mpi::Waitall(arrMpireqsRecvSizeFromAny);
+        TIMER_STOP(WaitSize_UL);
+
+        TIMER_START(IRecv_Content_UL);
+        // Receivers (Content)
+        for (Int supidx=0; supidx<stepSuper ; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+          MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvContentFromAny[supidx*2];
+          MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvContentFromAny[supidx*2+1];
+
+          if( isRecvFromAbove_( snode.Index ) && 
+              MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
+            snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv );
+
+#ifdef BUILD_BCAST_TREE
+            Int & myRoot = rootFromAbove_[snode.Index];
+            MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
+                myRoot, IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), 
+                grid_->colComm, mpireqsRecvFromAbove );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U " << snode.SizeSstrUrowRecv << " BYTES from "<<myRoot<<" on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT)<< std::endl <<  std::endl; 
+#endif
+#else
+            MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
+                PROW( snode.Index, grid_ ), IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), 
+                grid_->colComm, mpireqsRecvFromAbove );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U " << snode.SizeSstrUrowRecv << " BYTES"<< std::endl <<  std::endl; 
+#endif
+#endif
+          } // if I need to receive from up
+
+          if( isRecvFromLeft_( snode.Index ) &&
+              MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
+            snode.SstrLcolRecv.resize( snode.SizeSstrLcolRecv );
+            MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
+                PCOL( snode.Index, grid_ ), IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT), 
+                grid_->rowComm,
+                mpireqsRecvFromLeft );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L " << snode.SizeSstrLcolRecv << " BYTES"<< std::endl <<  std::endl; 
+#endif
+          } // if I need to receive from left
+        }
+        TIMER_STOP(IRecv_Content_UL);
+
+
+
+
+
+
+        // Senders
+        TIMER_START(ISend_Content_UL);
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl <<  "["<<snode.Index<<"] "
+            << "Communication for the U part." << std::endl << std::endl; 
+#endif
+
+
+
+
+
+
+
+
+
+
+          // Communication for the U part.
+          if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+            std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, grid_) );
+#ifdef BUILD_BCAST_TREE
+
+            TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+            bcastUTree->ForwardMessage((char*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, 
+                                IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), &mpireqsSendToBelow[0] );
+
+
+//            vector<Int> & myDests = fwdToBelow_[snode.Index];
+//            for( Int idxRecv = 0; idxRecv < myDests.size(); ++idxRecv ){
+//              Int iProcRow = myDests[idxRecv];
+//              assert(( MYROW( grid_ ) != iProcRow &&
+//                  isSendToBelow_( iProcRow,snode.Index ) == true ));
+//                // Use Isend to send to multiple targets
+//                MPI_Isend( (void*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, MPI_BYTE, 
+//                    iProcRow, IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), 
+//                    grid_->colComm, &mpireqsSendToBelow[2*iProcRow+1] );
+//
+//                PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowSend);
+//
+//#if ( _DEBUGlevel_ >= 1 )
+//                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT) << std::endl <<  std::endl; 
+//#endif
+//            } // for (iProcRow)
+#else
+            for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+              if( MYROW( grid_ ) != iProcRow &&
+                  isSendToBelow_( iProcRow,snode.Index ) == true ){
+                // Use Isend to send to multiple targets
+                MPI_Isend( (void*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, MPI_BYTE, 
+                    iProcRow, IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), 
+                    grid_->colComm, &mpireqsSendToBelow[2*iProcRow+1] );
+
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowSend);
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT) << std::endl <<  std::endl; 
+#endif
+              } // Send 
+            } // for (iProcRow)
+#endif
+          } // if I am the sender
+
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "["<<snode.Index<<"] "<< "Communication for the L part." << std::endl << std::endl; 
+#endif
+
+
+
+          // Communication for the L part.
+          if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+
+            TIMER_START(Serialize_UL);
+            // Pack the data in L 
+            std::stringstream sstm;
+            std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+            mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
+
+            std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, grid_) );
+            for( Int iProcCol = 0; iProcCol < grid_->numProcCol ; iProcCol++ ){
+              if( MYCOL( grid_ ) != iProcCol &&
+                  isSendToRight_( iProcCol, snode.Index ) == true ){
+                // Use Isend to send to multiple targets
                 MPI_Isend( (void*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, MPI_BYTE, 
-                    iProcCol, IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), 
+                    iProcCol, IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT), 
                     grid_->rowComm, &mpireqsSendToRight[2*iProcCol+1] );
 
-                PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),sizeof(snode.SizeSstrLcolSend));
-                PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolSend);
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolSend);
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend<< " BYTES"  << std::endl <<  std::endl; 
+#endif
+              } // Send 
+            } // for (iProcCol)
+          } // if I am the sender
+        } //Senders
+        TIMER_STOP(ISend_Content_UL);
+
+
+
+#else
+        // Senders
+        TIMER_START(ISend_ContentSize_UL);
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl <<  "["<<snode.Index<<"] "
+            << "Communication for the U part." << std::endl << std::endl; 
+#endif
+
+          // Communication for the U part.
+          if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+            // Pack the data in U
+            TIMER_START(Serialize_UL);
+            std::stringstream sstm;
+
+
+            std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+            std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, grid_) );
+            // All blocks are to be sent down.
+            serialize( (Int)Urow.size(), sstm, NO_MASK );
+            for( Int jb = 0; jb < Urow.size(); jb++ ){
+              serialize( Urow[jb], sstm, mask );
+            }
+            snode.SstrUrowSend.resize( Size( sstm ) );
+            sstm.read( &snode.SstrUrowSend[0], snode.SstrUrowSend.size() );
+            snode.SizeSstrUrowSend = snode.SstrUrowSend.size();
+            TIMER_STOP(Serialize_UL);
+
+#ifdef BUILD_BCAST_TREE
+            //send size to everyone (no tree)
+            for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+              if( MYROW( grid_ ) != iProcRow &&
+                  isSendToBelow_( iProcRow,snode.Index ) == true ){
+                // Use Isend to send to multiple targets
+                MPI_Isend( &snode.SizeSstrUrowSend, sizeof(snode.SizeSstrUrowSend), MPI_BYTE,  
+                    iProcRow, IDX_TO_TAG(snode.Index,SELINV_TAG_U_SIZE), grid_->colComm, &mpireqsSendToBelow[2*iProcRow] );
+
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_SIZE),sizeof(snode.SizeSstrUrowSend));
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending SIZE U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_SIZE)<< std::endl <<  std::endl; 
+#endif
+              } // Send 
+            } // for (iProcRow)
+
+            //initialize tree
+            vector<Int> & myDests = fwdToBelow_[snode.Index];
+            for( Int idxRecv = 0; idxRecv < myDests.size(); ++idxRecv ){
+              Int iProcRow = myDests[idxRecv];
+
+              if(!( MYROW( grid_ ) != iProcRow &&
+                  isSendToBelow_( iProcRow,snode.Index ) == true )){
+                  statusOFS<<"["<<snode.Index<<"] "<<MYROW(grid_)<<" -> {";
+                  for(auto it2 = myDests.begin();it2!=myDests.end();++it2){
+                    statusOFS<<*it2<<" ";
+                  }
+                  statusOFS<<"} ";
+                  statusOFS<<std::endl;
+
+              }
+
+
+              assert(( MYROW( grid_ ) != iProcRow &&
+                  isSendToBelow_( iProcRow,snode.Index ) == true ));
+                // Use Isend to send to multiple targets
+                MPI_Isend( (void*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, MPI_BYTE, 
+                    iProcRow, IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), 
+                    grid_->colComm, &mpireqsSendToBelow[2*iProcRow+1] );
+
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowSend);
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT) << std::endl <<  std::endl; 
+#endif
+            } // for (iProcRow)
+#else
+            for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+              if( MYROW( grid_ ) != iProcRow &&
+                  isSendToBelow_( iProcRow,snode.Index ) == true ){
+                // Use Isend to send to multiple targets
+                MPI_Isend( &snode.SizeSstrUrowSend, sizeof(snode.SizeSstrUrowSend), MPI_BYTE,  
+                    iProcRow, IDX_TO_TAG(snode.Index,SELINV_TAG_U_SIZE), grid_->colComm, &mpireqsSendToBelow[2*iProcRow] );
+                MPI_Isend( (void*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, MPI_BYTE, 
+                    iProcRow, IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), 
+                    grid_->colComm, &mpireqsSendToBelow[2*iProcRow+1] );
+
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_SIZE),sizeof(snode.SizeSstrUrowSend));
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowSend);
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT) << std::endl <<  std::endl; 
+#endif
+              } // Send 
+            } // for (iProcRow)
+#endif
+          } // if I am the sender
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "["<<snode.Index<<"] "<< "Communication for the L part." << std::endl << std::endl; 
+#endif
+
+
+
+          // Communication for the L part.
+          if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+
+            TIMER_START(Serialize_UL);
+            // Pack the data in L 
+            std::stringstream sstm;
+            std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+            mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
+
+            std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, grid_) );
+            // All blocks except for the diagonal block are to be sent right
+
+            if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) )
+              serialize( (Int)Lcol.size() - 1, sstm, NO_MASK );
+            else
+              serialize( (Int)Lcol.size(), sstm, NO_MASK );
+
+            for( Int ib = 0; ib < Lcol.size(); ib++ ){
+              if( Lcol[ib].blockIdx > snode.Index ){
+#if ( _DEBUGlevel_ >= 2 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Serializing Block index " << Lcol[ib].blockIdx << std::endl;
+#endif
+                serialize( Lcol[ib], sstm, mask );
+              }
+            }
+            snode.SstrLcolSend.resize( Size( sstm ) );
+            sstm.read( &snode.SstrLcolSend[0], snode.SstrLcolSend.size() );
+            snode.SizeSstrLcolSend = snode.SstrLcolSend.size();
+            TIMER_STOP(Serialize_UL);
+
+            for( Int iProcCol = 0; iProcCol < grid_->numProcCol ; iProcCol++ ){
+              if( MYCOL( grid_ ) != iProcCol &&
+                  isSendToRight_( iProcCol, snode.Index ) == true ){
+                // Use Isend to send to multiple targets
+                MPI_Isend( &snode.SizeSstrLcolSend, sizeof(snode.SizeSstrLcolSend), MPI_BYTE,  
+                    iProcCol, IDX_TO_TAG(snode.Index,SELINV_TAG_L_SIZE), 
+                    grid_->rowComm, &mpireqsSendToRight[2*iProcCol] );
+                MPI_Isend( (void*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, MPI_BYTE, 
+                    iProcCol, IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT), 
+                    grid_->rowComm, &mpireqsSendToRight[2*iProcCol+1] );
+
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_SIZE),sizeof(snode.SizeSstrLcolSend));
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolSend);
 
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend<< " BYTES"  << std::endl <<  std::endl; 
@@ -1200,37 +1561,6 @@ namespace PEXSI{
         } //Senders
         TIMER_STOP(ISend_ContentSize_UL);
 
-        //TODO Ideally, we should not receive data in sequence but in any order with ksup packed with the data
-        // Receivers (Size)
-        TIMER_START(IRecv_Size_UL);
-        for (Int supidx=0; supidx<stepSuper ; supidx++){
-          SuperNodeBufferType & snode = arrSuperNodes[supidx];
-          MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvSizeFromAny[supidx*2];
-          MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvSizeFromAny[supidx*2+1];
-
-          // Receive the size first
-          if( isRecvFromAbove_( snode.Index ) && 
-              MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
-            MPI_Irecv( &snode.SizeSstrUrowRecv, 1, MPI_INT, PROW( snode.Index, grid_ ), 
-                IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE),
-                grid_->colComm, mpireqsRecvFromAbove );
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U size on tag " << IDX_TO_TAG(supidx,SELINV_TAG_U_SIZE)<< std::endl <<  std::endl; 
-#endif
-          } // if I need to receive from up
-
-
-          if( isRecvFromLeft_( snode.Index ) &&
-              MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
-            MPI_Irecv( &snode.SizeSstrLcolRecv, 1, MPI_INT, PCOL( snode.Index, grid_ ), 
-                IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE),
-                grid_->rowComm, mpireqsRecvFromLeft );
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L size on tag " << IDX_TO_TAG(supidx,SELINV_TAG_L_SIZE)<< std::endl <<  std::endl; 
-#endif
-          } // if I need to receive from left
-        }
-        TIMER_STOP(IRecv_Size_UL);
 
         //Wait to receive all the sizes
         TIMER_START(WaitSize_UL);
@@ -1241,18 +1571,28 @@ namespace PEXSI{
         // Receivers (Content)
         for (Int supidx=0; supidx<stepSuper ; supidx++){
           SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
           MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvContentFromAny[supidx*2];
           MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvContentFromAny[supidx*2+1];
 
           if( isRecvFromAbove_( snode.Index ) && 
               MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
             snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv );
+
+#ifdef BUILD_BCAST_TREE
+            Int & myRoot = rootFromAbove_[snode.Index];
             MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
-                PROW( snode.Index, grid_ ), IDX_TO_TAG(supidx,SELINV_TAG_U_CONTENT), 
+                myRoot, IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), 
+                grid_->colComm, mpireqsRecvFromAbove );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U " << snode.SizeSstrUrowRecv << " BYTES from "<<myRoot<<" on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT)<< std::endl <<  std::endl; 
+#endif
+#else
+            MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
+                PROW( snode.Index, grid_ ), IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), 
                 grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U " << snode.SizeSstrUrowRecv << " BYTES"<< std::endl <<  std::endl; 
+#endif
 #endif
           } // if I need to receive from up
 
@@ -1260,7 +1600,7 @@ namespace PEXSI{
               MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
             snode.SstrLcolRecv.resize( snode.SizeSstrLcolRecv );
             MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
-                PCOL( snode.Index, grid_ ), IDX_TO_TAG(supidx,SELINV_TAG_L_CONTENT), 
+                PCOL( snode.Index, grid_ ), IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT), 
                 grid_->rowComm,
                 mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
@@ -1270,18 +1610,29 @@ namespace PEXSI{
         }
         TIMER_STOP(IRecv_Content_UL);
 
+
+
+
+
+
+
+#endif
+
       }
 
       TIMER_START(Compute_Sinv_LT);
       {
+        Int msgForwarded = 0;
+        Int msgToFwd = 0;
         Int gemmProcessed = 0;
         Int gemmToDo = 0;
         //      Int toRecvGemm = 0;
         //copy the list of supernodes we need to process
-        std::vector<Int> readySupidx;
+        std::list<Int> readySupidx;
         //find local things to do
         for(Int supidx = 0;supidx<stepSuper;supidx++){
           SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
 
           if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
             gemmToDo++;
@@ -1305,19 +1656,27 @@ namespace PEXSI{
                 TIMER_START(Reduce_Sinv_LT_Isend);
             MPI_Request & mpireqsSendToLeft = arrMpireqsSendToLeft[supidx];
             //Dummy 0-b send If I was a receiver, I need to send my data to proc in column of snode.Index
-            MPI_Isend( NULL, 0, MPI_BYTE, PCOL(snode.Index,grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), grid_->rowComm, &mpireqsSendToLeft );
+            MPI_Isend( NULL, 0, MPI_BYTE, PCOL(snode.Index,grid_) ,IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE), grid_->rowComm, &mpireqsSendToLeft );
 
-            PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_),IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE),0);
+            PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE),0);
 
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYPROC(grid_)<<" has sent "<< 0 << " bytes to " << PNUM(MYROW(grid_),PCOL(snode.Index,grid_),grid_) << std::endl;
 #endif
                 TIMER_STOP(Reduce_Sinv_LT_Isend);
           }// if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ))
+
+          if(MYROW(grid_)!=PROW(snode.Index,grid_)){
+            vector<Int> & myDests = fwdToBelow_[snode.Index];
+            if(myDests.size()>0){
+              msgToFwd++;            
+            }
+          }
         }
 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS<<std::endl<<"gemmToDo ="<<gemmToDo<<std::endl;
+        statusOFS<<std::endl<<"msgToFwd ="<<msgToFwd<<std::endl;
 #endif
 
 
@@ -1326,7 +1685,7 @@ namespace PEXSI{
         begin_SendULWaitContentFirst=0;
 #endif
 
-        while(gemmProcessed<gemmToDo)
+        while(gemmProcessed<gemmToDo || msgForwarded < msgToFwd)
         {
           Int reqidx = MPI_UNDEFINED;
           Int supidx = -1;
@@ -1356,15 +1715,84 @@ namespace PEXSI{
               reqidx = reqIndices[i];
               //I've received something
               if(reqidx!=MPI_UNDEFINED)
-              { 
-
+              {
+                //this stays true
                 supidx = reqidx/2;
+                
                 SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                snode.isReady++;
+
+                  
+
+
+
+#ifdef BUILD_BCAST_TREE
+                if(reqidx%2==0){
+                  //TODONEW
+                  TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+                  if(bcastUTree != NULL){
+                    
+                    std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+                    bcastUTree->ForwardMessage( (char*)&snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, 
+                                IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), &mpireqsSendToBelow[0] );
+                    
+                    for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+                      Int iProcRow = bcastUTree->GetDest(idxRecv);
+                      PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowRecv);
+                    }
+#if ( _DEBUGlevel_ >= 1 )
+                    for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+                      Int iProcRow = bcastUTree->GetDest(idxRecv);
+                      statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT)<< std::endl <<  std::endl; 
+                    }
+#endif
+                    msgForwarded++;
+                  }                 
+
+//                  std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+//                  vector<Int> & myDests = fwdToBelow_[snode.Index];
+//                  if(myDests.size()>0){
+//
+//#if ( _DEBUGlevel_ >= 1 )
+//                  statusOFS<<"["<<snode.Index<<"] "<<MYROW(grid_)<<" -> {";
+//                  for(auto it2 = myDests.begin();it2!=myDests.end();++it2){
+//                    statusOFS<<*it2<<" ";
+//                  }
+//                  statusOFS<<"} ";
+//                  statusOFS<<std::endl;
+//                  assert(snode.SizeSstrUrowSend == 0);
+//#endif
+//
+//                  for( Int idxRecv = 0; idxRecv < myDests.size(); ++idxRecv ){
+//                    Int iProcRow = myDests[idxRecv];
+////                    assert(( MYROW( grid_ ) != iProcRow &&
+////                          isSendToBelow_( iProcRow,snode.Index ) == true ));
+//                    // Use Isend to send to multiple targets
+//                    MPI_Isend( (void*)&snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
+//                        iProcRow, IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), 
+//                        grid_->colComm, &mpireqsSendToBelow[2*iProcRow+1] );
+//
+//                    PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowRecv);
+//#if ( _DEBUGlevel_ >= 1 )
+//                    statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT)<< std::endl <<  std::endl; 
+//#endif
+//                  } // for (iProcRow)
+//
+//                  msgForwarded++;
+//                  }
+  
+                }
+#endif
+
 
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS<<std::endl<<"Received data for ["<<snode.Index<<"] reqidx%2="<<reqidx%2<<" is ready ?"<<snode.isReady<<std::endl;
 #endif
+
+                if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
+
+                snode.isReady++;
+
+
                 //if we received both L and U, the supernode is ready
                 if(snode.isReady==2){
                   readySupidx.push_back(supidx);
@@ -1376,13 +1804,14 @@ namespace PEXSI{
                   }
 #endif
                 }
+                }
               }
 
             }//end for waitsome
 
             TIMER_STOP(WaitContent_UL);
 
-          } while(readySupidx.size()==0);
+          } while( (gemmProcessed<gemmToDo && readySupidx.size()==0) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
 
           //If I have some work to do 
           if(readySupidx.size()>0)
@@ -1434,9 +1863,9 @@ namespace PEXSI{
                 TIMER_START(Reduce_Sinv_LT_Isend);
                 MPI_Request & mpireqsSendToLeft = arrMpireqsSendToLeft[supidx];
 
-                MPI_Isend( snode.LUpdateBuf.Data(), snode.LUpdateBuf.ByteSize(), MPI_BYTE, PCOL(snode.Index,grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), grid_->rowComm, &mpireqsSendToLeft );
+                MPI_Isend( snode.LUpdateBuf.Data(), snode.LUpdateBuf.ByteSize(), MPI_BYTE, PCOL(snode.Index,grid_) ,IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE), grid_->rowComm, &mpireqsSendToLeft );
 
-                PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_),IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE),snode.LUpdateBuf.ByteSize());
+                PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE),snode.LUpdateBuf.ByteSize());
 
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYCOL(grid_)<<" has sent "<< snode.LUpdateBuf.ByteSize() << " bytes to " << PCOL(snode.Index,grid_) << std::endl;
@@ -1506,7 +1935,7 @@ namespace PEXSI{
             MPI_Status stat;
             Int size = 0;
             TIMER_START(Reduce_L_RECV);
-            MPI_Recv(LUpdateBufRecv.Data(), LUpdateBufRecv.ByteSize(), MPI_BYTE, MPI_ANY_SOURCE,IDX_TO_TAG(supidx,SELINV_TAG_L_REDUCE), grid_->rowComm,&stat);
+            MPI_Recv(LUpdateBufRecv.Data(), LUpdateBufRecv.ByteSize(), MPI_BYTE, MPI_ANY_SOURCE,IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE), grid_->rowComm,&stat);
             TIMER_STOP(Reduce_L_RECV);
             MPI_Get_count(&stat, MPI_BYTE, &size);
             //if the processor contributes
@@ -1569,9 +1998,9 @@ namespace PEXSI{
 
               MPI_Request & mpireqsSendToAbove = arrMpireqsSendToAbove[supidx];
               MPI_Isend( snode.DiagBuf.Data(),  snode.DiagBuf.ByteSize(), MPI_BYTE,
-                  PROW(snode.Index,grid_) ,IDX_TO_TAG(supidx,SELINV_TAG_D_REDUCE), grid_->colComm, &mpireqsSendToAbove );
+                  PROW(snode.Index,grid_) ,IDX_TO_TAG(snode.Index,SELINV_TAG_D_REDUCE), grid_->colComm, &mpireqsSendToAbove );
 
-              PROFILE_COMM(MYPROC(this->grid_),PNUM(PROW(snode.Index,this->grid_),MYCOL(this->grid_),this->grid_),IDX_TO_TAG(supidx,SELINV_TAG_D_REDUCE),snode.DiagBuf.ByteSize());
+              PROFILE_COMM(MYPROC(this->grid_),PNUM(PROW(snode.Index,this->grid_),MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_D_REDUCE),snode.DiagBuf.ByteSize());
 
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYROW(grid_)<<" has sent "<< snode.DiagBuf.ByteSize() << " bytes of DiagBuf to " << PROW(snode.Index,grid_) << " isSendToDiagonal = "<< isSendToDiagonal_(snode.Index) <<  std::endl;
@@ -1601,7 +2030,7 @@ namespace PEXSI{
               MPI_Status stat;
               Int size = 0;
               TIMER_START(Reduce_D_RECV);
-              MPI_Recv(DiagBufRecv.Data(), DiagBufRecv.ByteSize(), MPI_BYTE, MPI_ANY_SOURCE,IDX_TO_TAG(supidx,SELINV_TAG_D_REDUCE), grid_->colComm,&stat);
+              MPI_Recv(DiagBufRecv.Data(), DiagBufRecv.ByteSize(), MPI_BYTE, MPI_ANY_SOURCE,IDX_TO_TAG(snode.Index,SELINV_TAG_D_REDUCE), grid_->colComm,&stat);
               TIMER_STOP(Reduce_D_RECV);
               MPI_Get_count(&stat, MPI_BYTE, &size);
               //if the processor contributes
@@ -1682,24 +2111,44 @@ namespace PEXSI{
 //      mpi::Waitall( arrMpireqsSendToLeft );
 //      TIMER_STOP(Reduce_Sinv_LT_Waitall);
  
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"arrMpireqsRecvContentFromAny"<<std::endl;
+#endif
+//      for(int i = 0; i<arrMpireqsRecvContentFromAny.size();++i){
+//        statusOFS<<"Waiting on req "<<i<<std::endl;
+//        MPI_Wait(&arrMpireqsRecvContentFromAny[i],MPI_STATUS_IGNORE);
+//      }
       mpi::Waitall(arrMpireqsRecvContentFromAny);
       //Sync for reduce L
       //      mpi::Waitall( arrMpireqsSendToLeft );
       //Sync for reduce D
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"arrMpireqsSendToAbove"<<std::endl;
+#endif
       mpi::Waitall(arrMpireqsSendToAbove);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
         std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
         std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
 
-        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-          MPI_Barrier(grid_->colComm);
-        }
+//        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+//          MPI_Barrier(grid_->colComm);
+//        }
 
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"["<<ksup<<"] mpireqsSendToRight"<<std::endl;
+#endif
         mpi::Waitall( mpireqsSendToRight );
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"["<<ksup<<"] mpireqsSendToBelow"<<std::endl;
+#endif
         mpi::Waitall( mpireqsSendToBelow );
 
       }
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"barrier done"<<std::endl;
+#endif
       TIMER_STOP(Barrier);
 
 
@@ -1737,6 +2186,14 @@ namespace PEXSI{
 #ifndef _RELEASE_
       PushCallStack( "Initialize the communication pattern" );
 #endif
+
+
+#ifdef BUILD_BCAST_TREE
+      rootFromAbove_.resize(numSuper);
+      fwdToBelow_.resize(numSuper, std::vector<Int>() );
+      fwdToBelowTree_.resize(numSuper, NULL );
+#endif
+
       isSendToBelow_.Resize(grid_->numProcRow, numSuper);
       isSendToRight_.Resize(grid_->numProcCol, numSuper);
       isSendToDiagonal_.Resize( numSuper );
@@ -1908,8 +2365,6 @@ namespace PEXSI{
 #endif
       for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
         // Loop over all the supernodes to the right of ksup
-
-
         Int jsup = snodeEtree[ksup];
         while(jsup<numSuper){
           Int jsupLocalBlockCol = LBj( jsup, grid_ );
@@ -1918,6 +2373,7 @@ namespace PEXSI{
 
             // SendToBelow / RecvFromAbove only if (ksup, jsup) is nonzero.
             if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 ) {
+
               for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
                   si != localColBlockRowIdx[jsupLocalBlockCol].end(); si++	 ){
                 Int isup = *si;
@@ -1932,28 +2388,14 @@ namespace PEXSI{
                 } // if( isup > ksup )
               } // for (si)
             } // if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 )
-
           } // if( MYCOL( grid_ ) == PCOL( jsup, grid_ ) )
           jsup = snodeEtree[jsup];
-
         } // for(jsup)
+
+
+
       } // for(ksup)
 
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "isSendToBelow:" << std::endl;
-      for(int j = 0;j< isSendToBelow_.n();j++){
-        statusOFS << "["<<j<<"] ";
-        for(int i =0; i < isSendToBelow_.m();i++){
-          statusOFS<< isSendToBelow_(i,j) << " ";
-        }
-        statusOFS<<std::endl;
-      }
-
-      statusOFS << std::endl << "isRecvFromAbove:" << std::endl;
-      for(int j = 0;j< isRecvFromAbove_.m();j++){
-        statusOFS << "["<<j<<"] "<< isRecvFromAbove_(j)<<std::endl;
-      }
-#endif
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -2018,6 +2460,311 @@ namespace PEXSI{
       }	 // for (ksup)
 
 
+#ifndef _RELEASE_
+      PopCallStack();
+#endif
+
+
+      TIMER_STOP(STR_RFL_RFB);
+
+
+#ifdef BUILD_BCAST_TREE
+      //Allgather RFL values within column
+//      vector<char> aggRFL(numSuper); 
+//      vector<char> globalAggRFL(numSuper*grid_->numProcRow); 
+//      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+//        if(isRecvFromLeft_(ksup)){
+//          aggRFL[ksup]=true;
+//        }
+//        else if( CountSendToRight(ksup)>0){
+//          aggRFL[ksup]=true;
+//        }
+//        else{
+//          aggRFL[ksup]=false;
+//        }
+//      }
+//
+//      statusOFS<<"aggRFL "<<aggRFL<<std::endl;
+//
+//      //allgather
+//      MPI_Allgather(&aggRFL[0],numSuper*sizeof(char),MPI_BYTE,
+//                    &globalAggRFL[0],numSuper*sizeof(char),MPI_BYTE,
+//                      grid_->colComm);
+//
+//      statusOFS<<"globalAggRFL "<<globalAggRFL<<std::endl;
+
+
+
+      vector<char> aggRFA(numSuper); 
+      vector<char> globalAggRFA(numSuper*grid_->numProcRow); 
+      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+        if(isRecvFromAbove_(ksup)){
+          aggRFA[ksup]=true;
+        }
+        else if( CountSendToBelow(ksup)>0){
+          aggRFA[ksup]=true;
+        }
+        else{
+          aggRFA[ksup]=false;
+        }
+      }
+
+
+      //allgather
+      MPI_Allgather(&aggRFA[0],numSuper*sizeof(char),MPI_BYTE,
+                    &globalAggRFA[0],numSuper*sizeof(char),MPI_BYTE,
+                      grid_->colComm);
+
+
+
+
+
+
+
+
+      //that gives us a rowmajor matrix
+//
+//
+//      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+//        for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+//          bool isRFL = (bool)globalAggRFL[iProcRow*numSuper + ksup];
+//          if( MYROW( grid_ ) == PROW(ksup,grid_)){
+//            //send to below
+//            if(isSendToBelow_(iProcRow,ksup) != isRFL){
+//              if(isSendToBelow_(iProcRow,ksup)){
+//                statusOFS<<MYROW(grid_)<<" is sending to below while "<<iProcRow<<" is not receiving from left"<<std::endl; 
+//              }
+//              else{
+//                statusOFS<<MYROW(grid_)<<" is not sending to below while "<<iProcRow<<" is receiving from left"<<std::endl; 
+//              }
+//            }
+////            isSendToBelow_(iProcRow,ksup) = isSendToBelow_(iProcRow,ksup) && isRFL;
+//          }
+//
+//          //recv from above
+////          isRecvFromAbove_(ksup) = isRecvFromAbove_(ksup) && isRFL;
+//        }
+//      }
+
+//      vector<char> aggRFA(numSuper); 
+//      vector<char> globalAggRFA(numSuper*grid_->numProcCol); 
+//      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+//        if(isRecvFromAbove_(ksup)){
+//          aggRFA[ksup]=true;
+//        }
+//        else if( CountSendToBelow(ksup)>0){
+//          aggRFA[ksup]=true;
+//        }
+//        else{
+//          aggRFA[ksup]=false;
+//        }
+//      }
+//
+//      statusOFS<<"aggRFA "<<aggRFA<<std::endl;
+//
+//      //allgather
+//      MPI_Allgather(&aggRFA[0],numSuper*sizeof(char),MPI_BYTE,
+//                    &globalAggRFA[0],numSuper*sizeof(char),MPI_BYTE,
+//                      grid_->rowComm);
+//
+//      statusOFS<<"globalAggRFA "<<globalAggRFA<<std::endl;
+//      //that gives us a rowmajor matrix
+//
+//      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+//        for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
+//          bool isRFA = (bool)globalAggRFA[iProcCol*numSuper + ksup];
+//          if( MYCOL( grid_ ) == PCOL(ksup,grid_)){
+//            //send to below
+//            isSendToRight_(iProcCol,ksup) = isSendToRight_(iProcCol,ksup) && isRFA;
+//          }
+//
+//          //recv from above
+//          isRecvFromLeft_(ksup) = isRecvFromLeft_(ksup) && isRFA;
+//        }
+//      }
+//
+//
+//
+//      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+//        if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
+//          //all gather RFL again
+//          if(isRecvFromLeft_(ksup)){
+//            aggRFL[ksup]=true;
+//          }
+//          else if( CountSendToRight(ksup)>0){
+//            aggRFL[ksup]=true;
+//          }
+//          else{
+//            aggRFL[ksup]=false;
+//          }
+//        }
+//
+//        statusOFS<<"aggRFL2 "<<aggRFL<<std::endl;
+//
+//        //allgather
+//        MPI_Allgather(&aggRFL[0],numSuper*sizeof(char),MPI_BYTE,
+//            &globalAggRFL[0],numSuper*sizeof(char),MPI_BYTE,
+//            grid_->colComm);
+//
+//        statusOFS<<"globalAggRFL2 "<<globalAggRFL<<std::endl;
+//        //that gives us a rowmajor matrix
+//
+//
+//
+//        for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+//          for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+//            bool isRFL = (bool)globalAggRFL[iProcRow*numSuper + ksup];
+//            if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){ 
+//              isRecvFromBelow_(iProcRow,ksup) = isRecvFromBelow_(iProcRow,ksup) && isRFL ;
+//            }    
+//            else if (MYROW(grid_) == iProcRow){
+//              isSendToDiagonal_(ksup)= isSendToDiagonal_(ksup) && isRFL;
+//            }    
+//          }
+//        } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
+//      }
+
+
+
+
+      TIMER_START(BUILD_BCAST_TREE);
+      
+      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+        set<Int> set_ranks;
+        for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+          bool isRFA = (bool)globalAggRFA[iProcRow*numSuper + ksup];
+          if(isRFA){//isSendToBelow_(iProcRow,ksup) || isRecvFromAbove_(ksup)){
+            if( iProcRow != PROW( ksup, grid_ ) ){
+              set_ranks.insert(iProcRow);
+            }
+          }
+        }
+
+        if( isRecvFromAbove_(ksup) || CountSendToBelow(ksup)>0 ){
+          vector<Int> tree_ranks;
+          tree_ranks.push_back(PROW(ksup,grid_));
+          tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
+
+
+          TreeBcast * & BcastUTree = fwdToBelowTree_[ksup];
+          BcastUTree = new BTreeBcast(this->grid_->colComm,&tree_ranks[0],tree_ranks.size());
+
+          vector<Int> & myDests = fwdToBelow_[ksup];
+          Int & myRoot = rootFromAbove_[ksup];
+
+          Int numLevel = floor(log2(tree_ranks.size()));
+          Int numRoots = 0;
+          for(Int level=0;level<numLevel;++level){
+            numRoots = std::min( (Int)tree_ranks.size(), numRoots + (Int)pow(2,level));
+            Int numNextRoots = std::min((Int)tree_ranks.size(),numRoots + (Int)pow(2,(level+1)));
+            Int numReceivers = numNextRoots - numRoots;
+            for(Int ip = 0; ip<numRoots;++ip){
+              Int p = tree_ranks[ip];
+              for(Int ir = ip; ir<numReceivers;ir+=numRoots){
+                Int r = tree_ranks[numRoots+ir];
+                if(r==MYROW(grid_)){
+                  myRoot = p;
+                }
+
+                if(p==MYROW(grid_)){
+                  myDests.push_back(r);
+                }
+              }
+            }
+          }
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS<<"["<<ksup<<"] DEBUG "<<MYROW(grid_)<<" -> {";
+          for(auto it2 = myDests.begin();it2!=myDests.end();++it2){
+            statusOFS<<*it2<<" ";
+          }
+          statusOFS<<"} ";
+          statusOFS<<std::endl;
+          if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+            statusOFS<<"["<<ksup<<"] DEBUG "<<MYROW(grid_)<<" <- "<<myRoot<<std::endl;
+          }
+#endif
+
+#if ( _DEBUGlevel_ >= 2 )
+          if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+
+            vector<Int> tree_ranks;
+            tree_ranks.push_back(MYROW(grid_));
+            for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+              if( isSendToBelow_( iProcRow,ksup ) == true && iProcRow != MYROW(grid_) ){
+                tree_ranks.push_back(iProcRow);
+              }
+            }
+
+
+            Int numLevel = floor(log2(tree_ranks.size()));
+            map<Int,vector<Int> > rootDests;
+            Int numRoots = 0;
+            for(Int level=0;level<numLevel;++level){
+              statusOFS<<"["<<ksup<<"] DEBUG L"<<level<<" : ";
+              numRoots = std::min( (Int)tree_ranks.size(), numRoots + (Int)pow(2,level));
+              for(Int ip = 0; ip<numRoots;++ip){
+                Int p = tree_ranks[ip];
+
+                Int numNextRoots = std::min((Int)tree_ranks.size(),numRoots + (Int)pow(2,(level+1)));
+                Int numReceivers = numNextRoots - numRoots;
+
+                statusOFS<<p<<" -> {";
+                for(Int ir = ip; ir<numReceivers;ir+=numRoots){
+                  Int r = tree_ranks[numRoots+ir];
+                  rootDests[p].push_back(r);
+                  statusOFS<<r<<" ";
+                }
+                statusOFS<<"} ";
+              }
+              statusOFS<<std::endl;
+            }
+
+
+            statusOFS<<"["<<ksup<<"] DEBUG : ";
+            for(auto it = rootDests.begin();it!=rootDests.end();++it){
+              statusOFS<<it->first<<" -> {";
+              for(auto it2 = it->second.begin();it2!=it->second.end();++it2){
+                statusOFS<<*it2<<" ";
+              }
+              statusOFS<<"} ";
+            }
+            statusOFS<<std::endl;
+          }
+#endif
+        }
+
+
+
+      }
+
+      //do the same for the other arrays
+
+
+      TIMER_STOP(BUILD_BCAST_TREE);
+
+#endif
+
+
+
+
+
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl << "isSendToBelow:" << std::endl;
+      for(int j = 0;j< isSendToBelow_.n();j++){
+        statusOFS << "["<<j<<"] ";
+        for(int i =0; i < isSendToBelow_.m();i++){
+          statusOFS<< isSendToBelow_(i,j) << " ";
+        }
+        statusOFS<<std::endl;
+      }
+
+      statusOFS << std::endl << "isRecvFromAbove:" << std::endl;
+      for(int j = 0;j< isRecvFromAbove_.m();j++){
+        statusOFS << "["<<j<<"] "<< isRecvFromAbove_(j)<<std::endl;
+      }
+#endif
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "isSendToRight:" << std::endl;
       for(int j = 0;j< isSendToRight_.n();j++){
@@ -2043,12 +2790,8 @@ namespace PEXSI{
       }
 #endif
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
-      TIMER_STOP(STR_RFL_RFB);
 
 
 

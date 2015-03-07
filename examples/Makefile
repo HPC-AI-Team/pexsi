@@ -30,7 +30,7 @@ run_pselinv: run_pselinv.o ${PEXSI_LIB}
 	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS) )
 
 run_pselinv_unsym: run_pselinv_unsym.o ${PEXSI_LIB} 
-	($(LOADER) -o $@ run_pselinv_unsym.o  $(LOADOPTS) )
+	($(LOADER) -o $@.new run_pselinv_unsym.o  $(LOADOPTS) )
 
 
 compare_csc: compare_csc.o ${PEXSI_LIB} 
