@@ -60,27 +60,16 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 }
 
 
-
-
 // SuperLUGrid class
 namespace PEXSI{
 
 
-<<<<<<< Updated upstream
   class RealGridInfo{
     friend class RealGridData;
     friend class RealSuperLUData_internal;
     protected:
     gridinfo_t          grid;
   };
-=======
-class RealGridInfo{
-  friend class RealGridData;
-  friend class RealSuperLUData_internal;
-  protected:
-	  gridinfo_t          grid;
-};
->>>>>>> Stashed changes
 
   RealGridData::RealGridData(){
     info_ = new RealGridInfo;
@@ -105,51 +94,21 @@ class RealGridInfo{
       this->info_->grid = g.info_->grid;
     }
 
-<<<<<<< Updated upstream
     return *this;
   }
 
   void RealGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
     superlu_gridinit(comm, nprow, npcol, &info_->grid);
   }
-=======
-  RealGridData::RealGridData(const RealGridData & g)
-  {
-    this->info_ = new RealGridInfo;
-    this->info_->grid = g.info_->grid;
-  }
-
-  RealGridData & RealGridData::operator = (const RealGridData & g)
-  {
-    //if this is the same object, skip the thing
-    if(&g != this){
-      delete info_;
-      this->info_ = new RealGridInfo;
-      this->info_->grid = g.info_->grid;
-    }
-
-    return *this;
-  }
-
-  void RealGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
-    superlu_gridinit(comm, nprow, npcol, &info_->grid);
-  }
-
-  void RealGridData::GridExit(  ){
-    superlu_gridexit(&info_->grid);
-  }
->>>>>>> Stashed changes
 
   void RealGridData::GridExit(  ){
     superlu_gridexit(&info_->grid);
   }
 }
 
-
 // SuperLUData class
 namespace PEXSI{
 
-<<<<<<< Updated upstream
   class RealSuperLUData_internal{
     friend class RealSuperLUData;
     protected:
@@ -200,58 +159,6 @@ namespace PEXSI{
     bool                isLUstructAllocated;
 
     Int maxDomains;
-=======
-class RealSuperLUData_internal{
-  friend class RealSuperLUData;
-  protected:
-	/// @brief SuperLU matrix. 
-	SuperMatrix         A;                        
-
-	/// @brief SuperLU options. 
-	///
-	/// Note
-	/// ----
-	///
-	/// It is important to have 
-	///
-	/// options.RowPerm           = NOROWPERM;
-	/// 
-	/// to make sure that symmetric permutation is used.
-	///
-	superlu_options_t   options;                  
-
-	/// @brief Saves the permutation vectors.  Only perm_c (permutation of
-	/// column as well as rows due to the symmetric permutation) will be used.
-	ScalePermstruct_t   ScalePermstruct;          
-
-	/// @brief SuperLU grid structure.
-	gridinfo_t*         grid;
-
-	/// @brief Saves the supernodal partition as well as the numerical
-	/// values and structures of the L and U structure.
-	LUstruct_t          LUstruct;
-
-	/// @brief Used for solve for multivectors.
-	SOLVEstruct_t       SOLVEstruct;
-
-	/// @brief SuperLU statistics
-	SuperLUStat_t       stat;
-
-	/// @brief Number of processors used for parallel symbolic
-	/// factorization and PARMETIS/PT-SCOTCH
-	Int                 numProcSymbFact;
-
-	/// @brief SuperLU information
-	Int                 info;
-
-	// The following are for consistency checks
-	bool                isSuperMatrixAllocated;
-	bool                isSuperMatrixFactorized;
-	bool                isScalePermstructAllocated;
-	bool                isLUstructAllocated;
-
-  Int maxDomains;
->>>>>>> Stashed changes
 
     RealSuperLUData_internal(const SuperLUGrid<Real>& g, const SuperLUOptions& opt);
     ~RealSuperLUData_internal();
@@ -260,11 +167,7 @@ class RealSuperLUData_internal{
 
     void DestroyAOnly();
 
-<<<<<<< Updated upstream
   };
-=======
-};
->>>>>>> Stashed changes
 
 RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, const SuperLUOptions& opt){
 
@@ -278,16 +181,12 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
 
     // The default value of ColPerm uses the default value from SuperLUOptions
     options.Fact              = DOFACT;
-<<<<<<< Updated upstream
     if(opt.RowPerm == "LargeDiag"){
       options.RowPerm         = LargeDiag;
     }
     else{
       options.RowPerm         = NOROWPERM;
     }
-=======
-    options.RowPerm         = NOROWPERM;
->>>>>>> Stashed changes
 
     options.IterRefine        = NOREFINE;
     options.ParSymbFact       = NO;
@@ -320,14 +219,6 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
         << "NATURAL | MMD_AT_PLUS_A | METIS_AT_PLUS_A | PARMETIS" << std::endl;
 #ifdef USE_ABORT
       abort();
-<<<<<<< Updated upstream
-#endif
-      throw std::runtime_error( msg.str().c_str() );
-    }
-
-    // Setup grids
-    grid = &(g.ptrData->info_->grid);
-=======
 #endif
       throw std::runtime_error( msg.str().c_str() );
     }
@@ -363,110 +254,6 @@ RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuper
     memcpy(this,&g,sizeof(RealSuperLUData_internal));
   }
 
-  return *this;
-}
-
-
-
-
-  void RealSuperLUData_internal::DestroyAOnly	(  )
-    {
-#ifndef _RELEASE_
-      PushCallStack("RealSuperLUData_internal::DestroyAOnly");
-#endif
-      if( isSuperMatrixAllocated == false ){
-#ifdef USE_ABORT
-        abort();
-#endif
-        throw std::logic_error( "SuperMatrix has not been allocated." );
-      }
-      switch ( A.Stype ){
-        case SLU_NC:
-          Destroy_CompCol_Matrix_dist(&A);
-          break;
-        case SLU_NR_loc:
-          Destroy_CompRowLoc_Matrix_dist(&A);
-          break;
-        default:
-          std::ostringstream msg;
-          msg << "Type " << SLU_NR_loc << " is to be destroyed" << std::endl
-            << "This is an unsupported SuperMatrix format to be destroyed." << std::endl;
-#ifdef USE_ABORT
-          abort();
-#endif
-          throw std::runtime_error( msg.str().c_str() );
-      }
-      isSuperMatrixAllocated = false;
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
-
-      return ;
-    } 		// -----  end of method RealSuperLUData_internal::DestroyAOnly  ----- 
-
-
-
-
-
-
-
-
-
-RealSuperLUData::RealSuperLUData( const SuperLUGrid<Real>& g, const SuperLUOptions& opt ){
-#ifndef _RELEASE_
-	PushCallStack("RealSuperLUData::RealSuperLUData");
-#endif
-  
-  ptrData = new RealSuperLUData_internal(g,opt);
-	if( ptrData == NULL )
-		throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
-
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
->>>>>>> Stashed changes
-}
-
-RealSuperLUData_internal::~RealSuperLUData_internal(){
-    if( isLUstructAllocated ){
-      Destroy_LU(A.ncol, grid, &LUstruct);
-      LUstructFree(&LUstruct); 
-    }
-    if( isScalePermstructAllocated ){
-      ScalePermstructFree(&ScalePermstruct);
-    }
-    if( options.SolveInitialized ){
-      // TODO real arithmetic
-      dSolveFinalize(&options, &SOLVEstruct);
-    }
-    if( isSuperMatrixAllocated ){
-      DestroyAOnly();
-    }
-}
-
-RealSuperLUData::~RealSuperLUData(){
-#ifndef _RELEASE_
-    PushCallStack("RealSuperLUData::~RealSuperLUData");
-#endif
-    delete ptrData;
-
-<<<<<<< Updated upstream
-RealSuperLUData_internal::RealSuperLUData_internal(const RealSuperLUData_internal& g){
-    memcpy(this,&g,sizeof(RealSuperLUData_internal));
-}
-=======
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
-  }
->>>>>>> Stashed changes
-
-RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuperLUData_internal& g){
-  if(this!=&g){
-    memcpy(this,&g,sizeof(RealSuperLUData_internal));
-  }
-
-<<<<<<< Updated upstream
   return *this;
 }
 
@@ -505,26 +292,6 @@ RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuper
 #ifndef _RELEASE_
       PopCallStack();
 #endif
-=======
-  RealSuperLUData::RealSuperLUData(const RealSuperLUData & g)
-  {
-#ifndef _RELEASE_
-    PushCallStack("RealSuperLUData::RealSuperLUData");
-#endif
-    
-    if( g.ptrData == NULL ){
-      throw std::runtime_error( "Copied SuperLUMatrix is not allocated." );
-    }
-
-    ptrData = new RealSuperLUData_internal(*g.ptrData);
-
-    if( ptrData == NULL ){
-#ifdef USE_ABORT
-      abort();
-#endif
-      throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
-    }
->>>>>>> Stashed changes
 
       return ;
     } 		// -----  end of method RealSuperLUData_internal::DestroyAOnly  ----- 
@@ -532,30 +299,10 @@ RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuper
 
   RealSuperLUData::RealSuperLUData( const SuperLUGrid<Real>& g, const SuperLUOptions& opt ){
 #ifndef _RELEASE_
-<<<<<<< Updated upstream
     PushCallStack("RealSuperLUData::RealSuperLUData");
 #endif
 
     ptrData = new RealSuperLUData_internal(g,opt);
-=======
-    PopCallStack();
-#endif
-  }
-
-  RealSuperLUData & RealSuperLUData::operator = (const RealSuperLUData & g)
-  {
-    //if this is the same object, skip the thing
-    if(&g == this){
-      return *this;
-    }
-
-    if( g.ptrData == NULL ){
-      throw std::runtime_error( "Copied SuperLUMatrix is not allocated." );
-    }
-    
-    delete ptrData;
-    ptrData = new RealSuperLUData_internal(*g.ptrData);
->>>>>>> Stashed changes
     if( ptrData == NULL ){
 #ifdef USE_ABORT
       abort();
@@ -563,7 +310,6 @@ RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuper
       throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
     }
 
-<<<<<<< Updated upstream
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -580,11 +326,6 @@ RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuper
     PopCallStack();
 #endif
   }
-=======
-    return *this;
-  }
-
->>>>>>> Stashed changes
 
 
 
@@ -607,10 +348,6 @@ RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuper
       throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
     }
 
-<<<<<<< Updated upstream
-=======
-void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA ){
->>>>>>> Stashed changes
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -704,7 +441,6 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
       nzvalLocal  = (double*)doubleMalloc_dist(sparseB.nnzLocal);
       rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 
-<<<<<<< Updated upstream
       std::copy( sparseB.colptrLocal.Data(), sparseB.colptrLocal.Data() + sparseB.colptrLocal.m(),
           rowptrLocal );
       std::copy( sparseB.rowindLocal.Data(), sparseB.rowindLocal.Data() + sparseB.rowindLocal.m(),
@@ -712,13 +448,6 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
       std::copy( sparseB.nzvalLocal.Data(), sparseB.nzvalLocal.Data() + sparseB.nzvalLocal.m(),
           (double*)nzvalLocal );
     }
-=======
-	// Construct the distributed matrix according to the SuperLU_DIST format
-	dCreate_CompRowLoc_Matrix_dist(&ptrData->A, sparseA.size, sparseA.size, sparseA.nnzLocal, 
-			numRowLocal, firstRow,
-			nzvalLocal, colindLocal, rowptrLocal,
-			SLU_NR_loc, SLU_Z, SLU_GE);
->>>>>>> Stashed changes
 
 
 
@@ -747,10 +476,6 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
 
   } 		// -----  end of method RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc ----- 
 
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
   void
     RealSuperLUData::DestroyAOnly	(  )
     {
@@ -764,15 +489,9 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
       return ;
     } 		// -----  end of method RealSuperLUData::DestroyAOnly  ----- 
 
-<<<<<<< Updated upstream
   void
     RealSuperLUData::SymbolicFactorize	(  )
     {
-=======
-void
-RealSuperLUData::SymbolicFactorize	(  )
-{
->>>>>>> Stashed changes
 #ifndef _RELEASE_
       PushCallStack("RealSuperLUData::SymbolicFactorize");
 #endif
@@ -835,16 +554,9 @@ RealSuperLUData::SymbolicFactorize	(  )
       return ;
     } 		// -----  end of method RealSuperLUData::SymbolicFactorize  ----- 
 
-<<<<<<< Updated upstream
   void
     RealSuperLUData::Distribute	(  )
     {
-=======
-
-void
-RealSuperLUData::Distribute	(  )
-{
->>>>>>> Stashed changes
 #ifndef _RELEASE_
       PushCallStack("RealSuperLUData::Distribute");
 #endif
@@ -887,16 +599,9 @@ RealSuperLUData::Distribute	(  )
       return ;
     } 		// -----  end of method RealSuperLUData::Distribute  ----- 
 
-<<<<<<< Updated upstream
   void
     RealSuperLUData::NumericalFactorize	(  )
     {
-=======
-
-void
-RealSuperLUData::NumericalFactorize	(  )
-{
->>>>>>> Stashed changes
 #ifndef _RELEASE_
       PushCallStack("RealSuperLUData::NumericalFactorize");
 #endif
@@ -941,13 +646,6 @@ RealSuperLUData::NumericalFactorize	(  )
       // Prepare for Solve.
       ptrData->options.Fact = FACTORED;
 
-<<<<<<< Updated upstream
-=======
-
-void
-RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
-{
->>>>>>> Stashed changes
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -1190,7 +888,6 @@ RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
       statusOFS << std::endl << "LUstructToPMatrix::L part" << std::endl;
 #endif
 
-<<<<<<< Updated upstream
       PMloc.ColBlockIdx().clear();
       PMloc.RowBlockIdx().clear();
       PMloc.ColBlockIdx().resize( PMloc.NumLocalBlockCol() );
@@ -1277,52 +974,6 @@ RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
             }
 
             cntval += LB.numRow;
-=======
-  PMloc.ColBlockIdx().clear();
-  PMloc.RowBlockIdx().clear();
-  PMloc.ColBlockIdx().resize( PMloc.NumLocalBlockCol() );
-  PMloc.RowBlockIdx().resize( PMloc.NumLocalBlockRow() );
-
-
-	for( Int jb = 0; jb < PMloc.NumLocalBlockCol(); jb++ ){
-		Int bnum = GBj( jb, grid );
-		if( bnum >= numSuper ) continue;
-
-		Int cnt = 0;                                // Count for the index in LUstruct
-		Int cntval = 0;                             // Count for the nonzero values
-    Int cntidx = 0;                             // Count for the nonzero block indexes
-		const Int* index = Llu->Lrowind_bc_ptr[jb];
-		if( index ){
-			// Not an empty column, start a new column then.
-			std::vector<LBlock<Real> >& Lcol = PMloc.L(jb);
-			Lcol.resize( index[cnt++] );
-
- 
-			Int lda = index[cnt++];
-
-
-			for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
-				LBlock<Real> & LB     = Lcol[iblk];
-				LB.blockIdx    = index[cnt++];
-
-        PMloc.ColBlockIdx(jb).push_back(LB.blockIdx);
-        Int LBi = LB.blockIdx / grid->numProcRow; 
-        PMloc.RowBlockIdx( LBi ).push_back( bnum );
-
-
-				LB.numRow      = index[cnt++];
-				LB.numCol      = super->superPtr[bnum+1] - super->superPtr[bnum];
-				LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
-				LB.nzval.Resize( LB.numRow, LB.numCol );   
-				SetValue( LB.nzval, ZERO<Real>() ); 
-				cnt += LB.numRow;
-				
-				lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
-						(Real*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
-						LB.nzval.Data(), LB.numRow );
-
-				cntval += LB.numRow;
->>>>>>> Stashed changes
 
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -1333,7 +984,6 @@ RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
               << ", numCol = " << LB.numCol << std::endl;
 #endif 
 
-<<<<<<< Updated upstream
           } // for(iblk)
 
 #if ( _DEBUGlevel_ >= 2 )
@@ -1345,11 +995,6 @@ RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
 #endif
         }  // if(index)
       } // for(jb)
-=======
-			} // for(iblk)
-		}  // if(index)
-	} // for(jb)
->>>>>>> Stashed changes
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -1359,7 +1004,6 @@ RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
       PushCallStack("U part");
 #endif
 #if ( _DEBUGlevel_ >= 1 )
-<<<<<<< Updated upstream
       statusOFS << std::endl << "LUstructToPMatrix::U part" << std::endl;
 #endif
       for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
@@ -1421,69 +1065,6 @@ RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
                 cntval += tnrow;
               }
             } // for( j )
-=======
-	statusOFS << std::endl << "LUstructToPMatrix::U part" << std::endl;
-#endif
-	for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
-		Int bnum = GBi( ib, grid );
-		if( bnum >= numSuper ) continue;
-
-		Int cnt = 0;                                // Count for the index in LUstruct
-		Int cntval = 0;                             // Count for the nonzero values
-    Int cntidx = 0;                             // Count for the nonzero block indexes
-		const Int*    index = Llu->Ufstnz_br_ptr[ib]; 
-		const Real* pval  = reinterpret_cast<const Real*>(Llu->Unzval_br_ptr[ib]);
-		if( index ){ 
-			// Not an empty row
-			// Compute the number of nonzero columns 
-			std::vector<UBlock<Real> >& Urow = PMloc.U(ib);
-			Urow.resize( index[cnt++] );
-			cnt = BR_HEADER;
-
-
-			std::vector<Int> cols;                    //Save the nonzero columns in the current block
-			for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
-				cols.clear();
-				UBlock<Real> & UB = Urow[jblk];
-				UB.blockIdx = index[cnt];
-
-
-        PMloc.RowBlockIdx(ib).push_back(UB.blockIdx);
-        Int LBj = UB.blockIdx / grid->numProcCol; 
-        PMloc.ColBlockIdx( LBj ).push_back( bnum );
-
-
-
-				UB.numRow = super->superPtr[bnum+1] - super->superPtr[bnum];
-				cnt += UB_DESCRIPTOR;
-				for( Int j = FirstBlockCol( UB.blockIdx, super ); 
-						 j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
-					Int firstRow = index[cnt++];
-					if( firstRow != FirstBlockCol( bnum+1, super ) )
-						cols.push_back(j);
-				}
-				// Rewind the index
-				cnt -= super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx];
-
-				UB.numCol = cols.size();
-				UB.cols   = IntNumVec( cols.size(), true, &cols[0] );
-				UB.nzval.Resize( UB.numRow, UB.numCol );
-				SetValue( UB.nzval, ZERO<Real>() );
-
-				Int cntcol = 0;
-				for( Int j = 0; 
-					   j < super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx]; j++ ){
-					Int firstRow = index[cnt++];
-					if( firstRow != FirstBlockCol( bnum+1, super ) ){
-						Int tnrow = FirstBlockCol( bnum+1, super ) - firstRow;
-						lapack::Lacpy( 'A', tnrow, 1, &pval[cntval], tnrow,
-								&UB.nzval(firstRow - FirstBlockCol(bnum, super), cntcol),
-								UB.numRow );
-						cntcol ++;
-						cntval += tnrow;
-					}
-				} // for( j )
->>>>>>> Stashed changes
 
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS 
@@ -1580,5 +1161,6 @@ RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
 
       return ;
     } 		// -----  end of method RealSuperLUData::SymbolicToSuperNode  ----- 
+
 
 }

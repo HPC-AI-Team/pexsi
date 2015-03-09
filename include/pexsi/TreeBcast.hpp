@@ -41,28 +41,94 @@ class TreeBcast{
 
 class BTreeBcast: public TreeBcast{
   protected:
-  virtual void buildTree(Int * ranks, Int rank_cnt){
-          Int numLevel = floor(log2(rank_cnt));
-          Int numRoots = 0;
-          for(Int level=0;level<numLevel;++level){
-            numRoots = std::min( rank_cnt, numRoots + (Int)pow(2,level));
-            Int numNextRoots = std::min(rank_cnt,numRoots + (Int)pow(2,(level+1)));
-            Int numReceivers = numNextRoots - numRoots;
-            for(Int ip = 0; ip<numRoots;++ip){
-              Int p = ranks[ip];
-              for(Int ir = ip; ir<numReceivers;ir+=numRoots){
-                Int r = ranks[numRoots+ir];
-                if(r==myRank_){
-                  myRoot_ = p;
-                }
+////  virtual void buildTree(Int * ranks, Int rank_cnt){
+////          Int numLevel = floor(log2(rank_cnt));
+////          Int numRoots = 0;
+////          for(Int level=0;level<numLevel;++level){
+////            numRoots = std::min( rank_cnt, numRoots + (Int)pow(2,level));
+////            Int numNextRoots = std::min(rank_cnt,numRoots + (Int)pow(2,(level+1)));
+////            Int numReceivers = numNextRoots - numRoots;
+////            for(Int ip = 0; ip<numRoots;++ip){
+////              Int p = ranks[ip];
+////              for(Int ir = ip; ir<numReceivers;ir+=numRoots){
+////                Int r = ranks[numRoots+ir];
+////                if(r==myRank_){
+////                  myRoot_ = p;
+////                }
+////
+////                if(p==myRank_){
+////                  myDests_.push_back(r);
+////                }
+////              }
+////            }
+////          }
+////  }
+////
+    virtual void buildTree(Int * ranks, Int rank_cnt){
 
-                if(p==myRank_){
-                  myDests_.push_back(r);
-                }
-              }
-            }
+      Int idxStart = 0;
+      Int idxEnd = rank_cnt;
+
+
+
+      Int prevRoot = ranks[0];
+      while(idxStart<idxEnd){
+        Int curRoot = ranks[idxStart];
+        Int listSize = idxEnd - idxStart;
+
+        if(listSize == 1){
+          if(curRoot == myRank_){
+            myRoot_ = prevRoot;
+            break;
           }
-  }
+        }
+        else{
+          Int halfList = floor(ceil(double(listSize) / 2.0));
+          Int idxStartL = idxStart+1;
+          Int idxStartH = idxStart+halfList;
+
+          if(curRoot == myRank_){
+            if ((idxEnd - idxStartH) > 0 && (idxStartH - idxStartL)>0){
+              Int childL = ranks[idxStartL];
+              Int childR = ranks[idxStartH];
+
+              myDests_.push_back(childL);
+              myDests_.push_back(childR);
+            }
+            else if ((idxEnd - idxStartH) > 0){
+              Int childR = ranks[idxStartH];
+              myDests_.push_back(childR);
+            }
+            else{
+              Int childL = ranks[idxStartL];
+              myDests_.push_back(childL);
+            }
+            myRoot_ = prevRoot;
+            break;
+          } 
+
+          if( myRank_ < ranks[idxStartH]){
+            idxStart = idxStartL;
+            idxEnd = idxStartH;
+          }
+          else{
+            idxStart = idxStartH;
+          }
+          prevRoot = curRoot;
+        }
+
+      }
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS<<"My root is "<<myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
+
+
+
   public:
     BTreeBcast(const MPI_Comm & pComm, Int * ranks, Int rank_cnt):TreeBcast(pComm,ranks,rank_cnt){
       //build the binary tree;

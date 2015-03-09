@@ -9,7 +9,8 @@ def listdir_fullpath(d):
     return [os.path.join(d, f) for f in os.listdir(d)]
 
 
-searchdir = '80x80-03-05-15--20-28'
+searchdir = '80x80-03-09-15--10-03'
+#searchdir = '80x80-03-05-15--20-28'
 #searchdir = 'comm_stats_6400'
 nrows, ncols = 80, 80
 cmapname = 'nipy_spectral'
