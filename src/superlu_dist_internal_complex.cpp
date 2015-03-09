@@ -65,6 +65,7 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 namespace PEXSI{
 
 
+<<<<<<< Updated upstream
   class ComplexGridInfo{
     friend class ComplexGridData;
     friend class ComplexSuperLUData_internal;
@@ -214,6 +215,203 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
     }
     else if( opt.ColPerm == "METIS_AT_PLUS_A" ){
       options.ColPerm = METIS_AT_PLUS_A;
+=======
+class ComplexGridInfo{
+  friend class ComplexGridData;
+  friend class ComplexSuperLUData_internal;
+  protected:
+	  gridinfo_t          grid;
+};
+
+  ComplexGridData::ComplexGridData(){
+    info_ = new ComplexGridInfo;
+  }
+
+  ComplexGridData::~ComplexGridData(){
+    delete info_;
+  }
+
+
+
+  ComplexGridData::ComplexGridData(const ComplexGridData & g)
+  {
+    this->info_ = new ComplexGridInfo;
+    this->info_->grid = g.info_->grid;
+  }
+
+  ComplexGridData & ComplexGridData::operator = (const ComplexGridData & g)
+  {
+    //if this is the same object, skip the thing
+    if(&g != this){
+      delete info_;
+      this->info_ = new ComplexGridInfo;
+      this->info_->grid = g.info_->grid;
+>>>>>>> Stashed changes
+    }
+    else if( opt.ColPerm == "PARMETIS" ){
+      options.ColPerm           = PARMETIS;
+      options.ParSymbFact       = YES;
+    }
+    else{
+      std::ostringstream msg;
+      msg << opt.ColPerm << " is not a supported ColPerm type. Try (case sensitive) " << std::endl
+        << "NATURAL | MMD_AT_PLUS_A | METIS_AT_PLUS_A | PARMETIS" << std::endl;
+#ifdef USE_ABORT
+      abort();
+#endif
+      throw std::runtime_error( msg.str().c_str() );
+    }
+
+    // Setup grids
+    grid = &(g.ptrData->info_->grid);
+}
+
+<<<<<<< Updated upstream
+ComplexSuperLUData_internal::~ComplexSuperLUData_internal(){
+    if( isLUstructAllocated ){
+      Destroy_LU(A.ncol, grid, &LUstruct);
+      LUstructFree(&LUstruct); 
+    }
+    if( isScalePermstructAllocated ){
+      ScalePermstructFree(&ScalePermstruct);
+    }
+    if( options.SolveInitialized ){
+      // TODO real arithmetic
+      zSolveFinalize(&options, &SOLVEstruct);
+    }
+    if( isSuperMatrixAllocated ){
+      DestroyAOnly();
+    }
+}
+=======
+    return *this;
+  }
+>>>>>>> Stashed changes
+
+  void ComplexGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
+    superlu_gridinit(comm, nprow, npcol, &info_->grid);
+  }
+
+<<<<<<< Updated upstream
+ComplexSuperLUData_internal::ComplexSuperLUData_internal(const ComplexSuperLUData_internal& g){
+    memcpy(this,&g,sizeof(ComplexSuperLUData_internal));
+}
+
+ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const ComplexSuperLUData_internal& g){
+  if(this!=&g){
+    memcpy(this,&g,sizeof(ComplexSuperLUData_internal));
+  }
+
+  return *this;
+}
+
+
+
+=======
+  void ComplexGridData::GridExit(  ){
+    superlu_gridexit(&info_->grid);
+  }
+
+}
+
+
+// SuperLUData class
+namespace PEXSI{
+
+class ComplexSuperLUData_internal{
+  friend class ComplexSuperLUData;
+  protected:
+	/// @brief SuperLU matrix. 
+	SuperMatrix         A;                        
+
+	/// @brief SuperLU options. 
+	///
+	/// Note
+	/// ----
+	///
+	/// It is important to have 
+	///
+	/// options.RowPerm           = NOROWPERM;
+	/// 
+	/// to make sure that symmetric permutation is used.
+	///
+	superlu_options_t   options;                  
+
+	/// @brief Saves the permutation vectors.  Only perm_c (permutation of
+	/// column as well as rows due to the symmetric permutation) will be used.
+	ScalePermstruct_t   ScalePermstruct;          
+
+	/// @brief SuperLU grid structure.
+	gridinfo_t*         grid;
+
+	/// @brief Saves the supernodal partition as well as the numerical
+	/// values and structures of the L and U structure.
+	LUstruct_t          LUstruct;
+
+	/// @brief Used for solve for multivectors.
+	SOLVEstruct_t       SOLVEstruct;
+
+	/// @brief SuperLU statistics
+	SuperLUStat_t       stat;
+
+	/// @brief Number of processors used for parallel symbolic
+	/// factorization and PARMETIS/PT-SCOTCH
+	Int                 numProcSymbFact;
+
+	/// @brief SuperLU information
+	Int                 info;
+
+	// The following are for consistency checks
+	bool                isSuperMatrixAllocated;
+	bool                isSuperMatrixFactorized;
+	bool                isScalePermstructAllocated;
+	bool                isLUstructAllocated;
+
+  Int maxDomains;
+
+    ComplexSuperLUData_internal(const SuperLUGrid<Complex>& g, const SuperLUOptions& opt);
+    ~ComplexSuperLUData_internal();
+    ComplexSuperLUData_internal(const ComplexSuperLUData_internal& g);
+    ComplexSuperLUData_internal & operator = (const ComplexSuperLUData_internal& g);
+
+    void DestroyAOnly();
+
+};
+
+ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Complex>& g, const SuperLUOptions& opt){
+
+    isSuperMatrixAllocated     = false;
+    isScalePermstructAllocated = false;
+    isLUstructAllocated        = false;
+    numProcSymbFact            = opt.numProcSymbFact;
+
+    // Options
+    set_default_options_dist(&options);
+
+    // The default value of ColPerm uses the default value from SuperLUOptions
+    options.Fact              = DOFACT;
+    options.RowPerm         = NOROWPERM;
+
+    options.IterRefine        = NOREFINE;
+    options.ParSymbFact       = NO;
+    options.Equil             = NO; 
+    options.ReplaceTinyPivot  = YES;
+    // For output information such as # of nonzeros in L and U
+    // and the memory cost, set PrintStat = YES
+    options.PrintStat         = NO;
+    options.SolveInitialized  = NO;
+    // Necessary to invoke static scheduling of SuperLU
+    options.lookahead_etree   = YES;
+    options.SymPattern        = YES;
+
+    if ( opt.ColPerm == "NATURAL" ){
+      options.ColPerm = NATURAL;
+    } 
+    else if( opt.ColPerm == "MMD_AT_PLUS_A" ){
+      options.ColPerm = MMD_AT_PLUS_A;
+    }
+    else if( opt.ColPerm == "METIS_AT_PLUS_A" ){
+      options.ColPerm = METIS_AT_PLUS_A;
     }
     else if( opt.ColPerm == "PARMETIS" ){
       options.ColPerm           = PARMETIS;
@@ -306,12 +504,92 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
 
 
+
+
+
+ComplexSuperLUData::ComplexSuperLUData( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt ){
+#ifndef _RELEASE_
+	PushCallStack("ComplexSuperLUData::ComplexSuperLUData");
+#endif
+  
+  ptrData = new ComplexSuperLUData_internal(g,opt);
+	if( ptrData == NULL )
+		throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
+>>>>>>> Stashed changes
+
+  void ComplexSuperLUData_internal::DestroyAOnly	(  )
+    {
+#ifndef _RELEASE_
+      PushCallStack("ComplexSuperLUData_internal::DestroyAOnly");
+#endif
+      if( isSuperMatrixAllocated == false ){
+#ifdef USE_ABORT
+        abort();
+#endif
+        throw std::logic_error( "SuperMatrix has not been allocated." );
+      }
+      switch ( A.Stype ){
+        case SLU_NC:
+          Destroy_CompCol_Matrix_dist(&A);
+          break;
+        case SLU_NR_loc:
+          Destroy_CompRowLoc_Matrix_dist(&A);
+          break;
+        default:
+          std::ostringstream msg;
+          msg << "Type " << SLU_NR_loc << " is to be destroyed" << std::endl
+            << "This is an unsupported SuperMatrix format to be destroyed." << std::endl;
+#ifdef USE_ABORT
+          abort();
+#endif
+          throw std::runtime_error( msg.str().c_str() );
+      }
+      isSuperMatrixAllocated = false;
+#ifndef _RELEASE_
+      PopCallStack();
+#endif
+}
+
+      return ;
+    } 		// -----  end of method ComplexSuperLUData_internal::DestroyAOnly  ----- 
+
+ComplexSuperLUData::~ComplexSuperLUData(){
+#ifndef _RELEASE_
+    PushCallStack("ComplexSuperLUData::~ComplexSuperLUData");
+#endif
+    delete ptrData;
+
+<<<<<<< Updated upstream
+
+
+
+
   ComplexSuperLUData::ComplexSuperLUData( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt ){
 #ifndef _RELEASE_
     PushCallStack("ComplexSuperLUData::ComplexSuperLUData");
 #endif
 
     ptrData = new ComplexSuperLUData_internal(g,opt);
+=======
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
+  }
+
+
+  ComplexSuperLUData::ComplexSuperLUData(const ComplexSuperLUData & g)
+  {
+#ifndef _RELEASE_
+    PushCallStack("ComplexSuperLUData::ComplexSuperLUData");
+#endif
+    
+    if( g.ptrData == NULL ){
+      throw std::runtime_error( "Copied SuperLUMatrix is not allocated." );
+    }
+
+    ptrData = new ComplexSuperLUData_internal(*g.ptrData);
+
+>>>>>>> Stashed changes
     if( ptrData == NULL ){
 #ifdef USE_ABORT
       abort();
@@ -324,6 +602,32 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #endif
   }
 
+<<<<<<< Updated upstream
+=======
+  ComplexSuperLUData & ComplexSuperLUData::operator = (const ComplexSuperLUData & g)
+  {
+    //if this is the same object, skip the thing
+    if(&g == this){
+      return *this;
+    }
+
+    if( g.ptrData == NULL ){
+      throw std::runtime_error( "Copied SuperLUMatrix is not allocated." );
+    }
+    
+    delete ptrData;
+    ptrData = new ComplexSuperLUData_internal(*g.ptrData);
+    if( ptrData == NULL ){
+#ifdef USE_ABORT
+      abort();
+#endif
+      throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
+    }
+
+    return *this;
+  }
+
+>>>>>>> Stashed changes
 
   ComplexSuperLUData::~ComplexSuperLUData(){
 #ifndef _RELEASE_
@@ -477,6 +781,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
     ptrData->isSuperMatrixAllocated = true;
 
+<<<<<<< Updated upstream
 #ifndef _RELEASE_
     PopCallStack();
 #endif
@@ -502,6 +807,24 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::SymbolicFactorize	(  )
     {
+=======
+  void
+    ComplexSuperLUData::DestroyAOnly	(  )
+    {
+#ifndef _RELEASE_
+      PushCallStack("ComplexSuperLUData::DestroyAOnly");
+#endif
+      ptrData->DestroyAOnly();
+#ifndef _RELEASE_
+      PopCallStack();
+#endif
+      return ;
+    } 		// -----  end of method ComplexSuperLUData::DestroyAOnly  ----- 
+
+void
+ComplexSuperLUData::SymbolicFactorize	(  )
+{
+>>>>>>> Stashed changes
 #ifndef _RELEASE_
       PushCallStack("ComplexSuperLUData::SymbolicFactorize");
 #endif
@@ -697,8 +1020,23 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
       PopCallStack();
 #endif
 
+<<<<<<< Updated upstream
       return ;
     } 		// -----  end of method ComplexSuperLUData::ConvertNRlocToNC  ----- 
+=======
+	NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
+	
+	Int numRowLocal = Astore->m_loc;
+	Int firstRow    = Astore->fst_row;
+	Int nrhs = xGlobal.n();
+	
+	xLocal.Resize( numRowLocal, nrhs );
+	SetValue( xLocal, ZERO<Complex>() );
+	for( Int j = 0; j < nrhs; j++ ){
+		std::copy( xGlobal.VecData(j)+firstRow, xGlobal.VecData(j)+firstRow+numRowLocal,
+				xLocal.VecData(j) );
+	}
+>>>>>>> Stashed changes
 
   void
     ComplexSuperLUData::MultiplyGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& bGlobal )
@@ -750,9 +1088,17 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
       NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
 
+<<<<<<< Updated upstream
       Int numRowLocal = Astore->m_loc;
       Int firstRow    = Astore->fst_row;
       Int nrhs = xGlobal.n();
+=======
+  NumMat<Complex> tmpLocal(xGlobal.m(),nrhs);
+	SetValue( tmpLocal, ZERO<Complex>() );
+	for( Int j = 0; j < nrhs; j++ ){
+		std::copy( xLocal.VecData(j), xLocal.VecData(j)+numRowLocal, tmpLocal.VecData(j)+firstRow );
+	}
+>>>>>>> Stashed changes
 
       xLocal.Resize( numRowLocal, nrhs );
       SetValue( xLocal, ZERO<Complex>() );
@@ -906,6 +1252,19 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
 
 
+<<<<<<< Updated upstream
+=======
+				LB.numRow      = index[cnt++];
+				LB.numCol      = super->superPtr[bnum+1] - super->superPtr[bnum];
+				LB.rows        = IntNumVec( LB.numRow, true, const_cast<Int*>(&index[cnt]) );
+				LB.nzval.Resize( LB.numRow, LB.numCol );   
+				SetValue( LB.nzval, ZERO<Complex>() ); 
+				cnt += LB.numRow;
+				
+				lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
+						(Complex*)(Llu->Lnzval_bc_ptr[jb]+cntval), lda, 
+						LB.nzval.Data(), LB.numRow );
+>>>>>>> Stashed changes
 
       // L part   
 #ifndef _RELEASE_
@@ -1033,6 +1392,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
       PushCallStack("U part");
 #endif
 #if ( _DEBUGlevel_ >= 1 )
+<<<<<<< Updated upstream
       statusOFS << std::endl << "LUstructToPMatrix::U part" << std::endl;
 #endif
       for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
@@ -1123,6 +1483,69 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
                 cntval += tnrow;
               }
             } // for( j )
+=======
+	statusOFS << std::endl << "LUstructToPMatrix::U part" << std::endl;
+#endif
+	for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
+		Int bnum = GBi( ib, grid );
+		if( bnum >= numSuper ) continue;
+
+		Int cnt = 0;                                // Count for the index in LUstruct
+		Int cntval = 0;                             // Count for the nonzero values
+    Int cntidx = 0;                             // Count for the nonzero block indexes
+		const Int*    index = Llu->Ufstnz_br_ptr[ib]; 
+		const Complex* pval  = reinterpret_cast<const Complex*>(Llu->Unzval_br_ptr[ib]);
+		if( index ){ 
+			// Not an empty row
+			// Compute the number of nonzero columns 
+			std::vector<UBlock<Complex> >& Urow = PMloc.U(ib);
+			Urow.resize( index[cnt++] );
+			cnt = BR_HEADER;
+
+
+			std::vector<Int> cols;                    //Save the nonzero columns in the current block
+			for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
+				cols.clear();
+				UBlock<Complex> & UB = Urow[jblk];
+				UB.blockIdx = index[cnt];
+
+
+        PMloc.RowBlockIdx(ib).push_back(UB.blockIdx);
+        Int LBj = UB.blockIdx / grid->numProcCol; 
+        PMloc.ColBlockIdx( LBj ).push_back( bnum );
+
+
+
+				UB.numRow = super->superPtr[bnum+1] - super->superPtr[bnum];
+				cnt += UB_DESCRIPTOR;
+				for( Int j = FirstBlockCol( UB.blockIdx, super ); 
+						 j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
+					Int firstRow = index[cnt++];
+					if( firstRow != FirstBlockCol( bnum+1, super ) )
+						cols.push_back(j);
+				}
+				// Rewind the index
+				cnt -= super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx];
+
+				UB.numCol = cols.size();
+				UB.cols   = IntNumVec( cols.size(), true, &cols[0] );
+				UB.nzval.Resize( UB.numRow, UB.numCol );
+				SetValue( UB.nzval, ZERO<Complex>() );
+
+				Int cntcol = 0;
+				for( Int j = 0; 
+					   j < super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx]; j++ ){
+					Int firstRow = index[cnt++];
+					if( firstRow != FirstBlockCol( bnum+1, super ) ){
+						Int tnrow = FirstBlockCol( bnum+1, super ) - firstRow;
+						lapack::Lacpy( 'A', tnrow, 1, &pval[cntval], tnrow,
+								&UB.nzval(firstRow - FirstBlockCol(bnum, super), cntcol),
+								UB.numRow );
+						cntcol ++;
+						cntval += tnrow;
+					}
+				} // for( j )
+>>>>>>> Stashed changes
 
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS 

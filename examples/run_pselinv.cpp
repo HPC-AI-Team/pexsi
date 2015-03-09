@@ -400,9 +400,12 @@ int main(int argc, char **argv)
 
 
       SuperLUMatrix<MYSCALAR> luMat(g, luOpt );
+      SuperLUMatrix<MYSCALAR> luMat2(g, luOpt );
 
+            luMat = luMat2;
 
       luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
+
       GetTime( timeEnd );
       if( mpirank == 0 )
         cout << "Time for converting to SuperLU format is " << timeEnd - timeSta << endl;
@@ -411,7 +414,9 @@ int main(int argc, char **argv)
       if(doSymbfact){
         GetTime( timeSta );
         luMat.SymbolicFactorize();
+        luMat2.SymbolicFactorize();
         luMat.DestroyAOnly();
+        luMat2.DestroyAOnly();
         GetTime( timeEnd );
 
         if( mpirank == 0 )
@@ -434,6 +439,7 @@ int main(int argc, char **argv)
 
         GetTime( timeSta );
         luMat.Distribute();
+        luMat2.Distribute();
         GetTime( timeEnd );
         if( mpirank == 0 )
           cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
@@ -442,6 +448,7 @@ int main(int argc, char **argv)
 
         GetTime( timeSta );
         luMat.NumericalFactorize();
+        luMat2.NumericalFactorize();
         GetTime( timeEnd );
 
         if( mpirank == 0 )
@@ -505,6 +512,7 @@ int main(int argc, char **argv)
 
             GetTime( timeSta );
             luMat.SymbolicToSuperNode( super );
+            luMat2.SymbolicToSuperNode( super );
 
 
 
@@ -514,6 +522,7 @@ int main(int argc, char **argv)
 
 
             PMatrix<MYSCALAR> & PMloc = *PMlocPtr;
+
 
             luMat.LUstructToPMatrix( PMloc );
             GetTime( timeEnd );

@@ -83,9 +83,12 @@ inline SuperLUMatrix<Real>::~SuperLUMatrix	(  )
 #endif
 } 		// -----  end of method SuperLUMatrix<Real>::~SuperLUMatrix  ----- 
 
+<<<<<<< Updated upstream:include/pexsi/SuperLUMatrix_impl.hpp
 
 
 
+=======
+>>>>>>> Stashed changes:include/SuperLUMatrix_impl.hpp
 inline SuperLUMatrix<Real>::SuperLUMatrix(const SuperLUMatrix<Real> & g){
 #ifndef _RELEASE_
 	PushCallStack("SuperLUMatrix<Real>::SuperLUMatrix");
@@ -119,10 +122,13 @@ inline SuperLUMatrix<Real> & SuperLUMatrix<Real>::operator = (const SuperLUMatri
 }
 
 
+<<<<<<< Updated upstream:include/pexsi/SuperLUMatrix_impl.hpp
 
 
 
 
+=======
+>>>>>>> Stashed changes:include/SuperLUMatrix_impl.hpp
 inline void 
 SuperLUMatrix<Real>::Setup ( const SuperLUGrid<Real>& g, const SuperLUOptions& opt )
 {
@@ -407,6 +413,10 @@ inline SuperLUMatrix<Complex>::SuperLUMatrix(const SuperLUMatrix<Complex> & g){
 
 inline SuperLUMatrix<Complex> & SuperLUMatrix<Complex>::operator = (const SuperLUMatrix<Complex> & g){
     
+<<<<<<< Updated upstream:include/pexsi/SuperLUMatrix_impl.hpp
+=======
+  std::cout<<"ENTERING OPERATOR = "<<this<<std::endl;
+>>>>>>> Stashed changes:include/SuperLUMatrix_impl.hpp
   if(this!=&g){
     if(ptrData!=NULL){
       delete ptrData;
@@ -423,9 +433,12 @@ inline SuperLUMatrix<Complex> & SuperLUMatrix<Complex>::operator = (const SuperL
 }
 
 
+<<<<<<< Updated upstream:include/pexsi/SuperLUMatrix_impl.hpp
 
 
 
+=======
+>>>>>>> Stashed changes:include/SuperLUMatrix_impl.hpp
 inline void
 SuperLUMatrix<Complex>::Setup ( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt )
 {

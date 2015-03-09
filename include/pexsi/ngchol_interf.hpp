@@ -61,7 +61,6 @@ namespace PEXSI{
   template<typename T> void NGCHOLMatrixToSuperNode( 
       LIBCHOLESKY::SupernodalMatrix<T>& SMat,
       SuperNodeType& super );
-
   /// @brief Converts a matrix of NGCHOL type to PMatrix.
   template<typename T> 
     void NGCHOLMatrixToPMatrix( 

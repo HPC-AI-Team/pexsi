@@ -111,7 +111,6 @@ class RealSuperLUData{
     ~RealSuperLUData();
     RealSuperLUData(const RealSuperLUData & g);
     RealSuperLUData & operator = (const RealSuperLUData & g);
-    RealSuperLUData & operator = (RealSuperLUData & g);
   
 		Int m() const;
 		Int n() const;
@@ -139,7 +138,6 @@ class ComplexSuperLUData{
     ~ComplexSuperLUData();
     ComplexSuperLUData(const ComplexSuperLUData & g);
     ComplexSuperLUData & operator = (const ComplexSuperLUData & g);
-    ComplexSuperLUData & operator = (ComplexSuperLUData & g);
 
 		Int m() const;
 		Int n() const;
