@@ -265,29 +265,29 @@ plt.colorbar()
 fig.savefig("sender_total" + ".pdf", format='pdf')
 
 
-with open("%s/sender_bcastU_msg.dat"%searchdir) as f:
-    fig = plt.figure(10)
-    grid = np.zeros((nrows,ncols))
-    plt.title('Total number of messages (sender)')
-    first = 0
-    for line in f:
-        if first == 0:
-            receiver,sizei = line.split()
-            xi = int(receiver)%ncols
-            yi = int(receiver)/ncols
-            sizei = float(sizei)
-            grid[xi,yi] += sizei
-        first = 0
-
-
-    print np.amin(grid)
-    print np.amax(grid)
-    plt.imshow(grid, extent=(x.min()-0.5, x.max()+0.5, y.max()+0.5, y.min()-0.5),
-               interpolation='nearest', cmap=plt.get_cmap(cmapname),vmin=np.amin(grid), vmax=np.amax(grid))
-    plt.colorbar()
-     
-    
-    fig.savefig("sender_bcastU_msg" + ".pdf", format='pdf')
+#with open("%s/sender_bcastU_msg.dat"%searchdir) as f:
+#    fig = plt.figure(10)
+#    grid = np.zeros((nrows,ncols))
+#    plt.title('Total number of messages (sender)')
+#    first = 0
+#    for line in f:
+#        if first == 0:
+#            receiver,sizei = line.split()
+#            xi = int(receiver)%ncols
+#            yi = int(receiver)/ncols
+#            sizei = float(sizei)
+#            grid[xi,yi] += sizei
+#        first = 0
+#
+#
+#    print np.amin(grid)
+#    print np.amax(grid)
+#    plt.imshow(grid, extent=(x.min()-0.5, x.max()+0.5, y.max()+0.5, y.min()-0.5),
+#               interpolation='nearest', cmap=plt.get_cmap(cmapname),vmin=np.amin(grid), vmax=np.amax(grid))
+#    plt.colorbar()
+#     
+#    
+#    fig.savefig("sender_bcastU_msg" + ".pdf", format='pdf')
 
 
 
