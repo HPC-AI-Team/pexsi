@@ -13,4 +13,5 @@ ls comm_stat* | grep -v tgz | ../parse_avg 1 $nproc  > $outdir/avg.dat 2>/dev/nu
 ls comm_stat* | grep -v tgz | ../parse_avg_send 0 $nproc  > $outdir/sender_total.dat 2>/dev/null
 ls comm_stat* | grep -v tgz | ../parse_avg_send 0 $nproc 1  > $outdir/sender_bcastU_total.dat 2>/dev/null
 ls comm_stat* | grep -v tgz | ../parse_avg_send 0 $nproc 4  > $outdir/sender_reduceL_total.dat 2>/dev/null
+ls comm_stat* | grep -v tgz | ../parse_avg_send_msg 0 $nproc 1  > $outdir/sender_bcastU_total_msg.dat 2>/dev/null
 cd ..
