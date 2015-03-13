@@ -566,9 +566,8 @@ namespace PEXSI{
 
 
 #ifdef BUILD_BCAST_TREE
-      std::vector<std::vector<Int> > fwdToBelow_;
-      std::vector<Int >                rootFromAbove_;
       std::vector<TreeBcast *> fwdToBelowTree_; 
+      std::vector<TreeBcast *> fwdToRightTree_; 
 #endif
 
 
@@ -670,7 +669,9 @@ namespace PEXSI{
 
       PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
-      //virtual ~PMatrix() { statusOFS<<"DESTRUCTOR CALLED"<<std::endl;    }
+#ifdef BUILD_BCAST_TREE
+      virtual ~PMatrix();
+#endif
 
       void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 

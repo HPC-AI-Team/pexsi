@@ -13,6 +13,7 @@ class TreeBcast{
     MPI_Comm comm_;
     vector<Int> myDests_;
     Int myRank_;
+    Int msgSize_;
   
     virtual void buildTree(Int * ranks, Int rank_cnt)=0;
   public:
@@ -20,6 +21,7 @@ class TreeBcast{
       comm_ = pComm;
       MPI_Comm_rank(comm_,&myRank_);
       myRoot_ = -1; 
+      msgSize_ = -1;
     }
     
 
@@ -29,13 +31,34 @@ class TreeBcast{
     Int GetRoot(){ return myRoot_;}
     void ForwardMessage( char * data, size_t size, int tag, MPI_Request * requests ){
                   for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
-                    Int iProcRow = myDests_[idxRecv];
+                    Int iProc = myDests_[idxRecv];
                     // Use Isend to send to multiple targets
                     MPI_Isend( data, size, MPI_BYTE, 
-                        iProcRow, tag,comm_, &requests[2*iProcRow+1] );
-                  } // for (iProcRow)
+                        iProc, tag,comm_, &requests[2*iProc+1] );
+                  } // for (iProc)
     }
 
+    void ForwardMessage2( char * data, size_t size, int tag, MPI_Request * requests ){
+                  for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
+                    Int iProc = myDests_[idxRecv];
+                    // Use Isend to send to multiple targets
+                    MPI_Isend( data, size, MPI_BYTE, 
+                        iProc, tag,comm_, &requests[iProc] );
+                  } // for (iProc)
+    }
+
+    template< typename T>
+    void SumAndForwardMessage2( T * mydata, T * data, Int size, int tag, MPI_Request * requests ){
+                  //add thing to my data
+                  blas::Axpy(size, ONE<T>(), data, 1, mydata, 1 );
+
+                  for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
+                    Int iProc = myDests_[idxRecv];
+                    // Use Isend to send to multiple targets
+                    MPI_Isend( (char*)mydata, size*sizeof(T), MPI_BYTE, 
+                        iProc, tag,comm_, &requests[iProc] );
+                  } // for (iProc)
+    }
 };
 
 
