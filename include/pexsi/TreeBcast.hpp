@@ -17,11 +17,11 @@ class TreeBcast{
   
     virtual void buildTree(Int * ranks, Int rank_cnt)=0;
   public:
-    TreeBcast(const MPI_Comm & pComm, Int * ranks, Int rank_cnt){
+    TreeBcast(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize){
       comm_ = pComm;
       MPI_Comm_rank(comm_,&myRank_);
       myRoot_ = -1; 
-      msgSize_ = -1;
+      msgSize_ = msgSize;
     }
     
 
@@ -29,6 +29,8 @@ class TreeBcast{
     Int GetDest(Int i){ return myDests_[i];}
     Int GetDestCount(){ return myDests_.size();}
     Int GetRoot(){ return myRoot_;}
+    Int GetMsgSize(){ return msgSize_;}
+
     void ForwardMessage( char * data, size_t size, int tag, MPI_Request * requests ){
                   for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
                     Int iProc = myDests_[idxRecv];
@@ -153,7 +155,7 @@ class BTreeBcast: public TreeBcast{
 
 
   public:
-    BTreeBcast(const MPI_Comm & pComm, Int * ranks, Int rank_cnt):TreeBcast(pComm,ranks,rank_cnt){
+    BTreeBcast(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeBcast(pComm,ranks,rank_cnt,msgSize){
       //build the binary tree;
       buildTree(ranks,rank_cnt);
     }

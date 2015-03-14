@@ -50,7 +50,6 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "pexsi/superlu_dist_interf.hpp"
 #include <algorithm>
 
-#include <mcheck.h>
 
 
 
@@ -2750,10 +2749,7 @@ NumMat<T> & LBuf = *pLBuf;
               statusOFS << UBuf << std::endl;
 #endif
 
-//TODO REMOVE THIS THIS IS ONLY FOR DEBUGING PURPOSE
-mcheck_check_all();
               NumMat<T> LUpdateBuf;
-mcheck_check_all();
               LUpdateBuf.Resize( AinvBuf.m(), 
                             SuperSize( snode.Index, this->super_ ) );
 
