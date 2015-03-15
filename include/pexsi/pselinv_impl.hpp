@@ -1731,6 +1731,7 @@ namespace PEXSI{
             TIMER_STOP(Reduce_Sinv_LT_Isend);
           }// if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ))
 
+#ifdef BUILD_BCAST_TREE
           if(MYROW(grid_)!=PROW(snode.Index,grid_)){
             TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
             if(bcastUTree != NULL){
@@ -1748,6 +1749,7 @@ namespace PEXSI{
               }
             }
           }
+#endif
 
         }
 
