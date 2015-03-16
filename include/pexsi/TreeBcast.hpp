@@ -164,7 +164,7 @@ class BTreeReduce: public BTreeBcast{
     T * myData_;
     MPI_Request sendRequest_;
 
-    std::vector<char> myRecvBuffers;
+    std::vector<char> myRecvBuffers_;
     std::vector<T *> remoteData_;
     std::vector<MPI_Request> myRequests_;
     std::vector<MPI_Status> myStatuses_;
@@ -190,7 +190,7 @@ class BTreeReduce: public BTreeBcast{
       remoteData_.resize(GetDestCount(),NULL);
       myRecvBuffers_.resize(GetDestCount()*msgSize_);
       for( Int idxRecv = 0; idxRecv < GetDestCount(); ++idxRecv ){
-        remoteData_[idxRecv] = &myRecvBuffers_[idxRecv*msgSize_];
+        remoteData_[idxRecv] = (T*)&myRecvBuffers_[idxRecv*msgSize_];
       }
 
       myRequests_.resize(GetDestCount(),MPI_REQUEST_NULL);
@@ -257,7 +257,7 @@ class BTreeReduce: public BTreeBcast{
       if(isReady_ && !retVal){
         //mpi_test_some on my requests
         int recvCount = -1;
-        MPI_Testsome(myRequests_.size(),&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_);
+        MPI_Testsome(myRequests_.size(),&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
         //if something has been received, accumulate and potentially forward it
         for(Int i = 0;i<recvCount;++i ){
           Int idx = recvIdx_[i];
@@ -266,11 +266,11 @@ class BTreeReduce: public BTreeBcast{
           if(size>0){
 
 
-            //If myBuffer is 0, allocate to the size of what has been received
-            if(myBuffer_==NULL){
+            //If myData is 0, allocate to the size of what has been received
+            if(myData_==NULL){
               myLocalBuffer_.resize(size);
-              myBuffer_ = &myLocalBuffer_[0];
-              std::fill(myBuffer_,myBuffer_+size/sizeof(T),ZERO<T>());
+              myData_ = (T*)&myLocalBuffer_[0];
+              std::fill(myData_,myData_+size/sizeof(T),ZERO<T>());
             }
 
             Accumulate(idx);
@@ -291,12 +291,17 @@ class BTreeReduce: public BTreeBcast{
       return retVal;
     }
 
+    void CopyLocalBuffer(T* destBuffer){
+
+       std::copy((char*)myData_,(char*)myData_+GetMsgSize(),destBuffer);
+    }
+
 
     void PostAllRecv()
     {
       for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
         Int iProc = myDests_[idxRecv];
-        MPI_Irecv( (char*)remoteBuffers_[idxRecv], msgSize_*sizeof(T), MPI_BYTE, 
+        MPI_Irecv( (char*)remoteData_[idxRecv], msgSize_*sizeof(T), MPI_BYTE, 
             iProc, tag_,comm_, &myRequests_[iProc] );
       } // for (iProc)
     }
@@ -305,7 +310,7 @@ class BTreeReduce: public BTreeBcast{
     protected:
     void Accumulate( Int idxRecv ){
       //add thing to my data
-      blas::Axpy(size, ONE<T>(), data, 1, myData_, 1 );
+      blas::Axpy(msgSize_/sizeof(T), ONE<T>(), remoteData_[idxRecv], 1, myData_, 1 );
     }
 
     void Forward(){ 
