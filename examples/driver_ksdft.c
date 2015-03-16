@@ -109,12 +109,21 @@ int main(int argc, char **argv)
 
   /* Below is the data used for the toy matrix */
 
-  numElectronExact    = 12.0;
-  nprow               = 1;
-  npcol               = 1;
+  /*
+  numElectronExact    = 2.0;
+  nprow               = 4;
+  npcol               = 4;
   Hfile               = "lap2dr.matrix";
   Sfile               = "";
   isFormatted         = 1;
+  */
+  numElectronExact    = 70000.0;
+  nprow               = 40;
+  npcol               = 40;
+  Hfile               = "/project/projectdirs/m1027/PEXSI/DG_Phosphorene_14000/H.csc";
+  Sfile               = "";
+  isFormatted         = 0;
+
   isSIdentity         = 1;
   Energy              = 1.0;
   eta                 = 0.001;
@@ -234,10 +243,11 @@ int main(int argc, char **argv)
   options.muMin0 = 0.0;
   options.muMax0 = 0.5;
   options.mu0    = 0.0;
-  options.npSymbFact = 1;
+  options.npSymbFact = 8;
   options.ordering = 0;
-  options.isInertiaCount = 1;
-  options.verbosity = 2;
+  options.isInertiaCount = 0;
+  options.maxPEXSIIter   = 1;
+  options.verbosity = 1;
   options.deltaE   = 20.0;
   options.numPole  = 60;
   options.temperature  = 0.019; // 3000K

@@ -172,6 +172,14 @@ namespace PEXSI{
         }
       }
 
+#ifdef TREE_REDUCTION
+      for(int i =0;i<redToLeftTree_.size();++i){
+        if(redToLeftTree_[i]!=NULL){
+          delete redToLeftTree_[i];
+        }
+      }
+#endif
+
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -1685,6 +1693,26 @@ namespace PEXSI{
 
       }
 
+
+       
+#ifdef TREE_REDUCTION
+for (Int supidx=0; supidx<stepSuper; supidx++){
+  SuperNodeBufferType & snode = arrSuperNodes[supidx];
+  BTreeReduce * redLTree = redToLeft_[snode.Index];
+
+  if(redLTree != NULL){
+    if(redLTree->GetDestCount()>0){
+      //Initialize the tree
+      redLTree->SetTag(IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE));
+      redLTree->AllocRecvBuffers();
+      //Post All Recv requests;
+      redLTree->PostAllRecv();
+    }
+  }
+}
+#endif
+
+
       TIMER_START(Compute_Sinv_LT);
       {
         Int msgForwarded = 0;
@@ -1718,6 +1746,22 @@ namespace PEXSI{
           }
           else if( (isRecvFromLeft_( snode.Index )  ) && MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) )
           {
+
+
+
+#ifdef TREE_REDUCTION
+              //Get the reduction tree
+              BTreeReduce * redLTree = redToLeft_[snode.Index];
+
+              if(redLTree != NULL){
+                TIMER_START(Reduce_Sinv_LT_Isend);
+                //send the data to NULL to ensure 0 byte send
+                redLTree->SetLocalBuffer(NULL);
+                redLTree->SetDataReady(true);
+                bool done = redLTree->Wait();
+                TIMER_STOP(Reduce_Sinv_LT_Isend);
+              }
+#else
             TIMER_START(Reduce_Sinv_LT_Isend);
             MPI_Request & mpireqsSendToLeft = arrMpireqsSendToLeft[supidx];
             //Dummy 0-b send If I was a receiver, I need to send my data to proc in column of snode.Index
@@ -1729,6 +1773,7 @@ namespace PEXSI{
             statusOFS << std::endl << "["<<snode.Index<<"] "<< " P"<<MYPROC(grid_)<<" has sent "<< 0 << " bytes to " << PNUM(MYROW(grid_),PCOL(snode.Index,grid_),grid_) << std::endl;
 #endif
             TIMER_STOP(Reduce_Sinv_LT_Isend);
+#endif
           }// if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ))
 
 #ifdef BUILD_BCAST_TREE
@@ -1933,7 +1978,7 @@ namespace PEXSI{
 #endif
             } // if Gemm is to be done locally
 
-
+#ifndef TREE_REDUCTION
             //If I was a receiver, I need to send my data to proc in column of snode.Index
             if( isRecvFromAbove_( snode.Index )  ){
               if( isRecvFromLeft_( snode.Index ) && MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) )
@@ -1951,12 +1996,40 @@ namespace PEXSI{
 
                 TIMER_STOP(Reduce_Sinv_LT_Isend);
               }//Sender
+#else
+              //Get the reduction tree
+              BTreeReduce * redLTree = redToLeft_[snode.Index];
+
+              if(redLTree != NULL){
+                TIMER_START(Reduce_Sinv_LT_Isend);
+                //send the data
+                redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+                redLTree->SetDataReady(true);
+                bool done = redLTree->Wait();
+
+//                PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE),snode.LUpdateBuf.ByteSize());
+
+                TIMER_STOP(Reduce_Sinv_LT_Isend);
+              }
+#endif
             }
             gemmProcessed++;
 
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<"/"<<gemmToDo<<std::endl;
 #endif
+
+#ifdef TREE_REDUCTION
+            //advance reductions
+            for (Int supidx=0; supidx<stepSuper; supidx++){
+              SuperNodeBufferType & snode = arrSuperNodes[supidx];
+              BTreeReduce * redLTree = redToLeft_[snode.Index];
+              if(redLTree != NULL){
+                  bool done = redLTree->Wait();
+              }
+            }
+#endif
+
           }
         }
 
@@ -1964,6 +2037,70 @@ namespace PEXSI{
       TIMER_STOP(Compute_Sinv_LT);
 
       //Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
+
+#ifdef TREE_REDUCTION
+      TIMER_START(Reduce_Sinv_LT);
+    //blocking wait for the reduction
+    bool all_done = false;
+    while(!all_done){
+      all_done = true;
+
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        SuperNodeBufferType & snode = arrSuperNodes[supidx];
+        BTreeReduce * redLTree = redToLeft_[snode.Index];
+
+        if(redLTree != NULL){
+            bool done = redLTree->Wait();
+            if(done){
+
+
+              if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+                //determine the number of rows in LUpdateBufReduced
+                Int numRowLUpdateBuf;
+                std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
+                if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
+                  snode.RowLocalPtr.resize( Lcol.size() + 1 );
+                  snode.BlockIdxLocal.resize( Lcol.size() );
+                  snode.RowLocalPtr[0] = 0;
+                  for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                    snode.RowLocalPtr[ib+1] = snode.RowLocalPtr[ib] + Lcol[ib].numRow;
+                    snode.BlockIdxLocal[ib] = Lcol[ib].blockIdx;
+                  }
+                } // I do not own the diagonal block
+                else{
+                  snode.RowLocalPtr.resize( Lcol.size() );
+                  snode.BlockIdxLocal.resize( Lcol.size() - 1 );
+                  snode.RowLocalPtr[0] = 0;
+                  for( Int ib = 1; ib < Lcol.size(); ib++ ){
+                    snode.RowLocalPtr[ib] = snode.RowLocalPtr[ib-1] + Lcol[ib].numRow;
+                    snode.BlockIdxLocal[ib-1] = Lcol[ib].blockIdx;
+                  }
+                } // I own the diagonal block, skip the diagonal block
+                numRowLUpdateBuf = *snode.RowLocalPtr.rbegin();
+
+
+                if( numRowLUpdateBuf > 0 ){
+                  if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
+                    snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
+                    //copy the buffer from the reduce tree
+                    std::copy((char*)redLTree->GetLocalBuffer(),(char*)redLTree->GetLocalBuffer()+redLTree->GetMsgSize(),snode.LUpdateBuf.Data());
+
+                  }
+                }
+
+
+              }
+
+
+              redLTree->CleanupBuffers();
+            }
+
+            all_done = alldone && done;
+        }
+      }
+    }
+      TIMER_STOP(Reduce_Sinv_LT);
+#else
       TIMER_START(Reduce_Sinv_LT);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -2037,17 +2174,17 @@ namespace PEXSI{
       }
       TIMER_STOP(Reduce_Sinv_LT);
 
-
-      TIMER_START(Reduce_Sinv_LT_Testsome);
-      reqSentToLeft.resize(arrMpireqsSendToLeft.size());
-      MPI_Testsome(arrMpireqsSendToLeft.size(), &arrMpireqsSendToLeft[0], &numSentToLeft, &reqSentToLeft[0], MPI_STATUSES_IGNORE);
-      TIMER_STOP(Reduce_Sinv_LT_Testsome);
-
+//
+//      TIMER_START(Reduce_Sinv_LT_Testsome);
+//      reqSentToLeft.resize(arrMpireqsSendToLeft.size());
+//      MPI_Testsome(arrMpireqsSendToLeft.size(), &arrMpireqsSendToLeft[0], &numSentToLeft, &reqSentToLeft[0], MPI_STATUSES_IGNORE);
+//      TIMER_STOP(Reduce_Sinv_LT_Testsome);
+//
 
       TIMER_START(Reduce_Sinv_LT_Waitall);
       mpi::Waitall( arrMpireqsSendToLeft );
       TIMER_STOP(Reduce_Sinv_LT_Waitall);
-
+#endif
 
       //--------------------- End of reduce of LUpdateBuf-------------------------
 #ifndef _RELEASE_
@@ -2271,6 +2408,9 @@ namespace PEXSI{
 #ifdef BUILD_BCAST_TREE
       fwdToBelowTree_.resize(numSuper, NULL );
       fwdToRightTree_.resize(numSuper, NULL );
+#ifdef TREE_REDUCTION
+      redToLeftTree_.resize(numSuper, NULL );
+#endif
 #endif
 
       isSendToBelow_.Resize(grid_->numProcRow, numSuper);
@@ -2645,6 +2785,78 @@ namespace PEXSI{
 
       //do the same for the other arrays
       TIMER_STOP(BUILD_BCAST_TREE);
+
+#ifdef TREE_REDUCTION
+            vector<Int> aggRTL(numSuper); 
+            vector<Int> globalAggRTL(numSuper*grid_->numProcCol); 
+            for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+              if(MYCOL(grid_)==PCOL(ksup,grid_)){
+                std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
+                // All blocks except for the diagonal block are to be sent right
+
+                Int totalSize = 0;
+
+
+
+
+          //determine the number of rows in LUpdateBufReduced
+          Int numRowLUpdateBuf;
+          if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
+            for( Int ib = 0; ib < Lcol.size(); ib++ ){
+              numRowLUpdateBuf += Lcol[ib].numRow;
+            }
+          } // I do not own the diagonal block
+          else{
+            for( Int ib = 1; ib < Lcol.size(); ib++ ){
+              numRowLUpdateBuf += Lcol[ib].numRow;
+            }
+          } // I own the diagonal block, skip the diagonal block
+
+
+          totalSize = numRowLUpdateBuf*SuperSize( snode.Index, super_ )*sizeof(T);
+
+                aggRTL[ksup]=totalSize;
+
+              }
+              else if(isRecvFromLeft_(ksup)){
+                aggRTL[ksup]=1;
+              }
+              else{
+                aggRTL[ksup]=0;
+              }
+            }
+      //      //allgather
+            MPI_Allgather(&aggRTL[0],numSuper*sizeof(Int),MPI_BYTE,
+                          &globalAggRTL[0],numSuper*sizeof(Int),MPI_BYTE,
+                            grid_->rowComm);
+
+
+      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+        set<Int> set_ranks;
+        Int msgSize = 0;
+        for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
+          Int isRTL = globalAggRTL[iProcCol*numSuper + ksup];
+          if(isRTL>0){
+            if( iProcCol != PCOL( ksup, grid_ ) ){
+              set_ranks.insert(iProcCol);
+            }
+            else{
+              msgSize = isRTL;
+            }
+          }
+        }
+
+        if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
+          vector<Int> tree_ranks;
+          tree_ranks.push_back(PCOL(ksup,grid_));
+          tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
+
+          BTreeReduce * & redLTree = redToLeftTree_[ksup];
+          redLTree = new BTreeReduce(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+        }
+      }
+#endif
+
 #endif
 
 
