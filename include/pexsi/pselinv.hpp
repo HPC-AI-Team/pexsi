@@ -569,7 +569,8 @@ namespace PEXSI{
       std::vector<TreeBcast *> fwdToBelowTree_; 
       std::vector<TreeBcast *> fwdToRightTree_; 
 #ifdef TREE_REDUCTION
-      std::vector<BTreeReduce<T> *> redToLeftTree_; 
+      std::vector<TreeReduce<T> *> redToLeftTree_; 
+      std::vector<TreeReduce<T> *> redToAboveTree_; 
 #endif
 #endif
 

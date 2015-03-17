@@ -177,6 +177,9 @@ namespace PEXSI{
         if(redToLeftTree_[i]!=NULL){
           delete redToLeftTree_[i];
         }
+        if(redToAboveTree_[i]!=NULL){
+          delete redToAboveTree_[i];
+        }
       }
 #endif
 
@@ -1698,7 +1701,7 @@ namespace PEXSI{
 #ifdef TREE_REDUCTION
 for (Int supidx=0; supidx<stepSuper; supidx++){
   SuperNodeBufferType & snode = arrSuperNodes[supidx];
-  BTreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+  TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
 
   if(redLTree != NULL){
     if(redLTree->GetDestCount()>0){
@@ -1751,14 +1754,14 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
 
 #ifdef TREE_REDUCTION
               //Get the reduction tree
-              BTreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+              TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
 
               if(redLTree != NULL){
                 TIMER_START(Reduce_Sinv_LT_Isend);
                 //send the data to NULL to ensure 0 byte send
                 redLTree->SetLocalBuffer(NULL);
                 redLTree->SetDataReady(true);
-                bool done = redLTree->Wait();
+                bool done = redLTree->Progress();
                 TIMER_STOP(Reduce_Sinv_LT_Isend);
               }
 #else
@@ -1999,14 +2002,14 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
             }
 #else
               //Get the reduction tree
-              BTreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+              TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
 
               if(redLTree != NULL){
                 TIMER_START(Reduce_Sinv_LT_Isend);
                 //send the data
                 redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
                 redLTree->SetDataReady(true);
-                bool done = redLTree->Wait();
+                bool done = redLTree->Progress();
                 TIMER_STOP(Reduce_Sinv_LT_Isend);
               }
 #endif
@@ -2021,9 +2024,9 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
             //advance reductions
             for (Int supidx=0; supidx<stepSuper; supidx++){
               SuperNodeBufferType & snode = arrSuperNodes[supidx];
-              BTreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+              TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
               if(redLTree != NULL){
-                  bool done = redLTree->Wait();
+                  bool done = redLTree->Progress();
               }
             }
 #endif
@@ -2046,10 +2049,10 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
 
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
-        BTreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+        TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
 
         if(redLTree != NULL){
-            bool done = redLTree->Wait();
+            bool done = redLTree->Progress();
             if(done){
 
 
@@ -2191,25 +2194,59 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
 #endif
 
       TIMER_START(Update_Diagonal);
+
+
+       
+#ifdef TREE_REDUCTION
+for (Int supidx=0; supidx<stepSuper; supidx++){
+  SuperNodeBufferType & snode = arrSuperNodes[supidx];
+  TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+
+  if(redDTree != NULL){
+    if(redDTree->GetDestCount()>0){
+      //Initialize the tree
+      redDTree->SetTag(IDX_TO_TAG(snode.Index,SELINV_TAG_D_REDUCE));
+      redDTree->AllocRecvBuffers();
+      //Post All Recv requests;
+      redDTree->PostAllRecv();
+    }
+  }
+}
+#endif
+
+
+
+
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
 
         ComputeDiagUpdate(snode);
 
+#ifdef TREE_REDUCTION
+              //Get the reduction tree
+              TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+
+              if(redDTree != NULL){
+                //send the data
+                redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+                redDTree->SetDataReady(true);
+                bool done = redDTree->Progress();
+              }
+
+
+//            //advance reductions
+//            for (Int supidx=0; supidx<stepSuper; supidx++){
+//              SuperNodeBufferType & snode = arrSuperNodes[supidx];
+//              TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+//              if(redDTree != NULL){
+//                  bool done = redDTree->Progress();
+//              }
+//            }
+#else
         if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
           if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
             if(isSendToDiagonal_(snode.Index)){
               //send to above
-
-
-//              TIMER_START(Reduce_Sinv_LT_Testsome);
-//              reqSentToLeft.resize(arrMpireqsSendToLeft.size());
-//              MPI_Testsome(arrMpireqsSendToLeft.size(), &arrMpireqsSendToLeft[0], &numSentToLeft, &reqSentToLeft[0], MPI_STATUSES_IGNORE);
-//              TIMER_STOP(Reduce_Sinv_LT_Testsome);
-
-
-
-
               MPI_Request & mpireqsSendToAbove = arrMpireqsSendToAbove[supidx];
               MPI_Isend( snode.DiagBuf.Data(),  snode.DiagBuf.ByteSize(), MPI_BYTE,
                   PROW(snode.Index,grid_) ,IDX_TO_TAG(snode.Index,SELINV_TAG_D_REDUCE), grid_->colComm, &mpireqsSendToAbove );
@@ -2222,9 +2259,54 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
             }
           }
         }
+#endif
       }
       TIMER_STOP(Update_Diagonal);
 
+#ifdef TREE_REDUCTION
+      TIMER_START(Reduce_Diagonal);
+
+      TIMER_START(Reduce_Sinv_LT);
+    //blocking wait for the reduction
+{
+  bool all_done = true;
+  while(!all_done)
+  {
+    all_done = true;
+
+    for (Int supidx=0; supidx<stepSuper; supidx++){
+      SuperNodeBufferType & snode = arrSuperNodes[supidx];
+      TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+
+      if(redDTree != NULL){
+        bool done = redDTree->Progress();
+        if(done){
+
+
+          if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+            if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+
+
+              LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
+              // Symmetrize LB
+              blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), redDTree->GetLocalBuffer(), 1, LB.nzval.Data(), 1 );
+#ifndef _NO_SYMMETRIZATION_
+              Symmetrize( LB.nzval );
+#endif
+
+
+            }
+          }
+          redDTree->CleanupBuffers();
+        }
+
+        all_done = all_done && done;
+      }
+    }
+  }
+}
+      TIMER_STOP(Reduce_Diagonal);
+#else
       TIMER_START(Reduce_Diagonal);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -2265,6 +2347,7 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
         } 
       }
       TIMER_STOP(Reduce_Diagonal);
+#endif
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -2274,12 +2357,6 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
 #ifndef _RELEASE_
       PushCallStack("PMatrix::SelInv_P2p::UpdateU");
 #endif
-
-
-      TIMER_START(Reduce_Sinv_LT_Testsome);
-      reqSentToLeft.resize(arrMpireqsSendToLeft.size());
-      MPI_Testsome(arrMpireqsSendToLeft.size(), &arrMpireqsSendToLeft[0], &numSentToLeft, &reqSentToLeft[0], MPI_STATUSES_IGNORE);
-      TIMER_STOP(Reduce_Sinv_LT_Testsome);
 
 
 
@@ -2335,13 +2412,18 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
             }
 #endif
       mpi::Waitall(arrMpireqsRecvContentFromAny);
+
       //Sync for reduce L
       //      mpi::Waitall( arrMpireqsSendToLeft );
+
+#ifndef TREE_REDUCTION
       //Sync for reduce D
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS<<"arrMpireqsSendToAbove"<<std::endl;
 #endif
       mpi::Waitall(arrMpireqsSendToAbove);
+#endif
+
       for (Int supidx=0; supidx<stepSuper; supidx++){
         Int ksup = superList[lidx][supidx];
         std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
@@ -2409,6 +2491,7 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
       fwdToRightTree_.resize(numSuper, NULL );
 #ifdef TREE_REDUCTION
       redToLeftTree_.resize(numSuper, NULL );
+      redToAboveTree_.resize(numSuper, NULL );
 #endif
 #endif
 
@@ -2757,6 +2840,15 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
           tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
           TreeBcast * & BcastUTree = fwdToBelowTree_[ksup];
           BcastUTree = new BTreeBcast(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+
+#ifdef TREE_REDUCTION
+          if(MYCOL(grid_)==PCOL(ksup,grid_)){
+            Int msgSize = sizeof(T)*SuperSize( ksup, super_ )*SuperSize( ksup, super_ );
+            TreeReduce<T> * & redDTree = redToAboveTree_[ksup];
+            redDTree = new BTreeReduce<T>(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+          }
+#endif
+
         }
 
         set_ranks.clear();
@@ -2850,7 +2942,7 @@ for (Int supidx=0; supidx<stepSuper; supidx++){
           tree_ranks.push_back(PCOL(ksup,grid_));
           tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
 
-          BTreeReduce<T> * & redLTree = redToLeftTree_[ksup];
+          TreeReduce<T> * & redLTree = redToLeftTree_[ksup];
           redLTree = new BTreeReduce<T>(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize);
         }
       }

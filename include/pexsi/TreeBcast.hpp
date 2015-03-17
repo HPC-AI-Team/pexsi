@@ -14,6 +14,14 @@ class TreeBcast{
     vector<Int> myDests_;
     Int myRank_;
     Int msgSize_;
+    bool isReady_;
+    Int mainRoot_;
+    Int tag_;
+    Int numRecv_;
+
+
+
+
   
     virtual void buildTree(Int * ranks, Int rank_cnt)=0;
   public:
@@ -22,8 +30,19 @@ class TreeBcast{
       MPI_Comm_rank(comm_,&myRank_);
       myRoot_ = -1; 
       msgSize_ = msgSize;
+
+      numRecv_ = 0;
+      tag_=-1;
+      mainRoot_=ranks[0];
+      isReady_ = false;
     }
     
+
+    virtual inline Int GetNumRecvMsg(){return numRecv_;}
+    virtual inline Int GetNumMsgToRecv(){return 1;}
+    inline void SetDataReady(bool rdy){ isReady_=rdy;}
+    inline void SetTag(Int tag){ tag_ = tag;}
+
 
     Int * GetDests(){ return &myDests_[0];}
     Int GetDest(Int i){ return myDests_[i];}
@@ -153,13 +172,14 @@ class BTreeBcast: public TreeBcast{
 };
 
 
+
+
+
+
 template< typename T>
-class BTreeReduce: public BTreeBcast{
+class TreeReduce: public TreeBcast{
   protected:
-    bool isReady_;
-    Int mainRoot_;
-    Int tag_;
-    Int numRecv_;
+
     std::vector<char> myLocalBuffer_;
     T * myData_;
     MPI_Request sendRequest_;
@@ -171,20 +191,13 @@ class BTreeReduce: public BTreeBcast{
     std::vector<int> recvIdx_;
 
   public:
-    BTreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):BTreeBcast(pComm,ranks,rank_cnt,msgSize){
-      numRecv_ = 0;
-      tag_=-1;
+    TreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeBcast(pComm,ranks,rank_cnt,msgSize){
       myData_ = NULL;
       sendRequest_ = MPI_REQUEST_NULL;
-      mainRoot_=ranks[0];
-      isReady_ = false;
+
     }
 
-    inline Int GetNumRecvMsg(){return numRecv_;}
-    inline Int GetNumMsgToRecv(){return GetDestCount();}
-
-    inline void SetDataReady(bool rdy){ isReady_=rdy;}
-    inline void SetTag(Int tag){ tag_ = tag;}
+    virtual inline Int GetNumMsgToRecv(){return GetDestCount();}
 
     void AllocRecvBuffers(){
       remoteData_.resize(GetDestCount(),NULL);
@@ -252,7 +265,7 @@ class BTreeReduce: public BTreeBcast{
     }
 
     //async wait and forward
-    bool Wait(){
+    bool Progress(){
       bool retVal = AccumulationDone();
       if(isReady_ && !retVal){
         //mpi_test_some on my requests
@@ -273,7 +286,7 @@ class BTreeReduce: public BTreeBcast{
               std::fill(myData_,myData_+size/sizeof(T),ZERO<T>());
             }
 
-            Accumulate(idx);
+            Reduce(idx);
           }
 
           MPI_Request_free(&myRequests_[idx]);
@@ -291,8 +304,18 @@ class BTreeReduce: public BTreeBcast{
       return retVal;
     }
 
-    void CopyLocalBuffer(T* destBuffer){
+    //blocking wait
+    void Wait(){
+      while(!Progress());
+    }
 
+    T * GetLocalBuffer(){
+       return myData_;
+    }
+
+
+
+    void CopyLocalBuffer(T* destBuffer){
        std::copy((char*)myData_,(char*)myData_+GetMsgSize(),destBuffer);
     }
 
@@ -308,7 +331,7 @@ class BTreeReduce: public BTreeBcast{
 
 
     protected:
-    void Accumulate( Int idxRecv ){
+    void Reduce( Int idxRecv ){
       //add thing to my data
       blas::Axpy(msgSize_/sizeof(T), ONE<T>(), remoteData_[idxRecv], 1, myData_, 1 );
     }
@@ -329,6 +352,15 @@ class BTreeReduce: public BTreeBcast{
       //PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE),redLTree->GetMsgSize());
     }
 
+};
+
+
+
+template< typename T>
+class BTreeReduce: public TreeReduce<T>,BTreeBcast{
+    public:
+    BTreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):BTreeBcast(pComm,ranks,rank_cnt,msgSize),TreeReduce(pComm, ranks, rank_cnt, msgSize){
+    }
 };
 
 
