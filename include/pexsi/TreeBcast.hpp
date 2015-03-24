@@ -229,7 +229,6 @@ class TreeReduce: public TreeBcast{
     TreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeBcast(pComm,ranks,rank_cnt,msgSize){
       myData_ = NULL;
       sendRequest_ = MPI_REQUEST_NULL;
-
     }
 
     virtual inline Int GetNumMsgToRecv(){return GetDestCount();}
@@ -375,6 +374,9 @@ class TreeReduce: public TreeBcast{
       //forward to my root if I have reseived everything
       Int iProc = myRoot_;
       // Use Isend to send to multiple targets
+
+      assert(tag_!=-1);
+
       if(myData_==NULL){
         MPI_Isend( NULL, 0, MPI_BYTE, 
             iProc, tag_,comm_, &sendRequest_ );
@@ -392,14 +394,71 @@ class TreeReduce: public TreeBcast{
 
 
 template< typename T>
-class BTreeReduce: public TreeReduce<T>,public BTreeBcast{
+class BTreeReduce: public TreeReduce<T>{
     protected:
     virtual void buildTree(Int * ranks, Int rank_cnt){
-      BTreeBcast::buildTree(ranks,rank_cnt);
-    }
+      Int idxStart = 0;
+      Int idxEnd = rank_cnt;
 
+
+
+      Int prevRoot = ranks[0];
+      while(idxStart<idxEnd){
+        Int curRoot = ranks[idxStart];
+        Int listSize = idxEnd - idxStart;
+
+        if(listSize == 1){
+          if(curRoot == this->myRank_){
+            this->myRoot_ = prevRoot;
+            break;
+          }
+        }
+        else{
+          Int halfList = floor(ceil(double(listSize) / 2.0));
+          Int idxStartL = idxStart+1;
+          Int idxStartH = idxStart+halfList;
+
+          if(curRoot == this->myRank_){
+            if ((idxEnd - idxStartH) > 0 && (idxStartH - idxStartL)>0){
+              Int childL = ranks[idxStartL];
+              Int childR = ranks[idxStartH];
+
+              this->myDests_.push_back(childL);
+              this->myDests_.push_back(childR);
+            }
+            else if ((idxEnd - idxStartH) > 0){
+              Int childR = ranks[idxStartH];
+              this->myDests_.push_back(childR);
+            }
+            else{
+              Int childL = ranks[idxStartL];
+              this->myDests_.push_back(childL);
+            }
+            this->myRoot_ = prevRoot;
+            break;
+          } 
+
+          if( this->myRank_ < ranks[idxStartH]){
+            idxStart = idxStartL;
+            idxEnd = idxStartH;
+          }
+          else{
+            idxStart = idxStartH;
+          }
+          prevRoot = curRoot;
+        }
+
+      }
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS<<"My root is "<<this->myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
     public:
-    BTreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce<T>(pComm, ranks, rank_cnt, msgSize),BTreeBcast(pComm,ranks,rank_cnt,msgSize){
+    BTreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce<T>(pComm, ranks, rank_cnt, msgSize){
       buildTree(ranks,rank_cnt);
     }
 };
