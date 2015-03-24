@@ -71,6 +71,41 @@ class TreeBcast{
 
 };
 
+class FTreeBcast: public TreeBcast{
+  protected:
+    virtual void buildTree(Int * ranks, Int rank_cnt){
+
+      Int idxStart = 0;
+      Int idxEnd = rank_cnt;
+
+
+
+      myRoot_ = ranks[0];
+
+      if(myRank_==myRoot_){
+        myDests_.insert(myDests_.begin(),&ranks[1],&ranks[0]+rank_cnt);
+      }
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS<<"My root is "<<myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
+
+
+
+  public:
+    FTreeBcast(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeBcast(pComm,ranks,rank_cnt,msgSize){
+      //build the binary tree;
+      buildTree(ranks,rank_cnt);
+    }
+
+
+};
+
+
 
 class BTreeBcast: public TreeBcast{
   protected:
@@ -357,15 +392,21 @@ class TreeReduce: public TreeBcast{
 
 
 template< typename T>
-class BTreeReduce: public TreeReduce<T>,BTreeBcast{
+class BTreeReduce: public TreeReduce<T>,public BTreeBcast{
+    protected:
+    virtual void buildTree(Int * ranks, Int rank_cnt){
+      BTreeBcast::buildTree(ranks,rank_cnt);
+    }
+
     public:
-    BTreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):BTreeBcast(pComm,ranks,rank_cnt,msgSize),TreeReduce(pComm, ranks, rank_cnt, msgSize){
+    BTreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce<T>(pComm, ranks, rank_cnt, msgSize),BTreeBcast(pComm,ranks,rank_cnt,msgSize){
+      buildTree(ranks,rank_cnt);
     }
 };
 
 
-
-
+#define BCASTTREE BTreeBcast
+//#define BCASTTREE FTreeBcast
 
 }
 
