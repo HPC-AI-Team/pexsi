@@ -1162,9 +1162,18 @@ namespace PEXSI{
           gemm_stat.push_back(Lcol[ib].numRow);
 #endif
 
-          blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), Lcol[ib].numRow, 
+          LBlock<T> & LB = Lcol[ib];
+
+          //if(snode.Index==102){gdb_lock();}
+          statusOFS<<snode.DiagBuf<<std::endl;
+          statusOFS<<snode.LUpdateBuf<<std::endl;
+          statusOFS<<snode.RowLocalPtr<<std::endl;
+          statusOFS<<LB<<std::endl;
+
+
+          blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), LB.numRow, 
               MINUS_ONE<T>(), &snode.LUpdateBuf( snode.RowLocalPtr[ib-startIb], 0 ), snode.LUpdateBuf.m(),
-              Lcol[ib].nzval.Data(), Lcol[ib].nzval.m(), ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
+              LB.nzval.Data(), LB.nzval.m(), ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
         } 
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -3960,8 +3969,11 @@ namespace PEXSI{
 
         if(redLTree != NULL){
           bool done = redLTree->Progress();
-          if(done){
 
+if(snode.Index==102){if(done){statusOFS<<"DONE"<<std::endl;}else{statusOFS<<"NOT DONE"<<std::endl;}}
+if(snode.Index==102){redLTree->Wait();}
+          done=true;
+          if(done){
 
             if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
               //determine the number of rows in LUpdateBufReduced
@@ -3987,6 +3999,7 @@ namespace PEXSI{
               } // I own the diagonal block, skip the diagonal block
               numRowLUpdateBuf = *snode.RowLocalPtr.rbegin();
 
+statusOFS<<snode.RowLocalPtr<<std::endl;
 
               if( numRowLUpdateBuf > 0 ){
                 if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
