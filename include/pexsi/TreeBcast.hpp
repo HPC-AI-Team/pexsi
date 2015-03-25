@@ -225,10 +225,15 @@ class TreeReduce: public TreeBcast{
     std::vector<MPI_Status> myStatuses_;
     std::vector<int> recvIdx_;
 
+    bool fwded_;
+    bool isAllocated_;
+
   public:
     TreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeBcast(pComm,ranks,rank_cnt,msgSize){
       myData_ = NULL;
       sendRequest_ = MPI_REQUEST_NULL;
+      fwded_=false;
+      isAllocated_=false;
     }
 
     virtual inline Int GetNumMsgToRecv(){return GetDestCount();}
@@ -245,33 +250,47 @@ class TreeReduce: public TreeBcast{
       recvIdx_.resize(GetDestCount(),-1);
 
       sendRequest_ = MPI_REQUEST_NULL;
+
+      isAllocated_ = true;
     }
 
     void CleanupBuffers(){
+      if(remoteData_.size()>0)
       {
         std::vector<T *> empty;
         empty.swap(remoteData_);
       }
+      if(myLocalBuffer_.size()>0)
       {
         std::vector<char> empty;
         empty.swap(myLocalBuffer_);
       }
+      if(myRecvBuffers_.size()>0)
       {
         std::vector<char> empty;
         empty.swap(myRecvBuffers_);
       }
+      if(myRequests_.size()>0)
       {
         std::vector<MPI_Request> empty;
         empty.swap(myRequests_);
       }
+      if(myStatuses_.size()>0)
       {
         std::vector<MPI_Status> empty;
         empty.swap(myStatuses_);
       }
+      if(recvIdx_.size()>0)
       {
         std::vector<int> empty;
         empty.swap(recvIdx_);
       }
+
+      myData_ = NULL;
+      sendRequest_ = MPI_REQUEST_NULL;
+      fwded_=false;
+      isAllocated_=false;
+      isReady_=false;
     }
 
 
@@ -283,51 +302,86 @@ class TreeReduce: public TreeBcast{
     }
 
     inline bool AccumulationDone(){
+      if(myRank_==myRoot_ && isAllocated_){
+        isReady_=true;
+      }
       return isReady_ && (numRecv_ == GetDestCount());
     }
 
 
     inline bool IsDone(){
+      if(myRank_==myRoot_ && isAllocated_){
+        isReady_=true;
+      }
+
       bool retVal = AccumulationDone();
-      if(retVal && isReady_){
+      if(myRoot_ != myRank_ && !fwded_){
+        retVal = false;
+      }
+
+      if (retVal && myRoot_ != myRank_ && fwded_){
         //test the send request
         int flag = 0;
         MPI_Test(&sendRequest_,&flag,MPI_STATUS_IGNORE);
         retVal = flag==1;
+//        gdb_lock();
       }
+      
       return retVal;
     }
 
     //async wait and forward
     bool Progress(){
+      if(myRank_==myRoot_ && isAllocated_){
+        isReady_=true;
+      }
+
       bool retVal = AccumulationDone();
       if(isReady_ && !retVal){
         //mpi_test_some on my requests
         int recvCount = -1;
-        MPI_Testsome(myRequests_.size(),&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
+//gdb_lock();
+        int reqCnt = myRequests_.size();
+        MPI_Testsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
+        //MPI_Waitsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
         //if something has been received, accumulate and potentially forward it
         for(Int i = 0;i<recvCount;++i ){
           Int idx = recvIdx_[i];
+
+         if(idx!=MPI_UNDEFINED){
+
           Int size = 0;
           MPI_Get_count(&myStatuses_[i], MPI_BYTE, &size);
+
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<myRank_<<" RECVD from "<<myStatuses_[i].MPI_SOURCE<<" on tag "<<tag_<<std::endl;
+#endif
+
           if(size>0){
 
 
             //If myData is 0, allocate to the size of what has been received
             if(myData_==NULL){
-              myLocalBuffer_.resize(size);
+//              gdb_lock();
+              assert(size==msgSize_);
+              myLocalBuffer_.resize(msgSize_);
               myData_ = (T*)&myLocalBuffer_[0];
-              std::fill(myData_,myData_+size/sizeof(T),ZERO<T>());
+              Int nelem = +msgSize_/sizeof(T);
+              std::fill(myData_,myData_+nelem,ZERO<T>());
             }
 
             Reduce(idx);
           }
 
-          MPI_Request_free(&myRequests_[idx]);
+          numRecv_++;
+          //MPI_Request_free(&myRequests_[idx]);
+          }
         }
       }
-      else if (isReady_ && sendRequest_ == MPI_REQUEST_NULL){
+      else if (isReady_ && sendRequest_ == MPI_REQUEST_NULL && myRoot_ != myRank_ && !fwded_){
         //Forward
+        //gdb_lock();
         Forward();
         retVal = false;
       }
@@ -350,7 +404,7 @@ class TreeReduce: public TreeBcast{
 
 
     void CopyLocalBuffer(T* destBuffer){
-       std::copy((char*)myData_,(char*)myData_+GetMsgSize(),destBuffer);
+       std::copy((char*)myData_,(char*)myData_+GetMsgSize(),(char*)destBuffer);
     }
 
 
@@ -358,8 +412,9 @@ class TreeReduce: public TreeBcast{
     {
       for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
         Int iProc = myDests_[idxRecv];
-        MPI_Irecv( (char*)remoteData_[idxRecv], msgSize_*sizeof(T), MPI_BYTE, 
-            iProc, tag_,comm_, &myRequests_[iProc] );
+        assert(msgSize_>=0);
+        MPI_Irecv( (char*)remoteData_[idxRecv], msgSize_, MPI_BYTE, 
+            iProc, tag_,comm_, &myRequests_[idxRecv] );
       } // for (iProc)
     }
 
@@ -367,6 +422,7 @@ class TreeReduce: public TreeBcast{
     protected:
     void Reduce( Int idxRecv ){
       //add thing to my data
+      //cout<<myRank_<<" REDUCE LOCKED"<<endl;
       blas::Axpy(msgSize_/sizeof(T), ONE<T>(), remoteData_[idxRecv], 1, myData_, 1 );
     }
 
@@ -375,7 +431,8 @@ class TreeReduce: public TreeBcast{
       Int iProc = myRoot_;
       // Use Isend to send to multiple targets
 
-      assert(tag_!=-1);
+//      assert(tag_!=-1);
+//      assert(myRank_!=myRoot_);
 
       if(myData_==NULL){
         MPI_Isend( NULL, 0, MPI_BYTE, 
@@ -386,9 +443,46 @@ class TreeReduce: public TreeBcast{
             iProc, tag_,comm_, &sendRequest_ );
       }
 
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<myRank_<<" FWD to "<<iProc<<" on tag "<<tag_<<std::endl;
+#endif
+
+      fwded_ = true;
       //PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE),redLTree->GetMsgSize());
     }
 
+};
+
+
+template< typename T>
+class FTreeReduce: public TreeReduce<T>{
+    protected:
+    virtual void buildTree(Int * ranks, Int rank_cnt){
+
+      Int idxStart = 0;
+      Int idxEnd = rank_cnt;
+
+
+
+      this->myRoot_ = ranks[0];
+
+      if(this->myRank_==this->myRoot_){
+        this->myDests_.insert(this->myDests_.begin(),&ranks[1],&ranks[0]+rank_cnt);
+      }
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS<<"My root is "<<this->myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
+
+
+    public:
+    FTreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce<T>(pComm, ranks, rank_cnt, msgSize){
+      buildTree(ranks,rank_cnt);
+    }
 };
 
 
@@ -463,6 +557,8 @@ class BTreeReduce: public TreeReduce<T>{
     }
 };
 
+//#define REDUCETREE BTreeReduce
+#define REDUCETREE FTreeReduce
 
 #define BCASTTREE BTreeBcast
 //#define BCASTTREE FTreeBcast
