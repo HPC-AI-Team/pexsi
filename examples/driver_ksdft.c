@@ -118,8 +118,8 @@ int main(int argc, char **argv)
   isFormatted         = 1;
   */
   numElectronExact    = 70000.0;
-  nprow               = 40;
-  npcol               = 40;
+  nprow               = 32;
+  npcol               = 32;
   Hfile               = "/project/projectdirs/m1027/PEXSI/DG_Phosphorene_14000/H.csc";
   Sfile               = "";
   isFormatted         = 0;

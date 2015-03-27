@@ -5,6 +5,7 @@
 
 #include <vector>
 
+
 namespace PEXSI{
 
 class TreeBcast{
@@ -19,7 +20,26 @@ class TreeBcast{
     Int tag_;
     Int numRecv_;
 
+#ifdef COMM_PROFILE
+protected:
+    Int myGRank_;
+    vector<int> Granks_;
+public:
+    void SetGlobalComm(const MPI_Comm & pGComm){
+      MPI_Comm_rank(pGComm,&myGRank_);
+      MPI_Group group2 = MPI_GROUP_NULL;
+      MPI_Comm_group(pGComm, &group2);
+      MPI_Group group1 = MPI_GROUP_NULL;
+      MPI_Comm_group(comm_, &group1);
 
+      Int size;
+      MPI_Comm_size(comm_,&size);
+      Granks_.resize(size);
+      vector<int> Lranks(size);
+      for(int i = 0; i<size;++i){Lranks[i]=i;}
+      MPI_Group_translate_ranks(group1, size, &Lranks[0],group2, &Granks_[0]);
+    }
+#endif
 
 
   
@@ -37,6 +57,7 @@ class TreeBcast{
       isReady_ = false;
     }
     
+    static TreeBcast * Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize);
 
     virtual inline Int GetNumRecvMsg(){return numRecv_;}
     virtual inline Int GetNumMsgToRecv(){return 1;}
@@ -56,6 +77,10 @@ class TreeBcast{
                     // Use Isend to send to multiple targets
                     MPI_Isend( data, size, MPI_BYTE, 
                         iProc, tag,comm_, &requests[2*iProc+1] );
+
+#ifdef COMM_PROFILE
+      PROFILE_COMM(myGRank_,Granks_[iProc],tag,msgSize_);
+#endif
                   } // for (iProc)
     }
 
@@ -209,8 +234,6 @@ class BTreeBcast: public TreeBcast{
 
 
 
-
-
 template< typename T>
 class TreeReduce: public TreeBcast{
   protected:
@@ -235,6 +258,8 @@ class TreeReduce: public TreeBcast{
       fwded_=false;
       isAllocated_=false;
     }
+
+    static TreeReduce<T> * Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize);
 
     virtual inline Int GetNumMsgToRecv(){return GetDestCount();}
 
@@ -448,7 +473,10 @@ class TreeReduce: public TreeBcast{
 #endif
 
       fwded_ = true;
-      //PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),PCOL(snode.Index,this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE),redLTree->GetMsgSize());
+      
+#ifdef COMM_PROFILE
+      PROFILE_COMM(myGRank_,Granks_[iProc],tag_,msgSize_);
+#endif
     }
 
 };
@@ -557,11 +585,48 @@ class BTreeReduce: public TreeReduce<T>{
     }
 };
 
-//#define REDUCETREE BTreeReduce
-#define REDUCETREE FTreeReduce
+#define REDUCETREE BTreeReduce
+//#define REDUCETREE FTreeReduce
 
 #define BCASTTREE BTreeBcast
 //#define BCASTTREE FTreeBcast
+
+    inline TreeBcast * TreeBcast::Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize){
+      //get communicator size
+      Int nprocs = 0;
+      MPI_Comm_size(pComm, &nprocs);
+
+      if(nprocs<=FTREE_LIMIT){
+        return new FTreeBcast(pComm,ranks,rank_cnt,msgSize);
+      }
+      else{
+        return new BTreeBcast(pComm,ranks,rank_cnt,msgSize);
+      }
+    }
+
+
+
+
+template< typename T>
+    inline TreeReduce<T> * TreeReduce<T>::Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize){
+      //get communicator size
+      Int nprocs = 0;
+      MPI_Comm_size(pComm, &nprocs);
+
+      if(nprocs<=FTREE_LIMIT){
+        return new FTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
+      }
+      else{
+        return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
+      }
+    }
+
+
+
+
+
+
+
 
 }
 

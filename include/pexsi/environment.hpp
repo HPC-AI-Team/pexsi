@@ -83,6 +83,13 @@
 // Redefine the global macros
 // *********************************************************************
 
+
+// options to switch from a flat bcast/reduce tree to a binary tree
+#ifndef FTREE_LIMIT
+#define FTREE_LIMIT 24
+#endif
+
+
 // FIXME Always use complex data for pexsi and ppexsi.
 #define _USE_COMPLEX_
 

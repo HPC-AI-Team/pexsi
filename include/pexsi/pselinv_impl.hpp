@@ -1168,19 +1168,6 @@ namespace PEXSI{
 
           LBlock<T> & LB = Lcol[ib];
 
-#ifdef TREE_REDUCTION 
-          TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-          if(redLTree==NULL){gdb_lock();}
-          assert(redLTree != NULL);
-#endif
-          assert(snode.RowLocalPtr.size()>0);
-
-//          statusOFS<<snode.DiagBuf<<std::endl;
-//          statusOFS<<snode.LUpdateBuf<<std::endl;
-//          statusOFS<<snode.RowLocalPtr<<std::endl;
-//          statusOFS<<LB<<std::endl;
-
-
           blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), LB.numRow, 
               MINUS_ONE<T>(), &snode.LUpdateBuf( snode.RowLocalPtr[ib-startIb], 0 ), snode.LUpdateBuf.m(),
               LB.nzval.Data(), LB.nzval.m(), ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
@@ -2839,7 +2826,7 @@ namespace PEXSI{
             if(snode.SizeSstrUrowSend != bcastUTree->GetMsgSize()){
               statusOFS<<snode.SizeSstrUrowSend<<" vs "<<bcastUTree->GetMsgSize()<<endl;
             }
-            assert(snode.SizeSstrUrowSend == bcastUTree->GetMsgSize()); 
+//            assert(snode.SizeSstrUrowSend == bcastUTree->GetMsgSize()); 
           }
 #endif
 
@@ -2899,7 +2886,7 @@ namespace PEXSI{
 #ifdef PRE_SENT_SIZE
           TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
           if(bcastLTree!=NULL){
-            assert(snode.SizeSstrLcolSend == bcastLTree->GetMsgSize()); 
+//            assert(snode.SizeSstrLcolSend == bcastLTree->GetMsgSize()); 
           }
 #endif
 
@@ -2961,12 +2948,12 @@ namespace PEXSI{
 
 #ifdef BUILD_BCAST_TREE
           TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-          assert(bcastUTree!=NULL);
+//          assert(bcastUTree!=NULL);
           if(bcastUTree!=NULL){
             Int myRoot = bcastUTree->GetRoot();
 
 #ifdef PRE_SENT_SIZE
-            assert(snode.SizeSstrUrowRecv == bcastUTree->GetMsgSize()); 
+//            assert(snode.SizeSstrUrowRecv == bcastUTree->GetMsgSize()); 
 #endif
 
 
@@ -2992,12 +2979,12 @@ namespace PEXSI{
           snode.SstrLcolRecv.resize( snode.SizeSstrLcolRecv );
 #ifdef BUILD_BCAST_TREE
           TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-          assert(bcastLTree!=NULL);
+//          assert(bcastLTree!=NULL);
           if(bcastLTree!=NULL){
             Int myRoot = bcastLTree->GetRoot();
 
 #ifdef PRE_SENT_SIZE
-            assert(snode.SizeSstrLcolRecv == bcastLTree->GetMsgSize()); 
+//            assert(snode.SizeSstrLcolRecv == bcastLTree->GetMsgSize()); 
 #endif
 
             MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
@@ -3036,7 +3023,7 @@ namespace PEXSI{
             MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
 
           TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-          assert(bcastUTree!=NULL);
+//          assert(bcastUTree!=NULL);
           if(bcastUTree!=NULL){
             Int myRoot = bcastUTree->GetRoot();
             snode.SizeSstrUrowRecv = bcastUTree->GetMsgSize();
@@ -3054,7 +3041,7 @@ namespace PEXSI{
         if( isRecvFromLeft_( snode.Index ) &&
             MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
           TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-          assert(bcastLTree!=NULL);
+//          assert(bcastLTree!=NULL);
           if(bcastLTree!=NULL){
             Int myRoot = bcastLTree->GetRoot();
             snode.SizeSstrLcolRecv = bcastLTree->GetMsgSize();
@@ -3113,10 +3100,13 @@ namespace PEXSI{
             bcastUTree->ForwardMessage((char*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, 
                 IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), &mpireqsSendToBelow[0] );
 
+//            for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+//              Int iProcRow = bcastUTree->GetDest(idxRecv);
+//              PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowSend);
+//            }
+
             for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
               Int iProcRow = bcastUTree->GetDest(idxRecv);
-
-              PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowSend);
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT) << std::endl <<  std::endl; 
 #endif
@@ -3187,10 +3177,14 @@ namespace PEXSI{
             bcastLTree->ForwardMessage((char*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, 
                 IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT), &mpireqsSendToRight[0] );
 
+//            for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+//              Int iProcCol = bcastLTree->GetDest(idxRecv);
+//
+//              PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolSend);
+//            }
+
             for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
               Int iProcCol = bcastLTree->GetDest(idxRecv);
-
-              PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolSend);
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend << " BYTES on tag "<<IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT) << std::endl <<  std::endl; 
 #endif
@@ -3240,12 +3234,12 @@ namespace PEXSI{
 
 #ifdef BUILD_BCAST_TREE
           TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-          assert(bcastUTree!=NULL);
+//          assert(bcastUTree!=NULL);
           if(bcastUTree!=NULL){
             Int myRoot = bcastUTree->GetRoot();
 
 #ifdef PRE_SENT_SIZE
-            assert(snode.SizeSstrUrowRecv == bcastUTree->GetMsgSize()); 
+//            assert(snode.SizeSstrUrowRecv == bcastUTree->GetMsgSize()); 
 #endif
 
 
@@ -3276,7 +3270,7 @@ namespace PEXSI{
             Int myRoot = bcastLTree->GetRoot();
 
 #ifdef PRE_SENT_SIZE
-            assert(snode.SizeSstrLcolRecv == bcastLTree->GetMsgSize()); 
+//            assert(snode.SizeSstrLcolRecv == bcastLTree->GetMsgSize()); 
 #endif
 
             MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
@@ -3315,7 +3309,7 @@ namespace PEXSI{
             MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
 
           TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-          assert(bcastUTree!=NULL);
+//          assert(bcastUTree!=NULL);
           if(bcastUTree!=NULL){
             Int myRoot = bcastUTree->GetRoot();
             snode.SizeSstrUrowRecv = bcastUTree->GetMsgSize();
@@ -3333,7 +3327,7 @@ namespace PEXSI{
         if( isRecvFromLeft_( snode.Index ) &&
             MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
           TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-          assert(bcastLTree!=NULL);
+//          assert(bcastLTree!=NULL);
           if(bcastLTree!=NULL){
             Int myRoot = bcastLTree->GetRoot();
             snode.SizeSstrLcolRecv = bcastLTree->GetMsgSize();
@@ -3569,7 +3563,7 @@ namespace PEXSI{
 
 #ifdef BUILD_BCAST_TREE
             TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-            assert(bcastUTree!=NULL);
+//            assert(bcastUTree!=NULL);
             if(bcastUTree!=NULL){
               Int myRoot = bcastUTree->GetRoot();
               MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
@@ -3595,7 +3589,7 @@ namespace PEXSI{
 
 #ifdef BUILD_BCAST_TREE
             TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-            assert(bcastLTree!=NULL);
+//            assert(bcastLTree!=NULL);
             if(bcastLTree!=NULL){
               Int myRoot = bcastLTree->GetRoot();
               MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
@@ -3794,10 +3788,10 @@ namespace PEXSI{
                     bcastUTree->ForwardMessage( (char*)&snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, 
                         IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT), &mpireqsSendToBelow[0] );
 
-                    for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-                      Int iProcRow = bcastUTree->GetDest(idxRecv);
-                      PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowRecv);
-                    }
+//                    for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+//                      Int iProcRow = bcastUTree->GetDest(idxRecv);
+//                      PROFILE_COMM(MYPROC(this->grid_),PNUM(iProcRow,MYCOL(this->grid_),this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_U_CONTENT),snode.SizeSstrUrowRecv);
+//                    }
 #if ( _DEBUGlevel_ >= 1 )
                     for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
                       Int iProcRow = bcastUTree->GetDest(idxRecv);
@@ -3824,10 +3818,10 @@ namespace PEXSI{
                     bcastLTree->ForwardMessage( (char*)&snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, 
                         IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT), &mpireqsSendToRight[0] );
 
-                    for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-                      Int iProcCol = bcastLTree->GetDest(idxRecv);
-                      PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolRecv);
-                    }
+//                    for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+//                      Int iProcCol = bcastLTree->GetDest(idxRecv);
+//                      PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolRecv);
+//                    }
 #if ( _DEBUGlevel_ >= 1 )
                     for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
                       Int iProcCol = bcastLTree->GetDest(idxRecv);
@@ -3956,6 +3950,7 @@ namespace PEXSI{
             TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
             if(redLTree != NULL && !redLdone[supidx]){
               bool done = redLTree->Progress();
+#if 0
           if(done){
 
             if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
@@ -3997,7 +3992,7 @@ namespace PEXSI{
             redLdone[supidx]=1;
             redLTree->CleanupBuffers();
           }
-
+#endif
             }
           }
 #endif
@@ -4025,14 +4020,9 @@ namespace PEXSI{
         TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
 
         if(redLTree != NULL && !redLdone[supidx]){
-//if(snode.Index==288){gdb_lock();}
           bool done = redLTree->Progress();
 
-//{if(done){statusOFS<<snode.Index<<" DONE"<<std::endl;}else{statusOFS<<snode.Index<<" NOT DONE"<<std::endl;}}
-//{redLTree->Wait(); done=true;}
-
           if(done){
-
             if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
               //determine the number of rows in LUpdateBufReduced
               Int numRowLUpdateBuf;
@@ -4057,22 +4047,19 @@ namespace PEXSI{
               } // I own the diagonal block, skip the diagonal block
               numRowLUpdateBuf = *snode.RowLocalPtr.rbegin();
 
-//statusOFS<<snode.RowLocalPtr<<std::endl;
-
               if( numRowLUpdateBuf > 0 ){
                 if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
                   snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
                   //copy the buffer from the reduce tree
-                  redLTree->CopyLocalBuffer(snode.LUpdateBuf.Data());
-
+                  if(redLTree->GetLocalBuffer()!=snode.LUpdateBuf.Data()){
+                    redLTree->CopyLocalBuffer(snode.LUpdateBuf.Data());
+                  }
                 }
               }
 
             
             }
             redLdone[supidx]=1;
-            //
-            //
             redLTree->CleanupBuffers();
           }
 
@@ -4200,9 +4187,6 @@ namespace PEXSI{
 
       if(redDTree != NULL){
         //send the data
-//if(MYROW(grid_)==0 && (snode.Index==152 || snode.Index==296)){cout<<"STOPPED"<<endl;gdb_lock();}
-
-
         if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
           if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
             if(snode.DiagBuf.Size()==0){
@@ -4217,15 +4201,18 @@ namespace PEXSI{
         bool done = redDTree->Progress();
       }
 
+#if 1
+      //advance reductions
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        SuperNodeBufferType & snode = arrSuperNodes[supidx];
+        TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+        if(redDTree != NULL){
+            bool done = redDTree->Progress();
+        }
+      }
+#endif
 
-      //            //advance reductions
-      //            for (Int supidx=0; supidx<stepSuper; supidx++){
-      //              SuperNodeBufferType & snode = arrSuperNodes[supidx];
-      //              TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-      //              if(redDTree != NULL){
-      //                  bool done = redDTree->Progress();
-      //              }
-      //            }
+
 #else
       if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
         if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
@@ -4261,11 +4248,6 @@ namespace PEXSI{
           SuperNodeBufferType & snode = arrSuperNodes[supidx];
           TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
 
-              if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-assert(redDTree !=NULL);
-                }
-              }
           if(redDTree != NULL){
             bool done = redDTree->Progress();
             if(done && !is_done[supidx]){
@@ -4658,14 +4640,11 @@ assert(redDTree !=NULL);
 #endif
       for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
         // Loop over all the supernodes to the right of ksup
-
-
         Int jsup = snodeEtree[ksup];
         while(jsup<numSuper){
           Int jsupLocalBlockCol = LBj( jsup, grid_ );
           Int jsupProcCol = PCOL( jsup, grid_ );
           if( MYCOL( grid_ ) == jsupProcCol ){
-
             // SendToBelow / RecvFromAbove only if (ksup, jsup) is nonzero.
             if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 ) {
               for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
@@ -4682,10 +4661,8 @@ assert(redDTree !=NULL);
                 } // if( isup > ksup )
               } // for (si)
             } // if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 )
-
           } // if( MYCOL( grid_ ) == PCOL( jsup, grid_ ) )
           jsup = snodeEtree[jsup];
-
         } // for(jsup)
       } // for(ksup)
 
@@ -4727,7 +4704,6 @@ assert(redDTree !=NULL);
 #endif
       for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
         // Loop over all the supernodes below ksup
-
         Int isup = snodeEtree[ksup];
         while(isup<numSuper){
           Int isupLocalBlockRow = LBi( isup, grid_ );
@@ -4740,7 +4716,6 @@ assert(redDTree !=NULL);
                 Int jsup = *si;
                 Int jsupProcCol = PCOL( jsup, grid_ );
                 if( jsup > ksup ){
-
                   if( MYCOL( grid_ ) == jsupProcCol ){
                     isRecvFromLeft_(ksup) = true;
                   }
@@ -4752,9 +4727,7 @@ assert(redDTree !=NULL);
             } // if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 )
           } // if( MYROW( grid_ ) == isupProcRow )
 
-
           if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
-
             if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){ 
               isRecvFromBelow_(isupProcRow,ksup) = true;
             }    
@@ -4763,7 +4736,6 @@ assert(redDTree !=NULL);
             }    
           } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
           isup = snodeEtree[isup];
-
         } // for (isup)
       }	 // for (ksup)
 
@@ -4792,12 +4764,9 @@ assert(redDTree !=NULL);
         statusOFS<<std::endl;
       }
 #endif
-
 #ifndef _RELEASE_
       PopCallStack();
 #endif
-
-
       TIMER_STOP(STR_RFL_RFB);
 
 
@@ -5065,10 +5034,8 @@ assert(redDTree !=NULL);
         Int jsupLocalBlockCol = LBj( jsup, grid_ );
         Int jsupProcCol = PCOL( jsup, grid_ );
         if( MYCOL( grid_ ) == jsupProcCol ){
-
           // SendToBelow / RecvFromAbove only if (ksup, jsup) is nonzero.
           if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 ) {
-
             for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
                 si != localColBlockRowIdx[jsupLocalBlockCol].end(); si++	 ){
               Int isup = *si;
@@ -5086,84 +5053,61 @@ assert(redDTree !=NULL);
         } // if( MYCOL( grid_ ) == PCOL( jsup, grid_ ) )
         jsup = snodeEtree[jsup];
       } // for(jsup)
-
-
-
     } // for(ksup)
-
-
 #ifndef _RELEASE_
     PopCallStack();
 #endif
-
-
     TIMER_STOP(STB_RFA);
 
-
-
-
-
-
-
-
     TIMER_START(STR_RFL_RFB);
-
-
 #ifndef _RELEASE_
     PushCallStack("SendToRight / RecvFromLeft");
 #endif
-    for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
-      // Loop over all the supernodes below ksup
-
-      Int isup = snodeEtree[ksup];
-      while(isup<numSuper){
-        Int isupLocalBlockRow = LBi( isup, grid_ );
-        Int isupProcRow       = PROW( isup, grid_ );
-        if( MYROW( grid_ ) == isupProcRow ){
-          // SendToRight / RecvFromLeft only if (isup, ksup) is nonzero.
-          if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
-            for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
-                si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
-              Int jsup = *si;
-              Int jsupProcCol = PCOL( jsup, grid_ );
-              if( jsup > ksup ){
-
-                if( MYCOL( grid_ ) == jsupProcCol ){
-                  isRecvFromLeft_(ksup) = true;
+      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+        // Loop over all the supernodes below ksup
+        Int isup = snodeEtree[ksup];
+        while(isup<numSuper){
+          Int isupLocalBlockRow = LBi( isup, grid_ );
+          Int isupProcRow       = PROW( isup, grid_ );
+          if( MYROW( grid_ ) == isupProcRow ){
+            // SendToRight / RecvFromLeft only if (isup, ksup) is nonzero.
+            if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
+              for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
+                  si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
+                Int jsup = *si;
+                Int jsupProcCol = PCOL( jsup, grid_ );
+                if( jsup > ksup ){
+                  if( MYCOL( grid_ ) == jsupProcCol ){
+                    isRecvFromLeft_(ksup) = true;
+                  }
+                  if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+                    isSendToRight_( jsupProcCol, ksup ) = true;
+                  }
                 }
-                if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-                  isSendToRight_( jsupProcCol, ksup ) = true;
-                }
-              }
-            } // for (si)
-          } // if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 )
-        } // if( MYROW( grid_ ) == isupProcRow )
+              } // for (si)
+            } // if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 )
+          } // if( MYROW( grid_ ) == isupProcRow )
 
-
-        if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
-
-          if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){ 
-            isRecvFromBelow_(isupProcRow,ksup) = true;
-          }    
-          else if (MYROW(grid_) == isupProcRow){
-            isSendToDiagonal_(ksup)=true;
-          }    
-        } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
-        isup = snodeEtree[isup];
-
-      } // for (isup)
-    }	 // for (ksup)
-
+          if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
+            if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){ 
+              isRecvFromBelow_(isupProcRow,ksup) = true;
+            }    
+            else if (MYROW(grid_) == isupProcRow){
+              isSendToDiagonal_(ksup)=true;
+            }    
+          } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
+          isup = snodeEtree[isup];
+        } // for (isup)
+      }	 // for (ksup)
 
 #ifndef _RELEASE_
     PopCallStack();
 #endif
-
-
     TIMER_STOP(STR_RFL_RFB);
 
 
 #ifdef BUILD_BCAST_TREE
+    TIMER_START(BUILD_BCAST_TREES);
     //Allgather RFL values within column
     vector<Int> aggRFL(numSuper); 
     vector<Int> globalAggRFL(numSuper*grid_->numProcCol); 
@@ -5233,11 +5177,6 @@ assert(redDTree !=NULL);
         &globalAggRFA[0],numSuper*sizeof(Int),MPI_BYTE,
         grid_->colComm);
 
-
-
-
-    TIMER_START(BUILD_BCAST_TREE);
-
     for( Int ksup = 0; ksup < numSuper; ksup++ ){
       set<Int> set_ranks;
       Int msgSize = 0;
@@ -5258,8 +5197,10 @@ assert(redDTree !=NULL);
         tree_ranks.push_back(PROW(ksup,grid_));
         tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
         TreeBcast * & BcastUTree = fwdToBelowTree_[ksup];
-        //BcastUTree = new BTreeBcast(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
-        BcastUTree = new BCASTTREE(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+        BcastUTree = TreeBcast::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+#ifdef COMM_PROFILE
+        BcastUTree->SetGlobalComm(grid_->comm);
+#endif
       }
 
       set_ranks.clear();
@@ -5281,14 +5222,17 @@ assert(redDTree !=NULL);
         tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
 
         TreeBcast * & BcastLTree = fwdToRightTree_[ksup];
-        //BcastLTree = new BTreeBcast(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize);
-        BcastLTree = new BCASTTREE(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+        BcastLTree = TreeBcast::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+#ifdef COMM_PROFILE
+        BcastLTree->SetGlobalComm(grid_->comm);
+#endif
       }
     }
 
     //do the same for the other arrays
-    TIMER_STOP(BUILD_BCAST_TREE);
+    TIMER_STOP(BUILD_BCAST_TREES);
 #ifdef TREE_REDUCTION_D
+TIMER_START(BUILD_REDUCE_D_TREE);
     vector<Int> aggSTD(numSuper); 
     vector<Int> globalAggSTD(numSuper*grid_->numProcRow); 
     for( Int ksup = 0; ksup < numSuper; ksup++ ){
@@ -5329,29 +5273,35 @@ assert(redDTree !=NULL);
 
         Int amISTD = globalAggSTD[MYROW(grid_)*numSuper + ksup];
 
-      if( MYCOL( grid_ ) == PCOL(ksup, grid_) &&  MYROW(grid_)==PROW(ksup,grid_)){
-        assert(amISTD>0);
-      }
+//      if( MYCOL( grid_ ) == PCOL(ksup, grid_) &&  MYROW(grid_)==PROW(ksup,grid_)){
+//        assert(amISTD>0);
+//      }
 
         if( amISTD ){
           vector<Int> tree_ranks;
           tree_ranks.push_back(PROW(ksup,grid_));
           tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
 
-          assert(set_ranks.find(MYROW(grid_))!= set_ranks.end() || MYROW(grid_)==tree_ranks[0]);
+          //assert(set_ranks.find(MYROW(grid_))!= set_ranks.end() || MYROW(grid_)==tree_ranks[0]);
 
           TreeReduce<T> * & redDTree = redToAboveTree_[ksup];
 
-          redDTree = new REDUCETREE<T>(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+          
+          redDTree = TreeReduce<T>::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+#ifdef COMM_PROFILE
+          redDTree->SetGlobalComm(grid_->comm);
+#endif
         }
       }
     }
 
+TIMER_STOP(BUILD_REDUCE_D_TREE);
 
 #endif
 
 
 #ifdef TREE_REDUCTION
+TIMER_START(BUILD_REDUCE_L_TREE);
     vector<Int> aggRTL(numSuper); 
     vector<Int> globalAggRTL(numSuper*grid_->numProcCol); 
     for( Int ksup = 0; ksup < numSuper ; ksup++ ){
@@ -5413,15 +5363,15 @@ assert(redDTree !=NULL);
         tree_ranks.push_back(PCOL(ksup,grid_));
         tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
 
-
-        assert(set_ranks.find(MYCOL(grid_))!= set_ranks.end() || MYCOL(grid_)==tree_ranks[0]);
-
         TreeReduce<T> * & redLTree = redToLeftTree_[ksup];
-
-       // if(ksup==288){gdb_lock();}
-        redLTree = new REDUCETREE<T>(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+        redLTree = TreeReduce<T>::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+#ifdef COMM_PROFILE
+        redLTree->SetGlobalComm(grid_->comm);
+#endif
       }
     }
+
+TIMER_STOP(BUILD_REDUCE_L_TREE);
 #endif
 
 #endif

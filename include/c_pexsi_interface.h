@@ -246,6 +246,10 @@ typedef struct {
      */ 
     int           isSymbolicFactorize;
     /** 
+     * @brief  Whether to construct PSelInv communication pattern.
+     */ 
+    int           isConstructCommPattern;
+    /** 
      * @brief  Ordering strategy for factorization and selected
      * inversion.  
      * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
