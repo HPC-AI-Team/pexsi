@@ -101,6 +101,8 @@ int main(int argc, char **argv)
   MPI_Comm      readComm;
   int           isProcRead;
   int           info;
+  int           outputFileIndex;
+
 
 
   MPI_Init( &argc, &argv );
@@ -109,24 +111,23 @@ int main(int argc, char **argv)
 
   /* Below is the data used for the toy matrix */
 
-  /*
   numElectronExact    = 2.0;
-  nprow               = 4;
-  npcol               = 4;
+  nprow               = 2;
+  npcol               = 2;
   Hfile               = "lap2dr.matrix";
   Sfile               = "";
   isFormatted         = 1;
-  */
-  numElectronExact    = 70000.0;
-  nprow               = 32;
-  npcol               = 32;
-  Hfile               = "/project/projectdirs/m1027/PEXSI/DG_Phosphorene_14000/H.csc";
-  Sfile               = "";
-  isFormatted         = 0;
 
-  isSIdentity         = 1;
-  Energy              = 1.0;
-  eta                 = 0.001;
+//  numElectronExact    = 70000.0;
+//  nprow               = 32;
+//  npcol               = 32;
+//  Hfile               = "/project/projectdirs/m1027/PEXSI/DG_Phosphorene_14000/H.csc";
+//  Sfile               = "";
+//  isFormatted         = 0;
+//
+//  isSIdentity         = 1;
+//  Energy              = 1.0;
+//  eta                 = 0.001;
 
   /* Split the processors to read matrix */
   if( mpirank < nprow * npcol )
@@ -243,7 +244,7 @@ int main(int argc, char **argv)
   options.muMin0 = 0.0;
   options.muMax0 = 0.5;
   options.mu0    = 0.0;
-  options.npSymbFact = 8;
+  options.npSymbFact = 1;
   options.ordering = 0;
   options.isInertiaCount = 0;
   options.maxPEXSIIter   = 1;
@@ -255,11 +256,19 @@ int main(int argc, char **argv)
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;
 
+  /* The log file index is the pole index */
+  if( mpirank % (nprow * npcol) == 0 ){
+    outputFileIndex = mpirank / (nprow * npcol);
+  }
+  else{
+    outputFileIndex = -1;
+  }
+
   plan = PPEXSIPlanInitialize( 
       MPI_COMM_WORLD, 
       nprow,
       npcol,
-      mpirank, 
+      outputFileIndex, 
       &info );
 
   PPEXSILoadRealSymmetricHSMatrix( 
@@ -343,7 +352,7 @@ int main(int argc, char **argv)
     options.muMin0 = muMinInertia;
     options.muMax0 = muMaxInertia;
     options.isInertiaCount = 0;
-    options.isSymbolicFactorize = 0;
+    options.isSymbolicFactorize = 1;
     // Reuse previous mu to start
     options.mu0 = muPEXSI;
 
