@@ -389,8 +389,7 @@ class TreeReduce: public TreeBcast{
         //mpi_test_some on my requests
         int recvCount = -1;
         int reqCnt = GetDestCount();
-
-
+        assert(reqCnt == myRequests_.m());
         MPI_Testsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
         //if something has been received, accumulate and potentially forward it
         for(Int i = 0;i<recvCount;++i ){
@@ -440,13 +439,14 @@ class TreeReduce: public TreeBcast{
         retVal = false;
       }
       else{
-        //free the unnecessary arrays
-        myRecvBuffers_.Clear();
-        myRequests_.Clear();
-        myStatuses_.Clear();
-        recvIdx_.Clear();
-
         retVal = IsDone();
+        if(retVal){
+          //free the unnecessary arrays
+          myRecvBuffers_.Clear();
+          myRequests_.Clear();
+          myStatuses_.Clear();
+          recvIdx_.Clear();
+        }
       }
 
       return retVal;
@@ -659,13 +659,14 @@ class FTreeReduce: public TreeReduce<T>{
         retVal = false;
       }
       else{
+        retVal = this->IsDone();
+        if(retVal){
         //free the unnecessary arrays
         this->myRecvBuffers_.Clear();
         this->myRequests_.Clear();
         this->myStatuses_.Clear();
         this->recvIdx_.Clear();
-
-        retVal = this->IsDone();
+        }
       }
 
       return retVal;
