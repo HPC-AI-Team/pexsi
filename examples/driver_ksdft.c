@@ -111,23 +111,25 @@ int main(int argc, char **argv)
 
   /* Below is the data used for the toy matrix */
 
+#if 1
   numElectronExact    = 2.0;
   nprow               = 2;
   npcol               = 2;
   Hfile               = "lap2dr.matrix";
   Sfile               = "";
   isFormatted         = 1;
+#else
+  numElectronExact    = 70000.0;
+  nprow               = 32;
+  npcol               = 32;
+  Hfile               = "/project/projectdirs/m1027/PEXSI/DG_Phosphorene_14000/H.csc";
+  Sfile               = "";
+  isFormatted         = 0;
 
-//  numElectronExact    = 70000.0;
-//  nprow               = 32;
-//  npcol               = 32;
-//  Hfile               = "/project/projectdirs/m1027/PEXSI/DG_Phosphorene_14000/H.csc";
-//  Sfile               = "";
-//  isFormatted         = 0;
-//
-//  isSIdentity         = 1;
-//  Energy              = 1.0;
-//  eta                 = 0.001;
+  isSIdentity         = 1;
+  Energy              = 1.0;
+  eta                 = 0.001;
+#endif
 
   /* Split the processors to read matrix */
   if( mpirank < nprow * npcol )
@@ -352,7 +354,7 @@ int main(int argc, char **argv)
     options.muMin0 = muMinInertia;
     options.muMax0 = muMaxInertia;
     options.isInertiaCount = 0;
-    options.isSymbolicFactorize = 1;
+    options.isSymbolicFactorize = 0;
     // Reuse previous mu to start
     options.mu0 = muPEXSI;
 

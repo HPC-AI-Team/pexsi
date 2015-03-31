@@ -135,6 +135,13 @@ int main(int argc, char **argv)
       ss << "logTest" << mpirank;
       statusOFS.open( ss.str().c_str() );
 
+#ifdef COMM_PROFILE
+      stringstream  ss3;
+      ss3 << "comm_stat" << mpirank;
+      commOFS.open( ss3.str().c_str());
+#endif
+
+
       //if( mpisize != nprow * npcol || nprow != npcol ){
       //  throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
       //}
@@ -737,8 +744,14 @@ int main(int argc, char **argv)
             if( mpirank == 0 )
               cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
+#if 0
+            for(Int i =0; i<100;++i){
+              luMat.LUstructToPMatrix( PMloc );
+              PMloc.PreSelInv();
+              PMloc.SelInv();
+            }
+ #endif
 
- 
              if(doToDist){
                // Convert to DistSparseMatrix and get the diagonal
                GetTime( timeSta );
@@ -1080,6 +1093,9 @@ int main(int argc, char **argv)
 
       }
 
+#ifdef COMM_PROFILE
+      commOFS.close();
+#endif
 
       statusOFS.close();
     }

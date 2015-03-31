@@ -568,10 +568,10 @@ namespace PEXSI{
 #ifdef BUILD_BCAST_TREE
       std::vector<TreeBcast *> fwdToBelowTree_; 
       std::vector<TreeBcast *> fwdToRightTree_; 
-#ifdef TREE_REDUCTION
+#ifdef TREE_REDUCTION_C
       std::vector<TreeReduce<T> *> redToLeftTree_; 
 #endif
-#ifdef TREE_REDUCTION_D
+#ifdef TREE_REDUCTION_D_C
       std::vector<TreeReduce<T> *> redToAboveTree_; 
 #endif
 #endif

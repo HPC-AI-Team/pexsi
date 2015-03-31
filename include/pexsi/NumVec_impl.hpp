@@ -160,6 +160,24 @@ namespace  PEXSI{
     return ;
   } 		// -----  end of method NumVec<F>::Resize  ----- 
 
+  template < class F > inline void NumVec<F>::Clear	( )
+  {
+#ifndef _RELEASE_
+    PushCallStack("NumVec<F>::Clear");
+#endif  // ifndef _RELEASE_
+    if( owndata_ == false ){
+      data_ = NULL;
+    }
+    else{
+      this->deallocate();
+    }
+#ifndef _RELEASE_
+    PopCallStack();
+#endif  // ifndef _RELEASE_
+    return ;
+  } 		// -----  end of method NumVec<F>::Clear  ----- 
+
+
 
   template <class F> inline F& NumVec<F>::operator()	( Int i )
   {
@@ -255,7 +273,7 @@ namespace  PEXSI{
 
   template <class F> inline void NumVec<F>::deallocate() {
     if(owndata_) {
-      if(bufsize_>0) { delete[] data_; data_ = NULL; }
+      if(bufsize_>0) { delete[] data_; data_ = NULL; bufsize_=0; m_=0; }
     }
   } 		// -----  end of method NumVec<F>::deallocate  ----- 
 

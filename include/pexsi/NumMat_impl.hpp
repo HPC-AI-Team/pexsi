@@ -65,7 +65,7 @@ namespace  PEXSI{
   }
   template <class F> inline void NumMat<F>::deallocate(){
     if(owndata_) {
-      if(bufsize_>0) { delete[] data_; data_ = NULL; }
+      if(bufsize_>0) { delete[] data_; data_ = NULL; bufsize_ = 0; m_=0; n_=0; }
     }
   }
 

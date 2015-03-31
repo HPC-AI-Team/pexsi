@@ -156,6 +156,7 @@ namespace PEXSI{
   template<typename T>
     PMatrix<T>::~PMatrix ( )
     {
+
 #ifndef _RELEASE_
       PushCallStack("PMatrix::~PMatrix");
 #endif
@@ -172,14 +173,14 @@ namespace PEXSI{
         }
       }
 
-#ifdef TREE_REDUCTION
+#ifdef TREE_REDUCTION_C
       for(int i =0;i<redToLeftTree_.size();++i){
         if(redToLeftTree_[i]!=NULL){
           delete redToLeftTree_[i];
         }
       }
 #endif
-#ifdef TREE_REDUCTION_D
+#ifdef TREE_REDUCTION_D_C
       for(int i =0;i<redToAboveTree_.size();++i){
         if(redToAboveTree_[i]!=NULL){
           delete redToAboveTree_[i];
@@ -3265,7 +3266,7 @@ namespace PEXSI{
           snode.SstrLcolRecv.resize( snode.SizeSstrLcolRecv );
 #ifdef BUILD_BCAST_TREE
           TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-          assert(bcastLTree!=NULL);
+//          assert(bcastLTree!=NULL);
           if(bcastLTree!=NULL){
             Int myRoot = bcastLTree->GetRoot();
 
@@ -3616,8 +3617,11 @@ namespace PEXSI{
 
     }
 
+#ifdef TREE_REDUCTION
+    vector<char> redLdone(stepSuper,0);
+#endif
 
-
+#if 1
 #ifdef TREE_REDUCTION
     for (Int supidx=0; supidx<stepSuper; supidx++){
       SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -3625,19 +3629,17 @@ namespace PEXSI{
 
       if(redLTree != NULL){
         redLTree->SetTag(IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE));
-        if(redLTree->GetDestCount()>0){
+        //if(redLTree->GetDestCount()>0){
           //Initialize the tree
           redLTree->AllocRecvBuffers();
           //Post All Recv requests;
-          redLTree->PostAllRecv();
-        }
+          redLTree->PostFirstRecv();
+        //}
       }
     }
 #endif
-
-#ifdef TREE_REDUCTION
-    vector<char> redLdone(stepSuper,0);
 #endif
+
 
     TIMER_START(Compute_Sinv_LT);
     {
@@ -3684,6 +3686,15 @@ namespace PEXSI{
             //send the data to NULL to ensure 0 byte send
             redLTree->SetLocalBuffer(NULL);
             redLTree->SetDataReady(true);
+#if 0
+          redLTree->SetTag(IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE));
+          //Initialize the tree
+          redLTree->AllocRecvBuffers();
+          //Post All Recv requests;
+          redLTree->PostFirstRecv();
+#endif
+
+
             bool done = redLTree->Progress();
             TIMER_STOP(Reduce_Sinv_LT_Isend);
           }
@@ -3932,6 +3943,15 @@ namespace PEXSI{
             //send the data
             redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
             redLTree->SetDataReady(true);
+#if 0
+          redLTree->SetTag(IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE));
+          //Initialize the tree
+          redLTree->AllocRecvBuffers();
+          //Post All Recv requests;
+          redLTree->PostFirstRecv();
+#endif
+
+
             bool done = redLTree->Progress();
             TIMER_STOP(Reduce_Sinv_LT_Isend);
           }
@@ -3981,11 +4001,9 @@ namespace PEXSI{
               if( numRowLUpdateBuf > 0 ){
                 if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
                   snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
-                  //copy the buffer from the reduce tree
-                  redLTree->CopyLocalBuffer(snode.LUpdateBuf.Data());
-
                 }
               }
+                    redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
 
             
             }
@@ -4020,8 +4038,35 @@ namespace PEXSI{
         TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
 
         if(redLTree != NULL && !redLdone[supidx]){
+#if 1
+#if 0
+          if(!redLTree->IsAllocated()){
+            redLTree->SetTag(IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE));
+            //Initialize the tree
+            redLTree->AllocRecvBuffers();
+            //Post All Recv requests;
+            redLTree->PostFirstRecv();
+          }
+#endif
           bool done = redLTree->Progress();
+#else
+          bool done = true;
 
+          if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+          done = true;
+          if(!redLTree->IsAllocated()){
+            redLTree->SetTag(IDX_TO_TAG(snode.Index,SELINV_TAG_L_REDUCE));
+            //Initialize the tree
+            redLTree->AllocRecvBuffers();
+            //Post All Recv requests;
+            redLTree->PostFirstRecv();
+          }
+          redLTree->Wait();
+          }
+          else{
+          done = redLTree->Progress();
+          }
+#endif
           if(done){
             if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
               //determine the number of rows in LUpdateBufReduced
@@ -4050,17 +4095,21 @@ namespace PEXSI{
               if( numRowLUpdateBuf > 0 ){
                 if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
                   snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
-                  //copy the buffer from the reduce tree
-                  if(redLTree->GetLocalBuffer()!=snode.LUpdateBuf.Data()){
-                    redLTree->CopyLocalBuffer(snode.LUpdateBuf.Data());
-                  }
                 }
               }
 
+                  //copy the buffer from the reduce tree
+//                  if(redLTree->GetLocalBuffer()!=snode.LUpdateBuf.Data()){
+//statusOFS<<"DEBUG "<<snode.Index<<endl;
+                    redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+//                  }
             
             }
             redLdone[supidx]=1;
             redLTree->CleanupBuffers();
+
+//                  statusOFS<<"DEBUG L "<<snode.Index<<endl;
+//                  statusOFS<<snode.LUpdateBuf<<endl;
           }
 
           all_done = all_done && (done || redLdone[supidx]);
@@ -4068,6 +4117,9 @@ namespace PEXSI{
       }
     }
     TIMER_STOP(Reduce_Sinv_LT);
+
+
+
 #else
     TIMER_START(Reduce_Sinv_LT);
     for (Int supidx=0; supidx<stepSuper; supidx++){
@@ -4155,7 +4207,7 @@ namespace PEXSI{
     TIMER_START(Update_Diagonal);
 
 
-
+#if 0
 #ifdef TREE_REDUCTION_D
     for (Int supidx=0; supidx<stepSuper; supidx++){
       SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -4167,10 +4219,11 @@ namespace PEXSI{
           //Initialize the tree
           redDTree->AllocRecvBuffers();
           //Post All Recv requests;
-          redDTree->PostAllRecv();
+          redDTree->PostFirstRecv();
         //}
       }
     }
+#endif
 #endif
 
 
@@ -4187,16 +4240,29 @@ namespace PEXSI{
 
       if(redDTree != NULL){
         //send the data
-        if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+//        assert( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) );
+
           if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
             if(snode.DiagBuf.Size()==0){
               snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
               SetValue(snode.DiagBuf, ZERO<T>());
             }
           }
-        }
+        
 
         redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+#if 1
+//          if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
+//statusOFS<<"DEBUG ALLOC "<<snode.Index<<endl;
+if(!redDTree->IsAllocated()){
+        redDTree->SetTag(IDX_TO_TAG(snode.Index,SELINV_TAG_D_REDUCE));
+        redDTree->AllocRecvBuffers();
+        //Post All Recv requests;
+        redDTree->PostFirstRecv();
+}
+//          }
+#endif
+
         redDTree->SetDataReady(true);
         bool done = redDTree->Progress();
       }
@@ -4207,7 +4273,9 @@ namespace PEXSI{
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
         TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
         if(redDTree != NULL){
+if(redDTree->IsAllocated()){
             bool done = redDTree->Progress();
+}
         }
       }
 #endif
@@ -4249,7 +4317,28 @@ namespace PEXSI{
           TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
 
           if(redDTree != NULL){
+#if 1
             bool done = redDTree->Progress();
+#else
+            bool done = true;
+
+            if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) 
+                &&  MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+//        statusOFS<<"DEBUG ALLOC "<<snode.Index<<endl;
+if(!redDTree->IsAllocated()){
+        redDTree->SetTag(IDX_TO_TAG(snode.Index,SELINV_TAG_D_REDUCE));
+        redDTree->AllocRecvBuffers();
+        //Post All Recv requests;
+        redDTree->PostFirstRecv();
+}
+                redDTree->Wait();
+//              done = redDTree->Progress();
+            }
+            else{
+              done = redDTree->Progress();
+            }
+#endif
+
             if(done && !is_done[supidx]){
 
 
@@ -4260,7 +4349,7 @@ namespace PEXSI{
                   LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
                   // Symmetrize LB
 
-//                  statusOFS<<"DEBUG "<<snode.Index<<endl;
+//                  statusOFS<<"["<<snode.Index<<"] "<<"DEBUG D "<<snode.Index<<endl;
 //                  statusOFS<<snode.DiagBuf<<endl;
 
                   blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
@@ -4308,13 +4397,21 @@ namespace PEXSI{
             MPI_Get_count(&stat, MPI_BYTE, &size);
             //if the processor contributes
             if(size>0){
+//                  statusOFS<<"{"<<stat.MPI_TAG<<"} "<<"DEBUG RECV FROM "<<stat.MPI_SOURCE<<endl;
+//      Int nelem = DiagBufRecv.m()*DiagBufRecv.n();
+//      for(Int i =0;i<nelem;++i){
+//        statusOFS<<DiagBufRecv.Data()[i]<<" ";
+//      }
+//      statusOFS<<endl;
+//      statusOFS<<endl;
+
               // Add DiagBufRecv to diagonal block.
               blas::Axpy(snode.DiagBuf.Size(), ONE<T>(), DiagBufRecv.Data(),
                   1, snode.DiagBuf.Data(), 1 );
             }
           }
 
-//                  statusOFS<<"DEBUG "<<snode.Index<<endl;
+//                  statusOFS<<"["<<snode.Index<<"] "<<"DEBUG D "<<snode.Index<<endl;
 //                  statusOFS<<snode.DiagBuf<<endl;
 
           LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
@@ -4378,6 +4475,35 @@ namespace PEXSI{
 
 
     TIMER_START(Barrier);
+
+
+#ifdef TREE_REDUCTION
+    for (Int supidx=0; supidx<stepSuper; supidx++){
+      SuperNodeBufferType & snode = arrSuperNodes[supidx];
+      TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+
+      if(redLTree != NULL){
+        redLTree->Wait();
+            redLTree->CleanupBuffers();
+      }
+    }
+#endif
+
+
+#ifdef TREE_REDUCTION_D
+    for (Int supidx=0; supidx<stepSuper; supidx++){
+      SuperNodeBufferType & snode = arrSuperNodes[supidx];
+      TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+
+      if(redDTree != NULL){
+        redDTree->Wait();
+            redDTree->CleanupBuffers();
+      }
+    }
+#endif
+
+
+
 
     //      TIMER_START(Reduce_Sinv_LT_Waitall);
     //      mpi::Waitall( arrMpireqsSendToLeft );
@@ -4873,10 +4999,10 @@ namespace PEXSI{
 #ifdef BUILD_BCAST_TREE
     fwdToBelowTree_.resize(numSuper, NULL );
     fwdToRightTree_.resize(numSuper, NULL );
-#ifdef TREE_REDUCTION
+#ifdef TREE_REDUCTION_C
     redToLeftTree_.resize(numSuper, NULL );
 #endif
-#ifdef TREE_REDUCTION_D
+#ifdef TREE_REDUCTION_D_C
     redToAboveTree_.resize(numSuper, NULL );
 #endif
 #endif
@@ -5231,7 +5357,7 @@ namespace PEXSI{
 
     //do the same for the other arrays
     TIMER_STOP(BUILD_BCAST_TREES);
-#ifdef TREE_REDUCTION_D
+#ifdef TREE_REDUCTION_D_C
 TIMER_START(BUILD_REDUCE_D_TREE);
     vector<Int> aggSTD(numSuper); 
     vector<Int> globalAggSTD(numSuper*grid_->numProcRow); 
@@ -5300,7 +5426,7 @@ TIMER_STOP(BUILD_REDUCE_D_TREE);
 #endif
 
 
-#ifdef TREE_REDUCTION
+#ifdef TREE_REDUCTION_C
 TIMER_START(BUILD_REDUCE_L_TREE);
     vector<Int> aggRTL(numSuper); 
     vector<Int> globalAggRTL(numSuper*grid_->numProcCol); 
@@ -5537,6 +5663,25 @@ TIMER_STOP(BUILD_REDUCE_L_TREE);
       }
 #endif
 
+#if 0
+#ifdef BUILD_BCAST_TREE
+#ifdef TREE_REDUCTION
+      for(int i =0;i<redToLeftTree_.size();++i){
+        if(redToLeftTree_[i]!=NULL){
+          redToLeftTree_[i]->CleanupBuffers();
+        }
+      }
+#endif
+#ifdef TREE_REDUCTION_D
+      for(int i =0;i<redToAboveTree_.size();++i){
+        if(redToAboveTree_[i]!=NULL){
+          redToAboveTree_[i]->CleanupBuffers();
+        }
+      }
+#endif
+
+#endif
+#endif
 
     } 		// -----  end of method PMatrix::SelInv  ----- 
 
