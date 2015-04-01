@@ -499,21 +499,24 @@ class TreeReduce: public TreeBcast{
       if(myData_==NULL){
         MPI_Isend( NULL, 0, MPI_BYTE, 
             iProc, tag_,comm_, &sendRequest_ );
+#ifdef COMM_PROFILE
+      PROFILE_COMM(myGRank_,Granks_[iProc],tag_,0);
+#endif
       }
       else{
         MPI_Isend( (char*)myData_, msgSize_, MPI_BYTE, 
             iProc, tag_,comm_, &sendRequest_ );
+#ifdef COMM_PROFILE
+      PROFILE_COMM(myGRank_,Granks_[iProc],tag_,msgSize_);
+#endif
       }
 
-#if ( _DEBUGlevel_ >= 1 )
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
         statusOFS<<myRank_<<" FWD to "<<iProc<<" on tag "<<tag_<<std::endl;
 #endif
 
       fwded_ = true;
       
-#ifdef COMM_PROFILE
-      PROFILE_COMM(myGRank_,Granks_[iProc],tag_,msgSize_);
-#endif
     }
 
 };
@@ -622,7 +625,8 @@ class FTreeReduce: public TreeReduce<T>{
           MPI_Get_count(&this->myStatuses_[i], MPI_BYTE, &size);
 
 
-#if ( _DEBUGlevel_ >= 1 )
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+
         statusOFS<<this->myRank_<<" RECVD from "<<this->myStatuses_[i].MPI_SOURCE<<" on tag "<<this->tag_<<std::endl;
 #endif
           if(size>0){
@@ -737,7 +741,7 @@ class BTreeReduce: public TreeReduce<T>{
 
       }
 
-#if ( _DEBUGlevel_ >= 1 )
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -778,13 +782,14 @@ template< typename T>
       Int nprocs = 0;
       MPI_Comm_size(pComm, &nprocs);
 
-      if(0 && nprocs<=FTREE_LIMIT){
-#if ( _DEBUGlevel_ >= 1 )
+      if(nprocs<=FTREE_LIMIT){
+//#if ( _DEBUGlevel_ >= 1 )
 statusOFS<<"FLAT TREE USED"<<endl;
-#endif
+//#endif
         return new FTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
       }
       else{
+statusOFS<<"BINARY TREE USED"<<endl;
         return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
       }
     }
