@@ -135,6 +135,12 @@ int main(int argc, char **argv)
       ss << "logTest" << mpirank;
       statusOFS.open( ss.str().c_str() );
 
+#ifdef COMM_PROFILE
+      stringstream  ss3;
+      ss3 << "comm_stat" << mpirank;
+      commOFS.open( ss3.str().c_str());
+#endif
+
       //if( mpisize != nprow * npcol || nprow != npcol ){
       //  throw std::runtime_error( "nprow == npcol is assumed in this test routine." );
       //}
@@ -162,22 +168,25 @@ int main(int argc, char **argv)
 
       Int msgSize = sizeof(MYSCALAR)*nprow*nprow;
       TreeReduce<MYSCALAR> * redDTree;
-      redDTree = new BTreeReduce<MYSCALAR>(g1Ptr->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+      redDTree = TreeReduce<MYSCALAR>::Create(g1Ptr->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+#ifdef COMM_PROFILE
+      redDTree->SetGlobalComm(g1Ptr->comm);
+#endif
 
       NumMat<MYSCALAR> buffer(nprow,nprow);
       Int myRow = MYROW(g1Ptr);
 
-      for(int r=0;r<10;++r){
+      for(int r=0;r<1;++r){
 
         for(int i =0;i<nprow;++i){buffer(myRow,i)=myRow; buffer(i,i)=1;}
 
         redDTree->SetLocalBuffer(buffer.Data());
         redDTree->SetDataReady(true);
-        redDTree->SetTag(MYCOL(g1Ptr));
+        redDTree->SetTag( 7 );
         //Initialize the tree
         redDTree->AllocRecvBuffers();
         //Post All Recv requests;
-        redDTree->PostAllRecv();
+        redDTree->PostFirstRecv();
 
 
 
@@ -213,7 +222,18 @@ int main(int argc, char **argv)
       delete redDTree;
 
       delete g1Ptr;
+#ifdef COMM_PROFILE
+      //std::cout<<"DUMPING COMM STATS "<<comm_stat.size()<<" "<<std::endl;
+      commOFS<<HEADER_COMM<<std::endl;
+      for(auto it = comm_stat.begin(); it!=comm_stat.end(); it+=4){
+        commOFS<<LINE_COMM(it)<<std::endl;
+      }
+#endif
 
+
+#ifdef COMM_PROFILE
+      commOFS.close();
+#endif
       statusOFS.close();
     }
   }

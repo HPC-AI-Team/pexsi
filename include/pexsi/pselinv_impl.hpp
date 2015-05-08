@@ -5235,6 +5235,8 @@ if(!redDTree->IsAllocated()){
 #ifdef BUILD_BCAST_TREE
     TIMER_START(BUILD_BCAST_TREES);
     //Allgather RFL values within column
+
+    vector<double> SeedRFL(numSuper,0.0); 
     vector<Int> aggRFL(numSuper); 
     vector<Int> globalAggRFL(numSuper*grid_->numProcCol); 
     for( Int ksup = 0; ksup < numSuper ; ksup++ ){
@@ -5255,6 +5257,7 @@ if(!redDTree->IsAllocated()){
 
 
         aggRFL[ksup]=totalSize;
+        SeedRFL[ksup]=rand();
 
       }
       else if(isRecvFromLeft_(ksup)){
@@ -5268,7 +5271,9 @@ if(!redDTree->IsAllocated()){
     MPI_Allgather(&aggRFL[0],numSuper*sizeof(Int),MPI_BYTE,
         &globalAggRFL[0],numSuper*sizeof(Int),MPI_BYTE,
         grid_->rowComm);
+    MPI_Allreduce(MPI_IN_PLACE,&SeedRFL[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->rowComm);
 
+    vector<double> SeedRFA(numSuper,0.0); 
     vector<Int> aggRFA(numSuper); 
     vector<Int> globalAggRFA(numSuper*grid_->numProcRow); 
     for( Int ksup = 0; ksup < numSuper ; ksup++ ){
@@ -5288,6 +5293,7 @@ if(!redDTree->IsAllocated()){
           }
         }
         aggRFA[ksup]=totalSize;
+        SeedRFA[ksup]=rand();
       }
       else if(isRecvFromAbove_(ksup)){
         aggRFA[ksup]=1;
@@ -5302,6 +5308,7 @@ if(!redDTree->IsAllocated()){
     MPI_Allgather(&aggRFA[0],numSuper*sizeof(Int),MPI_BYTE,
         &globalAggRFA[0],numSuper*sizeof(Int),MPI_BYTE,
         grid_->colComm);
+    MPI_Allreduce(MPI_IN_PLACE,&SeedRFA[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->colComm);
 
     for( Int ksup = 0; ksup < numSuper; ksup++ ){
       set<Int> set_ranks;
@@ -5323,7 +5330,7 @@ if(!redDTree->IsAllocated()){
         tree_ranks.push_back(PROW(ksup,grid_));
         tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
         TreeBcast * & BcastUTree = fwdToBelowTree_[ksup];
-        BcastUTree = TreeBcast::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+        BcastUTree = TreeBcast::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFA[ksup]);
 #ifdef COMM_PROFILE
         BcastUTree->SetGlobalComm(grid_->comm);
 #endif
@@ -5348,7 +5355,7 @@ if(!redDTree->IsAllocated()){
         tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
 
         TreeBcast * & BcastLTree = fwdToRightTree_[ksup];
-        BcastLTree = TreeBcast::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+        BcastLTree = TreeBcast::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFL[ksup]);
 #ifdef COMM_PROFILE
         BcastLTree->SetGlobalComm(grid_->comm);
 #endif
@@ -5359,12 +5366,14 @@ if(!redDTree->IsAllocated()){
     TIMER_STOP(BUILD_BCAST_TREES);
 #ifdef TREE_REDUCTION_D_C
 TIMER_START(BUILD_REDUCE_D_TREE);
+    vector<double> SeedSTD(numSuper,0.0); 
     vector<Int> aggSTD(numSuper); 
     vector<Int> globalAggSTD(numSuper*grid_->numProcRow); 
     for( Int ksup = 0; ksup < numSuper; ksup++ ){
       if( MYCOL( grid_ ) == PCOL(ksup, grid_) &&  MYROW(grid_)==PROW(ksup,grid_)){
         Int totalSize = sizeof(T)*SuperSize( ksup, super_ )*SuperSize( ksup, super_ );
         aggSTD[ksup]=totalSize;
+        SeedSTD[ksup]=rand();
       }
       else if(isSendToDiagonal_(ksup)){
         aggSTD[ksup]=1;
@@ -5379,6 +5388,7 @@ TIMER_START(BUILD_REDUCE_D_TREE);
     MPI_Allgather(&aggSTD[0],numSuper*sizeof(Int),MPI_BYTE,
         &globalAggSTD[0],numSuper*sizeof(Int),MPI_BYTE,
         grid_->colComm);
+    MPI_Allreduce(MPI_IN_PLACE,&SeedSTD[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->colComm);
 
 
     for( Int ksup = 0; ksup < numSuper; ksup++ ){
@@ -5413,7 +5423,7 @@ TIMER_START(BUILD_REDUCE_D_TREE);
           TreeReduce<T> * & redDTree = redToAboveTree_[ksup];
 
           
-          redDTree = TreeReduce<T>::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+          redDTree = TreeReduce<T>::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedSTD[ksup]);
 #ifdef COMM_PROFILE
           redDTree->SetGlobalComm(grid_->comm);
 #endif
@@ -5428,6 +5438,7 @@ TIMER_STOP(BUILD_REDUCE_D_TREE);
 
 #ifdef TREE_REDUCTION_C
 TIMER_START(BUILD_REDUCE_L_TREE);
+    vector<double> SeedRTL(numSuper,0.0); 
     vector<Int> aggRTL(numSuper); 
     vector<Int> globalAggRTL(numSuper*grid_->numProcCol); 
     for( Int ksup = 0; ksup < numSuper ; ksup++ ){
@@ -5455,6 +5466,7 @@ TIMER_START(BUILD_REDUCE_L_TREE);
 
         aggRTL[ksup]=totalSize;
 
+        SeedRTL[ksup]=rand();
       }
       else if(isRecvFromLeft_(ksup)){
         aggRTL[ksup]=1;
@@ -5467,6 +5479,7 @@ TIMER_START(BUILD_REDUCE_L_TREE);
     MPI_Allgather(&aggRTL[0],numSuper*sizeof(Int),MPI_BYTE,
         &globalAggRTL[0],numSuper*sizeof(Int),MPI_BYTE,
         grid_->rowComm);
+    MPI_Allreduce(MPI_IN_PLACE,&SeedRTL[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->rowComm);
 
 
     for( Int ksup = 0; ksup < numSuper ; ksup++ ){
@@ -5490,7 +5503,7 @@ TIMER_START(BUILD_REDUCE_L_TREE);
         tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
 
         TreeReduce<T> * & redLTree = redToLeftTree_[ksup];
-        redLTree = TreeReduce<T>::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize);
+        redLTree = TreeReduce<T>::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRTL[ksup]);
 #ifdef COMM_PROFILE
         redLTree->SetGlobalComm(grid_->comm);
 #endif

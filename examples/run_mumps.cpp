@@ -58,7 +58,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-//#define _MYCOMPLEX_
+#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -764,7 +764,17 @@ int main(int argc, char **argv)
       }
 
       //      }
+      if(diagOnly){
+        rhs_sparse.clear();
+        rhs_sparse.resize(AMat.size);
 
+        irhs_ptr.Resize(AMat.size+1);
+        for(Int i = 0; i<=AMat.size;++i){ irhs_ptr[i] = i+1; }
+
+        irhs_sparse.Clear();
+        irhs_sparse.Resize(AMat.size);
+        for(Int i = 0; i<AMat.size;++i){ irhs_sparse[i] = i+1; }
+      }
 
       MPI_Barrier(world_comm);
 
@@ -836,11 +846,20 @@ int main(int argc, char **argv)
 
         //proceed with inversion
         if(mpirank==0){
-          id.nrhs =AMat.size; 
-          id.rhs_sparse = &rhs_sparse[0];
-          id.nz_rhs = nnzA;
-          id.irhs_sparse = &irhs_sparse[0];
-          id.irhs_ptr = &irhs_ptr[0];
+          if(diagOnly){
+            id.nz_rhs = AMat.size;
+            id.nrhs =AMat.size; 
+            id.rhs_sparse = &rhs_sparse[0];
+            id.irhs_sparse = &irhs_sparse[0];
+            id.irhs_ptr = &irhs_ptr[0];
+          }
+          else{
+            id.nz_rhs = nnzA;
+            id.nrhs =AMat.size; 
+            id.rhs_sparse = &rhs_sparse[0];
+            id.irhs_sparse = &irhs_sparse[0];
+            id.irhs_ptr = &irhs_ptr[0];
+          }
         }
 
 
@@ -860,105 +879,106 @@ int main(int argc, char **argv)
         }
 
 
-
-
-
-
-        //build a distsparsematrix
-        DistSparseMatrix<MYSCALAR> Ainv;
-        Ainv.colptrLocal = AMat.colptrLocal;
-        Ainv.rowindLocal = AMat.rowindLocal;
-        Ainv.size = AMat.size;
-        Ainv.nnz = AMat.nnz;
-        Ainv.nnzLocal = AMat.nnzLocal;
-        Ainv.nzvalLocal.Resize(Ainv.nnzLocal);
-        Ainv.comm = AMat.comm;
-
-
 #ifdef _MYCOMPLEX_
         delete [] id.a_loc;
 #endif
 
+
+        if(!diagOnly){
+
+
+          //build a distsparsematrix
+          DistSparseMatrix<MYSCALAR> Ainv;
+          Ainv.colptrLocal = AMat.colptrLocal;
+          Ainv.rowindLocal = AMat.rowindLocal;
+          Ainv.size = AMat.size;
+          Ainv.nnz = AMat.nnz;
+          Ainv.nnzLocal = AMat.nnzLocal;
+          Ainv.nzvalLocal.Resize(Ainv.nnzLocal);
+          Ainv.comm = AMat.comm;
+
+
+
 #if ( _DEBUGlevel_ >= 2 )
-        if(mpirank==0){
-          statusOFS<<"nnzLocalVec: "<<nnzLocalVec<<endl;
-          statusOFS<<"displs: "<<displs<<endl;
-          statusOFS<<"Ainv global: "<<rhs_sparse.size()<<endl;
-          Int curP = 1;
-          int index=0;
-          for(Int j =0; j<irhs_ptr.m()-1; ++j){
-            Int col = j+1;
-            for(Int i = irhs_ptr[j]; i<irhs_ptr[j+1];++i){
-              Int row = irhs_sparse[i-1];
+          if(mpirank==0){
+            statusOFS<<"nnzLocalVec: "<<nnzLocalVec<<endl;
+            statusOFS<<"displs: "<<displs<<endl;
+            statusOFS<<"Ainv global: "<<rhs_sparse.size()<<endl;
+            Int curP = 1;
+            int index=0;
+            for(Int j =0; j<irhs_ptr.m()-1; ++j){
+              Int col = j+1;
+              for(Int i = irhs_ptr[j]; i<irhs_ptr[j+1];++i){
+                Int row = irhs_sparse[i-1];
 #ifdef _MYCOMPLEX_
-              MYSCALAR val(rhs_sparse[i-1].r,rhs_sparse[i-1].i);
+                MYSCALAR val(rhs_sparse[i-1].r,rhs_sparse[i-1].i);
 #else
-              MYSCALAR val = rhs_sparse[i-1];
+                MYSCALAR val = rhs_sparse[i-1];
+#endif
+                statusOFS<<"("<<row<<","<<col<<")="<<val<<" ";
+                index++;
+                if(curP<mpisize){if(index==displs[curP]){++curP;statusOFS<<endl;}}
+              }
+            }
+            statusOFS<<endl;
+          }
+#endif
+
+#ifdef _MYCOMPLEX_
+          std::vector<mumps_double_complex> recvAinv(Ainv.nnzLocal);
+#else
+          NumVec<MYSCALAR> & recvAinv = Ainv.nzvalLocal;
+#endif
+
+          Int sizeElem = sizeof(recvAinv[0]);
+          for(int p = 0;p<mpisize;++p){
+            nnzLocalVec[p]*=sizeElem;
+            displs[p]*=sizeElem;
+          }
+
+          //Now do a scatterv from P0 to distribute the values
+          if(mpirank==0){
+            MPI_Scatterv(&rhs_sparse[0],&nnzLocalVec[0],&displs[0],MPI_BYTE,&recvAinv[0],Ainv.nnzLocal*sizeElem,MPI_BYTE,0,world_comm);
+          }
+          else{
+            MPI_Scatterv(NULL,NULL,NULL,MPI_BYTE,&recvAinv[0],Ainv.nnzLocal*sizeElem,MPI_BYTE,0,world_comm);
+          }
+
+
+#ifdef _MYCOMPLEX_
+          for(Int i =0; i<Ainv.nzvalLocal.m();++i){  Ainv.nzvalLocal[i] = MYSCALAR( recvAinv[i].r, recvAinv[i].i);}
+          recvAinv.clear();
+#endif
+
+#if ( _DEBUGlevel_ >= 2 )
+          statusOFS<<"Ainv local: "<<endl;
+          for(Int j =0; j<Ainv.colptrLocal.m()-1; ++j){
+            Int col = j +1 + (mpirank)*numColFirst; 
+            for(Int i = Ainv.colptrLocal[j]; i<Ainv.colptrLocal[j+1];++i){
+              Int row = Ainv.rowindLocal[i-1];
+#ifdef _MYCOMPLEX_
+              MYSCALAR val(Ainv.nzvalLocal[i-1].r,Ainv.nzvalLocal[i-1].i);
+#else
+              MYSCALAR val = Ainv.nzvalLocal[i-1];
 #endif
               statusOFS<<"("<<row<<","<<col<<")="<<val<<" ";
-              index++;
-              if(curP<mpisize){if(index==displs[curP]){++curP;statusOFS<<endl;}}
+              //            statusOFS<<"("<<row<<","<<col<<") ";
             }
           }
           statusOFS<<endl;
-        }
 #endif
 
-#ifdef _MYCOMPLEX_
-        std::vector<mumps_double_complex> recvAinv(Ainv.nnzLocal);
-#else
-        NumVec<MYSCALAR> & recvAinv = Ainv.nzvalLocal;
-#endif
-
-        Int sizeElem = sizeof(recvAinv[0]);
-        for(int p = 0;p<mpisize;++p){
-          nnzLocalVec[p]*=sizeElem;
-          displs[p]*=sizeElem;
-        }
-
-        //Now do a scatterv from P0 to distribute the values
-        if(mpirank==0){
-          MPI_Scatterv(&rhs_sparse[0],&nnzLocalVec[0],&displs[0],MPI_BYTE,&recvAinv[0],Ainv.nnzLocal*sizeElem,MPI_BYTE,0,world_comm);
-        }
-        else{
-          MPI_Scatterv(NULL,NULL,NULL,MPI_BYTE,&recvAinv[0],Ainv.nnzLocal*sizeElem,MPI_BYTE,0,world_comm);
-        }
 
 
 #ifdef _MYCOMPLEX_
-        for(Int i =0; i<Ainv.nzvalLocal.m();++i){  Ainv.nzvalLocal[i] = MYSCALAR( recvAinv[i].r, recvAinv[i].i);}
-        recvAinv.clear();
-#endif
-
-#if ( _DEBUGlevel_ >= 2 )
-        statusOFS<<"Ainv local: "<<endl;
-        for(Int j =0; j<Ainv.colptrLocal.m()-1; ++j){
-          Int col = j +1 + (mpirank)*numColFirst; 
-          for(Int i = Ainv.colptrLocal[j]; i<Ainv.colptrLocal[j+1];++i){
-            Int row = Ainv.rowindLocal[i-1];
-#ifdef _MYCOMPLEX_
-            MYSCALAR val(Ainv.nzvalLocal[i-1].r,Ainv.nzvalLocal[i-1].i);
-#else
-            MYSCALAR val = Ainv.nzvalLocal[i-1];
-#endif
-            statusOFS<<"("<<row<<","<<col<<")="<<val<<" ";
-            //            statusOFS<<"("<<row<<","<<col<<") ";
+          if(mpirank==0){
+            rhs_sparse.clear();
           }
-        }
-        statusOFS<<endl;
 #endif
 
 
-
-#ifdef _MYCOMPLEX_
-        if(mpirank==0){
-          rhs_sparse.clear();
+          ParaWriteDistSparseMatrix( "Ainv_Mumps.csc", Ainv, world_comm ); 
         }
-#endif
-
-
-        ParaWriteDistSparseMatrix( "Ainv_Mumps.csc", Ainv, world_comm ); 
-
 
       }
 

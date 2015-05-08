@@ -483,7 +483,8 @@ int main(int argc, char **argv)
         // Selected inversion
         // *********************************************************************
 
-        for(int i=1; i<= doSelInv; ++i )
+//        for(int i=1; i<= doSelInv; ++i )
+        if(doSelInv)
         {
 
           Real timeTotalSelInvSta, timeTotalSelInvEnd;
@@ -745,7 +746,7 @@ int main(int argc, char **argv)
               cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 #if 0
-            for(Int i =0; i<100;++i){
+            for(Int i =0; i<doSelInv;++i){
               luMat.LUstructToPMatrix( PMloc );
               PMloc.PreSelInv();
               PMloc.SelInv();

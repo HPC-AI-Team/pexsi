@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 
   /* Below is the data used for the toy matrix */
 
-#if 1
+#if 0
   numElectronExact    = 2.0;
   nprow               = 2;
   npcol               = 2;
@@ -120,8 +120,8 @@ int main(int argc, char **argv)
   isFormatted         = 1;
 #else
   numElectronExact    = 70000.0;
-  nprow               = 32;
-  npcol               = 32;
+  nprow               = 8;
+  npcol               = 8;
   Hfile               = "/project/projectdirs/m1027/PEXSI/DG_Phosphorene_14000/H.csc";
   Sfile               = "";
   isFormatted         = 0;
@@ -246,13 +246,13 @@ int main(int argc, char **argv)
   options.muMin0 = 0.0;
   options.muMax0 = 0.5;
   options.mu0    = 0.0;
-  options.npSymbFact = 1;
+  options.npSymbFact = 16;
   options.ordering = 0;
   options.isInertiaCount = 0;
   options.maxPEXSIIter   = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  options.numPole  = 60;
+  options.numPole  = 40;
   options.temperature  = 0.019; // 3000K
   options.muPEXSISafeGuard  = 0.2; 
   options.numElectronPEXSITolerance = 0.001;
