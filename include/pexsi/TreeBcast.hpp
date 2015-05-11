@@ -81,21 +81,21 @@ public:
       isReady_ = false;
     }
 
-    TreeBcast(const TreeBcast & T){
-      Copy(T); 
+    TreeBcast(const TreeBcast & Tree){
+      Copy(Tree); 
     }
  
-    virtual void Copy(const TreeBcast & T){
-      comm_ = T.comm_;
-      myRank_ = T.myRank_;
-      myRoot_ = T.myRoot_; 
-      msgSize_ = T.msgSize_;
+    virtual void Copy(const TreeBcast & Tree){
+      comm_ = Tree.comm_;
+      myRank_ = Tree.myRank_;
+      myRoot_ = Tree.myRoot_; 
+      msgSize_ = Tree.msgSize_;
 
-      numRecv_ = T.numRecv_;
-      tag_= T.tag_;
-      mainRoot_= T.mainRoot_;
-      isReady_ = T.isReady_;
-      myDests_ = T.myDests_;
+      numRecv_ = Tree.numRecv_;
+      tag_= Tree.tag_;
+      mainRoot_= Tree.mainRoot_;
+      isReady_ = Tree.isReady_;
+      myDests_ = Tree.myDests_;
     }
 
     virtual TreeBcast * clone() const = 0; 
@@ -378,28 +378,28 @@ TIMER_STOP(FIND_RANK);
       buildTree(ranks,rank_cnt);
     }
 
-    virtual void Copy(const ModBTreeBcast & T){
-      comm_ = T.comm_;
-      myRank_ = T.myRank_;
-      myRoot_ = T.myRoot_; 
-      msgSize_ = T.msgSize_;
+    virtual void Copy(const ModBTreeBcast & Tree){
+      comm_ = Tree.comm_;
+      myRank_ = Tree.myRank_;
+      myRoot_ = Tree.myRoot_; 
+      msgSize_ = Tree.msgSize_;
 
-      numRecv_ = T.numRecv_;
-      tag_= T.tag_;
-      mainRoot_= T.mainRoot_;
-      isReady_ = T.isReady_;
-      myDests_ = T.myDests_;
+      numRecv_ = Tree.numRecv_;
+      tag_= Tree.tag_;
+      mainRoot_= Tree.mainRoot_;
+      isReady_ = Tree.isReady_;
+      myDests_ = Tree.myDests_;
 
-      rseed_ = T.rseed_;
-      myRank_ = T.myRank_;
-      myRoot_ = T.myRoot_; 
-      msgSize_ = T.msgSize_;
+      rseed_ = Tree.rseed_;
+      myRank_ = Tree.myRank_;
+      myRoot_ = Tree.myRoot_; 
+      msgSize_ = Tree.msgSize_;
 
-      numRecv_ = T.numRecv_;
-      tag_= T.tag_;
-      mainRoot_= T.mainRoot_;
-      isReady_ = T.isReady_;
-      myDests_ = T.myDests_;
+      numRecv_ = Tree.numRecv_;
+      tag_= Tree.tag_;
+      mainRoot_= Tree.mainRoot_;
+      isReady_ = Tree.isReady_;
+      myDests_ = Tree.myDests_;
     }
  
     virtual ModBTreeBcast * clone() const{
@@ -583,35 +583,35 @@ class TreeReduce: public TreeBcast{
 
     virtual TreeReduce * clone() const = 0; 
 
-    TreeReduce(const TreeReduce & T){
-      Copy(T);
+    TreeReduce(const TreeReduce & Tree){
+      Copy(Tree);
     }
 
-    virtual void Copy(const TreeReduce & T){
-      comm_ = T.comm_;
-      myRank_ = T.myRank_;
-      myRoot_ = T.myRoot_; 
-      msgSize_ = T.msgSize_;
+    virtual void Copy(const TreeReduce & Tree){
+      comm_ = Tree.comm_;
+      myRank_ = Tree.myRank_;
+      myRoot_ = Tree.myRoot_; 
+      msgSize_ = Tree.msgSize_;
 
-      numRecv_ = T.numRecv_;
-      tag_= T.tag_;
-      mainRoot_= T.mainRoot_;
-      isReady_ = T.isReady_;
-      myDests_ = T.myDests_;
+      numRecv_ = Tree.numRecv_;
+      tag_= Tree.tag_;
+      mainRoot_= Tree.mainRoot_;
+      isReady_ = Tree.isReady_;
+      myDests_ = Tree.myDests_;
 
 
-      myData_ = T.myData_;
-      sendRequest_ = T.sendRequest_;
-      fwded_= T.fwded_;
-      isAllocated_= T.isAllocated_;
-      numRecvPosted_= T.numRecvPosted_;
+      myData_ = Tree.myData_;
+      sendRequest_ = Tree.sendRequest_;
+      fwded_= Tree.fwded_;
+      isAllocated_= Tree.isAllocated_;
+      numRecvPosted_= Tree.numRecvPosted_;
 
-      myLocalBuffer_ = T.myLocalBuffer_;
-      myRecvBuffers_ = T.myRecvBuffers_;
-      remoteData_ = T.remoteData_;
-      myRequests_ = T.myRequests_;
-      myStatuses_ = T.myStatuses_;
-      recvIdx_ = T.recvIdx_;
+      myLocalBuffer_ = Tree.myLocalBuffer_;
+      myRecvBuffers_ = Tree.myRecvBuffers_;
+      remoteData_ = Tree.remoteData_;
+      myRequests_ = Tree.myRequests_;
+      myStatuses_ = Tree.myStatuses_;
+      recvIdx_ = Tree.recvIdx_;
     }
  
 
@@ -1219,32 +1219,32 @@ TIMER_STOP(FIND_RANK);
       buildTree(ranks,rank_cnt);
     }
 
-    virtual void Copy(const ModBTreeReduce & T){
-      comm_ = T.comm_;
-      myRank_ = T.myRank_;
-      myRoot_ = T.myRoot_; 
-      msgSize_ = T.msgSize_;
+    virtual void Copy(const ModBTreeReduce & Tree){
+      comm_ = Tree.comm_;
+      myRank_ = Tree.myRank_;
+      myRoot_ = Tree.myRoot_; 
+      msgSize_ = Tree.msgSize_;
 
-      numRecv_ = T.numRecv_;
-      tag_= T.tag_;
-      mainRoot_= T.mainRoot_;
-      isReady_ = T.isReady_;
-      myDests_ = T.myDests_;
+      numRecv_ = Tree.numRecv_;
+      tag_= Tree.tag_;
+      mainRoot_= Tree.mainRoot_;
+      isReady_ = Tree.isReady_;
+      myDests_ = Tree.myDests_;
 
 
-      myData_ = T.myData_;
-      sendRequest_ = T.sendRequest_;
-      fwded_= T.fwded_;
-      isAllocated_= T.isAllocated_;
-      numRecvPosted_= T.numRecvPosted_;
+      myData_ = Tree.myData_;
+      sendRequest_ = Tree.sendRequest_;
+      fwded_= Tree.fwded_;
+      isAllocated_= Tree.isAllocated_;
+      numRecvPosted_= Tree.numRecvPosted_;
 
-      myLocalBuffer_ = T.myLocalBuffer_;
-      myRecvBuffers_ = T.myRecvBuffers_;
-      remoteData_ = T.remoteData_;
-      myRequests_ = T.myRequests_;
-      myStatuses_ = T.myStatuses_;
-      recvIdx_ = T.recvIdx_;
-      rseed_ = T.rseed_;
+      myLocalBuffer_ = Tree.myLocalBuffer_;
+      myRecvBuffers_ = Tree.myRecvBuffers_;
+      remoteData_ = Tree.remoteData_;
+      myRequests_ = Tree.myRequests_;
+      myStatuses_ = Tree.myStatuses_;
+      recvIdx_ = Tree.recvIdx_;
+      rseed_ = Tree.rseed_;
     }
  
 

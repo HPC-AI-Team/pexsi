@@ -2308,10 +2308,10 @@ throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
             << " inertia counts have been proceeded." << std::endl
             << "Try to revise the initial interval for the chemical potential, "
             << "or increase muInertiaTolerance. " << std::endl;
-          #ifdef USE_ABORT
-abort();
+#ifdef USE_ABORT
+          abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+          throw std::runtime_error( msg.str().c_str() );
         }
 
         numTotalInertiaIter++;
