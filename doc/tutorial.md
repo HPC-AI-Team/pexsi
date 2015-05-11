@@ -285,6 +285,7 @@ Here is the structure of the code using the simple driver routine.
   // Given a good guess of the chemical potential, no need to perform 
   // inertia counting.
   options.isInertiaCount = 0;
+  // Optional update mu0, muMin0, muMax0 in PPEXSIOptions
 
   PPEXSIDFTDriver(
       plan,

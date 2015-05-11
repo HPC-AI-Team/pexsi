@@ -5,14 +5,15 @@ PAR_ND_LIBRARY   = ptscotch
 SEQ_ND_LIBRARY   = scotch
 
 # Different compiling and linking options.
-SUFFIX       = edison_v0.7.2
+# Marenostrum machine in Barcelona. IBM machine
+SUFFIX       = mn
 
 # Compiler and tools
 ################################################################
-CC           = cc
-CXX          = CC
-FC           = ftn
-LOADER       = CC
+CC           = mpicc
+CXX          = mpicxx
+FC           = mpif90
+LOADER       = mpicxx
 
 AR           = ar
 ARFLAGS      = rvcu
@@ -28,38 +29,33 @@ RMFLAGS      = -f
 
 
 # PEXSI directory
-PEXSI_DIR     = /global/homes/l/linlin/project/pexsi_edison
+PEXSI_DIR     = $(HOME)/pexsi
 
 # Required libraries directories
-DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_3.3_edison
-PARMETIS_DIR  = /project/projectdirs/m1027/PEXSI/libpexsi_edison
-PTSCOTCH_DIR  = /project/projectdirs/m1027/PEXSI/libpexsi_edison
+DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_3.3
+PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.2/build/Linux-x86_64
+SCOTCH_DIR    = $(HOME)/Software/scotch_6.0.0
 
 
 # Includes
-
 PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
 DSUPERLU_INCLUDE = -I${DSUPERLU_DIR}/SRC
 INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} 
 
-
 # Libraries
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_3.3.a
+FORTRAN_LIB      = -lifcore
+BLACS_LIB        = -Wl,-rpath,/apps/INTEL/mkl/lib/intel64/ -L/apps/INTEL/mkl/lib/intel64/ -lmkl_blacs_openmpi_lp64
+SCALAPACK_LIB    =-Wl,-rpath,/apps/INTEL/mkl/lib/intel64/ -L/apps/INTEL/mkl/lib/intel64/ -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential
+METIS_LIB        = -L${PARMETIS_DIR}/libmetis -lmetis
+PARMETIS_LIB     = -L${PARMETIS_DIR}/libparmetis -lparmetis
+SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_3.3.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
-#MKL_LIB          = -Wl,--start-group  ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a -Wl,--end-group -lpthread -lm
-#MKL_LIB          = -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_intel_sequential.a -Wl,--end-group -lpthread -lm
-MKL_LIB          = -mkl
-
-# Graph partitioning libraries
-METIS_LIB        = -L${PARMETIS_DIR} -lmetis
-PARMETIS_LIB     = -L${PARMETIS_DIR} -lparmetis
-SCOTCH_LIB       = -L${PTSCOTCH_DIR} -lscotchmetis -lscotch -lscotcherr
-PTSCOTCH_LIB     = -L${PTSCOTCH_DIR} -lptscotchparmetis -lptscotch -lptscotcherr -lscotch 
 
 # Different compiling and linking options.
 ifeq (${COMPILE_MODE}, release)
   COMPILE_DEF    = -DDEBUG=0 -DRELEASE
-  COMPILE_FLAG   = -fast -no-ipo -g -w 
+  COMPILE_FLAG   = -O3 -w 
 endif
 ifeq (${COMPILE_MODE}, debug)
   COMPILE_DEF    = -DDEBUG=1
@@ -82,16 +78,17 @@ ifeq (${USE_PROFILE}, 1)
   PROFILE_FLAG  = -DPROFILE
 endif
 
-LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${MKL_LIB}
+LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${SCALAPACK_LIB} ${BLACS_LIB} ${FORTRAN_LIB}
 
 
 COMPILE_DEF  += -DAdd_
 
-FLOADOPTS    = ${LIBS} -no-ipo -lstdc++
+CPPFLAG = -std=c++11
+FLOADOPTS    = ${LIBS} -lstdc++
 
 CFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES}
 FFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES}
-CXXFLAGS     = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES} 
+CXXFLAGS     = ${COMPILE_FLAG} ${CPPFLAG} ${PROFILE_FLAG} ${INCLUDES} 
 CCDEFS       = ${COMPILE_DEF} 
 CPPDEFS      = ${COMPILE_DEF} 
 LOADOPTS     = ${PROFILE_FLAG} ${LIBS}

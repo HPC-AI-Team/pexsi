@@ -198,6 +198,12 @@ If you use %PEXSI for electronic structure calculation in general,
 
 **More references:**
 
+M. Jacquelin, L. Lin, N. Wichmann and C. Yang,  
+Enhancing the scalability and load balancing of the parallel
+selected inversion algorithm via tree-based asynchronous
+communication, submitted [<a
+href="http://arxiv.org/abs/1504.04714">arXiv</a>]
+
 L. Lin, A. Garcia, G. Huhs and C. Yang, SIESTA-PEXSI: Massively parallel
 method for efficient and accurate ab initio materials simulation without
 matrix diagonalization, J. Phys. Condens.  Matter 26, 305503, 2014 [<a
@@ -237,9 +243,27 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
+- v0.8.0 (05/11/2015) **Major update**
+    - Improve the data communication pattern for PSelInv. The parallel
+      scalability of PSelInv is much improved when more than 1000
+      processors are used. The variation of running time among different
+      instances is also reduced.
 
-- v0.7.4
-  - Fix the bug of MPI communicator in f_driver_ksdft.f90. 
+      For more details of the improvement see
+
+      M. Jacquelin, L. Lin, N. Wichmann and C. Yang,  
+      Enhancing the scalability and load balancing of the parallel
+      selected inversion algorithm via tree-based asynchronous
+      communication, submitted [<a
+      href="http://arxiv.org/abs/1504.04714">arXiv</a>]
+
+    - Templated implementation of a number of classes including
+      SuperLUMatrix.
+    - Update the structure of the include/ folder to avoid conflict when
+      %PEXSi is included in other software packages.
+    - Update the configuration files. Remove the out-of-date profile
+      options.
+    - Bug fix: MPI communicator in %f_driver_ksdft.f90. 
 
 - v0.7.3 (11/27/2014)
   - Multiple patches suggested by Alberto Garcia.
@@ -259,7 +283,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
   - Add test matrices to the fortran/ folder as well.
   - Update the configuration files.
 
-- v0.7.1 (07/01/2014)
+- v0.7.1 (07/01/2014) **Major update**
   - Bug fix: PPEXSIPlanInitialize specifics the input according to
     mpirank instead of outputFileIndex.
   - Bug fix: PPEXSIPlanFinalize gives floating point error due to the
@@ -280,8 +304,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
     guidance.
 
 
-- v0.6.0 (03/11/2014)
-  - First release of %PEXSI.
+- v0.6.0 (03/11/2014) **Initial release of %PEXSI**
   - Version integrated with the SIESTA package for Kohn-Sham density
     functional theory (KSDFT) calculation.
   - Parallel selected inversion for complex symmetric matrices.

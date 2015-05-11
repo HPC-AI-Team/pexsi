@@ -360,7 +360,7 @@ Example
   SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
-  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
 
   // Symbolic factorization
   luMat.SymbolicFactorize();
@@ -423,7 +423,7 @@ Example
   SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
-  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
 
   // Symbolic factorization
   luMat.SymbolicFactorize();
@@ -436,7 +436,7 @@ Example
   DistSparseMatrix<Complex>  BMat; 
   ...;
   // Matrix conversion
-  luMat.DistSparseMatrixToSuperMatrixNRloc( BMat );
+  luMat.DistSparseMatrixToSuperMatrixNRloc( BMat, luOpt );
   // Redistribute into 2D block cyclic format.
   luMat.Distribute();
 
@@ -492,13 +492,13 @@ right hand sides and compare the accuracy.
   ...;
 
   // Setup SuperLU
-  SuperLUGrid g( comm, nprow, npcol );
+  SuperLUGrid<Complex> g( comm, nprow, npcol );
   SuperLUOptions luOpt;
   luOpt.ColPerm = "MMD_AT_PLUS_A";
-  SuperLUMatrix luMat( g );
+  SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
-  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
 
   // Symbolic factorization
   luMat.SymbolicFactorize();
@@ -507,8 +507,8 @@ right hand sides and compare the accuracy.
   luMat.NumericalFactorize();
   
   // Construct a global matrix (for error checking)
-  SuperLUMatrix A1( g ), GA( g );
-  A1.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  SuperLUMatrix<Complex> A1( g ), GA( g );
+  A1.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
   A1.ConvertNRlocToNC( GA );
   
   // Construct the distributed right hand sides and the exact solution.
@@ -574,6 +574,13 @@ GridType should be consistent with the grid used by SuperLU.
 @note
 It is the user's responsibility to enforce the coherence between [SuperLUGrid](@ref PEXSI::SuperLUGrid) and GridType.
 
+> @ref PEXSI::SuperNodeType "SuperNodeType"
+
+A data structure containing the supernodal partitioning of the matrix.
+
+@note
+It is the user's responsibility to initialize this data structure after [SuperLUMatrix::SymbolicFactorize](@ref PEXSI::SuperLUMatrix::SymbolicFactorize) has been called.
+This is done using the [SuperLUMatrix::SymbolicToSuperNode](@ref PEXSI::SuperLUMatrix::SymbolicToSuperNode] utility routine.
 
 > @ref PEXSI::PMatrix "PMatrix"
 
@@ -591,6 +598,12 @@ assumes that the matrix is strictly symmetric, and therefore the
 compressed sparse row (CSR) format, used by SuperLU_DIST, gives
 exactly the same matrix as formed by the compresed sparse column
 format (CSC).
+
+> @ref PEXSI::PMatrix::Create "PMatrix::Create"
+
+This static factory routine instantiates the correct PMatrix object type depending on matrix structure.
+The matrix structure is specified by the [SuperLUOptions::symmetric](@ref PEXSI::SuperLUOptions::symmetric) attribute of the [SuperLUOptions](@ref PEXSI::SuperLUOptions) data structure.
+ 
 
 > @ref PEXSI::PMatrix::ConstructCommunicationPattern "PMatrix::ConstructCommunicationPattern" 
 
@@ -634,38 +647,47 @@ Example
   SuperLUGrid<Complex> g( comm, nprow, npcol );
   SuperLUOptions luOpt;
   luOpt.ColPerm = "MMD_AT_PLUS_A";
+  luOpt.symmetric = 0;
+
   SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
-  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat );
+  luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
 
   // Symbolic factorization
   luMat.SymbolicFactorize();
+
 
   // Numerical factorization
   luMat.NumericalFactorize();
 
   /****** SELECTED INVERSION ******/
+  GridType gPM( comm, nprow, npcol );
 
-  PMatrix<Complex> PMloc;
+  SuperNodeType super;
+  luMat.SymbolicToSuperNode( super );
+
+  PMatrix<Complex> * PMloc = PMatrix<Complex>::Create(&gPM, &super, &luOpt);
 
   // Conversion to PMatrix
-  luMat.LUstructToPMatrix( PMloc );
+  luMat.LUstructToPMatrix( *PMloc );
    
   //Create the communication pattern
-  PMloc.ConstructCommunicationPattern();
+  PMloc->ConstructCommunicationPattern();
 
   //Prepare for parallel selected inversion 
-  PMloc.PreSelInv();
+  PMloc->PreSelInv();
 
   //Perform the parallel selected inversion
-  PMloc.SelInv();
+  PMloc->SelInv();
 
   //Get the result back in DistSparseMatrix format
   DistSparseMatrix<Scalar> Ainv;
-  PMloc.PMatrixToDistSparseMatrix( Ainv );
+  PMloc->PMatrixToDistSparseMatrix( Ainv );
 
   ...;
+
+  delete PMloc;
 }
 @endcode
 
