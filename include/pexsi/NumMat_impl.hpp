@@ -117,6 +117,23 @@ namespace  PEXSI{
     }
   }
 
+  template <class F> void NumMat<F>::Clear()  {
+    if( owndata_ == false ){
+#ifdef USE_ABORT
+      abort();
+#endif
+      throw std::logic_error("Matrix being cleared must own data.");
+    }
+
+      this->deallocate();
+      m_ = 0; n_ = 0;
+      bufsize_=0;
+  }
+
+
+
+
+
   template <class F> const F& NumMat<F>::operator()(Int i, Int j) const  { 
     if( i < 0 || i >= m_ ||
         j < 0 || j >= n_ ) {

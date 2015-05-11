@@ -90,6 +90,7 @@ namespace  PEXSI{
         NumMat& Copy(const NumMat& C);
         NumMat& operator=(const NumMat& C);
         void Resize(Int m, Int n);
+        void Clear();
         const F& operator()(Int i, Int j) const;
         F& operator()(Int i, Int j);
         F* Data() const { return data_; }

@@ -577,40 +577,6 @@ namespace PEXSI{
 #endif
 
 
-      //Communicators for the Bcast variant
-
-      IntNumVec maxCommSizes_;
-
-      NumVec<Int>                       countSendToBelow_;
-      bitMaskSet                        maskSendToBelow_;
-      std::vector<MPI_Comm>             commSendToBelow_;
-      std::vector<MPI_Comm*>            commSendToBelowPtr_;
-      std::vector<Int>                  commSendToBelowRoot_;
-      std::vector<bitMask *>         commSendToBelowMaskPtr_;
-      std::vector<bitMask>         commSendToBelowMask_;
-
-      NumVec<Int>                       countRecvFromBelow_;
-      bitMaskSet                        maskRecvFromBelow_;
-      std::vector<MPI_Comm>             commRecvFromBelow_;
-      std::vector<MPI_Comm*>            commRecvFromBelowPtr_;
-      std::vector<Int>                  commRecvFromBelowRoot_;
-
-      std::vector<bitMask *>         commRecvFromBelowMaskPtr_;
-      std::vector<bitMask>         commRecvFromBelowMask_;
-      
-
-      NumVec<Int>                       countSendToRight_;
-      bitMaskSet                        maskSendToRight_;
-      std::vector<MPI_Comm>             commSendToRight_;
-      std::vector<MPI_Comm*>            commSendToRightPtr_;
-      std::vector<Int>                  commSendToRightRoot_;
-      std::vector<bitMask *>         commSendToRightMaskPtr_;
-      std::vector<bitMask>         commSendToRightMask_;
-
-      //NumVec<Int>                       countCrossDiag_;
-
-
-
 
       struct SuperNodeBufferType{
         NumMat<T>    LUpdateBuf;
@@ -676,7 +642,12 @@ namespace PEXSI{
       PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
 #ifdef BUILD_BCAST_TREE
+      void deallocate();
+     
+
       virtual ~PMatrix();
+      PMatrix( const PMatrix & C);
+      PMatrix & operator = ( const PMatrix & C);
 #endif
 
       void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );

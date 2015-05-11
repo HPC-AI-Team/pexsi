@@ -111,13 +111,25 @@ int main(int argc, char **argv)
 
   /* Below is the data used for the toy matrix */
 
-#if 0
-  numElectronExact    = 2.0;
+#if 1
+  numElectronExact    = 12.0;
   nprow               = 2;
   npcol               = 2;
   Hfile               = "lap2dr.matrix";
   Sfile               = "";
   isFormatted         = 1;
+#else
+#if 1
+  numElectronExact    = 7000.0;
+  nprow               = 2;
+  npcol               = 2;
+  Hfile               = "/project/projectdirs/m1027/PEXSI/LU_C_BN_C_1by1/H_LU.csc";
+  Sfile               = "";
+  isFormatted         = 0;
+
+  isSIdentity         = 1;
+  Energy              = 1.0;
+  eta                 = 0.001;
 #else
   numElectronExact    = 70000.0;
   nprow               = 8;
@@ -129,6 +141,7 @@ int main(int argc, char **argv)
   isSIdentity         = 1;
   Energy              = 1.0;
   eta                 = 0.001;
+#endif
 #endif
 
   /* Split the processors to read matrix */
@@ -246,7 +259,7 @@ int main(int argc, char **argv)
   options.muMin0 = 0.0;
   options.muMax0 = 0.5;
   options.mu0    = 0.0;
-  options.npSymbFact = 16;
+  options.npSymbFact = 4;
   options.ordering = 0;
   options.isInertiaCount = 0;
   options.maxPEXSIIter   = 1;

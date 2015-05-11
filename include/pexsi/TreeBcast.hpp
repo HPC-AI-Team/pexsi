@@ -57,6 +57,18 @@ public:
   
     virtual void buildTree(Int * ranks, Int rank_cnt)=0;
   public:
+    TreeBcast(){
+      comm_ = MPI_COMM_WORLD;
+      myRank_=-1;
+      myRoot_ = -1; 
+      msgSize_ = -1;
+      numRecv_ = -1;
+      tag_=-1;
+      mainRoot_=-1;
+      isReady_ = false;
+    }
+
+
     TreeBcast(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize){
       comm_ = pComm;
       MPI_Comm_rank(comm_,&myRank_);
@@ -68,6 +80,27 @@ public:
       mainRoot_=ranks[0];
       isReady_ = false;
     }
+
+    TreeBcast(const TreeBcast & T){
+      Copy(T); 
+    }
+ 
+    virtual void Copy(const TreeBcast & T){
+      comm_ = T.comm_;
+      myRank_ = T.myRank_;
+      myRoot_ = T.myRoot_; 
+      msgSize_ = T.msgSize_;
+
+      numRecv_ = T.numRecv_;
+      tag_= T.tag_;
+      mainRoot_= T.mainRoot_;
+      isReady_ = T.isReady_;
+      myDests_ = T.myDests_;
+    }
+
+    virtual TreeBcast * clone() const = 0; 
+
+
     
     static TreeBcast * Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize,double rseed);
 
@@ -131,6 +164,10 @@ class FTreeBcast: public TreeBcast{
     }
 
 
+    virtual FTreeBcast * clone() const{
+      FTreeBcast * out = new FTreeBcast(*this);
+      return out;
+    } 
 };
 
 
@@ -231,6 +268,10 @@ class BTreeBcast: public TreeBcast{
       buildTree(ranks,rank_cnt);
     }
 
+    virtual BTreeBcast * clone() const{
+      BTreeBcast * out = new BTreeBcast(*this);
+      return out;
+    }
 
 };
 
@@ -337,6 +378,34 @@ TIMER_STOP(FIND_RANK);
       buildTree(ranks,rank_cnt);
     }
 
+    virtual void Copy(const ModBTreeBcast & T){
+      comm_ = T.comm_;
+      myRank_ = T.myRank_;
+      myRoot_ = T.myRoot_; 
+      msgSize_ = T.msgSize_;
+
+      numRecv_ = T.numRecv_;
+      tag_= T.tag_;
+      mainRoot_= T.mainRoot_;
+      isReady_ = T.isReady_;
+      myDests_ = T.myDests_;
+
+      rseed_ = T.rseed_;
+      myRank_ = T.myRank_;
+      myRoot_ = T.myRoot_; 
+      msgSize_ = T.msgSize_;
+
+      numRecv_ = T.numRecv_;
+      tag_= T.tag_;
+      mainRoot_= T.mainRoot_;
+      isReady_ = T.isReady_;
+      myDests_ = T.myDests_;
+    }
+ 
+    virtual ModBTreeBcast * clone() const{
+      ModBTreeBcast * out = new ModBTreeBcast(*this);
+      return out;
+    }
 
 };
 
@@ -424,6 +493,10 @@ class RandBTreeBcast: public TreeBcast{
       buildTree(ranks,rank_cnt);
     }
 
+    virtual RandBTreeBcast * clone() const{
+      RandBTreeBcast * out = new RandBTreeBcast(*this);
+      return out;
+    }
 
 };
 
@@ -470,6 +543,10 @@ class PalmTreeBcast: public TreeBcast{
       buildTree(ranks,rank_cnt);
     }
 
+    virtual PalmTreeBcast * clone() const{
+      PalmTreeBcast * out = new PalmTreeBcast(*this);
+      return out;
+    }
 
 };
 
@@ -492,8 +569,8 @@ class TreeReduce: public TreeBcast{
 
     bool fwded_;
     bool isAllocated_;
-
     Int numRecvPosted_;
+
   public:
     TreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeBcast(pComm,ranks,rank_cnt,msgSize){
       myData_ = NULL;
@@ -502,6 +579,42 @@ class TreeReduce: public TreeBcast{
       isAllocated_=false;
       numRecvPosted_= 0;
     }
+
+
+    virtual TreeReduce * clone() const = 0; 
+
+    TreeReduce(const TreeReduce & T){
+      Copy(T);
+    }
+
+    virtual void Copy(const TreeReduce & T){
+      comm_ = T.comm_;
+      myRank_ = T.myRank_;
+      myRoot_ = T.myRoot_; 
+      msgSize_ = T.msgSize_;
+
+      numRecv_ = T.numRecv_;
+      tag_= T.tag_;
+      mainRoot_= T.mainRoot_;
+      isReady_ = T.isReady_;
+      myDests_ = T.myDests_;
+
+
+      myData_ = T.myData_;
+      sendRequest_ = T.sendRequest_;
+      fwded_= T.fwded_;
+      isAllocated_= T.isAllocated_;
+      numRecvPosted_= T.numRecvPosted_;
+
+      myLocalBuffer_ = T.myLocalBuffer_;
+      myRecvBuffers_ = T.myRecvBuffers_;
+      remoteData_ = T.remoteData_;
+      myRequests_ = T.myRequests_;
+      myStatuses_ = T.myStatuses_;
+      recvIdx_ = T.recvIdx_;
+    }
+ 
+
 
     bool IsAllocated(){return isAllocated_;}
 
@@ -925,6 +1038,10 @@ class FTreeReduce: public TreeReduce<T>{
     }
 
 
+    virtual FTreeReduce * clone() const{
+      FTreeReduce * out = new FTreeReduce(*this);
+      return out;
+    }
 
 
 
@@ -999,6 +1116,11 @@ class BTreeReduce: public TreeReduce<T>{
     public:
     BTreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce<T>(pComm, ranks, rank_cnt, msgSize){
       buildTree(ranks,rank_cnt);
+    }
+
+    virtual BTreeReduce * clone() const{
+      BTreeReduce * out = new BTreeReduce(*this);
+      return out;
     }
 };
 
@@ -1096,6 +1218,43 @@ TIMER_STOP(FIND_RANK);
       this->rseed_ = rseed;
       buildTree(ranks,rank_cnt);
     }
+
+    virtual void Copy(const ModBTreeReduce & T){
+      comm_ = T.comm_;
+      myRank_ = T.myRank_;
+      myRoot_ = T.myRoot_; 
+      msgSize_ = T.msgSize_;
+
+      numRecv_ = T.numRecv_;
+      tag_= T.tag_;
+      mainRoot_= T.mainRoot_;
+      isReady_ = T.isReady_;
+      myDests_ = T.myDests_;
+
+
+      myData_ = T.myData_;
+      sendRequest_ = T.sendRequest_;
+      fwded_= T.fwded_;
+      isAllocated_= T.isAllocated_;
+      numRecvPosted_= T.numRecvPosted_;
+
+      myLocalBuffer_ = T.myLocalBuffer_;
+      myRecvBuffers_ = T.myRecvBuffers_;
+      remoteData_ = T.remoteData_;
+      myRequests_ = T.myRequests_;
+      myStatuses_ = T.myStatuses_;
+      recvIdx_ = T.recvIdx_;
+      rseed_ = T.rseed_;
+    }
+ 
+
+
+
+    virtual ModBTreeReduce * clone() const{
+      ModBTreeReduce * out = new ModBTreeReduce(*this);
+      return out;
+    }
+
 };
 
 

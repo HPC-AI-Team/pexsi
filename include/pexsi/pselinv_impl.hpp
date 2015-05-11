@@ -127,9 +127,182 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 
 namespace PEXSI{
+  template<typename T>
+  void PMatrix<T>::deallocate(){
+
+      grid_ = NULL;
+      super_ = NULL;
+      options_ = NULL;
+
+      ColBlockIdx_.clear();
+      RowBlockIdx_.clear();
+      U_.clear();
+      L_.clear();
+      workingSet_.clear();
+
+      // Communication variables
+      isSendToBelow_.Clear();
+      isSendToRight_.Clear();
+      isSendToDiagonal_.Clear();
+      isSendToCrossDiagonal_.Clear();
+
+      isRecvFromBelow_.Clear();
+      isRecvFromAbove_.Clear();
+      isRecvFromLeft_.Clear();
+      isRecvFromCrossDiagonal_.Clear();
 
 
+      //Cleanup tree information
+      for(int i =0;i<fwdToBelowTree_.size();++i){
+        if(fwdToBelowTree_[i]!=NULL){
+          delete fwdToBelowTree_[i];
+        }
+      }      
 
+      for(int i =0;i<fwdToRightTree_.size();++i){
+        if(fwdToRightTree_[i]!=NULL){
+          delete fwdToRightTree_[i];
+        }
+      }
+
+      for(int i =0;i<redToLeftTree_.size();++i){
+        if(redToLeftTree_[i]!=NULL){
+          delete redToLeftTree_[i];
+        }
+      }
+      for(int i =0;i<redToAboveTree_.size();++i){
+        if(redToAboveTree_[i]!=NULL){
+          delete redToAboveTree_[i];
+        }
+      }
+  }
+
+  template<typename T>
+  PMatrix<T> & PMatrix<T>::operator = ( const PMatrix<T> & C){
+    if(&C!=this){
+      //If we have some memory allocated, delete it
+      deallocate();
+
+      grid_ = C.grid_;
+      super_ = C.super_;
+      options_ = C.options_;
+
+
+      ColBlockIdx_ = C.ColBlockIdx_;
+      RowBlockIdx_ = C.RowBlockIdx_;
+      L_ = C.L_;
+      U_ = C.U_;
+
+      workingSet_ = C.workingSet_;
+
+
+      // Communication variables
+      isSendToBelow_ = C.isSendToBelow_;
+      isSendToRight_ = C.isSendToRight_;
+      isSendToDiagonal_ = C.isSendToDiagonal_;
+      isSendToCrossDiagonal_ = C.isSendToCrossDiagonal_;
+
+      isRecvFromBelow_ = C.isRecvFromBelow_;
+      isRecvFromAbove_ = C.isRecvFromAbove_;
+      isRecvFromLeft_ = C.isRecvFromLeft_;
+      isRecvFromCrossDiagonal_ = C.isRecvFromCrossDiagonal_;
+
+
+#ifdef BUILD_BCAST_TREE
+      fwdToBelowTree_.resize(C.fwdToBelowTree_.size());
+      for(int i = 0 ; i< C.fwdToBelowTree_.size();++i){
+        if(C.fwdToBelowTree_[i]!=NULL){
+        fwdToBelowTree_[i] = C.fwdToBelowTree_[i]->clone();
+        }
+      }
+
+      fwdToRightTree_.resize(C.fwdToRightTree_.size());
+      for(int i = 0 ; i< C.fwdToRightTree_.size();++i){
+        if(C.fwdToRightTree_[i]!=NULL){
+        fwdToRightTree_[i] = C.fwdToRightTree_[i]->clone();
+        }
+      }
+
+      redToLeftTree_.resize(C.redToLeftTree_.size());
+      for(int i = 0 ; i< C.redToLeftTree_.size();++i){
+        if(C.redToLeftTree_[i]!=NULL){
+        redToLeftTree_[i] = C.redToLeftTree_[i]->clone();
+        }
+      }
+      redToAboveTree_.resize(C.redToAboveTree_.size());
+      for(int i = 0 ; i< C.redToAboveTree_.size();++i){
+        if(C.redToAboveTree_[i]!=NULL){
+        redToAboveTree_[i] = C.redToAboveTree_[i]->clone();
+        }
+      }
+#endif
+
+    }
+
+    return *this;
+  }
+
+  template<typename T>
+  PMatrix<T>::PMatrix( const PMatrix<T> & C){
+      //If we have some memory allocated, delete it
+      deallocate();
+
+      grid_ = C.grid_;
+      super_ = C.super_;
+      options_ = C.options_;
+
+
+      ColBlockIdx_ = C.ColBlockIdx_;
+      RowBlockIdx_ = C.RowBlockIdx_;
+      L_ = C.L_;
+      U_ = C.U_;
+
+      workingSet_ = C.workingSet_;
+
+
+      // Communication variables
+      isSendToBelow_ = C.isSendToBelow_;
+      isSendToRight_ = C.isSendToRight_;
+      isSendToDiagonal_ = C.isSendToDiagonal_;
+      isSendToCrossDiagonal_ = C.isSendToCrossDiagonal_;
+
+      isRecvFromBelow_ = C.isRecvFromBelow_;
+      isRecvFromAbove_ = C.isRecvFromAbove_;
+      isRecvFromLeft_ = C.isRecvFromLeft_;
+      isRecvFromCrossDiagonal_ = C.isRecvFromCrossDiagonal_;
+
+
+#ifdef BUILD_BCAST_TREE
+      fwdToBelowTree_.resize(C.fwdToBelowTree_.size());
+      for(int i = 0 ; i< C.fwdToBelowTree_.size();++i){
+        if(C.fwdToBelowTree_[i]!=NULL){
+        fwdToBelowTree_[i] = C.fwdToBelowTree_[i]->clone();
+        }
+      }
+
+      fwdToRightTree_.resize(C.fwdToRightTree_.size());
+      for(int i = 0 ; i< C.fwdToRightTree_.size();++i){
+        if(C.fwdToRightTree_[i]!=NULL){
+        fwdToRightTree_[i] = C.fwdToRightTree_[i]->clone();
+        }
+      }
+
+      redToLeftTree_.resize(C.redToLeftTree_.size());
+      for(int i = 0 ; i< C.redToLeftTree_.size();++i){
+        if(C.redToLeftTree_[i]!=NULL){
+        redToLeftTree_[i] = C.redToLeftTree_[i]->clone();
+        }
+      }
+      redToAboveTree_.resize(C.redToAboveTree_.size());
+      for(int i = 0 ; i< C.redToAboveTree_.size();++i){
+        if(C.redToAboveTree_[i]!=NULL){
+        redToAboveTree_[i] = C.redToAboveTree_[i]->clone();
+        }
+      }
+#endif
+
+
+  }
 
 
   template<typename T>
@@ -161,32 +334,7 @@ namespace PEXSI{
       PushCallStack("PMatrix::~PMatrix");
 #endif
 
-      for(int i =0;i<fwdToBelowTree_.size();++i){
-        if(fwdToBelowTree_[i]!=NULL){
-          delete fwdToBelowTree_[i];
-        }
-      }      
-
-      for(int i =0;i<fwdToRightTree_.size();++i){
-        if(fwdToRightTree_[i]!=NULL){
-          delete fwdToRightTree_[i];
-        }
-      }
-
-#ifdef TREE_REDUCTION_C
-      for(int i =0;i<redToLeftTree_.size();++i){
-        if(redToLeftTree_[i]!=NULL){
-          delete redToLeftTree_[i];
-        }
-      }
-#endif
-#ifdef TREE_REDUCTION_D_C
-      for(int i =0;i<redToAboveTree_.size();++i){
-        if(redToAboveTree_[i]!=NULL){
-          delete redToAboveTree_[i];
-        }
-      }
-#endif
+      deallocate();
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -4199,6 +4347,9 @@ namespace PEXSI{
     TIMER_STOP(Reduce_Sinv_LT_Waitall);
 #endif
 
+#ifndef _RELEASE_
+    PopCallStack();
+#endif
     //--------------------- End of reduce of LUpdateBuf-------------------------
 #ifndef _RELEASE_
     PushCallStack("PMatrix::SelInv_P2p::UpdateD");
@@ -4999,12 +5150,8 @@ if(!redDTree->IsAllocated()){
 #ifdef BUILD_BCAST_TREE
     fwdToBelowTree_.resize(numSuper, NULL );
     fwdToRightTree_.resize(numSuper, NULL );
-#ifdef TREE_REDUCTION_C
     redToLeftTree_.resize(numSuper, NULL );
-#endif
-#ifdef TREE_REDUCTION_D_C
     redToAboveTree_.resize(numSuper, NULL );
-#endif
 #endif
 
     isSendToBelow_.Resize(grid_->numProcRow, numSuper);
@@ -5364,7 +5511,6 @@ if(!redDTree->IsAllocated()){
 
     //do the same for the other arrays
     TIMER_STOP(BUILD_BCAST_TREES);
-#ifdef TREE_REDUCTION_D_C
 TIMER_START(BUILD_REDUCE_D_TREE);
     vector<double> SeedSTD(numSuper,0.0); 
     vector<Int> aggSTD(numSuper); 
@@ -5433,10 +5579,8 @@ TIMER_START(BUILD_REDUCE_D_TREE);
 
 TIMER_STOP(BUILD_REDUCE_D_TREE);
 
-#endif
 
 
-#ifdef TREE_REDUCTION_C
 TIMER_START(BUILD_REDUCE_L_TREE);
     vector<double> SeedRTL(numSuper,0.0); 
     vector<Int> aggRTL(numSuper); 
@@ -5511,7 +5655,6 @@ TIMER_START(BUILD_REDUCE_L_TREE);
     }
 
 TIMER_STOP(BUILD_REDUCE_L_TREE);
-#endif
 
 #endif
 

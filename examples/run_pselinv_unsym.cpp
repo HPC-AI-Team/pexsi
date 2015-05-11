@@ -635,6 +635,8 @@ else
 
             GridType * pGrid = new GridType(world_comm,nprow,npcol);
             PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
+            PMatrix<MYSCALAR> * pMat2 = new PMatrix<MYSCALAR>(*pMat);
+            delete pMat2;
 
 //            {
 //              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
