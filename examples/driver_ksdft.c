@@ -121,8 +121,8 @@ int main(int argc, char **argv)
 #else
 #if 1
   numElectronExact    = 7000.0;
-  nprow               = 2;
-  npcol               = 2;
+  nprow               = 8;
+  npcol               = 8;
   Hfile               = "/project/projectdirs/m1027/PEXSI/LU_C_BN_C_1by1/H_LU.csc";
   Sfile               = "";
   isFormatted         = 0;

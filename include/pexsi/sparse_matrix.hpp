@@ -124,6 +124,10 @@ namespace  PEXSI{
 
     /// @brief Locally sorts the row indices within every column
     void         SortIndices();
+
+    /// @brief Clear all memory (The matrix becomes a 0-by-0 matrix)
+    void Clear();
+
 	};
 
 	// Commonly used

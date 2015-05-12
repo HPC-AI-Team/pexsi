@@ -584,34 +584,34 @@ class TreeReduce: public TreeBcast{
     virtual TreeReduce * clone() const = 0; 
 
     TreeReduce(const TreeReduce & Tree){
-      Copy(Tree);
+      this->Copy(Tree);
     }
 
     virtual void Copy(const TreeReduce & Tree){
-      comm_ = Tree.comm_;
-      myRank_ = Tree.myRank_;
-      myRoot_ = Tree.myRoot_; 
-      msgSize_ = Tree.msgSize_;
+      this->comm_ = Tree.comm_;
+      this->myRank_ = Tree.myRank_;
+      this->myRoot_ = Tree.myRoot_; 
+      this->msgSize_ = Tree.msgSize_;
 
-      numRecv_ = Tree.numRecv_;
-      tag_= Tree.tag_;
-      mainRoot_= Tree.mainRoot_;
-      isReady_ = Tree.isReady_;
-      myDests_ = Tree.myDests_;
+      this->numRecv_ = Tree.numRecv_;
+      this->tag_= Tree.tag_;
+      this->mainRoot_= Tree.mainRoot_;
+      this->isReady_ = Tree.isReady_;
+      this->myDests_ = Tree.myDests_;
 
 
-      myData_ = Tree.myData_;
-      sendRequest_ = Tree.sendRequest_;
-      fwded_= Tree.fwded_;
-      isAllocated_= Tree.isAllocated_;
-      numRecvPosted_= Tree.numRecvPosted_;
+      this->myData_ = Tree.myData_;
+      this->sendRequest_ = Tree.sendRequest_;
+      this->fwded_= Tree.fwded_;
+      this->isAllocated_= Tree.isAllocated_;
+      this->numRecvPosted_= Tree.numRecvPosted_;
 
-      myLocalBuffer_ = Tree.myLocalBuffer_;
-      myRecvBuffers_ = Tree.myRecvBuffers_;
-      remoteData_ = Tree.remoteData_;
-      myRequests_ = Tree.myRequests_;
-      myStatuses_ = Tree.myStatuses_;
-      recvIdx_ = Tree.recvIdx_;
+      this->myLocalBuffer_ = Tree.myLocalBuffer_;
+      this->myRecvBuffers_ = Tree.myRecvBuffers_;
+      this->remoteData_ = Tree.remoteData_;
+      this->myRequests_ = Tree.myRequests_;
+      this->myStatuses_ = Tree.myStatuses_;
+      this->recvIdx_ = Tree.recvIdx_;
     }
  
 
@@ -1207,9 +1207,9 @@ TIMER_STOP(FIND_RANK);
       }
 
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-      statusOFS<<"My root is "<<myRoot_<<std::endl;
+      statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
-      for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
+      for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
       statusOFS<<std::endl;
 #endif
     }
@@ -1220,31 +1220,31 @@ TIMER_STOP(FIND_RANK);
     }
 
     virtual void Copy(const ModBTreeReduce & Tree){
-      comm_ = Tree.comm_;
-      myRank_ = Tree.myRank_;
-      myRoot_ = Tree.myRoot_; 
-      msgSize_ = Tree.msgSize_;
+      this->comm_ = Tree.comm_;
+      this->myRank_ = Tree.myRank_;
+      this->myRoot_ = Tree.myRoot_; 
+      this->msgSize_ = Tree.msgSize_;
 
-      numRecv_ = Tree.numRecv_;
-      tag_= Tree.tag_;
-      mainRoot_= Tree.mainRoot_;
-      isReady_ = Tree.isReady_;
-      myDests_ = Tree.myDests_;
+      this->numRecv_ = Tree.numRecv_;
+      this->tag_= Tree.tag_;
+      this->mainRoot_= Tree.mainRoot_;
+      this->isReady_ = Tree.isReady_;
+      this->myDests_ = Tree.myDests_;
 
 
-      myData_ = Tree.myData_;
-      sendRequest_ = Tree.sendRequest_;
-      fwded_= Tree.fwded_;
-      isAllocated_= Tree.isAllocated_;
-      numRecvPosted_= Tree.numRecvPosted_;
+      this->myData_ = Tree.myData_;
+      this->sendRequest_ = Tree.sendRequest_;
+      this->fwded_= Tree.fwded_;
+      this->isAllocated_= Tree.isAllocated_;
+      this->numRecvPosted_= Tree.numRecvPosted_;
 
-      myLocalBuffer_ = Tree.myLocalBuffer_;
-      myRecvBuffers_ = Tree.myRecvBuffers_;
-      remoteData_ = Tree.remoteData_;
-      myRequests_ = Tree.myRequests_;
-      myStatuses_ = Tree.myStatuses_;
-      recvIdx_ = Tree.recvIdx_;
-      rseed_ = Tree.rseed_;
+      this->myLocalBuffer_ = Tree.myLocalBuffer_;
+      this->myRecvBuffers_ = Tree.myRecvBuffers_;
+      this->remoteData_ = Tree.remoteData_;
+      this->myRequests_ = Tree.myRequests_;
+      this->myStatuses_ = Tree.myStatuses_;
+      this->recvIdx_ = Tree.recvIdx_;
+      this->rseed_ = Tree.rseed_;
     }
  
 
@@ -1272,8 +1272,8 @@ TIMER_STOP(FIND_RANK);
         return new FTreeBcast(pComm,ranks,rank_cnt,msgSize);
       }
       else{
-        //return new ModBTreeBcast(pComm,ranks,rank_cnt,msgSize, rseed);
-        return new BTreeBcast(pComm,ranks,rank_cnt,msgSize);
+        return new ModBTreeBcast(pComm,ranks,rank_cnt,msgSize, rseed);
+        //return new BTreeBcast(pComm,ranks,rank_cnt,msgSize);
       }
 
 
@@ -1301,8 +1301,8 @@ statusOFS<<"FLAT TREE USED"<<endl;
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
 statusOFS<<"BINARY TREE USED"<<endl;
 #endif
-        //return new ModBTreeReduce<T>(pComm,ranks,rank_cnt,msgSize, rseed);
-        return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
+        return new ModBTreeReduce<T>(pComm,ranks,rank_cnt,msgSize, rseed);
+        //return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
       }
     }
 

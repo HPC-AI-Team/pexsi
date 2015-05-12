@@ -1018,7 +1018,7 @@ PPEXSIData::SelInvRealSymmetricMatrix(
 
     GetTime( timePostProcessingSta );
 
-    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+    PMloc.PMatrixToDistSparseMatrix2( AMat, AinvMat );
 
     GetTime( timePostProcessingEnd );
 
@@ -1134,7 +1134,7 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
 
     GetTime( timePostProcessingSta );
 
-    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+    PMloc.PMatrixToDistSparseMatrix2( AMat, AinvMat );
 
     GetTime( timePostProcessingEnd );
 
@@ -1252,7 +1252,7 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
 
     GetTime( timePostProcessingSta );
 
-    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+    PMloc.PMatrixToDistSparseMatrix2( AMat, AinvMat );
 
     GetTime( timePostProcessingEnd );
 
@@ -1370,7 +1370,7 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
 
     GetTime( timePostProcessingSta );
 
-    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+    PMloc.PMatrixToDistSparseMatrix2( AMat, AinvMat );
 
     GetTime( timePostProcessingEnd );
 
@@ -1875,6 +1875,9 @@ throw std::logic_error( "Must be even number of poles!" );
       }
 
       {
+        AinvMat.Clear();
+
+
         numPoleComputed++;
 
         if( SMat.size != 0 ){
@@ -1974,7 +1977,7 @@ throw std::logic_error( "Must be even number of poles!" );
 
         GetTime( timePostProcessingSta );
 
-        PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+        PMloc.PMatrixToDistSparseMatrix2( AMat, AinvMat );
 
         if( verbosity >= 2 ){
           statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;

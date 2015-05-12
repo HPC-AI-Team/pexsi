@@ -122,6 +122,31 @@ template <class F> inline LongInt DistSparseMatrix<F>::Nnz ( )
   return nnz;
 } 		// -----  end of method DistSparseMatrix<F>::Nnz  ----- 
 
+template <typename F> inline void DistSparseMatrix<F>::Clear()
+{
+
+#ifndef _RELEASE_
+	PushCallStack("DistSparseMatrix<F>::Clear");
+#endif  
+
+    size = 0;
+    nnzLocal = 0;
+    nnz = 0;
+    colptrLocal.Clear();
+    rowindLocal.Clear();
+    nzvalLocal.Clear();
+    
+
+
+
+
+#ifndef _RELEASE_
+	PopCallStack();
+#endif  
+
+
+}
+
 
 
 
