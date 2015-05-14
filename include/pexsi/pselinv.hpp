@@ -60,10 +60,7 @@
 #include "pexsi/utility.hpp"
 #include "pexsi/blas.hpp"
 #include "pexsi/lapack.hpp"
-
-#ifdef BUILD_BCAST_TREE
 #include "pexsi/TreeBcast.hpp"
-#endif
 
 
 #include <set>
@@ -510,8 +507,7 @@ namespace PEXSI{
   template<typename T>
   class PMatrix{
      public:
-      /// @brief Create is a factory method which returns a pointer either to a new PMatrix or to a new PMatrixUnsym
-      /// depending on the pLuOpt parameter.
+      /// @brief Create is a factory method which returns a pointer to a new PMatrix
       static PMatrix<T> * Create(const GridType * pGridType, const SuperNodeType * pSuper, const SuperLUOptions * pLuOpt);
       static PMatrix<T> * Create(const SuperLUOptions * pLuOpt);
 
@@ -565,18 +561,10 @@ namespace PEXSI{
       BolNumMat                       isRecvFromCrossDiagonal_;
 
 
-#ifdef BUILD_BCAST_TREE
       std::vector<TreeBcast *> fwdToBelowTree_; 
       std::vector<TreeBcast *> fwdToRightTree_; 
-#ifdef TREE_REDUCTION_C
       std::vector<TreeReduce<T> *> redToLeftTree_; 
-#endif
-#ifdef TREE_REDUCTION_D_C
       std::vector<TreeReduce<T> *> redToAboveTree_; 
-#endif
-#endif
-
-
 
       struct SuperNodeBufferType{
         NumMat<T>    LUpdateBuf;
@@ -641,14 +629,10 @@ namespace PEXSI{
 
       PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
-#ifdef BUILD_BCAST_TREE
       void deallocate();
-     
-
       virtual ~PMatrix();
       PMatrix( const PMatrix & C);
       PMatrix & operator = ( const PMatrix & C);
-#endif
 
       void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
@@ -960,7 +944,6 @@ namespace PEXSI{
       inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
   };
 
-  template<typename T>  class PMatrixUnsym;
 
 
 } // namespace PEXSI

@@ -3,8 +3,8 @@
 
 include ../make.inc
 
-SRCS_CPP  = run_inertia.cpp run_ppexsi.cpp run_pselinv.cpp run_pselinv_unsym.cpp 
-SRCS_C    = driver_pselinv_real.c driver_pselinv_complex.c driver_pselinv_real_unsym.c driver_pselinv_complex_unsym.c driver_ksdft.c 
+SRCS_CPP  = run_inertia.cpp run_ppexsi.cpp run_pselinv.cpp  
+SRCS_C    = driver_pselinv_real.c driver_pselinv_complex.c driver_ksdft.c 
 
 all: driver_pselinv_real driver_pselinv_complex driver_ksdft 
 
@@ -17,49 +17,16 @@ driver_pselinv_real: driver_pselinv_real.o ${PEXSI_LIB}
 driver_pselinv_complex: driver_pselinv_complex.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} driver_pselinv_complex.o  $(LOADOPTS) )
 
-driver_pselinv_complex_unsym: driver_pselinv_complex_unsym.o ${PEXSI_LIB} 
-	($(LOADER) -o $@_${SUFFIX} driver_pselinv_complex_unsym.o  $(LOADOPTS) )
-
-driver_pselinv_real_unsym: driver_pselinv_real_unsym.o ${PEXSI_LIB} 
-	($(LOADER) -o $@_${SUFFIX} driver_pselinv_real_unsym.o  $(LOADOPTS) )
-
 run_inertia: run_inertia.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_inertia.o  $(LOADOPTS) )
 
 run_pselinv: run_pselinv.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS) )
 
-run_pselinv_unsym: run_pselinv_unsym.o ${PEXSI_LIB} 
-	($(LOADER) -o $@_${SUFFIX} run_pselinv_unsym.o  $(LOADOPTS) )
-
-
-compare_csc: compare_csc.o ${PEXSI_LIB} 
-	($(LOADER) -o $@ compare_csc.o  $(LOADOPTS) )
-
-
-run_mumps: run_mumps.o ${PEXSI_LIB}
-	($(LOADER) -o $@ run_mumps.o  $(DMUMPS_LIB) $(ZMUMPS_LIB) $(MUMPS_ORDERINGS) ${LOADOPTS} )
-
-run_mumps.o: run_mumps.cpp
-	${CXX} -c $(MUMPS_INCLUDE)  ${CXXFLAGS} ${CPPDEFS} $<
-
 run_inertia.o: run_inertia.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
-run_test_reduce: run_test_reduce.o ${PEXSI_LIB} 
-	($(LOADER) -o $@_${SUFFIX} run_test_reduce.o  $(LOADOPTS) )
-
-run_test_reduce.o: run_test_reduce.cpp 
-	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
-
 run_pselinv.o: run_pselinv.cpp 
-	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
-
-compare_csc.o: compare_csc.cpp 
-	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
-
-
-run_pselinv_unsym.o: run_pselinv_unsym.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 f_ppexsi: f_ppexsi.o ${PEXSI_LIB} 

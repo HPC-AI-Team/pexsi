@@ -8,7 +8,6 @@ TODO List   {#pageTODO}
 - Add a routine to estimate the spectral radius.
 - (By Seewald Patrick) maxTotalInertiaIter should be a controllable
   parameter in PPEXSIOptions.
-
 - Resolve the conflict in data format between symmetric and unsymmetric
   matrices.
 - Add an sample matrix for the unsymmetric case.

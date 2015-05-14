@@ -2,44 +2,44 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Authors: Lin Lin and Mathias Jacquelin
+Authors: Lin Lin and Mathias Jacquelin
 
-   This file is part of PEXSI. All rights reserved.
+This file is part of PEXSI. All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-   (1) Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-   (2) Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   (3) Neither the name of the University of California, Lawrence Berkeley
-   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-   You are under no obligation whatsoever to provide any bug fixes, patches, or
-   upgrades to the features, functionality or performance of the source code
-   ("Enhancements") to anyone; however, if you choose to make your Enhancements
-   available either publicly, or directly to Lawrence Berkeley National
-   Laboratory, without imposing a separate written license agreement for such
-   Enhancements, then you hereby grant the following license: a non-exclusive,
-   royalty-free perpetual license to install, use, modify, prepare derivative
-   works, incorporate into other computer software, distribute, and sublicense
-   such enhancements or derivative works thereof, in binary and source code form.
-*/
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+ */
 /// @file run_pselinv.cpp
 /// @brief Test for the interface of SuperLU_DIST and SelInv.
 /// @date 2013-04-15
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
       MPI_Comm_rank(world_comm, &mpirank );
       MPI_Comm_size(world_comm, &mpisize );
 #if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
-     TAU_PROFILE_SET_CONTEXT(world_comm);
+      TAU_PROFILE_SET_CONTEXT(world_comm);
 #endif
 
       stringstream  ss;
@@ -224,20 +224,6 @@ int main(int argc, char **argv)
         numProcSymbFact = 0;
       }
 
-      Int doSinv_Bcast = 0;
-      if( options.find("-SinvBcast") != options.end() ){ 
-        doSinv_Bcast = atoi(options["-SinvBcast"].c_str());
-      }
-
-      Int doSinvPipeline = 1;
-      if( options.find("-SinvPipeline") != options.end() ){ 
-        doSinvPipeline = atoi(options["-SinvPipeline"].c_str());
-      }
-
-      Int doSinv_Hybrid = 0;
-      if( options.find("-SinvHybrid") != options.end() ){ 
-        doSinv_Hybrid = atoi(options["-SinvHybrid"].c_str());
-      }
 
       Int doConstructPattern = 1;
       if( options.find("-Pattern") != options.end() ){ 
@@ -280,7 +266,7 @@ int main(int argc, char **argv)
 
       // Setup grid.
       SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
-//      SuperLUGrid<Complex> g1( world_comm, nprow, npcol );
+      //      SuperLUGrid<Complex> g1( world_comm, nprow, npcol );
 
       int      m, n;
       DistSparseMatrix<MYSCALAR>  AMat;
@@ -483,611 +469,170 @@ int main(int argc, char **argv)
         // Selected inversion
         // *********************************************************************
 
-//        for(int i=1; i<= doSelInv; ++i )
-        if(doSelInv)
+        for(int i=1; i<= doSelInv; ++i )
         {
-
           Real timeTotalSelInvSta, timeTotalSelInvEnd;
-
-/*
-//          NumVec<MYSCALAR> diagBcast;
-//          PMatrix<MYSCALAR> * PMlocBcastPtr;
-//          SuperNodeType * superBcastPtr;
-//          GridType * g2Ptr;
-//
-//          if(doSinv_Bcast)
-//          {
-//            GetTime( timeTotalSelInvSta );
-//
-//            g2Ptr = new GridType( world_comm, nprow, npcol );
-//            GridType &g2 = *g2Ptr;
-//
-//            superBcastPtr = new SuperNodeType();
-//            SuperNodeType & superBcast = *superBcastPtr;
-//
-//            GetTime( timeSta );
-//            luMat.SymbolicToSuperNode( superBcast );
-//
-//            
-//
-//            PMlocBcastPtr = new PMatrix( &g2, &superBcast, &luOpt  );
-//            PMatrix & PMlocBcast = *PMlocBcastPtr;
-//
-//            luMat.LUstructToPMatrix( PMlocBcast );
-//            GetTime( timeEnd );
-//
-//            LongInt nnzLU = PMlocBcast.Nnz();
-//            if( mpirank == 0 ){
-//              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
-//            }
-//
-//
-//
-//            if( mpirank == 0 )
-//              cout << "Time for converting LUstruct to PMatrix (Collectives) is " << timeEnd  - timeSta << endl;
-//
-//            if(doConstructPattern){
-//              GetTime( timeSta );
-//              PMlocBcast.ConstructCommunicationPattern_Collectives();
-//              GetTime( timeEnd );
-//              if( mpirank == 0 )
-//                cout << "Time for constructing the communication pattern (Collectives) is " << timeEnd  - timeSta << endl;
-//
-//              if(doPreSelinv){
-//                GetTime( timeSta );
-//                PMlocBcast.PreSelInv();
-//                GetTime( timeEnd );
-//                if( mpirank == 0 )
-//                  cout << "Time for pre selected inversion (Collectives) is " << timeEnd  - timeSta << endl;
-//
-//                if(doSelinv){
-//                  GetTime( timeSta );
-//                  PMlocBcast.SelInv_Collectives();
-//                  GetTime( timeEnd );
-//                  if( mpirank == 0 )
-//                    cout << "Time for numerical selected inversion (Collectives) is " << timeEnd  - timeSta << endl;
-//
-//                  GetTime( timeTotalSelInvEnd );
-//                  if( mpirank == 0 )
-//                    cout << "Time for total selected inversion (Collectives) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
-//
-//
-//                  // Output the diagonal elements
-//                  if( doDiag ){
-//                    GetTime( timeSta );
-//                    PMlocBcast.GetDiagonal( diagBcast );
-//                    GetTime( timeEnd );
-//
-//
-//                    if( mpirank == 0 ){
-//                      statusOFS << std::endl << "Diagonal (Collectives) of inverse in natural order: " << std::endl << diagBcast << std::endl;
-//                      ofstream ofs("diag_bcast");
-//                      if( !ofs.good() ) 
-//                        throw std::runtime_error("file cannot be opened.");
-//                      serialize( diagBcast, ofs, NO_MASK );
-//                      ofs.close();
-//                    }
-//                  }
-//                }
-//
-//              }
-//
-//
-//
-////              PMlocBcast.DestructCommunicators_Collectives( );
-//            }
-//
-//          }
-//
-*/
-
-
-
-/*
-//          NumVec<MYSCALAR> diagHybrid;
-//          PMatrix<MYSCALAR> * PMlocHybridPtr;
-//          SuperNodeType * superHybridPtr;
-//          GridType * gHybridPtr;
-//
-//          if(doSinv_Hybrid)
-//          {
-//            GetTime( timeTotalSelInvSta );
-//
-//            gHybridPtr = new GridType( world_comm, nprow, npcol );
-//            GridType &gHybrid = *gHybridPtr;
-//
-//            superHybridPtr = new SuperNodeType();
-//            SuperNodeType & superHybrid = *superHybridPtr;
-//
-//            GetTime( timeSta );
-//            luMat.SymbolicToSuperNode( superHybrid );
-//
-//            
-//
-//            PMlocHybridPtr = new PMatrix( &gHybrid, &superHybrid, &luOpt  );
-//            PMatrix & PMlocHybrid = *PMlocHybridPtr;
-//
-//            luMat.LUstructToPMatrix( PMlocHybrid );
-//            GetTime( timeEnd );
-//
-//            LongInt nnzLU = PMlocHybrid.Nnz();
-//            if( mpirank == 0 ){
-//              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
-//            }
-//
-//
-//
-//            if( mpirank == 0 )
-//              cout << "Time for converting LUstruct to PMatrix (Hybrid) is " << timeEnd  - timeSta << endl;
-//
-//            if(doConstructPattern){
-//              GetTime( timeSta );
-//              PMlocHybrid.ConstructCommunicationPattern_Collectives();
-//              GetTime( timeEnd );
-//              if( mpirank == 0 )
-//                cout << "Time for constructing the communication pattern (Hybrid) is " << timeEnd  - timeSta << endl;
-//
-//              if(doPreSelinv){
-//                GetTime( timeSta );
-//                PMlocHybrid.PreSelInv();
-//                GetTime( timeEnd );
-//                if( mpirank == 0 )
-//                  cout << "Time for pre selected inversion (Hybrid) is " << timeEnd  - timeSta << endl;
-//
-//                if(doSelinv){
-//                  GetTime( timeSta );
-//                  PMlocHybrid.SelInv_Hybrid(doSinv_Hybrid);
-//                  GetTime( timeEnd );
-//                  if( mpirank == 0 )
-//                    cout << "Time for numerical selected inversion (Hybrid) is " << timeEnd  - timeSta << endl;
-//
-//                  GetTime( timeTotalSelInvEnd );
-//                  if( mpirank == 0 )
-//                    cout << "Time for total selected inversion (Hybrid) is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
-//
-//
-//                  // Output the diagonal elements
-//                  if( doDiag ){
-//                    GetTime( timeSta );
-//                    PMlocHybrid.GetDiagonal( diagHybrid );
-//                    GetTime( timeEnd );
-//
-//
-//                    if( mpirank == 0 ){
-//                      statusOFS << std::endl << "Diagonal (Hybrid) of inverse in natural order: " << std::endl << diagHybrid << std::endl;
-//                      ofstream ofs("diag_hybrid");
-//                      if( !ofs.good() ) 
-//                        throw std::runtime_error("file cannot be opened.");
-//                      serialize( diagHybrid, ofs, NO_MASK );
-//                      ofs.close();
-//                    }
-//                  }
-//                }
-//
-//              }
-//            }
-//
-//          }
-*/
-
 
           NumVec<MYSCALAR> diag;
           PMatrix<MYSCALAR> * PMlocPtr;
           SuperNodeType * superPtr;
           GridType * g1Ptr;
 
-          if(doSinvPipeline)
-          {
-            GetTime( timeTotalSelInvSta );
+          GetTime( timeTotalSelInvSta );
 
-            g1Ptr = new GridType( world_comm, nprow, npcol );
-            GridType &g1 = *g1Ptr;
+          g1Ptr = new GridType( world_comm, nprow, npcol );
+          GridType &g1 = *g1Ptr;
 
-            superPtr = new SuperNodeType();
-            SuperNodeType & super = *superPtr;
+          superPtr = new SuperNodeType();
+          SuperNodeType & super = *superPtr;
+
+          GetTime( timeSta );
+          luMat.SymbolicToSuperNode( super );
+
+          PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &luOpt  );
+          PMatrix<MYSCALAR> & PMloc = *PMlocPtr;
+
+          luMat.LUstructToPMatrix( PMloc );
+          GetTime( timeEnd );
+
+          LongInt nnzLU = PMloc.Nnz();
+          if( mpirank == 0 ){
+            cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
+          }
+
+          if( mpirank == 0 )
+            cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
+
+          // Preparation for the selected inversion
+          GetTime( timeSta );
+          PMloc.ConstructCommunicationPattern();
+          GetTime( timeEnd );
+
+          if( mpirank == 0 )
+            cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
+
+
+          GetTime( timeSta );
+          PMloc.PreSelInv();
+          GetTime( timeEnd );
+
+          if( mpirank == 0 )
+            cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
+
+          // Main subroutine for selected inversion
+          GetTime( timeSta );
+          PMloc.SelInv();
+          GetTime( timeEnd );
+          if( mpirank == 0 )
+            cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
+
+
+          GetTime( timeTotalSelInvEnd );
+          if( mpirank == 0 )
+            cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+
+
+
+          // Output the diagonal elements
+          if( doDiag ){
+            NumVec<MYSCALAR> diag;
 
             GetTime( timeSta );
-            luMat.SymbolicToSuperNode( super );
-
-
-
-            PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &luOpt  );
-
-
-
-
-            PMatrix<MYSCALAR> & PMloc = *PMlocPtr;
-
-            luMat.LUstructToPMatrix( PMloc );
+            PMloc.GetDiagonal( diag );
             GetTime( timeEnd );
 
-            LongInt nnzLU = PMloc.Nnz();
+
+            if( mpirank == 0 )
+              cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+
+
             if( mpirank == 0 ){
-              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
+              statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
+              ofstream ofs("diag");
+              if( !ofs.good() ) 
+                throw std::runtime_error("file cannot be opened.");
+              serialize( diag, ofs, NO_MASK );
+              ofs.close();
             }
+          }
 
 
-            if( mpirank == 0 )
-              cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
-
-            //        statusOFS << "perm: " << endl << super.perm << endl;
-            //        statusOFS << "permInv: " << endl << super.permInv << endl;
-            //        statusOFS << "superIdx:" << endl << super.superIdx << endl;
-            //        statusOFS << "superPtr:" << endl << super.superPtr << endl; 
 
 
-            // Preparation for the selected inversion
+          if(doToDist){
+            // Convert to DistSparseMatrix and get the diagonal
             GetTime( timeSta );
-            PMloc.ConstructCommunicationPattern();
-//            PMloc.ConstructCommunicationPattern_Collectives();
+            DistSparseMatrix<MYSCALAR> Ainv;
+            PMloc.PMatrixToDistSparseMatrix( Ainv );
             GetTime( timeEnd );
 
             if( mpirank == 0 )
-              cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
+              cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-
+            NumVec<MYSCALAR> diagDistSparse;
             GetTime( timeSta );
-            PMloc.PreSelInv();
-            GetTime( timeEnd );
-
-            if( mpirank == 0 )
-              cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
-
-            // Main subroutine for selected inversion
-            GetTime( timeSta );
-            PMloc.SelInv();
+            GetDiagonal( Ainv, diagDistSparse );
             GetTime( timeEnd );
             if( mpirank == 0 )
-              cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
+              cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-
-            GetTime( timeTotalSelInvEnd );
-            if( mpirank == 0 )
-              cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
-
-#if 0
-            for(Int i =0; i<doSelInv;++i){
-              luMat.LUstructToPMatrix( PMloc );
-              PMloc.PreSelInv();
-              PMloc.SelInv();
-            }
- #endif
-
-             if(doToDist){
-               // Convert to DistSparseMatrix and get the diagonal
-               GetTime( timeSta );
-               DistSparseMatrix<MYSCALAR> Ainv;
-               PMloc.PMatrixToDistSparseMatrix( Ainv );
-               GetTime( timeEnd );
- 
-               if( mpirank == 0 )
-                 cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
- 
-               NumVec<MYSCALAR> diagDistSparse;
-               GetTime( timeSta );
-               GetDiagonal( Ainv, diagDistSparse );
-               GetTime( timeEnd );
-               if( mpirank == 0 )
-                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
- 
-               if( mpirank == 0 ){
-                 statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-                 Real diffNorm = 0.0;;
-                 for( Int i = 0; i < diag.m(); i++ ){
-                   diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
-                 }
-                 diffNorm = std::sqrt( diffNorm );
-                 statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-               }
- 
-               // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-               GetTime( timeSta );
-               DistSparseMatrix<MYSCALAR> Ainv2;
-               PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
-               GetTime( timeEnd );
- 
-               if( mpirank == 0 )
-                 cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
- 
-               NumVec<MYSCALAR> diagDistSparse2;
-               GetTime( timeSta );
-               GetDiagonal( Ainv2, diagDistSparse2 );
-               GetTime( timeEnd );
-               if( mpirank == 0 )
-                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
- 
-               if( mpirank == 0 ){
-                 statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-                 Real diffNorm = 0.0;;
-                 for( Int i = 0; i < diag.m(); i++ ){
-                   diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
-                 }
-                 diffNorm = std::sqrt( diffNorm );
-                 statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-               }
- 
-               Complex traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1,
-                   Ainv2.nzvalLocal.Data(), 1 );
-               Complex trace = Z_ZERO;
-               mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
- 
-               if( mpirank == 0 ){
- 
-                 cout << "H.size = "  << HMat.size << endl;
-                 cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
-                 statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
- 
-                 cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
-                 statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
- 
-               }
-             }
-
-#if 0
-            GetTime( timeSta );
-            luMat.LUstructToPMatrix( PMloc );
-            GetTime( timeEnd );
-
-            nnzLU = PMloc.Nnz();
             if( mpirank == 0 ){
-              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
+              statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+              Real diffNorm = 0.0;;
+              for( Int i = 0; i < diag.m(); i++ ){
+                diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+              }
+              diffNorm = std::sqrt( diffNorm );
+              statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
             }
 
+            // Convert to DistSparseMatrix in the 2nd format and get the diagonal
+            GetTime( timeSta );
+            DistSparseMatrix<MYSCALAR> Ainv2;
+            PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
+            GetTime( timeEnd );
 
             if( mpirank == 0 )
-              cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
+              cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
 
+            NumVec<MYSCALAR> diagDistSparse2;
+            GetTime( timeSta );
+            GetDiagonal( Ainv2, diagDistSparse2 );
+            GetTime( timeEnd );
+            if( mpirank == 0 )
+              cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-
-             GetTime( timeSta );
-             PMloc.PreSelInv();
-             GetTime( timeEnd );
- 
-             if( mpirank == 0 )
-               cout << "Time for pre-selected inversion 2 is " << timeEnd  - timeSta << endl;
- 
-             // Main subroutine for selected inversion
-             GetTime( timeSta );
-             PMloc.SelInv();
-             GetTime( timeEnd );
-             if( mpirank == 0 )
-               cout << "Time for numerical selected inversion 2 is " << timeEnd  - timeSta << endl;
- 
- 
-             GetTime( timeTotalSelInvEnd );
-             if( mpirank == 0 )
-               cout << "Time for total selected inversion 2 is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
- 
- 
- 
- 
- 
-             if(doToDist){
-               // Convert to DistSparseMatrix and get the diagonal
-               GetTime( timeSta );
-               DistSparseMatrix<MYSCALAR> Ainv;
-               PMloc.PMatrixToDistSparseMatrix( Ainv );
-               GetTime( timeEnd );
- 
-               if( mpirank == 0 )
-                 cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
- 
-               NumVec<MYSCALAR> diagDistSparse;
-               GetTime( timeSta );
-               GetDiagonal( Ainv, diagDistSparse );
-               GetTime( timeEnd );
-               if( mpirank == 0 )
-                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
- 
-               if( mpirank == 0 ){
-                 statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-                 Real diffNorm = 0.0;;
-                 for( Int i = 0; i < diag.m(); i++ ){
-                   diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
-                 }
-                 diffNorm = std::sqrt( diffNorm );
-                 statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-               }
- 
-               // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-               GetTime( timeSta );
-               DistSparseMatrix<MYSCALAR> Ainv2;
-               PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
-               GetTime( timeEnd );
- 
-               if( mpirank == 0 )
-                 cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
- 
-               NumVec<MYSCALAR> diagDistSparse2;
-               GetTime( timeSta );
-               GetDiagonal( Ainv2, diagDistSparse2 );
-               GetTime( timeEnd );
-               if( mpirank == 0 )
-                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
- 
-               if( mpirank == 0 ){
-                 statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-                 Real diffNorm = 0.0;;
-                 for( Int i = 0; i < diag.m(); i++ ){
-                   diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
-                 }
-                 diffNorm = std::sqrt( diffNorm );
-                 statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-               }
- 
-               Complex traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1,
-                   Ainv2.nzvalLocal.Data(), 1 );
-               Complex trace = Z_ZERO;
-               mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
- 
-               if( mpirank == 0 ){
- 
-                 cout << "H.size = "  << HMat.size << endl;
-                 cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
-                 statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
- 
-                 cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
-                 statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
- 
-               }
-             }
-#endif 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            // Output the diagonal elements
-            if( doDiag ){
-              NumVec<MYSCALAR> diag;
-
-              GetTime( timeSta );
-              PMloc.GetDiagonal( diag );
-              GetTime( timeEnd );
-
-
-              if( mpirank == 0 )
-                cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
-
-
-              if( mpirank == 0 ){
-                statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
-                ofstream ofs("diag");
-                if( !ofs.good() ) 
-                  throw std::runtime_error("file cannot be opened.");
-                serialize( diag, ofs, NO_MASK );
-                ofs.close();
+            if( mpirank == 0 ){
+              statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+              Real diffNorm = 0.0;;
+              for( Int i = 0; i < diag.m(); i++ ){
+                diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
               }
+              diffNorm = std::sqrt( diffNorm );
+              statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
             }
 
+            Complex traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1,
+                Ainv2.nzvalLocal.Data(), 1 );
+            Complex trace = Z_ZERO;
+            mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
 
+            if( mpirank == 0 ){
 
-          }
+              cout << "H.size = "  << HMat.size << endl;
+              cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
+              statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
 
+              cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
+              statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
 
-
-          if(doSinvPipeline || doSinv_Bcast || doSinv_Hybrid){
-
-//            PMatrix<MYSCALAR> * PMloc = doSinvPipeline?PMlocPtr:(doSinv_Bcast?PMlocBcastPtr:PMlocHybridPtr);
-            PMatrix<MYSCALAR> * PMloc = PMlocPtr;
-
-            if(doToDist){
-              // Convert to DistSparseMatrix and get the diagonal
-              GetTime( timeSta );
-              DistSparseMatrix<MYSCALAR> Ainv;
-              PMloc->PMatrixToDistSparseMatrix( Ainv );
-              GetTime( timeEnd );
-
-              if( mpirank == 0 )
-                cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-              NumVec<MYSCALAR> diagDistSparse;
-              GetTime( timeSta );
-              GetDiagonal( Ainv, diagDistSparse );
-              GetTime( timeEnd );
-              if( mpirank == 0 )
-                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-              if( mpirank == 0 ){
-                statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-                Real diffNorm = 0.0;;
-                for( Int i = 0; i < diag.m(); i++ ){
-                  diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
-                }
-                diffNorm = std::sqrt( diffNorm );
-                statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-              }
-
-              // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-              GetTime( timeSta );
-              DistSparseMatrix<MYSCALAR> Ainv2;
-              PMloc->PMatrixToDistSparseMatrix2( AMat, Ainv2 );
-              GetTime( timeEnd );
-
-              if( mpirank == 0 )
-                cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
-
-              NumVec<MYSCALAR> diagDistSparse2;
-              GetTime( timeSta );
-              GetDiagonal( Ainv2, diagDistSparse2 );
-              GetTime( timeEnd );
-              if( mpirank == 0 )
-                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-              if( mpirank == 0 ){
-                statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-                Real diffNorm = 0.0;;
-                for( Int i = 0; i < diag.m(); i++ ){
-                  diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
-                }
-                diffNorm = std::sqrt( diffNorm );
-                statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-              }
-
-              MYSCALAR traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1, 
-                  Ainv2.nzvalLocal.Data(), 1 );
-              MYSCALAR trace = ZERO<MYSCALAR>();
-              mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
-
-              if( mpirank == 0 ){
-
-                cout << "H.size = "  << HMat.size << endl;
-                cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
-                statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
-
-                cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( static_cast<MYSCALAR>(HMat.size) - trace ) << std::endl;
-                statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( static_cast<MYSCALAR>(HMat.size) - trace ) << std::endl;
-
-              }
             }
-
           }
 
 
-
-
-/*
-//          if(doSinv_Bcast){
-//            delete PMlocBcastPtr;
-//            delete superBcastPtr;
-//            delete g2Ptr;
-//          }
-*/
-/*
-//          if(doSinv_Hybrid){
-//            delete PMlocHybridPtr;
-//            delete superHybridPtr;
-//            delete gHybridPtr;
-//          }
-*/
-
-
-          if(doSinvPipeline){
-            delete PMlocPtr;
-            delete superPtr;
-            delete g1Ptr;
-          }
+          delete PMlocPtr;
+          delete superPtr;
+          delete g1Ptr;
 
         }
 
