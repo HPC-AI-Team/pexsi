@@ -549,10 +549,6 @@ information on how to perform factorization), the parallel selected inversion ca
 To provide a layer of abstraction from the matrix format used during the factorization, the [PMatrix](@ref PEXSI::PMatrix) class is used during the selected inversion.
 
 @note
-If the matrix is unsymmetric, the derived [PMatrixUnsym](@ref PEXSI::PMatrixUnsym) class is used instead.
-The factory method [PMatrix::Create](@ref PEXSI::PMatrix::Create) is available to instantiate the correct object type depending on matrix structure. 
-
-@note
 All major operations of [PMatrix](@ref PEXSI::PMatrix), including the selected inversion, are defined directly as member functions of [PMatrix](@ref PEXSI::PMatrix).
 
 The basic steps for selected inversion are:
@@ -608,6 +604,7 @@ format (CSC).
 This static factory routine instantiates the correct PMatrix object type depending on matrix structure.
 The matrix structure is specified by the [SuperLUOptions::symmetric](@ref PEXSI::SuperLUOptions::symmetric) attribute of the [SuperLUOptions](@ref PEXSI::SuperLUOptions) data structure.
  
+
 > @ref PEXSI::PMatrix::ConstructCommunicationPattern "PMatrix::ConstructCommunicationPattern" 
 
 This routine creates the MPI_Communicators and communication pattern used later by both PreSelInv and SelInv routines.

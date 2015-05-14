@@ -6,8 +6,9 @@ TODO List   {#pageTODO}
 - When the inertia counting keeps failing, return a nonzero info to make
   the external routine stop.
 - Add a routine to estimate the spectral radius.
-- (By Seewald Patrick) maxTotalInertiaIter should be a controllable
-  parameter in PPEXSIOptions.
+- Remove the release of TODO.md and test/ folders since not useful for
+  users.
+
 - Resolve the conflict in data format between symmetric and unsymmetric
   matrices.
 - Add an sample matrix for the unsymmetric case.

@@ -257,13 +257,13 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
       communication, submitted [<a
       href="http://arxiv.org/abs/1504.04714">arXiv</a>]
 
-- v0.8.0 (01/20/2015) **Major update**
-    - Add support of selected inversion for unsymmetric matrices, with
-      real or complex arithmetic operations.
-    - Update the structure of the include/ folder to avoid conflict.
-
-- v0.7.4 (12/18/2014)
-  - Fix the bug of MPI communicator in %f_driver_ksdft.f90. 
+    - Templated implementation of a number of classes including
+      SuperLUMatrix.
+    - Update the structure of the include/ folder to avoid conflict when
+      %PEXSi is included in other software packages.
+    - Update the configuration files. Remove the out-of-date profile
+      options.
+    - Bug fix: MPI communicator in %f_driver_ksdft.f90. 
 
 - v0.7.3 (11/27/2014)
   - Multiple patches suggested by Alberto Garcia.
