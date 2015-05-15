@@ -72,8 +72,8 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 Hfile            = "lap2dr.matrix"
 
-nprow = 1
-npcol = 1
+nprow = 2
+npcol = 2
 
 call f_read_distsparsematrix_formatted_head( &
   trim(Hfile)//char(0),&
@@ -113,6 +113,11 @@ do i = 1, nnzLocal
   AnzvalLocal(i) = HnzvalLocal(i)
 enddo
 
+if( mpirank .eq. 0 ) then
+  write(*,*) "Finish reading the matrix" 
+endif
+
+
 plan = f_ppexsi_plan_initialize(&
   MPI_COMM_WORLD,&
   nprow,&
@@ -128,6 +133,9 @@ endif
 call f_ppexsi_set_default_options(&
   options )
 
+if( mpirank .eq. 0 ) then
+  write(*,*) "Finish initializing the PPEXSI plan" 
+endif
 
 call f_ppexsi_load_real_symmetric_hs_matrix(&
       plan,&       

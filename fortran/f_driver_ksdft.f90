@@ -42,7 +42,7 @@
 !> @file f_driver_ksdft.f90
 !> @brief FORTRAN version of the driver for solving KSDFT.
 !> @date 2014-04-02
-program f_driver_pselinv_ksdft
+program f_driver_ksdft
 use f_ppexsi_interface
 use iso_c_binding
 implicit none
@@ -80,7 +80,7 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 Hfile            = "lap2dr.matrix"
 
-! Only use one processor in this example
+! Only use 4 processors in this example
 nprow = 2
 npcol = 2
 
@@ -244,5 +244,5 @@ if( isProcRead == 1 ) then
   deallocate( FDMnzvalLocal )
 endif
 
-end program f_driver_pselinv_ksdft
+end program f_driver_ksdft
 

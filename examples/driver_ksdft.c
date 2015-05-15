@@ -49,6 +49,7 @@
  *
  * @date 2014-03-07
  * @date 2014-04-01  Compatible with v0.7.0 new interface.
+ * @date 2015-05-14  Compatible with v0.8.0 new interface.
  */
 #include  <stdio.h>
 #include  <stdlib.h>

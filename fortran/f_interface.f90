@@ -84,6 +84,7 @@ type, bind(C) :: f_ppexsi_options
   real(c_double)         :: numElectronPEXSITolerance
   integer(c_int)         :: matrixType
   integer(c_int)         :: isSymbolicFactorize
+  integer(c_int)         :: isConstructCommPattern
   integer(c_int)         :: ordering
   integer(c_int)         :: npSymbFact
   integer(c_int)         :: symmetric
