@@ -272,7 +272,9 @@ int main(int argc, char **argv)
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;
 
-  /* The log file index is the pole index */
+  /* Set the outputFileIndex to be the pole index */
+  /* The first processor for each pole outputs information */
+
   if( mpirank % (nprow * npcol) == 0 ){
     outputFileIndex = mpirank / (nprow * npcol);
   }

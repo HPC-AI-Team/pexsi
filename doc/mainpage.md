@@ -16,8 +16,10 @@ Main Page           {#mainpage}
   - @ref pagePEXSIPlan
   - @ref pagePselinvRealSymmetric
   - @ref pagePselinvComplexSymmetric
+<!--
   - @ref pagePselinvRealUnsymmetric
   - @ref pagePselinvComplexUnsymmetric
+-->
   - @ref pageDFT1
   - @ref pageDFT2
 - @subpage pageCoreFunction

@@ -247,6 +247,7 @@ typedef struct {
     int           isSymbolicFactorize;
     /** 
      * @brief  Whether to construct PSelInv communication pattern.
+     * This option is NOT used for now (v0.8.0).
      */ 
     int           isConstructCommPattern;
     /** 
@@ -320,9 +321,16 @@ void PPEXSISetDefaultOptions(
  * for each pole.
  * @param[in] outputFileIndex (local) The index for the %PEXSI output file.  For
  * instance, if this index is 1, then the corresponding processor will
- * output to the file `logPEXSI1`.  
- * **Note** Each processor must output to a **different** file.  By
- * default, outputFileIndex can be set as mpirank.
+ * output to the file `logPEXSI1`.  (starting from v0.8.0) If
+ * outputFileIndex is negative, then * this processor does NOT output
+ * logPEXSI files.
+ * **Note** Each processor must output to a **different** file if
+ * outputFileIndex is non-negative.  By default, outputFileIndex can be
+ * set as mpirank.  When many processors are used, it is **not recommended** for all
+ * processors to output the log files. This is because the IO takes time
+ * and can be the bottleneck on many architecture. A good practice is to
+ * let the master processor output information (generating `logPEXSI0`) or 
+ * to let the master processor of each pole to output the information.
  * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.

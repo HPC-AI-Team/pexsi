@@ -732,11 +732,20 @@ type(f_ppexsi_options) :: options
 ! Initialize PEXSI. 
 ! PPEXSIPlan is a handle communicating with the C++ internal data structure 
 
+! Set the outputFileIndex to be the pole index.
+! The first processor for each pole outputs information
+
+if( mod( mpirank, nprow * npcol ) .eq. 0 ) then
+  outputFileIndex = mpirank / (nprow * npcol);
+else
+  outputFileIndex = -1;
+endif
+
 plan = f_ppexsi_plan_initialize(&
   MPI_COMM_WORLD,&
   nprow,&
   npcol,&
-  mpirank,&
+  outputFileIndex,&
   info )
 
 ! Tuning parameters of PEXSI. The default options is reasonable to

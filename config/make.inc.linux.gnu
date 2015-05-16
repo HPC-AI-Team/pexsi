@@ -91,7 +91,6 @@ LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${LAPACK_LIB} $
 
 COMPILE_DEF  += -DAdd_
 
-#FLOADOPTS    = ${LIBS} -L/usr/local/lib  -lstdc++ 
 CPPFLAG = -std=c++11
 
 CFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES}
@@ -100,6 +99,7 @@ CXXFLAGS     = ${COMPILE_FLAG} ${CPPFLAG} ${PROFILE_FLAG} ${INCLUDES}
 CCDEFS       = ${COMPILE_DEF} 
 CPPDEFS      = ${COMPILE_DEF} 
 LOADOPTS     = ${PROFILE_FLAG} ${LIBS}
+FLOADOPTS    = ${PROFILE_FLAG} ${LIBS} ${CPP_LIB}
 
 
 # Generate auto-dependencies 

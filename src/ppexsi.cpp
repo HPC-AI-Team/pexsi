@@ -89,32 +89,6 @@ throw std::runtime_error( msg.str().c_str() );
       numProcRow, numProcCol );
 
   // Start the log file. Append to previous log files
-//#ifndef _RELEASE_
-////  // All processors output
-////  {
-////    std::stringstream ss;
-////    ss << "logPEXSI" << outputFileIndex;
-////    statusOFS.open( ss.str().c_str(), std::ios_base::app );
-////  }
-//  // Only master processor output
-//  {
-//    if( mpirank == 0 ){
-//      std::stringstream ss;
-//      ss << "logPEXSI" << outputFileIndex;
-//      statusOFS.open( ss.str().c_str(), std::ios_base::app );
-//    }
-//  }
-//#else
-//  // Only master processor output
-//  {
-//    if( mpirank == 0 ){
-//      std::stringstream ss;
-//      ss << "logPEXSI" << outputFileIndex;
-//      statusOFS.open( ss.str().c_str(), std::ios_base::app );
-//    }
-//  }
-//#endif
- 
   // Gives an option of not outputing log files.
   if( outputFileIndex >= 0 ){
     std::stringstream ss;

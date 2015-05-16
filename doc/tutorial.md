@@ -8,7 +8,7 @@ Tutorial              {#pageTutorial}
 - @subpage pageDFT2
 
 <!-- ************************************************************ -->
-@page pagePEXSIPlan Using plans
+@page pagePEXSIPlan Using plans and generating log files
 \tableofcontents
 
 %PEXSI is written in C++, and the subroutines cannot directly interface
@@ -30,6 +30,22 @@ When %PEXSI is used to evaluate a large number of inverse matrices
 such as in the electronic structure calculation, mpisize should be 
 `numPole*numProcRow*numProcCol`, where `numPole` inverse matrices
 can be processed in parallel.
+
+The output information is controlled by the `outputFileIndex` variable.
+For instance, if this index is 1, then the corresponding processor will
+output to the file `logPEXSI1`.  If outputFileIndex is negative, then
+this processor does NOT output logPEXSI files.
+
+**Note** 
+
+- Each processor must output to a **different** file if outputFileIndex
+  is non-negative.  
+- When many processors are used, it is **not recommended** for all
+  processors to output the log files. This is because the IO takes time
+  and can be the bottleneck on many architecture. A good practice is to
+  let the master processor output information (generating `logPEXSI0`) or 
+  to let the master processor of each pole to output the information.
+
 
 @code{.c}
 #include  "c_pexsi_interface.h"
@@ -154,6 +170,7 @@ for detailed information of its usage.
 
 
 <!-- ************************************************************ -->
+<!--
 @page pagePselinvRealUnsymmetric Parallel selected inversion for a real unsymmetric matrix
 \tableofcontents
 
@@ -237,10 +254,12 @@ selected elements of the inverse of the matrix saved in
 `examples/lap2dr.matrix`.  See also @ref PPEXSISelInvRealUnsymmetricMatrix
 for detailed information of its usage.
 
+-->
 
 
 
 <!-- ************************************************************ -->
+<!--
 @page pagePselinvComplexUnsymmetric Parallel selected inversion for a complex unsymmetric matrix
 \tableofcontents
 
@@ -249,6 +268,7 @@ is very similar to the real unsymmetric case. An example is given in
 driver_pselinv_complex_unsym.c. See also @ref PPEXSISelInvComplexUnsymmetricMatrix
 for detailed information of its usage.
 
+-->
 
 
 
@@ -283,12 +303,21 @@ Here is the structure of the code using the simple driver routine.
   /* Initialize PEXSI. 
    * PPEXSIPlan is a handle communicating with the C++ internal data structure */
   PPEXSIPlan   plan;
+
+  /* Set the outputFileIndex to be the pole index */
+  /* The first processor for each pole outputs information */ 
+  if( mpirank % (nprow * npcol) == 0 ){
+    outputFileIndex = mpirank / (nprow * npcol);
+  }
+  else{
+    outputFileIndex = -1;
+  }
   
   plan = PPEXSIPlanInitialize( 
       MPI_COMM_WORLD, 
       nprow,
       npcol,
-      mpirank, 
+      outputFileIndex, 
       &info );
 
   /* Tuning parameters of PEXSI. See PPEXSIOption for explanation of the

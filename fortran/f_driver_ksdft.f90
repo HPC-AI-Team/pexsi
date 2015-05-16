@@ -59,7 +59,7 @@ real(c_double) :: numElectronExact, muPEXSI, numElectronPEXSI, &
 integer(c_int) :: numTotalInertiaIter, numTotalPEXSIIter
 real(c_double) :: totalEnergyH, totalEnergyS, totalFreeEnergy
 
-integer(c_int):: nprow, npcol, npSymbFact
+integer(c_int):: nprow, npcol, npSymbFact, outputFileIndex
 integer :: mpirank, mpisize, ierr
 double precision:: timeSta, timeEnd
 character*32 :: Hfile
@@ -134,11 +134,21 @@ endif
 
 ! Step 1. Initialize PEXSI 
 
+! Set the outputFileIndex to be the pole index.
+! The first processor for each pole outputs information
+
+if( mod( mpirank, nprow * npcol ) .eq. 0 ) then
+  outputFileIndex = mpirank / (nprow * npcol);
+else
+  outputFileIndex = -1;
+endif
+
+
 plan = f_ppexsi_plan_initialize(&
   MPI_COMM_WORLD,&
   nprow,&
   npcol,&
-  mpirank,&
+  outputFileIndex,&
   info )
 
 if( info .ne. 0 ) then

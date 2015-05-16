@@ -53,7 +53,7 @@ integer(c_int) :: nrows, nnz, nnzLocal, numColLocal
 integer(c_int), allocatable, dimension(:) ::  colptrLocal, rowindLocal
 real(c_double), allocatable, dimension(:) ::  &
   HnzvalLocal, SnzvalLocal, AnzvalLocal, AinvnzvalLocal
-integer(c_int):: nprow, npcol, npSymbFact
+integer(c_int):: nprow, npcol, npSymbFact, outputFileIndex
 integer :: mpirank, mpisize, ierr
 double precision:: timeSta, timeEnd
 character*32 :: Hfile
@@ -72,8 +72,8 @@ call mpi_comm_size( MPI_COMM_WORLD, mpisize, ierr )
 
 Hfile            = "lap2dr.matrix"
 
-nprow = 2
-npcol = 2
+nprow = 1
+npcol = 1
 
 call f_read_distsparsematrix_formatted_head( &
   trim(Hfile)//char(0),&
@@ -117,12 +117,14 @@ if( mpirank .eq. 0 ) then
   write(*,*) "Finish reading the matrix" 
 endif
 
+! Each processor outputs information
+outputFileIndex = mpirank
 
 plan = f_ppexsi_plan_initialize(&
   MPI_COMM_WORLD,&
   nprow,&
   npcol,&
-  mpirank,&
+  outputFileIndex,&
   info )
 
 if( info .ne. 0 ) then

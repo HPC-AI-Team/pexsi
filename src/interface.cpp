@@ -273,7 +273,8 @@ void PPEXSISetDefaultOptions(
   options->muPEXSISafeGuard      = 0.05;
   options->numElectronPEXSITolerance = 0.01;
   options->matrixType            = 0;
-  options->isSymbolicFactorize   = 1;
+  options->isSymbolicFactorize    = 1;
+  options->isConstructCommPattern = 1;
   options->ordering              = 0;
   options->npSymbFact            = 1;
   options->verbosity             = 1;

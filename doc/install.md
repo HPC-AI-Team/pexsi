@@ -92,28 +92,42 @@ Examples of the `make.inc` file are given under the `config/` directory.
 
 Find `make.inc` with the most similar architecture, and copy to the main
 %PEXSI directory (using Edison for example, the latest Intel computer
-at NERSC).  `${PEXSI_DIR}` stands for the main directory of %PEXSI.
+at NERSC, a CRAY X30 machine).  `${PEXSI_DIR}` stands for the main
+directory of %PEXSI.
 
     cd ${PEXSI_DIR}
-    cp config/make.inc.edison.intel make.inc
+    cp config/make.inc.CRAY_XC30.intel
 
 Edit the variables in make.inc. 
     
     PEXSI_DIR     = Main directory for PEXSI
     DSUPERLU_DIR  = Main directory for SuperLU_DIST
-    METIS_DIR     = Main directory for METIS
     PARMETIS_DIR  = Main directory for ParMETIS 
     PTSCOTCH_DIR  = Main directory for PT-Scotch
 
+Edit the compiler options, for instance
 
-@note %PEXSI can be compiled using `debug` or `release` mode in
+    CC           = cc
+    CXX          = CC
+    FC           = ftn
+    LOADER       = CC
+
+@note 
+
+- Starting from %PEXSI v0.8.0, `-std=c++11` is required in
+`CXXFLAGS`. 
+
+- For **FORTRAN** users, `CPP_LIB=-lstdc++ -lmpi -lmpi_cxx` is often needed.
+Check this if there is link error.
+
+- %PEXSI can be compiled using `debug` or `release` mode in
 by the variable `COMPILE_MODE` in `make.inc`.  This variable mainly controls the
 compiling flag `-DRELEASE`.  The `debug` mode introduces tracing of call
 stacks at all levels of functions, and may significantly slow down the
 code.  For production runs, use `release` mode.
 
-@note The `*.profile` configuration files are for debugging purpose and
-can be ignored.
+- The `USE_PROFILE` options is for internal test purpose. Usually
+set this to 0.
 
 Build the %PEXSI library
 ------------------------
@@ -137,7 +151,7 @@ the test routine
     cd examples
     make driver_pselinv_complex
 
-should produce `driver_pselinv_complex`, which can be executed with MPI.
+should produce `driver_pselinv_complex_(suffix)`, which can be executed with MPI.
 
 For more information on the examples, see @ref pageTutorial.
 
@@ -146,7 +160,7 @@ Tests
 
 After driver_pselinv_complex is compiled, 
 
-    examples$ mpirun -n 1 ./driver_pselinv_complex
+    examples$ mpirun -n 1 ./driver_pselinv_complex_(suffix)
 
 should return the diagonal of the matrix
 \f[
