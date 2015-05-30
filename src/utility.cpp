@@ -175,6 +175,7 @@ abort();
 #endif
 throw std::logic_error( "File cannot be opened!" );
 		}
+    // Corrected by Patrick Seewald 5/30/2015
     fout<<os.str();
     fout.close();
   }
