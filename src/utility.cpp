@@ -205,7 +205,7 @@ abort();
 #endif
 throw std::logic_error( "File cannot be opened!" );
 	}
-  fout<<os;
+  fout<<os.str();
   fout.close();
   //
   MPI_Barrier(MPI_COMM_WORLD);
