@@ -974,7 +974,28 @@ class FTreeReduce: public TreeReduce<T>{
         int recvCount = -1;
         int reqCnt = 1;
 
+        //TODO REMOVE THIS
+        MPI_Errhandler_set(MPI_COMM_WORLD,MPI_ERRORS_RETURN);
+
         MPI_Testsome(reqCnt,&this->myRequests_[0],&recvCount,&this->recvIdx_[0],&this->myStatuses_[0]);
+
+        int error_code = this->myStatuses_[0].MPI_ERROR;
+       if (error_code != MPI_SUCCESS) {
+   char error_string[BUFSIZ];
+   int length_of_error_string, error_class;
+
+   MPI_Error_class(error_code, &error_class);
+   MPI_Error_string(error_class, error_string, &length_of_error_string);
+//   fprintf(stderr, "%3d: %s\n", this->myRank_, error_string);
+    statusOFS<<"P"<<this->myRank_<<error_string<<endl;
+   MPI_Error_string(error_code, error_string, &length_of_error_string);
+    statusOFS<<"P"<<this->myRank_<<error_string<<endl;
+//   fprintf(stderr, "%3d: %s\n", this->myRank_, error_string);
+   MPI_Abort(MPI_COMM_WORLD, error_code);
+
+       }
+
+
         //MPI_Waitsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
         //if something has been received, accumulate and potentially forward it
         for(Int i = 0;i<recvCount;++i ){
@@ -1268,6 +1289,16 @@ TIMER_STOP(FIND_RANK);
 //      return new ModBTreeBcast(pComm,ranks,rank_cnt,msgSize, rseed);
 //      return new RandBTreeBcast(pComm,ranks,rank_cnt,msgSize);
 
+
+#ifdef FTREE
+      return new FTreeBcast(pComm,ranks,rank_cnt,msgSize);
+#elif defined(BTREE)
+      return new BTreeBcast(pComm,ranks,rank_cnt,msgSize);
+#elif defined(MODBTREE)
+      return new ModBTreeBcast(pComm,ranks,rank_cnt,msgSize, rseed);
+#endif
+
+
       if(nprocs<=FTREE_LIMIT){
         return new FTreeBcast(pComm,ranks,rank_cnt,msgSize);
       }
@@ -1290,6 +1321,13 @@ template< typename T>
       Int nprocs = 0;
       MPI_Comm_size(pComm, &nprocs);
 
+#ifdef FTREE
+        return new FTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
+#elif defined(BTREE)
+        return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
+#elif defined(MODBTREE)
+        return new ModBTreeReduce<T>(pComm,ranks,rank_cnt,msgSize, rseed);
+#endif
 
       if(nprocs<=FTREE_LIMIT){
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)

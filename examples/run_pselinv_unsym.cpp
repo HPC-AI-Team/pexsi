@@ -2,44 +2,44 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Authors: Lin Lin and Mathias Jacquelin
+Authors: Lin Lin and Mathias Jacquelin
 
-   This file is part of PEXSI. All rights reserved.
+This file is part of PEXSI. All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-   (1) Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-   (2) Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   (3) Neither the name of the University of California, Lawrence Berkeley
-   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-   You are under no obligation whatsoever to provide any bug fixes, patches, or
-   upgrades to the features, functionality or performance of the source code
-   ("Enhancements") to anyone; however, if you choose to make your Enhancements
-   available either publicly, or directly to Lawrence Berkeley National
-   Laboratory, without imposing a separate written license agreement for such
-   Enhancements, then you hereby grant the following license: a non-exclusive,
-   royalty-free perpetual license to install, use, modify, prepare derivative
-   works, incorporate into other computer software, distribute, and sublicense
-   such enhancements or derivative works thereof, in binary and source code form.
-*/
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+ */
 /// @file run_pselinv.cpp
 /// @brief Test for the interface of SuperLU_DIST and SelInv.
 /// @date 2013-04-15
@@ -60,7 +60,7 @@ using namespace PEXSI;
 using namespace std;
 
 void Usage(){
-  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -r [nprow] -c [npcol] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag] -Real [isReal] -Symm [isSymm] -rowperm [rowperm]" << std::endl;
+  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -r [nprow] -c [npcol] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag] -Real [isReal] -Symm [isSymm] -rowperm [LargeDiag|NOROWPERM] -equil [YES|NO]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
       MPI_Comm_rank(world_comm, &mpirank );
       MPI_Comm_size(world_comm, &mpisize );
 #if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
-     TAU_PROFILE_SET_CONTEXT(world_comm);
+      TAU_PROFILE_SET_CONTEXT(world_comm);
 #endif
 
       stringstream  ss;
@@ -280,6 +280,17 @@ int main(int argc, char **argv)
         RowPerm = "NOROWPERM";
       }
 
+      std::string Equil;
+      if( options.find("-equil") != options.end() ){ 
+        Equil = options["-equil"];
+      }
+      else{
+        statusOFS << "-equil option is not given. " 
+          << "Use NO." 
+          << std::endl << std::endl;
+        Equil = "NO";
+      }
+
 
 
       // *********************************************************************
@@ -402,103 +413,103 @@ int main(int argc, char **argv)
           }
         } // if (SMat.size != 0 )
       }
-else
+      else
 #endif
-{
-      DistSparseMatrix<Real> HMat;
-      DistSparseMatrix<Real> SMat;
-      Real timeSta, timeEnd;
-      GetTime( timeSta );
-      if(isCSC){
-        ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
-      }
-      else{
-        ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, world_comm ); 
-        ParaWriteDistSparseMatrix( "H.csc", HMat, world_comm ); 
-      }
-
-      if( Sfile.empty() ){
-        // Set the size to be zero.  This will tell PPEXSI.Solve to treat
-        // the overlap matrix as an identity matrix implicitly.
-        SMat.size = 0;  
-      }
-      else{
+      {
+        DistSparseMatrix<Real> HMat;
+        DistSparseMatrix<Real> SMat;
+        Real timeSta, timeEnd;
+        GetTime( timeSta );
         if(isCSC){
-          ParaReadDistSparseMatrix( Sfile.c_str(), SMat, world_comm ); 
+          ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
         }
         else{
-          ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, world_comm ); 
-          ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
+          ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, world_comm ); 
+          ParaWriteDistSparseMatrix( "H.csc", HMat, world_comm ); 
         }
-      }
 
-      GetTime( timeEnd );
-      LongInt nnzH = HMat.Nnz();
-      if( mpirank == 0 ){
-        cout << "Time for reading H and S is " << timeEnd - timeSta << endl;
-        cout << "H.size = " << HMat.size << endl;
-        cout << "H.nnz  = " << nnzH  << endl;
-      }
-
-      // Get the diagonal indices for H and save it n diagIdxLocal_
-
-      std::vector<Int>  diagIdxLocal;
-      { 
-        Int numColLocal      = HMat.colptrLocal.m() - 1;
-        Int numColLocalFirst = HMat.size / mpisize;
-        Int firstCol         = mpirank * numColLocalFirst;
-
-        diagIdxLocal.clear();
-
-        for( Int j = 0; j < numColLocal; j++ ){
-          Int jcol = firstCol + j + 1;
-          for( Int i = HMat.colptrLocal(j)-1; 
-              i < HMat.colptrLocal(j+1)-1; i++ ){
-            Int irow = HMat.rowindLocal(i);
-            if( irow == jcol ){
-              diagIdxLocal.push_back( i );
-            }
+        if( Sfile.empty() ){
+          // Set the size to be zero.  This will tell PPEXSI.Solve to treat
+          // the overlap matrix as an identity matrix implicitly.
+          SMat.size = 0;  
+        }
+        else{
+          if(isCSC){
+            ParaReadDistSparseMatrix( Sfile.c_str(), SMat, world_comm ); 
           }
-        } // for (j)
-      }
+          else{
+            ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, world_comm ); 
+            ParaWriteDistSparseMatrix( "S.csc", SMat, world_comm ); 
+          }
+        }
 
-      GetTime( timeSta );
+        GetTime( timeEnd );
+        LongInt nnzH = HMat.Nnz();
+        if( mpirank == 0 ){
+          cout << "Time for reading H and S is " << timeEnd - timeSta << endl;
+          cout << "H.size = " << HMat.size << endl;
+          cout << "H.nnz  = " << nnzH  << endl;
+        }
 
-      AMat.size          = HMat.size;
-      AMat.nnz           = HMat.nnz;
-      AMat.nnzLocal      = HMat.nnzLocal;
-      AMat.colptrLocal   = HMat.colptrLocal;
-      AMat.rowindLocal   = HMat.rowindLocal;
-      AMat.nzvalLocal.Resize( HMat.nnzLocal );
-      AMat.comm = world_comm;
+        // Get the diagonal indices for H and save it n diagIdxLocal_
 
-      MYSCALAR *ptr0 = AMat.nzvalLocal.Data();
-      Real *ptr1 = HMat.nzvalLocal.Data();
-      Real *ptr2 = SMat.nzvalLocal.Data();
+        std::vector<Int>  diagIdxLocal;
+        { 
+          Int numColLocal      = HMat.colptrLocal.m() - 1;
+          Int numColLocalFirst = HMat.size / mpisize;
+          Int firstCol         = mpirank * numColLocalFirst;
+
+          diagIdxLocal.clear();
+
+          for( Int j = 0; j < numColLocal; j++ ){
+            Int jcol = firstCol + j + 1;
+            for( Int i = HMat.colptrLocal(j)-1; 
+                i < HMat.colptrLocal(j+1)-1; i++ ){
+              Int irow = HMat.rowindLocal(i);
+              if( irow == jcol ){
+                diagIdxLocal.push_back( i );
+              }
+            }
+          } // for (j)
+        }
+
+        GetTime( timeSta );
+
+        AMat.size          = HMat.size;
+        AMat.nnz           = HMat.nnz;
+        AMat.nnzLocal      = HMat.nnzLocal;
+        AMat.colptrLocal   = HMat.colptrLocal;
+        AMat.rowindLocal   = HMat.rowindLocal;
+        AMat.nzvalLocal.Resize( HMat.nnzLocal );
+        AMat.comm = world_comm;
+
+        MYSCALAR *ptr0 = AMat.nzvalLocal.Data();
+        Real *ptr1 = HMat.nzvalLocal.Data();
+        Real *ptr2 = SMat.nzvalLocal.Data();
 
 #ifdef _MYCOMPLEX_
-      Complex zshift = Complex(rshift, ishift);
+        Complex zshift = Complex(rshift, ishift);
 #else
-      Real zshift = Real(rshift);
+        Real zshift = Real(rshift);
 #endif
 
-      if( SMat.size != 0 ){
-        // S is not an identity matrix
-        for( Int i = 0; i < HMat.nnzLocal; i++ ){
-          AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift * SMat.nzvalLocal(i);
+        if( SMat.size != 0 ){
+          // S is not an identity matrix
+          for( Int i = 0; i < HMat.nnzLocal; i++ ){
+            AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift * SMat.nzvalLocal(i);
+          }
         }
-      }
-      else{
-        // S is an identity matrix
-        for( Int i = 0; i < HMat.nnzLocal; i++ ){
-          AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
-        }
+        else{
+          // S is an identity matrix
+          for( Int i = 0; i < HMat.nnzLocal; i++ ){
+            AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+          }
 
-        for( Int i = 0; i < diagIdxLocal.size(); i++ ){
-          AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
-        }
-      } // if (SMat.size != 0 )
-}
+          for( Int i = 0; i < diagIdxLocal.size(); i++ ){
+            AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
+          }
+        } // if (SMat.size != 0 )
+      }
 
       LongInt nnzA = AMat.Nnz();
       if( mpirank == 0 ){
@@ -516,6 +527,7 @@ else
       SuperLUOptions luOpt;
       luOpt.ColPerm = ColPerm;
       luOpt.RowPerm = RowPerm;
+      luOpt.Equil = Equil;
       luOpt.maxPipelineDepth = maxPipelineDepth;
       luOpt.numProcSymbFact = numProcSymbFact;
       luOpt.symmetric = isSym;
@@ -592,6 +604,11 @@ else
         if( checkAccuracy ) {
           SuperLUMatrix<MYSCALAR> A1( *pLuGrid, luOpt );
           SuperLUMatrix<MYSCALAR> GA( *pLuGrid, luOpt );
+
+
+          //DistSparseMatrix<MYSCALAR> AT;
+          //CSCToCSR(AMat,AT);
+
           A1.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
           A1.ConvertNRlocToNC( GA );
 
@@ -622,192 +639,205 @@ else
           NumVec<MYSCALAR> diag;
 
 
+          GetTime( timeSta );
+          pLuMat->SymbolicToSuperNode( *pSuper );
+
+          GetTime( timeTotalSelInvSta );
+
+
+          //Initialize PEXSI/PSelInv data structures
+          //PMatrix<MYSCALAR> * pMat;
+          //GridType * pGrid;
+          //PEXSICreator<MYSCALAR>::CreatePMatrix(world_comm, nprow, npcol, luOpt, pSuper, pMat, pGrid);
+
+          GridType * pGrid = new GridType(world_comm,nprow,npcol);
+          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
+          PMatrix<MYSCALAR> * pMat2 = new PMatrix<MYSCALAR>(*pMat);
+          delete pMat2;
+
+          //            {
+          //              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
+          //              *pLuMat2 = *pLuMat;
+          //              //PMatrix<MYSCALAR> Mat = PMatrix<MYSCALAR>(pGrid,pSuper, &luOpt);
+          //              //Mat = *pMat2; //should call the copy constructor and the destructor
+          //              MPI_Barrier(world_comm);
+          //              exit(0);
+          //            }
+
+          pLuMat->LUstructToPMatrix( *pMat );
+          GetTime( timeEnd );
+
+          LongInt nnzLU = pMat->Nnz();
+          if( mpirank == 0 ){
+            cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
+          }
+
+
+          if( mpirank == 0 )
+            cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
+
+
+          // Preparation for the selected inversion
+          GetTime( timeSta );
+          pMat->ConstructCommunicationPattern();
+          GetTime( timeEnd );
+
+          if( mpirank == 0 )
+            cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
+
+
+          GetTime( timeSta );
+          pMat->PreSelInv();
+          GetTime( timeEnd );
+
+          if( mpirank == 0 )
+            cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
+
+          // Main subroutine for selected inversion
+          GetTime( timeSta );
+          pMat->SelInv();
+          GetTime( timeEnd );
+          if( mpirank == 0 )
+            cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
+
+
+          GetTime( timeTotalSelInvEnd );
+          if( mpirank == 0 )
+            cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+
+
+
+          if(doToDist){
+            // Convert to DistSparseMatrix in the 2nd format and get the diagonal
             GetTime( timeSta );
-            pLuMat->SymbolicToSuperNode( *pSuper );
+            DistSparseMatrix<MYSCALAR> Ainv2;
+            pMat->PMatrixToDistSparseMatrix2( AMat, Ainv2 );
 
-            GetTime( timeTotalSelInvSta );
+            ParaWriteDistSparseMatrix( "AMat.csc", AMat, world_comm ); 
+            ParaWriteDistSparseMatrix( "Ainv.csc", Ainv2, world_comm ); 
 
-
-            //Initialize PEXSI/PSelInv data structures
-            //PMatrix<MYSCALAR> * pMat;
-            //GridType * pGrid;
-            //PEXSICreator<MYSCALAR>::CreatePMatrix(world_comm, nprow, npcol, luOpt, pSuper, pMat, pGrid);
-
-            GridType * pGrid = new GridType(world_comm,nprow,npcol);
-            PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
-            PMatrix<MYSCALAR> * pMat2 = new PMatrix<MYSCALAR>(*pMat);
-            delete pMat2;
-
-//            {
-//              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
-//              *pLuMat2 = *pLuMat;
-//              //PMatrix<MYSCALAR> Mat = PMatrix<MYSCALAR>(pGrid,pSuper, &luOpt);
-//              //Mat = *pMat2; //should call the copy constructor and the destructor
-//              MPI_Barrier(world_comm);
-//              exit(0);
-//            }
-
-            pLuMat->LUstructToPMatrix( *pMat );
             GetTime( timeEnd );
-
-            LongInt nnzLU = pMat->Nnz();
-            if( mpirank == 0 ){
-              cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
-            }
-
+            //Ainv2 is Ainv^T
 
             if( mpirank == 0 )
-              cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
+              cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
 
-
-            // Preparation for the selected inversion
-            GetTime( timeSta );
-            pMat->ConstructCommunicationPattern();
-            GetTime( timeEnd );
-
-            if( mpirank == 0 )
-              cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
-
-
-            GetTime( timeSta );
-            pMat->PreSelInv();
-            GetTime( timeEnd );
-
-            if( mpirank == 0 )
-              cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
-
-            // Main subroutine for selected inversion
-            GetTime( timeSta );
-            pMat->SelInv();
-            GetTime( timeEnd );
-            if( mpirank == 0 )
-              cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
-
-
-            GetTime( timeTotalSelInvEnd );
-            if( mpirank == 0 )
-              cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
-
-
- 
-             if(doToDist){
-               // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-               GetTime( timeSta );
-               DistSparseMatrix<MYSCALAR> Ainv2;
-               pMat->PMatrixToDistSparseMatrix2( AMat, Ainv2 );
-
-
-               GetTime( timeEnd );
-               //Ainv2 is Ainv^T
- 
-               if( mpirank == 0 )
-                 cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
- 
-               NumVec<MYSCALAR> diagDistSparse2;
-               GetTime( timeSta );
-               GetDiagonal( Ainv2, diagDistSparse2 );
-               GetTime( timeEnd );
-               if( mpirank == 0 )
-                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
- 
-               if( mpirank == 0 ){
-                 statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-                 Real diffNorm = 0.0;;
-                 for( Int i = 0; i < diag.m(); i++ ){
-                   diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
-                 }
-                 diffNorm = std::sqrt( diffNorm );
-                 statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-               }
-
-               //Trick to get rows of Ainv by converting it to CSR 
-               MYSCALAR traceLocal;
-               if(luOpt.symmetric==1){
-                 traceLocal = blas::Dotu( AMat.nnzLocal, Ainv2.nzvalLocal.Data(), 1,
-                     AMat.nzvalLocal.Data(), 1 );
-               }
-               else{
-                 DistSparseMatrix<MYSCALAR> Ainv2csr;
-                 CSCToCSR(Ainv2,Ainv2csr);
-
-                 AMat.SortIndices();
-                 Ainv2csr.SortIndices();
-
-                 //cant use dotu if matrix is really unsymmetric, have to do it by hand
-                 traceLocal = ZERO<MYSCALAR>();
-                 for(Int row = 0; row<Ainv2csr.colptrLocal.m()-1; ++row){
-                   Int rowbeg = Ainv2csr.colptrLocal[row]-1;
-                   Int rowend = Ainv2csr.colptrLocal[row+1]-1;
-
-                   Int colbegA = AMat.colptrLocal[row]-1;
-                   Int colendA = AMat.colptrLocal[row+1]-1;
-
-                   Int rowIdxA = colbegA;
-                   Int colIdx = rowbeg;
-                   while(colIdx<rowend && rowIdxA<colendA){
-                     Int col = Ainv2csr.rowindLocal[colIdx]-1;
-                     Int rowA = AMat.rowindLocal[rowIdxA]-1;
-
-                     if(col<rowA){
-                       ++colIdx;
-                     }
-                     else if(rowA<col){
-                       ++rowIdxA;
-                     }
-                     else if(col == rowA){
-                       traceLocal += Ainv2csr.nzvalLocal[colIdx]*AMat.nzvalLocal[rowIdxA];
-                       ++colIdx;
-                       ++rowIdxA;
-                     }
-                   }
-                 }
-               }
-
-               MYSCALAR trace = ZERO<MYSCALAR>();
-               mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
- 
-               if( mpirank == 0 ){
- 
-                 cout << "H.size = "  << AMat.size << endl;
-                 cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
-                 statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
-#ifdef _MYCOMPLEX_ 
-                 cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
-                 statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
- #else
-                 cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
-                 statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
-#endif
-               }
-             }
-
-
-            // Output the diagonal elements
-            if( doDiag ){
-              NumVec<MYSCALAR> diag;
-
+            try{ 
+              NumVec<MYSCALAR> diagDistSparse2;
               GetTime( timeSta );
-              pMat->GetDiagonal( diag );
+              GetDiagonal( Ainv2, diagDistSparse2 );
               GetTime( timeEnd );
-
-
               if( mpirank == 0 )
-                cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
-
+                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
               if( mpirank == 0 ){
-                statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
-                ofstream ofs("diag");
-                if( !ofs.good() ) 
-                  throw std::runtime_error("file cannot be opened.");
-                serialize( diag, ofs, NO_MASK );
-                ofs.close();
+                statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+                Real diffNorm = 0.0;;
+                for( Int i = 0; i < diag.m(); i++ ){
+                  diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
+                }
+                diffNorm = std::sqrt( diffNorm );
+                statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
               }
             }
+            catch( std::exception& e )
+            {
+              std::cerr << "Processor " << mpirank << " caught exception with message: "
+                << e.what() << std::endl;
+
+            }
+
+            //Trick to get rows of Ainv by converting it to CSR 
+            MYSCALAR traceLocal;
+#if 0
+            if(luOpt.symmetric==1){
+#endif
+              traceLocal = blas::Dotu( AMat.nnzLocal, Ainv2.nzvalLocal.Data(), 1,
+                  AMat.nzvalLocal.Data(), 1 );
+#if 0
+            }
+            else{
+              DistSparseMatrix<MYSCALAR> Ainv2csr;
+              CSCToCSR(Ainv2,Ainv2csr);
+
+              AMat.SortIndices();
+              Ainv2csr.SortIndices();
+
+              //cant use dotu if matrix is really unsymmetric, have to do it by hand
+              traceLocal = ZERO<MYSCALAR>();
+              for(Int row = 0; row<Ainv2csr.colptrLocal.m()-1; ++row){
+                Int rowbeg = Ainv2csr.colptrLocal[row]-1;
+                Int rowend = Ainv2csr.colptrLocal[row+1]-1;
+
+                Int colbegA = AMat.colptrLocal[row]-1;
+                Int colendA = AMat.colptrLocal[row+1]-1;
+
+                Int rowIdxA = colbegA;
+                Int colIdx = rowbeg;
+                while(colIdx<rowend && rowIdxA<colendA){
+                  Int col = Ainv2csr.rowindLocal[colIdx]-1;
+                  Int rowA = AMat.rowindLocal[rowIdxA]-1;
+
+                  if(col<rowA){
+                    ++colIdx;
+                  }
+                  else if(rowA<col){
+                    ++rowIdxA;
+                  }
+                  else if(col == rowA){
+                    traceLocal += Ainv2csr.nzvalLocal[colIdx]*AMat.nzvalLocal[rowIdxA];
+                    ++colIdx;
+                    ++rowIdxA;
+                  }
+                }
+              }
+            }
+#endif
+            MYSCALAR trace = ZERO<MYSCALAR>();
+            mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
+
+            if( mpirank == 0 ){
+
+              cout << "H.size = "  << AMat.size << endl;
+              cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
+              statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
+#ifdef _MYCOMPLEX_ 
+              cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
+              statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
+#else
+              cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
+              statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
+#endif
+            }
+          }
 
 
-            delete pMat;
-            delete pGrid;
+          // Output the diagonal elements
+          if( doDiag ){
+            NumVec<MYSCALAR> diag;
+
+            GetTime( timeSta );
+            pMat->GetDiagonal( diag );
+            GetTime( timeEnd );
+
+
+            if( mpirank == 0 )
+              cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+
+
+            if( mpirank == 0 ){
+              statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
+              ofstream ofs("diag");
+              if( !ofs.good() ) 
+                throw std::runtime_error("file cannot be opened.");
+              serialize( diag, ofs, NO_MASK );
+              ofs.close();
+            }
+          }
+
+
+          delete pMat;
+          delete pGrid;
 
         }
 

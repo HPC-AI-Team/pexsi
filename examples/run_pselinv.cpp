@@ -282,6 +282,14 @@ int main(int argc, char **argv)
       SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
 //      SuperLUGrid<Complex> g1( world_comm, nprow, npcol );
 
+      if( mpirank == 0 ){
+        int * maxTag;
+        int flag;
+        MPI_Comm_get_attr(world_comm, MPI_TAG_UB, (void*)&maxTag, &flag);
+        assert(flag>0);
+        std::cout<<"Max Tag = "<<*maxTag<<std::endl;
+      }
+
       int      m, n;
       DistSparseMatrix<MYSCALAR>  AMat;
 

@@ -87,6 +87,7 @@ namespace PEXSI{
     std::string      ColPerm;
 
     std::string      RowPerm;
+    std::string      Equil;
 
     /// @brief Option to specify if matrix is symmetric or not.
     Int              symmetric;

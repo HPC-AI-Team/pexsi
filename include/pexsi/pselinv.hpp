@@ -61,14 +61,14 @@
 #include "pexsi/blas.hpp"
 #include "pexsi/lapack.hpp"
 
-#ifdef BUILD_BCAST_TREE
 #include "pexsi/TreeBcast.hpp"
-#endif
 
 
 #include <set>
 
-#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
+#define MPI_MAX_TAG 2097151
+
+#define IDX_TO_TAG(lidx,tag) ((SELINV_TAG_COUNT*(lidx)+(tag))%MPI_MAX_TAG)
 #define IDX_TO_TAG2(sidx,lidx,tag) (SELINV_TAG_COUNT*(sidx)+(tag)) 
 #define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 
 
@@ -519,13 +519,13 @@ namespace PEXSI{
       // This is the tag used for mpi communication for selinv
 
       enum{
-        SELINV_TAG_U_SIZE,
+//        SELINV_TAG_U_SIZE,
         SELINV_TAG_U_CONTENT,
-        SELINV_TAG_L_SIZE,
+//        SELINV_TAG_L_SIZE,
         SELINV_TAG_L_CONTENT,
         SELINV_TAG_L_REDUCE,
-        SELINV_TAG_D_SIZE,
-        SELINV_TAG_D_CONTENT,
+//        SELINV_TAG_D_SIZE,
+//        SELINV_TAG_D_CONTENT,
         SELINV_TAG_D_REDUCE,
         SELINV_TAG_L_SIZE_CD,
         SELINV_TAG_L_CONTENT_CD,
@@ -565,16 +565,10 @@ namespace PEXSI{
       BolNumMat                       isRecvFromCrossDiagonal_;
 
 
-#ifdef BUILD_BCAST_TREE
       std::vector<TreeBcast *> fwdToBelowTree_; 
       std::vector<TreeBcast *> fwdToRightTree_; 
-#ifdef TREE_REDUCTION_C
       std::vector<TreeReduce<T> *> redToLeftTree_; 
-#endif
-#ifdef TREE_REDUCTION_D_C
       std::vector<TreeReduce<T> *> redToAboveTree_; 
-#endif
-#endif
 
 
 
@@ -641,14 +635,12 @@ namespace PEXSI{
 
       PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
-#ifdef BUILD_BCAST_TREE
       void deallocate();
      
 
       virtual ~PMatrix();
       PMatrix( const PMatrix & C);
       PMatrix & operator = ( const PMatrix & C);
-#endif
 
       void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
