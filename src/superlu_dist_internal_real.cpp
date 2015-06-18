@@ -425,7 +425,7 @@ RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuper
     Int nnzLocal = -1;
 
     //TODO might have to remove this
-    if(1 || options.symmetric == 1 ){
+    if(options.transpose == 0  || options.symmetric == 1 ){
       numRowLocal = sparseA.colptrLocal.m() - 1;
       nnzLocal = sparseA.nnzLocal;
 

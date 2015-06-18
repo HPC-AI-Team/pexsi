@@ -496,6 +496,21 @@ namespace PEXSI{
 //      }
 //
 
+      /// @brief PMatrixToDistSparseMatrix2 is a more efficient version
+      /// which performs the same job as PMatrixToDistSparseMatrix(A,B)
+      /// especially when A contains much less nonzero elements than the
+      /// current PMatrix.
+      ///
+      /// The DistSparseMatrix follows the natural order.
+      ///
+      /// @param[in]  A Input sparse matrix to provide the sparsity pattern.
+      ///
+      /// @param[out] B Output sparse matrix.
+      //virtual void PMatrixToDistSparseMatrix2( 
+      //    const DistSparseMatrix<T>& A,
+      //    DistSparseMatrix<T>& B );
+
+
   };
 
 

@@ -5992,8 +5992,8 @@ delete pAinvBuf;
 //#if ( _DEBUGlevel_ >= 1 )
 //      statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
 //#endif
-//      Int mpirank = grid_->mpirank;
-//      Int mpisize = grid_->mpisize;
+//      Int mpirank = this->grid_->mpirank;
+//      Int mpisize = this->grid_->mpisize;
 //
 //      std::vector<Int>     rowSend( mpisize );
 //      std::vector<Int>     colSend( mpisize );
@@ -6008,19 +6008,19 @@ delete pAinvBuf;
 //      std::vector<Int>     displsRecv( mpisize, 0 );
 //
 //      Int numSuper = this->NumSuper();
-//      const IntNumVec& perm    = super_->perm;
-//      const IntNumVec& permInv = super_->permInv;
+//      const IntNumVec& perm    = this->super_->perm;
+//      const IntNumVec& permInv = this->super_->permInv;
 //
 //      const IntNumVec * pPerm_r;
 //      const IntNumVec * pPermInv_r;
 //
-//      if(options_->RowPerm=="NOROWPERM"){
-//        pPerm_r = &super_->perm;
-//        pPermInv_r = &super_->permInv;
+//      if(this->options_->RowPerm=="NOROWPERM"){
+//        pPerm_r = &this->super_->perm;
+//        pPermInv_r = &this->super_->permInv;
 //      }
 //      else{
-//        pPerm_r = &super_->perm_r;
-//        pPermInv_r = &super_->permInv_r;
+//        pPerm_r = &this->super_->perm_r;
+//        pPermInv_r = &this->super_->permInv_r;
 //      }
 //
 //      const IntNumVec& perm_r    = *pPerm_r;
@@ -6039,14 +6039,16 @@ delete pAinvBuf;
 //      Int*     colPtr = A.colptrLocal.Data();
 //
 //      for( Int j = 0; j < numColLocal; j++ ){
-//        Int col         = perm( firstCol + j );
-//        Int blockColIdx = BlockIdx( col, super_ );
-//        Int procCol     = PCOL( blockColIdx, grid_ );
+//        //the matrix is transposed
+//        Int row         = perm_r( firstCol + j );
+//        Int blockRowIdx = BlockIdx( row, this->super_ );
+//        Int procRow     = PROW( blockRowIdx, this->grid_ );
 //        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-//          Int row         = perm_r( *(rowPtr++) - 1 );
-//          Int blockRowIdx = BlockIdx( row, super_ );
-//          Int procRow     = PROW( blockRowIdx, grid_ );
-//          Int dest = PNUM( procRow, procCol, grid_ );
+//          //the matrix is transposed
+//          Int col         = perm( *(rowPtr++) - 1 );
+//          Int blockColIdx = BlockIdx( col, this->super_ );
+//          Int procCol     = PCOL( blockColIdx, this->grid_ );
+//          Int dest = PNUM( procRow, procCol, this->grid_ );
 //#if ( _DEBUGlevel_ >= 1 )
 //          statusOFS << "BlockIdx = " << blockRowIdx << ", " <<blockColIdx << std::endl;
 //          statusOFS << procRow << ", " << procCol << ", " 
@@ -6059,7 +6061,7 @@ delete pAinvBuf;
 //      // All-to-all exchange of size information
 //      MPI_Alltoall( 
 //          &sizeSend[0], 1, MPI_INT,
-//          &sizeRecv[0], 1, MPI_INT, grid_->comm );
+//          &sizeRecv[0], 1, MPI_INT, this->grid_->comm );
 //
 //#if ( _DEBUGlevel_ >= 1 )
 //      statusOFS << std::endl << "sizeSend: " << sizeSend << std::endl;
@@ -6108,14 +6110,16 @@ delete pAinvBuf;
 //      colPtr = A.colptrLocal.Data();
 //
 //      for( Int j = 0; j < numColLocal; j++ ){
-//        Int col         = perm( firstCol + j );
-//        Int blockColIdx = BlockIdx( col, super_ );
-//        Int procCol     = PCOL( blockColIdx, grid_ );
+//        //the matrix is transposed
+//        Int row         = perm_r( firstCol + j );
+//        Int blockRowIdx = BlockIdx( row, this->super_ );
+//        Int procRow     = PROW( blockRowIdx, this->grid_ );
 //        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-//          Int row         = perm_r( *(rowPtr++) - 1 );
-//          Int blockRowIdx = BlockIdx( row, super_ );
-//          Int procRow     = PROW( blockRowIdx, grid_ );
-//          Int dest = PNUM( procRow, procCol, grid_ );
+//          //the matrix is transposed
+//          Int col         = perm( *(rowPtr++) - 1 );
+//          Int blockColIdx = BlockIdx( col, this->super_ );
+//          Int procCol     = PCOL( blockColIdx, this->grid_ );
+//          Int dest = PNUM( procRow, procCol, this->grid_ );
 //          rowSend[displsSend[dest] + cntSize[dest]] = row;
 //          colSend[displsSend[dest] + cntSize[dest]] = col;
 //          cntSize[dest]++;
@@ -6137,11 +6141,11 @@ delete pAinvBuf;
 //      mpi::Alltoallv( 
 //          &rowSend[0], &sizeSend[0], &displsSend[0],
 //          &rowRecv[0], &sizeRecv[0], &displsRecv[0],
-//          grid_->comm );
+//          this->grid_->comm );
 //      mpi::Alltoallv( 
 //          &colSend[0], &sizeSend[0], &displsSend[0],
 //          &colRecv[0], &sizeRecv[0], &displsRecv[0],
-//          grid_->comm );
+//          this->grid_->comm );
 //
 //#if ( _DEBUGlevel_ >= 1 )
 //      statusOFS << "Alltoallv communication of nonzero indices finished." << std::endl;
@@ -6162,8 +6166,8 @@ delete pAinvBuf;
 //        Int row = rowRecv[g];
 //        Int col = colRecv[g];
 //
-//        Int blockRowIdx = BlockIdx( row, super_ );
-//        Int blockColIdx = BlockIdx( col, super_ );
+//        Int blockRowIdx = BlockIdx( row, this->super_ );
+//        Int blockColIdx = BlockIdx( col, this->super_ );
 //
 //        // Search for the nzval
 //        bool isFound = false;
@@ -6171,7 +6175,7 @@ delete pAinvBuf;
 //        if( blockColIdx <= blockRowIdx ){
 //          // Data on the L side
 //
-//          std::vector<LBlock<T> >&  Lcol = this->L( LBj( blockColIdx, grid_ ) );
+//          std::vector<LBlock<T> >&  Lcol = this->L( LBj( blockColIdx, this->grid_ ) );
 //
 //          for( Int ib = 0; ib < Lcol.size(); ib++ ){
 //#if ( _DEBUGlevel_ >= 1 )
@@ -6181,7 +6185,7 @@ delete pAinvBuf;
 //              IntNumVec& rows = Lcol[ib].rows;
 //              for( int iloc = 0; iloc < Lcol[ib].numRow; iloc++ ){
 //                if( rows[iloc] == row ){
-//                  Int jloc = col - FirstBlockCol( blockColIdx, super_ );
+//                  Int jloc = col - FirstBlockCol( blockColIdx, this->super_ );
 //                  valRecv[g] = Lcol[ib].nzval( iloc, jloc );
 //                  isFound = true;
 //                  break;
@@ -6194,14 +6198,14 @@ delete pAinvBuf;
 //        else{
 //          // Data on the U side
 //
-//          std::vector<UBlock<T> >&  Urow = this->U( LBi( blockRowIdx, grid_ ) );
+//          std::vector<UBlock<T> >&  Urow = this->U( LBi( blockRowIdx, this->grid_ ) );
 //
 //          for( Int jb = 0; jb < Urow.size(); jb++ ){
 //            if( Urow[jb].blockIdx == blockColIdx ){
 //              IntNumVec& cols = Urow[jb].cols;
 //              for( int jloc = 0; jloc < Urow[jb].numCol; jloc++ ){
 //                if( cols[jloc] == col ){
-//                  Int iloc = row - FirstBlockRow( blockRowIdx, super_ );
+//                  Int iloc = row - FirstBlockRow( blockRowIdx, this->super_ );
 //                  valRecv[g] = Urow[jb].nzval( iloc, jloc );
 //                  isFound = true;
 //                  break;
@@ -6227,7 +6231,7 @@ delete pAinvBuf;
 //      mpi::Alltoallv( 
 //          &valRecv[0], &sizeRecv[0], &displsRecv[0],
 //          &valSend[0], &sizeSend[0], &displsSend[0],
-//          grid_->comm );
+//          this->grid_->comm );
 //
 //#if ( _DEBUGlevel_ >= 1 )
 //      statusOFS << "Alltoallv communication of nonzero values finished." << std::endl;
@@ -6249,7 +6253,7 @@ delete pAinvBuf;
 //      //#endif
 //      //throw std::runtime_error( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
 //      //			}
-//      B.comm = grid_->comm;
+//      B.comm = this->grid_->comm;
 //
 //      for( Int i = 0; i < mpisize; i++ )
 //        cntSize[i] = 0;
@@ -6258,15 +6262,16 @@ delete pAinvBuf;
 //      colPtr = B.colptrLocal.Data();
 //      T* valPtr = B.nzvalLocal.Data();
 //
+////TODO this has to be rewritten
 //      for( Int j = 0; j < numColLocal; j++ ){
 //        Int col         = perm( firstCol + j );
-//        Int blockColIdx = BlockIdx( col, super_ );
-//        Int procCol     = PCOL( blockColIdx, grid_ );
+//        Int blockColIdx = BlockIdx( col, this->super_ );
+//        Int procCol     = PCOL( blockColIdx, this->grid_ );
 //        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
 //          Int row         = perm_r( *(rowPtr++) - 1 );
-//          Int blockRowIdx = BlockIdx( row, super_ );
-//          Int procRow     = PROW( blockRowIdx, grid_ );
-//          Int dest = PNUM( procRow, procCol, grid_ );
+//          Int blockRowIdx = BlockIdx( row, this->super_ );
+//          Int procRow     = PROW( blockRowIdx, this->grid_ );
+//          Int dest = PNUM( procRow, procCol, this->grid_ );
 //          *(valPtr++) = valSend[displsSend[dest] + cntSize[dest]];
 //          cntSize[dest]++;
 //        } // for (i)

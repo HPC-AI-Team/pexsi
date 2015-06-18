@@ -91,6 +91,7 @@ namespace PEXSI{
 
     /// @brief Option to specify if matrix is symmetric or not.
     Int              symmetric;
+    Int              transpose;
 
 
     // Member functions to setup the default value

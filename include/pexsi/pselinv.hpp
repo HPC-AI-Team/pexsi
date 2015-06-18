@@ -931,7 +931,7 @@ namespace PEXSI{
       /// @param[in]  A Input sparse matrix to provide the sparsity pattern.
       ///
       /// @param[out] B Output sparse matrix.
-      void PMatrixToDistSparseMatrix2( 
+      virtual void PMatrixToDistSparseMatrix2( 
           const DistSparseMatrix<T>& A,
           DistSparseMatrix<T>& B );
 

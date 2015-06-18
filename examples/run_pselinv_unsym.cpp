@@ -60,7 +60,7 @@ using namespace PEXSI;
 using namespace std;
 
 void Usage(){
-  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -r [nprow] -c [npcol] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag] -Real [isReal] -Symm [isSymm] -rowperm [LargeDiag|NOROWPERM] -equil [YES|NO]" << std::endl;
+  std::cout << "Usage" << std::endl << "run_pselinv -T [isText] -F [doFacto -E [doTriSolve] -Sinv [doSelInv]]  -H <Hfile> -S [Sfile] -colperm [colperm] -r [nprow] -c [npcol] -npsymbfact [npsymbfact] -P [maxpipelinedepth] -SinvBcast [doSelInvBcast] -SinvPipeline [doSelInvPipeline] -SinvHybrid [doSelInvHybrid] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag] -Real [isReal] -Symm [isSymm] -rowperm [LargeDiag|NOROWPERM] -equil [YES|NO] -transpose [0|1]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -292,6 +292,16 @@ int main(int argc, char **argv)
       }
 
 
+      Int transpose;
+      if( options.find("-transpose") != options.end() ){ 
+        transpose = atoi( options["-transpose"].c_str() );
+      }
+      else{
+        statusOFS << "-transpose option is not given. " 
+          << "Use default value (0)." 
+          << std::endl << std::endl;
+        transpose = 0;
+      }
 
       // *********************************************************************
       // Read input matrix
@@ -531,6 +541,7 @@ int main(int argc, char **argv)
       luOpt.maxPipelineDepth = maxPipelineDepth;
       luOpt.numProcSymbFact = numProcSymbFact;
       luOpt.symmetric = isSym;
+      luOpt.transpose = transpose;
 
 
       //Initialize SuperLU data structures
@@ -694,6 +705,7 @@ int main(int argc, char **argv)
             cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
           // Main subroutine for selected inversion
+//gdb_lock(mpirank);
           GetTime( timeSta );
           pMat->SelInv();
           GetTime( timeEnd );
@@ -709,51 +721,54 @@ int main(int argc, char **argv)
 
           if(doToDist){
             // Convert to DistSparseMatrix in the 2nd format and get the diagonal
+            DistSparseMatrix<MYSCALAR> AMat2;
+            CSCToCSR(AMat,AMat2);
             GetTime( timeSta );
             DistSparseMatrix<MYSCALAR> Ainv2;
             pMat->PMatrixToDistSparseMatrix2( AMat, Ainv2 );
+            GetTime( timeEnd );
 
             ParaWriteDistSparseMatrix( "AMat.csc", AMat, world_comm ); 
+            ParaWriteDistSparseMatrix( "AMat2.csc", AMat2, world_comm ); 
             ParaWriteDistSparseMatrix( "Ainv.csc", Ainv2, world_comm ); 
 
-            GetTime( timeEnd );
             //Ainv2 is Ainv^T
 
             if( mpirank == 0 )
               cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
 
-            try{ 
-              NumVec<MYSCALAR> diagDistSparse2;
-              GetTime( timeSta );
-              GetDiagonal( Ainv2, diagDistSparse2 );
-              GetTime( timeEnd );
-              if( mpirank == 0 )
-                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-              if( mpirank == 0 ){
-                statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-                Real diffNorm = 0.0;;
-                for( Int i = 0; i < diag.m(); i++ ){
-                  diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
-                }
-                diffNorm = std::sqrt( diffNorm );
-                statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-              }
-            }
-            catch( std::exception& e )
-            {
-              std::cerr << "Processor " << mpirank << " caught exception with message: "
-                << e.what() << std::endl;
-
-            }
+//            try{ 
+//              NumVec<MYSCALAR> diagDistSparse2;
+//              GetTime( timeSta );
+//              GetDiagonal( Ainv2, diagDistSparse2 );
+//              GetTime( timeEnd );
+//              if( mpirank == 0 )
+//                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+//
+//              if( mpirank == 0 ){
+//                statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+//                Real diffNorm = 0.0;;
+//                for( Int i = 0; i < diag.m(); i++ ){
+//                  diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
+//                }
+//                diffNorm = std::sqrt( diffNorm );
+//                statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
+//              }
+//            }
+//            catch( std::exception& e )
+//            {
+//              std::cerr << "Processor " << mpirank << " caught exception with message: "
+//                << e.what() << std::endl;
+//
+//            }
 
             //Trick to get rows of Ainv by converting it to CSR 
             MYSCALAR traceLocal;
 #if 0
             if(luOpt.symmetric==1){
 #endif
-              traceLocal = blas::Dotu( AMat.nnzLocal, Ainv2.nzvalLocal.Data(), 1,
-                  AMat.nzvalLocal.Data(), 1 );
+              traceLocal = blas::Dotu( AMat2.nnzLocal, Ainv2.nzvalLocal.Data(), 1,
+                  AMat2.nzvalLocal.Data(), 1 );
 #if 0
             }
             else{

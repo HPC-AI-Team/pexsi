@@ -435,7 +435,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
     Int nnzLocal = -1;
 
 //TODO reverse this if necessary
-    if(1 || options.symmetric == 1 ){
+    if(options.transpose == 0 || options.symmetric == 1 ){
       numRowLocal = sparseA.colptrLocal.m() - 1;
       nnzLocal = sparseA.nnzLocal;
 

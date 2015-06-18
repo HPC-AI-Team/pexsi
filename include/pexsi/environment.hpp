@@ -70,6 +70,7 @@
 #include <execinfo.h>
 //#include <signal.h>
 #include <exception>
+#include <execinfo.h>
 
 // For 32-bit and 64-bit integers
 #include <stdint.h>
@@ -203,6 +204,14 @@ const Real PI = 3.141592653589793;
 namespace PEXSI{
 
 
+
+  inline void gdb_lock(Int iam){
+      pid_t pid = getpid();
+      std::cout<<"P"<<iam<<" is locked, pid is "<<pid<<std::endl;
+    volatile int lock = 1;
+    while (lock == 1){ }
+      std::cout<<"P"<<iam<<" is unlocked"<<std::endl;
+  }
 
 
 
