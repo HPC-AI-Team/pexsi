@@ -4119,14 +4119,14 @@ std::cout<<"Comm Max Tag = "<<*maxTag<<std::endl;
       const IntNumVec * pPerm_r;
       const IntNumVec * pPermInv_r;
 
-      if(options_->RowPerm=="NOROWPERM"){
-        pPerm_r = &super_->perm;
-        pPermInv_r = &super_->permInv;
-      }
-      else{
+      //if(options_->RowPerm=="NOROWPERM"){
+      //  pPerm_r = &super_->perm;
+      //  pPermInv_r = &super_->permInv;
+      //}
+      //else{
         pPerm_r = &super_->perm_r;
         pPermInv_r = &super_->permInv_r;
-      }
+      //}
 
       const IntNumVec& perm_r    = *pPerm_r;
       const IntNumVec& permInv_r = *pPermInv_r;
