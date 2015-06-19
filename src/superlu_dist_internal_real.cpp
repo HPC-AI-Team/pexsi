@@ -197,10 +197,6 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
       options.Equil             = NO; 
     }
 
-
-
-
-
     options.ReplaceTinyPivot  = YES;
     // For output information such as # of nonzeros in L and U
     // and the memory cost, set PrintStat = YES
@@ -209,6 +205,11 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
     // Necessary to invoke static scheduling of SuperLU
     options.lookahead_etree   = YES;
     options.SymPattern        = YES;
+
+    if(opt.symmetric == 1){
+      options.RowPerm         = NOROWPERM;
+      options.Equil             = NO; 
+    }
 
     if ( opt.ColPerm == "NATURAL" ){
       options.ColPerm = NATURAL;

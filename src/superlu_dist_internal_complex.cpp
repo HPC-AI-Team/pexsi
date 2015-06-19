@@ -203,11 +203,7 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
       options.Equil             = NO; 
     }
 
-    //options.Equil             = YES; 
-    //options.RowPerm         = LargeDiag;
-
     options.ReplaceTinyPivot  = YES;
-    //options.ReplaceTinyPivot  = NO;
     // For output information such as # of nonzeros in L and U
     // and the memory cost, set PrintStat = YES
     options.PrintStat         = NO;
@@ -215,6 +211,11 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
     // Necessary to invoke static scheduling of SuperLU
     options.lookahead_etree   = YES;
     options.SymPattern        = YES;
+
+    if(opt.symmetric == 1){
+      options.RowPerm         = NOROWPERM;
+      options.Equil             = NO; 
+    }
 
     if ( opt.ColPerm == "NATURAL" ){
       options.ColPerm = NATURAL;
