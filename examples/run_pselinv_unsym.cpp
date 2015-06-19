@@ -594,7 +594,17 @@ int main(int argc, char **argv)
         if( mpirank == 0 )
           cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
 
-
+//        {
+//          SuperNodeType * pSuper = new SuperNodeType();
+//          pLuMat->SymbolicToSuperNode( *pSuper );
+//          GridType * pGrid = new GridType(world_comm,nprow,npcol);
+//          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
+//          pLuMat->LUstructToPMatrix( *pMat );
+//          pMat->DumpLU();
+//          delete pMat;
+//          delete pGrid;
+//          delete pSuper;
+//        }
 
         GetTime( timeSta );
         pLuMat->NumericalFactorize();
@@ -663,8 +673,6 @@ int main(int argc, char **argv)
 
           GridType * pGrid = new GridType(world_comm,nprow,npcol);
           PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
-          PMatrix<MYSCALAR> * pMat2 = new PMatrix<MYSCALAR>(*pMat);
-          delete pMat2;
 
           //            {
           //              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
@@ -705,7 +713,6 @@ int main(int argc, char **argv)
             cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
           // Main subroutine for selected inversion
-//gdb_lock(mpirank);
           GetTime( timeSta );
           pMat->SelInv();
           GetTime( timeEnd );
@@ -721,18 +728,119 @@ int main(int argc, char **argv)
 
           if(doToDist){
             // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-            DistSparseMatrix<MYSCALAR> AMat2;
-            CSCToCSR(AMat,AMat2);
-            GetTime( timeSta );
             DistSparseMatrix<MYSCALAR> Ainv2;
-            pMat->PMatrixToDistSparseMatrix2( AMat, Ainv2 );
-            GetTime( timeEnd );
+            MYSCALAR traceLocal;
 
-            ParaWriteDistSparseMatrix( "AMat.csc", AMat, world_comm ); 
-            ParaWriteDistSparseMatrix( "AMat2.csc", AMat2, world_comm ); 
-            ParaWriteDistSparseMatrix( "Ainv.csc", Ainv2, world_comm ); 
+
+            DistSparseMatrix<MYSCALAR> * Aptr;
+            if(luOpt.symmetric==0 && luOpt.transpose==0){
+              Aptr = new DistSparseMatrix<MYSCALAR>();
+              //compute the transpose
+              CSCToCSR(AMat,*Aptr);
+            }
+            else{
+              Aptr = &AMat;
+            }
+
+              GetTime( timeSta );
+              pMat->PMatrixToDistSparseMatrix2( *Aptr, Ainv2 );
+              GetTime( timeEnd );
+
+              traceLocal = ZERO<MYSCALAR>();
+              traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv2.nzvalLocal.Data(), 1,
+                  Aptr->nzvalLocal.Data(), 1 );
+
+            if(luOpt.symmetric==0 && luOpt.transpose==0){
+              delete Aptr;
+            }
+
+#if 0
+            if(luOpt.symmetric==1){
+
+            }
+            else{
+              DistSparseMatrix<MYSCALAR> AMat2;
+              CSCToCSR(AMat,AMat2);
+
+              GetTime( timeSta );
+              pMat->PMatrixToDistSparseMatrix2( AMat2, Ainv2 );
+              GetTime( timeEnd );
+
+//              DistSparseMatrix<MYSCALAR> Ainv2csr;
+//              CSCToCSR(Ainv2,Ainv2csr);
+
+              {
+              DistSparseMatrix<MYSCALAR> & AMat3 = AMat2;
+              DistSparseMatrix<MYSCALAR> & AinvCsr = Ainv2;
+
+              AMat3.SortIndices();
+              AinvCsr.SortIndices();
+//              Ainv2.SortIndices();
+
+              MYSCALAR traceLocal2 = blas::Dotu( AMat3.nnzLocal, AinvCsr.nzvalLocal.Data(), 1,
+                  AMat3.nzvalLocal.Data(), 1 );
+              
+              //cant use dotu if matrix is really unsymmetric, have to do it by hand
+              traceLocal = ZERO<MYSCALAR>();
+
+              for(Int row = 0; row<AinvCsr.colptrLocal.m()-1; ++row){
+                
+                Int rowbeg = AinvCsr.colptrLocal[row]-1;
+                Int rowend = AinvCsr.colptrLocal[row+1]-1;
+
+                Int colbegA = AMat3.colptrLocal[row]-1;
+                Int colendA = AMat3.colptrLocal[row+1]-1;
+
+                Int colbegAinv = Ainv2.colptrLocal[row]-1;
+                Int colendAinv = Ainv2.colptrLocal[row+1]-1;
+
+                for(Int i = colbegAinv;i<colendAinv;++i){
+                    statusOFS<< Ainv2.rowindLocal[i]<<" ";
+                }
+                statusOFS<<endl; 
+                for(Int i = colbegA;i<colendA;++i){
+                    statusOFS<< AMat3.rowindLocal[i]<<" ";
+                }
+                statusOFS<<endl; 
+                for(Int i = rowbeg;i<rowend;++i){
+                    statusOFS<< AinvCsr.rowindLocal[i]<<" ";
+                }
+                statusOFS<<endl<<"------------------"<<endl; 
+
+
+                Int rowIdxA = colbegA;
+                Int colIdx = rowbeg;
+                while(colIdx<rowend && rowIdxA<colendA){
+                  Int col = AinvCsr.rowindLocal[colIdx]-1;
+                  Int rowA = AMat3.rowindLocal[rowIdxA]-1;
+
+                  if(col<rowA){
+                    ++colIdx;
+                  }
+                  else if(rowA<col){
+                    ++rowIdxA;
+                  }
+                  else if(col == rowA){
+                    traceLocal += AinvCsr.nzvalLocal[colIdx]*AMat3.nzvalLocal[rowIdxA];
+                    ++colIdx;
+                    ++rowIdxA;
+                  }
+                }
+              }
+          
+              assert(traceLocal==traceLocal2);
+              }
+
+            }
+
+
+            //ParaWriteDistSparseMatrix( "AMat.csc", AMat, world_comm ); 
+            //ParaWriteDistSparseMatrix( "AMat2.csc", AMat2, world_comm ); 
+            //ParaWriteDistSparseMatrix( "Ainv.csc", Ainv2, world_comm ); 
 
             //Ainv2 is Ainv^T
+#endif
+
 
             if( mpirank == 0 )
               cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
@@ -763,51 +871,6 @@ int main(int argc, char **argv)
 //            }
 
             //Trick to get rows of Ainv by converting it to CSR 
-            MYSCALAR traceLocal;
-#if 0
-            if(luOpt.symmetric==1){
-#endif
-              traceLocal = blas::Dotu( AMat2.nnzLocal, Ainv2.nzvalLocal.Data(), 1,
-                  AMat2.nzvalLocal.Data(), 1 );
-#if 0
-            }
-            else{
-              DistSparseMatrix<MYSCALAR> Ainv2csr;
-              CSCToCSR(Ainv2,Ainv2csr);
-
-              AMat.SortIndices();
-              Ainv2csr.SortIndices();
-
-              //cant use dotu if matrix is really unsymmetric, have to do it by hand
-              traceLocal = ZERO<MYSCALAR>();
-              for(Int row = 0; row<Ainv2csr.colptrLocal.m()-1; ++row){
-                Int rowbeg = Ainv2csr.colptrLocal[row]-1;
-                Int rowend = Ainv2csr.colptrLocal[row+1]-1;
-
-                Int colbegA = AMat.colptrLocal[row]-1;
-                Int colendA = AMat.colptrLocal[row+1]-1;
-
-                Int rowIdxA = colbegA;
-                Int colIdx = rowbeg;
-                while(colIdx<rowend && rowIdxA<colendA){
-                  Int col = Ainv2csr.rowindLocal[colIdx]-1;
-                  Int rowA = AMat.rowindLocal[rowIdxA]-1;
-
-                  if(col<rowA){
-                    ++colIdx;
-                  }
-                  else if(rowA<col){
-                    ++rowIdxA;
-                  }
-                  else if(col == rowA){
-                    traceLocal += Ainv2csr.nzvalLocal[colIdx]*AMat.nzvalLocal[rowIdxA];
-                    ++colIdx;
-                    ++rowIdxA;
-                  }
-                }
-              }
-            }
-#endif
             MYSCALAR trace = ZERO<MYSCALAR>();
             mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
 

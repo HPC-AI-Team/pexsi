@@ -207,6 +207,7 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
     //options.RowPerm         = LargeDiag;
 
     options.ReplaceTinyPivot  = YES;
+    //options.ReplaceTinyPivot  = NO;
     // For output information such as # of nonzeros in L and U
     // and the memory cost, set PrintStat = YES
     options.PrintStat         = NO;
@@ -435,7 +436,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
     Int nnzLocal = -1;
 
 //TODO reverse this if necessary
-    if(options.transpose == 0 || options.symmetric == 1 ){
+    if(options.transpose == 1 || options.symmetric == 1 ){
       numRowLocal = sparseA.colptrLocal.m() - 1;
       nnzLocal = sparseA.nnzLocal;
 

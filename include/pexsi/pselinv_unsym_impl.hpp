@@ -3953,8 +3953,6 @@ delete pAinvBuf;
   template<typename T> 
     void PMatrixUnsym<T>::PreSelInv	(  )
     {
-
-
 #ifndef _RELEASE_
       PushCallStack("PMatrixUnsym::PreSelInv");
 #endif
@@ -3969,14 +3967,7 @@ delete pAinvBuf;
         << std::endl << std::endl; 
 #endif
 
-
-
-
-
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
-
-
-
         if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) ){
           // Broadcast the diagonal L block
           NumMat<T> nzvalLDiag;

@@ -4090,7 +4090,6 @@ std::cout<<"Comm Max Tag = "<<*maxTag<<std::endl;
   template<typename T>
     void PMatrix<T>::PMatrixToDistSparseMatrix2 ( const DistSparseMatrix<T>& A, DistSparseMatrix<T>& B )
     {
-#define _DEBUGlevel_ 1
 
 #ifndef _RELEASE_
       PushCallStack("PMatrix::PMatrixToDistSparseMatrix2");
@@ -4132,11 +4131,6 @@ std::cout<<"Comm Max Tag = "<<*maxTag<<std::endl;
       const IntNumVec& perm_r    = *pPerm_r;
       const IntNumVec& permInv_r = *pPermInv_r;
 
-statusOFS<<"Col perm is "<<perm<<std::endl;
-statusOFS<<"Row perm is "<<perm_r<<std::endl;
-
-
-
 
       // Count the sizes from the A matrix first
       Int numColFirst = this->NumCol() / mpisize;
@@ -4152,16 +4146,12 @@ statusOFS<<"Row perm is "<<perm_r<<std::endl;
 
       for( Int j = 0; j < numColLocal; j++ ){
         Int ocol = firstCol + j;
-        Int col         = perm( ocol );
+        Int col         = perm[ perm_r[ ocol] ];
         Int blockColIdx = BlockIdx( col, super_ );
         Int procCol     = PCOL( blockColIdx, grid_ );
         for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
           Int orow = rowPtr[i]-1;
-          Int row         = perm[perm_r[ orow ]];
-
-
-//irow = perm_c[perm_r[i+fst_row]];  /* Row number in Pc*Pr*A */
-
+          Int row         = perm[ orow ];
           Int blockRowIdx = BlockIdx( row, super_ );
           Int procRow     = PROW( blockRowIdx, grid_ );
           Int dest = PNUM( procRow, procCol, grid_ );
@@ -4229,12 +4219,12 @@ statusOFS<<"Row perm is "<<perm_r<<std::endl;
       for( Int j = 0; j < numColLocal; j++ ){
 
         Int ocol = firstCol + j;
-        Int col         = perm( ocol );
+        Int col         = perm[ perm_r[ ocol] ];
         Int blockColIdx = BlockIdx( col, super_ );
         Int procCol     = PCOL( blockColIdx, grid_ );
         for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
           Int orow = rowPtr[i]-1;
-          Int row         = perm[perm_r[ orow ]];
+          Int row         = perm[ orow ];
           Int blockRowIdx = BlockIdx( row, super_ );
           Int procRow     = PROW( blockRowIdx, grid_ );
           Int dest = PNUM( procRow, procCol, grid_ );
@@ -4279,46 +4269,7 @@ statusOFS<<"Row perm is "<<perm_r<<std::endl;
       }
 
 
-
-statusOFS<<"Content of L"<<std::endl;
-//dump L
-      for(Int j = 0;j<this->L_.size();++j){
-          std::vector<LBlock<T> >&  Lcol = this->L( j );
-        Int blockColIdx = GBj( j, this->grid_ );
-        Int fc = FirstBlockCol( blockColIdx, this->super_ );
-
-
-          for( Int ib = 0; ib < Lcol.size(); ib++ ){
-            for(Int ir = 0; ir< Lcol[ib].rows.m(); ++ir){
-              Int row = Lcol[ib].rows[ir];
-              for(Int col = fc; col<fc+Lcol[ib].numCol;col++){
-                Int orow = permInv[permInv_r[row]];
-                Int ocol = permInv[col];
-                statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<")"<< std::endl;
-              }
-            }
-          }
-      }
-
-statusOFS<<"Content of U"<<std::endl;
-
-//dump U
-      for(Int i = 0;i<this->U_.size();++i){
-          std::vector<UBlock<T> >&  Urow = this->U( i );
-        Int blockRowIdx = GBi( i, this->grid_ );
-        Int fr = FirstBlockRow( blockRowIdx, this->super_ );
-          for( Int jb = 0; jb < Urow.size(); jb++ ){
-            for(Int row = fr; row<fr+Urow[jb].numRow;row++){
-              for(Int ic = 0; ic< Urow[jb].cols.m(); ++ic){
-                Int col = Urow[jb].cols[ic];
-                Int orow = permInv[permInv_r[row]];
-                Int ocol = permInv[col];
-                statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<")"<< std::endl;
-              }
-            }
-
-          }
-      }
+      DumpLU();
 
 
 
@@ -4427,12 +4378,12 @@ statusOFS<<"Content of U"<<std::endl;
 
       for( Int j = 0; j < numColLocal; j++ ){
         Int ocol = firstCol + j;
-        Int col         = perm( ocol );
+        Int col         = perm[ perm_r[ ocol] ];
         Int blockColIdx = BlockIdx( col, super_ );
         Int procCol     = PCOL( blockColIdx, grid_ );
         for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
           Int orow = rowPtr[i]-1;
-          Int row         = perm[perm_r[ orow ]];
+          Int row         = perm[ orow ];
           Int blockRowIdx = BlockIdx( row, super_ );
           Int procRow     = PROW( blockRowIdx, grid_ );
           Int dest = PNUM( procRow, procCol, grid_ );
@@ -4605,6 +4556,88 @@ statusOFS<<"Content of U"<<std::endl;
 
       return pMat;
     } 		// -----  end of factory method PMatrix::Create  ----- 
+
+   template<typename T>
+    inline void PMatrix<T>::DumpLU()
+    {
+#if ( _DEBUGlevel_ >= 1 )
+      const IntNumVec& perm    = super_->perm;
+      const IntNumVec& permInv = super_->permInv;
+
+      const IntNumVec * pPerm_r;
+      const IntNumVec * pPermInv_r;
+
+      if(options_->RowPerm=="NOROWPERM"){
+        pPerm_r = &super_->perm;
+        pPermInv_r = &super_->permInv;
+      }
+      else{
+        pPerm_r = &super_->perm_r;
+        pPermInv_r = &super_->permInv_r;
+      }
+
+      const IntNumVec& perm_r    = *pPerm_r;
+      const IntNumVec& permInv_r = *pPermInv_r;
+
+statusOFS<<"Col perm is "<<perm<<std::endl;
+statusOFS<<"Row perm is "<<perm_r<<std::endl;
+
+statusOFS<<"Inv Col perm is "<<permInv<<std::endl;
+statusOFS<<"Inv Row perm is "<<permInv_r<<std::endl;
+
+
+
+
+statusOFS<<"Content of L"<<std::endl;
+//dump L
+      for(Int j = 0;j<this->L_.size();++j){
+          std::vector<LBlock<T> >&  Lcol = this->L( j );
+        Int blockColIdx = GBj( j, this->grid_ );
+        Int fc = FirstBlockCol( blockColIdx, this->super_ );
+
+
+          for( Int ib = 0; ib < Lcol.size(); ib++ ){
+            for(Int ir = 0; ir< Lcol[ib].rows.m(); ++ir){
+              Int row = Lcol[ib].rows[ir];
+              for(Int col = fc; col<fc+Lcol[ib].numCol;col++){
+                Int ocol = permInv_r[permInv[col]];
+                Int orow = permInv[row];
+                Int jloc = col - FirstBlockCol( blockColIdx, this->super_ );
+                Int iloc = ir;
+                T val = Lcol[ib].nzval( iloc, jloc );
+                statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<") = "<<val<< std::endl;
+              }
+            }
+          }
+      }
+
+statusOFS<<"Content of U"<<std::endl;
+
+//dump U
+      for(Int i = 0;i<this->U_.size();++i){
+          std::vector<UBlock<T> >&  Urow = this->U( i );
+        Int blockRowIdx = GBi( i, this->grid_ );
+        Int fr = FirstBlockRow( blockRowIdx, this->super_ );
+          for( Int jb = 0; jb < Urow.size(); jb++ ){
+            for(Int row = fr; row<fr+Urow[jb].numRow;row++){
+              for(Int ic = 0; ic< Urow[jb].cols.m(); ++ic){
+                Int col = Urow[jb].cols[ic];
+                Int ocol = permInv_r[permInv[col]];
+                Int orow = permInv[row];
+                Int iloc = row - FirstBlockRow( blockRowIdx, this->super_ );
+                Int jloc = ic;
+                T val = Urow[jb].nzval( iloc, jloc );
+                statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<") = "<<val<< std::endl;
+                
+              }
+            }
+
+          }
+      }
+#endif
+
+    }
+
 } // namespace PEXSI
 
 

@@ -1,4 +1,4 @@
-function Ainv = SelInvAsym2( A )
+function [Ainv,Ainv2] = SelInvAsym2( A )
 % Selected inversion routine for asymmetric matrix. 
 %
 % This is test implementation 2.
@@ -43,10 +43,15 @@ for k = numCol-1 : - 1 : 1
   
 end
 
+p
+q
+Binv
 
 Ainv2 = sparse(numCol, numCol);
 % Note the permutation of the column and row
 Ainv2(q,p) = Binv;
+
+
 Ainv = sparse(numCol, numCol);
 % Note compare the nonzero pattern of A'
 indA = find(A');

@@ -950,6 +950,9 @@ namespace PEXSI{
       void GetNegativeInertia	( Real& inertia );
 
       inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
+      public:
+      void DumpLU();
+
   };
 
   template<typename T>  class PMatrixUnsym;
