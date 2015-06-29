@@ -3731,6 +3731,7 @@ namespace PEXSI{
   template<typename T>
     void PMatrix<T>::PMatrixToDistSparseMatrix2 ( const DistSparseMatrix<T>& A, DistSparseMatrix<T>& B )
     {
+
 #ifndef _RELEASE_
       PushCallStack("PMatrix::PMatrixToDistSparseMatrix2");
 #endif
@@ -3759,17 +3760,18 @@ namespace PEXSI{
       const IntNumVec * pPerm_r;
       const IntNumVec * pPermInv_r;
 
-      if(options_->RowPerm=="NOROWPERM"){
-        pPerm_r = &super_->perm;
-        pPermInv_r = &super_->permInv;
-      }
-      else{
+      //if(options_->RowPerm=="NOROWPERM"){
+      //  pPerm_r = &super_->perm;
+      //  pPermInv_r = &super_->permInv;
+      //}
+      //else{
         pPerm_r = &super_->perm_r;
         pPermInv_r = &super_->permInv_r;
-      }
+      //}
 
       const IntNumVec& perm_r    = *pPerm_r;
       const IntNumVec& permInv_r = *pPermInv_r;
+
 
       // Count the sizes from the A matrix first
       Int numColFirst = this->NumCol() / mpisize;
@@ -3784,15 +3786,18 @@ namespace PEXSI{
       Int*     colPtr = A.colptrLocal.Data();
 
       for( Int j = 0; j < numColLocal; j++ ){
-        Int col         = perm( firstCol + j );
+        Int ocol = firstCol + j;
+        Int col         = perm[ perm_r[ ocol] ];
         Int blockColIdx = BlockIdx( col, super_ );
         Int procCol     = PCOL( blockColIdx, grid_ );
         for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int row         = perm_r( *(rowPtr++) - 1 );
+          Int orow = rowPtr[i]-1;
+          Int row         = perm[ orow ];
           Int blockRowIdx = BlockIdx( row, super_ );
           Int procRow     = PROW( blockRowIdx, grid_ );
           Int dest = PNUM( procRow, procCol, grid_ );
 #if ( _DEBUGlevel_ >= 1 )
+          statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<")"<< std::endl;
           statusOFS << "BlockIdx = " << blockRowIdx << ", " <<blockColIdx << std::endl;
           statusOFS << procRow << ", " << procCol << ", " 
             << dest << std::endl;
@@ -3853,11 +3858,14 @@ namespace PEXSI{
       colPtr = A.colptrLocal.Data();
 
       for( Int j = 0; j < numColLocal; j++ ){
-        Int col         = perm( firstCol + j );
+
+        Int ocol = firstCol + j;
+        Int col         = perm[ perm_r[ ocol] ];
         Int blockColIdx = BlockIdx( col, super_ );
         Int procCol     = PCOL( blockColIdx, grid_ );
         for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int row         = perm_r( *(rowPtr++) - 1 );
+          Int orow = rowPtr[i]-1;
+          Int row         = perm[ orow ];
           Int blockRowIdx = BlockIdx( row, super_ );
           Int procRow     = PROW( blockRowIdx, grid_ );
           Int dest = PNUM( procRow, procCol, grid_ );
@@ -3900,6 +3908,12 @@ namespace PEXSI{
         statusOFS << "colSend[" << ip << "] = " << colSend[ip] << std::endl;
         statusOFS << "colRecv[" << ip << "] = " << colRecv[ip] << std::endl;
       }
+
+
+      DumpLU();
+
+
+
 #endif
 
       // For each (row, col), fill the nonzero values to valRecv locally.
@@ -4004,15 +4018,17 @@ namespace PEXSI{
       T* valPtr = B.nzvalLocal.Data();
 
       for( Int j = 0; j < numColLocal; j++ ){
-        Int col         = perm( firstCol + j );
+        Int ocol = firstCol + j;
+        Int col         = perm[ perm_r[ ocol] ];
         Int blockColIdx = BlockIdx( col, super_ );
         Int procCol     = PCOL( blockColIdx, grid_ );
         for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int row         = perm_r( *(rowPtr++) - 1 );
+          Int orow = rowPtr[i]-1;
+          Int row         = perm[ orow ];
           Int blockRowIdx = BlockIdx( row, super_ );
           Int procRow     = PROW( blockRowIdx, grid_ );
           Int dest = PNUM( procRow, procCol, grid_ );
-          *(valPtr++) = valSend[displsSend[dest] + cntSize[dest]];
+          valPtr[i] = valSend[displsSend[dest] + cntSize[dest]];
           cntSize[dest]++;
         } // for (i)
       } // for (j)

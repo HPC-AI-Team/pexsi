@@ -60,10 +60,12 @@
 #include "pexsi/utility.hpp"
 #include "pexsi/blas.hpp"
 #include "pexsi/lapack.hpp"
+
 #include "pexsi/TreeBcast.hpp"
 
 
 #include <set>
+
 
 #define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
 #define IDX_TO_TAG2(sidx,lidx,tag) (SELINV_TAG_COUNT*(sidx)+(tag)) 
@@ -507,7 +509,8 @@ namespace PEXSI{
   template<typename T>
   class PMatrix{
      public:
-      /// @brief Create is a factory method which returns a pointer to a new PMatrix
+      /// @brief Create is a factory method which returns a pointer either to a new PMatrix or to a new PMatrixUnsym
+      /// depending on the pLuOpt parameter.
       static PMatrix<T> * Create(const GridType * pGridType, const SuperNodeType * pSuper, const SuperLUOptions * pLuOpt);
       static PMatrix<T> * Create(const SuperLUOptions * pLuOpt);
 
@@ -515,13 +518,13 @@ namespace PEXSI{
       // This is the tag used for mpi communication for selinv
 
       enum{
-        SELINV_TAG_U_SIZE,
+/**/        SELINV_TAG_U_SIZE,
         SELINV_TAG_U_CONTENT,
-        SELINV_TAG_L_SIZE,
+/**/        SELINV_TAG_L_SIZE,
         SELINV_TAG_L_CONTENT,
         SELINV_TAG_L_REDUCE,
-        SELINV_TAG_D_SIZE,
-        SELINV_TAG_D_CONTENT,
+/**/        SELINV_TAG_D_SIZE,
+/**/        SELINV_TAG_D_CONTENT,
         SELINV_TAG_D_REDUCE,
         SELINV_TAG_L_SIZE_CD,
         SELINV_TAG_L_CONTENT_CD,
@@ -540,6 +543,7 @@ namespace PEXSI{
       const SuperNodeType*  super_;
 
       const SuperLUOptions * options_;
+
 
       std::vector<std::vector<Int> > ColBlockIdx_;
       std::vector<std::vector<Int> > RowBlockIdx_;
@@ -565,6 +569,8 @@ namespace PEXSI{
       std::vector<TreeBcast *> fwdToRightTree_; 
       std::vector<TreeReduce<T> *> redToLeftTree_; 
       std::vector<TreeReduce<T> *> redToAboveTree_; 
+
+
 
       struct SuperNodeBufferType{
         NumMat<T>    LUpdateBuf;
@@ -630,6 +636,8 @@ namespace PEXSI{
       PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
 
       void deallocate();
+     
+
       virtual ~PMatrix();
       PMatrix( const PMatrix & C);
       PMatrix & operator = ( const PMatrix & C);
@@ -942,8 +950,10 @@ namespace PEXSI{
       void GetNegativeInertia	( Real& inertia );
 
       inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
+
   };
 
+  template<typename T>  class PMatrixUnsym;
 
 
 } // namespace PEXSI
