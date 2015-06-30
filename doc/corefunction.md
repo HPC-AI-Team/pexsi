@@ -278,15 +278,18 @@ routines of PSelInv depending on the nature of the matrix and of which
 selected elements are desired.
 
 This is done by setting the relevant fields in the 
-[SuperLUOptions](@ref PEXSI::SuperLUOptions) structure.
+[SuperLUOptions](@ref PEXSI::SuperLUOptions) 
+and [PSelInvOptions](@ref PEXSI::PSelInvOptions) structures.
 
 The options for the factorization include:
 - [ColPerm](@ref PEXSI::SuperLUOptions::ColPerm) controls the column permutation strategy.
-- [CowPerm](@ref PEXSI::SuperLUOptions::RowPerm) controls the row permutation strategy.
+- [RowPerm](@ref PEXSI::SuperLUOptions::RowPerm) controls the row permutation strategy.
 - [Equil](@ref PEXSI::SuperLUOptions::Equil) controls the system equilibration strategy.
 - [Symmetric](@ref PEXSI::SuperLUOptions::Symmetric) specifies whether the matrix is symmetric or unsymmetric.
-- [Transpose](@ref PEXSI::SuperLUOptions::Transpose) specifies whether the original matrix or the transposed matrix needs to be factored. 
-    This is only relevant in the unsymmetric case.
+- [Transpose](@ref PEXSI::SuperLUOptions::Transpose) specifies whether the original matrix or the transposed matrix
+  needs to be factored. This is only relevant in the unsymmetric case. 
+  Indeed, when the transposed matrix is factored, then selected elements PLACEHOLDER can be retrieved.
+  
 
 The extra options for the selected inversion is:
 - [maxPipelineDepth](@ref PEXSI::PSelInvOptions::maxPipelineDepth) controls the tree parallelism strategy of PSelInv.
@@ -701,7 +704,7 @@ Example
   SuperLUGrid<Complex> g( comm, nprow, npcol );
   SuperLUOptions luOpt;
   luOpt.ColPerm = "MMD_AT_PLUS_A";
-  luOpt.Symmetric = 0;
+  luOpt.Symmetric = 1;
 
   SuperLUMatrix<Complex> luMat( g );
 
