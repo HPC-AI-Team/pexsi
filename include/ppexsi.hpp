@@ -55,7 +55,7 @@
 #include "pexsi/SuperLUGrid.hpp"
 #include "pexsi/superlu_dist_interf.hpp"
 #include "pexsi/pselinv.hpp"
-#include "pexsi/pselinv_unsym.hpp"
+#include	"pexsi/pselinv_unsym.hpp"
 //#include "pexsi/ngchol_interf.hpp"
 //#include "pexsi/c_pexsi_interface.h"
 
@@ -115,6 +115,8 @@ namespace PEXSI{
 
     PMatrix<Real>*             PMRealMat_;
     PMatrix<Complex>*          PMComplexMat_;
+    PMatrixUnsym<Real>*        PMRealUnsymMat_;
+    PMatrixUnsym<Complex>*     PMComplexUnsymMat_;
 
     // Whether the matrices have been loaded into HRealMat_ and
     // SRealMat_
@@ -123,6 +125,8 @@ namespace PEXSI{
     // information
     bool                       isRealSymmetricSymbolicFactorized_;
     bool                       isComplexSymmetricSymbolicFactorized_;
+    bool                       isRealUnsymmetricSymbolicFactorized_;
+    bool                       isComplexUnsymmetricSymbolicFactorized_;
     // Supernode partition for the real matrix
     SuperNodeType              superReal_;             
     // Supernode partition for the complex matrix
@@ -166,6 +170,18 @@ namespace PEXSI{
         Real*         SnzvalLocal,
         Int           verbosity );
 
+    void LoadRealUnsymmetricMatrix(
+        Int           nrows,                        
+        Int           nnz,                          
+        Int           nnzLocal,                     
+        Int           numColLocal,                  
+        Int*          colptrLocal,                  
+        Int*          rowindLocal,                  
+        Real*         HnzvalLocal,                  
+        Int           isSIdentity,                  
+        Real*         SnzvalLocal,
+        Int           verbosity );
+
 
     
     /// @brief Symbolically factorize the loaded matrices for real
@@ -187,7 +203,25 @@ namespace PEXSI{
 				Int                            numProcSymbFact,
         Int                            verbosity );
  
-   
+    /// @brief Symbolically factorize the loaded matrices for real
+    /// arithmetic factorization and selected inversion.
+    ///
+    /// The symbolic information is saved internally at luRealMat_ and
+    /// PMRealUnsymMat_.
+    ///
+		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		///
+		/// @param[in] numProcSymbFact Number of processors used for parallel
+		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+    /// @param[in] verbosity The level of output information.
+    /// - = 0   : No output.
+    /// - = 1   : Basic output (default)
+    /// - = 2   : Detailed output.
+    void SymbolicFactorizeRealUnsymmetricMatrix(
+				std::string                    ColPerm,
+				Int                            numProcSymbFact,
+        Int                            verbosity );
+    
     /// @brief Symbolically factorize the loaded matrices for complex
     /// arithmetic factorization and selected inversion.
     ///
@@ -207,15 +241,49 @@ namespace PEXSI{
 				Int                            numProcSymbFact,
         Int                            verbosity );
 
+    /// @brief Symbolically factorize the loaded matrices for complex
+    /// arithmetic factorization and selected inversion.
+    ///
+    /// The symbolic information is saved internally at luComplexMat_ and
+    /// PMComplexUnsymMat_.
+    ///
+		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		///
+		/// @param[in] numProcSymbFact Number of processors used for parallel
+		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+    /// @param[in] verbosity The level of output information.
+    /// - = 0   : No output.
+    /// - = 1   : Basic output (default)
+    /// - = 2   : Detailed output.
+    void SymbolicFactorizeComplexUnsymmetricMatrix(
+				std::string                    ColPerm,
+				Int                            numProcSymbFact,
+        Int                            verbosity );
+
+
+
     void SelInvRealSymmetricMatrix(
           double*           AnzvalLocal,                  
           Int               verbosity,
           double*           AinvnzvalLocal );
 
+    void SelInvRealUnsymmetricMatrix(
+          double*           AnzvalLocal,                  
+          Int               verbosity,
+          double*           AinvnzvalLocal );
+
+
     void SelInvComplexSymmetricMatrix(
           double*           AnzvalLocal,                  
           Int               verbosity,
           double*           AinvnzvalLocal );
+
+    void SelInvComplexUnsymmetricMatrix(
+          double*           AnzvalLocal,                  
+          Int               verbosity,
+          double*           AinvnzvalLocal );
+
+
 
 		/// @brief Compute the negative inertia (the number of eigenvalues
 		/// below a shift) for real symmetric matrices.  The factorization
