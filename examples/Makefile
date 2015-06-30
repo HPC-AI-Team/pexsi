@@ -3,7 +3,7 @@
 
 include ../make.inc
 
-SRCS_CPP  = run_inertia.cpp run_ppexsi.cpp run_pselinv.cpp  
+SRCS_CPP  = run_inertia.cpp run_ppexsi.cpp run_pselinv.cpp run_pselinv_unsym.cpp 
 SRCS_C    = driver_pselinv_real.c driver_pselinv_complex.c driver_ksdft.c 
 
 all: driver_pselinv_real driver_pselinv_complex driver_ksdft 
@@ -23,10 +23,16 @@ run_inertia: run_inertia.o ${PEXSI_LIB}
 run_pselinv: run_pselinv.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS) )
 
+run_pselinv_unsym: run_pselinv_unsym.o ${PEXSI_LIB} 
+	($(LOADER) -o $@_${SUFFIX} run_pselinv_unsym.o  $(LOADOPTS) )
+
 run_inertia.o: run_inertia.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 run_pselinv.o: run_pselinv.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
+
+run_pselinv_unsym.o: run_pselinv_unsym.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 f_ppexsi: f_ppexsi.o ${PEXSI_LIB} 

@@ -169,7 +169,7 @@ namespace PEXSI{
 
   };
 
-  RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, const SuperLUOptions& opt){
+RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, const SuperLUOptions& opt){
 
     isSuperMatrixAllocated     = false;
     isScalePermstructAllocated = false;
@@ -190,7 +190,13 @@ namespace PEXSI{
 
     options.IterRefine        = NOREFINE;
     options.ParSymbFact       = NO;
-    options.Equil             = NO; 
+    if(opt.Equil == "YES"){
+      options.Equil             = YES; 
+    }
+    else{
+      options.Equil             = NO; 
+    }
+
     options.ReplaceTinyPivot  = YES;
     // For output information such as # of nonzeros in L and U
     // and the memory cost, set PrintStat = YES
@@ -199,6 +205,11 @@ namespace PEXSI{
     // Necessary to invoke static scheduling of SuperLU
     options.lookahead_etree   = YES;
     options.SymPattern        = YES;
+
+    if(opt.symmetric == 1){
+      options.RowPerm         = NOROWPERM;
+      options.Equil             = NO; 
+    }
 
     if ( opt.ColPerm == "NATURAL" ){
       options.ColPerm = NATURAL;
@@ -225,9 +236,9 @@ namespace PEXSI{
 
     // Setup grids
     grid = &(g.ptrData->info_->grid);
-  }
+}
 
-  RealSuperLUData_internal::~RealSuperLUData_internal(){
+RealSuperLUData_internal::~RealSuperLUData_internal(){
     if( isLUstructAllocated ){
       Destroy_LU(A.ncol, grid, &LUstruct);
       LUstructFree(&LUstruct); 
@@ -242,20 +253,20 @@ namespace PEXSI{
     if( isSuperMatrixAllocated ){
       DestroyAOnly();
     }
-  }
+}
 
 
-  RealSuperLUData_internal::RealSuperLUData_internal(const RealSuperLUData_internal& g){
+RealSuperLUData_internal::RealSuperLUData_internal(const RealSuperLUData_internal& g){
+    memcpy(this,&g,sizeof(RealSuperLUData_internal));
+}
+
+RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuperLUData_internal& g){
+  if(this!=&g){
     memcpy(this,&g,sizeof(RealSuperLUData_internal));
   }
 
-  RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuperLUData_internal& g){
-    if(this!=&g){
-      memcpy(this,&g,sizeof(RealSuperLUData_internal));
-    }
-
-    return *this;
-  }
+  return *this;
+}
 
 
 
@@ -334,7 +345,7 @@ namespace PEXSI{
 #ifndef _RELEASE_
     PushCallStack("RealSuperLUData::RealSuperLUData");
 #endif
-
+    
     if( g.ptrData == NULL ){
       throw std::runtime_error( "Copied SuperLUMatrix is not allocated." );
     }
@@ -363,7 +374,7 @@ namespace PEXSI{
     if( g.ptrData == NULL ){
       throw std::runtime_error( "Copied SuperLUMatrix is not allocated." );
     }
-
+    
     delete ptrData;
     ptrData = new RealSuperLUData_internal(*g.ptrData);
     if( ptrData == NULL ){
@@ -414,19 +425,41 @@ namespace PEXSI{
     Int numRowLocal = -1;
     Int nnzLocal = -1;
 
-    numRowLocal = sparseA.colptrLocal.m() - 1;
-    nnzLocal = sparseA.nnzLocal;
+    //TODO might have to remove this
+    if(options.transpose == 1  || options.symmetric == 1 ){
+      numRowLocal = sparseA.colptrLocal.m() - 1;
+      nnzLocal = sparseA.nnzLocal;
 
-    colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal); 
-    nzvalLocal  = (double*)doubleMalloc_dist(sparseA.nnzLocal);
-    rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
+      colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal); 
+      nzvalLocal  = (double*)doubleMalloc_dist(sparseA.nnzLocal);
+      rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 
-    std::copy( sparseA.colptrLocal.Data(), sparseA.colptrLocal.Data() + sparseA.colptrLocal.m(),
-        rowptrLocal );
-    std::copy( sparseA.rowindLocal.Data(), sparseA.rowindLocal.Data() + sparseA.rowindLocal.m(),
-        colindLocal );
-    std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
-        nzvalLocal );
+      std::copy( sparseA.colptrLocal.Data(), sparseA.colptrLocal.Data() + sparseA.colptrLocal.m(),
+          rowptrLocal );
+      std::copy( sparseA.rowindLocal.Data(), sparseA.rowindLocal.Data() + sparseA.rowindLocal.m(),
+          colindLocal );
+      std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
+          nzvalLocal );
+
+    }
+    else{
+      DistSparseMatrix<Real> sparseB;
+      CSCToCSR(sparseA,sparseB);
+
+      numRowLocal = sparseB.colptrLocal.m() - 1;
+      nnzLocal = sparseB.nnzLocal;
+
+      colindLocal = (int_t*)intMalloc_dist(sparseB.nnzLocal); 
+      nzvalLocal  = (double*)doubleMalloc_dist(sparseB.nnzLocal);
+      rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
+
+      std::copy( sparseB.colptrLocal.Data(), sparseB.colptrLocal.Data() + sparseB.colptrLocal.m(),
+          rowptrLocal );
+      std::copy( sparseB.rowindLocal.Data(), sparseB.rowindLocal.Data() + sparseB.rowindLocal.m(),
+          colindLocal );
+      std::copy( sparseB.nzvalLocal.Data(), sparseB.nzvalLocal.Data() + sparseB.nzvalLocal.m(),
+          (double*)nzvalLocal );
+    }
 
 
 
@@ -486,12 +519,12 @@ namespace PEXSI{
 #endif
         throw std::logic_error( "LUstruct is already allocated." );
       }
-      //      if( ptrData->options.RowPerm != NOROWPERM ){
-      //#ifdef USE_ABORT
-      //        abort();
-      //#endif
-      //        throw std::logic_error( "For PEXSI there must be no row permutation." );
-      //      }
+//      if( ptrData->options.RowPerm != NOROWPERM ){
+//#ifdef USE_ABORT
+//        abort();
+//#endif
+//        throw std::logic_error( "For PEXSI there must be no row permutation." );
+//      }
 
       SuperMatrix&  A = ptrData->A;
 
@@ -503,7 +536,7 @@ namespace PEXSI{
       statusOFS << "Before symbfact subroutine." << std::endl;
 #endif
 
-      double totalMemory = 0.0, maxMemory = 0.0;
+	double totalMemory = 0.0, maxMemory = 0.0;
 
       pdsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
           &ptrData->LUstruct, &ptrData->stat, &ptrData->numProcSymbFact, &ptrData->info,
