@@ -589,7 +589,7 @@ int main(int argc, char **argv)
             // Convert to DistSparseMatrix in the 2nd format and get the diagonal
             GetTime( timeSta );
             DistSparseMatrix<MYSCALAR> Ainv2;
-            PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
+            PMloc.PMatrixToDistSparseMatrix( AMat, Ainv2 );
             GetTime( timeEnd );
 
             if( mpirank == 0 )
