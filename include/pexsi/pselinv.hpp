@@ -75,8 +75,6 @@
 //#define LIST_BARRIER
 //#define ALL_BARRIER
 
-
-
 namespace PEXSI{
 
   enum MSGTYPE {LSIZE=0,LROWSIZE,USIZE,UCOLSIZE,LCONTENT,LROWCONTENT,UCONTENT,UCOLCONTENT,MSGCOUNT};
@@ -91,6 +89,28 @@ namespace PEXSI{
 
   typedef std::vector<bool> bitMask;
   typedef std::map<bitMask , std::vector<Int> > bitMaskSet;
+
+
+
+
+
+  /// @struct PSelInvOptions
+  /// @brief A thin interface for passing parameters to set the PSelInv
+  /// options.  
+  ///
+  struct PSelInvOptions{
+    /// @brief The maximum pipeline depth. 
+    ///
+    /// @todo
+    /// This option should not be here and should be moved into PMatrix.
+    Int              maxPipelineDepth; 
+
+    // Member functions to setup the default value
+    PSelInvOptions(): maxPipelineDepth(-1) {}
+  };
+
+
+
 
 
   /**********************************************************************
@@ -511,7 +531,8 @@ namespace PEXSI{
      public:
       /// @brief Create is a factory method which returns a pointer either to a new PMatrix or to a new PMatrixUnsym
       /// depending on the pLuOpt parameter.
-      static PMatrix<T> * Create(const GridType * pGridType, const SuperNodeType * pSuper, const SuperLUOptions * pLuOpt);
+
+      static PMatrix<T> * Create(const GridType * pGridType, const SuperNodeType * pSuper, const PSelInvOptions * pSelInvOpt , const SuperLUOptions * pLuOpt);
       static PMatrix<T> * Create(const SuperLUOptions * pLuOpt);
 
      public:
@@ -542,7 +563,8 @@ namespace PEXSI{
 
       const SuperNodeType*  super_;
 
-      const SuperLUOptions * options_;
+      const PSelInvOptions * options_;
+      const SuperLUOptions * optionsLU_;
 
 
       std::vector<std::vector<Int> > ColBlockIdx_;
@@ -633,7 +655,7 @@ namespace PEXSI{
 
       PMatrix() {}
 
-      PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
+      PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::SuperLUOptions * oLU  );
 
       void deallocate();
      
@@ -642,7 +664,7 @@ namespace PEXSI{
       PMatrix( const PMatrix & C);
       PMatrix & operator = ( const PMatrix & C);
 
-      void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
+      void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::SuperLUOptions * oLU  );
 
       Int NumCol() const { return super_ -> superIdx.m(); }
 

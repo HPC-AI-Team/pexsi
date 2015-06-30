@@ -133,6 +133,7 @@ namespace PEXSI{
       grid_ = NULL;
       super_ = NULL;
       options_ = NULL;
+      optionsLU_ = NULL;
 
       ColBlockIdx_.clear();
       RowBlockIdx_.clear();
@@ -186,6 +187,7 @@ namespace PEXSI{
         grid_ = C.grid_;
         super_ = C.super_;
         options_ = C.options_;
+        optionsLU_ = C.optionsLU_;
 
 
         ColBlockIdx_ = C.ColBlockIdx_;
@@ -247,6 +249,7 @@ namespace PEXSI{
       grid_ = C.grid_;
       super_ = C.super_;
       options_ = C.options_;
+      optionsLU_ = C.optionsLU_;
 
 
       ColBlockIdx_ = C.ColBlockIdx_;
@@ -302,14 +305,15 @@ namespace PEXSI{
     PMatrix<T>::PMatrix ( 
         const GridType* g, 
         const SuperNodeType* s, 
-        const PEXSI::SuperLUOptions * o 
+        const PEXSI::PSelInvOptions * o, 
+        const PEXSI::SuperLUOptions * oLU
         )
     {
 #ifndef _RELEASE_
       PushCallStack("PMatrix::PMatrix");
 #endif
 
-      this->Setup( g, s, o );
+      this->Setup( g, s, o, oLU );
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -337,7 +341,8 @@ namespace PEXSI{
     void PMatrix<T>::Setup( 
         const GridType* g, 
         const SuperNodeType* s, 
-        const PEXSI::SuperLUOptions * o 
+        const PEXSI::PSelInvOptions * o, 
+        const PEXSI::SuperLUOptions * oLU 
         ) 
     {
 #ifndef _RELEASE_
@@ -347,6 +352,7 @@ namespace PEXSI{
       grid_          = g;
       super_         = s;
       options_       = o;
+      optionsLU_       = oLU;
 
       //    if( grid_->numProcRow != grid_->numProcCol ){
       //      #ifdef USE_ABORT
@@ -1065,7 +1071,7 @@ namespace PEXSI{
 #endif
       Int nsupers = this->NumSuper();
 
-      if( options_->ColPerm != "PARMETIS" ) {
+      if( optionsLU_->ColPerm != "PARMETIS" ) {
         /* Use the etree computed from serial symb. fact., and turn it
            into supernodal tree.  */
         const SuperNodeType * superNode = this->SuperNode();
@@ -3510,7 +3516,7 @@ namespace PEXSI{
 
       const IntNumVec * pPermInv_r;
 
-      if(options_->RowPerm=="NOROWPERM"){
+      if(optionsLU_->RowPerm=="NOROWPERM"){
         pPermInv_r = &super_->permInv;
       }
       else{
@@ -4239,14 +4245,14 @@ namespace PEXSI{
     } 		// -----  end of method PMatrix::GetNegativeInertia  ----- 
 
   template<typename T>
-    inline PMatrix<T> * PMatrix<T>::Create(const GridType * pGridType, const SuperNodeType * pSuper, const SuperLUOptions * pLuOpt)
+    inline PMatrix<T> * PMatrix<T>::Create(const GridType * pGridType, const SuperNodeType * pSuper, const PSelInvOptions * pSelInvOpt , const SuperLUOptions * pLuOpt)
     { 
       PMatrix<T> * pMat = NULL;
-      if(pLuOpt->symmetric == 0){
-        pMat = new PMatrixUnsym<T>( pGridType, pSuper, pLuOpt  );
+      if(pLuOpt->Symmetric == 0){
+        pMat = new PMatrixUnsym<T>( pGridType, pSuper, pSelInvOpt, pLuOpt  );
       }
       else{
-        pMat = new PMatrix<T>( pGridType, pSuper, pLuOpt  );
+        pMat = new PMatrix<T>( pGridType, pSuper, pSelInvOpt, pLuOpt  );
       }
 
       return pMat;
@@ -4256,7 +4262,7 @@ namespace PEXSI{
     inline PMatrix<T> * PMatrix<T>::Create(const SuperLUOptions * pLuOpt)
     { 
       PMatrix<T> * pMat = NULL;
-      if(pLuOpt->symmetric == 0){
+      if(pLuOpt->Symmetric == 0){
         pMat = new PMatrixUnsym<T>();
       }
       else{

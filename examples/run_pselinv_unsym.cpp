@@ -538,10 +538,10 @@ int main(int argc, char **argv)
       luOpt.ColPerm = ColPerm;
       luOpt.RowPerm = RowPerm;
       luOpt.Equil = Equil;
-      luOpt.maxPipelineDepth = maxPipelineDepth;
+
       luOpt.numProcSymbFact = numProcSymbFact;
-      luOpt.symmetric = isSym;
-      luOpt.transpose = transpose;
+      luOpt.Symmetric = isSym;
+      luOpt.Transpose = transpose;
 
 
       //Initialize SuperLU data structures
@@ -672,7 +672,13 @@ int main(int argc, char **argv)
           //PEXSICreator<MYSCALAR>::CreatePMatrix(world_comm, nprow, npcol, luOpt, pSuper, pMat, pGrid);
 
           GridType * pGrid = new GridType(world_comm,nprow,npcol);
-          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
+
+
+          PSelInvOptions selInvOpt;
+          selInvOpt.maxPipelineDepth = maxPipelineDepth;
+
+
+          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &selInvOpt, &luOpt);
 
           //            {
           //              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
@@ -733,7 +739,7 @@ int main(int argc, char **argv)
 
 
             DistSparseMatrix<MYSCALAR> * Aptr;
-            if(luOpt.symmetric==0 && luOpt.transpose==0){
+            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
               Aptr = new DistSparseMatrix<MYSCALAR>();
               //compute the transpose
               CSCToCSR(AMat,*Aptr);
@@ -750,7 +756,7 @@ int main(int argc, char **argv)
               traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
                   Aptr->nzvalLocal.Data(), 1 );
 
-            if(luOpt.symmetric==0 && luOpt.transpose==0){
+            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
               delete Aptr;
             }
 

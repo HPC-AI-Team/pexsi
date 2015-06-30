@@ -111,6 +111,7 @@ namespace PEXSI{
     SuperLUMatrix<Complex>*    luComplexMat_;
 
     SuperLUOptions             luOpt_;
+    PSelInvOptions             selinvOpt_;
 
     PMatrix<Real>*             PMRealMat_;
     PMatrix<Complex>*          PMComplexMat_;

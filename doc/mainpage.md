@@ -26,6 +26,7 @@ Main Page           {#mainpage}
   - @ref pageBasicCore
   - @ref pageDataType
   - @ref pagePole
+  - @ref pageOptions
   - @ref pageFactor
   - @ref pageSelInv
   - @ref pageCCPP

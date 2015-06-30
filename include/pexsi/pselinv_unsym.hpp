@@ -88,7 +88,7 @@ namespace PEXSI{
 
 
   /**********************************************************************
-   * Main data structure in PSelInv: PMatrix
+   * Main data structure in PSelInv: PMatrixUnsym
    **********************************************************************/
 
   /// @class PMatrixUnsym
@@ -257,11 +257,11 @@ namespace PEXSI{
 
       PMatrixUnsym():PMatrix<T>() {}
 
-      PMatrixUnsym( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
+      PMatrixUnsym( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::SuperLUOptions * oLU  );
 
       //virtual ~PMatrixUnsym() { statusOFS<<"DESTRUCTOR UNSYM CALLED"<<std::endl;    }
 
-      void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::SuperLUOptions * o );
+      void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::SuperLUOptions * oLU  );
 
       /// @brief NumBlockL returns the number of nonzero L blocks for the
       /// local block column jLocal.

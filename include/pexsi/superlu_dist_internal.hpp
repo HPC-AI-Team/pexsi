@@ -66,11 +66,6 @@ namespace PEXSI{
     ///
     /// ColPerm = "PARMETIS"
     Int              numProcSymbFact;
-    /// @brief The maximum pipeline depth. 
-    ///
-    /// @todo
-    /// This option should not be here and should be moved into PMatrix.
-    Int              maxPipelineDepth; 
 
     /// @brief Option of matrixi column permutation strategy.
     ///
@@ -110,16 +105,16 @@ namespace PEXSI{
     std::string      Equil;
 
     /// @brief Option to specify if matrix is symmetric or not.
-    Int              symmetric;
+    Int              Symmetric;
 
     /// @brief Option to specify whether selected elements should 
     /// be computed in the pattern of the transposed matrix or not.
     /// Note that this has an impact only for unsymmetric matrices.
-    Int              transpose;
+    Int              Transpose;
 
 
     // Member functions to setup the default value
-    SuperLUOptions(): numProcSymbFact(0), maxPipelineDepth(-1), ColPerm("MMD_AT_PLUS_A"), symmetric(1), RowPerm("NOROWPERM"), transpose(0), Equil("NO") {}
+    SuperLUOptions(): numProcSymbFact(0), ColPerm("MMD_AT_PLUS_A"), Symmetric(1), RowPerm("NOROWPERM"), Transpose(0), Equil("NO") {}
   };
 
 

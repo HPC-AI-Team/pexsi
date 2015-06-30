@@ -58,14 +58,15 @@ namespace PEXSI{
     PMatrixUnsym<T>::PMatrixUnsym ( 
         const GridType* g, 
         const SuperNodeType* s, 
-        const PEXSI::SuperLUOptions * o 
+        const PEXSI::PSelInvOptions * o, 
+        const PEXSI::SuperLUOptions * oLU  
         )
     {
 #ifndef _RELEASE_
-      PushCallStack("PMatrix::PMatrix");
+      PushCallStack("PMatrixUnsym::PMatrixUnsym");
 #endif
 
-      this->Setup( g, s, o );
+      this->Setup( g, s, o, oLU );
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -78,13 +79,14 @@ namespace PEXSI{
     void PMatrixUnsym<T>::Setup( 
         const GridType* g, 
         const SuperNodeType* s, 
-        const PEXSI::SuperLUOptions * o 
+        const PEXSI::PSelInvOptions * o, 
+        const PEXSI::SuperLUOptions * oLU  
         ) {
 #ifndef _RELEASE_
-      PushCallStack("PMatrix::Setup");
+      PushCallStack("PMatrixUnsym::Setup");
 #endif
 
-      PMatrix<T>::Setup(g,s,o);
+      PMatrix<T>::Setup(g,s,o,oLU);
 
 
 
@@ -2056,7 +2058,7 @@ struct CDBuffers{
 
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrix::SelInv_P2p::UpdateLU");
+      PushCallStack("PMatrixUnsym::SelInv_P2p::UpdateLU");
 #endif
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
@@ -3555,7 +3557,7 @@ delete pAinvBuf;
     void PMatrixUnsym<T>::ConstructCommunicationPattern	(  )
     {
       ConstructCommunicationPattern_P2p();
-    } 		// -----  end of method PMatrix::ConstructCommunicationPattern  ----- 
+    } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern  ----- 
 
 
 
@@ -3563,7 +3565,7 @@ delete pAinvBuf;
     void PMatrixUnsym<T>::ConstructCommunicationPattern_P2p	(  )
     {
 #ifndef _RELEASE_
-      PushCallStack("PMatrix::ConstructCommunicationPattern_P2p");
+      PushCallStack("PMatrixUnsym::ConstructCommunicationPattern_P2p");
 #endif
 
       TIMER_START(ConstructCommunicationPattern);
@@ -4590,7 +4592,7 @@ delete pAinvBuf;
 #endif
 
       return ;
-    } 		// -----  end of method PMatrix::ConstructCommunicationPattern_P2p  ----- 
+    } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern_P2p  ----- 
 
 
 } // namespace PEXSI

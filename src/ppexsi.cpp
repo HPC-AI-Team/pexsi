@@ -330,7 +330,7 @@ throw std::runtime_error( msg.str().c_str() );
 
     luOpt_.ColPerm = ColPerm;
     luOpt_.numProcSymbFact = numProcSymbFact;
-    luOpt_.maxPipelineDepth = -1;
+    selinvOpt_.maxPipelineDepth = -1;
 
     luMat.Setup( *gridSuperLUReal_, luOpt_ );  // SuperLU matrix.
 
@@ -357,7 +357,7 @@ throw std::runtime_error( msg.str().c_str() );
     }
     luMat.SymbolicToSuperNode( super );
     
-    PMloc.Setup( gridSelInv_, &super , &luOpt_ );
+    PMloc.Setup( gridSelInv_, &super , &selinvOpt_,  &luOpt_ );
     GetTime( timeSta );
     luMat.LUstructToPMatrix( PMloc );
     GetTime( timeEnd );
@@ -438,7 +438,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
 
     luOpt_.ColPerm = ColPerm;
     luOpt_.numProcSymbFact = numProcSymbFact;
-    luOpt_.maxPipelineDepth = -1;
+    selinvOpt_.maxPipelineDepth = -1;
 
     luMat.Setup( *gridSuperLUComplex_, luOpt_ );  // SuperLU matrix.
 
@@ -465,7 +465,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
     }
     luMat.SymbolicToSuperNode( super );
     
-    PMloc.Setup( gridSelInv_, &super , &luOpt_ );
+    PMloc.Setup( gridSelInv_, &super , &selinvOpt_, &luOpt_ );
     GetTime( timeSta );
     luMat.LUstructToPMatrix( PMloc );
     GetTime( timeEnd );

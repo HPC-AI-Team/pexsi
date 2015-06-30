@@ -206,7 +206,7 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
     options.lookahead_etree   = YES;
     options.SymPattern        = YES;
 
-    if(opt.symmetric == 1){
+    if(opt.Symmetric == 1){
       options.RowPerm         = NOROWPERM;
       options.Equil             = NO; 
     }
@@ -425,8 +425,7 @@ RealSuperLUData_internal & RealSuperLUData_internal::operator = (const RealSuper
     Int numRowLocal = -1;
     Int nnzLocal = -1;
 
-    //TODO might have to remove this
-    if(options.transpose == 1  || options.symmetric == 1 ){
+    if(options.Transpose == 1  || options.Symmetric == 1 ){
       numRowLocal = sparseA.colptrLocal.m() - 1;
       nnzLocal = sparseA.nnzLocal;
 
