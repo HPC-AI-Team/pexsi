@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 
   nprow               = 1;
   npcol               = mpisize;
-  Rfile               = "lap2dr.matrix";
+  Rfile               = "big.unsym.matrix";
 
 
   /* Read the matrix */
@@ -124,6 +124,7 @@ int main(int argc, char **argv)
   PPEXSISetDefaultOptions( &options );
   options.npSymbFact = 1;
   options.ordering = 0;
+  options.rowOrdering = 1;
   options.verbosity = 1;
 
   PPEXSIPlan   plan;

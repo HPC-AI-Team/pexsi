@@ -219,6 +219,7 @@ namespace PEXSI{
     /// - = 2   : Detailed output.
     void SymbolicFactorizeRealUnsymmetricMatrix(
 				std::string                    ColPerm,
+        std::string                    RowPerm,
 				Int                            numProcSymbFact,
         Int                            verbosity );
     
@@ -257,6 +258,7 @@ namespace PEXSI{
     /// - = 2   : Detailed output.
     void SymbolicFactorizeComplexUnsymmetricMatrix(
 				std::string                    ColPerm,
+        std::string                    RowPerm,
 				Int                            numProcSymbFact,
         Int                            verbosity );
 

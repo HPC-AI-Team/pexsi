@@ -275,6 +275,7 @@ void PPEXSISetDefaultOptions(
   options->matrixType            = 0;
   options->isSymbolicFactorize   = 1;
   options->ordering              = 0;
+  options->rowOrdering           = 0;
   options->npSymbFact            = 1;
   options->symmetric             = 1;
   options->verbosity             = 1;
@@ -486,9 +487,25 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
         throw std::logic_error("Unsupported ordering strategy.");
     }
 
+
+    std::string rowPerm;
+    switch (options.rowOrdering){
+      case 0:
+        rowPerm = "NOROWPERM";
+        break;
+      case 1:
+        rowPerm = "LargeDiag";
+        break;
+      default:
+        throw std::logic_error("Unsupported row ordering strategy.");
+    }
+
+
+
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeRealUnsymmetricMatrix(
           colPerm,
+          rowPerm,
           options.npSymbFact,
           options.verbosity );
   }
@@ -580,9 +597,23 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
         throw std::logic_error("Unsupported ordering strategy.");
     }
 
+    std::string rowPerm;
+    switch (options.rowOrdering){
+      case 0:
+        rowPerm = "NOROWPERM";
+        break;
+      case 1:
+        rowPerm = "LargeDiag";
+        break;
+      default:
+        throw std::logic_error("Unsupported row ordering strategy.");
+    }
+
+
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeComplexUnsymmetricMatrix(
           colPerm,
+          rowPerm,
           options.npSymbFact,
           options.verbosity );
   }

@@ -261,6 +261,15 @@ typedef struct {
      */ 
     int           ordering;
     /** 
+     * @brief  row permutation strategy for factorization and selected
+     * inversion.  
+     * - = 0   : No row permutation (NOROWPERM
+     *   option in SuperLU_DIST).
+     * - = 1   : Make diagonal entry larger than off diagonal ( LargeDiag
+     *   option in SuperLU_DIST).
+     */ 
+    int           rowOrdering;
+    /** 
      * @brief  Number of processors for PARMETIS/PT-SCOTCH.  Only used
      * if the ordering == 0.
      */ 
