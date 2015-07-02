@@ -281,6 +281,12 @@ typedef struct {
      */ 
     int           symmetric;
     /** 
+     * @brief  Transpose.
+     * - = 0   : Factor non transposed matrix (default).
+     * - = 1   : Factor transposed matrix.
+     */ 
+    int           transpose;
+    /** 
      * @brief  The level of output information.
      * - = 0   : No output.
      * - = 1   : Basic output (default)
@@ -512,6 +518,7 @@ void PPEXSILoadRealUnsymmetricHSMatrix(
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
  * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] AnzvalLocal non zero values required to compute row permutation
  * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
@@ -519,6 +526,7 @@ void PPEXSILoadRealUnsymmetricHSMatrix(
 void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
     int*              info );
 
 /**
@@ -528,6 +536,7 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
  * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] AnzvalLocal non zero values required to compute row permutation
  * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
@@ -535,6 +544,7 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
 void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
     int*              info );
 
 

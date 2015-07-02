@@ -153,6 +153,7 @@ int main(int argc, char **argv)
   PPEXSISymbolicFactorizeRealUnsymmetricMatrix( 
       plan,
       options,
+      AnzvalLocal,
       &info );
 
   PPEXSISelInvRealUnsymmetricMatrix (

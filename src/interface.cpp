@@ -278,6 +278,7 @@ void PPEXSISetDefaultOptions(
   options->rowOrdering           = 0;
   options->npSymbFact            = 1;
   options->symmetric             = 1;
+  options->transpose             = 0;
   options->verbosity             = 1;
 }   // -----  end of function PPEXSISetDefaultOptions  ----- 
 
@@ -465,6 +466,7 @@ extern "C"
 void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
     int*              info ) {
   const GridType* gridPole = 
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
@@ -507,6 +509,7 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
           colPerm,
           rowPerm,
           options.npSymbFact,
+          AnzvalLocal,
           options.verbosity );
   }
 	catch( std::exception& e )
@@ -575,6 +578,7 @@ extern "C"
 void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
+    double*           AnzvalLocal,                  
     int*              info ) {
   const GridType* gridPole = 
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
@@ -615,6 +619,7 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
           colPerm,
           rowPerm,
           options.npSymbFact,
+          AnzvalLocal,
           options.verbosity );
   }
 	catch( std::exception& e )

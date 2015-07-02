@@ -207,12 +207,14 @@ namespace PEXSI{
     /// arithmetic factorization and selected inversion.
     ///
     /// The symbolic information is saved internally at luRealMat_ and
-    /// PMRealUnsymMat_.
+    /// PMRealMat_.
     ///
 		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		/// @param[in] RowPerm   Row Permutation method used for SuperLU_DIST
 		///
 		/// @param[in] numProcSymbFact Number of processors used for parallel
 		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+		/// @param[in] AnzvalLocal non zero values for row permutation 
     /// @param[in] verbosity The level of output information.
     /// - = 0   : No output.
     /// - = 1   : Basic output (default)
@@ -221,8 +223,10 @@ namespace PEXSI{
 				std::string                    ColPerm,
         std::string                    RowPerm,
 				Int                            numProcSymbFact,
+        double*           AnzvalLocal,                  
         Int                            verbosity );
-    
+
+   
     /// @brief Symbolically factorize the loaded matrices for complex
     /// arithmetic factorization and selected inversion.
     ///
@@ -249,9 +253,11 @@ namespace PEXSI{
     /// PMComplexUnsymMat_.
     ///
 		/// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+		/// @param[in] RowPerm   Row Permutation method used for SuperLU_DIST
 		///
 		/// @param[in] numProcSymbFact Number of processors used for parallel
 		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+		/// @param[in] AnzvalLocal non zero values for row permutation 
     /// @param[in] verbosity The level of output information.
     /// - = 0   : No output.
     /// - = 1   : Basic output (default)
@@ -260,6 +266,7 @@ namespace PEXSI{
 				std::string                    ColPerm,
         std::string                    RowPerm,
 				Int                            numProcSymbFact,
+        double*           AnzvalLocal,                  
         Int                            verbosity );
 
 

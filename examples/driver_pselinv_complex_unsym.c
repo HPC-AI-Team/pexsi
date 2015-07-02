@@ -179,6 +179,7 @@ int main(int argc, char **argv)
   PPEXSISymbolicFactorizeComplexUnsymmetricMatrix( 
       plan,
       options,
+      AnzvalLocal,
       &info );
 
   PPEXSISelInvComplexUnsymmetricMatrix (

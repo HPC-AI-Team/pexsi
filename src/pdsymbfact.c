@@ -287,6 +287,14 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 
 					if ( !iam ) {
 						/* Process 0 finds a row permutation */
+
+printf("%d\n",job);
+printf("%d\n",m);
+printf("%d\n",nnz);
+for( i = 0; i<=m;++i){ printf("%d ",colptr[i]);}printf("\n");
+for( i = 0; i<nnz;++i){printf("%d ",rowind[i]);}printf("\n");
+for( i = 0; i<nnz;++i){printf("%f ",a_GA[i]  );}printf("\n");
+
 						dldperm(job, m, nnz, colptr, rowind, a_GA,
 										perm_r, R1, C1);
 

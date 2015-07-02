@@ -587,6 +587,7 @@ PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix	(
     std::string                    ColPerm,
     std::string                    RowPerm,
     Int                            numProcSymbFact,
+    double*           AnzvalLocal,                  
     Int                            verbosity )
 {
 #ifndef _RELEASE_
@@ -628,7 +629,22 @@ throw std::runtime_error( msg.str().c_str() );
     DistSparseMatrix<Real> AMat;
     CopyPattern( HRealMat_, AMat );
 
-    SetValue( AMat.nzvalLocal, D_ZERO );          // Symbolic factorization does not need value
+    if(luOpt_.RowPerm == "LargeDiag"){
+      if(AnzvalLocal != NULL){
+        //NOT TRUE
+        //SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
+        blas::Copy( AMat.nnzLocal, AnzvalLocal, 1, AMat.nzvalLocal.Data(), 1 );
+      }
+      else{
+        std::ostringstream msg;
+        msg  << std::endl
+          << "LargeDiag requires the non zero values to be provided." << std::endl;
+          throw std::runtime_error( msg.str().c_str() );
+
+      }
+    }
+
+
 
     Real timeSta, timeEnd;
     GetTime( timeSta );
@@ -817,6 +833,7 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
     std::string                    ColPerm,
     std::string                    RowPerm,
     Int                            numProcSymbFact,
+    double*           AnzvalLocal,                  
     Int                            verbosity )
 {
 #ifndef _RELEASE_
@@ -856,7 +873,21 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
     DistSparseMatrix<Complex> AMat;
     CopyPattern( HRealMat_, AMat );
 
-    SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
+    if(luOpt_.RowPerm == "LargeDiag"){
+      if(AnzvalLocal != NULL){
+        //NOT TRUE
+        //SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
+        blas::Copy( 2*AMat.nnzLocal, AnzvalLocal, 1, 
+            reinterpret_cast<double*>(AMat.nzvalLocal.Data()), 1 );
+      }
+      else{
+        std::ostringstream msg;
+        msg  << std::endl
+          << "LargeDiag requires the non zero values to be provided." << std::endl;
+          throw std::runtime_error( msg.str().c_str() );
+
+      }
+    }
 
     Real timeSta, timeEnd;
     GetTime( timeSta );
