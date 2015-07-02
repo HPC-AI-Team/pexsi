@@ -587,7 +587,8 @@ PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix	(
     std::string                    ColPerm,
     std::string                    RowPerm,
     Int                            numProcSymbFact,
-    double*           AnzvalLocal,                  
+    Int                            Transpose,
+    double*                        AnzvalLocal,                  
     Int                            verbosity )
 {
 #ifndef _RELEASE_
@@ -623,6 +624,7 @@ throw std::runtime_error( msg.str().c_str() );
     luOpt_.numProcSymbFact = numProcSymbFact;
     selinvOpt_.maxPipelineDepth = -1;
     luOpt_.Symmetric = 0;
+    luOpt_.Transpose = Transpose;
 
     luMat.Setup( *gridSuperLUReal_, luOpt_ );  // SuperLU matrix.
 
@@ -833,7 +835,8 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
     std::string                    ColPerm,
     std::string                    RowPerm,
     Int                            numProcSymbFact,
-    double*           AnzvalLocal,                  
+    Int                            Transpose,
+    double*                        AnzvalLocal,                  
     Int                            verbosity )
 {
 #ifndef _RELEASE_
@@ -867,6 +870,7 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
     luOpt_.numProcSymbFact = numProcSymbFact;
     selinvOpt_.maxPipelineDepth = -1;
     luOpt_.Symmetric = 0;
+    luOpt_.Transpose = Transpose;
 
     luMat.Setup( *gridSuperLUComplex_, luOpt_ );  // SuperLU matrix.
 

@@ -509,6 +509,7 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
           colPerm,
           rowPerm,
           options.npSymbFact,
+          options.transpose,
           AnzvalLocal,
           options.verbosity );
   }
@@ -619,6 +620,7 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
           colPerm,
           rowPerm,
           options.npSymbFact,
+          options.transpose,
           AnzvalLocal,
           options.verbosity );
   }

@@ -214,6 +214,7 @@ namespace PEXSI{
 		///
 		/// @param[in] numProcSymbFact Number of processors used for parallel
 		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+		/// @param[in] Transpose TODO
 		/// @param[in] AnzvalLocal non zero values for row permutation 
     /// @param[in] verbosity The level of output information.
     /// - = 0   : No output.
@@ -223,7 +224,8 @@ namespace PEXSI{
 				std::string                    ColPerm,
         std::string                    RowPerm,
 				Int                            numProcSymbFact,
-        double*           AnzvalLocal,                  
+        Int                            Transpose,
+        double*                        AnzvalLocal,                  
         Int                            verbosity );
 
    
@@ -257,6 +259,7 @@ namespace PEXSI{
 		///
 		/// @param[in] numProcSymbFact Number of processors used for parallel
 		/// symbolic factorization and PARMETIS/PT-SCOTCH.
+		/// @param[in] Transpose TODO
 		/// @param[in] AnzvalLocal non zero values for row permutation 
     /// @param[in] verbosity The level of output information.
     /// - = 0   : No output.
@@ -266,7 +269,8 @@ namespace PEXSI{
 				std::string                    ColPerm,
         std::string                    RowPerm,
 				Int                            numProcSymbFact,
-        double*           AnzvalLocal,                  
+        Int                            Transpose,
+        double*                        AnzvalLocal,                  
         Int                            verbosity );
 
 
