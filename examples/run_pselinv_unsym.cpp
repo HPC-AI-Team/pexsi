@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-#define _MYCOMPLEX_
+//#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -538,10 +538,10 @@ int main(int argc, char **argv)
       luOpt.ColPerm = ColPerm;
       luOpt.RowPerm = RowPerm;
       luOpt.Equil = Equil;
-      luOpt.maxPipelineDepth = maxPipelineDepth;
+
       luOpt.numProcSymbFact = numProcSymbFact;
-      luOpt.symmetric = isSym;
-      luOpt.transpose = transpose;
+      luOpt.Symmetric = isSym;
+      luOpt.Transpose = transpose;
 
 
       //Initialize SuperLU data structures
@@ -672,7 +672,13 @@ int main(int argc, char **argv)
           //PEXSICreator<MYSCALAR>::CreatePMatrix(world_comm, nprow, npcol, luOpt, pSuper, pMat, pGrid);
 
           GridType * pGrid = new GridType(world_comm,nprow,npcol);
-          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
+
+
+          PSelInvOptions selInvOpt;
+          selInvOpt.maxPipelineDepth = maxPipelineDepth;
+
+
+          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &selInvOpt, &luOpt);
 
           //            {
           //              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
@@ -728,12 +734,12 @@ int main(int argc, char **argv)
 
           if(doToDist){
             // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-            DistSparseMatrix<MYSCALAR> Ainv2;
+            DistSparseMatrix<MYSCALAR> Ainv;
             MYSCALAR traceLocal;
 
 
             DistSparseMatrix<MYSCALAR> * Aptr;
-            if(luOpt.symmetric==0 && luOpt.transpose==0){
+            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
               Aptr = new DistSparseMatrix<MYSCALAR>();
               //compute the transpose
               CSCToCSR(AMat,*Aptr);
@@ -743,155 +749,39 @@ int main(int argc, char **argv)
             }
 
               GetTime( timeSta );
-              pMat->PMatrixToDistSparseMatrix2( *Aptr, Ainv2 );
+              pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
               GetTime( timeEnd );
 
               traceLocal = ZERO<MYSCALAR>();
-              traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv2.nzvalLocal.Data(), 1,
+              traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
                   Aptr->nzvalLocal.Data(), 1 );
 
-            if(luOpt.symmetric==0 && luOpt.transpose==0){
+            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
               delete Aptr;
             }
-
-#if 0
-            if(luOpt.symmetric==1){
-
-            }
-            else{
-              DistSparseMatrix<MYSCALAR> AMat2;
-              CSCToCSR(AMat,AMat2);
-
-              GetTime( timeSta );
-              pMat->PMatrixToDistSparseMatrix2( AMat2, Ainv2 );
-              GetTime( timeEnd );
-
-//              DistSparseMatrix<MYSCALAR> Ainv2csr;
-//              CSCToCSR(Ainv2,Ainv2csr);
-
-              {
-              DistSparseMatrix<MYSCALAR> & AMat3 = AMat2;
-              DistSparseMatrix<MYSCALAR> & AinvCsr = Ainv2;
-
-              AMat3.SortIndices();
-              AinvCsr.SortIndices();
-//              Ainv2.SortIndices();
-
-              MYSCALAR traceLocal2 = blas::Dotu( AMat3.nnzLocal, AinvCsr.nzvalLocal.Data(), 1,
-                  AMat3.nzvalLocal.Data(), 1 );
-              
-              //cant use dotu if matrix is really unsymmetric, have to do it by hand
-              traceLocal = ZERO<MYSCALAR>();
-
-              for(Int row = 0; row<AinvCsr.colptrLocal.m()-1; ++row){
-                
-                Int rowbeg = AinvCsr.colptrLocal[row]-1;
-                Int rowend = AinvCsr.colptrLocal[row+1]-1;
-
-                Int colbegA = AMat3.colptrLocal[row]-1;
-                Int colendA = AMat3.colptrLocal[row+1]-1;
-
-                Int colbegAinv = Ainv2.colptrLocal[row]-1;
-                Int colendAinv = Ainv2.colptrLocal[row+1]-1;
-
-                for(Int i = colbegAinv;i<colendAinv;++i){
-                    statusOFS<< Ainv2.rowindLocal[i]<<" ";
-                }
-                statusOFS<<endl; 
-                for(Int i = colbegA;i<colendA;++i){
-                    statusOFS<< AMat3.rowindLocal[i]<<" ";
-                }
-                statusOFS<<endl; 
-                for(Int i = rowbeg;i<rowend;++i){
-                    statusOFS<< AinvCsr.rowindLocal[i]<<" ";
-                }
-                statusOFS<<endl<<"------------------"<<endl; 
-
-
-                Int rowIdxA = colbegA;
-                Int colIdx = rowbeg;
-                while(colIdx<rowend && rowIdxA<colendA){
-                  Int col = AinvCsr.rowindLocal[colIdx]-1;
-                  Int rowA = AMat3.rowindLocal[rowIdxA]-1;
-
-                  if(col<rowA){
-                    ++colIdx;
-                  }
-                  else if(rowA<col){
-                    ++rowIdxA;
-                  }
-                  else if(col == rowA){
-                    traceLocal += AinvCsr.nzvalLocal[colIdx]*AMat3.nzvalLocal[rowIdxA];
-                    ++colIdx;
-                    ++rowIdxA;
-                  }
-                }
-              }
-          
-              assert(traceLocal==traceLocal2);
-              }
-
-            }
-
-
-            //ParaWriteDistSparseMatrix( "AMat.csc", AMat, world_comm ); 
-            //ParaWriteDistSparseMatrix( "AMat2.csc", AMat2, world_comm ); 
-            //ParaWriteDistSparseMatrix( "Ainv.csc", Ainv2, world_comm ); 
-
-            //Ainv2 is Ainv^T
-#endif
 
 
             if( mpirank == 0 )
               cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
 
-//            try{ 
-//              NumVec<MYSCALAR> diagDistSparse2;
-//              GetTime( timeSta );
-//              GetDiagonal( Ainv2, diagDistSparse2 );
-//              GetTime( timeEnd );
-//              if( mpirank == 0 )
-//                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-//
-//              if( mpirank == 0 ){
-//                statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-//                Real diffNorm = 0.0;;
-//                for( Int i = 0; i < diag.m(); i++ ){
-//                  diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
-//                }
-//                diffNorm = std::sqrt( diffNorm );
-//                statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-//              }
-//            }
-//            catch( std::exception& e )
-//            {
-//              std::cerr << "Processor " << mpirank << " caught exception with message: "
-//                << e.what() << std::endl;
-//
-//            }
-
-            //Trick to get rows of Ainv by converting it to CSR 
             MYSCALAR trace = ZERO<MYSCALAR>();
             mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
 
             if( mpirank == 0 ){
 
               cout << "H.size = "  << AMat.size << endl;
-              cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
-              statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
+              cout << std::endl << "Tr[Ainv * AMat] = " <<  trace << std::endl;
+              statusOFS << std::endl << "Tr[Ainv * AMat] = " << std::endl << trace << std::endl;
 #ifdef _MYCOMPLEX_ 
-              cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
-              statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
+              cout << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
+              statusOFS << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
 #else
-              cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
-              statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
+              cout << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
+              statusOFS << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
 #endif
             }
-          }
 
-
-          // Output the diagonal elements
-          if( doDiag ){
+if( doDiag ){
             NumVec<MYSCALAR> diag;
 
             GetTime( timeSta );
@@ -902,6 +792,47 @@ int main(int argc, char **argv)
             if( mpirank == 0 )
               cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
 
+
+            NumVec<MYSCALAR> diagDistSparse;
+            GetTime( timeSta );
+            GetDiagonal( Ainv, diagDistSparse );
+            GetTime( timeEnd );
+            if( mpirank == 0 )
+              cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+
+            if( mpirank == 0 ){
+              statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format: " << std::endl << diagDistSparse << std::endl;
+              Real diffNorm = 0.0;;
+              for( Int i = 0; i < diag.m(); i++ ){
+                diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+              }
+              diffNorm = std::sqrt( diffNorm );
+              cout << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+            }
+
+
+            if( mpirank == 0 ){
+              statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
+              ofstream ofs("diag");
+              if( !ofs.good() ) 
+                throw std::runtime_error("file cannot be opened.");
+              serialize( diag, ofs, NO_MASK );
+              ofs.close();
+            }
+          }
+
+
+          }
+          else if( doDiag ){
+            NumVec<MYSCALAR> diag;
+
+            GetTime( timeSta );
+            pMat->GetDiagonal( diag );
+            GetTime( timeEnd );
+
+
+            if( mpirank == 0 )
+              cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
 
             if( mpirank == 0 ){
               statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;

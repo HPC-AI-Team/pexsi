@@ -22,7 +22,8 @@ EXES = ${SRCS_CPP:.cpp=} ${SRCS_C:.c=}
 %.o: %.F
 	${FC} -c ${FFLAGS} $<
 
-all: f_driver_ksdft f_driver_pselinv_real f_driver_pselinv_complex
+all: f_driver_ksdft f_driver_pselinv_real f_driver_pselinv_complex \
+ 	f_driver_pselinv_real_unsym f_driver_pselinv_complex_unsym
 
 f_driver_ksdft: f_interface.o f_driver_ksdft.o ${PEXSI_LIB} 
 	($(FC) -o $@_${SUFFIX} f_driver_ksdft.o  $(FLOADOPTS) )

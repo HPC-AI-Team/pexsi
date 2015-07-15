@@ -86,8 +86,10 @@ type, bind(C) :: f_ppexsi_options
   integer(c_int)         :: isSymbolicFactorize
   integer(c_int)         :: isConstructCommPattern
   integer(c_int)         :: ordering
+  integer(c_int)         :: rowOrdering
   integer(c_int)         :: npSymbFact
   integer(c_int)         :: symmetric
+  integer(c_int)         :: transpose
   integer(c_int)         :: verbosity
 end type f_ppexsi_options
 

@@ -133,6 +133,7 @@ namespace PEXSI{
       grid_ = NULL;
       super_ = NULL;
       options_ = NULL;
+      optionsLU_ = NULL;
 
       ColBlockIdx_.clear();
       RowBlockIdx_.clear();
@@ -186,6 +187,7 @@ namespace PEXSI{
         grid_ = C.grid_;
         super_ = C.super_;
         options_ = C.options_;
+        optionsLU_ = C.optionsLU_;
 
 
         ColBlockIdx_ = C.ColBlockIdx_;
@@ -247,6 +249,7 @@ namespace PEXSI{
       grid_ = C.grid_;
       super_ = C.super_;
       options_ = C.options_;
+      optionsLU_ = C.optionsLU_;
 
 
       ColBlockIdx_ = C.ColBlockIdx_;
@@ -302,14 +305,15 @@ namespace PEXSI{
     PMatrix<T>::PMatrix ( 
         const GridType* g, 
         const SuperNodeType* s, 
-        const PEXSI::SuperLUOptions * o 
+        const PEXSI::PSelInvOptions * o, 
+        const PEXSI::SuperLUOptions * oLU
         )
     {
 #ifndef _RELEASE_
       PushCallStack("PMatrix::PMatrix");
 #endif
 
-      this->Setup( g, s, o );
+      this->Setup( g, s, o, oLU );
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -337,7 +341,8 @@ namespace PEXSI{
     void PMatrix<T>::Setup( 
         const GridType* g, 
         const SuperNodeType* s, 
-        const PEXSI::SuperLUOptions * o 
+        const PEXSI::PSelInvOptions * o, 
+        const PEXSI::SuperLUOptions * oLU 
         ) 
     {
 #ifndef _RELEASE_
@@ -347,6 +352,7 @@ namespace PEXSI{
       grid_          = g;
       super_         = s;
       options_       = o;
+      optionsLU_       = oLU;
 
       //    if( grid_->numProcRow != grid_->numProcCol ){
       //      #ifdef USE_ABORT
@@ -1054,16 +1060,18 @@ namespace PEXSI{
     }
 
 
+
   template<typename T>
     void PMatrix<T>::GetEtree(std::vector<Int> & etree_supno )
     {
+
 #ifndef _RELEASE_
       PushCallStack("PMatrix::GetEtree");
       double begin =  MPI_Wtime( );
 #endif
       Int nsupers = this->NumSuper();
 
-      if( options_->ColPerm != "PARMETIS" ) {
+      if( optionsLU_->ColPerm != "PARMETIS" ) {
         /* Use the etree computed from serial symb. fact., and turn it
            into supernodal tree.  */
         const SuperNodeType * superNode = this->SuperNode();
@@ -1120,6 +1128,7 @@ namespace PEXSI{
       PopCallStack();
 #endif
     } 		// -----  end of method PMatrix::GetEtree  ----- 
+
 
   template<typename T>
     inline void PMatrix<T>::GetWorkSet(
@@ -3082,14 +3091,8 @@ namespace PEXSI{
       const IntNumVec * pPerm_r;
       const IntNumVec * pPermInv_r;
 
-      if(options_->RowPerm=="NOROWPERM"){
-        pPerm_r = &super_->perm;
-        pPermInv_r = &super_->permInv;
-      }
-      else{
-        pPerm_r = &super_->perm_r;
-        pPermInv_r = &super_->permInv_r;
-      }
+      pPerm_r = &super_->perm_r;
+      pPermInv_r = &super_->permInv_r;
 
       const IntNumVec& perm_r    = *pPerm_r;
       const IntNumVec& permInv_r = *pPermInv_r;
@@ -3101,17 +3104,93 @@ namespace PEXSI{
       diag.Resize( numCol );
       SetValue( diag, ZERO<T>() );
 
-      //TODO This doesnt work with row perm
-      for( Int ksup = 0; ksup < numSuper; ksup++ ){
-        // I own the diagonal block	
-        if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
-            MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-          LBlock<T> & LB = this->L( LBj( ksup, grid_ ) )[0];
-          for( Int i = 0; i < LB.numRow; i++ ){
-            diagLocal( permInv_r( LB.rows(i) ) ) = LB.nzval( i, perm(permInv_r(i)) );
+      for( Int orow = 0; orow < numCol; orow++){
+        //row index in the permuted order
+        Int row         = perm[ orow ];
+        //col index in the permuted order
+        Int col         = perm[ perm_r[ orow] ];
+
+        Int blockColIdx = BlockIdx( col, super_ );
+        Int blockRowIdx = BlockIdx( row, super_ );
+
+
+        // I own the column	
+        if( MYROW( grid_ ) == PROW( blockRowIdx, grid_ ) &&
+            MYCOL( grid_ ) == PCOL( blockColIdx, grid_ ) ){
+          // Search for the nzval
+          bool isFound = false;
+
+          if( blockColIdx <= blockRowIdx ){
+            // Data on the L side
+
+            std::vector<LBlock<T> >&  Lcol = this->L( LBj( blockColIdx, grid_ ) );
+
+            for( Int ib = 0; ib < Lcol.size(); ib++ ){
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS << "blockRowIdx = " << blockRowIdx << ", Lcol[ib].blockIdx = " << Lcol[ib].blockIdx << ", blockColIdx = " << blockColIdx << std::endl;
+#endif
+              if( Lcol[ib].blockIdx == blockRowIdx ){
+                IntNumVec& rows = Lcol[ib].rows;
+                for( int iloc = 0; iloc < Lcol[ib].numRow; iloc++ ){
+                  if( rows[iloc] == row ){
+                    Int jloc = col - FirstBlockCol( blockColIdx, super_ );
+
+                    diagLocal[ orow ] = Lcol[ib].nzval( iloc, jloc );
+
+
+                    isFound = true;
+                    break;
+                  } // found the corresponding row
+                }
+              }
+              if( isFound == true ) break;  
+            } // for (ib)
+          } 
+          else{
+            // Data on the U side
+
+            std::vector<UBlock<T> >&  Urow = this->U( LBi( blockRowIdx, grid_ ) );
+
+            for( Int jb = 0; jb < Urow.size(); jb++ ){
+              if( Urow[jb].blockIdx == blockColIdx ){
+                IntNumVec& cols = Urow[jb].cols;
+                for( int jloc = 0; jloc < Urow[jb].numCol; jloc++ ){
+                  if( cols[jloc] == col ){
+                    Int iloc = row - FirstBlockRow( blockRowIdx, super_ );
+
+                    diagLocal[ orow ] = Urow[jb].nzval( iloc, jloc );
+
+                    isFound = true;
+                    break;
+                  } // found the corresponding col
+                }
+              }
+              if( isFound == true ) break;  
+            } // for (jb)
+          } // if( blockColIdx <= blockRowIdx ) 
+
+          // Did not find the corresponding row, set the value to zero.
+          if( isFound == false ){
+            statusOFS << "In the permutated order, (" << row << ", " << col <<
+              ") is not found in PMatrix." << std::endl;
+            diagLocal[orow] = ZERO<T>();
           }
-        }
+        } 
       }
+
+//      //TODO This doesnt work with row perm
+//      for( Int ksup = 0; ksup < numSuper; ksup++ ){
+//        Int numRows = SuperSize(ksup, this->super_);
+//
+//        // I own the diagonal block	
+//        if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
+//            MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+//          LBlock<T> & LB = this->L( LBj( ksup, grid_ ) )[0];
+//          for( Int i = 0; i < LB.numRow; i++ ){
+//            diagLocal( permInv[ LB.rows(i) ] ) = LB.nzval( i, perm[permInv_r[i]] );
+//          }
+//        }
+//      }
 
       // All processors own diag
       mpi::Allreduce( diagLocal.Data(), diag.Data(), numCol, MPI_SUM, grid_->comm );
@@ -3150,19 +3229,17 @@ namespace PEXSI{
       std::vector<Int>     displsRecv( mpisize, 0 );
 
       Int numSuper = this->NumSuper();
+      const IntNumVec& perm    = super_->perm;
       const IntNumVec& permInv = super_->permInv;
+
+      const IntNumVec * pPerm_r;
       const IntNumVec * pPermInv_r;
 
-      if(options_->RowPerm=="NOROWPERM"){
-        pPermInv_r = &super_->permInv;
-      }
-      else{
-        pPermInv_r = &super_->permInv_r;
-      }
+      pPerm_r = &super_->perm_r;
+      pPermInv_r = &super_->permInv_r;
 
+      const IntNumVec& perm_r    = *pPerm_r;
       const IntNumVec& permInv_r = *pPermInv_r;
-
-
 
       // The number of local columns in DistSparseMatrix format for the
       // processor with rank 0.  This number is the same for processors
@@ -3178,7 +3255,7 @@ namespace PEXSI{
           std::vector<LBlock<T> >&  Lcol = this->L( LBj( ksup, grid_ ) );
           for( Int ib = 0; ib < Lcol.size(); ib++ ){
             for( Int j = 0; j < Lcol[ib].numCol; j++ ){
-              Int jcol = permInv( j + FirstBlockCol( ksup, super_ ) );
+              Int jcol = permInv[ permInv_r[ j + FirstBlockCol( ksup, super_ ) ] ];
               Int dest = std::min( jcol / numColFirst, mpisize - 1 );
               sizeSend[dest] += Lcol[ib].numRow;
             }
@@ -3191,7 +3268,7 @@ namespace PEXSI{
           for( Int jb = 0; jb < Urow.size(); jb++ ){
             IntNumVec& cols = Urow[jb].cols;
             for( Int j = 0; j < cols.m(); j++ ){
-              Int jcol = permInv( cols(j) );
+              Int jcol = permInv[ permInv_r[ cols[j] ] ];
               Int dest = std::min( jcol / numColFirst, mpisize - 1 );
               sizeSend[dest] += Urow[jb].numRow;
             }
@@ -3249,10 +3326,10 @@ namespace PEXSI{
             IntNumVec&  rows = Lcol[ib].rows;
             NumMat<T>& nzval = Lcol[ib].nzval;
             for( Int j = 0; j < Lcol[ib].numCol; j++ ){
-              Int jcol = permInv( j + FirstBlockCol( ksup, super_ ) );
+              Int jcol = permInv[ permInv_r[ j + FirstBlockCol( ksup, super_ ) ] ];
               Int dest = std::min( jcol / numColFirst, mpisize - 1 );
               for( Int i = 0; i < rows.m(); i++ ){
-                rowSend[displsSend[dest] + cntSize[dest]] = permInv_r( rows(i) );
+                rowSend[displsSend[dest] + cntSize[dest]] = permInv[ rows[i] ];
                 colSend[displsSend[dest] + cntSize[dest]] = jcol;
                 valSend[displsSend[dest] + cntSize[dest]] = nzval( i, j );
                 cntSize[dest]++;
@@ -3268,11 +3345,10 @@ namespace PEXSI{
             IntNumVec& cols = Urow[jb].cols;
             NumMat<T>& nzval = Urow[jb].nzval;
             for( Int j = 0; j < cols.m(); j++ ){
-              Int jcol = permInv( cols(j) );
+              Int jcol = permInv[ permInv_r[ cols[j] ] ];
               Int dest = std::min( jcol / numColFirst, mpisize - 1 );
               for( Int i = 0; i < Urow[jb].numRow; i++ ){
-                rowSend[displsSend[dest] + cntSize[dest]] = 
-                  permInv_r( i + FirstBlockCol( ksup, super_ ) );
+                rowSend[displsSend[dest] + cntSize[dest]] = permInv[ i + FirstBlockCol( ksup, super_ ) ];
                 colSend[displsSend[dest] + cntSize[dest]] = jcol;
                 valSend[displsSend[dest] + cntSize[dest]] = nzval( i, j );
                 cntSize[dest]++;
@@ -3410,10 +3486,10 @@ namespace PEXSI{
 
 
   template<typename T>
-    void PMatrix<T>::PMatrixToDistSparseMatrix	( const DistSparseMatrix<T>& A, DistSparseMatrix<T>& B	)
+    void PMatrix<T>::PMatrixToDistSparseMatrix_OLD	( const DistSparseMatrix<T>& A, DistSparseMatrix<T>& B	)
     {
 #ifndef _RELEASE_
-      PushCallStack("PMatrix::PMatrixToDistSparseMatrix");
+      PushCallStack("PMatrix::PMatrixToDistSparseMatrix_OLD");
 #endif
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
@@ -3440,7 +3516,7 @@ namespace PEXSI{
 
       const IntNumVec * pPermInv_r;
 
-      if(options_->RowPerm=="NOROWPERM"){
+      if(optionsLU_->RowPerm=="NOROWPERM"){
         pPermInv_r = &super_->permInv;
       }
       else{
@@ -3722,18 +3798,18 @@ namespace PEXSI{
 #endif
 
       return ;
-    } 		// -----  end of method PMatrix::PMatrixToDistSparseMatrix  ----- 
+    } 		// -----  end of method PMatrix::PMatrixToDistSparseMatrix_OLD  ----- 
 
 
   // A (maybe) more memory efficient way for converting the PMatrix to a
   // DistSparseMatrix structure.
   //
   template<typename T>
-    void PMatrix<T>::PMatrixToDistSparseMatrix2 ( const DistSparseMatrix<T>& A, DistSparseMatrix<T>& B )
+    void PMatrix<T>::PMatrixToDistSparseMatrix ( const DistSparseMatrix<T>& A, DistSparseMatrix<T>& B )
     {
 
 #ifndef _RELEASE_
-      PushCallStack("PMatrix::PMatrixToDistSparseMatrix2");
+      PushCallStack("PMatrix::PMatrixToDistSparseMatrix");
 #endif
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
@@ -3760,14 +3836,8 @@ namespace PEXSI{
       const IntNumVec * pPerm_r;
       const IntNumVec * pPermInv_r;
 
-      //if(options_->RowPerm=="NOROWPERM"){
-      //  pPerm_r = &super_->perm;
-      //  pPermInv_r = &super_->permInv;
-      //}
-      //else{
-        pPerm_r = &super_->perm_r;
-        pPermInv_r = &super_->permInv_r;
-      //}
+      pPerm_r = &super_->perm_r;
+      pPermInv_r = &super_->permInv_r;
 
       const IntNumVec& perm_r    = *pPerm_r;
       const IntNumVec& permInv_r = *pPermInv_r;
@@ -3781,6 +3851,10 @@ namespace PEXSI{
         numColLocal = this->NumCol() - numColFirst * (mpisize-1);
       else
         numColLocal = numColFirst;
+
+
+
+
 
       Int*     rowPtr = A.rowindLocal.Data();
       Int*     colPtr = A.colptrLocal.Data();
@@ -4049,7 +4123,7 @@ namespace PEXSI{
 #endif
 
       return ;
-    }     // -----  end of method PMatrix::PMatrixToDistSparseMatrix2  ----- 
+    }     // -----  end of method PMatrix::PMatrixToDistSparseMatrix  ----- 
 
 
 
@@ -4171,10 +4245,15 @@ namespace PEXSI{
     } 		// -----  end of method PMatrix::GetNegativeInertia  ----- 
 
   template<typename T>
-    inline PMatrix<T> * PMatrix<T>::Create(const GridType * pGridType, const SuperNodeType * pSuper, const SuperLUOptions * pLuOpt)
+    inline PMatrix<T> * PMatrix<T>::Create(const GridType * pGridType, const SuperNodeType * pSuper, const PSelInvOptions * pSelInvOpt , const SuperLUOptions * pLuOpt)
     { 
       PMatrix<T> * pMat = NULL;
-      pMat = new PMatrix<T>( pGridType, pSuper, pLuOpt  );
+      if(pLuOpt->Symmetric == 0){
+        pMat = new PMatrixUnsym<T>( pGridType, pSuper, pSelInvOpt, pLuOpt  );
+      }
+      else{
+        pMat = new PMatrix<T>( pGridType, pSuper, pSelInvOpt, pLuOpt  );
+      }
 
       return pMat;
     } 		// -----  end of factory method PMatrix::Create  ----- 
@@ -4183,7 +4262,12 @@ namespace PEXSI{
     inline PMatrix<T> * PMatrix<T>::Create(const SuperLUOptions * pLuOpt)
     { 
       PMatrix<T> * pMat = NULL;
-      pMat = new PMatrix<T>();
+      if(pLuOpt->Symmetric == 0){
+        pMat = new PMatrixUnsym<T>();
+      }
+      else{
+        pMat = new PMatrix<T>();
+      }
 
       return pMat;
     } 		// -----  end of factory method PMatrix::Create  ----- 

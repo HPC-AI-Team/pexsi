@@ -96,7 +96,7 @@ at NERSC, a CRAY X30 machine).  `${PEXSI_DIR}` stands for the main
 directory of %PEXSI.
 
     cd ${PEXSI_DIR}
-    cp config/make.inc.CRAY_XC30.intel
+    cp config/make.inc.CRAY_XC30.intel make.inc
 
 Edit the variables in make.inc. 
     
@@ -135,30 +135,22 @@ Build the %PEXSI library
 If make.inc is configured correctly,
     
     cd ${PEXSI_DIR}
-    cd src
-    make
+    make all
 
-should produce `libpexsi_(suffix).a` under `src/`.
 
-Build examples
---------------
-
-After `libpexsi_(suffix).a` is built, all driver routines are readily to be
-compiled.  For example, the selected inversion for a complex matrix has
-the test routine
-
-    cd ${PEXSI_DIR}
-    cd examples
-    make driver_pselinv_complex
-
-should produce `driver_pselinv_complex_(suffix)`, which can be executed with MPI.
-
+Should build both the %PEXSI library under the `src` directory and the
+examples under the `examples` directory. 
 For more information on the examples, see @ref pageTutorial.
+
+For examples using FORTRAN interface, 
+
+    cd fortran/
+    make all
 
 Tests
 -----
 
-After driver_pselinv_complex is compiled, 
+After example files are compiled
 
     examples$ mpirun -n 1 ./driver_pselinv_complex_(suffix)
 

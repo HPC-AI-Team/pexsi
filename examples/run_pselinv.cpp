@@ -379,10 +379,10 @@ int main(int argc, char **argv)
       // Symbolic factorization 
       // *********************************************************************
 
+
       GetTime( timeSta );
       SuperLUOptions luOpt;
       luOpt.ColPerm = ColPerm;
-      luOpt.maxPipelineDepth = maxPipelineDepth;
       luOpt.numProcSymbFact = numProcSymbFact;
 
 
@@ -489,7 +489,10 @@ int main(int argc, char **argv)
           GetTime( timeSta );
           luMat.SymbolicToSuperNode( super );
 
-          PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &luOpt  );
+          PSelInvOptions selInvOpt;
+          selInvOpt.maxPipelineDepth = maxPipelineDepth;
+
+          PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &selInvOpt, &luOpt  );
           PMatrix<MYSCALAR> & PMloc = *PMlocPtr;
 
           luMat.LUstructToPMatrix( PMloc );
@@ -589,7 +592,7 @@ int main(int argc, char **argv)
             // Convert to DistSparseMatrix in the 2nd format and get the diagonal
             GetTime( timeSta );
             DistSparseMatrix<MYSCALAR> Ainv2;
-            PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
+            PMloc.PMatrixToDistSparseMatrix( AMat, Ainv2 );
             GetTime( timeEnd );
 
             if( mpirank == 0 )
