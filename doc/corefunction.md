@@ -852,4 +852,6 @@ call f_ppexsi_plan_finalize( plan, info )
 The examples of the FORTRAN interface can be found under `fortran/`
 directory, including @ref f_driver_pselinv_real.f90, 
 @ref f_driver_pselinv_complex.f90, 
+@ref f_driver_pselinv_real_unsym.f90,
+@ref f_driver_pselinv_complex_unsym.f90,
 @ref f_driver_ksdft.f90.

@@ -26,11 +26,12 @@ or nearly dense.
 
 **Q: Does %PEXSI work for asymmetric matrices?**
 
-A: Currently %PEXSI only works for (real or complex) symmetric matrices.
-We plan to release the version that supports asymmetric matrices in the
-near future.  If you have applications in mind and %PEXSI may bring
-significant acceleration to your application, please contact us as in
-@ref pageTrouble, with some description of your matrix and application.
+A: Yes! %PEXSI v0.9.0 starts to support PSelInv for asymmetric matrices,
+boh structurally symmetric and fully asymmetric. 
+See @ref pagePselinvRealSymmetricUnsym  for example. This can already be
+used for Kohn-Sham DFT calculations for k-point etc with an
+"expert-mode". The full support similar to @ref PPEXSIDFTDriver might be
+available in the future, but the interface might not be as straightforward.
 
 **Q: How to control the amount of output information and which processor
 outputs the log file?**

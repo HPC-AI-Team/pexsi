@@ -1,10 +1,11 @@
 Main Page           {#mainpage}
 =========
 
-**Welcome to the documentation of %PEXSI (current version: v0.8.0)**
+**Welcome to the documentation of %PEXSI (current version: v0.9.0)**
 
 - @subpage pageIntro
   - @ref pageOverview
+  - @ref pageExternal
   - @ref pageLicense
   - @ref pageReference
   - @ref pageChangeLog
@@ -16,10 +17,8 @@ Main Page           {#mainpage}
   - @ref pagePEXSIPlan
   - @ref pagePselinvRealSymmetric
   - @ref pagePselinvComplexSymmetric
-<!--
   - @ref pagePselinvRealUnsymmetric
   - @ref pagePselinvComplexUnsymmetric
--->
   - @ref pageDFT1
   - @ref pageDFT2
 - @subpage pageCoreFunction

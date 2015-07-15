@@ -1,13 +1,17 @@
 Download       {#pageDownload}
 ========
 
+**Beta version (v0.9.0)**:
 
-**Current version (v0.8.0)**:
+- Code: <a href="https://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v0.9.0.tar.gz">pexsi_v0.9.0.tar.gz</a>
+
+**Stable version (v0.8.0)**:
 
 - Code: <a href="https://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v0.8.0.tar.gz">pexsi_v0.8.0.tar.gz</a>
-
+- Documentation: <a href="https://math.berkeley.edu/~linlin/pexsi/download/doc_v0.8.0">[html]</a>
 
 **Older version of %PEXSI**:
+
 
 **v0.7.3**:
 - Code: <a href="https://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v0.7.3.tar.gz">pexsi_v0.7.3.tar.gz</a>
