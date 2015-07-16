@@ -93,12 +93,6 @@ namespace PEXSI{
     /// factorization, and selected inversion.
     ///
     std::string      RowPerm;
-    std::string      Equil;
-
-    /// @brief Option to specify if matrix is symmetric or not.
-    Int              symmetric;
-    Int              transpose;
-
 
     /// @brief Option whether to equilibrate the system.
     /// 

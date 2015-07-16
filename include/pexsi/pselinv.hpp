@@ -567,7 +567,6 @@ namespace PEXSI{
       const SuperLUOptions * optionsLU_;
 
 
-
       std::vector<std::vector<Int> > ColBlockIdx_;
       std::vector<std::vector<Int> > RowBlockIdx_;
       std::vector<std::vector<LBlock<T> > > L_;
