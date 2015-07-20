@@ -899,6 +899,65 @@ void PPEXSIPlanFinalize(
     PPEXSIPlan plan, 
     int*       info );
 
+/**
+ * @brief Pole expansion for density matrix (DM).
+ *
+ * @param[out] zshift  (global) Quadrature point (shift).
+ * @param[out] zweight (global) Quadrature weight.
+ * @param[in]  Npole   (global) Number of poles.
+ * @param[in]  temp    (global) Temperature (unit: au).
+ * @param[in]  gap     (global) Energy gap (unit: au).
+ * @param[in]  deltaE  (global) Spectral radius (unit: au).
+ * @param[in]  mu      (global) Chemical potential (unit: au).
+ */
+void PPEXSIGetPoleDM( 
+    double*       zshift,
+    double*       zweight,
+    int           Npole,
+    double        temp,
+    double        gap,
+    double        deltaE,
+    double        mu );
+
+/**
+ * @brief Pole expansion for energy density matrix (EDM).
+ *
+ * @param[out] zshift  (global) Quadrature point (shift).
+ * @param[out] zweight (global) Quadrature weight.
+ * @param[in]  Npole   (global) Number of poles.
+ * @param[in]  temp    (global) Temperature (unit: au).
+ * @param[in]  gap     (global) Energy gap (unit: au).
+ * @param[in]  deltaE  (global) Spectral radius (unit: au).
+ * @param[in]  mu      (global) Chemical potential (unit: au).
+ */
+void PPEXSIGetPoleEDM( 
+    double*       zshift,
+    double*       zweight,
+    int           Npole,
+    double        temp,
+    double        gap,
+    double        deltaE,
+    double        mu );
+
+/**
+ * @brief Pole expansion for free energy density matrix (FDM).
+ *
+ * @param[out] zshift  (global) Quadrature point (shift).
+ * @param[out] zweight (global) Quadrature weight.
+ * @param[in]  Npole   (global) Number of poles.
+ * @param[in]  temp    (global) Temperature (unit: au).
+ * @param[in]  gap     (global) Energy gap (unit: au).
+ * @param[in]  deltaE  (global) Spectral radius (unit: au).
+ * @param[in]  mu      (global) Chemical potential (unit: au).
+ */
+void PPEXSIGetPoleFDM( 
+    double*       zshift,
+    double*       zweight,
+    int           Npole,
+    double        temp,
+    double        gap,
+    double        deltaE,
+    double        mu );
 
 #ifdef __cplusplus
 }// extern "C"

@@ -1318,7 +1318,7 @@ throw std::logic_error( msg.str().c_str() );
 
 
 
-template <typename T> void CSCToCSR(const DistSparseMatrix<T>& sparseA, DistSparseMatrix<T> & sparseB ){
+template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatrix<T> & sparseB ){
 
 
     Int mpirank;
