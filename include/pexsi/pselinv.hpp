@@ -587,6 +587,9 @@ namespace PEXSI{
       BolNumMat                       isRecvFromCrossDiagonal_;
 
 
+#ifdef NEW_BCAST
+      std::vector<TreeBcast2<T> *> fwdToBelowTree2_; 
+#endif
       std::vector<TreeBcast *> fwdToBelowTree_; 
       std::vector<TreeBcast *> fwdToRightTree_; 
       std::vector<TreeReduce<T> *> redToLeftTree_; 
