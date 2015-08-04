@@ -1040,6 +1040,84 @@ void PPEXSIPlanFinalize(
   return;
 }   // -----  end of function PPEXSIPlanFinalize  ----- 
 
+extern "C"
+void PPEXSIGetPoleDM( 
+    double*       zshift,
+    double*       zweight,
+    int           Npole,
+    double        temp,
+    double        gap,
+    double        deltaE,
+    double        mu ){
+  
+  CpxNumVec zshiftVec(Npole), zweightVec(Npole);
+
+  GetPoleDensity( zshiftVec.Data(), zweightVec.Data(),
+      Npole, temp, gap, deltaE, mu );
+
+  for( Int i = 0; i < Npole; i++ ){
+    zshift[2*i]    = zshiftVec[i].real();
+    zshift[2*i+1]  = zshiftVec[i].imag();
+    zweight[2*i]   = zweightVec[i].real();
+    zweight[2*i+1] = zweightVec[i].imag();
+  }
+
+  return;
+}   // -----  end of function PPEXSIGetPoleDM  ----- 
+
+
+extern "C"
+void PPEXSIGetPoleEDM( 
+    double*       zshift,
+    double*       zweight,
+    int           Npole,
+    double        temp,
+    double        gap,
+    double        deltaE,
+    double        mu ){
+  
+  CpxNumVec zshiftVec(Npole), zweightVec(Npole);
+
+  GetPoleForce( zshiftVec.Data(), zweightVec.Data(),
+      Npole, temp, gap, deltaE, mu );
+
+  for( Int i = 0; i < Npole; i++ ){
+    zshift[2*i]    = zshiftVec[i].real();
+    zshift[2*i+1]  = zshiftVec[i].imag();
+    zweight[2*i]   = zweightVec[i].real();
+    zweight[2*i+1] = zweightVec[i].imag();
+  }
+
+  return;
+}   // -----  end of function PPEXSIGetPoleEDM  ----- 
+
+
+extern "C"
+void PPEXSIGetPoleFDM( 
+    double*       zshift,
+    double*       zweight,
+    int           Npole,
+    double        temp,
+    double        gap,
+    double        deltaE,
+    double        mu ){
+  
+  CpxNumVec zshiftVec(Npole), zweightVec(Npole);
+
+  GetPoleHelmholtz( zshiftVec.Data(), zweightVec.Data(),
+      Npole, temp, gap, deltaE, mu );
+
+  for( Int i = 0; i < Npole; i++ ){
+    zshift[2*i]    = zshiftVec[i].real();
+    zshift[2*i+1]  = zshiftVec[i].imag();
+    zweight[2*i]   = zweightVec[i].real();
+    zweight[2*i+1] = zweightVec[i].imag();
+  }
+
+  return;
+}   // -----  end of function PPEXSIGetPoleEDM  ----- 
+
+
 // ********************************************************************* 
 // FORTRAN interface
 // 

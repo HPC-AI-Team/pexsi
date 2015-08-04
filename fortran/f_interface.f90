@@ -463,6 +463,58 @@ interface
     integer(c_intptr_t), intent(in), value :: plan
     integer(c_int), intent(out)            :: info
   end subroutine 
+
+  subroutine f_get_pole_dm(&
+      zshift,&
+      zweight,&
+      Npole,&
+      temp,&
+      gap,&
+      deltaE,&
+      mu) &
+      bind(C, Name="PPEXSIGetPoleDM")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    real(c_double), intent(out)  :: zshift(*), zweight(*)
+    integer(c_int), intent(in), value  :: Npole
+    real(c_double), intent(in), value  :: temp, gap, deltaE, mu
+  end subroutine 
+
+
+  subroutine f_get_pole_edm(&
+      zshift,&
+      zweight,&
+      Npole,&
+      temp,&
+      gap,&
+      deltaE,&
+      mu) &
+      bind(C, Name="PPEXSIGetPoleEDM")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    real(c_double), intent(out)  :: zshift(*), zweight(*)
+    integer(c_int), intent(in), value  :: Npole
+    real(c_double), intent(in), value  :: temp, gap, deltaE, mu
+  end subroutine 
+
+
+
+  subroutine f_get_pole_fdm(&
+      zshift,&
+      zweight,&
+      Npole,&
+      temp,&
+      gap,&
+      deltaE,&
+      mu) &
+      bind(C, Name="PPEXSIGetPoleFDM")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    real(c_double), intent(out)  :: zshift(*), zweight(*)
+    integer(c_int), intent(in), value  :: Npole
+    real(c_double), intent(in), value  :: temp, gap, deltaE, mu
+  end subroutine 
+
 end interface
 
 

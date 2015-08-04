@@ -8,6 +8,7 @@ fid = fopen(filename,'r');
 N = fscanf(fid, '%g', 1);
 N = fscanf(fid, '%g', 1);
 Annz = fscanf(fid, '%g', 1);
+dummy  = fscanf(fid, '%g', 1);A=
 colptr = fscanf(fid, '%g', N+1);
 rowind = fscanf(fid, '%g', Annz);
 Aval   = fscanf(fid, '%g', Annz);
