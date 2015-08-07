@@ -2461,10 +2461,10 @@ namespace PEXSI{
 #ifdef NEW_BCAST
           TreeBcast2<T> * & BcastUTree2 = fwdToBelowTree2_[ksup];
           BcastUTree2 = TreeBcast2<T>::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFA[ksup]);
-#endif
 
 #ifdef COMM_PROFILE
           BcastUTree2->SetGlobalComm(grid_->comm);
+#endif
 #endif
         }
 

@@ -1658,6 +1658,16 @@ TIMER_STOP(FIND_RANK);
       Int nprocs = 0;
       MPI_Comm_size(pComm, &nprocs);
 
+
+#if defined(FTREE)
+        return new FTreeBcast(pComm,ranks,rank_cnt,msgSize);
+#elif defined(MODBTREE)
+        return new ModBTreeBcast(pComm,ranks,rank_cnt,msgSize, rseed);
+#elif defined(BTREE)
+        return new BTreeBcast(pComm,ranks,rank_cnt,msgSize);
+#endif
+
+
 //      return new PalmTreeBcast(pComm,ranks,rank_cnt,msgSize);
 //      return new ModBTreeBcast(pComm,ranks,rank_cnt,msgSize, rseed);
 //      return new RandBTreeBcast(pComm,ranks,rank_cnt,msgSize);
@@ -1667,7 +1677,6 @@ TIMER_STOP(FIND_RANK);
       }
       else{
         return new ModBTreeBcast(pComm,ranks,rank_cnt,msgSize, rseed);
-        //return new BTreeBcast(pComm,ranks,rank_cnt,msgSize);
       }
 
 
@@ -1683,6 +1692,14 @@ template< typename T>
       //get communicator size
       Int nprocs = 0;
       MPI_Comm_size(pComm, &nprocs);
+
+#if defined(FTREE)
+        return new FTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
+#elif defined(MODBTREE)
+        return new ModBTreeReduce<T>(pComm,ranks,rank_cnt,msgSize, rseed);
+#elif defined(BTREE)
+        return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
+#endif
 
 
       if(nprocs<=FTREE_LIMIT){
