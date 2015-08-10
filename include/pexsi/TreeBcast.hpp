@@ -21,322 +21,347 @@ namespace PEXSI{
 
 
 template< typename T>
-class TreeBcast2{
-  protected:
+  class TreeBcast2{
+    protected:
 
-    T * myData_;
-    MPI_Request recvRequest_;
-    NumVec<char> myRecvBuffer_;
+      T * myData_;
+      MPI_Request recvRequest_;
+      NumVec<char> myRecvBuffer_;
 
-    NumVec<MPI_Request> myRequests_;
-    NumVec<MPI_Status> myStatuses_;
+      NumVec<MPI_Request> myRequests_;
+      NumVec<MPI_Status> myStatuses_;
 
-    bool fwded_;
-    bool isAllocated_;
+      bool done_;
+      bool fwded_;
+      //    bool isAllocated_;
 
-    Int myRoot_;
-    MPI_Comm comm_;
-    vector<Int> myDests_;
-    Int myRank_;
-    Int msgSize_;
-    bool isReady_;
-    Int mainRoot_;
-    Int tag_;
-    Int numRecv_;
+      Int myRoot_;
+      MPI_Comm comm_;
+      vector<Int> myDests_;
+      Int myRank_;
+      Int msgSize_;
+      bool isReady_;
+      Int mainRoot_;
+      Int tag_;
+      Int numRecv_;
 
 #ifdef COMM_PROFILE
-protected:
-    Int myGRank_;
-    vector<int> Granks_;
-public:
-    void SetGlobalComm(const MPI_Comm & pGComm){
-      MPI_Comm_rank(pGComm,&myGRank_);
-      MPI_Group group2 = MPI_GROUP_NULL;
-      MPI_Comm_group(pGComm, &group2);
-      MPI_Group group1 = MPI_GROUP_NULL;
-      MPI_Comm_group(comm_, &group1);
+    protected:
+      Int myGRank_;
+      vector<int> Granks_;
+    public:
+      void SetGlobalComm(const MPI_Comm & pGComm){
+        MPI_Comm_rank(pGComm,&myGRank_);
+        MPI_Group group2 = MPI_GROUP_NULL;
+        MPI_Comm_group(pGComm, &group2);
+        MPI_Group group1 = MPI_GROUP_NULL;
+        MPI_Comm_group(comm_, &group1);
 
-      Int size;
-      MPI_Comm_size(comm_,&size);
-      Granks_.resize(size);
-      vector<int> Lranks(size);
-      for(int i = 0; i<size;++i){Lranks[i]=i;}
-      MPI_Group_translate_ranks(group1, size, &Lranks[0],group2, &Granks_[0]);
-    }
+        Int size;
+        MPI_Comm_size(comm_,&size);
+        Granks_.resize(size);
+        vector<int> Lranks(size);
+        for(int i = 0; i<size;++i){Lranks[i]=i;}
+        MPI_Group_translate_ranks(group1, size, &Lranks[0],group2, &Granks_[0]);
+      }
 #endif
 
 
 
-protected:
-    virtual void buildTree(Int * ranks, Int rank_cnt)=0;
+    protected:
+      virtual void buildTree(Int * ranks, Int rank_cnt)=0;
 
 
 
 
 
-  public:
+    public:
 
-    TreeBcast2(){
-      comm_ = MPI_COMM_WORLD;
-      myRank_=-1;
-      myRoot_ = -1; 
-      msgSize_ = -1;
-      numRecv_ = -1;
-      tag_=-1;
-      mainRoot_=-1;
-      isReady_ = false;
-      myData_ = NULL;
-      recvRequest_ = MPI_REQUEST_NULL;
-      fwded_=false;
-      isAllocated_=false;
-    }
-
-
-    TreeBcast2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize):TreeBcast2(){
-      comm_ = pComm;
-      MPI_Comm_rank(comm_,&myRank_);
-      myRoot_ = -1; 
-      msgSize_ = msgSize;
-
-      numRecv_ = 0;
-      tag_=-1;
-      mainRoot_=ranks[0];
-      isReady_ = false;
-    }
-
-
-    virtual TreeBcast2 * clone() const = 0; 
-
-    TreeBcast2(const TreeBcast2 & Tree){
-      this->Copy(Tree);
-    }
-
-    virtual void Copy(const TreeBcast2 & Tree){
-      this->comm_ = Tree.comm_;
-      this->myRank_ = Tree.myRank_;
-      this->myRoot_ = Tree.myRoot_; 
-      this->msgSize_ = Tree.msgSize_;
-
-      this->numRecv_ = Tree.numRecv_;
-      this->tag_= Tree.tag_;
-      this->mainRoot_= Tree.mainRoot_;
-      this->isReady_ = Tree.isReady_;
-      this->myDests_ = Tree.myDests_;
-
-
-      this->recvRequest_ = Tree.recvRequest_;
-      this->myRecvBuffer_ = Tree.myRecvBuffer_;
-      this->myRequests_ = Tree.myRequests_;
-      this->myStatuses_ = Tree.myStatuses_;
-      this->myData_ = Tree.myData_;
-      if(Tree.myData_==(T*)&Tree.myRecvBuffer_[0]){
-        this->myData_=(T*)&this->myRecvBuffer_[0];
+      TreeBcast2(){
+        comm_ = MPI_COMM_WORLD;
+        myRank_=-1;
+        myRoot_ = -1; 
+        msgSize_ = -1;
+        numRecv_ = -1;
+        tag_=-1;
+        mainRoot_=-1;
+        isReady_ = false;
+        myData_ = NULL;
+        recvRequest_ = MPI_REQUEST_NULL;
+        fwded_=false;
+        //      isAllocated_=false;
+        done_ = false;
       }
 
 
+      TreeBcast2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize):TreeBcast2(){
+        comm_ = pComm;
+        MPI_Comm_rank(comm_,&myRank_);
+        myRoot_ = -1; 
+        msgSize_ = msgSize;
+        numRecv_ = 0;
+        tag_=-1;
+        mainRoot_=ranks[0];
+        isReady_ = false;
+      }
 
 
-      this->fwded_= Tree.fwded_;
-      this->isAllocated_= Tree.isAllocated_;
-    }
- 
+      virtual TreeBcast2 * clone() const = 0; 
+
+      TreeBcast2(const TreeBcast2 & Tree){
+        this->Copy(Tree);
+      }
+
+      virtual void Copy(const TreeBcast2 & Tree){
+        this->comm_ = Tree.comm_;
+        this->myRank_ = Tree.myRank_;
+        this->myRoot_ = Tree.myRoot_; 
+        this->msgSize_ = Tree.msgSize_;
+
+        this->numRecv_ = Tree.numRecv_;
+        this->tag_= Tree.tag_;
+        this->mainRoot_= Tree.mainRoot_;
+        this->isReady_ = Tree.isReady_;
+        this->myDests_ = Tree.myDests_;
 
 
-    bool IsAllocated(){return isAllocated_;}
+        this->recvRequest_ = Tree.recvRequest_;
+        this->myRecvBuffer_ = Tree.myRecvBuffer_;
+        this->myRequests_ = Tree.myRequests_;
+        this->myStatuses_ = Tree.myStatuses_;
+        this->myData_ = Tree.myData_;
+        if(Tree.myData_==(T*)&Tree.myRecvBuffer_[0]){
+          this->myData_=(T*)&this->myRecvBuffer_[0];
+        }
 
-    virtual ~TreeBcast2(){
-      CleanupBuffers();
-    }
 
 
-    static TreeBcast2<T> * Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize,double rseed);
 
-    virtual inline Int GetNumRecvMsg(){return numRecv_;}
-    virtual inline Int GetNumMsgToSend(){return GetDestCount();}
-    inline void SetDataReady(bool rdy){ isReady_=rdy;
-      numRecv_ = rdy?1:0;
-}
-    inline void SetTag(Int tag){ tag_ = tag;}
+        this->fwded_= Tree.fwded_;
+        //      this->isAllocated_= Tree.isAllocated_;
+        this->done_= Tree.done_;
+      }
 
-    bool IsDataReady(){return isReady_;}
+      void Reset(){
+        assert(done_);
+        CleanupBuffers();
+        done_=false;
+        myData_ = NULL;
+        recvRequest_ = MPI_REQUEST_NULL;
+        fwded_=false;
+        //      isAllocated_=false;
+        isReady_=false;
+        numRecv_ = 0;
+      }
 
-    Int * GetDests(){ return &myDests_[0];}
-    Int GetDest(Int i){ return myDests_[i];}
-    Int GetDestCount(){ return myDests_.size();}
-    Int GetRoot(){ return myRoot_;}
+      bool IsAllocated(){return isAllocated_;}
 
-    bool IsRoot(){ return myRoot_==myRank_;}
-    Int GetMsgSize(){ return msgSize_;}
+      virtual ~TreeBcast2(){
+        CleanupBuffers();
+      }
 
-    void ForwardMessage( ){
-                  for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
-                    Int iProc = myDests_[idxRecv];
-                    // Use Isend to send to multiple targets
-                    MPI_Isend( myData_, msgSize_, MPI_BYTE, 
-                        iProc, tag_,comm_, &myRequests_[2*iProc+1] );
 
-#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-        statusOFS<<myRank_<<" FWD to "<<iProc<<" on tag "<<tag_<<std::endl;
+      static TreeBcast2<T> * Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize,double rseed);
+
+      virtual inline Int GetNumRecvMsg(){return numRecv_;}
+      virtual inline Int GetNumMsgToSend(){return GetDestCount();}
+      inline void SetDataReady(bool rdy){ 
+        isReady_=rdy;
+        //numRecv_ = rdy?1:0;
+      }
+      inline void SetTag(Int tag){ tag_ = tag;}
+
+      bool IsDataReady(){return isReady_;}
+      bool IsDataReceived(){return numRecv_==1;}
+
+      Int * GetDests(){ return &myDests_[0];}
+      Int GetDest(Int i){ return myDests_[i];}
+      Int GetDestCount(){ return myDests_.size();}
+      Int GetRoot(){ return myRoot_;}
+
+      bool IsRoot(){ return myRoot_==myRank_;}
+      Int GetMsgSize(){ return msgSize_;}
+
+      void ForwardMessage( ){
+        if(myRequests_.m()!=GetDestCount()){
+          myRequests_.Resize(GetDestCount());
+          SetValue(myRequests_,MPI_REQUEST_NULL);
+        }
+        for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
+          Int iProc = myDests_[idxRecv];
+          // Use Isend to send to multiple targets
+          MPI_Isend( myData_, msgSize_, MPI_BYTE, 
+              iProc, tag_,comm_, &myRequests_[idxRecv] );
+
+#if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
+          statusOFS<<myRank_<<" FWD to "<<iProc<<" on tag "<<tag_<<std::endl;
 #endif
 #ifdef COMM_PROFILE
-      PROFILE_COMM(myGRank_,Granks_[iProc],tag_,msgSize_);
+          PROFILE_COMM(myGRank_,Granks_[iProc],tag_,msgSize_);
 #endif
-                  } // for (iProc)
-      fwded_ = true;
-    }
-
-
-
-
-
-
-
-    virtual void AllocRecvBuffer(){
-      if(myData_==NULL){
-        myRecvBuffer_.Resize(msgSize_);
-        myData_ = (T*)&myRecvBuffer_[0];
-      }
-      myRequests_.Resize(GetDestCount());
-      SetValue(myRequests_,MPI_REQUEST_NULL);
-      myStatuses_.Resize(GetDestCount());
-      recvRequest_ = MPI_REQUEST_NULL;
-      isAllocated_ = true;
-      numRecv_ = 0;
-    }
-
-    void CleanupBuffers(){
-      myRequests_.Clear();
-      myStatuses_.Clear();
-      myRecvBuffer_.Clear();
-
-      myData_ = NULL;
-      recvRequest_ = MPI_REQUEST_NULL;
-      fwded_=false;
-      isAllocated_=false;
-      isReady_=false;
-      numRecv_ = 0;
-    }
-
-
-    void SetLocalBuffer(T * locBuffer){
-      if(myData_!=NULL && myData_!=locBuffer){
-        CopyLocalBuffer(locBuffer);
-        myRecvBuffer_.Clear(); 
+        } // for (iProc)
+        fwded_ = true;
       }
 
-      myData_ = locBuffer;
-    }
-
-    inline bool IsDone(){
-      if(myRank_==myRoot_ && isAllocated_){
-        isReady_=true;
+      void CleanupBuffers(){
+        myRequests_.Clear();
+        myStatuses_.Clear();
+        myRecvBuffer_.Clear();
       }
 
-      //check if we have received the thing
-      bool retVal = numRecv_==1;
-      if(myRoot_ != myRank_ && !fwded_){
-        retVal = false;
+
+      void SetLocalBuffer(T * locBuffer){
+        if(myData_!=NULL && myData_!=locBuffer){
+          if(numRecv_>0){
+            CopyLocalBuffer(locBuffer);
+          }
+          if(!fwded_){
+            myRecvBuffer_.Clear(); 
+          }
+        }
+
+        myData_ = locBuffer;
       }
 
-      if (retVal && myRoot_ != myRank_ && fwded_){
-        //test the send requests
-        int flag = 0;
-        int reqCnt = GetDestCount();
-        assert(reqCnt == myRequests_.m());
-        MPI_Testall(reqCnt,&myRequests_[0],&flag,&myStatuses_[0]);
-        retVal = flag==1;
-      }
-      return retVal;
-    }
+      //async wait and forward
+      virtual bool Progress(){
+        if(done_){
+          return true;
+        }
 
-    //async wait and forward
-    virtual bool Progress(){
-      if(!isAllocated_){
-        return true;
-      }
+        bool done = false;
 
-      if(myRank_==myRoot_){
-        isReady_=true;
-      }
+        if (myRank_==myRoot_){
+          if(isReady_){
+            if(!fwded_){
+#if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
+              statusOFS<<myRank_<<" FORWARDING on tag "<<tag_<<std::endl;
+#endif
+              ForwardMessage();
+            }
+            else{
 
-      bool retVal = (numRecv_==1);
-
-
-      if(isReady_ && !retVal){
-        if(myRoot_ != myRank_){
-        if(recvRequest_ == MPI_REQUEST_NULL ){
-        statusOFS<<myRank_<<" POSTING RECV on tag "<<tag_<<std::endl;
-          //post the recv
-          PostRecv();
+              if(myStatuses_.m()!=GetDestCount()){
+                myStatuses_.Resize(GetDestCount());
+                recvRequest_ = MPI_REQUEST_NULL;
+              }
+              //test the send requests
+              int flag = 0;
+              int reqCnt = GetDestCount();
+              if(reqCnt>0){
+                assert(reqCnt == myRequests_.m());
+                MPI_Testall(reqCnt,&myRequests_[0],&flag,&myStatuses_[0]);
+                done = flag==1;
+              }
+              else{
+                done=true;
+              }
+            }
+          }
         }
         else{
-        statusOFS<<myRank_<<" TESTING RECV on tag "<<tag_<<std::endl;
-          //test
-          int flag = 0;
-          MPI_Test(&recvRequest_,&flag,MPI_STATUS_IGNORE);
-          retVal = flag==1;
+          bool received = (numRecv_==1);
+          
+          if(!received){
+            if(recvRequest_ == MPI_REQUEST_NULL ){
+#if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
+              statusOFS<<myRank_<<" POSTING RECV on tag "<<tag_<<std::endl;
+#endif
+              //post the recv
+              PostRecv();
+            }
+            else{
 
-          if(flag==1){
-            numRecv_=1;
+              if(myStatuses_.m()!=GetDestCount()){
+                myStatuses_.Resize(GetDestCount());
+                recvRequest_ = MPI_REQUEST_NULL;
+              }
+#if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
+              statusOFS<<myRank_<<" TESTING RECV on tag "<<tag_<<std::endl;
+#endif
+              //test
+              int flag = 0;
+              MPI_Status stat;
+              int test = MPI_Test(&recvRequest_,&flag,&stat);
+              assert(test==MPI_SUCCESS);
+
+              if(flag==1){
+                numRecv_=1;
+                received = true;
+
+                if(!fwded_){
+#if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
+                  statusOFS<<myRank_<<" FORWARDING on tag "<<tag_<<std::endl;
+#endif
+                  ForwardMessage();
+                }
+              }
+            }
           }
-         }
+          else {
+            assert(fwded_);
+            //test the send requests
+            int flag = 0;
+            int reqCnt = GetDestCount();
+            if(reqCnt>0){
+              assert(reqCnt == myRequests_.m());
+              MPI_Testall(reqCnt,&myRequests_[0],&flag,&myStatuses_[0]);
+              done = flag==1;
+            }
+            else{
+              done=true;
+            }
+          }
         }
-        //if retVal is now true, that means that we are either
-        // the root or we have received the data
-        if(retVal && !fwded_){
-        statusOFS<<myRank_<<" FORWARDING on tag "<<tag_<<std::endl;
-          ForwardMessage();
-        }
-      }
-      else if(!fwded_){
-        statusOFS<<myRank_<<" FORWARDING on tag "<<tag_<<std::endl;
-          ForwardMessage();
-      }
-      else {
-        statusOFS<<myRank_<<" TESTING FORWARD on tag "<<tag_<<std::endl;
-        statusOFS<<myRank_<<" ROOT IS "<<myRoot_<<std::endl;
-        //check the send
-         retVal = IsDone();
-        if(retVal){
+
+        if(done){
           //free the unnecessary arrays
           myRequests_.Clear();
           myStatuses_.Clear();
-        statusOFS<<myRank_<<" EVERYTHING COMPLETED on tag "<<tag_<<std::endl;
+#if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
+          statusOFS<<myRank_<<" EVERYTHING COMPLETED on tag "<<tag_<<std::endl;
+#endif
+        }
+
+        done_ = done;
+
+        return done;
+      }
+
+      //blocking wait
+      void Wait(){
+        if(!done_){
+          while(!Progress());
         }
       }
 
-      return retVal;
-    }
-
-    //blocking wait
-    void Wait(){
-      if(isAllocated_){
-        while(!Progress());
+      T * GetLocalBuffer(){
+        return myData_;
       }
-    }
 
-    T * GetLocalBuffer(){
-       return myData_;
-    }
+      virtual void PostRecv()
+      {
+        if(this->numRecv_<1 && this->recvRequest_==MPI_REQUEST_NULL && myRank_!=myRoot_){
 
-    virtual void PostRecv()
-    {
-        if(this->isAllocated_ && this->numRecv_<1 && this->recvRequest_==MPI_REQUEST_NULL){
+          if(myData_==NULL){
+            myRecvBuffer_.Resize(msgSize_);
+            myData_ = (T*)&myRecvBuffer_[0];
+          }
           MPI_Irecv( (char*)this->myData_, this->msgSize_, MPI_BYTE, 
-            this->myRoot_, this->tag_,this->comm_, &this->recvRequest_ );
+              this->myRoot_, this->tag_,this->comm_, &this->recvRequest_ );
         }
-    }
+      }
 
 
 
-    void CopyLocalBuffer(T* destBuffer){
-       std::copy((char*)myData_,(char*)myData_+GetMsgSize(),(char*)destBuffer);
-    }
+      void CopyLocalBuffer(T* destBuffer){
+        std::copy((char*)myData_,(char*)myData_+GetMsgSize(),(char*)destBuffer);
+      }
 
 
 
 
-};
+  };
 
 
 template< typename T>
@@ -685,8 +710,9 @@ class ModBTreeBcast: public TreeBcast{
         //Int new_idx = (int)((rand()+1.0) * (double)rank_cnt / ((double)RAND_MAX+1.0));
 
 //        srand(ranks[0]+rank_cnt);
-        Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
-//        statusOFS<<new_idx<<endl;
+        Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
+        //statusOFS<<"NEW IDX: "<<new_idx<<endl;
 
 
 
@@ -1534,7 +1560,8 @@ class ModBTreeReduce: public TreeReduce<T>{
         //Int new_idx = (int)((rand()+1.0) * (double)rank_cnt / ((double)RAND_MAX+1.0));
         //srand(ranks[0]+rank_cnt);
         //Int new_idx = rseed_%(rank_cnt-1)+1;
-        Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
+        Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
 
 
         Int * new_start = &ranks[new_idx];

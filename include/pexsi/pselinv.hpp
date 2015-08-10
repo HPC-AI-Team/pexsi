@@ -67,7 +67,8 @@
 #include <set>
 
 
-#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
+//#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
+#define IDX_TO_TAG(lidx,tag,max) ((SELINV_TAG_COUNT*(lidx%(max+1))+(tag)))
 #define IDX_TO_TAG2(sidx,lidx,tag) (SELINV_TAG_COUNT*(sidx)+(tag)) 
 #define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 
 
@@ -566,6 +567,8 @@ namespace PEXSI{
       const PSelInvOptions * options_;
       const SuperLUOptions * optionsLU_;
 
+      Int limIndex_;
+      Int maxTag_;
 
       std::vector<std::vector<Int> > ColBlockIdx_;
       std::vector<std::vector<Int> > RowBlockIdx_;
@@ -589,6 +592,7 @@ namespace PEXSI{
 
 #ifdef NEW_BCAST
       std::vector<TreeBcast2<T> *> fwdToBelowTree2_; 
+      std::vector<TreeBcast2<T> *> fwdToRightTree2_; 
 #endif
       std::vector<TreeBcast *> fwdToBelowTree_; 
       std::vector<TreeBcast *> fwdToRightTree_; 
@@ -611,6 +615,7 @@ namespace PEXSI{
         Int               SizeSstrLcolRecv;
         Int               SizeSstrUrowRecv;
         Int               Index;
+        Int               Rank;
         Int               isReady;
 
 
@@ -620,6 +625,7 @@ namespace PEXSI{
           SizeSstrLcolRecv(0),
           SizeSstrUrowRecv(0),
           Index(0), 
+          Rank(0), 
           isReady(0){}
 
         SuperNodeBufferType(Int &pIndex) :
@@ -628,13 +634,14 @@ namespace PEXSI{
           SizeSstrLcolRecv(0),
           SizeSstrUrowRecv(0),
           Index(pIndex),
+          Rank(0), 
           isReady(0) {}
 
       };
 
 
       /// @brief SelInvIntra_P2p
-      inline void SelInvIntra_P2p(Int lidx);
+      inline void SelInvIntra_P2p(Int lidx,Int & rank);
 
       /// @brief SelInv_lookup_indexes
       inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
@@ -712,6 +719,7 @@ namespace PEXSI{
       /// @brief WorkingSet returns the ordered list of supernodes which could
       /// be done in parallel.
       std::vector<std::vector<int> >& WorkingSet( ) { return workingSet_; } 	
+      //void WorkingSet(const std::vector<std::vector<int> > * pWSet,const std::vector<std::vector<int> > * pWRanks) { pWSet = &workingSet_; pWRanks = &workingRanks_; } 	
 
       /// @brief CountSendToRight returns the number of processors 
       /// to the right of current processor with which it has to communicate

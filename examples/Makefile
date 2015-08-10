@@ -33,7 +33,11 @@ run_pselinv_unsym: run_pselinv_unsym.o ${PEXSI_LIB}
 	($(LOADER) -o $@_${SUFFIX} run_pselinv_unsym.o  $(LOADOPTS) )
 
 
+run_test_reduce: run_test_reduce.o ${PEXSI_LIB} 
+	($(LOADER) -o $@_${SUFFIX} run_test_reduce.o  $(LOADOPTS) )
 
+run_test_reduce.o: run_test_reduce.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 
 run_inertia.o: run_inertia.cpp 
