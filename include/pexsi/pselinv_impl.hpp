@@ -1239,24 +1239,56 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
         IntNumVec level(numSuper+1);
         level(rootParent)=-1;
         Int numLevel = 0; 
-        for(Int i=rootParent-1; i>=0; i-- ){ level(i) = level(snodeEtree[i])+1; numLevel = std::max(numLevel, level(i)); }
+        for(Int i=rootParent-1; i>=0; i-- ){ 
+          level[i] = level[snodeEtree[i]]+1;
+          numLevel = std::max(numLevel, level[i]);
+        }
         numLevel++;
 
         //Compute the number of supernodes at each level
         IntNumVec levelSize(numLevel);
         SetValue(levelSize,I_ZERO);
         //for(Int i=rootParent-1; i>=0; i-- ){ levelSize(level(i))++; } 
-        for(Int i=rootParent-1; i>=0; i-- ){ if(level[i]>=0){ levelSize(level(i))++; } }
+        for(Int i=rootParent-1; i>=0; i-- ){ 
+          if(level[i]>=0){ 
+            levelSize[level[i]]++; 
+          }
+        }
 
         //Allocate memory
         WSet.resize(numLevel,std::vector<Int>());
-        for(Int i=0; i<numLevel; i++ ){WSet[i].reserve(levelSize(i));}
+        for(Int i=0; i<numLevel; i++ ){
+          WSet[i].reserve(levelSize(i));
+        }
 
         //Fill the worklist based on the level of each supernode
         for(Int i=rootParent-1; i>=0; i-- ){
-          WSet[level(i)].push_back(i);  
+          ////TODO do I have something to do here ?
+          //  TreeBcast * bcastLTree = fwdToRightTree_[i];
+          //  TreeBcast * bcastUTree = fwdToBelowTree_[i];
+          //  TreeReduce<T> * redLTree = redToLeftTree_[i];
+          //  TreeReduce<T> * redDTree = redToAboveTree_[i];
+          //
+          //bool participating = MYROW( grid_ ) == PROW( i, grid_ ) || MYCOL( grid_ ) == PCOL( i, grid_ )
+          //  || CountSendToRight(i) > 0
+          //  || CountSendToBelow(i) > 0
+          //  || CountSendToCrossDiagonal(i) > 0
+          //  || CountRecvFromCrossDiagonal(i) >0
+          //  || ( isRecvFromLeft_( i ) ) 
+          //  || ( isRecvFromAbove_( i ) )
+          //  || isSendToDiagonal_(i)
+          //  || (bcastUTree!=NULL)
+          //  || (bcastLTree!=NULL)
+          //  || (redLTree!=NULL)
+          //  || (redDTree!=NULL) ;
+          //participating = true;
+          //if( participating){
+            WSet[level[i]].push_back(i);  
+          //}
+
         }
 
+#if 1
         //Constrain the size of each list to be min(MPI_MAX_COMM,options_->maxPipelineDepth)
         Int limit = maxDepth; //(options_->maxPipelineDepth>0)?std::min(MPI_MAX_COMM,options_->maxPipelineDepth):MPI_MAX_COMM;
         Int rank = 0;
@@ -1268,6 +1300,7 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
 
           Int orank = rank;
           Int maxRank = rank + WSet[lidx].size()-1;
+//          Int maxRank = WSet[lidx].back();
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS<< (Int)(rank/limIndex_) << "  vs2  "<<(Int)(maxRank/limIndex_)<<std::endl;
 #endif
@@ -1354,9 +1387,9 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
           }
 
 
-
         }
 
+#endif
 
 
       }
@@ -1395,7 +1428,35 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
       Int numSteps = superList.size();
       Int stepSuper = superList[lidx].size(); 
 
+
+
+
       TIMER_START(AllocateBuffer);
+
+      stepSuper = 0;
+      for (Int supidx=0; supidx<superList[lidx].size(); supidx++){ 
+            TreeBcast * bcastLTree = fwdToRightTree_[supidx];
+            TreeBcast * bcastUTree = fwdToBelowTree_[supidx];
+            TreeReduce<T> * redLTree = redToLeftTree_[supidx];
+            TreeReduce<T> * redDTree = redToAboveTree_[supidx];
+          bool participating = MYROW( grid_ ) == PROW( supidx, grid_ ) || MYCOL( grid_ ) == PCOL( supidx, grid_ )
+            || CountSendToRight(supidx) > 0
+            || CountSendToBelow(supidx) > 0
+            || CountSendToCrossDiagonal(supidx) > 0
+            || CountRecvFromCrossDiagonal(supidx) >0
+            || ( isRecvFromLeft_( supidx ) ) 
+            || ( isRecvFromAbove_( supidx ) )
+            || isSendToDiagonal_(supidx)
+            || (bcastUTree!=NULL)
+            || (bcastLTree!=NULL)
+            || (redLTree!=NULL)
+            || (redDTree!=NULL) ;
+          if(participating){
+            stepSuper++;
+          }
+      }
+
+
 
       //This is required to send the size and content of U/L
       std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
@@ -1419,9 +1480,31 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
 
       //allocate the buffers for this supernode
       std::vector<SuperNodeBufferType> arrSuperNodes(stepSuper);
-      for (Int supidx=0; supidx<stepSuper; supidx++){ 
-        arrSuperNodes[supidx].Index = superList[lidx][supidx];  
-        arrSuperNodes[supidx].Rank = rank++;
+      Int pos = 0;
+      for (Int supidx=0; supidx<superList[lidx].size(); supidx++){ 
+            TreeBcast * bcastLTree = fwdToRightTree_[supidx];
+            TreeBcast * bcastUTree = fwdToBelowTree_[supidx];
+            TreeReduce<T> * redLTree = redToLeftTree_[supidx];
+            TreeReduce<T> * redDTree = redToAboveTree_[supidx];
+          bool participating = MYROW( grid_ ) == PROW( supidx, grid_ ) || MYCOL( grid_ ) == PCOL( supidx, grid_ )
+            || CountSendToRight(supidx) > 0
+            || CountSendToBelow(supidx) > 0
+            || CountSendToCrossDiagonal(supidx) > 0
+            || CountRecvFromCrossDiagonal(supidx) >0
+            || ( isRecvFromLeft_( supidx ) ) 
+            || ( isRecvFromAbove_( supidx ) )
+            || isSendToDiagonal_(supidx)
+            || (bcastUTree!=NULL)
+            || (bcastLTree!=NULL)
+            || (redLTree!=NULL)
+            || (redDTree!=NULL) ;
+          
+          if(participating){
+        arrSuperNodes[pos].Index = superList[lidx][supidx];  
+        arrSuperNodes[pos].Rank = rank;
+            pos++;
+          }
+          rank++;
       }
 
 
@@ -1534,6 +1617,7 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
             << "Communication for the U part." << std::endl << std::endl; 
 #endif
           // Communication for the U part.
+
           if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
             std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, grid_) );
             // Pack the data in U
@@ -2123,6 +2207,10 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
           TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
 
           if(redLTree != NULL && !redLdone[supidx]){
+
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L"<<std::endl;
+#endif
             bool done = redLTree->Progress();
             if(done){
               if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
@@ -2237,9 +2325,12 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
             SuperNodeBufferType & snode = arrSuperNodes[supidx];
             TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
 
-            if(redDTree != NULL){
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D"<<std::endl;
+#endif
+            if(redDTree != NULL && !is_done[supidx]){
               bool done = redDTree->Progress();
-              if(done && !is_done[supidx]){
+              if(done){
                 if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
                   if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
                     LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
@@ -2355,7 +2446,8 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
 #ifndef NEW_BCAST
       mpi::Waitall(arrMpireqsRecvContentFromAny);
       for (Int supidx=0; supidx<stepSuper; supidx++){
-        Int ksup = superList[lidx][supidx];
+        SuperNodeBufferType & snode = arrSuperNodes[supidx];
+        Int ksup = snode.Index;
         std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
         std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
 
@@ -2375,16 +2467,6 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
       statusOFS<<"barrier done"<<std::endl;
 #endif
       TIMER_STOP(Barrier);
-
-
-#ifdef LIST_BARRIER
-#ifndef ALL_BARRIER
-      if (options_->maxPipelineDepth!=-1)
-#endif
-      {
-        MPI_Barrier(grid_->comm);
-      }
-#endif
 
     }
 
@@ -2847,24 +2929,54 @@ std::vector<bool> sTB(grid_->numProcRow,false);
       MPI_Allreduce(MPI_IN_PLACE,&SeedRFA[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->colComm);
 
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
-        set<Int> set_ranks;
-        Int msgSize = 0;
+        if( isRecvFromAbove_(ksup) || CountSendToBelow(ksup)>0 ){
+          vector<Int> tree_ranks;
+          Int msgSize = 0;
+#if 0
+          set<Int> set_ranks;
+          for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+            Int isRFA = globalAggRFA[iProcRow*numSuper + ksup];
+            if(isRFA>0){
+              if( iProcRow != PROW( ksup, grid_ ) ){
+                set_ranks.insert(iProcRow);
+              }
+              else{
+                msgSize = isRFA;
+              }
+            }
+          }
+
+          tree_ranks.push_back(PROW(ksup,grid_));
+          tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
+#else
+        Int countRFA= 0;
+        for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+          if( iProcRow != PROW( ksup, grid_ ) ){
+            Int isRFA = globalAggRFA[iProcRow*numSuper + ksup];
+            if(isRFA>0){
+              ++countRFA;
+            }
+          }
+        }
+
+        tree_ranks.reserve(countRFA+1);
+        tree_ranks.push_back(PROW(ksup,grid_));
+
         for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
           Int isRFA = globalAggRFA[iProcRow*numSuper + ksup];
           if(isRFA>0){
             if( iProcRow != PROW( ksup, grid_ ) ){
-              set_ranks.insert(iProcRow);
+              tree_ranks.push_back(iProcRow);
             }
             else{
               msgSize = isRFA;
             }
           }
         }
+#endif
 
-        if( isRecvFromAbove_(ksup) || CountSendToBelow(ksup)>0 ){
-          vector<Int> tree_ranks;
-          tree_ranks.push_back(PROW(ksup,grid_));
-          tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
+
+
           TreeBcast * & BcastUTree = fwdToBelowTree_[ksup];
           BcastUTree = TreeBcast::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFA[ksup]);
 #ifdef COMM_PROFILE
@@ -2881,24 +2993,51 @@ std::vector<bool> sTB(grid_->numProcRow,false);
 #endif
         }
 
-        set_ranks.clear();
+        if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
+          Int msgSize = 0;
+          vector<Int> tree_ranks;
+#if 0
+          set<Int> set_ranks;
+          for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
+            Int isRFL = globalAggRFL[iProcCol*numSuper + ksup];
+            if(isRFL>0){
+              if( iProcCol != PCOL( ksup, grid_ ) ){
+                set_ranks.insert(iProcCol);
+              }
+              else{
+                msgSize = isRFL;
+              }
+            }
+          }
+
+          tree_ranks.push_back(PCOL(ksup,grid_));
+          tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
+#else
+        Int countRFL= 0;
+        for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
+          if( iProcCol != PCOL( ksup, grid_ ) ){
+            Int isRFL = globalAggRFL[iProcCol*numSuper + ksup];
+            if(isRFL>0){
+              ++countRFL;
+            }
+          }
+        }
+
+        tree_ranks.reserve(countRFL+1);
+        tree_ranks.push_back(PCOL(ksup,grid_));
+
         for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
           Int isRFL = globalAggRFL[iProcCol*numSuper + ksup];
           if(isRFL>0){
             if( iProcCol != PCOL( ksup, grid_ ) ){
-              set_ranks.insert(iProcCol);
+              tree_ranks.push_back(iProcCol);
             }
             else{
               msgSize = isRFL;
             }
           }
         }
-
-        if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
-          vector<Int> tree_ranks;
-          tree_ranks.push_back(PCOL(ksup,grid_));
-          tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
-
+#endif
           TreeBcast * & BcastLTree = fwdToRightTree_[ksup];
           BcastLTree = TreeBcast::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFL[ksup]);
 #ifdef COMM_PROFILE
@@ -2947,8 +3086,17 @@ std::vector<bool> sTB(grid_->numProcRow,false);
 
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
         if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
-          set<Int> set_ranks;
+
+          Int amISTD = globalAggSTD[MYROW(grid_)*numSuper + ksup];
+          //      if( MYCOL( grid_ ) == PCOL(ksup, grid_) &&  MYROW(grid_)==PROW(ksup,grid_)){
+          //        assert(amISTD>0);
+          //      }
+
+          if( amISTD ){
+            vector<Int> tree_ranks;
           Int msgSize = 0;
+#if 0
+          set<Int> set_ranks;
           for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
             Int isSTD = globalAggSTD[iProcRow*numSuper + ksup];
             if(isSTD>0){
@@ -2961,17 +3109,35 @@ std::vector<bool> sTB(grid_->numProcRow,false);
             }
           }
 
-          Int amISTD = globalAggSTD[MYROW(grid_)*numSuper + ksup];
 
-          //      if( MYCOL( grid_ ) == PCOL(ksup, grid_) &&  MYROW(grid_)==PROW(ksup,grid_)){
-          //        assert(amISTD>0);
-          //      }
-
-          if( amISTD ){
-            vector<Int> tree_ranks;
             tree_ranks.push_back(PROW(ksup,grid_));
             tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
+#else
+        Int countSTD= 0;
+        for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+          if( iProcRow != PROW( ksup, grid_ ) ){
+            Int isSTD = globalAggSTD[iProcRow*numSuper + ksup];
+            if(isSTD>0){
+              ++countSTD;
+            }
+          }
+        }
 
+        tree_ranks.reserve(countSTD+1);
+        tree_ranks.push_back(PROW(ksup,grid_));
+
+        for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+          Int isSTD = globalAggSTD[iProcRow*numSuper + ksup];
+          if(isSTD>0){
+            if( iProcRow != PROW( ksup, grid_ ) ){
+              tree_ranks.push_back(iProcRow);
+            }
+            else{
+              msgSize = isSTD;
+            }
+          }
+        }
+#endif
             //assert(set_ranks.find(MYROW(grid_))!= set_ranks.end() || MYROW(grid_)==tree_ranks[0]);
 
             TreeReduce<T> * & redDTree = redToAboveTree_[ksup];
@@ -3035,8 +3201,11 @@ std::vector<bool> sTB(grid_->numProcRow,false);
 
 
       for( Int ksup = 0; ksup < numSuper ; ksup++ ){
-        set<Int> set_ranks;
+        if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
+          vector<Int> tree_ranks;
         Int msgSize = 0;
+#if 0
+        set<Int> set_ranks;
         for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
           Int isRTL = globalAggRTL[iProcCol*numSuper + ksup];
           if(isRTL>0){
@@ -3048,11 +3217,36 @@ std::vector<bool> sTB(grid_->numProcRow,false);
             }
           }
         }
-
-        if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
-          vector<Int> tree_ranks;
           tree_ranks.push_back(PCOL(ksup,grid_));
           tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
+#else
+        Int countRTL= 0;
+        for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
+          if( iProcCol != PCOL( ksup, grid_ ) ){
+            Int isRTL = globalAggRTL[iProcCol*numSuper + ksup];
+            if(isRTL>0){
+              ++countRTL;
+            }
+          }
+        }
+
+        tree_ranks.reserve(countRTL+1);
+        tree_ranks.push_back(PCOL(ksup,grid_));
+
+        for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
+          Int isRTL = globalAggRTL[iProcCol*numSuper + ksup];
+          if(isRTL>0){
+            if( iProcCol != PCOL( ksup, grid_ ) ){
+              tree_ranks.push_back(iProcCol);
+            }
+            else{
+              msgSize = isRTL;
+            }
+          }
+        }
+
+#endif
+
 
           TreeReduce<T> * & redLTree = redToLeftTree_[ksup];
           redLTree = TreeReduce<T>::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRTL[ksup]);
@@ -3248,7 +3442,17 @@ std::vector<bool> sTB(grid_->numProcRow,false);
         Int stepSuper = superList[lidx].size(); 
 //statusOFS<<"IN "<<lidx<<"/"<<numSteps<<std::endl;
         SelInvIntra_P2p(lidx,rank);
-//statusOFS<<"OUT "<<lidx<<"/"<<numSteps<<" "<<limIndex_<<" "<<maxTag_<<std::endl;
+statusOFS<<"OUT "<<lidx<<"/"<<numSteps<<" "<<limIndex_<<std::endl;
+
+#ifdef LIST_BARRIER
+#ifndef ALL_BARRIER
+      if (options_->maxPipelineDepth!=-1)
+#endif
+      {
+        MPI_Barrier(grid_->comm);
+      }
+#endif
+
 
 
 //        assert(workingRanks_[lidx].size()==stepSuper);
@@ -4587,7 +4791,7 @@ std::vector<bool> sTB(grid_->numProcRow,false);
       }
 
 
-      DumpLU();
+      //DumpLU();
 
 
 

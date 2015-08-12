@@ -380,7 +380,7 @@ class FTreeBcast2: public TreeBcast2<T>{
         this->myDests_.insert(this->myDests_.begin(),&ranks[1],&ranks[0]+rank_cnt);
       }
 
-#if ( _DEBUGlevel_ >= 1 )
+#if (( _DEBUGlevel_ >= 1 )) && 0
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -566,7 +566,7 @@ class FTreeBcast: public TreeBcast{
         myDests_.insert(myDests_.begin(),&ranks[1],&ranks[0]+rank_cnt);
       }
 
-#if ( _DEBUGlevel_ >= 1 )
+#if (( _DEBUGlevel_ >= 1 )) && 0
       statusOFS<<"My root is "<<myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
@@ -671,7 +671,7 @@ class BTreeBcast: public TreeBcast{
 
       }
 
-#if ( _DEBUGlevel_ >= 1 )
+#if (( _DEBUGlevel_ >= 1 )) && 0
       statusOFS<<"My root is "<<myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
@@ -781,7 +781,7 @@ TIMER_STOP(FIND_RANK);
 
       }
 
-#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+#if (( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)) && 0
       statusOFS<<"My root is "<<myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
@@ -897,7 +897,7 @@ class RandBTreeBcast: public TreeBcast{
 
       }
 
-#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+#if (( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)) && 0
       statusOFS<<"My root is "<<myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
@@ -947,7 +947,7 @@ class PalmTreeBcast: public TreeBcast{
             }
           }
 
-#if ( _DEBUGlevel_ >= 1 )
+#if (( _DEBUGlevel_ >= 1 )) && 0
       statusOFS<<"My root is "<<myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
@@ -1319,7 +1319,7 @@ class FTreeReduce: public TreeReduce<T>{
         this->myDests_.insert(this->myDests_.begin(),&ranks[1],&ranks[0]+rank_cnt);
       }
 
-#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+#if (( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)) && 0
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -1526,7 +1526,7 @@ class BTreeReduce: public TreeReduce<T>{
 
       }
 
-#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+#if (( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)) && 0
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -1627,7 +1627,7 @@ TIMER_STOP(FIND_RANK);
 
       }
 
-#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+#if (( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)) && 0
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
