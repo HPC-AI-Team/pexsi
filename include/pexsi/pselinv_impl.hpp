@@ -1434,19 +1434,21 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
       TIMER_START(AllocateBuffer);
 
       stepSuper = 0;
-      for (Int supidx=0; supidx<superList[lidx].size(); supidx++){ 
-            TreeBcast * bcastLTree = fwdToRightTree_[supidx];
-            TreeBcast * bcastUTree = fwdToBelowTree_[supidx];
-            TreeReduce<T> * redLTree = redToLeftTree_[supidx];
-            TreeReduce<T> * redDTree = redToAboveTree_[supidx];
-          bool participating = MYROW( grid_ ) == PROW( supidx, grid_ ) || MYCOL( grid_ ) == PCOL( supidx, grid_ )
-            || CountSendToRight(supidx) > 0
-            || CountSendToBelow(supidx) > 0
-            || CountSendToCrossDiagonal(supidx) > 0
-            || CountRecvFromCrossDiagonal(supidx) >0
-            || ( isRecvFromLeft_( supidx ) ) 
-            || ( isRecvFromAbove_( supidx ) )
-            || isSendToDiagonal_(supidx)
+      for (Int supidx=0; supidx<superList[lidx].size(); supidx++){
+            Int snodeIdx = superList[lidx][supidx]; 
+            TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
+            TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
+            TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
+            TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
+          bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
+            || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
+            || CountSendToRight(snodeIdx) > 0
+            || CountSendToBelow(snodeIdx) > 0
+            || CountSendToCrossDiagonal(snodeIdx) > 0
+            || CountRecvFromCrossDiagonal(snodeIdx) >0
+            || ( isRecvFromLeft_( snodeIdx ) ) 
+            || ( isRecvFromAbove_( snodeIdx ) )
+            || isSendToDiagonal_(snodeIdx)
             || (bcastUTree!=NULL)
             || (bcastLTree!=NULL)
             || (redLTree!=NULL)
@@ -1482,18 +1484,20 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
       std::vector<SuperNodeBufferType> arrSuperNodes(stepSuper);
       Int pos = 0;
       for (Int supidx=0; supidx<superList[lidx].size(); supidx++){ 
-            TreeBcast * bcastLTree = fwdToRightTree_[supidx];
-            TreeBcast * bcastUTree = fwdToBelowTree_[supidx];
-            TreeReduce<T> * redLTree = redToLeftTree_[supidx];
-            TreeReduce<T> * redDTree = redToAboveTree_[supidx];
-          bool participating = MYROW( grid_ ) == PROW( supidx, grid_ ) || MYCOL( grid_ ) == PCOL( supidx, grid_ )
-            || CountSendToRight(supidx) > 0
-            || CountSendToBelow(supidx) > 0
-            || CountSendToCrossDiagonal(supidx) > 0
-            || CountRecvFromCrossDiagonal(supidx) >0
-            || ( isRecvFromLeft_( supidx ) ) 
-            || ( isRecvFromAbove_( supidx ) )
-            || isSendToDiagonal_(supidx)
+            Int snodeIdx = superList[lidx][supidx]; 
+            TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
+            TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
+            TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
+            TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
+          bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
+            || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
+            || CountSendToRight(snodeIdx) > 0
+            || CountSendToBelow(snodeIdx) > 0
+            || CountSendToCrossDiagonal(snodeIdx) > 0
+            || CountRecvFromCrossDiagonal(snodeIdx) >0
+            || ( isRecvFromLeft_( snodeIdx ) ) 
+            || ( isRecvFromAbove_( snodeIdx ) )
+            || isSendToDiagonal_(snodeIdx)
             || (bcastUTree!=NULL)
             || (bcastLTree!=NULL)
             || (redLTree!=NULL)
@@ -1554,8 +1558,11 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
           //Initialize the tree
           //bcastUTree2->AllocRecvBuffer();
           //Post Recv request;
-          bcastUTree2->Progress();
+          bool done = bcastUTree2->Progress();
 
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress bcast U "<<done<<std::endl;
+#endif
           *mpireqsRecvFromAbove = MPI_REQUEST_NULL;
         }
 #else
@@ -1584,7 +1591,11 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
           //Initialize the tree
           //bcastUTree2->AllocRecvBuffer();
           //Post Recv request;
-          bcastLTree2->Progress();
+          bool done = bcastLTree2->Progress();
+
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress bcast L "<<done<<std::endl;
+#endif
         }
 #else
 
@@ -1641,7 +1652,11 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
               bcastUTree2->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_));
               bcastUTree2->SetLocalBuffer((T*)&snode.SstrUrowSend[0]);
               bcastUTree2->SetDataReady(true);
-              bcastUTree2->Progress();
+              bool done = bcastUTree2->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress bcast U "<<done<<std::endl;
+#endif
+
               //progress should do the send
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -1710,7 +1725,11 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
               bcastLTree2->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_));
               bcastLTree2->SetLocalBuffer((T*)&snode.SstrLcolSend[0]);
               bcastLTree2->SetDataReady(true);
-              bcastLTree2->Progress();
+              bool done = bcastLTree2->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress bcast L "<<done<<std::endl;
+#endif
+
               //progress should do the send
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -1797,7 +1816,12 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
               //send the data to NULL to ensure 0 byte send
               redLTree->SetLocalBuffer(NULL);
               redLTree->SetDataReady(true);
+
               bool done = redLTree->Progress();
+
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+#endif
               TIMER_STOP(Reduce_Sinv_LT_Isend);
             }
           }// if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ))
@@ -1885,7 +1909,7 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
 
               TreeBcast2<T> * bcastUTree2 = fwdToBelowTree2_[snode.Index];
 
-              if(bcastUTree2 != NULL && (!bcastUdone[supidx2])){
+              if(bcastUTree2 != NULL /*&& (!bcastUdone[supidx2])*/){
                 if(!bcastUready[supidx2]){ 
                   if(!bcastUTree2->IsRoot()){
                     bool ready = bcastUTree2->IsDataReceived();
@@ -1931,10 +1955,11 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
                 }
                 //Progress is not necessarily what I need: I need to know if I have received the data, and that's it
                 bool done = bcastUTree2->Progress();
-                if(done){
-                  //bcastUTree2->CleanupBuffers();
-                  bcastUdone[supidx2]=1;
-                }
+                bcastUdone[supidx2]=done?1:0;
+
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress bcast U "<<done<<std::endl;
+#endif
               }
 
 
@@ -1947,7 +1972,7 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
 
              TreeBcast2<T> * bcastLTree2 = fwdToRightTree2_[snode.Index];
 
-              if(bcastLTree2 != NULL && (!bcastLdone[supidx2])){
+              if(bcastLTree2 != NULL /*&& (!bcastLdone[supidx2])*/){
                 if(!bcastLready[supidx2]){ 
                   if(!bcastLTree2->IsRoot()){
                     bool ready = bcastLTree2->IsDataReceived();
@@ -1991,10 +2016,11 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
                 }
                 //Progress is not necessarily what I need: I need to know if I have received the data, and that's it
                 bool done = bcastLTree2->Progress();
-                if(done){
-                  //bcastLTree2->CleanupBuffers();
-                  bcastLdone[supidx2]=1;
-                }
+                bcastLdone[supidx2]=done?1:0;
+
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress bcast L "<<done<<std::endl;
+#endif
               }
 
 
@@ -2168,7 +2194,11 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
               //send the data
               redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
               redLTree->SetDataReady(true);
+
               bool done = redLTree->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+#endif
               TIMER_STOP(Reduce_Sinv_LT_Isend);
             }
             gemmProcessed++;
@@ -2182,7 +2212,11 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
               SuperNodeBufferType & snode = arrSuperNodes[supidx];
               TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
               if(redLTree != NULL && !redLdone[supidx]){
-                bool done = redLTree->Progress();
+              bool done = redLTree->Progress();
+
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+#endif
               }
             }
           }
@@ -2206,13 +2240,18 @@ assert(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_)<=maxTag_);
 
           TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
 
-          if(redLTree != NULL && !redLdone[supidx]){
+          if(redLTree != NULL /*&& !redLdone[supidx]*/){
+
+            bool done = redLTree->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+#endif
+            redLdone[supidx]=done?1:0;
+            if(done){
 
 #if ( _DEBUGlevel_ >= 1 )
-statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L"<<std::endl;
+statusOFS<<"["<<snode.Index<<"] "<<" DONE reduce L"<<std::endl;
 #endif
-            bool done = redLTree->Progress();
-            if(done){
               if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
                 //determine the number of rows in LUpdateBufReduced
                 Int numRowLUpdateBuf;
@@ -2247,7 +2286,6 @@ statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L"<<std::endl;
                 redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
 
               }
-              redLdone[supidx]=1;
               redLTree->CleanupBuffers();
             }
 
@@ -2297,6 +2335,9 @@ statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L"<<std::endl;
 
           redDTree->SetDataReady(true);
           bool done = redDTree->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
+#endif
         }
 
         //advance reductions
@@ -2304,9 +2345,12 @@ statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L"<<std::endl;
           SuperNodeBufferType & snode = arrSuperNodes[supidx];
           TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
           if(redDTree != NULL){
-            if(redDTree->IsAllocated()){
+//            if(redDTree->IsAllocated()){
               bool done = redDTree->Progress();
-            }
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
+#endif
+//            }
           }
         }
       }
@@ -2325,12 +2369,18 @@ statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L"<<std::endl;
             SuperNodeBufferType & snode = arrSuperNodes[supidx];
             TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
 
-#if ( _DEBUGlevel_ >= 1 )
-statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D"<<std::endl;
-#endif
-            if(redDTree != NULL && !is_done[supidx]){
+            if(redDTree != NULL /*&& !is_done[supidx]*/){
+
               bool done = redDTree->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
+#endif
+              is_done[supidx]=done?1:0;
               if(done){
+
+#if ( _DEBUGlevel_ >= 1 )
+statusOFS<<"["<<snode.Index<<"] "<<" DONE reduce D"<<std::endl;
+#endif
                 if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
                   if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
                     LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
@@ -2340,7 +2390,6 @@ statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D"<<std::endl;
                   }
                 }
 
-                is_done[supidx]=1;
                 redDTree->CleanupBuffers();
               }
 

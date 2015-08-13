@@ -380,7 +380,7 @@ class FTreeBcast2: public TreeBcast2<T>{
         this->myDests_.insert(this->myDests_.begin(),&ranks[1],&ranks[0]+rank_cnt);
       }
 
-#if (( _DEBUGlevel_ >= 1 )) && 0
+#if (defined(BCAST_VERBOSE)) 
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -566,7 +566,7 @@ class FTreeBcast: public TreeBcast{
         myDests_.insert(myDests_.begin(),&ranks[1],&ranks[0]+rank_cnt);
       }
 
-#if (( _DEBUGlevel_ >= 1 )) && 0
+#if (defined(BCAST_VERBOSE))
       statusOFS<<"My root is "<<myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
@@ -671,7 +671,7 @@ class BTreeBcast: public TreeBcast{
 
       }
 
-#if (( _DEBUGlevel_ >= 1 )) && 0
+#if (defined(BCAST_VERBOSE))
       statusOFS<<"My root is "<<myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
@@ -781,7 +781,7 @@ TIMER_STOP(FIND_RANK);
 
       }
 
-#if (( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)) && 0
+#if (defined(REDUCE_VERBOSE))
       statusOFS<<"My root is "<<myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
@@ -897,7 +897,7 @@ class RandBTreeBcast: public TreeBcast{
 
       }
 
-#if (( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)) && 0
+#if (defined(REDUCE_VERBOSE))
       statusOFS<<"My root is "<<myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
@@ -947,7 +947,7 @@ class PalmTreeBcast: public TreeBcast{
             }
           }
 
-#if (( _DEBUGlevel_ >= 1 )) && 0
+#if (defined(BCAST_VERBOSE))
       statusOFS<<"My root is "<<myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<myDests_.size();++i){statusOFS<<myDests_[i]<<" ";}
@@ -988,6 +988,7 @@ class TreeReduce: public TreeBcast{
     NumVec<int> recvIdx_;
 
     bool fwded_;
+    bool done_;
     bool isAllocated_;
     Int numRecvPosted_;
 
@@ -996,6 +997,7 @@ class TreeReduce: public TreeBcast{
       myData_ = NULL;
       sendRequest_ = MPI_REQUEST_NULL;
       fwded_=false;
+      done_=false;
       isAllocated_=false;
       numRecvPosted_= 0;
     }
@@ -1101,6 +1103,13 @@ class TreeReduce: public TreeBcast{
 //              myLocalBuffer_=NULL;
 
 
+    }
+
+      void Reset(){
+        assert(done_);
+        CleanupBuffers();
+        done_=false;
+
       myData_ = NULL;
       sendRequest_ = MPI_REQUEST_NULL;
       fwded_=false;
@@ -1108,7 +1117,8 @@ class TreeReduce: public TreeBcast{
       isReady_=false;
       numRecv_ = 0;
       numRecvPosted_= 0;
-    }
+      }
+
 
 
     void SetLocalBuffer(T * locBuffer){
@@ -1150,8 +1160,12 @@ class TreeReduce: public TreeBcast{
 
     //async wait and forward
     virtual bool Progress(){
+
+        if(done_){
+          return true;
+        }
       if(!isAllocated_){
-        return true;
+        return false;
       }
 
       if(myRank_==myRoot_ && isAllocated_){
@@ -1230,12 +1244,14 @@ class TreeReduce: public TreeBcast{
         }
       }
 
+      
+      done_ = retVal;
       return retVal;
     }
 
     //blocking wait
     void Wait(){
-      if(isAllocated_){
+      if(!done_){
         while(!Progress());
       }
     }
@@ -1319,7 +1335,7 @@ class FTreeReduce: public TreeReduce<T>{
         this->myDests_.insert(this->myDests_.begin(),&ranks[1],&ranks[0]+rank_cnt);
       }
 
-#if (( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)) && 0
+#if (defined(REDUCE_VERBOSE))
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -1526,7 +1542,7 @@ class BTreeReduce: public TreeReduce<T>{
 
       }
 
-#if (( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)) && 0
+#if (defined(REDUCE_VERBOSE))
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -1627,7 +1643,7 @@ TIMER_STOP(FIND_RANK);
 
       }
 
-#if (( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)) && 0
+#if (defined(REDUCE_VERBOSE)) 
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
