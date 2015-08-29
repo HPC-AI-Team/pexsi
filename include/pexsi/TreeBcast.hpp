@@ -5,6 +5,7 @@
 #include "pexsi/timer.h"
 
 #include <vector>
+#include <map>
 #include <algorithm>
 #include <string>
 #include <random>
@@ -19,6 +20,8 @@
 
 namespace PEXSI{
 
+
+extern std::map< MPI_Comm , std::vector<int> > commGlobRanks;
 
 template< typename T>
   class TreeBcast2{
@@ -45,24 +48,36 @@ template< typename T>
       Int tag_;
       Int numRecv_;
 
-#ifdef COMM_PROFILE
+#ifdef COMM_PROFILE_BCAST
     protected:
+      Int myGRoot_;
       Int myGRank_;
-      vector<int> Granks_;
+      //vector<int> Granks_;
     public:
       void SetGlobalComm(const MPI_Comm & pGComm){
-        MPI_Comm_rank(pGComm,&myGRank_);
-        MPI_Group group2 = MPI_GROUP_NULL;
-        MPI_Comm_group(pGComm, &group2);
-        MPI_Group group1 = MPI_GROUP_NULL;
-        MPI_Comm_group(comm_, &group1);
+        if(commGlobRanks.count(comm_)==0){
+          MPI_Group group2 = MPI_GROUP_NULL;
+          MPI_Comm_group(pGComm, &group2);
+          MPI_Group group1 = MPI_GROUP_NULL;
+          MPI_Comm_group(comm_, &group1);
 
-        Int size;
-        MPI_Comm_size(comm_,&size);
-        Granks_.resize(size);
-        vector<int> Lranks(size);
-        for(int i = 0; i<size;++i){Lranks[i]=i;}
-        MPI_Group_translate_ranks(group1, size, &Lranks[0],group2, &Granks_[0]);
+          Int size;
+          MPI_Comm_size(comm_,&size);
+          vector<int> globRanks(size);
+          vector<int> Lranks(size);
+          for(int i = 0; i<size;++i){Lranks[i]=i;}
+          MPI_Group_translate_ranks(group1, size, &Lranks[0],group2, &globRanks[0]);
+          commGlobRanks[comm_] = globRanks;
+        }
+        myGRoot_ = commGlobRanks[comm_][myRoot_];
+        myGRank_ = commGlobRanks[comm_][myRank_];
+        //Granks_.resize(myDests_.size());
+        //for(int i = 0; i<myDests_.size();++i){
+        //  Granks_[i] = globRanks[myDests_[i]];
+        //}
+
+        //statusOFS<<myDests_<<std::endl;
+        //statusOFS<<Granks_<<std::endl;
       }
 #endif
 
@@ -171,6 +186,7 @@ template< typename T>
       }
       inline void SetTag(Int tag){ tag_ = tag;}
 
+      bool IsDone(){return done_;}
       bool IsDataReady(){return isReady_;}
       bool IsDataReceived(){return numRecv_==1;}
 
@@ -196,8 +212,12 @@ template< typename T>
 #if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
           statusOFS<<myRank_<<" FWD to "<<iProc<<" on tag "<<tag_<<std::endl;
 #endif
-#ifdef COMM_PROFILE
-          PROFILE_COMM(myGRank_,Granks_[iProc],tag_,msgSize_);
+#ifdef COMM_PROFILE_BCAST
+//        statusOFS<<idxRecv<<std::endl;
+//        statusOFS<<myDests_<<std::endl;
+//        statusOFS<<Granks_<<std::endl;
+          //PROFILE_COMM(myGRank_,Granks_[idxRecv],tag_,msgSize_);
+          PROFILE_COMM(myGRank_,commGlobRanks[comm_][iProc],tag_,msgSize_);
 #endif
         } // for (iProc)
         fwded_ = true;
@@ -451,24 +471,35 @@ class TreeBcast{
     Int numRecv_;
 
 
-#ifdef COMM_PROFILE
+#if defined(COMM_PROFILE_BCAST) || defined(COMM_PROFILE)
 protected:
     Int myGRank_;
-    vector<int> Granks_;
+    Int myGRoot_;
+    //vector<int> Granks_;
 public:
     void SetGlobalComm(const MPI_Comm & pGComm){
-      MPI_Comm_rank(pGComm,&myGRank_);
-      MPI_Group group2 = MPI_GROUP_NULL;
-      MPI_Comm_group(pGComm, &group2);
-      MPI_Group group1 = MPI_GROUP_NULL;
-      MPI_Comm_group(comm_, &group1);
+      if(commGlobRanks.count(comm_)==0){
+        MPI_Group group2 = MPI_GROUP_NULL;
+        MPI_Comm_group(pGComm, &group2);
+        MPI_Group group1 = MPI_GROUP_NULL;
+        MPI_Comm_group(comm_, &group1);
 
-      Int size;
-      MPI_Comm_size(comm_,&size);
-      Granks_.resize(size);
-      vector<int> Lranks(size);
-      for(int i = 0; i<size;++i){Lranks[i]=i;}
-      MPI_Group_translate_ranks(group1, size, &Lranks[0],group2, &Granks_[0]);
+        Int size;
+        MPI_Comm_size(comm_,&size);
+        vector<int> globRanks(size);
+        vector<int> Lranks(size);
+        for(int i = 0; i<size;++i){Lranks[i]=i;}
+        MPI_Group_translate_ranks(group1, size, &Lranks[0],group2, &globRanks[0]);
+        commGlobRanks[comm_] = globRanks;
+      }
+      myGRoot_ = commGlobRanks[comm_][myRoot_];
+      myGRank_ = commGlobRanks[comm_][myRank_];
+     //   Granks_.resize(myDests_.size());
+     //   for(int i = 0; i<myDests_.size();++i){
+     //     Granks_[i] = globRanks[myDests_[i]];
+     //   }
+        //statusOFS<<myDests_<<std::endl;
+        //statusOFS<<Granks_<<std::endl;
     }
 #endif
 
@@ -542,8 +573,11 @@ public:
                     MPI_Isend( data, size, MPI_BYTE, 
                         iProc, tag,comm_, &requests[2*iProc+1] );
 
-#ifdef COMM_PROFILE
-      PROFILE_COMM(myGRank_,Granks_[iProc],tag,msgSize_);
+#if defined(COMM_PROFILE_BCAST) || defined(COMM_PROFILE)
+//        statusOFS<<idxRecv<<std::endl;
+//        statusOFS<<Granks_<<std::endl;
+      //PROFILE_COMM(myGRank_,Granks_[idxRecv],tag,msgSize_);
+          PROFILE_COMM(myGRank_,commGlobRanks[comm_][iProc],tag_,msgSize_);
 #endif
                   } // for (iProc)
     }
@@ -1297,14 +1331,14 @@ class TreeReduce: public TreeBcast{
         MPI_Isend( NULL, 0, MPI_BYTE, 
             iProc, tag_,comm_, &sendRequest_ );
 #ifdef COMM_PROFILE
-      PROFILE_COMM(myGRank_,Granks_[iProc],tag_,0);
+      PROFILE_COMM(myGRank_,myGRoot_,tag_,0);
 #endif
       }
       else{
         MPI_Isend( (char*)myData_, msgSize_, MPI_BYTE, 
             iProc, tag_,comm_, &sendRequest_ );
 #ifdef COMM_PROFILE
-      PROFILE_COMM(myGRank_,Granks_[iProc],tag_,msgSize_);
+      PROFILE_COMM(myGRank_,myGRoot_,tag_,msgSize_);
 #endif
       }
 

@@ -135,7 +135,7 @@ int main(int argc, char **argv)
       ss << "logTest" << mpirank;
       statusOFS.open( ss.str().c_str() );
 
-#ifdef COMM_PROFILE
+#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
       stringstream  ss3;
       ss3 << "comm_stat" << mpirank;
       commOFS.open( ss3.str().c_str());
@@ -642,7 +642,7 @@ int main(int argc, char **argv)
 
       }
 
-#ifdef COMM_PROFILE
+#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
       commOFS.close();
 #endif
 
