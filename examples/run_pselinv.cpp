@@ -265,7 +265,12 @@ int main(int argc, char **argv)
       // *********************************************************************
 
       // Setup grid.
+#ifdef SWAP_ROWS_COLS
+      SuperLUGrid<MYSCALAR> g( world_comm, npcol, nprow );
+      //SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
+#else
       SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
+#endif
       //      SuperLUGrid<Complex> g1( world_comm, nprow, npcol );
 
       int      m, n;

@@ -106,11 +106,16 @@ namespace PEXSI{
         throw std::logic_error( "mpisize != nprow * npcol." ); 
       }
 
+
       numProcRow = nprow;
       numProcCol = npcol;
-
+#ifdef SWAP_ROWS_COLS
+      Int myrow = mpirank % npcol;
+      Int mycol = mpirank / npcol;
+#else
       Int myrow = mpirank / npcol;
       Int mycol = mpirank % npcol;
+#endif
 
       MPI_Comm_split( comm, myrow, mycol, &rowComm );
       MPI_Comm_split( comm, mycol, myrow, &colComm );

@@ -423,6 +423,247 @@ class FTreeBcast2: public TreeBcast2<T>{
     } 
 };
 
+template< typename T>
+class BTreeBcast2: public TreeBcast2<T>{
+  protected:
+////  virtual void buildTree(Int * ranks, Int rank_cnt){
+////          Int numLevel = floor(log2(rank_cnt));
+////          Int numRoots = 0;
+////          for(Int level=0;level<numLevel;++level){
+////            numRoots = std::min( rank_cnt, numRoots + (Int)pow(2,level));
+////            Int numNextRoots = std::min(rank_cnt,numRoots + (Int)pow(2,(level+1)));
+////            Int numReceivers = numNextRoots - numRoots;
+////            for(Int ip = 0; ip<numRoots;++ip){
+////              Int p = ranks[ip];
+////              for(Int ir = ip; ir<numReceivers;ir+=numRoots){
+////                Int r = ranks[numRoots+ir];
+////                if(r==myRank_){
+////                  myRoot_ = p;
+////                }
+////
+////                if(p==myRank_){
+////                  myDests_.push_back(r);
+////                }
+////              }
+////            }
+////          }
+////  }
+////
+    virtual void buildTree(Int * ranks, Int rank_cnt){
+
+      Int idxStart = 0;
+      Int idxEnd = rank_cnt;
+
+
+
+      Int prevRoot = ranks[0];
+      while(idxStart<idxEnd){
+        Int curRoot = ranks[idxStart];
+        Int listSize = idxEnd - idxStart;
+
+        if(listSize == 1){
+          if(curRoot == this->myRank_){
+            this->myRoot_ = prevRoot;
+            break;
+          }
+        }
+        else{
+          Int halfList = floor(ceil(double(listSize) / 2.0));
+          Int idxStartL = idxStart+1;
+          Int idxStartH = idxStart+halfList;
+
+          if(curRoot == this->myRank_){
+            if ((idxEnd - idxStartH) > 0 && (idxStartH - idxStartL)>0){
+              Int childL = ranks[idxStartL];
+              Int childR = ranks[idxStartH];
+
+              this->myDests_.push_back(childL);
+              this->myDests_.push_back(childR);
+            }
+            else if ((idxEnd - idxStartH) > 0){
+              Int childR = ranks[idxStartH];
+              this->myDests_.push_back(childR);
+            }
+            else{
+              Int childL = ranks[idxStartL];
+              this->myDests_.push_back(childL);
+            }
+            this->myRoot_ = prevRoot;
+            break;
+          } 
+
+          if( this->myRank_ < ranks[idxStartH]){
+            idxStart = idxStartL;
+            idxEnd = idxStartH;
+          }
+          else{
+            idxStart = idxStartH;
+          }
+          prevRoot = curRoot;
+        }
+
+      }
+
+#if (defined(BCAST_VERBOSE))
+      statusOFS<<"My root is "<<myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
+
+
+
+  public:
+    BTreeBcast2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeBcast2<T>(pComm,ranks,rank_cnt,msgSize){
+      //build the binary tree;
+      buildTree(ranks,rank_cnt);
+    }
+
+    virtual BTreeBcast2<T> * clone() const{
+      BTreeBcast2<T> * out = new BTreeBcast2<T>(*this);
+      return out;
+    }
+
+};
+
+
+
+template< typename T>
+class ModBTreeBcast2: public TreeBcast2<T>{
+  protected:
+    double rseed_;
+
+    virtual void buildTree(Int * ranks, Int rank_cnt){
+
+      Int idxStart = 0;
+      Int idxEnd = rank_cnt;
+
+      //sort the ranks with the modulo like operation
+      if(rank_cnt>1){
+        //Int new_idx = (int)((rand()+1.0) * (double)rank_cnt / ((double)RAND_MAX+1.0));
+
+//        srand(ranks[0]+rank_cnt);
+        Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
+        //statusOFS<<"NEW IDX: "<<new_idx<<endl;
+
+
+
+        Int * new_start = &ranks[new_idx];
+
+        //for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
+
+//        Int * new_start = std::lower_bound(&ranks[1],&ranks[0]+rank_cnt,ranks[0]);
+        //just swap the two chunks   r[0] | r[1] --- r[new_start-1] | r[new_start] --- r[end]
+        // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1] 
+        std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
+
+        //for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
+      }
+
+      Int prevRoot = ranks[0];
+      while(idxStart<idxEnd){
+        Int curRoot = ranks[idxStart];
+        Int listSize = idxEnd - idxStart;
+
+        if(listSize == 1){
+          if(curRoot == this->myRank_){
+            this->myRoot_ = prevRoot;
+            break;
+          }
+        }
+        else{
+          Int halfList = floor(ceil(double(listSize) / 2.0));
+          Int idxStartL = idxStart+1;
+          Int idxStartH = idxStart+halfList;
+
+          if(curRoot == this->myRank_){
+            if ((idxEnd - idxStartH) > 0 && (idxStartH - idxStartL)>0){
+              Int childL = ranks[idxStartL];
+              Int childR = ranks[idxStartH];
+
+              this->myDests_.push_back(childL);
+              this->myDests_.push_back(childR);
+            }
+            else if ((idxEnd - idxStartH) > 0){
+              Int childR = ranks[idxStartH];
+              this->myDests_.push_back(childR);
+            }
+            else{
+              Int childL = ranks[idxStartL];
+              this->myDests_.push_back(childL);
+            }
+            this->myRoot_ = prevRoot;
+            break;
+          } 
+
+          //not true anymore ?
+          //first half to 
+TIMER_START(FIND_RANK);
+          Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], this->myRank_);
+TIMER_STOP(FIND_RANK);
+          if( pos != &ranks[idxStartH]){
+            idxStart = idxStartL;
+            idxEnd = idxStartH;
+          }
+          else{
+            idxStart = idxStartH;
+          }
+          prevRoot = curRoot;
+        }
+
+      }
+
+#if (defined(REDUCE_VERBOSE))
+      statusOFS<<"My root is "<<myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
+
+
+
+  public:
+    ModBTreeBcast2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed):TreeBcast2<T>(pComm,ranks,rank_cnt,msgSize){
+      //build the binary tree;
+      rseed_ = rseed;
+      buildTree(ranks,rank_cnt);
+    }
+
+    //virtual void Copy(const ModBTreeBcast & Tree){
+    //  comm_ = Tree.comm_;
+    //  myRank_ = Tree.myRank_;
+    //  myRoot_ = Tree.myRoot_; 
+    //  msgSize_ = Tree.msgSize_;
+
+    //  numRecv_ = Tree.numRecv_;
+    //  tag_= Tree.tag_;
+    //  mainRoot_= Tree.mainRoot_;
+    //  isReady_ = Tree.isReady_;
+    //  myDests_ = Tree.myDests_;
+
+    //  rseed_ = Tree.rseed_;
+    //  myRank_ = Tree.myRank_;
+    //  myRoot_ = Tree.myRoot_; 
+    //  msgSize_ = Tree.msgSize_;
+
+    //  numRecv_ = Tree.numRecv_;
+    //  tag_= Tree.tag_;
+    //  mainRoot_= Tree.mainRoot_;
+    //  isReady_ = Tree.isReady_;
+    //  myDests_ = Tree.myDests_;
+    //}
+ 
+    virtual ModBTreeBcast2 * clone() const{
+      ModBTreeBcast2 * out = new ModBTreeBcast2(*this);
+      return out;
+    }
+
+};
+
+
 
 
 
@@ -1729,6 +1970,89 @@ TIMER_STOP(FIND_RANK);
 };
 
 
+template< typename T>
+class PalmTreeReduce: public TreeReduce<T>{
+    protected:
+
+  virtual void buildTree(Int * ranks, Int rank_cnt){
+          Int numLevel = floor(log2(rank_cnt));
+          Int numRoots = 0;
+          for(Int level=0;level<numLevel;++level){
+            numRoots = std::min( rank_cnt, numRoots + (Int)pow(2,level));
+            Int numNextRoots = std::min(rank_cnt,numRoots + (Int)pow(2,(level+1)));
+            Int numReceivers = numNextRoots - numRoots;
+            for(Int ip = 0; ip<numRoots;++ip){
+              Int p = ranks[ip];
+              for(Int ir = ip; ir<numReceivers;ir+=numRoots){
+                Int r = ranks[numRoots+ir];
+                if(r==this->myRank_){
+                  this->myRoot_ = p;
+                }
+
+                if(p==this->myRank_){
+                  this->myDests_.push_back(r);
+                }
+              }
+            }
+          }
+
+#if (defined(BCAST_VERBOSE))
+      statusOFS<<"My root is "<<this->myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
+
+
+
+  public:
+    PalmTreeReduce(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce<T>(pComm,ranks,rank_cnt,msgSize){
+      //build the binary tree;
+      buildTree(ranks,rank_cnt);
+    }
+
+
+
+    virtual void Copy(const PalmTreeReduce & Tree){
+      //this->comm_ = Tree.comm_;
+      //this->myRank_ = Tree.myRank_;
+      //this->myRoot_ = Tree.myRoot_; 
+      //this->msgSize_ = Tree.msgSize_;
+
+      //this->numRecv_ = Tree.numRecv_;
+      //this->tag_= Tree.tag_;
+      //this->mainRoot_= Tree.mainRoot_;
+      //this->isReady_ = Tree.isReady_;
+      //this->myDests_ = Tree.myDests_;
+
+
+      //this->myData_ = Tree.myData_;
+      //this->sendRequest_ = Tree.sendRequest_;
+      //this->fwded_= Tree.fwded_;
+      //this->isAllocated_= Tree.isAllocated_;
+      //this->numRecvPosted_= Tree.numRecvPosted_;
+
+      //this->myLocalBuffer_ = Tree.myLocalBuffer_;
+      //this->myRecvBuffers_ = Tree.myRecvBuffers_;
+      //this->remoteData_ = Tree.remoteData_;
+      //this->myRequests_ = Tree.myRequests_;
+      //this->myStatuses_ = Tree.myStatuses_;
+      //this->recvIdx_ = Tree.recvIdx_;
+      //this->rseed_ = Tree.rseed_;
+    }
+ 
+
+
+
+    virtual PalmTreeReduce * clone() const{
+      PalmTreeReduce * out = new PalmTreeReduce(*this);
+      return out;
+    }
+
+};
+
+
 
     inline TreeBcast * TreeBcast::Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed){
       //get communicator size
@@ -1742,6 +2066,8 @@ TIMER_STOP(FIND_RANK);
         return new ModBTreeBcast(pComm,ranks,rank_cnt,msgSize, rseed);
 #elif defined(BTREE)
         return new BTreeBcast(pComm,ranks,rank_cnt,msgSize);
+#elif defined(PALMTREE)
+        return new PalmTreeBcast(pComm,ranks,rank_cnt,msgSize);
 #endif
 
 
@@ -1776,6 +2102,8 @@ template< typename T>
         return new ModBTreeReduce<T>(pComm,ranks,rank_cnt,msgSize, rseed);
 #elif defined(BTREE)
         return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
+#elif defined(PALMTREE)
+        return new PalmTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
 #endif
 
 
@@ -1802,19 +2130,32 @@ template< typename T>
       MPI_Comm_size(pComm, &nprocs);
 
 
-//      if(nprocs<=FTREE_LIMIT){
+
+
+#if defined(FTREE)
+        return new FTreeBcast2<T>(pComm,ranks,rank_cnt,msgSize);
+#elif defined(MODBTREE)
+        return new ModBTreeBcast2<T>(pComm,ranks,rank_cnt,msgSize,rseed);
+#elif defined(BTREE)
+        return new BTreeBcast2<T>(pComm,ranks,rank_cnt,msgSize);
+#endif
+
+
+      if(nprocs<=FTREE_LIMIT){
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
 statusOFS<<"FLAT TREE USED"<<endl;
 #endif
+
         return new FTreeBcast2<T>(pComm,ranks,rank_cnt,msgSize);
-//      }
-//      else{
-//#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-//statusOFS<<"BINARY TREE USED"<<endl;
-//#endif
-//        return new ModBTreeReduce<T>(pComm,ranks,rank_cnt,msgSize, rseed);
+
+      }
+      else{
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+statusOFS<<"BINARY TREE USED"<<endl;
+#endif
+        return new ModBTreeBcast2<T>(pComm,ranks,rank_cnt,msgSize, rseed);
 //        //return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
-//      }
+      }
     }
 
 
