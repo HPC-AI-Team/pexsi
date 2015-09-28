@@ -264,6 +264,17 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
+- v0.9.1 
+    - Add support for SuperLU_DIST v4.2.
+    - Add pole expansion to C/FORTRAN interfaces to be called
+      separately.
+    
+    - Add EDM and FDM pole expansion interface.
+    
+    - Bug fix: remove a const attribute in CSCToCSR since it is modified
+      by MPI.
+
+
 - v0.9.0 (07/15/2015) **Major update**
     - Add parallel selected inversion (PSelInv) for asymmetric matrices.
       The asymmetric matrix can be either structurally symmetric or
