@@ -101,7 +101,28 @@ namespace PEXSI{
   }
 
   void ComplexGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
+
+#ifdef SWAP_ROWS_COLS
+    int * usermap = new int[nprow*npcol];
+  for(int mpirank = 0;mpirank<nprow*npcol;mpirank++){
+      int myrow = mpirank % npcol;
+      int mycol = mpirank / npcol;
+      usermap[myrow*npcol+mycol] = mpirank;
+  }
+    superlu_gridmap(
+		     comm, nprow, npcol,
+		     usermap, /* usermap(i,j) holds the process
+					 number to be placed in {i,j} of
+					 the process grid.  */
+		     npcol, &info_->grid);
+    delete [] usermap;
+#else
     superlu_gridinit(comm, nprow, npcol, &info_->grid);
+#endif
+
+
+
+//    superlu_gridinit(comm, nprow, npcol, &info_->grid);
   }
 
   void ComplexGridData::GridExit(  ){

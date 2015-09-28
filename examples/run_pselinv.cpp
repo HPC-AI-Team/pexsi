@@ -135,7 +135,7 @@ int main(int argc, char **argv)
       ss << "logTest" << mpirank;
       statusOFS.open( ss.str().c_str() );
 
-#ifdef COMM_PROFILE
+#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
       stringstream  ss3;
       ss3 << "comm_stat" << mpirank;
       commOFS.open( ss3.str().c_str());
@@ -265,7 +265,12 @@ int main(int argc, char **argv)
       // *********************************************************************
 
       // Setup grid.
+#ifdef SWAP_ROWS_COLS
+      SuperLUGrid<MYSCALAR> g( world_comm, npcol, nprow );
+      //SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
+#else
       SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
+#endif
       //      SuperLUGrid<Complex> g1( world_comm, nprow, npcol );
 
       int      m, n;
@@ -642,7 +647,7 @@ int main(int argc, char **argv)
 
       }
 
-#ifdef COMM_PROFILE
+#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
       commOFS.close();
 #endif
 
