@@ -7,6 +7,10 @@
 #include "superlu_ddefs.h"
 #define  PRNTlevel 0
 
+#ifndef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
+
 /// @brief pdsymbfact performs symbolic factorization that can be
 /// reused.
 ///
@@ -420,13 +424,11 @@ pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 
 		if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
 			nprocs_num = grid->nprow * grid->npcol;
-			if( *numProcSymbFact == 0 ){
-				// Default value
-				noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
-			}
-			else{
+			// Default value
+			noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
+			if( *numProcSymbFact != 0 ){
 				// User-provided value
-				noDomains = *numProcSymbFact;
+				noDomains = MIN(noDomains,*numProcSymbFact);
 			}
 #if ( PRNTlevel >= 1 )
 			if( !iam ) fprintf(stderr,"Using %d processors for ParMETIS.\n", noDomains);

@@ -58,8 +58,8 @@ namespace PEXSI{
     PMatrixUnsym<T>::PMatrixUnsym ( 
         const GridType* g, 
         const SuperNodeType* s, 
-        const PEXSI::PSelInvOptions * o, 
-        const PEXSI::SuperLUOptions * oLU  
+        const PSelInvOptions * o, 
+        const SuperLUOptions * oLU  
         )
     {
 #ifndef _RELEASE_
@@ -79,8 +79,8 @@ namespace PEXSI{
     void PMatrixUnsym<T>::Setup( 
         const GridType* g, 
         const SuperNodeType* s, 
-        const PEXSI::PSelInvOptions * o, 
-        const PEXSI::SuperLUOptions * oLU  
+        const PSelInvOptions * o, 
+        const SuperLUOptions * oLU  
         ) {
 #ifndef _RELEASE_
       PushCallStack("PMatrixUnsym::Setup");
