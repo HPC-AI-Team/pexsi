@@ -13,7 +13,7 @@
 // options to switch from a flat bcast/reduce tree to a binary tree
 
 #ifndef FTREE_LIMIT
-#define FTREE_LIMIT 24
+#define FTREE_LIMIT 16
 #endif
 
 

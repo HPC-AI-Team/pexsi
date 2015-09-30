@@ -3004,7 +3004,9 @@ namespace PEXSI{
         vector<Int> aggRFL(numSuper); 
         vector<Int> globalAggRFL(numSuper*grid_->numProcCol); 
         for( Int ksup = 0; ksup < numSuper ; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
           statusOFS<<"1 "<<ksup<<std::endl;
+#endif
           if(MYCOL(grid_)==PCOL(ksup,grid_)){
             std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
             // All blocks except for the diagonal block are to be sent right
@@ -3040,8 +3042,9 @@ namespace PEXSI{
 
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
           statusOFS<<"3 "<<ksup<<std::endl;
-
+#endif
           if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
             Int msgSize = 0;
             vector<Int> tree_ranks;
@@ -3098,7 +3101,9 @@ namespace PEXSI{
         vector<Int> aggRFA(numSuper); 
         vector<Int> globalAggRFA(numSuper*grid_->numProcRow); 
         for( Int ksup = 0; ksup < numSuper ; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
           statusOFS<<"2 "<<ksup<<std::endl;
+#endif
           if(MYROW(grid_)==PROW(ksup,grid_)){
             std::vector<UBlock<T> >&  Urow = this->U( LBi(ksup, grid_) );
             // All blocks except for the diagonal block are to be sent right
@@ -3133,7 +3138,9 @@ namespace PEXSI{
         MPI_Allreduce(MPI_IN_PLACE,&SeedRFA[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->colComm);
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
           statusOFS<<"4 "<<ksup<<std::endl;
+#endif
           if( isRecvFromAbove_(ksup) || CountSendToBelow(ksup)>0 ){
             vector<Int> tree_ranks;
             Int msgSize = 0;
@@ -3210,7 +3217,9 @@ namespace PEXSI{
 
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
           statusOFS<<"5 "<<ksup<<std::endl;
+#endif
           if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
 
             Int amISTD = globalAggSTD[MYROW(grid_)*numSuper + ksup];
@@ -3328,7 +3337,9 @@ namespace PEXSI{
 
 
         for( Int ksup = 0; ksup < numSuper ; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
           statusOFS<<"6 "<<ksup<<std::endl;
+#endif
           if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
             vector<Int> tree_ranks;
             Int msgSize = 0;
@@ -3570,7 +3581,9 @@ namespace PEXSI{
         Int stepSuper = superList[lidx].size(); 
         //statusOFS<<"IN "<<lidx<<"/"<<numSteps<<std::endl;
         SelInvIntra_P2p(lidx,rank);
+#if ( _DEBUGlevel_ >= 1 )
         statusOFS<<"OUT "<<lidx<<"/"<<numSteps<<" "<<limIndex_<<std::endl;
+#endif
 
 #ifdef LIST_BARRIER
 #ifndef ALL_BARRIER
