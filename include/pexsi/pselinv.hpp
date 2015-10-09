@@ -663,7 +663,7 @@ namespace PEXSI{
       // Public member functions 
       // *********************************************************************
 
-      PMatrix() {}
+      PMatrix();
 
       PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::SuperLUOptions * oLU  );
 

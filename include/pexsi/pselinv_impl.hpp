@@ -212,6 +212,15 @@ namespace PEXSI{
           delete redToAboveTree_[i];
         }
       }
+
+//dump comm_profile info
+#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
+      if(commOFS.is_open()){
+        commOFS.close();
+      }
+#endif
+
+
     }
 
   template<typename T>
@@ -294,7 +303,7 @@ namespace PEXSI{
     }
 
   template<typename T>
-    PMatrix<T>::PMatrix( const PMatrix<T> & C){
+    PMatrix<T>::PMatrix( const PMatrix<T> & C):PMatrix(){
       //If we have some memory allocated, delete it
       deallocate();
 
@@ -370,13 +379,19 @@ namespace PEXSI{
 
     }
 
+
+  template<typename T>
+    PMatrix<T>::PMatrix ( ){
+
+  }
+
   template<typename T>
     PMatrix<T>::PMatrix ( 
         const GridType* g, 
         const SuperNodeType* s, 
         const PEXSI::PSelInvOptions * o, 
         const PEXSI::SuperLUOptions * oLU
-        )
+        ):PMatrix()
     {
 #ifndef _RELEASE_
       PushCallStack("PMatrix::PMatrix");
@@ -457,6 +472,13 @@ namespace PEXSI{
       limIndex_ = (Int)maxTag_/(Int)SELINV_TAG_COUNT -1; 
 
 
+#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
+      std::stringstream  ss3;
+      ss3 << "comm_stat" << MYPROC(this->grid_);
+      if(!commOFS.is_open()){
+        commOFS.open( ss3.str().c_str());
+      }
+#endif
 
 
 #ifndef _RELEASE_

@@ -820,7 +820,7 @@ public:
 //        statusOFS<<idxRecv<<std::endl;
 //        statusOFS<<Granks_<<std::endl;
       //PROFILE_COMM(myGRank_,Granks_[idxRecv],tag,msgSize_);
-          PROFILE_COMM(myGRank_,commGlobRanks[comm_][iProc],tag_,msgSize_);
+          PROFILE_COMM(myGRank_,commGlobRanks[comm_][iProc],tag,msgSize_);
 #endif
                   } // for (iProc)
     }

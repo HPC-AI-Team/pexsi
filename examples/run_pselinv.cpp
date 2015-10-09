@@ -135,11 +135,11 @@ int main(int argc, char **argv)
       ss << "logTest" << mpirank;
       statusOFS.open( ss.str().c_str() );
 
-#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
-      stringstream  ss3;
-      ss3 << "comm_stat" << mpirank;
-      commOFS.open( ss3.str().c_str());
-#endif
+///#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
+///      stringstream  ss3;
+///      ss3 << "comm_stat" << mpirank;
+///      commOFS.open( ss3.str().c_str());
+///#endif
 
 
       //if( mpisize != nprow * npcol || nprow != npcol ){
@@ -647,9 +647,9 @@ int main(int argc, char **argv)
 
       }
 
-#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
-      commOFS.close();
-#endif
+//#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
+//      commOFS.close();
+//#endif
 
       statusOFS.close();
     }
