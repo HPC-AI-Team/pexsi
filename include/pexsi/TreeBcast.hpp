@@ -23,6 +23,8 @@ namespace PEXSI{
 
 extern std::map< MPI_Comm , std::vector<int> > commGlobRanks;
 
+#ifdef NEW_BCAST
+
 template< typename T>
   class TreeBcast2{
     protected:
@@ -169,7 +171,7 @@ template< typename T>
         numRecv_ = 0;
       }
 
-      bool IsAllocated(){return isAllocated_;}
+      //bool IsAllocated(){return isAllocated_;}
 
       virtual ~TreeBcast2(){
         CleanupBuffers();
@@ -665,7 +667,7 @@ TIMER_STOP(FIND_RANK);
 
 
 
-
+#endif
 
 
 
@@ -2123,6 +2125,7 @@ statusOFS<<"BINARY TREE USED"<<endl;
     }
 
 
+#ifdef NEW_BCAST
 template< typename T>
     inline TreeBcast2<T> * TreeBcast2<T>::Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed){
       //get communicator size
@@ -2157,7 +2160,7 @@ statusOFS<<"BINARY TREE USED"<<endl;
 //        //return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
       }
     }
-
+#endif
 
 
 

@@ -383,12 +383,6 @@ namespace PEXSI{
 #endif
 
       this->Setup( g, s, o, oLU );
-      //Get maxTag value and compute the max depth we can use
-      int * pmaxTag;
-      int flag;
-      MPI_Comm_get_attr(grid_->comm, MPI_TAG_UB, (void*)&pmaxTag, &flag);
-      maxTag_ = *pmaxTag;
-      limIndex_ = (Int)*pmaxTag/(Int)SELINV_TAG_COUNT -1; 
 
 
 #ifndef _RELEASE_
@@ -455,9 +449,20 @@ namespace PEXSI{
       statusOFS << "mycol   = " << MYCOL(grid_) << std::endl; 
 #endif
 
+      //Get maxTag value and compute the max depth we can use
+      int * pmaxTag;
+      int flag;
+      MPI_Comm_get_attr(grid_->comm, MPI_TAG_UB, (void*)&pmaxTag, &flag);
+      maxTag_ = *pmaxTag;
+      limIndex_ = (Int)maxTag_/(Int)SELINV_TAG_COUNT -1; 
+
+
+
+
 #ifndef _RELEASE_
       PopCallStack();
 #endif
+
       return ;
     } 		// -----  end of method PMatrix::Setup   ----- 
 
@@ -1312,6 +1317,8 @@ namespace PEXSI{
         Int limit = maxDepth; //(options_->maxPipelineDepth>0)?std::min(MPI_MAX_COMM,options_->maxPipelineDepth):MPI_MAX_COMM;
         Int rank = 0;
         for (Int lidx=0; lidx<WSet.size() ; lidx++){
+
+
           //Assign a rank in the order they are processed ?
 
           bool split = false;
