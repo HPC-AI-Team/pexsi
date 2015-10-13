@@ -677,7 +677,7 @@ int main(int argc, char **argv)
               }
             }
 
-
+            PMloc.DumpLU();
 
 
             if(doToDist){
