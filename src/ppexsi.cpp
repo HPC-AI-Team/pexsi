@@ -1057,7 +1057,9 @@ PPEXSIData::SelInvRealSymmetricMatrix(
 
     GetTime( timePostProcessingSta );
 
+    statusOFS<<"AMAT:"<<std::endl<<AMat.nzvalLocal<<std::endl;
     PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+    statusOFS<<"AINVMAT:"<<std::endl<<AinvMat.nzvalLocal<<std::endl;
 
     GetTime( timePostProcessingEnd );
 

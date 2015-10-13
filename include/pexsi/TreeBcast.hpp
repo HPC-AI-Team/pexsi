@@ -187,6 +187,7 @@ template< typename T>
         //numRecv_ = rdy?1:0;
       }
       inline void SetTag(Int tag){ tag_ = tag;}
+      inline int GetTag(){ return tag_;}
 
       bool IsDone(){return done_;}
       bool IsDataReady(){return isReady_;}
@@ -720,12 +721,6 @@ protected:
     Int myGRoot_;
     //vector<int> Granks_;
 public:
-    void Reset(){
-statusOFS<<"RESET CALLED"<<std::endl;
-      this->numRecv_ = 0;
-      this->isReady_ = false;
-    }
-
     void SetGlobalComm(const MPI_Comm & pGComm){
       if(commGlobRanks.count(comm_)==0){
         MPI_Group group2 = MPI_GROUP_NULL;
@@ -799,6 +794,12 @@ statusOFS<<"RESET CALLED"<<std::endl;
 
     virtual TreeBcast * clone() const = 0; 
 
+    void Reset(){
+statusOFS<<"RESET CALLED"<<std::endl;
+      this->numRecv_ = 0;
+      this->isReady_ = false;
+    }
+
 
     
     static TreeBcast * Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize,double rseed);
@@ -807,6 +808,7 @@ statusOFS<<"RESET CALLED"<<std::endl;
     virtual inline Int GetNumMsgToRecv(){return 1;}
  inline void SetDataReady(bool rdy){ isReady_=rdy; }
     inline void SetTag(Int tag){ tag_ = tag;}
+      inline int GetTag(){ return tag_;}
 
 
     Int * GetDests(){ return &myDests_[0];}
@@ -1390,7 +1392,7 @@ class TreeReduce: public TreeBcast{
     }
 
       void Reset(){
-        assert(done_);
+//        assert(done_ || myDests_.size()==0);
         CleanupBuffers();
         done_=false;
 
@@ -1629,6 +1631,7 @@ class FTreeReduce: public TreeReduce<T>{
 
     void Reduce( ){
       //add thing to my data
+//if(this->tag_ == 2344 /*&& MYPROC(grid_)==1*/){gdb_lock();}
       blas::Axpy(this->msgSize_/sizeof(T), ONE<T>(), this->remoteData_[0], 1, this->myData_, 1 );
     }
 

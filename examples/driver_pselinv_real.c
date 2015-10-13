@@ -158,6 +158,8 @@ int main(int argc, char **argv)
       options,
       &info );
 
+
+
   PPEXSISelInvRealSymmetricMatrix (
       plan,
       options,
@@ -175,6 +177,7 @@ int main(int argc, char **argv)
     MPI_Finalize();
     return info;
   }
+
 
 
   /* The first processor output the diagonal elements in natural order

@@ -181,23 +181,27 @@ namespace PEXSI{
       for(int i =0;i<fwdToBelowTree2_.size();++i){
         if(fwdToBelowTree2_[i]!=NULL){
           delete fwdToBelowTree2_[i];
+          fwdToBelowTree2_[i] = NULL;
         }
       }
       for(int i =0;i<fwdToRightTree2_.size();++i){
         if(fwdToRightTree2_[i]!=NULL){
           delete fwdToRightTree2_[i];
+          fwdToRightTree2_[i] = NULL;
         }
       }
 #else
       for(int i =0;i<fwdToBelowTree_.size();++i){
         if(fwdToBelowTree_[i]!=NULL){
           delete fwdToBelowTree_[i];
+          fwdToBelowTree_[i] = NULL;
         }
       }      
 
       for(int i =0;i<fwdToRightTree_.size();++i){
         if(fwdToRightTree_[i]!=NULL){
           delete fwdToRightTree_[i];
+          fwdToRightTree_[i] = NULL;
         }
       }
 #endif
@@ -205,11 +209,13 @@ namespace PEXSI{
       for(int i =0;i<redToLeftTree_.size();++i){
         if(redToLeftTree_[i]!=NULL){
           delete redToLeftTree_[i];
+          redToLeftTree_[i] = NULL;
         }
       }
       for(int i =0;i<redToAboveTree_.size();++i){
         if(redToAboveTree_[i]!=NULL){
           delete redToAboveTree_[i];
+          redToAboveTree_[i] = NULL;
         }
       }
 
@@ -2360,6 +2366,8 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS<<"["<<snode.Index<<"] "<<" DONE reduce L"<<std::endl;
 #endif
+
+//if(redLTree->GetTag() == 2344 && MYPROC(grid_)==0){gdb_lock();}
                 if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
                   //determine the number of rows in LUpdateBufReduced
                   Int numRowLUpdateBuf;
@@ -2597,6 +2605,7 @@ namespace PEXSI{
 
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
         TreeReduce<T> * &redLTree = redToLeftTree_[snode.Index];
 
         if(redLTree != NULL){
@@ -3106,6 +3115,7 @@ namespace PEXSI{
 
 #ifdef NEW_BCAST
             TreeBcast2<T> * & BcastLTree2 = fwdToRightTree2_[ksup];
+            if(BcastLTree2!=NULL){delete BcastLTree2; BcastLTree2=NULL;}
             BcastLTree2 = TreeBcast2<T>::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFL[ksup]);
 
 #ifdef COMM_PROFILE_BCAST
@@ -3113,6 +3123,7 @@ namespace PEXSI{
 #endif
 #else
             TreeBcast * & BcastLTree = fwdToRightTree_[ksup];
+            if(BcastLTree!=NULL){delete BcastLTree; BcastLTree=NULL;}
             BcastLTree = TreeBcast::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFL[ksup]);
 #ifdef COMM_PROFILE_BCAST
             BcastLTree->SetGlobalComm(grid_->comm);
@@ -3202,6 +3213,7 @@ namespace PEXSI{
 
 #ifdef NEW_BCAST
             TreeBcast2<T> * & BcastUTree2 = fwdToBelowTree2_[ksup];
+            if(BcastUTree2!=NULL){delete BcastUTree2; BcastUTree2=NULL;}
             BcastUTree2 = TreeBcast2<T>::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFA[ksup]);
 
 #ifdef COMM_PROFILE_BCAST
@@ -3209,6 +3221,7 @@ namespace PEXSI{
 #endif
 #else
             TreeBcast * & BcastUTree = fwdToBelowTree_[ksup];
+            if(BcastUTree!=NULL){delete BcastUTree; BcastUTree=NULL;}
             BcastUTree = TreeBcast::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFA[ksup]);
 #ifdef COMM_PROFILE_BCAST
             BcastUTree->SetGlobalComm(grid_->comm);
@@ -3309,6 +3322,7 @@ namespace PEXSI{
               TreeReduce<T> * & redDTree = redToAboveTree_[ksup];
 
 
+            if(redDTree!=NULL){delete redDTree; redDTree=NULL;}
               redDTree = TreeReduce<T>::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedSTD[ksup]);
 #ifdef COMM_PROFILE
               redDTree->SetGlobalComm(grid_->comm);
@@ -3419,6 +3433,7 @@ namespace PEXSI{
 
 
             TreeReduce<T> * & redLTree = redToLeftTree_[ksup];
+            if(redLTree!=NULL){delete redLTree; redLTree=NULL;}
             redLTree = TreeReduce<T>::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRTL[ksup]);
 #ifdef COMM_PROFILE
             redLTree->SetGlobalComm(grid_->comm);
@@ -3667,6 +3682,7 @@ statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
         //        if(lidx==1){ return;};
       }
 
+      MPI_Barrier(grid_->comm);
 #ifndef _RELEASE_
       PopCallStack();
 #endif
