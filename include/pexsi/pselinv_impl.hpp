@@ -1188,6 +1188,7 @@ namespace PEXSI{
               LB.nzval.Data(), LB.nzval.m(), ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
         } 
 
+        statusOFS << std::endl << "["<<snode.Index<<"] "<<   snode.LUpdateBuf << std::endl << std::endl; 
         statusOFS << std::endl << "["<<snode.Index<<"] "<<   snode.DiagBuf << std::endl << std::endl; 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updated the diagonal block" << std::endl << std::endl; 
@@ -2461,21 +2462,21 @@ namespace PEXSI{
         }
 
         //advance reductions
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          SuperNodeBufferType & snode = arrSuperNodes[supidx];
-          TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-          if(redDTree != NULL){
-#ifndef NEW_BCAST
-            if(redDTree->IsAllocated())
-#endif
-            {
-              bool done = redDTree->Progress();
-#if ( _DEBUGlevel_ >= 1 )
-              statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
-#endif
-            }
-          }
-        }
+////        for (Int supidx=0; supidx<stepSuper; supidx++){
+////          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+////          TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+////          if(redDTree != NULL){
+////#ifndef NEW_BCAST
+////            if(redDTree->IsAllocated())
+////#endif
+////            {
+////              bool done = redDTree->Progress();
+////#if ( _DEBUGlevel_ >= 1 )
+////              statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
+////#endif
+////            }
+////          }
+////        }
       }
       TIMER_STOP(Update_Diagonal);
 
