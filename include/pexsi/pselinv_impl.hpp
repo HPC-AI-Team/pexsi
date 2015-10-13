@@ -2403,6 +2403,7 @@ namespace PEXSI{
                   //copy the buffer from the reduce tree
                   redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
 
+                  statusOFS << std::endl << "["<<snode.Index<<"] LUpdateBuf now is"<<   snode.LUpdateBuf << std::endl << std::endl; 
                 }
 #ifndef NEW_BCAST
                 redLdone[supidx]=1;

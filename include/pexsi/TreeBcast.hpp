@@ -1574,6 +1574,9 @@ class TreeReduce: public TreeBcast{
       //add thing to my data
 //        statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Recv Diag contrib"<<   *this->remoteData_[idxRecv] << std::endl << std::endl; 
       blas::Axpy(msgSize_/sizeof(T), ONE<T>(), remoteData_[idxRecv], 1, myData_, 1 );
+
+
+
     }
 
     void Forward(){ 
@@ -1636,6 +1639,19 @@ class FTreeReduce: public TreeReduce<T>{
 //        statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Recv Diag contrib"<<   *this->remoteData_[0] << std::endl << std::endl; 
       blas::Axpy(this->msgSize_/sizeof(T), ONE<T>(), this->remoteData_[0], 1, this->myData_, 1 );
         //statusOFS << std::endl << " DiagBuf now is "<<   this->myData_ << std::endl << std::endl; 
+     statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Recv contrib"<< std::endl; 
+      for(int i = 0; i < this->msgSize_/sizeof(T); ++i){
+        statusOFS<< this->remoteData_[0][i]<< " ";
+        if(i%3==0){statusOFS<<std::endl;}
+      }
+      statusOFS<<std::endl;
+
+     statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Reduce buffer now is"<< std::endl; 
+      for(int i = 0; i < this->msgSize_/sizeof(T); ++i){
+        statusOFS<< this->myData_[i]<< " ";
+        if(i%3==0){statusOFS<<std::endl;}
+      }
+      statusOFS<<std::endl;
     }
 
 
