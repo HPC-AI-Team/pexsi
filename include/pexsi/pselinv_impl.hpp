@@ -1188,6 +1188,7 @@ namespace PEXSI{
               LB.nzval.Data(), LB.nzval.m(), ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
         } 
 
+        statusOFS << std::endl << "["<<snode.Index<<"] "<<   snode.DiagBuf << std::endl << std::endl; 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updated the diagonal block" << std::endl << std::endl; 
 #endif
@@ -2512,6 +2513,7 @@ namespace PEXSI{
                     if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
                       LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
                       // Symmetrize LB
+        statusOFS << std::endl << "["<<snode.Index<<"] DiagBuf now is "<<   snode.DiagBuf << std::endl << std::endl; 
                       blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
                       Symmetrize( LB.nzval );
                     }

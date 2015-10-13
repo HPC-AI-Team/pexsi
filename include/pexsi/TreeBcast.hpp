@@ -1570,8 +1570,9 @@ class TreeReduce: public TreeBcast{
 
 
     protected:
-    void Reduce( Int idxRecv, Int idReq){
+    virtual void Reduce( Int idxRecv, Int idReq){
       //add thing to my data
+//        statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Recv Diag contrib"<<   *this->remoteData_[idxRecv] << std::endl << std::endl; 
       blas::Axpy(msgSize_/sizeof(T), ONE<T>(), remoteData_[idxRecv], 1, myData_, 1 );
     }
 
@@ -1629,10 +1630,12 @@ class FTreeReduce: public TreeReduce<T>{
 #endif
     }
 
-    void Reduce( ){
+    virtual void Reduce( ){
       //add thing to my data
 //if(this->tag_ == 2344 /*&& MYPROC(grid_)==1*/){gdb_lock();}
+//        statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Recv Diag contrib"<<   *this->remoteData_[0] << std::endl << std::endl; 
       blas::Axpy(this->msgSize_/sizeof(T), ONE<T>(), this->remoteData_[0], 1, this->myData_, 1 );
+        //statusOFS << std::endl << " DiagBuf now is "<<   this->myData_ << std::endl << std::endl; 
     }
 
 
