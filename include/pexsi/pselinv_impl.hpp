@@ -3603,27 +3603,27 @@ namespace PEXSI{
       }
 #endif
 
-      //reset the trees
-        for(int i = 0 ; i< fwdToBelowTree_.size();++i){
-          if(fwdToBelowTree_[i]!=NULL){
-            fwdToBelowTree_[i]->Reset();
-          }
-        }
-        for(int i = 0 ; i< fwdToRightTree_.size();++i){
-          if(fwdToRightTree_[i]!=NULL){
-            fwdToRightTree_[i]->Reset();
-          }
-        }
-        for(int i = 0 ; i< redToLeftTree_.size();++i){
-          if(redToLeftTree_[i]!=NULL){
-            redToLeftTree_[i]->Reset();
-          }
-        }
-        for(int i = 0 ; i< redToAboveTree_.size();++i){
-          if(redToAboveTree_[i]!=NULL){
-            redToAboveTree_[i]->Reset();
-          }
-        }
+//      //reset the trees
+//        for(int i = 0 ; i< fwdToBelowTree_.size();++i){
+//          if(fwdToBelowTree_[i]!=NULL){
+//            fwdToBelowTree_[i]->Reset();
+//          }
+//        }
+//        for(int i = 0 ; i< fwdToRightTree_.size();++i){
+//          if(fwdToRightTree_[i]!=NULL){
+//            fwdToRightTree_[i]->Reset();
+//          }
+//        }
+//        for(int i = 0 ; i< redToLeftTree_.size();++i){
+//          if(redToLeftTree_[i]!=NULL){
+//            redToLeftTree_[i]->Reset();
+//          }
+//        }
+//        for(int i = 0 ; i< redToAboveTree_.size();++i){
+//          if(redToAboveTree_[i]!=NULL){
+//            redToAboveTree_[i]->Reset();
+//          }
+//        }
 
 
 
