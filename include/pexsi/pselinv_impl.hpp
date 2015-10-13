@@ -465,10 +465,12 @@ namespace PEXSI{
 #endif
 
       //Get maxTag value and compute the max depth we can use
-      int * pmaxTag;
-      int flag;
-      MPI_Comm_get_attr(grid_->comm, MPI_TAG_UB, (void*)&pmaxTag, &flag);
-      maxTag_ = *pmaxTag;
+      //int * pmaxTag;
+      int pmaxTag = 4000;
+//      int flag;
+//      MPI_Comm_get_attr(grid_->comm, MPI_TAG_UB, (void*)&pmaxTag, &flag);
+      //maxTag_ = *pmaxTag;
+      maxTag_ = pmaxTag;
       limIndex_ = (Int)maxTag_/(Int)SELINV_TAG_COUNT -1; 
 
 
@@ -3585,6 +3587,31 @@ namespace PEXSI{
         commOFS<<LINE_COMM(it)<<std::endl;
       }
 #endif
+
+      //reset the trees
+        for(int i = 0 ; i< fwdToBelowTree_.size();++i){
+          if(fwdToBelowTree_[i]!=NULL){
+            fwdToBelowTree_[i]->Reset();
+          }
+        }
+        for(int i = 0 ; i< fwdToRightTree_.size();++i){
+          if(fwdToRightTree_[i]!=NULL){
+            fwdToRightTree_[i]->Reset();
+          }
+        }
+        for(int i = 0 ; i< redToLeftTree_.size();++i){
+          if(redToLeftTree_[i]!=NULL){
+            redToLeftTree_[i]->Reset();
+          }
+        }
+        for(int i = 0 ; i< redToAboveTree_.size();++i){
+          if(redToAboveTree_[i]!=NULL){
+            redToAboveTree_[i]->Reset();
+          }
+        }
+
+
+
     } 		// -----  end of method PMatrix::SelInv  ----- 
 
 
@@ -3598,6 +3625,7 @@ namespace PEXSI{
       PushCallStack("PMatrix::SelInv_P2p");
 #endif
 
+statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
 
       Int numSuper = this->NumSuper(); 
 

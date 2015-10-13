@@ -720,6 +720,12 @@ protected:
     Int myGRoot_;
     //vector<int> Granks_;
 public:
+    void Reset(){
+statusOFS<<"RESET CALLED"<<std::endl;
+      this->numRecv_ = 0;
+      this->isReady_ = false;
+    }
+
     void SetGlobalComm(const MPI_Comm & pGComm){
       if(commGlobRanks.count(comm_)==0){
         MPI_Group group2 = MPI_GROUP_NULL;
@@ -810,6 +816,7 @@ public:
     Int GetMsgSize(){ return msgSize_;}
 
     void ForwardMessage( char * data, size_t size, int tag, MPI_Request * requests ){
+        tag_ = tag;
                   for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
                     Int iProc = myDests_[idxRecv];
                     // Use Isend to send to multiple targets
@@ -820,7 +827,7 @@ public:
 //        statusOFS<<idxRecv<<std::endl;
 //        statusOFS<<Granks_<<std::endl;
       //PROFILE_COMM(myGRank_,Granks_[idxRecv],tag,msgSize_);
-          PROFILE_COMM(myGRank_,commGlobRanks[comm_][iProc],tag,msgSize_);
+          PROFILE_COMM(myGRank_,commGlobRanks[comm_][iProc],tag_,msgSize_);
 #endif
                   } // for (iProc)
     }

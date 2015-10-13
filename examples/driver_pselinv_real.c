@@ -81,6 +81,8 @@ int main(int argc, char **argv)
 
   nprow               = 1;
   npcol               = mpisize;
+  //npcol               = 1;
+  //nprow               = mpisize;
   Rfile               = "lap2dr.matrix";
 
 
