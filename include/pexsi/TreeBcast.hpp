@@ -1409,6 +1409,9 @@ class TreeReduce: public TreeBcast{
 
     void SetLocalBuffer(T * locBuffer){
       if(myData_!=NULL && myData_!=locBuffer){
+
+//statusOFS<<"DOING SUM"<<std::endl;
+//gdb_lock();
         blas::Axpy(msgSize_/sizeof(T), ONE<T>(), myData_, 1, locBuffer, 1 );
         myLocalBuffer_.Clear(); 
       }
@@ -1572,11 +1575,7 @@ class TreeReduce: public TreeBcast{
     protected:
     virtual void Reduce( Int idxRecv, Int idReq){
       //add thing to my data
-//        statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Recv Diag contrib"<<   *this->remoteData_[idxRecv] << std::endl << std::endl; 
       blas::Axpy(msgSize_/sizeof(T), ONE<T>(), remoteData_[idxRecv], 1, myData_, 1 );
-
-
-
     }
 
     void Forward(){ 
@@ -1635,10 +1634,10 @@ class FTreeReduce: public TreeReduce<T>{
 
     virtual void Reduce( ){
       //add thing to my data
-//if(this->tag_ == 2344 /*&& MYPROC(grid_)==1*/){gdb_lock();}
-//        statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Recv Diag contrib"<<   *this->remoteData_[0] << std::endl << std::endl; 
       blas::Axpy(this->msgSize_/sizeof(T), ONE<T>(), this->remoteData_[0], 1, this->myData_, 1 );
-        //statusOFS << std::endl << " DiagBuf now is "<<   this->myData_ << std::endl << std::endl; 
+
+
+#if (defined(REDUCE_DEBUG))
      statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Recv contrib"<< std::endl; 
       for(int i = 0; i < this->msgSize_/sizeof(T); ++i){
         statusOFS<< this->remoteData_[0][i]<< " ";
@@ -1652,6 +1651,8 @@ class FTreeReduce: public TreeReduce<T>{
         if(i%3==0){statusOFS<<std::endl;}
       }
       statusOFS<<std::endl;
+#endif
+
     }
 
 

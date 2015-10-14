@@ -1188,8 +1188,6 @@ namespace PEXSI{
               LB.nzval.Data(), LB.nzval.m(), ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
         } 
 
-        statusOFS << std::endl << "["<<snode.Index<<"] "<<   snode.LUpdateBuf << std::endl << std::endl; 
-        statusOFS << std::endl << "["<<snode.Index<<"] "<<   snode.DiagBuf << std::endl << std::endl; 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updated the diagonal block" << std::endl << std::endl; 
 #endif
@@ -1609,6 +1607,10 @@ namespace PEXSI{
         if(participating){
           arrSuperNodes[pos].Index = superList[lidx][supidx];  
           arrSuperNodes[pos].Rank = rank;
+
+
+          SuperNodeBufferType & snode = arrSuperNodes[pos];
+
           pos++;
         }
         rank++;
@@ -2301,17 +2303,19 @@ namespace PEXSI{
             //Get the reduction tree
             TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
             if(redLTree != NULL){
-              TIMER_START(Reduce_Sinv_LT_Isend);
-              //send the data
-              redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-              redLTree->SetDataReady(true);
+              assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
+                TIMER_START(Reduce_Sinv_LT_Isend);
+                //send the data
+                redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+                redLTree->SetDataReady(true);
 
-              bool done = redLTree->Progress();
+                bool done = redLTree->Progress();
 #if ( _DEBUGlevel_ >= 1 )
-              statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
 #endif
-              TIMER_STOP(Reduce_Sinv_LT_Isend);
+                TIMER_STOP(Reduce_Sinv_LT_Isend);
             }
+
             gemmProcessed++;
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -2397,13 +2401,12 @@ namespace PEXSI{
                   if( numRowLUpdateBuf > 0 ){
                     if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
                       snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
+                      SetValue(snode.LUpdateBuf, ZERO<T>());
                     }
                   }
 
                   //copy the buffer from the reduce tree
                   redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-
-                  statusOFS << std::endl << "["<<snode.Index<<"] LUpdateBuf now is"<<   snode.LUpdateBuf << std::endl << std::endl; 
                 }
 #ifndef NEW_BCAST
                 redLdone[supidx]=1;
@@ -2515,7 +2518,6 @@ namespace PEXSI{
                     if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
                       LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
                       // Symmetrize LB
-        statusOFS << std::endl << "["<<snode.Index<<"] DiagBuf now is "<<   snode.DiagBuf << std::endl << std::endl; 
                       blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
                       Symmetrize( LB.nzval );
                     }
@@ -5332,7 +5334,7 @@ statusOFS<<"Inv Row perm is "<<permInv_r<<std::endl;
 
 statusOFS<<"Content of L"<<std::endl;
 //dump L
-      for(Int j = 0;j<this->L_.size();++j){
+      for(Int j = 0;j<this->L_.size()-1;++j){
           std::vector<LBlock<T> >&  Lcol = this->L( j );
         Int blockColIdx = GBj( j, this->grid_ );
         Int fc = FirstBlockCol( blockColIdx, this->super_ );
@@ -5356,7 +5358,7 @@ statusOFS<<"Content of L"<<std::endl;
 statusOFS<<"Content of U"<<std::endl;
 
 //dump U
-      for(Int i = 0;i<this->U_.size();++i){
+      for(Int i = 0;i<this->U_.size()-1;++i){
           std::vector<UBlock<T> >&  Urow = this->U( i );
         Int blockRowIdx = GBi( i, this->grid_ );
         Int fr = FirstBlockRow( blockRowIdx, this->super_ );
