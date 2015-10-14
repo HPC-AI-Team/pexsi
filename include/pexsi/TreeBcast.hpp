@@ -795,7 +795,7 @@ public:
     virtual TreeBcast * clone() const = 0; 
 
     void Reset(){
-statusOFS<<"RESET CALLED"<<std::endl;
+//statusOFS<<"RESET CALLED"<<std::endl;
       this->numRecv_ = 0;
       this->isReady_ = false;
     }

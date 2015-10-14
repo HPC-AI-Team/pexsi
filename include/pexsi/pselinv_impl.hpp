@@ -243,6 +243,7 @@ namespace PEXSI{
 
         maxTag_ = C.maxTag_;
         limIndex_ = C.limIndex_;
+
         ColBlockIdx_ = C.ColBlockIdx_;
         RowBlockIdx_ = C.RowBlockIdx_;
         L_ = C.L_;
@@ -5383,6 +5384,13 @@ statusOFS<<"Content of U"<<std::endl;
     }
 
 
+   template<typename T>
+    inline void PMatrix<T>::CopyLU( const PMatrix<T> & C){
+        ColBlockIdx_ = C.ColBlockIdx_;
+        RowBlockIdx_ = C.RowBlockIdx_;
+        L_ = C.L_;
+        U_ = C.U_;
+    }
 
 
 } // namespace PEXSI

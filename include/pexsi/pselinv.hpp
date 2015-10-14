@@ -984,6 +984,8 @@ namespace PEXSI{
 //      inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
 
       void DumpLU();      
+
+      void CopyLU( const PMatrix & C);
   };
 
   template<typename T>  class PMatrixUnsym;

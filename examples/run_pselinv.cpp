@@ -524,15 +524,10 @@ int main(int argc, char **argv)
           GetTime( timeTotalOffsetSta );
 
           if(doSelInv>1){
-            PMatrix<MYSCALAR> PMlocIt = PMloc;
+                PMatrix<MYSCALAR> PMlocIt = PMloc;
             for(int i=1; i<= doSelInv; ++i )
             {
-//              for(int il=0;il<PMloc.NumLocalBlockRow();++il){
-//                PMlocIt.L(il) = PMloc.L(il);
-//              }
-//              for(int jl=0;jl<PMloc.NumLocalBlockCol();++jl){
-//                PMlocIt.U(jl) = PMloc.U(jl);
-//              }
+                PMlocIt.CopyLU(PMloc);
 
               double timeTotalOffsetEnd = 0;
               GetTime( timeTotalOffsetEnd );
