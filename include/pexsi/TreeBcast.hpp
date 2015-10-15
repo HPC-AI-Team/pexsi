@@ -999,8 +999,8 @@ class ModBTreeBcast: public TreeBcast{
         //Int new_idx = (int)((rand()+1.0) * (double)rank_cnt / ((double)RAND_MAX+1.0));
 
 //        srand(ranks[0]+rank_cnt);
-        Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
-        //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
+        //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
         //statusOFS<<"NEW IDX: "<<new_idx<<endl;
 
 
@@ -1889,7 +1889,8 @@ class ModBTreeReduce: public TreeReduce<T>{
         //Int new_idx = rseed_%(rank_cnt-1)+1;
 
         //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
-        Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
         //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
 
 
