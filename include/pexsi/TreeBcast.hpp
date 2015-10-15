@@ -785,11 +785,14 @@ public:
       myRoot_ = Tree.myRoot_; 
       msgSize_ = Tree.msgSize_;
 
-      numRecv_ = Tree.numRecv_;
       tag_= Tree.tag_;
       mainRoot_= Tree.mainRoot_;
-      isReady_ = Tree.isReady_;
       myDests_ = Tree.myDests_;
+
+      //numRecv_ = Tree.numRecv_;
+      //isReady_ = Tree.isReady_;
+      isReady_ = false;
+      numRecv_ = 0;
     }
 
     virtual TreeBcast * clone() const = 0; 
@@ -1085,27 +1088,31 @@ TIMER_STOP(FIND_RANK);
     }
 
     virtual void Copy(const ModBTreeBcast & Tree){
-      comm_ = Tree.comm_;
-      myRank_ = Tree.myRank_;
-      myRoot_ = Tree.myRoot_; 
-      msgSize_ = Tree.msgSize_;
+      ((TreeBcast*)this)->Copy(*((const TreeBcast*)&Tree));
+///      comm_ = Tree.comm_;
+///      myRank_ = Tree.myRank_;
+///      myRoot_ = Tree.myRoot_; 
+///      msgSize_ = Tree.msgSize_;
+///
+///      numRecv_ = Tree.numRecv_;
+///      tag_= Tree.tag_;
+///      mainRoot_= Tree.mainRoot_;
+///      isReady_ = Tree.isReady_;
+///      myDests_ = Tree.myDests_;
+///
+///      myRank_ = Tree.myRank_;
+///      myRoot_ = Tree.myRoot_; 
+///      msgSize_ = Tree.msgSize_;
+///
+///      numRecv_ = Tree.numRecv_;
+///      tag_= Tree.tag_;
+///      mainRoot_= Tree.mainRoot_;
+///      isReady_ = Tree.isReady_;
+///      myDests_ = Tree.myDests_;
 
-      numRecv_ = Tree.numRecv_;
-      tag_= Tree.tag_;
-      mainRoot_= Tree.mainRoot_;
-      isReady_ = Tree.isReady_;
-      myDests_ = Tree.myDests_;
 
       rseed_ = Tree.rseed_;
-      myRank_ = Tree.myRank_;
-      myRoot_ = Tree.myRoot_; 
-      msgSize_ = Tree.msgSize_;
 
-      numRecv_ = Tree.numRecv_;
-      tag_= Tree.tag_;
-      mainRoot_= Tree.mainRoot_;
-      isReady_ = Tree.isReady_;
-      myDests_ = Tree.myDests_;
     }
  
     virtual ModBTreeBcast * clone() const{
@@ -1260,13 +1267,9 @@ class PalmTreeBcast: public TreeBcast{
 template< typename T>
 class TreeReduce: public TreeBcast{
   protected:
-
     T * myData_;
     MPI_Request sendRequest_;
-
-    //char * myLocalBuffer_;
     NumVec<char> myLocalBuffer_;
-    //char * myRecvBuffers_;
     NumVec<char> myRecvBuffers_;
     NumVec<T *> remoteData_;
     NumVec<MPI_Request> myRequests_;
@@ -1296,30 +1299,31 @@ class TreeReduce: public TreeBcast{
     }
 
     virtual void Copy(const TreeReduce & Tree){
-      this->comm_ = Tree.comm_;
-      this->myRank_ = Tree.myRank_;
-      this->myRoot_ = Tree.myRoot_; 
-      this->msgSize_ = Tree.msgSize_;
+      ((TreeBcast*)this)->Copy(*(const TreeBcast*)&Tree);
 
-      this->numRecv_ = Tree.numRecv_;
-      this->tag_= Tree.tag_;
-      this->mainRoot_= Tree.mainRoot_;
-      this->isReady_ = Tree.isReady_;
-      this->myDests_ = Tree.myDests_;
+//      this->comm_ = Tree.comm_;
+//      this->myRank_ = Tree.myRank_;
+//      this->myRoot_ = Tree.myRoot_; 
+//      this->msgSize_ = Tree.msgSize_;
+//      this->numRecv_ = Tree.numRecv_;
+//      this->tag_= Tree.tag_;
+//      this->mainRoot_= Tree.mainRoot_;
+//      this->isReady_ = Tree.isReady_;
+//      this->myDests_ = Tree.myDests_;
 
 
-      this->myData_ = Tree.myData_;
-      this->sendRequest_ = Tree.sendRequest_;
-      this->fwded_= Tree.fwded_;
+      this->myData_ = NULL;
+      this->sendRequest_ = MPI_REQUEST_NULL;
+      this->fwded_= false;
+      this->done_= false;
       this->isAllocated_= Tree.isAllocated_;
-      this->numRecvPosted_= Tree.numRecvPosted_;
+      this->numRecvPosted_= 0;
 
-      this->myLocalBuffer_ = Tree.myLocalBuffer_;
-      this->myRecvBuffers_ = Tree.myRecvBuffers_;
-      this->remoteData_ = Tree.remoteData_;
-      this->myRequests_ = Tree.myRequests_;
-      this->myStatuses_ = Tree.myStatuses_;
-      this->recvIdx_ = Tree.recvIdx_;
+      //this->myLocalBuffer_.resize(Tree.myLocalBuffer_.size());
+      //this->remoteData_ = Tree.remoteData_;
+      //this->recvIdx_ = Tree.recvIdx_;
+
+      CleanupBuffers();
     }
  
 
@@ -1966,30 +1970,31 @@ TIMER_STOP(FIND_RANK);
     }
 
     virtual void Copy(const ModBTreeReduce & Tree){
-      this->comm_ = Tree.comm_;
-      this->myRank_ = Tree.myRank_;
-      this->myRoot_ = Tree.myRoot_; 
-      this->msgSize_ = Tree.msgSize_;
+      ((TreeReduce<T>*)this)->Copy(*((const TreeReduce<T>*)&Tree));
+      //this->comm_ = Tree.comm_;
+      //this->myRank_ = Tree.myRank_;
+      //this->myRoot_ = Tree.myRoot_; 
+      //this->msgSize_ = Tree.msgSize_;
 
-      this->numRecv_ = Tree.numRecv_;
-      this->tag_= Tree.tag_;
-      this->mainRoot_= Tree.mainRoot_;
-      this->isReady_ = Tree.isReady_;
-      this->myDests_ = Tree.myDests_;
+      //this->numRecv_ = Tree.numRecv_;
+      //this->tag_= Tree.tag_;
+      //this->mainRoot_= Tree.mainRoot_;
+      //this->isReady_ = Tree.isReady_;
+      //this->myDests_ = Tree.myDests_;
 
 
-      this->myData_ = Tree.myData_;
-      this->sendRequest_ = Tree.sendRequest_;
-      this->fwded_= Tree.fwded_;
-      this->isAllocated_= Tree.isAllocated_;
-      this->numRecvPosted_= Tree.numRecvPosted_;
+      //this->myData_ = Tree.myData_;
+      //this->sendRequest_ = Tree.sendRequest_;
+      //this->fwded_= Tree.fwded_;
+      //this->isAllocated_= Tree.isAllocated_;
+      //this->numRecvPosted_= Tree.numRecvPosted_;
 
-      this->myLocalBuffer_ = Tree.myLocalBuffer_;
-      this->myRecvBuffers_ = Tree.myRecvBuffers_;
-      this->remoteData_ = Tree.remoteData_;
-      this->myRequests_ = Tree.myRequests_;
-      this->myStatuses_ = Tree.myStatuses_;
-      this->recvIdx_ = Tree.recvIdx_;
+      //this->myLocalBuffer_ = Tree.myLocalBuffer_;
+      //this->myRecvBuffers_ = Tree.myRecvBuffers_;
+      //this->remoteData_ = Tree.remoteData_;
+      //this->myRequests_ = Tree.myRequests_;
+      //this->myStatuses_ = Tree.myStatuses_;
+      //this->recvIdx_ = Tree.recvIdx_;
       this->rseed_ = Tree.rseed_;
     }
  
@@ -2049,6 +2054,7 @@ class PalmTreeReduce: public TreeReduce<T>{
 
 
     virtual void Copy(const PalmTreeReduce & Tree){
+      ((TreeReduce<T>*)this)->Copy(*((const TreeReduce<T>*)&Tree));
       //this->comm_ = Tree.comm_;
       //this->myRank_ = Tree.myRank_;
       //this->myRoot_ = Tree.myRoot_; 
