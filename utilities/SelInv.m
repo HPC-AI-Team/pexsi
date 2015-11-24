@@ -24,7 +24,7 @@ supInd = superPtr( numSuper ) + 1 : superPtr( numSuper+1 );
 Ainv( supInd, supInd ) = APreInv( supInd, supInd );
 
 % FIXME
-for ksup = numSuper-1 : -1 : numSuper-20
+for ksup = numSuper-1 : -1 : 1
   supInd = superPtr(ksup)+1 : superPtr(ksup+1);
 	offdiagInd = superPtr(ksup+1) + 1 : numCol;
 

@@ -242,7 +242,7 @@ namespace PEXSI{
     /// @brief Number of nonzero columns. 
     Int               numCol;
 
-    /// @brief Dimension numRow * 1, index (0-based) for the number of nonzero rows.
+    /// @brief Dimension numCol * 1, index (0-based) for the number of nonzero rows.
     IntNumVec         cols;
 
     /// @brief Dimension numRow * numCol, nonzero elements.
