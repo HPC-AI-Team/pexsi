@@ -2823,7 +2823,7 @@ PPEXSIData::DFTDriver2 (
       std::vector<Real>  inertiaVec( numShift );   // Zero temperature
       std::vector<Real>  inertiaFTVec( numShift ); // Finite temperature
       Int maxInertiaIter = std::max( 1, (Int)std::ceil( 
-            std::log( (muMax0 - muMin0) / muInertiaTolerance ) /
+            std::log( (muMaxInertia - muMinInertia) / muInertiaTolerance ) /
             std::log( static_cast<Real>(numShift) ) ) ); 
 
       if( verbosity >= 1 ){
