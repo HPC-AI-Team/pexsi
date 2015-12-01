@@ -26,7 +26,7 @@ if (nev > nocc)
       %fprintf('flb = %11.3e, fub = %11.3e, nocc = %d\n', flb,fub,nocc);
       if (flb > nocc)
          if (ilb > 1)
-            ilb = ilb - 1;
+            ilb = ilb - 2;
             lb = ev(ilb);
             flb = sum(fermidirac(ev,lb,Tbeta));
          else

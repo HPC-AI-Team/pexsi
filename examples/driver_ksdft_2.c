@@ -47,9 +47,9 @@
  *
  * This file is eventually going to be merged with the driver_ksdft.c
  *
- * @date 2014-03-07
- * @date 2014-04-01  Compatible with v0.7.0 new interface.
- * @date 2015-05-14  Compatible with v0.8.0 new interface.
+ * @date 2015-11-25  Test for DFTDriver2 with updating strategy of pole
+ * expansion
+ *
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -261,7 +261,7 @@ int main(int argc, char **argv)
   options.muMin0 = 0.0;
   options.muMax0 = 0.5;
   options.mu0    = 0.0;
-  options.npSymbFact = 4;
+  options.npSymbFact = 1;
   options.ordering = 0;
   options.isInertiaCount = 1;
   options.maxPEXSIIter   = 1;
@@ -269,6 +269,7 @@ int main(int argc, char **argv)
   options.deltaE   = 20.0;
   options.numPole  = 40;
   options.temperature  = 0.0019; // 300K
+//  options.muInertiaTolerance = 0.0019;
   options.muPEXSISafeGuard  = 0.2; 
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;
@@ -306,7 +307,7 @@ int main(int argc, char **argv)
 
   /* Step 2. PEXSI Solve */
 
-  PPEXSIDFTDriver(
+  PPEXSIDFTDriver2(
       plan,
       options,
       numElectronExact,
@@ -315,7 +316,6 @@ int main(int argc, char **argv)
       &muMinInertia,              
       &muMaxInertia,             
       &numTotalInertiaIter,   
-      &numTotalPEXSIIter,   
       &info );
 
   if( info != 0 ){
@@ -375,7 +375,7 @@ int main(int argc, char **argv)
     // Reuse previous mu to start
     options.mu0 = muPEXSI;
 
-    PPEXSIDFTDriver(
+    PPEXSIDFTDriver2(
         plan,
         options,
         numElectronExact,
@@ -384,7 +384,6 @@ int main(int argc, char **argv)
         &muMinInertia,              
         &muMaxInertia,             
         &numTotalInertiaIter,   
-        &numTotalPEXSIIter,   
         &info );
 
 

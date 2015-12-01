@@ -1,4 +1,4 @@
-function [zshift, zweight] = getpole( Npole, T, Gap, DeltaE, mu, func )
+function [zshift, zweight] = getpole( Npole, T, Gap, DeltaE, mu, nspin )
 % getpole.m generates the poles and weights for the calculation of electronic
 % density. 
 % LL: VERY IMPORTANT: This getpole is very different from getpole.m in PARSEC/GetPole!
@@ -11,6 +11,7 @@ function [zshift, zweight] = getpole( Npole, T, Gap, DeltaE, mu, func )
 %		DeltaE: Spectrum width defined to be max(EV)-min(EV). EV is the eigenvalue
 %			set of Hamiltonian, unit(hartree)
 %		mu: Chemical potential, unit(hartree)
+%		nspin: Number of spin component
 %
 % Output:
 %		
@@ -26,7 +27,9 @@ function [zshift, zweight] = getpole( Npole, T, Gap, DeltaE, mu, func )
 %     % VERY IMPORTANT!  Sign of polepos is different from previous version
 %     Rho = Rho + imag( poleweight(i) * Result );
 %   end 
-%
+% 
+% Lin Lin
+% Revision: 11/24/2015
 
 K2au = 3.166815d-6;
 au2K = 315774.67;
@@ -52,6 +55,8 @@ zsqrt = sqrt(z-mshift);
 zweight = zeros(Npole, 1);
 zshift = zeros(Npole, 1);
 
+fd = @(z) nspin./(1+exp(beta*z));  % NOTE: No spin degeneracy here!
+
 % From Eq. (2.10) in 
 %   Lin, Lu, Ying and E, " Pole-Based Approximation of the Fermi-Dirac
 %   Function",  Chin. Ann. Math. 30B, 729, 2009
@@ -71,8 +76,8 @@ for j = 1 : Npolehalf
   % New version which takes into account the identity.
   zweight(j) = ...
     2*K*sqrt(m2*M2)/(k*pi*Npolehalf) / zsqrt(j) * ...
-    dzdt(j) * func(zsqrt(j), 0, beta);
+    dzdt(j) * fd(zsqrt(j));
   zweight(j+Npolehalf) = ...
     2*K*sqrt(m2*M2)/(k*pi*Npolehalf) / (-zsqrt(j)) * ...
-    dzdt(j) * func(-zsqrt(j), 0, beta);
+    dzdt(j) * fd(-zsqrt(j));
 end

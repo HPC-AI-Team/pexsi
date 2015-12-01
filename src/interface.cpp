@@ -966,6 +966,61 @@ void PPEXSIDFTDriver(
   return;
 }   // -----  end of function PPEXSIDFTDriver  ----- 
 
+extern "C"
+void PPEXSIDFTDriver2(
+    /* Input parameters */
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double            numElectronExact,
+    /* Output parameters */
+		double*           muPEXSI,                   
+		double*           numElectronPEXSI,         
+    double*           muMinInertia,              
+		double*           muMaxInertia,             
+		int*              numTotalInertiaIter,   
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver2(
+        numElectronExact,
+        options.temperature,
+        options.gap,
+        options.deltaE,
+        options.numPole,
+        options.isInertiaCount,
+        options.muMin0,
+        options.muMax0,
+        options.mu0,
+        options.muInertiaTolerance,
+        options.muInertiaExpansion,
+        options.numElectronPEXSITolerance,
+        options.matrixType,
+        options.isSymbolicFactorize,
+        options.ordering,
+        options.npSymbFact,
+        options.verbosity,
+        *muPEXSI,
+        *numElectronPEXSI,
+        *muMinInertia,
+        *muMaxInertia,
+        *numTotalInertiaIter );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+  return;
+}   // -----  end of function PPEXSIDFTDriver2  ----- 
+
 
 
 extern "C"
