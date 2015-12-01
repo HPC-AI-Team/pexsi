@@ -47,6 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #define _PEXSI_PSELINV_IMPL_HPP_
 
 #include <list>
+#include <limits>
 
 #include "pexsi/timer.h"
 #include "pexsi/superlu_dist_interf.hpp"
@@ -3597,7 +3598,7 @@ namespace PEXSI{
 
 #ifdef GEMM_PROFILE
       statOFS<<"m"<<"\t"<<"n"<<"\t"<<"z"<<std::endl;
-      for(auto it = gemm_stat.begin(); it!=gemm_stat.end(); it+=3){
+      for(std::deque<int >::iterator it = gemm_stat.begin(); it!=gemm_stat.end(); it+=3){
         statOFS<<*it<<"\t"<<*(it+1)<<"\t"<<*(it+2)<<std::endl;
       }
 #endif
@@ -3605,7 +3606,7 @@ namespace PEXSI{
 #if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
       //std::cout<<"DUMPING COMM STATS "<<comm_stat.size()<<" "<<std::endl;
       commOFS<<HEADER_COMM<<std::endl;
-      for(auto it = comm_stat.begin(); it!=comm_stat.end(); it+=4){
+      for(std::deque<int>::iterator it = comm_stat.begin(); it!=comm_stat.end(); it+=4){
         commOFS<<LINE_COMM(it)<<std::endl;
       }
 #endif

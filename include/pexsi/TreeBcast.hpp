@@ -8,7 +8,7 @@
 #include <map>
 #include <algorithm>
 #include <string>
-#include <random>
+//#include <random>
 
 // options to switch from a flat bcast/reduce tree to a binary tree
 
@@ -1222,8 +1222,8 @@ class PalmTreeBcast: public TreeBcast{
           Int numLevel = floor(log2(rank_cnt));
           Int numRoots = 0;
           for(Int level=0;level<numLevel;++level){
-            numRoots = std::min( rank_cnt, numRoots + (Int)pow(2,level));
-            Int numNextRoots = std::min(rank_cnt,numRoots + (Int)pow(2,(level+1)));
+            numRoots = std::min( rank_cnt, numRoots + (Int)pow(2.0,level));
+            Int numNextRoots = std::min(rank_cnt,numRoots + (Int)pow(2.0,(level+1)));
             Int numReceivers = numNextRoots - numRoots;
             for(Int ip = 0; ip<numRoots;++ip){
               Int p = ranks[ip];
