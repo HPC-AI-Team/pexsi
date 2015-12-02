@@ -2860,6 +2860,7 @@ namespace PEXSI{
 #ifdef COMMUNICATOR_PROFILE
         std::vector<bool> sTB(grid_->numProcRow,false);
 #endif
+
         // Loop over all the supernodes to the right of ksup
         Int jsup = snodeEtree[ksup];
         while(jsup<numSuper){
@@ -5407,15 +5408,18 @@ statusOFS<<"Content of U"<<std::endl;
 
        Int numSuper = this->NumSuper(); 
 
+       std::vector<Int> snodeEtree(this->NumSuper());
+       GetEtree(snodeEtree);
+
        // Main loop
-       for( Int ksup = numSuper-1; supidx >= 0; supidx-- ){
+       for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
          // Update the diagonal. In the mirror right looking, the lower
          // and upper triangular part of Ainv has already been computed
          
          // Get the diagonal block
          // FIXME DiagB should contain U_{kk}^-1 L_{kk}^-1 in
          // PreSelInv_MirrorRight routine
-         LBlock<T> &  DiagB = this->L( LBj( snode.Index, grid_ ) )[0];
+         LBlock<T> &  DiagB = this->L( LBj( ksup, grid_ ) )[0];
           
          std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
          std::vector<LBlock<T> >&  Lfactorcol = this->Lfactor( LBj(ksup, grid_) );
@@ -5445,19 +5449,40 @@ statusOFS<<"Content of U"<<std::endl;
          // of the descendants
 
 
+        // Loop over all the supernodes to the right of ksup
+        for( Int jsup = ksup-1; jsup >= 0; jsup-- ){
+          //Int parent = snodeEtree[jsup];
+
+            
+          //jsup is a descendant of ksup, find the updates from ksup in L
+
+         std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+         std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+         LBlock<T> &  DiagB = Lcol[0]; 
+
+         for( Int ibJ = 1; ibJ < LcolJ.size(); ibJ++ ){
+           LBlock<T> &  LBJ = LcolJ[ibJ]; 
+           LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
+
+           if(LBJ.blockIdx == LB.blockIdx){
+              //find offset in LB
+              Int offsetRow = LBJ.rows[0] - LB.rows[0];
+              Int offsetCol = LBJ.rows[0] - FirstBlockCol( ksup, this->super_ );
+
+              if(offsetRow>=0 && offsetRow<LB.numRow 
+                      && offsetCol>=0 && offsetCol<LB.numCol){
+                blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, LBJ.numRow, MINUS_ONE<T>(), 
+                  &LB.nzval(offsetRow,offsetCol), LB.numRow, LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
+                  ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
+              }
+           }
+           else if(LBJ.blockIdx>LB.blockIdx){
+              break;
+           }
+         }
+        }
          
 
-
-       }
-
-       std::vector<std::vector<Int> > & superList = this->WorkingSet();
-       Int numSteps = superList.size();
-
-       Int rank = 0;
-       for (Int lidx=0; lidx<numSteps ; lidx++){
-         Int stepSuper = superList[lidx].size(); 
-
-         SelInvIntra_P2p(lidx,rank);
 
        }
 
