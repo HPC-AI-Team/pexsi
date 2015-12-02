@@ -574,6 +574,11 @@ namespace PEXSI{
       std::vector<std::vector<Int> > RowBlockIdx_;
       std::vector<std::vector<LBlock<T> > > L_;
       std::vector<std::vector<UBlock<T> > > U_;
+      
+      // These additional factors are stored redundantly and are only in
+      // the mirrored right-looking algorithms
+      std::vector<std::vector<LBlock<T> > > Lfactor_;
+      std::vector<std::vector<UBlock<T> > > Ufactor_;
 
       std::vector<std::vector<Int> > workingSet_;
 
@@ -658,6 +663,7 @@ namespace PEXSI{
       /// @brief SendRecvCD_UpdateU
       inline void SendRecvCD_UpdateU(std::vector<SuperNodeBufferType > & arrSuperNodes, Int stepSuper);
 
+
     public:
       // *********************************************************************
       // Public member functions 
@@ -715,6 +721,15 @@ namespace PEXSI{
       /// @brief U returns the vector of nonzero U blocks for the local
       /// block row iLocal.
       std::vector<UBlock<T> >& U( Int iLocal ) { return U_[iLocal]; }
+
+      /// @brief Lfactor returns the vector of nonzero L factor blocks
+      /// for the local block column jLocal.
+      std::vector<LBlock<T> >& Lfactor( Int jLocal ) { return Lfactor_[jLocal]; } 	
+
+      /// @brief Ufactor returns the vector of nonzero U factor blocks
+      /// for the local block row iLocal.
+      std::vector<UBlock<T> >& Ufactor( Int iLocal ) { return Ufactor_[iLocal]; }
+
 
       /// @brief WorkingSet returns the ordered list of supernodes which could
       /// be done in parallel.
@@ -921,6 +936,14 @@ namespace PEXSI{
 
       /// @brief Point-to-point version of the selected inversion.
       void SelInv_P2p( );
+
+      /// @brief SelInvMirrorRight Mirror right-looking selected
+      /// inversion.
+      ///
+      /// Currently there is only sequential version
+      void SelInv_MirrorRight_Seq ( );
+
+
 
 
       /// @brief GetDiagonal extracts the diagonal elements of the PMatrix.

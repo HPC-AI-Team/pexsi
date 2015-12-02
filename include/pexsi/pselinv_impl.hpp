@@ -5386,13 +5386,90 @@ statusOFS<<"Content of U"<<std::endl;
 
 
    template<typename T>
-    inline void PMatrix<T>::CopyLU( const PMatrix<T> & C){
-        ColBlockIdx_ = C.ColBlockIdx_;
-        RowBlockIdx_ = C.RowBlockIdx_;
-        L_ = C.L_;
-        U_ = C.U_;
-    }
+     inline void PMatrix<T>::CopyLU( const PMatrix<T> & C){
+       ColBlockIdx_ = C.ColBlockIdx_;
+       RowBlockIdx_ = C.RowBlockIdx_;
+       L_ = C.L_;
+       U_ = C.U_;
+     } 
 
+
+
+   // Mirror right looking selected inversion. Sequential version
+   template<typename T> 
+     void PMatrix<T>::SelInv_MirrorRight_Seq (  )
+     {
+       TIMER_START(SelInv_MirrorRight);
+
+#ifndef _RELEASE_
+       PushCallStack("PMatrix::SelInv_MirrorRight_Seq");
+#endif
+
+       Int numSuper = this->NumSuper(); 
+
+       // Main loop
+       for( Int ksup = numSuper-1; supidx >= 0; supidx-- ){
+         // Update the diagonal. In the mirror right looking, the lower
+         // and upper triangular part of Ainv has already been computed
+         
+         // Get the diagonal block
+         // FIXME DiagB should contain U_{kk}^-1 L_{kk}^-1 in
+         // PreSelInv_MirrorRight routine
+         LBlock<T> &  DiagB = this->L( LBj( snode.Index, grid_ ) )[0];
+          
+         std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
+         std::vector<LBlock<T> >&  Lfactorcol = this->Lfactor( LBj(ksup, grid_) );
+         for( Int ib = 1; ib < Lcol.size(); ib++ ){
+           LBlock<T> &  LB = Lcol[ib]; 
+           LBlock<T> &  LfactorB = Lfactorcol[ib];
+
+           blas::Gemm( 'T', 'N', DiagB.numRow, DiagB.numCol, LB.numRow, MINUS_ONE<T>(), 
+               LfactorB.nzval.Data(), LfactorB.numRow, LB.nzval.Data(), LB.numRow,
+               ONE<T>(), DiagB.nzval.Data(), DiagB.numRow );
+         }
+
+         // Use symmetry and update the U part via the L part
+         std::vector<LBlock<T> >&  Urow = this->U( LBi( ksup, grid_ ) );
+         for( Int ib = 1; ib < Lcol.size(); ib++ ){
+           LBlock<T> &  LB = Lcol[ib]; 
+           // U does not have the diagonal block
+           UBlock<T> &  UB = Urow[ib-1];
+
+           Transpose( LB.nzval, UB.nzval );
+         }
+
+         // Mirror right-looking L-part
+         // Part 1: Diagonal contribution A_{kk}^{-1}
+
+         // FIXME Exploit the elimination tree to look for the indices
+         // of the descendants
+
+
+         
+
+
+       }
+
+       std::vector<std::vector<Int> > & superList = this->WorkingSet();
+       Int numSteps = superList.size();
+
+       Int rank = 0;
+       for (Int lidx=0; lidx<numSteps ; lidx++){
+         Int stepSuper = superList[lidx].size(); 
+
+         SelInvIntra_P2p(lidx,rank);
+
+       }
+
+       MPI_Barrier(grid_->comm);
+#ifndef _RELEASE_
+       PopCallStack();
+#endif
+
+       TIMER_STOP(SelInv_MirrorRight);
+
+       return ;
+     } 		// -----  end of method PMatrix::SelInv_MirrorRight_Seq  ----- 
 
 } // namespace PEXSI
 
