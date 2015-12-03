@@ -5449,39 +5449,123 @@ statusOFS<<"Content of U"<<std::endl;
          // of the descendants
 
 
+        Int parentK = snodeEtree[ksup];
         // Loop over all the supernodes to the right of ksup
         for( Int jsup = ksup-1; jsup >= 0; jsup-- ){
-          //Int parent = snodeEtree[jsup];
+          Int parentJ = snodeEtree[jsup];
 
-            
           //jsup is a descendant of ksup, find the updates from ksup in L
+          if(parentJ<parentK){
+            std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+            std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
 
-         std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
-         std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
-         LBlock<T> &  DiagB = Lcol[0]; 
+            for( Int ibJ = 1; ibJ < LcolJ.size(); ibJ++ ){
+              LBlock<T> &  LBJ = LcolJ[ibJ]; 
+              LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
 
-         for( Int ibJ = 1; ibJ < LcolJ.size(); ibJ++ ){
-           LBlock<T> &  LBJ = LcolJ[ibJ]; 
-           LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
+              if(LBJ.blockIdx == ksup){
+                //Do Diagonal update
+                LBlock<T> &  DiagB = Lcol[0]; 
 
-           if(LBJ.blockIdx == LB.blockIdx){
-              //find offset in LB
-              Int offsetRow = LBJ.rows[0] - LB.rows[0];
-              Int offsetCol = LBJ.rows[0] - FirstBlockCol( ksup, this->super_ );
+                //FIXME DOESNT WORK WITH SUPERLU ? BLOCKS are not contiguous 
 
-              if(offsetRow>=0 && offsetRow<LB.numRow 
-                      && offsetCol>=0 && offsetCol<LB.numCol){
-                blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, LBJ.numRow, MINUS_ONE<T>(), 
-                  &LB.nzval(offsetRow,offsetCol), LB.numRow, LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
-                  ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
+                //find offset in LB
+                Int offsetRow = LBJ.rows[0] - DiagB.rows[0];
+                Int offsetCol = LBJ.rows[0] - FirstBlockCol( ksup, this->super_ );
+
+                if(offsetRow>=0 && offsetRow<LB.numRow 
+                    && offsetCol>=0 && offsetCol<LB.numCol){
+                  blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, LBJ.numRow, MINUS_ONE<T>(), 
+                      &LB.nzval(offsetRow,offsetCol), LB.numRow, LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
+                      ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
+                }
               }
-           }
-           else if(LBJ.blockIdx>LB.blockIdx){
-              break;
-           }
-         }
+              else if(LBJ.blockIdx>ksup){
+                break;
+              }
+            }
+
+          }
         }
          
+
+
+
+        Int parentK = snodeEtree[ksup];
+        // Loop over all the supernodes to the left of ksup
+        for( Int jsup = ksup-1; jsup >= 0; jsup-- ){
+          Int parentJ = snodeEtree[jsup];
+
+          //jsup is a descendant of ksup, find the updates from ksup in L
+          if(parentJ<parentK){
+            std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+            std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+            LBlock<T> &  DiagB = Lcol[0]; 
+
+            bool found = false;
+            Int firstIbJ = 1;
+            for( firstIbJ = 1; firstIbJ < LcolJ.size(); firstIbJ++ ){
+              LBlock<T> &  LBJ = LcolJ[firstIbJ]; 
+              LBlock<T> &  LfactorBJ = LfactorcolJ[firstIbJ];
+
+              if(LBJ.blockIdx == ksup){
+                found = true;
+                break;
+              }
+              else if(LBJ.blockIdx>ksup){
+                break;
+              }
+            }
+
+            if(found){
+              //Inner product
+              LBlock<T> &  LBJ = LcolJ[firstIbJ]; 
+              Int jb = 0;
+              for(Int ibJ = firstIbJ+1 ; ibJ < LcolJ.size(); ibJ++ ){
+
+                LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
+
+                for( jb; jb < Urow.size(); jb++ ){
+                  UBlock<T> & UB = Urow[jb]; 
+                  if(UB.blockIdx == LBJ.blockIdx){
+                    //find offset in LB
+                    //FIXME DOESNT WORK WITH SUPERLU ? BLOCKS are not contiguous 
+                    
+
+
+                    Int offsetRow = LBJ.rows[0] - UB.cols[0];
+
+                    if(offsetRow>=0 && offsetRow<LBJ.numRow ){
+                      blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, LBJ.numRow, MINUS_ONE<T>(), 
+                          UB.nzval.Data(), UB.numRow, &LfactorBJ.nzval(offsetRow,0), LfactorBJ.numRow, 
+                          ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
+                    }
+                  }
+                }
+              }
+              
+              //Outer product
+              Int ib = 1;
+              for(Int ibJ = firstIbJ+1 ; ibJ < LcolJ.size(); ibJ++ ){
+                LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
+                for(ib ; ib < Lcol.size(); ib++ ){
+                  LBlock<T> & LB = Lcol[ib]; 
+                  if(LB.blockIdx == LBJ.blockIdx){
+                    //TODO loop through rows
+                    
+                  }
+
+                }
+
+              }
+
+            }
+          }
+        }
+
+
+
+
 
 
        }
