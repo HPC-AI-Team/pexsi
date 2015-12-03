@@ -5415,12 +5415,12 @@ statusOFS<<"Content of U"<<std::endl;
        for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
          // Update the diagonal. In the mirror right looking, the lower
          // and upper triangular part of Ainv has already been computed
-         
+
          // Get the diagonal block
          // FIXME DiagB should contain U_{kk}^-1 L_{kk}^-1 in
          // PreSelInv_MirrorRight routine
          LBlock<T> &  DiagB = this->L( LBj( ksup, grid_ ) )[0];
-          
+
          std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
          std::vector<LBlock<T> >&  Lfactorcol = this->Lfactor( LBj(ksup, grid_) );
          for( Int ib = 1; ib < Lcol.size(); ib++ ){
@@ -5443,132 +5443,146 @@ statusOFS<<"Content of U"<<std::endl;
          }
 
          // Mirror right-looking L-part
-         // Part 1: Diagonal contribution A_{kk}^{-1}
 
          // FIXME Exploit the elimination tree to look for the indices
          // of the descendants
 
 
-        Int parentK = snodeEtree[ksup];
-        // Loop over all the supernodes to the right of ksup
-        for( Int jsup = ksup-1; jsup >= 0; jsup-- ){
-          Int parentJ = snodeEtree[jsup];
+         // Loop over all the supernodes to the left of ksup
+         for( Int jsup = ksup-1; jsup >= 0; jsup-- ){
 
-          //jsup is a descendant of ksup, find the updates from ksup in L
-          if(parentJ<parentK){
-            std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
-            std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+           //jsup is a descendant of ksup, find the updates from ksup in L
 
-            for( Int ibJ = 1; ibJ < LcolJ.size(); ibJ++ ){
-              LBlock<T> &  LBJ = LcolJ[ibJ]; 
-              LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
+           bool found = false;
+           Int firstIbJ = -1;
+             std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+             std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+           
+           while(snodeEtree[jsup]<ksup){jsup++;}
 
-              if(LBJ.blockIdx == ksup){
-                //Do Diagonal update
-                LBlock<T> &  DiagB = Lcol[0]; 
+           if(snodeEtree[jsup]==ksup){
+              //jsup is a descendant of ksup, find the updates from ksup in L
+             for( Int ibJ = 1; ibJ < LcolJ.size(); ibJ++ ){
+               LBlock<T> &  LBJ = LcolJ[ibJ]; 
 
-                //FIXME DOESNT WORK WITH SUPERLU ? BLOCKS are not contiguous 
+               if(LBJ.blockIdx == ksup){
+                 found = true;
+                 firstIbJ = ibJ;
+                 break;
+               }
+               else if(LBJ.blockIdx>ksup){
+                 break;
+               }
+             }
+           }
 
-                //find offset in LB
-                Int offsetRow = LBJ.rows[0] - DiagB.rows[0];
-                Int offsetCol = LBJ.rows[0] - FirstBlockCol( ksup, this->super_ );
+           if(found){
+             LBlock<T> &  LBJ = LcolJ[firstIbJ]; 
+             LBlock<T> &  LfactorBJ = LfactorcolJ[firstIbJ];
+             std::vector<Int> rowColPtr(LBJ.numRow);
+             // Part 1: Diagonal contribution A_{kk}^{-1}
+             {
+               LBlock<T> &  DiagB = Lcol[0]; 
+               NumMat<T> AinvBuf(LBJ.numRow,LBJ.numRow);
 
-                if(offsetRow>=0 && offsetRow<LB.numRow 
-                    && offsetCol>=0 && offsetCol<LB.numCol){
-                  blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, LBJ.numRow, MINUS_ONE<T>(), 
-                      &LB.nzval(offsetRow,offsetCol), LB.numRow, LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
-                      ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
-                }
-              }
-              else if(LBJ.blockIdx>ksup){
-                break;
-              }
-            }
+               //Get the row/column pointers
+               Int irowJ = 0;
+               for(int irow = 0;irow<DiagB.rows.size();irow++){
+                 if(DiagB.rows[irow] == LBJ.rows[irowJ]){
+                   rowColPtr[irowJ++] = irow;
+                 }
+               }
 
-          }
-        }
-         
+               //Now make the copy
+               for(int irow = 0;irow<LBJ.numRow;irow++){
+                 for(int jrow = 0;jrow<LBJ.numRow;jrow++){
+                   AinvBuf(irow,jrow) = DiagB.nzval(rowColPtr[irow],rowColPtr[jrow]);
+                 }
+               }
 
+               blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, LBJ.numRow, MINUS_ONE<T>(), 
+                   AinvBuf.nzval.Data(), LBJ.numRow, LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
+                   ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
+             }
 
+             //Inner product
+             if(firstIbJ+1<LcolJ.size())
+             {
+               LBlock<T> &  LBJ = LcolJ[firstIbJ]; 
+               Int ibJ = firstIbJ+1;
+               for(Int jb = 0 ; jb < Urow.size(),ibJ < LfactorcolJ.size(); jb++ ){
+                 UBlock<T> & UB = Urow[jb]; 
+                 LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
+                 if(UB.blockIdx == LfactorBJ.blockIdx){
 
-        Int parentK = snodeEtree[ksup];
-        // Loop over all the supernodes to the left of ksup
-        for( Int jsup = ksup-1; jsup >= 0; jsup-- ){
-          Int parentJ = snodeEtree[jsup];
+                   NumMat<T> AinvBuf(LBJ.numRow,LfactorBJ.numRow);
 
-          //jsup is a descendant of ksup, find the updates from ksup in L
-          if(parentJ<parentK){
-            std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
-            std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
-            LBlock<T> &  DiagB = Lcol[0]; 
+                   //Get the row/column pointers
+                   std::vector<Int> colPtr(LfactorBJ.numRow);
+                   Int irowJ = 0;
+                   for(int jcol = 0;jcol<UB.cols.size();jcol++){
+                     if(UB.cols[jcol] == LfactorBJ.rows[irowJ]){
+                       colPtr[irowJ++] = jcol;
+                     }
+                   }
 
-            bool found = false;
-            Int firstIbJ = 1;
-            for( firstIbJ = 1; firstIbJ < LcolJ.size(); firstIbJ++ ){
-              LBlock<T> &  LBJ = LcolJ[firstIbJ]; 
-              LBlock<T> &  LfactorBJ = LfactorcolJ[firstIbJ];
+                   //Now make the copy
+                   for(int irow = 0;irow<LBJ.numRow;irow++){
+                     for(int jrow = 0;jrow<LfactorBJ.numRow;jrow++){
+                       AinvBuf(irow,jrow) = UB.nzval(rowColPtr[irow],colPtr[jrow]);
+                     }
+                   }
 
-              if(LBJ.blockIdx == ksup){
-                found = true;
-                break;
-              }
-              else if(LBJ.blockIdx>ksup){
-                break;
-              }
-            }
+                   blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, LfactorBJ.numRow, MINUS_ONE<T>(), 
+                       AinvBuf.nzval.Data(), LBJ.numRow, LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
+                       ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
 
-            if(found){
-              //Inner product
-              LBlock<T> &  LBJ = LcolJ[firstIbJ]; 
-              Int jb = 0;
-              for(Int ibJ = firstIbJ+1 ; ibJ < LcolJ.size(); ibJ++ ){
+                   ibJ++;
+                 }
+               }
+             }
 
-                LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
+             //Outer product
+             if(firstIbJ+1<LcolJ.size())
+             {
+               LBlock<T> &  LfactorBJ = LfactorcolJ[firstIbJ]; 
+               Int ibJ = firstIbJ+1;
+               for(Int ib = 1 ; ib < Lcol.size(),ibJ < LcolJ.size(); ib++ ){
+                 LBlock<T> & LB = Lcol[ib]; 
+                 LBlock<T> &  LBJ = LcolJ[ibJ];
+                 if(LB.blockIdx == LBJ.blockIdx){
 
-                for( jb; jb < Urow.size(); jb++ ){
-                  UBlock<T> & UB = Urow[jb]; 
-                  if(UB.blockIdx == LBJ.blockIdx){
-                    //find offset in LB
-                    //FIXME DOESNT WORK WITH SUPERLU ? BLOCKS are not contiguous 
-                    
+                   NumMat<T> AinvBuf(LBJ.numRow,LfactorBJ.numRow);
 
+                   //Get the row/column pointers
+                   std::vector<Int> rowPtr(LfactorBJ.numRow);
+                   Int irowJ = 0;
+                   for(int irow = 0;irow<LB.rows.size();irow++){
+                     if(LB.rows[irow] == LBJ.rows[irowJ]){
+                       rowPtr[irowJ++] = irow;
+                     }
+                   }
 
-                    Int offsetRow = LBJ.rows[0] - UB.cols[0];
+                   //Now make the copy
+                   for(int irow = 0;irow<LBJ.numRow;irow++){
+                     for(int jcol = 0;jcol<LfactorBJ.numRow;jcol++){
+                       AinvBuf(irow,jcol) = LB.nzval(rowPtr[irow],rowColPtr[jcol]);
+                     }
+                   }
 
-                    if(offsetRow>=0 && offsetRow<LBJ.numRow ){
-                      blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, LBJ.numRow, MINUS_ONE<T>(), 
-                          UB.nzval.Data(), UB.numRow, &LfactorBJ.nzval(offsetRow,0), LfactorBJ.numRow, 
-                          ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
-                    }
-                  }
-                }
-              }
-              
-              //Outer product
-              Int ib = 1;
-              for(Int ibJ = firstIbJ+1 ; ibJ < LcolJ.size(); ibJ++ ){
-                LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
-                for(ib ; ib < Lcol.size(); ib++ ){
-                  LBlock<T> & LB = Lcol[ib]; 
-                  if(LB.blockIdx == LBJ.blockIdx){
-                    //TODO loop through rows
-                    
-                  }
+                   blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, LfactorBJ.numRow, MINUS_ONE<T>(), 
+                       AinvBuf.nzval.Data(), LBJ.numRow, LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
+                       ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
 
-                }
+                   ibJ++;
+                 }
+               }
+             }
+           }
 
-              }
-
-            }
-          }
-        }
-
-
-
-
-
-
+         }
        }
+
 
        MPI_Barrier(grid_->comm);
 #ifndef _RELEASE_
