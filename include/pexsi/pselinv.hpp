@@ -942,6 +942,7 @@ namespace PEXSI{
       ///
       /// Currently there is only sequential version
       void SelInv_MirrorRight_Seq ( );
+      void PreSelInv_MirrorRight_Seq ( );
 
 
 

@@ -5594,6 +5594,36 @@ statusOFS<<"Content of U"<<std::endl;
        return ;
      } 		// -----  end of method PMatrix::SelInv_MirrorRight_Seq  ----- 
 
+   // Mirror right looking selected inversion. Sequential version
+   template<typename T> 
+     void PMatrix<T>::PreSelInv_MirrorRight_Seq (  )
+     {
+       TIMER_START(PreSelInv_MirrorRight);
+
+#ifndef _RELEASE_
+       PushCallStack("PMatrix::PreSelInv_MirrorRight_Seq");
+#endif
+
+       Int numSuper = this->NumSuper(); 
+
+       // Main loop
+       for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
+       }
+
+
+       MPI_Barrier(grid_->comm);
+#ifndef _RELEASE_
+       PopCallStack();
+#endif
+
+       TIMER_STOP(PreSelInv_MirrorRight);
+
+       return ;
+     } 		// -----  end of method PMatrix::PreSelInv_MirrorRight_Seq  ----- 
+
+
+
+
 } // namespace PEXSI
 
 
