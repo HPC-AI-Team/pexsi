@@ -634,7 +634,11 @@ int main(int argc, char **argv)
           }
           else{
             GetTime( timeSta );
+#ifdef _MIRROR_RIGHT_
+            PMloc.PreSelInv_MirrorRight_Seq();
+#else
             PMloc.PreSelInv();
+#endif
             GetTime( timeEnd );
 
             if( mpirank == 0 )
@@ -642,7 +646,11 @@ int main(int argc, char **argv)
 
             // Main subroutine for selected inversion
             GetTime( timeSta );
+#ifdef _MIRROR_RIGHT_
+            PMloc.SelInv_MirrorRight_Seq();
+#else
             PMloc.SelInv();
+#endif
             GetTime( timeEnd );
             if( mpirank == 0 )
               cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
