@@ -5680,7 +5680,14 @@ statusOFS<<"Content of U"<<std::endl;
             std::vector<LBlock<T> >& Lfactorcol = this->Lfactor( LBj( ksup, grid_ ) );
             std::vector<UBlock<T> >& Ufactorrow = this->Ufactor( LBi( ksup, grid_ ) );
             Lfactorcol = Lcol;
-            Ufactorrow = Urow;
+
+            //overwrite Ufactor
+            for( Int ib = 1; ib < Lfactorcol.size(); ib++ ){
+              LBlock<T> &  LB = Lfactorcol[ib]; 
+              // U does not have the diagonal block
+              UBlock<T> &  UB = Ufactorrow[ib-1];
+              Transpose( LB.nzval, UB.nzval );
+            }
           }
        }
 
