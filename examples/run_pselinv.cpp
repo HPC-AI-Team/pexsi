@@ -635,7 +635,13 @@ int main(int argc, char **argv)
           else{
             GetTime( timeSta );
 #ifdef _MIRROR_RIGHT_
-if(mpirank==0){std::cout<<"Mirror right"<<std::endl;}
+            // FIXME Hard code number of threads
+//            omp_set_num_threads(12);
+            if(mpirank==0){
+              std::cout<<"Mirror right"<<std::endl;
+            }
+            
+
             PMloc.PreSelInv_MirrorRight_Seq();
 #else
             PMloc.PreSelInv();
