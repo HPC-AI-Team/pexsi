@@ -5412,8 +5412,8 @@ statusOFS<<"Content of U"<<std::endl;
 #endif
 
        Int numSuper = this->NumSuper(); 
-//       omp_set_num_threads(1);
-double start_time,end_time,total_time=0.0;
+       double start_time,end_time,par_time=0.0;
+       double start_total_time,end_total_time,total_time=0.0;
        std::vector<Int> snodeEtree(this->NumSuper());
        GetEtree(snodeEtree);
        //printf("Enter Mirror\n");
@@ -5424,10 +5424,12 @@ double start_time,end_time,total_time=0.0;
        std::list<Int> outer_snodes;
        std::list<Int> inner_updated_snodes;
        std::list<std::vector<Int> > inner_arrRowColPtr;
-//       std::list<Int> inner_snodes;
 #endif
 #pragma omp parallel
        {
+         if( omp_get_thread_num() == 0 )
+           start_total_time=omp_get_wtime();
+
          for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
            // Update the diagonal. In the mirror right looking, the lower
            // and upper triangular part of Ainv has already been computed
@@ -5443,7 +5445,6 @@ double start_time,end_time,total_time=0.0;
              outer_snodes.clear();
              inner_updated_snodes.clear();
              inner_arrRowColPtr.clear();
-//             inner_snodes.clear();
 
 
              LBlock<T> &  DiagB = this->L( LBj( ksup, grid_ ) )[0];
@@ -5453,9 +5454,6 @@ double start_time,end_time,total_time=0.0;
              for( Int ib = 1; ib < Lcol.size(); ib++ ){
 //               #pragma omp task
                {
-                 //LBlock<T> &  DiagB = this->L( LBj( ksup, grid_ ) )[0];
-                 //std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-                 //std::vector<LBlock<T> >&  Lfactorcol = this->Lfactor( LBj(ksup, grid_) );
                  LBlock<T> &  LB = Lcol[ib]; 
                  LBlock<T> &  LfactorB = Lfactorcol[ib];
 
@@ -5467,9 +5465,7 @@ double start_time,end_time,total_time=0.0;
 
              // Use symmetry and update the U part via the L part
              for( Int ib = 1; ib < Lcol.size(); ib++ ){
-               //#pragma omp task
                {
-                // std::vector<UBlock<T> >&  Urow = this->U( LBi( ksup, grid_ ) );//moved into from for(ksup..)
                  LBlock<T> &  LB = Lcol[ib]; 
                  // U does not have the diagonal block
                  UBlock<T> &  UB = Urow[ib-1];
@@ -5662,15 +5658,17 @@ double start_time,end_time,total_time=0.0;
                }//end if found
              }//end for jsup
            } // omp single
+           
+           if( omp_get_thread_num() == 0 )
+             start_time=omp_get_wtime();
+
 
 #ifdef _MIRROR_RIGHT_OPENMP_
-           if(0)
-             if(omp_get_thread_num()==0)cout<<"ksup="<<ksup<<endl; 
 #pragma omp single nowait
            {
              // Start the inner product
              std::list<std::vector<Int> > ::iterator plist;
-             start_time=omp_get_wtime();
+
              plist=inner_arrRowColPtr.begin();
              std::list<Int>::iterator it_ib;
 
@@ -5843,13 +5841,25 @@ double start_time,end_time,total_time=0.0;
                  it_ib++;
                } //while(ib)
              }//end_for(it)
-             end_time=omp_get_wtime();
-             total_time=total_time+end_time-start_time;
            }//end omp single nowait
 #pragma omp barrier
+           if( omp_get_thread_num() == 0 ){
+             end_time=omp_get_wtime();
+             par_time = par_time +end_time-start_time;
+           }
 #endif
          }//end for ksup
-cout<<"Total time of outer and inner product: "<<total_time<<endl;
+         if( omp_get_thread_num() == 0 ){
+           end_total_time=omp_get_wtime();
+           total_time = end_total_time - start_total_time;
+         }
+      
+      
+         if( omp_get_thread_num() == 0 ){
+           cout<<"Total time of outer and inner product: "<<par_time<<endl;
+           cout<<"Total time for iterating ksup: "<< total_time <<endl;
+         }
+       
        } //end omp parallel
 
 
