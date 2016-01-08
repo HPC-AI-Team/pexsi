@@ -5424,7 +5424,7 @@ double start_time,end_time,total_time=0.0;
        std::list<Int> outer_snodes;
        std::list<Int> inner_updated_snodes;
        std::list<std::vector<Int> > inner_arrRowColPtr;
-       std::list<Int> inner_snodes;
+//       std::list<Int> inner_snodes;
 #endif
 #pragma omp parallel
        {
@@ -5443,7 +5443,7 @@ double start_time,end_time,total_time=0.0;
              outer_snodes.clear();
              inner_updated_snodes.clear();
              inner_arrRowColPtr.clear();
-             inner_snodes.clear();
+//             inner_snodes.clear();
 
 
              LBlock<T> &  DiagB = this->L( LBj( ksup, grid_ ) )[0];
@@ -5550,19 +5550,19 @@ double start_time,end_time,total_time=0.0;
                    inner_updated_snodes.push_back(jsup);
                    inner_updated_snodes.push_back(firstIbJ);
 
-                   Int ibJ = firstIbJ+1;
-                   for(Int jb = 0 ; jb < Urow.size() && ibJ < LfactorcolJ.size(); jb++ ){
-                     ////////////////////////Zhao: jb and ibj
-                     UBlock<T> & UB = Urow[jb];
-                     LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
-                     if(UB.blockIdx == LfactorBJ.blockIdx){
-                       inner_snodes.push_back(jb);
-                       inner_snodes.push_back(ibJ);
-                       ibJ++;
-                     }
-                   } 
-                   inner_snodes.push_back(-1);
-                   inner_snodes.push_back(-1);
+//                   Int ibJ = firstIbJ+1;
+//                   for(Int jb = 0 ; jb < Urow.size() && ibJ < LfactorcolJ.size(); jb++ ){
+//                     ////////////////////////Zhao: jb and ibj
+//                     UBlock<T> & UB = Urow[jb];
+//                     LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
+//                     if(UB.blockIdx == LfactorBJ.blockIdx){
+//                       inner_snodes.push_back(jb);
+//                       inner_snodes.push_back(ibJ);
+//                       ibJ++;
+//                     }
+//                   } 
+//                   inner_snodes.push_back(-1);
+//                   inner_snodes.push_back(-1);
 #else
                    //A_{ksup,jsup}^{-1} <-- A_{ksup,jsup}^{-1} - A_{ksup,i}^{-1} L_{i,jsup}
                    // topLBJ is A_{ksup,jsup}^{-1}
@@ -5683,24 +5683,20 @@ double start_time,end_time,total_time=0.0;
              start_time=omp_get_wtime();
              plist=inner_arrRowColPtr.begin();
              std::list<Int>::iterator it_ib;
-             std::list<Int>::iterator it_jb;
 
              std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
              std::vector<UBlock<T> >&  Urow = this->U( LBi(ksup, grid_));
 
              std::list<Int>::iterator it;
-             it_jb=inner_snodes.begin();
              for(it = inner_updated_snodes.begin();
                  it!= inner_updated_snodes.end()&&
-                 plist!=inner_arrRowColPtr.end()&&
-                 it_jb!=inner_snodes.end();
+                 plist!=inner_arrRowColPtr.end();
                  it++,plist++){
                Int jsup = *it;
                it++;
                Int firstIbJ = *it;
                //  Int idxRCPtr = tail;
                //  tail++;
-               Int jb,ibJ;
 
 
                // A_{i,jsup}^{-1} <-- A_{i,jsup}^{-1} - A_{i,ksup}^{-1} L_{ksup,jsup}
@@ -5711,45 +5707,45 @@ double start_time,end_time,total_time=0.0;
 
                std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
                std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+
                LBlock<T> &  topLBJ = LcolJ[firstIbJ];
 
-               jb=*it_jb;
-               it_jb++;
-               ibJ=*it_jb;
-               it_jb++;
+#pragma omp task firstprivate(plist) 
+               { 
+                 Int ibJ = firstIbJ+1;
 
-               while(jb!=-1&&ibJ!=-1){
-#pragma omp task firstprivate(plist,jb,ibJ) 
-                 { 
-                   UBlock<T> &  UB = Urow[jb];
+                 for(Int jb = 0 ; jb < Urow.size() && ibJ < LfactorcolJ.size(); jb++ ){
+                   UBlock<T> &  UB = Urow[jb]; 
                    LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
-                   NumMat<T> AinvBuf(topLBJ.numRow,LfactorBJ.numRow);
-                   std::vector<Int>  &rowColPtr= *plist;
+                   if(UB.blockIdx == LfactorBJ.blockIdx){
 
-                   //Get the column pointers of rows of LfactorBJ in columns of UB
-                   std::vector<Int> colPtr(LfactorBJ.numRow);
-                   Int irowJ = 0;
-                   for(int jcol = 0;jcol<UB.numCol && irowJ<LfactorBJ.numRow;jcol++){
-                     if(UB.cols[jcol] == LfactorBJ.rows[irowJ]){
-                       colPtr[irowJ++] = jcol;
-                     }
-                   }
+                     NumMat<T> AinvBuf(topLBJ.numRow,LfactorBJ.numRow);
+                     std::vector<Int>  &rowColPtr= *plist;
 
-                   //Now make the copy
-                   for(int irow = 0;irow<topLBJ.numRow;irow++){
-                     for(int jrow = 0;jrow<LfactorBJ.numRow;jrow++){
-                       AinvBuf(irow,jrow) = UB.nzval(rowColPtr[irow],colPtr[jrow]);
+                     //Get the column pointers of rows of LfactorBJ in columns of UB
+                     std::vector<Int> colPtr(LfactorBJ.numRow);
+                     Int irowJ = 0;
+                     for(int jcol = 0;jcol<UB.numCol && irowJ<LfactorBJ.numRow;jcol++){
+                       if(UB.cols[jcol] == LfactorBJ.rows[irowJ]){
+                         colPtr[irowJ++] = jcol;
+                       }
                      }
+
+                     //Now make the copy
+                     for(int irow = 0;irow<topLBJ.numRow;irow++){
+                       for(int jrow = 0;jrow<LfactorBJ.numRow;jrow++){
+                         AinvBuf(irow,jrow) = UB.nzval(rowColPtr[irow],colPtr[jrow]);
+                       }
+                     }
+
+                     blas::Gemm( 'N', 'N', topLBJ.numRow, topLBJ.numCol, LfactorBJ.numRow, MINUS_ONE<T>(), 
+                         AinvBuf.Data(), AinvBuf.m(), LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
+                         ONE<T>(), topLBJ.nzval.Data(), topLBJ.numRow );
+
+                     ibJ++;
                    }
-                   blas::Gemm( 'N', 'N', topLBJ.numRow, topLBJ.numCol, LfactorBJ.numRow, MINUS_ONE<T>(),
-                       AinvBuf.Data(), AinvBuf.m(), LfactorBJ.nzval.Data(), LfactorBJ.numRow,
-                       ONE<T>(), topLBJ.nzval.Data(), topLBJ.numRow );
-                 }
-                 jb=*it_jb;
-                 it_jb++;
-                 ibJ=*it_jb;
-                 it_jb++;
-               }//end_while
+                 } // for (jb)
+               }
              }//end_for
 
 
