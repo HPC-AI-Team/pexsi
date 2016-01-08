@@ -5711,7 +5711,6 @@ double start_time,end_time,total_time=0.0;
 
                std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
                std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
-               LBlock<T> &  topLfactorBJ = LfactorcolJ[firstIbJ];     
                LBlock<T> &  topLBJ = LcolJ[firstIbJ];
 
                jb=*it_jb;
@@ -5722,7 +5721,7 @@ double start_time,end_time,total_time=0.0;
                while(jb!=-1&&ibJ!=-1){
 #pragma omp task firstprivate(plist,jb,ibJ) 
                  { 
-                   UBlock<T> & UB = Urow[jb];
+                   UBlock<T> &  UB = Urow[jb];
                    LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
                    NumMat<T> AinvBuf(topLBJ.numRow,LfactorBJ.numRow);
                    std::vector<Int>  &rowColPtr= *plist;
@@ -5732,7 +5731,6 @@ double start_time,end_time,total_time=0.0;
                    Int irowJ = 0;
                    for(int jcol = 0;jcol<UB.numCol && irowJ<LfactorBJ.numRow;jcol++){
                      if(UB.cols[jcol] == LfactorBJ.rows[irowJ]){
-                       colPtr[irowJ++] = jcol;
                        colPtr[irowJ++] = jcol;
                      }
                    }
@@ -5782,7 +5780,6 @@ double start_time,end_time,total_time=0.0;
                std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
                std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
                LBlock<T> &  topLfactorBJ = LfactorcolJ[firstIbJ];
-               LBlock<T> &  topLBJ = LcolJ[firstIbJ];
 
                ib=*it_ib;
                it_ib++;
