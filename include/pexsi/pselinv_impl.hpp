@@ -5463,6 +5463,10 @@ statusOFS<<"Content of U"<<std::endl;
                }
              }
 
+             // Symmetrize the diagonal block. Important for numerical
+             // stability
+             Symmetrize( DiagB.nzval ); 
+
              // Use symmetry and update the U part via the L part
              for( Int ib = 1; ib < Lcol.size(); ib++ ){
                {
