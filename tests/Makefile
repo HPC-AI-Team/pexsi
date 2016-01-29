@@ -5,7 +5,8 @@ include ../make.inc
 
 #SRCS = ex1.cpp ex2.cpp ex3.cpp ex4.cpp ex5.cpp ex6.cpp ex7.cpp \
 			 ex8.cpp ex9.cpp ex10.cpp ex11.cpp ex12.cpp ex13.cpp ex14.cpp ex15.cpp
-SRCS   = ex29.cpp
+SRCS   = taskwait1.cpp taskwait2.cpp
+
 SRCS_C = ex18.c
 SRCS_F = ex22.f90 
 
@@ -23,6 +24,12 @@ EXES = ${SRCS:.cpp=}	 ${SRCS_C:.c=}   ${SRCS_F:.f90=}
 	${FC} -c ${FFLAGS} $<
 %.o: %.F90
 	${FC} -c ${FFLAGS} $<
+
+taskwait2: taskwait2.o 
+	($(LOADER) -o $@ taskwait2.o $(LOADOPTS) )
+
+taskwait1: taskwait1.o 
+	($(LOADER) -o $@ taskwait1.o $(LOADOPTS) )
 
 ex33: ex33.o ${PEXSI_LIB} ../include/pexsi/ngchol_interf_impl.hpp 
 	($(LOADER) -o $@ ex33.o  $(LOADOPTS) )
