@@ -5417,6 +5417,8 @@ statusOFS<<"Content of U"<<std::endl;
        double indirect_time=0.0, gemm_time = 0.0, inner_time = 0.0, outer_time = 0.0, diag_time = 0.0;
        struct timeval ttx, tty;
        double start_total_time,end_total_time,total_time=0.0;
+       double single_time=0.0, start_single_time, end_single_time;
+       double blas_time = 0.0, start_blas_time, end_blas_time;
        struct timeval tt0, tt1;
        std::vector<Int> snodeEtree(this->NumSuper());
        GetEtree(snodeEtree);
@@ -5429,16 +5431,18 @@ statusOFS<<"Content of U"<<std::endl;
        std::list<Int> inner_updated_snodes;
        std::list<std::vector<Int> > inner_arrRowColPtr;
 #endif
-#pragma omp parallel
-       {
          if( omp_get_thread_num() == 0 )start_total_time=omp_get_wtime();
+//#pragma omp parallel
+//       {
+         //if( omp_get_thread_num() == 0 )start_total_time=omp_get_wtime();
 
          for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
            // Update the diagonal. In the mirror right looking, the lower
            // and upper triangular part of Ainv has already been computed
            // Get the diagonal block
 
-#pragma omp single 
+         if( omp_get_thread_num() == 0 ) start_single_time =omp_get_wtime();
+//#pragma omp single 
            {
              if(0)
                cout << "Thread " << omp_get_thread_num() << " entering the critical region for ksup = " << ksup << endl;
@@ -5454,6 +5458,8 @@ statusOFS<<"Content of U"<<std::endl;
              std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
              std::vector<UBlock<T> >&  Urow = this->U( LBi(ksup, grid_));
              std::vector<LBlock<T> >&  Lfactorcol = this->Lfactor( LBj(ksup, grid_) );
+             
+	     if( omp_get_thread_num() == 0 ) start_blas_time =omp_get_wtime();
              for( Int ib = 1; ib < Lcol.size(); ib++ ){
 //               #pragma omp task
                {
@@ -5465,6 +5471,10 @@ statusOFS<<"Content of U"<<std::endl;
                      ONE<T>(), DiagB.nzval.Data(), DiagB.numRow );
                }
              }
+	     if( omp_get_thread_num() == 0 ) {
+		end_blas_time =omp_get_wtime();
+             	blas_time += end_blas_time - start_blas_time;
+	     }
 
              // Symmetrize the diagonal block. Important for numerical
              // stability
@@ -5665,7 +5675,14 @@ statusOFS<<"Content of U"<<std::endl;
                }//end if found
              }//end for jsup
            } // omp single
-           
+        //}   
+         if( omp_get_thread_num() == 0 ) {
+		end_single_time =omp_get_wtime();
+             	single_time += end_single_time-start_single_time;
+	}
+#pragma omp parallel
+       {
+
            if( omp_get_thread_num() == 0 ) start_time=omp_get_wtime();
 
 
@@ -5923,13 +5940,13 @@ statusOFS<<"Content of U"<<std::endl;
              par_time = par_time +end_time-start_time;
            }
 #endif
-         }//end for ksup
-         if( omp_get_thread_num() == 0 ){
+         }//end for omp parallel
+      
+       } //end for ksup
+       if( omp_get_thread_num() == 0 ){
            end_total_time=omp_get_wtime();
-           total_time = end_total_time - start_total_time;
-         }
-      
-      
+           total_time += end_total_time - start_total_time;
+       }
          if( omp_get_thread_num() == 0 ){
            cout<<"-------------------------------------------------------------"<<endl;
            cout<<"** part timing:    diag part        time: "<<diag_time<<endl;
@@ -5940,13 +5957,14 @@ statusOFS<<"Content of U"<<std::endl;
            cout<<"** part timing: Gemm time               : "<<gemm_time<<endl;
            cout<<"** part timing: Gemm +indirect address  : "<<gemm_time+indirect_time<<endl;
 	   cout<<"............................................................."<<endl;
+           cout<<"** BLAS timing for the Diag Part:         "<<blas_time<<endl;
+           cout<<"** Diag part total time:                  "<<single_time<<endl;
+	   cout<<"............................................................."<<endl;
            cout<<"Total time of outer and inner product   : "<<par_time<<endl;
            cout<<"Total time for iterating ksup:            "<< total_time <<endl;
            cout<<"-------------------------------------------------------------"<<endl;
          }
-       
-       } //end omp parallel
-
+ 
 
        MPI_Barrier(grid_->comm);
 #ifndef _RELEASE_
