@@ -34,6 +34,9 @@ run_inertia: run_inertia.o ${PEXSI_LIB}
 run_pselinv: run_pselinv.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS) )
 
+run_superlu: run_superlu.o ${PEXSI_LIB} 
+	($(LOADER) -o $@_${SUFFIX} run_superlu.o  $(LOADOPTS) )
+
 run_pselinv_unsym: run_pselinv_unsym.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv_unsym.o  $(LOADOPTS) )
 
@@ -49,6 +52,9 @@ run_inertia.o: run_inertia.cpp
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 run_pselinv.o: run_pselinv.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
+
+run_superlu.o: run_superlu.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
 run_pselinv_unsym.o: run_pselinv_unsym.cpp 
