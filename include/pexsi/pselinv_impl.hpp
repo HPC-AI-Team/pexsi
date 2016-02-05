@@ -5467,6 +5467,7 @@ statusOFS<<"Content of U"<<std::endl;
                  std::vector<UBlock<T> >&  Urow = this->U( LBi(ksup, grid_));
                  std::vector<LBlock<T> >&  Lfactorcol = this->Lfactor( LBj(ksup, grid_) );
 
+#if 0
 //                 if( omp_get_thread_num() == 0 ) start_blas_time =omp_get_wtime();
                  for( Int ib = 1; ib < Lcol.size(); ib++ ){
                    //               #pragma omp task
@@ -5503,6 +5504,26 @@ statusOFS<<"Content of U"<<std::endl;
 
                    }
                  }
+#else
+                #pragma omp task firstprivate(ksup) depend(inout: snodeDeps[ksup])
+                 {
+                   LBlock<T> &  DiagB = this->L( LBj( ksup, grid_ ) )[0];
+                   std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
+                   std::vector<UBlock<T> >&  Urow = this->U( LBi(ksup, grid_));
+                   std::vector<LBlock<T> >&  Lfactorcol = this->Lfactor( LBj(ksup, grid_) );
+                   for( Int ib = 1; ib < Lcol.size(); ib++ ){
+                     {
+
+                       LBlock<T> &  LB = Lcol[ib]; 
+                       LBlock<T> &  LfactorB = Lfactorcol[ib];
+
+                       blas::Gemm( 'T', 'N', DiagB.numRow, DiagB.numCol, LB.numRow, MINUS_ONE<T>(), 
+                           LfactorB.nzval.Data(), LfactorB.numRow, LB.nzval.Data(), LB.numRow,
+                           ONE<T>(), DiagB.nzval.Data(), DiagB.numRow );
+                     }
+                   }
+                 }
+#endif
 //                 if( omp_get_thread_num() == 0 ) {
 //                   end_blas_time =omp_get_wtime();
 //                   blas_time += end_blas_time - start_blas_time;
