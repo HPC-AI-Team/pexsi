@@ -5969,7 +5969,13 @@ statusOFS<<"Content of U"<<std::endl;
        Lfactor_.resize( this->NumLocalBlockCol() );
        Ufactor_.resize( this->NumLocalBlockRow() );
        // Main loop
+#pragma omp parallel
+       {
+#pragma omp single  // if I put nowait here. it will be slow. weile
+       {
        for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
+#pragma omp task
+       {
          std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
          std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
 
@@ -6038,6 +6044,9 @@ statusOFS<<"Content of U"<<std::endl;
              SetValue(UB.nzval, ZERO<T>() );
            }
          }
+       }
+       }
+       }
        }
 
 
