@@ -640,9 +640,15 @@ int main(int argc, char **argv)
             if(mpirank==0){
               std::cout<<"Mirror right"<<std::endl;
             }
-            
 
             PMloc.PreSelInv_MirrorRight_Seq();
+
+#elif defined(_MIRROR_LEFT_)
+            if(mpirank==0){
+              std::cout<<"Mirror left"<<std::endl;
+            }
+
+            PMloc.PreSelInv_MirrorLeft_OpenMP();
 #else
             PMloc.PreSelInv();
 #endif
@@ -655,6 +661,8 @@ int main(int argc, char **argv)
             GetTime( timeSta );
 #ifdef _MIRROR_RIGHT_
             PMloc.SelInv_MirrorRight_Seq();
+#elif defined(_MIRROR_LEFT_)
+            PMloc.SelInv_MirrorLeft_OpenMP();
 #else
             PMloc.SelInv();
 #endif
