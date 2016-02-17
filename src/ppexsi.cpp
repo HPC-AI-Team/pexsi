@@ -2983,10 +2983,12 @@ PPEXSIData::DFTDriver2 (
 
 
         // Heuristics to increase the span of mu a bit
-        //        muMinInertia = shiftVec[idxMin] - 5 * temperature;
-        //        muMaxInertia = shiftVec[idxMax] + 5 * temperature;
-        muMinInertia = shiftVec[idxMin];
-        muMaxInertia = shiftVec[idxMax];
+        // LL: 2/17/2016 NOTE This might end up with a wide interval that inertia counting never converges
+        muMinInertia = shiftVec[idxMin] - 3 * temperature;
+        muMaxInertia = shiftVec[idxMax] + 3 * temperature;
+        // LL: 2/17/2016 This might end up with a interval that is too tight especialy at high temperature
+//        muMinInertia = shiftVec[idxMin];
+//        muMaxInertia = shiftVec[idxMax];
         // Search instead for the band edges which is more stable
         muLower      = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact - 0.01);
         muUpper      = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact + 0.01 );
