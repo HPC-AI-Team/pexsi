@@ -269,7 +269,7 @@ int main(int argc, char **argv)
   options.deltaE   = 20.0;
   options.numPole  = 40;
   options.temperature  = 0.0019; // 300K
-//  options.muInertiaTolerance = 0.0019;
+  options.muInertiaTolerance = 0.0120;
   options.muPEXSISafeGuard  = 0.2; 
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;

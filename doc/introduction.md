@@ -265,7 +265,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 @page pageChangeLog Change Log
 
 - v0.9.1 
-    - Add support for SuperLU_DIST v4.2.
+    - Add support for SuperLU_DIST v4.2 (TODO)
     - Add pole expansion to C/FORTRAN interfaces to be called
       separately.
     
@@ -273,6 +273,14 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
     
     - Bug fix: remove a const attribute in CSCToCSR since it is modified
       by MPI.
+
+    - Experimental feature: Add DFTDriver2 which allows only one PEXSI
+      iteration per SCF iteration. This requires a careful setup of the
+      inertia counting procedure.
+
+    - Experimental feature: In DFTDriver2, the muMinInertia and
+      muMaxInertia are updated to avoid the true chemical potential to
+      be at the edge of an interval.
 
 
 - v0.9.0 (07/15/2015) **Major update**

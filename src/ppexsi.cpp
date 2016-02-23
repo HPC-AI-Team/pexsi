@@ -2772,6 +2772,18 @@ PPEXSIData::DFTDriver2 (
     throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
   }
 
+  if( muInertiaTolerance < 6 * temperature ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "muInertiaTolerance cannot be smaller than 6*temperature = " 
+      << 6.0 * temperature << std::endl;
+#ifdef USE_ABORT
+    abort();
+#endif
+    throw std::runtime_error( msg.str().c_str() );
+  }
+
+
   // Perform symbolic factorization first if required
   if( isSymbolicFactorize == true ){
     if( verbosity >= 1 ){
@@ -2984,24 +2996,30 @@ PPEXSIData::DFTDriver2 (
 
         // Heuristics to increase the span of mu a bit
         // LL: 2/17/2016 NOTE This might end up with a wide interval that inertia counting never converges
-        muMinInertia = shiftVec[idxMin] - 3 * temperature;
-        muMaxInertia = shiftVec[idxMax] + 3 * temperature;
+//        muMinInertia = shiftVec[idxMin] - 3 * temperature;
+//        muMaxInertia = shiftVec[idxMax] + 3 * temperature;
         // LL: 2/17/2016 This might end up with a interval that is too tight especialy at high temperature
 //        muMinInertia = shiftVec[idxMin];
 //        muMaxInertia = shiftVec[idxMax];
         // Search instead for the band edges which is more stable
         muLower      = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact - 0.01);
         muUpper      = MonotoneRootFinding( shiftVec, inertiaFTVec, numElectronExact + 0.01 );
-        muPEXSI =      (muLower + muUpper)/2.0;
+        muPEXSI      = (muLower + muUpper)/2.0;
+
+        // LL: 2/23/2016: New way for updating the interval to avoid too skewed interval
+        muMinInertia = std::min(shiftVec[idxMin], muPEXSI - 3 * temperature);
+        muMaxInertia = std::max(shiftVec[idxMax], muPEXSI + 3 * temperature);
 
         if( verbosity >= 1 ){
           statusOFS << "muLower = " << muLower << std::endl;
           statusOFS << "muUpper = " << muUpper << std::endl;
           statusOFS << "mu guessed by IC = " << muPEXSI << std::endl;
-          statusOFS << "|ivec(idxMax)-Ne_exact| = " << 
-            std::abs( inertiaVec[idxMax] - numElectronExact ) << std::endl;
-          statusOFS << "ivec(idxMax)-ivec(idxMin) = " << 
-            shiftVec[idxMax] - shiftVec[idxMin] << std::endl;
+//          statusOFS << "|ivec(idxMax)-Ne_exact| = " << 
+//            std::abs( inertiaVec[idxMax] - numElectronExact ) << std::endl;
+//          statusOFS << "ivec(idxMax)-ivec(idxMin) = " << 
+//            shiftVec[idxMax] - shiftVec[idxMin] << std::endl;
+          statusOFS << "muMinInertia = " << muMinInertia << std::endl;
+          statusOFS << "muMaxInertia = " << muMaxInertia << std::endl;
         }
 
         // Check convergence. Stop the inertia count after convergence.
@@ -3666,6 +3684,7 @@ throw std::logic_error( "Must be even number of poles!" );
   }
 
   Real muInit = mu;
+  Real numElectronInit;
   Real dmu = 0.0;
   Int maxBisectionIter = 50;
   isPEXSIConverged = false;
@@ -3683,6 +3702,9 @@ throw std::logic_error( "Must be even number of poles!" );
       numElectron += zweightRho_[l].real() * traceAinvS[lidx].imag() + 
         zweightRho_[l].imag() * traceAinvS[lidx].real();
     } // for(lidx)
+
+    if( il == 1 )
+      numElectronInit = numElectron;
 
     if( std::abs( numElectron - numElectronExact ) < 
         numElectronTolerance ){
@@ -3717,6 +3739,7 @@ throw std::logic_error( "Must be even number of poles!" );
   if( verbosity >= 1 ){
     statusOFS 
       << "mu (input)           = " << muInit << std::endl
+      << "numElectron (input)  = " << numElectronInit << std::endl
       << "mu (output)          = " << mu << std::endl
       << "numElectron (output) = " << numElectron << std::endl;
   }
