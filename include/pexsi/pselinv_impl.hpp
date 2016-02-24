@@ -5935,7 +5935,8 @@ statusOFS<<"Content of U"<<std::endl;
                //       outer_time += tty - ttx;
              }//end_for(it)
            }//end omp single nowait
-#pragma omp barrier
+//#pragma omp barrier
+//#pragma omp taskwait
            if( omp_get_thread_num() == 0 ){
              end_time=omp_get_wtime();
              par_time = par_time +end_time-start_time;
