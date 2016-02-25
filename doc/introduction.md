@@ -265,14 +265,15 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 @page pageChangeLog Change Log
 
 - v0.9.1 
-    - Add support for SuperLU_DIST v4.2 (TODO)
-    - Add pole expansion to C/FORTRAN interfaces to be called
+    - Add support for SuperLU_DIST v4.3. Starting from v0.9.1, the
+      SuperLU_DIST v3.3 version is NO LONGER supported.
+
+    - Add pole expansion C/FORTRAN interfaces that can be called
       separately.
     
-    - Add EDM and FDM pole expansion interface.
-    
     - Bug fix: remove a const attribute in CSCToCSR since it is modified
-      by MPI.
+      by MPI. Add (void*) to MPI_Allgather for some compilers.
+
 
     - Experimental feature: Add DFTDriver2 which allows only one PEXSI
       iteration per SCF iteration. This requires a careful setup of the
