@@ -1347,7 +1347,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
       /* Allgatherv for row indices. */ 
       IntNumVec prevnz(mpisize);
       IntNumVec rcounts(mpisize);
-      MPI_Allgather(&sparseA.nnzLocal, 1, MPI_INT, rcounts.Data(), 1, MPI_INT, sparseA.comm);
+      MPI_Allgather((void*)&sparseA.nnzLocal, 1, MPI_INT, rcounts.Data(), 1, MPI_INT, sparseA.comm);
 
       prevnz[0] = 0;
       for (Int i = 0; i < mpisize-1; ++i) { prevnz[i+1] = prevnz[i] + rcounts[i]; } 

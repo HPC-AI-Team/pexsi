@@ -559,7 +559,9 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
       SuperMatrix&  A = ptrData->A;
 
       ScalePermstructInit(A.nrow, A.ncol, &ptrData->ScalePermstruct);
-      LUstructInit(A.nrow, A.ncol, &ptrData->LUstruct);
+      // Starting from v4.3, only for square matrix
+      LUstructInit(A.nrow, &ptrData->LUstruct);
+//      LUstructInit(A.nrow, A.ncol, &ptrData->LUstruct);
 
       PStatInit(&ptrData->stat);
 #if ( _DEBUGlevel_ >= 1 )

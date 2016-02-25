@@ -12,3 +12,4 @@ TODO List   {#pageTODO}
 - PEXSI: inertia coutning problem when mu is on the edge. Maybe a
   "global profile". Maybe change shiftMin and shiftMax based on the
   estimated "center" of the chemical potential during the inertia counting?
+- Fix the bug for (void*) (see email)
