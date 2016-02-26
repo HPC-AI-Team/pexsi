@@ -281,7 +281,8 @@ int main(int argc, char **argv)
       Real timeSta, timeEnd;
       GetTime( timeSta );
       if(isCSC)
-        ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
+        ReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
+        //ParaReadDistSparseMatrix( Hfile.c_str(), HMat, world_comm ); 
       else{
         ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, world_comm ); 
         ParaWriteDistSparseMatrix( "H.csc", HMat, world_comm ); 
