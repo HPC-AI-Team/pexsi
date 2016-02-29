@@ -88,7 +88,6 @@ LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${MKL_LIB}
 COMPILE_DEF  += -DAdd_
 
 CPPFLAG = -std=c++11
-FLOADOPTS    = ${LIBS} -no-ipo -lstdc++
 
 CFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES} -std=c99
 FFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES}
@@ -96,7 +95,7 @@ CXXFLAGS     = ${COMPILE_FLAG} ${CPPFLAG} ${PROFILE_FLAG} ${INCLUDES}
 CCDEFS       = ${COMPILE_DEF} 
 CPPDEFS      = ${COMPILE_DEF} 
 LOADOPTS     = ${PROFILE_FLAG} ${LIBS} -Wl,--allow-multiple-definition
-FLOADOPTS    = ${PROFILE_FLAG} ${LIBS} ${CPP_LIB} -Wl,--allow-multiple-definition
+FLOADOPTS    = ${LIBS} -no-ipo -lstdc++ -Wl,--allow-multiple-definition
 
 
 # Generate auto-dependencies 
