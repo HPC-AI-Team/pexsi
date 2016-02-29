@@ -1379,7 +1379,10 @@ namespace PEXSI{
 
           if( split && splitPoint>0)
           {
+#if ( _DEBUGlevel_ >= 1 )
             statusOFS<<"SPLITPOINT is "<<splitPoint<<" "<<std::endl;
+#endif
+
 #if ( _DEBUGlevel_ >= 1 )
             if(splitPoint != limit-1){
               statusOFS<<"-----------------------"<<std::endl;
@@ -3648,7 +3651,9 @@ namespace PEXSI{
       PushCallStack("PMatrix::SelInv_P2p");
 #endif
 
-statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
+#endif
 
       Int numSuper = this->NumSuper(); 
 

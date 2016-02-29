@@ -2772,15 +2772,12 @@ PPEXSIData::DFTDriver2 (
     throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
   }
 
-  if( muInertiaTolerance < 6 * temperature ){
-    std::ostringstream msg;
-    msg  << std::endl
-      << "muInertiaTolerance cannot be smaller than 6*temperature = " 
-      << 6.0 * temperature << std::endl;
-#ifdef USE_ABORT
-    abort();
-#endif
-    throw std::runtime_error( msg.str().c_str() );
+  if( muInertiaTolerance < 4.0 * temperature ){
+    statusOFS << "muInertiaTolerance cannot be smaller than 4*temperature = "  << 
+      4.0 * temperature << std::endl;
+    statusOFS << "Forcefully set muInertiaTolerance to 4*temperature." << std::endl;
+
+    muInertiaTolerance = 4.0 * temperature;
   }
 
 
@@ -3007,8 +3004,8 @@ PPEXSIData::DFTDriver2 (
         muPEXSI      = (muLower + muUpper)/2.0;
 
         // LL: 2/23/2016: New way for updating the interval to avoid too skewed interval
-        muMinInertia = std::min(shiftVec[idxMin], muPEXSI - 3 * temperature);
-        muMaxInertia = std::max(shiftVec[idxMax], muPEXSI + 3 * temperature);
+        muMinInertia = std::min(shiftVec[idxMin], muPEXSI - 2.0 * temperature);
+        muMaxInertia = std::max(shiftVec[idxMax], muPEXSI + 2.0 * temperature);
 
         if( verbosity >= 1 ){
           statusOFS << "muLower = " << muLower << std::endl;
