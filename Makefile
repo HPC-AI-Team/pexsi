@@ -1,18 +1,30 @@
 include make.inc
 
-all: lib examples 
-
 lib: pexsi_lib
 
-examples: pexsi_examples
+examples: pexsi_examples fortran_examples
+
+all: lib examples
+
+
 
 pexsi_lib:
-	cd src && ${MAKE}
+	(cd src && ${MAKE})
 
 examples: pexsi_examples
   
 pexsi_examples: pexsi_lib
 	cd examples && ${MAKE}
+
+fortran_examples: pexsi_lib
+	cd fortran && ${MAKE}
+
+install:
+	(if [ ! -d "${PEXSI_BUILD_DIR}" ]; then mkdir ${PEXSI_BUILD_DIR}; fi)
+	(if [ ! -d "${PEXSI_BUILD_DIR}/include" ]; then mkdir ${PEXSI_BUILD_DIR}/include; fi)
+	(if [ ! -d "${PEXSI_BUILD_DIR}/lib" ]; then mkdir ${PEXSI_BUILD_DIR}/lib; fi)
+	(cp src/libpexsi_${SUFFIX}.a ${PEXSI_BUILD_DIR}/lib)
+	(cp include/c_pexsi_interface.h include/ppexsi.hpp fortran/f_interface.f90 ${PEXSI_BUILD_DIR}/include)
 
 clean:
 	cd src && ${MAKE} clean

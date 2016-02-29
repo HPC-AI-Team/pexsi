@@ -20,13 +20,13 @@ See @ref pagePselinvRealSymmetric for an example.
 
 **Q: Does %PEXSI accelerate dense matrix computation?**
 
-A: No.  The acceleration is based on the sparsity of the LU factor or
+A: Not likely.  The acceleration is based on the sparsity of the LU factor or
 the Cholesky factor.  %PEXSI should not be fast if the matrix is dense
 or nearly dense.
 
 **Q: Does %PEXSI work for asymmetric matrices?**
 
-A: Yes! %PEXSI v0.9.0 starts to support PSelInv for asymmetric matrices,
+A: Yes! Starting from v0.9.0, %PEXSI v0.9.0 supports PSelInv for asymmetric matrices,
 boh structurally symmetric and fully asymmetric. 
 See @ref pagePselinvRealSymmetricUnsym  for example. This can already be
 used for Kohn-Sham DFT calculations for k-point etc with an

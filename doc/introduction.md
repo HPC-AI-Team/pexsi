@@ -264,16 +264,22 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
-- v0.9.1 
-    - Add support for SuperLU_DIST v4.3. Starting from v0.9.1, the
-      SuperLU_DIST v3.3 version is NO LONGER supported.
+- v0.9.2 (2/29/2016) **Beta version**
+    - **v0.9.2 contains major changes to SuperLU_DIST v4.3 and new DFTDriver. Use with care.**
+
+    - Add support for SuperLU_DIST v4.3. Starting from v0.9.2, the
+      SuperLU_DIST v3.3 version is **NO LONGER SUPPORTED**.
+
+    - Change the compile / installation to the more standard make / make
+      install commands.
 
     - Add pole expansion C/FORTRAN interfaces that can be called
       separately.
     
     - Bug fix: remove a const attribute in CSCToCSR since it is modified
       by MPI. Add (void*) to MPI_Allgather for some compilers.
-
+    
+    - Bug fix: Mathjax is upgraded to v2.6 to support chrome rendering.
 
     - Experimental feature: Add DFTDriver2 which allows only one PEXSI
       iteration per SCF iteration. This requires a careful setup of the
@@ -284,7 +290,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
       be at the edge of an interval.
 
 
-- v0.9.0 (07/15/2015) **Major update**
+- v0.9.0 (07/15/2015)
     - Add parallel selected inversion (PSelInv) for asymmetric matrices.
       The asymmetric matrix can be either structurally symmetric or
       fully asymmetric. 
@@ -298,7 +304,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
       SharedWrite utility routine.
 
 
-- v0.8.0 (05/11/2015) **Major update**
+- v0.8.0 (05/11/2015) 
     - Improve the data communication pattern for PSelInv. The parallel
       scalability of PSelInv is much improved when more than 1000
       processors are used. The variation of running time among different
@@ -338,7 +344,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
   - Add test matrices to the fortran/ folder as well.
   - Update the configuration files.
 
-- v0.7.1 (07/01/2014) **Major update**
+- v0.7.1 (07/01/2014) 
   - Bug fix: PPEXSIPlanInitialize specifics the input according to
     mpirank instead of outputFileIndex.
   - Bug fix: PPEXSIPlanFinalize gives floating point error due to the
@@ -359,7 +365,7 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
     guidance.
 
 
-- v0.6.0 (03/11/2014) **Initial release of %PEXSI**
+- v0.6.0 (03/11/2014) 
   - Version integrated with the SIESTA package for Kohn-Sham density
     functional theory (KSDFT) calculation.
   - Parallel selected inversion for complex symmetric matrices.

@@ -84,15 +84,10 @@ EXES = ${SRCS_CPP:.cpp=} ${SRCS_C:.c=}
 	${FC} -c ${FFLAGS} $<
 
 
-
-
 -include ${DEPS}
 
 ${PEXSI_LIB}:
 	(cd ${PEXSI_DIR}/src; make all)
-
-
-
 
 cleanall:
 	rm -f ${EXES} ${OBJS} ${DEPS} *.d.* *.o *.mod
