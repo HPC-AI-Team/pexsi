@@ -5414,6 +5414,7 @@ statusOFS<<"Content of U"<<std::endl;
 #endif
 
        Int numSuper = this->NumSuper(); 
+#ifdef TIMING
        double start_time,end_time,par_time=0.0;
        double indirect_time=0.0, gemm_time = 0.0, inner_time = 0.0, outer_time = 0.0, diag_time = 0.0;
        struct timeval ttx, tty;
@@ -5421,6 +5422,7 @@ statusOFS<<"Content of U"<<std::endl;
        double single_time=0.0, start_single_time, end_single_time;
        double blas_time = 0.0, start_blas_time, end_blas_time;
        struct timeval tt0, tt1;
+#endif
        std::vector<Int> snodeEtree(this->NumSuper());
        GetEtree(snodeEtree);
        //printf("Enter Mirror\n");
@@ -5432,7 +5434,9 @@ statusOFS<<"Content of U"<<std::endl;
        std::list<Int> inner_updated_snodes;
        std::list<std::vector<Int> > inner_arrRowColPtr;
 #endif
+#ifdef TIMING
        if( omp_get_thread_num() == 0 )start_total_time=omp_get_wtime();
+#endif
        //#pragma omp parallel
        //       {
        //if( omp_get_thread_num() == 0 )start_total_time=omp_get_wtime();
@@ -5442,7 +5446,9 @@ statusOFS<<"Content of U"<<std::endl;
          // and upper triangular part of Ainv has already been computed
          // Get the diagonal block
 
+#ifdef TIMING
          if( omp_get_thread_num() == 0 ) start_single_time =omp_get_wtime();
+#endif
          //#pragma omp single 
          {
            if(0)
@@ -5460,7 +5466,9 @@ statusOFS<<"Content of U"<<std::endl;
            std::vector<UBlock<T> >&  Urow = this->U( LBi(ksup, grid_));
            std::vector<LBlock<T> >&  Lfactorcol = this->Lfactor( LBj(ksup, grid_) );
 
+#ifdef TIMING
            if( omp_get_thread_num() == 0 ) start_blas_time =omp_get_wtime();
+#endif
            for( Int ib = 1; ib < Lcol.size(); ib++ ){
              //               #pragma omp task
              {
@@ -5472,10 +5480,12 @@ statusOFS<<"Content of U"<<std::endl;
                    ONE<T>(), DiagB.nzval.Data(), DiagB.numRow );
              }
            }
+#ifdef TIMING
            if( omp_get_thread_num() == 0 ) {
              end_blas_time =omp_get_wtime();
              blas_time += end_blas_time - start_blas_time;
            }
+#endif
 
            // Symmetrize the diagonal block. Important for numerical
            // stability
@@ -5677,15 +5687,19 @@ statusOFS<<"Content of U"<<std::endl;
            }//end for jsup
          } // omp single
          //}   
+#ifdef TIMING
          if( omp_get_thread_num() == 0 ) {
            end_single_time =omp_get_wtime();
            single_time += end_single_time-start_single_time;
          }
+#endif
+
 #pragma omp parallel
          {
 
+#ifdef TIMING
            if( omp_get_thread_num() == 0 ) start_time=omp_get_wtime();
-
+#endif
 
 #ifdef _MIRROR_RIGHT_OPENMP_
 #pragma omp single nowait
@@ -5723,8 +5737,13 @@ statusOFS<<"Content of U"<<std::endl;
                LBlock<T> &  topLBJ = LcolJ[firstIbJ];
                LBlock<T> &  topLfactorBJ = LfactorcolJ[firstIbJ];
 
+#ifdef TIMING
 #pragma omp task firstprivate(plist) private(ttx,tty,tt0,tt1)
                {
+#else
+#pragma omp task firstprivate(plist)
+               {
+#endif
 #ifdef TIMING
                  if( omp_get_thread_num() == 0 ) {
                    gettimeofday(&tt0, NULL);
@@ -5937,14 +5956,17 @@ statusOFS<<"Content of U"<<std::endl;
            }//end omp single nowait
 //#pragma omp barrier
 //#pragma omp taskwait
+#ifdef TIMING
            if( omp_get_thread_num() == 0 ){
              end_time=omp_get_wtime();
              par_time = par_time +end_time-start_time;
            }
 #endif
+#endif
          }//end for omp parallel
 
      } //end for ksup
+#ifdef TIMING
      if( omp_get_thread_num() == 0 ){
        end_total_time=omp_get_wtime();
        total_time += end_total_time - start_total_time;
@@ -5966,7 +5988,7 @@ statusOFS<<"Content of U"<<std::endl;
        cout<<"Total time for iterating ksup:            "<< total_time <<endl;
        cout<<"-------------------------------------------------------------"<<endl;
      }
-
+#endif
 
      MPI_Barrier(grid_->comm);
 #ifndef _RELEASE_
@@ -5993,6 +6015,9 @@ statusOFS<<"Content of U"<<std::endl;
        Lfactor_.resize( this->NumLocalBlockCol() );
        Ufactor_.resize( this->NumLocalBlockRow() );
        // Main loop
+       #pragma omp parallel firstprivate(numSuper)
+       {
+       #pragma omp for
        for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
          std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
          std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
@@ -6062,8 +6087,8 @@ statusOFS<<"Content of U"<<std::endl;
              SetValue(UB.nzval, ZERO<T>() );
            }
          }
-       }
-
+       }//end for
+       }//end omp parallel
 
 
        MPI_Barrier(grid_->comm);
@@ -6088,50 +6113,21 @@ statusOFS<<"Content of U"<<std::endl;
 #endif
 
        Int numSuper = this->NumSuper(); 
-       double start_time,end_time,par_time=0.0;
-       double indirect_time=0.0, gemm_time = 0.0, inner_time = 0.0, outer_time = 0.0, diag_time = 0.0;
-       struct timeval ttx, tty;
-       double start_total_time,end_total_time,total_time=0.0;
-       double single_time=0.0, start_single_time, end_single_time;
-       double blas_time = 0.0, start_blas_time, end_blas_time;
-       struct timeval tt0, tt1;
-       std::vector<Int> snodeEtree(this->NumSuper());
-       GetEtree(snodeEtree);
-       //printf("Enter Mirror\n");
+//       std::vector<Int> snodeEtree(this->NumSuper());
+//       GetEtree(snodeEtree);
        // Main loop
-#ifdef _MIRROR_LEFT_OPENMP_
-       std::list<Int> outer_updated_snodes;
-       std::list<std::vector<Int> > outer_arrRowColPtr;
-       std::list<Int> outer_snodes;
-       std::list<Int> inner_updated_snodes;
-       std::list<std::vector<Int> > inner_arrRowColPtr;
-#endif
-       if( omp_get_thread_num() == 0 )start_total_time=omp_get_wtime();
        for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
-
-
          std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
          std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_) );
          int * LcolKptr = (int*)&LcolK[0];
          int * UrowKptr = (int*)&UrowK[0];
          Int NLcolK = LcolK.size();
          Int NUrowK = UrowK.size();
-//         UBlock<T> UrowKptr[UrowK.size()];
-//                 LBlock<T> * LcolKptr = &LcolK[0];
-//                 UBlock<T> * UrowKptr = &UrowK[0];
-
 
          std::vector<std::vector<Int> > arrColPtr;
-//         std::vector<std::vector<Int> * > arrColPtr3;
 
 //#define DEBUG_OMP
 #define VARIANT4
-
-#ifdef VARIANT4
-//             std::vector<Int> arrJsup;
-//             std::vector<Int> arrFacingIdx;
-
-#endif
 
 #pragma omp parallel
          {
@@ -6488,9 +6484,6 @@ statusOFS<<"LBK now "<<LBK<<std::endl;
                  std::vector<LBlock<T> >&  LcolK = this->L( LcolKIdx );
                  std::vector<LBlock<T> >&  LcolJ = this->L( LcolJIdx );
                  std::vector<UBlock<T> >&  UrowK = this->U( UrowKIdx );
-                 //LBlock<T> * LcolKptr = &LcolK[0];
-                 //UBlock<T> * UrowKptr = &UrowK[0];
-                 //LBlock<T> * LcolJptr = &LcolJ[0];
                  //compute the set of columns in jsup contributing to ksup
                  Int FacingIbK = ibK;
                  LBlock<T> &  FacingLBK = LcolK[FacingIbK];
@@ -6638,8 +6631,6 @@ statusOFS<<"LBK now "<<LBK<<std::endl;
 
 #endif
 
-//#pragma omp taskwait
-#pragma omp flush
              {
 
 
@@ -6659,9 +6650,6 @@ statusOFS<<"LBK now "<<LBK<<std::endl;
                    LBlock<T> &  DiagB = LcolK[0]; 
                      UBlock<T> &  UBK = UrowK[jbK];
                      LBlock<T> &  LBK = LcolK[ibK];
-//                     T * pLBKData = LBK.nzval.Data();
-//                     Int dataSize = LBK.nzval.m()*LBK.nzval.n();
-//#pragma omp flush(pLBKData[:dataSize])
 
                      blas::Gemm( 'N', 'N', DiagB.nzval.m(), DiagB.nzval.n(), UBK.numCol, 
                          MINUS_ONE<T>(), UBK.nzval.Data(), UBK.nzval.m(), 
@@ -6690,7 +6678,6 @@ statusOFS<<"LBK="<<LBK<<std::endl<<"UBK="<<UBK<<std::endl<<"DiagB="<<DiagB<<std:
                }
              }
 
-//#pragma omp taskwait
 
              //Overwrite U with L^T
 //#pragma omp task firstprivate(ksup) depend(in:LcolKptr[1:NLcolK]) depend(out:UrowKptr[:NUrowK])
@@ -6726,36 +6713,7 @@ statusOFS<<"LBK="<<LBK<<std::endl<<"UBK="<<UBK<<std::endl;
            } //end omp single
          } // end omp parallel
        } //end for ksup
-       if( omp_get_thread_num() == 0 ){
-         end_total_time=omp_get_wtime();
-         total_time += end_total_time - start_total_time;
-       }
 
-
-
-      //DumpLU();
-
-
-       if( omp_get_thread_num() == 0 ){
-         cout<<"-------------------------------------------------------------"<<endl;
-         cout<<"** part timing:    diag part        time: "<<diag_time<<endl;
-         cout<<"** part timing:    outer loop       time: "<<outer_time<<endl;
-         cout<<"** part timing:    inner loop       time: "<<inner_time<<endl;
-         cout<<"** part timing:    diag+out+inner   time: "<<diag_time+outer_time+inner_time<<endl;
-         cout<<"** part timing: Indirect addressing time: "<<indirect_time<<endl;
-         cout<<"** part timing: Gemm time               : "<<gemm_time<<endl;
-         cout<<"** part timing: Gemm +indirect address  : "<<gemm_time+indirect_time<<endl;
-         cout<<"............................................................."<<endl;
-         cout<<"** BLAS timing for the Diag Part:         "<<blas_time<<endl;
-         cout<<"** Diag part total time:                  "<<single_time<<endl;
-         cout<<"............................................................."<<endl;
-         cout<<"Total time of outer and inner product   : "<<par_time<<endl;
-         cout<<"Total time for iterating ksup:            "<< total_time <<endl;
-         cout<<"-------------------------------------------------------------"<<endl;
-       }
-
-
-       MPI_Barrier(grid_->comm);
 #ifndef _RELEASE_
        PopCallStack();
 #endif
@@ -6780,6 +6738,9 @@ statusOFS<<"LBK="<<LBK<<std::endl<<"UBK="<<UBK<<std::endl;
        Lfactor_.resize( this->NumLocalBlockCol() );
        Ufactor_.resize( this->NumLocalBlockRow() );
        // Main loop
+       #pragma omp parallel firstprivate(numSuper)
+       {
+       #pragma omp for
        for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
          std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
          std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
@@ -6818,11 +6779,10 @@ statusOFS<<"LBK="<<LBK<<std::endl<<"UBK="<<UBK<<std::endl;
            Symmetrize( LB.nzval );
 
          }          
+       }//end for
+       }//end omp parallel
 
-       }
 
-
-       MPI_Barrier(grid_->comm);
 #ifndef _RELEASE_
        PopCallStack();
 #endif
