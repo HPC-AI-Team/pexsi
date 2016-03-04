@@ -216,6 +216,18 @@ If you use %PEXSI for electronic structure calculation in general,
 }
 @endverbatim
 
+<!--If you use %PEXSI for selected inversion,-->
+<!--**please cite the following paper.**-->
+<!---->
+<!--@verbatim-->
+<!--@Article{TOMS2014,-->
+<!--  Title                    = {PSelInv--A Distributed Memory Parallel Algorithm for Selected Inversion: the Symmetric Case},-->
+<!--  Author                   = {Jacquelin, Mathias and Lin, Lin and Yang, Chao},-->
+<!--  Journal                  = {arXiv preprint arXiv:1404.0447},-->
+<!--  Year                     = {2014}-->
+<!--}-->
+<!--@endverbatim-->
+
 
 **More references:**
 
