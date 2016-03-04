@@ -642,6 +642,7 @@ int main(int argc, char **argv)
               std::cout<<"Mirror right"<<std::endl;
             }
 
+      	    PMloc.Memalloc_MirrorRight_Seq();
             PMloc.PreSelInv_MirrorRight_Seq();
 
 #elif defined(_MIRROR_LEFT_)

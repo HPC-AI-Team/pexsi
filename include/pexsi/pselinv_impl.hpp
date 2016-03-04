@@ -467,6 +467,8 @@ namespace PEXSI{
       L_.resize( this->NumLocalBlockCol() );
       U_.resize( this->NumLocalBlockRow() );
 
+
+
       ColBlockIdx_.resize( this->NumLocalBlockCol() );
       RowBlockIdx_.resize( this->NumLocalBlockRow() );
 
@@ -6001,6 +6003,49 @@ statusOFS<<"Content of U"<<std::endl;
      } 		// -----  end of method PMatrix::SelInv_MirrorRight_Seq  ----- 
 
    // Mirror right looking selected inversion. Sequential version
+
+
+
+
+   template<typename T> 
+     void PMatrix<T>::Memalloc_MirrorRight_Seq (  )
+     {
+#ifdef _MIRROR_RIGHT_MALLOC_
+#ifdef _MIRROR_RIGHT_
+{
+       //do the memory allocation
+       Lfactor_.resize( this->NumLocalBlockCol() );
+       Ufactor_.resize( this->NumLocalBlockRow() );
+
+
+       Int numSuper = this->NumSuper(); 
+       for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
+         std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
+         std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
+           std::vector<LBlock<T> >& Lfactorcol = this->Lfactor( LBj( ksup, grid_ ) );
+           std::vector<UBlock<T> >& Ufactorrow = this->Ufactor( LBi( ksup, grid_ ) );
+
+           Lfactorcol = Lcol;
+           Ufactorrow = Urow;
+//           for( Int ib = 0; ib < Lfactorcol.size(); ib++ ){
+//             LBlock<T> &  LBf = Lfactorcol[ib]; 
+//             LBlock<T> &  LB = Lcol[ib]; 
+//	     LBf = LB;
+//	   }
+//           for( Int jb = 0; jb < Ufactorrow.size(); jb++ ){
+//             UBlock<T> &  UBf = Ufactorrow[jb]; 
+//             UBlock<T> &  UB = Urow[jb]; 
+//	     UBf = UB;
+//	   }
+	}
+}
+#endif
+#endif
+}
+
+
+
+   
    template<typename T> 
      void PMatrix<T>::PreSelInv_MirrorRight_Seq (  )
      {
@@ -6012,57 +6057,104 @@ statusOFS<<"Content of U"<<std::endl;
 
        Int numSuper = this->NumSuper(); 
 
+#ifndef _MIRROR_RIGHT_MALLOC_
+       //do the memory allocation
        Lfactor_.resize( this->NumLocalBlockCol() );
        Ufactor_.resize( this->NumLocalBlockRow() );
+#endif
+
+#if 0
+#ifndef _MIRROR_RIGHT_MALLOC_
+#ifdef _MIRROR_RIGHT_
+       {
+	       //do the memory allocation
+	       Lfactor_.resize( this->NumLocalBlockCol() );
+	       Ufactor_.resize( this->NumLocalBlockRow() );
+
+
+	       Int numSuper = this->NumSuper(); 
+	       for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
+		       std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
+		       std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
+		       std::vector<LBlock<T> >& Lfactorcol = this->Lfactor( LBj( ksup, grid_ ) );
+		       std::vector<UBlock<T> >& Ufactorrow = this->Ufactor( LBi( ksup, grid_ ) );
+
+		       Lfactorcol = Lcol;
+		       Ufactorrow = Urow;
+	       }
+       }
+#endif
+#endif
+#endif
+
+
+
+#if 1
        // Main loop
        #pragma omp parallel firstprivate(numSuper)
        {
-       #pragma omp for
+#pragma omp for
+	       for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
+		       std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
+		       std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
+
+
+		       //L(i,k) <- L(i,k) * L(k,k)^{-1}
+		       for( Int ib = 0; ib < Lcol.size(); ib++ ){
+			       LBlock<T> & LB = Lcol[ib];
+			       if( LB.blockIdx > ksup ){
+				       blas::Trsm( 'R', 'L', 'N', 'U', LB.numRow, LB.numCol, ONE<T>(),
+						       Lcol[0].nzval.Data(), LB.numCol, LB.nzval.Data(), LB.numRow );
+			       }
+		       }
+
+		       //overwrite U
+		       for( Int ib = 1; ib < Lcol.size(); ib++ ){
+			       LBlock<T> &  LB = Lcol[ib]; 
+			       // U does not have the diagonal block
+			       UBlock<T> &  UB = Urow[ib-1];
+			       Transpose( LB.nzval, UB.nzval );
+		       }
+
+		       //L(i,i) <- [L(k,k) * U(k,k)]^{-1}
+		       {
+			       // Note that the pivoting vector ipiv should follow the FORTRAN
+			       // notation by adding the +1
+			       IntNumVec ipiv( SuperSize( ksup, super_ ) );
+			       for(Int i = 0; i < SuperSize( ksup, super_ ); i++){
+				       ipiv[i] = i + 1;
+			       }
+			       LBlock<T> & LB = (this->L( LBj( ksup, grid_ ) ))[0];
+			       lapack::Getri( SuperSize( ksup, super_ ), LB.nzval.Data(), 
+					       SuperSize( ksup, super_ ), ipiv.Data() );
+
+			       // Symmetrize the diagonal block
+			       Symmetrize( LB.nzval );
+
+		       }          
+
+	       }//end for
+       }//end omp parallel
+
        for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
+#if 0
          std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
          std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
-
-
-         //L(i,k) <- L(i,k) * L(k,k)^{-1}
-         for( Int ib = 0; ib < Lcol.size(); ib++ ){
-           LBlock<T> & LB = Lcol[ib];
-           if( LB.blockIdx > ksup ){
-             blas::Trsm( 'R', 'L', 'N', 'U', LB.numRow, LB.numCol, ONE<T>(),
-                 Lcol[0].nzval.Data(), LB.numCol, LB.nzval.Data(), LB.numRow );
-           }
-         }
-
-         //overwrite U
-         for( Int ib = 1; ib < Lcol.size(); ib++ ){
-           LBlock<T> &  LB = Lcol[ib]; 
-           // U does not have the diagonal block
-           UBlock<T> &  UB = Urow[ib-1];
-           Transpose( LB.nzval, UB.nzval );
-         }
-
-         //L(i,i) <- [L(k,k) * U(k,k)]^{-1}
-         {
-           // Note that the pivoting vector ipiv should follow the FORTRAN
-           // notation by adding the +1
-           IntNumVec ipiv( SuperSize( ksup, super_ ) );
-           for(Int i = 0; i < SuperSize( ksup, super_ ); i++){
-             ipiv[i] = i + 1;
-           }
-           LBlock<T> & LB = (this->L( LBj( ksup, grid_ ) ))[0];
-           lapack::Getri( SuperSize( ksup, super_ ), LB.nzval.Data(), 
-               SuperSize( ksup, super_ ), ipiv.Data() );
-
-           // Symmetrize the diagonal block
-           Symmetrize( LB.nzval );
-
-         }          
-
          //Make a copy first
          {
            std::vector<LBlock<T> >& Lfactorcol = this->Lfactor( LBj( ksup, grid_ ) );
            std::vector<UBlock<T> >& Ufactorrow = this->Ufactor( LBi( ksup, grid_ ) );
+
+#ifndef _MIRROR_RIGHT_MALLOC_
            Lfactorcol = Lcol;
            Ufactorrow = Urow;
+#else
+           for( Int ib = 0; ib < Lfactorcol.size(); ib++ ){
+             LBlock<T> &  LBf = Lfactorcol[ib]; 
+             LBlock<T> &  LB = Lcol[ib]; 
+	     LBf = LB;
+	   }
+#endif
 
            //overwrite Ufactor
            for( Int ib = 1; ib < Lfactorcol.size(); ib++ ){
@@ -6087,8 +6179,202 @@ statusOFS<<"Content of U"<<std::endl;
              SetValue(UB.nzval, ZERO<T>() );
            }
          }
+#else
+{
+         std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
+         std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
+         std::vector<LBlock<T> >& Lfactorcol = this->Lfactor( LBj( ksup, grid_ ) );
+         std::vector<UBlock<T> >& Ufactorrow = this->Ufactor( LBi( ksup, grid_ ) );
+
+	Lfactorcol.resize(Lcol.size());
+	for( Int ib = 0; ib < Lfactorcol.size(); ib++ ){
+		LBlock<T> &  LBf = Lfactorcol[ib]; 
+		LBlock<T> &  LB  = Lcol[ib];
+		LBf.blockIdx     = LB.blockIdx;
+		LBf.numRow       = LB.numRow;
+		LBf.numCol       = LB.numCol;
+		LBf.rows         = LB.rows;
+		LBf.nzval.Resize(LBf.numRow,LBf.numCol);
+		SetValue(LBf.nzval, ZERO<T>() );
+	}
+	//swap the content with Lcol
+	Lcol.swap(Lfactorcol);
+	//restore the diagonal block
+	Lcol[0] = Lfactorcol[0];
+
+	Ufactorrow.resize(Urow.size());
+	for( Int jb = 0; jb < Ufactorrow.size(); jb++ ){
+		UBlock<T> &  UBf = Ufactorrow[jb]; 
+		UBlock<T> &  UB  = Urow[jb];
+		UBf.blockIdx     = UB.blockIdx;
+		UBf.numRow       = UB.numRow;
+		UBf.numCol       = UB.numCol;
+		UBf.cols         = UB.cols;
+		UBf.nzval.Resize(UBf.numRow,UBf.numCol);
+		SetValue(UBf.nzval, ZERO<T>() );
+	}
+	//swap the content with Urow
+	Urow.swap(Ufactorrow);
+
+        //overwrite Ufactor
+        for( Int ib = 1; ib < Lfactorcol.size(); ib++ ){
+          LBlock<T> &  LB = Lfactorcol[ib]; 
+          // U does not have the diagonal block
+          UBlock<T> &  UB = Ufactorrow[ib-1];
+          Transpose( LB.nzval, UB.nzval );
+        }
+}
+#endif
        }//end for
+#else
+
+       // Main loop
+       #pragma omp parallel firstprivate(numSuper)
+       {
+#pragma omp single nowait
+{
+//#pragma omp for
+	       for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
+#pragma omp task firstprivate(ksup)
+{
+		       std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
+		       std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
+
+
+		       //L(i,k) <- L(i,k) * L(k,k)^{-1}
+		       for( Int ib = 0; ib < Lcol.size(); ib++ ){
+			       LBlock<T> & LB = Lcol[ib];
+			       if( LB.blockIdx > ksup ){
+				       blas::Trsm( 'R', 'L', 'N', 'U', LB.numRow, LB.numCol, ONE<T>(),
+						       Lcol[0].nzval.Data(), LB.numCol, LB.nzval.Data(), LB.numRow );
+			       }
+		       }
+
+		       //overwrite U
+		       for( Int ib = 1; ib < Lcol.size(); ib++ ){
+			       LBlock<T> &  LB = Lcol[ib]; 
+			       // U does not have the diagonal block
+			       UBlock<T> &  UB = Urow[ib-1];
+			       Transpose( LB.nzval, UB.nzval );
+		       }
+
+		       //L(i,i) <- [L(k,k) * U(k,k)]^{-1}
+		       {
+			       // Note that the pivoting vector ipiv should follow the FORTRAN
+			       // notation by adding the +1
+			       IntNumVec ipiv( SuperSize( ksup, super_ ) );
+			       for(Int i = 0; i < SuperSize( ksup, super_ ); i++){
+				       ipiv[i] = i + 1;
+			       }
+			       LBlock<T> & LB = (this->L( LBj( ksup, grid_ ) ))[0];
+			       lapack::Getri( SuperSize( ksup, super_ ), LB.nzval.Data(), 
+					       SuperSize( ksup, super_ ), ipiv.Data() );
+
+			       // Symmetrize the diagonal block
+			       Symmetrize( LB.nzval );
+
+		       }          
+
+}//end task
+	       }//end for
+}//end single
        }//end omp parallel
+//#pragma omp task firstprivate(ksup)
+//{
+#if 0
+//         std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
+//         std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
+         //Make a copy first
+         {
+           std::vector<LBlock<T> >& Lfactorcol = this->Lfactor( LBj( ksup, grid_ ) );
+           std::vector<UBlock<T> >& Ufactorrow = this->Ufactor( LBi( ksup, grid_ ) );
+
+#ifndef _MIRROR_RIGHT_MALLOC_
+           Lfactorcol = Lcol;
+           Ufactorrow = Urow;
+#else
+           for( Int ib = 0; ib < Lfactorcol.size(); ib++ ){
+             LBlock<T> &  LBf = Lfactorcol[ib]; 
+             LBlock<T> &  LB = Lcol[ib]; 
+	     LBf = LB;
+	   }
+#endif
+
+           //overwrite Ufactor
+           for( Int ib = 1; ib < Lfactorcol.size(); ib++ ){
+             LBlock<T> &  LB = Lfactorcol[ib]; 
+             // U does not have the diagonal block
+             UBlock<T> &  UB = Ufactorrow[ib-1];
+             Transpose( LB.nzval, UB.nzval );
+           }
+         }
+
+         //Set L and U to be zero other than the diagonal blocks
+         {
+           std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
+           std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
+
+           //overwrite Ufactor
+           for( Int ib = 1; ib < Lcol.size(); ib++ ){
+             LBlock<T> &  LB = Lcol[ib]; 
+             SetValue(LB.nzval, ZERO<T>() );
+
+             UBlock<T> &  UB = Urow[ib-1];
+             SetValue(UB.nzval, ZERO<T>() );
+           }
+         }
+#else
+
+	       for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
+{
+         std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
+         std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, grid_ ) );
+         std::vector<LBlock<T> >& Lfactorcol = this->Lfactor( LBj( ksup, grid_ ) );
+         std::vector<UBlock<T> >& Ufactorrow = this->Ufactor( LBi( ksup, grid_ ) );
+
+	Lfactorcol.resize(Lcol.size());
+	for( Int ib = 0; ib < Lfactorcol.size(); ib++ ){
+		LBlock<T> &  LBf = Lfactorcol[ib]; 
+		LBlock<T> &  LB  = Lcol[ib];
+		LBf.blockIdx     = LB.blockIdx;
+		LBf.numRow       = LB.numRow;
+		LBf.numCol       = LB.numCol;
+		LBf.rows         = LB.rows;
+		LBf.nzval.Resize(LBf.numRow,LBf.numCol);
+		SetValue(LBf.nzval, ZERO<T>() );
+	}
+	//swap the content with Lcol
+	Lcol.swap(Lfactorcol);
+	//restore the diagonal block
+	Lcol[0] = Lfactorcol[0];
+
+	Ufactorrow.resize(Urow.size());
+	for( Int jb = 0; jb < Ufactorrow.size(); jb++ ){
+		UBlock<T> &  UBf = Ufactorrow[jb]; 
+		UBlock<T> &  UB  = Urow[jb];
+		UBf.blockIdx     = UB.blockIdx;
+		UBf.numRow       = UB.numRow;
+		UBf.numCol       = UB.numCol;
+		UBf.cols         = UB.cols;
+		UBf.nzval.Resize(UBf.numRow,UBf.numCol);
+		SetValue(UBf.nzval, ZERO<T>() );
+	}
+	//swap the content with Urow
+	Urow.swap(Ufactorrow);
+
+        //overwrite Ufactor
+        for( Int ib = 1; ib < Lfactorcol.size(); ib++ ){
+          LBlock<T> &  LB = Lfactorcol[ib]; 
+          // U does not have the diagonal block
+          UBlock<T> &  UB = Ufactorrow[ib-1];
+          Transpose( LB.nzval, UB.nzval );
+        }
+}
+#endif
+//} //end task
+//#pragma omp taskyield
+	       }//end for
+#endif
 
 
        MPI_Barrier(grid_->comm);
