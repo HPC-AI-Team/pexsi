@@ -41,7 +41,10 @@
 	 such enhancements or derivative works thereof, in binary and source code form.
 */
 #include "pexsi/environment.hpp"
-  #include <deque>
+#include <deque>
+#ifdef _COREDUMPER_
+#include <google/coredumper.h>
+#endif
 
 namespace PEXSI{
 
@@ -64,7 +67,22 @@ namespace PEXSI{
 // *********************************************************************
 // Error handling
 // *********************************************************************
-	// If we are not in RELEASE mode, then implement wrappers for a
+  void ErrorHandling( const char * msg ){
+#ifdef _COREDUMPER_
+    int mpirank, mpisize;
+    MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
+    MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
+    char filename[100];
+    sprintf(filename, "core_%d_%d", mpirank, mpisize);
+    int res = WriteCoreDump( filename );
+    statusOFS << "res = " << res << std::endl;
+    statusOFS << "file = " << filename << std::endl;
+#endif // #ifdef _COREDUMPER_
+    throw std::runtime_error( msg );
+  }
+
+
+// If we are not in RELEASE mode, then implement wrappers for a
 	// CallStack
 #ifndef _RELEASE_
 	std::stack<std::string> callStack;	

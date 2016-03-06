@@ -77,6 +77,10 @@
 // MPI
 #include <mpi.h>
 
+// Google coredumper for debugging
+#ifdef COREDUMPER
+#define _COREDUMPER_
+#endif
 
 
 // *********************************************************************
@@ -224,6 +228,8 @@ namespace PEXSI{
   void PopCallStack();
   void DumpCallStack();
 #endif // ifndef _RELEASE_
+
+  void ErrorHandling( const char * msg );
 
   // We define an output stream that does nothing. This is done so that the 
   // root process can be used to print data to a file's ostream while all other 
