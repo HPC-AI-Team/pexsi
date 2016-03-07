@@ -44,6 +44,9 @@
 #include <deque>
 #ifdef _COREDUMPER_
 #include <google/coredumper.h>
+#include <cerrno>
+#include <string.h>
+#include <stdio.h>
 #endif
 
 namespace PEXSI{
@@ -76,6 +79,7 @@ namespace PEXSI{
     sprintf(filename, "core_%d_%d", mpirank, mpisize);
     int res = WriteCoreDump( filename );
     statusOFS << "res = " << res << std::endl;
+    statusOFS << "errno = " << strerror(errno) << std::endl;
     statusOFS << "file = " << filename << std::endl;
 #endif // #ifdef _COREDUMPER_
     throw std::runtime_error( msg );
