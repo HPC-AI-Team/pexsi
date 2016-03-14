@@ -44,9 +44,9 @@
 #include <deque>
 #ifdef _COREDUMPER_
 #include <google/coredumper.h>
-#include <cerrno>
-#include <string.h>
-#include <stdio.h>
+//#include <cerrno>
+//#include <string.h>
+//#include <stdio.h>
 #endif
 
 namespace PEXSI{
@@ -77,10 +77,12 @@ namespace PEXSI{
     MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
     char filename[100];
     sprintf(filename, "core_%d_%d", mpirank, mpisize);
-    int res = WriteCoreDump( filename );
-    statusOFS << "res = " << res << std::endl;
-    statusOFS << "errno = " << strerror(errno) << std::endl;
-    statusOFS << "file = " << filename << std::endl;
+
+    if( WriteCoreDump(filename) ==0 ) {   
+      statusOFS << "success: WriteCoreDump to " << filename << std::endl;
+    } else {  
+      statusOFS << "failed:  WriteCoreDump to " << filename << std::endl;
+    }     
 #endif // #ifdef _COREDUMPER_
     throw std::runtime_error( msg );
   }
@@ -91,11 +93,15 @@ namespace PEXSI{
 #ifndef _RELEASE_
 	std::stack<std::string> callStack;	
 
-	void PushCallStack( std::string s )
-	{ callStack.push(s); }
+	void PushCallStack( const std::string& s )
+	{ 
+//    callStack.push(s); 
+  }
 
 	void PopCallStack()
-	{ callStack.pop(); }
+	{ 
+//    callStack.pop(); 
+  }
 
 	void DumpCallStack()
 	{

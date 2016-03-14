@@ -224,7 +224,7 @@ namespace PEXSI{
 
 
 #ifndef _RELEASE_
-  void PushCallStack( std::string s );
+  void PushCallStack( const std::string& s );
   void PopCallStack();
   void DumpCallStack();
 #endif // ifndef _RELEASE_

@@ -264,9 +264,6 @@ int main(int argc, char **argv)
       // Read input matrix
       // *********************************************************************
 
-      // FIXME
-      ErrorHandling("FIXME");
-
       // Setup grid.
 #ifdef SWAP_ROWS_COLS
       SuperLUGrid<MYSCALAR> g( world_comm, npcol, nprow );
@@ -766,6 +763,9 @@ int main(int argc, char **argv)
       //#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
       //      commOFS.close();
       //#endif
+
+      // FIXME
+      ErrorHandling("FIXME");
 
       statusOFS.close();
     }
