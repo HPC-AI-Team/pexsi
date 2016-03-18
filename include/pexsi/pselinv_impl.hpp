@@ -6091,6 +6091,8 @@ statusOFS<<"Content of U"<<std::endl;
 
 #if 1
        // Main loop
+       double timeSta,timeEnd,timePreselinv,timeMemcpy;
+              GetTime( timePreselinv );
        #pragma omp parallel firstprivate(numSuper)
        {
 #pragma omp for
@@ -6136,6 +6138,7 @@ statusOFS<<"Content of U"<<std::endl;
 	       }//end for
        }//end omp parallel
 
+              GetTime( timeMemcpy );
        for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
 #if 0
          std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, grid_ ) );
@@ -6216,16 +6219,30 @@ statusOFS<<"Content of U"<<std::endl;
 	//swap the content with Urow
 	Urow.swap(Ufactorrow);
 
+}
+#endif
+       }//end for
+       GetTime( timeEnd );
+       timeMemcpy = timeEnd - timeMemcpy;
+
+	#pragma omp parallel for
+       for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
         //overwrite Ufactor
+         std::vector<LBlock<T> >& Lfactorcol = this->Lfactor( LBj( ksup, grid_ ) );
+         std::vector<UBlock<T> >& Ufactorrow = this->Ufactor( LBi( ksup, grid_ ) );
         for( Int ib = 1; ib < Lfactorcol.size(); ib++ ){
           LBlock<T> &  LB = Lfactorcol[ib]; 
           // U does not have the diagonal block
           UBlock<T> &  UB = Ufactorrow[ib-1];
           Transpose( LB.nzval, UB.nzval );
         }
-}
-#endif
-       }//end for
+       }
+       GetTime( timeEnd );
+       timePreselinv = timeEnd - timePreselinv;
+	if(grid_->mpirank==0){
+                cout << "Time for memcpy in pre-selected inversion is " << timeMemcpy << endl;
+                cout << "Time for actual pre-selected inversion is " << timePreselinv - timeMemcpy << endl;
+	}
 #else
 
        // Main loop
