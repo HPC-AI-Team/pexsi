@@ -99,6 +99,16 @@ namespace  PEXSI{
     return *this;
   }
 
+  template <class F> void NumMat<F>::Add(NumMat<F> & C){
+    F * Cptr = C.Data();
+    F * Aptr = Data();
+    for(Int i = 0; i<m()*n(); i++){ 
+      Aptr[i] += Cptr[i];
+    }
+  }
+
+
+
   template <class F> void NumMat<F>::Resize(Int m, Int n)  {
     if( owndata_ == false ){
 #ifdef USE_ABORT

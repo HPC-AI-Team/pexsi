@@ -54,8 +54,6 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "pexsi/superlu_dist_interf.hpp"
 #include "omp.h"
 
-#define _MIRROR_RIGHT_OPENMP_
-
 
 #define MPI_MAX_COMM (1024)
 #define BCAST_THRESHOLD 16
@@ -5404,7 +5402,6 @@ statusOFS<<"Content of U"<<std::endl;
      } 
 
 
-
    // Mirror right looking selected inversion. Sequential version
    template<typename T> 
      void PMatrix<T>::SelInv_MirrorRight_Seq (  )
@@ -5427,15 +5424,24 @@ statusOFS<<"Content of U"<<std::endl;
 #endif
        std::vector<Int> snodeEtree(this->NumSuper());
        GetEtree(snodeEtree);
+
+       Int * snodePtr = &snodeEtree[0];
        //printf("Enter Mirror\n");
        // Main loop
-#ifdef _MIRROR_RIGHT_OPENMP_
+
+       uint64_t task_counter = 0;
+
+//#pragma omp declare reduction (nummat_reduce : PEXSI::NumMat<T> : omp_out.Add(omp_in))
+
+//#define NO_DEPS
+//#define DEBUG_OMP
+//#define TREE_PARALLELISM
+#if 0
        std::list<Int> outer_updated_snodes;
        std::list<std::vector<Int> > outer_arrRowColPtr;
        std::list<Int> outer_snodes;
        std::list<Int> inner_updated_snodes;
        std::list<std::vector<Int> > inner_arrRowColPtr;
-#endif
 #ifdef TIMING
        if( omp_get_thread_num() == 0 )start_total_time=omp_get_wtime();
 #endif
@@ -5554,78 +5560,17 @@ statusOFS<<"Content of U"<<std::endl;
                    }
                  }
 
-#ifdef _MIRROR_RIGHT_OPENMP_
                  inner_arrRowColPtr.push_back(rowColPtr);
                  inner_updated_snodes.push_back(jsup);
                  inner_updated_snodes.push_back(firstIbJ);
-#else
-
-                 //Now make the copy
-                 //////////////Zhao: What is topLBJ format///////////////////
-                 NumMat<T> AinvBuf(topLBJ.numRow,topLBJ.numRow);
-                 for(int irow = 0;irow<topLBJ.numRow;irow++){
-                   for(int jrow = 0;jrow<topLBJ.numRow;jrow++){
-                     AinvBuf(irow,jrow) = DiagB.nzval(rowColPtr[irow],rowColPtr[jrow]);
-                   }
-                 }
-                 blas::Gemm( 'N', 'N', topLBJ.numRow, topLBJ.numCol, topLBJ.numRow, MINUS_ONE<T>(), 
-                     AinvBuf.Data(), topLBJ.numRow, topLfactorBJ.nzval.Data(), topLfactorBJ.numRow, 
-                     ONE<T>(), topLBJ.nzval.Data(), topLBJ.numRow );
-#endif
                }
 
-               //Inner product
-               if(firstIbJ+1<LcolJ.size())
-               {
-#ifdef _MIRROR_RIGHT_OPENMP_
-                 // Do nothing
-#else
-                 //A_{ksup,jsup}^{-1} <-- A_{ksup,jsup}^{-1} - A_{ksup,i}^{-1} L_{i,jsup}
-                 // topLBJ is A_{ksup,jsup}^{-1}
-                 // LfactorBJ is L_{i,jsup}
-                 // UB is A_{ksup,i}^{-1}
-
-                 Int ibJ = firstIbJ+1;
-                 for(Int jb = 0 ; jb < Urow.size() && ibJ < LfactorcolJ.size(); jb++ ){
-                   ////////////////////////Zhao: jb and ibj
-                   UBlock<T> & UB = Urow[jb]; 
-                   LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
-                   if(UB.blockIdx == LfactorBJ.blockIdx){
-
-                     NumMat<T> AinvBuf(topLBJ.numRow,LfactorBJ.numRow);
-
-                     //Get the column pointers of rows of LfactorBJ in columns of UB
-                     std::vector<Int> colPtr(LfactorBJ.numRow);
-                     Int irowJ = 0;
-                     for(int jcol = 0;jcol<UB.numCol && irowJ<LfactorBJ.numRow;jcol++){
-                       if(UB.cols[jcol] == LfactorBJ.rows[irowJ]){
-                         colPtr[irowJ++] = jcol;
-                       }
-                     }
-
-                     //Now make the copy
-                     for(int irow = 0;irow<topLBJ.numRow;irow++){
-                       for(int jrow = 0;jrow<LfactorBJ.numRow;jrow++){
-                         AinvBuf(irow,jrow) = UB.nzval(rowColPtr[irow],colPtr[jrow]);
-                       }
-                     }
-
-                     blas::Gemm( 'N', 'N', topLBJ.numRow, topLBJ.numCol, LfactorBJ.numRow, MINUS_ONE<T>(), 
-                         AinvBuf.Data(), AinvBuf.m(), LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
-                         ONE<T>(), topLBJ.nzval.Data(), topLBJ.numRow );
-
-                     ibJ++;
-                   }
-                 }
-#endif
-               }
 
                //Outer product
                if(firstIbJ+1<LcolJ.size())
                {
 
 
-#ifdef _MIRROR_RIGHT_OPENMP_
 
                  outer_arrRowColPtr.push_back(rowColPtr);
                  outer_updated_snodes.push_back(jsup);
@@ -5645,45 +5590,6 @@ statusOFS<<"Content of U"<<std::endl;
                  outer_snodes.push_back(-1);
                  outer_snodes.push_back(-1);
 
-#else
-                 //A_{i,jsup}^{-1} <-- A_{i,jsup}^{-1} - A_{i,ksup}^{-1} L_{ksup,jsup}
-                 // LBJ is A_{i,jsup}^{-1}
-                 // topLfactorBJ is L_{ksup,jsup}
-                 // LB is A_{i,ksup}^{-1}
-
-
-                 Int ibJ = firstIbJ+1;
-                 for(Int ib = 1 ; ib < Lcol.size() && ibJ < LcolJ.size(); ib++ ){
-                   LBlock<T> & LB = Lcol[ib]; 
-                   LBlock<T> &  LBJ = LcolJ[ibJ];
-                   if(LB.blockIdx == LBJ.blockIdx){
-
-                     NumMat<T> AinvBuf(LBJ.numRow,topLfactorBJ.numRow);
-
-                     //Get the row pointers of rows of LBJ in LB
-                     //Get the column pointers of rows of LfactorBJ in columns of UB
-                     std::vector<Int> rowPtr(LBJ.numRow);
-                     Int irowJ = 0;
-                     for(int irow = 0;irow<LB.numRow && irowJ<LBJ.numRow;irow++){
-                       if(LB.rows[irow] == LBJ.rows[irowJ]){
-                         rowPtr[irowJ++] = irow;
-                       }
-                     }
-
-                     //Now make the copy
-                     for(int irow = 0;irow<LBJ.numRow;irow++){
-                       for(int jcol = 0;jcol<topLfactorBJ.numRow;jcol++){
-                         AinvBuf(irow,jcol) = LB.nzval(rowPtr[irow],rowColPtr[jcol]);
-                       }
-                     }
-
-                     blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, AinvBuf.n(), MINUS_ONE<T>(), 
-                         AinvBuf.Data(), AinvBuf.m(), topLfactorBJ.nzval.Data(), topLfactorBJ.numRow, 
-                         ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
-                     ibJ++;
-                   }
-                 }
-#endif
                }
              }//end if found
            }//end for jsup
@@ -5703,7 +5609,6 @@ statusOFS<<"Content of U"<<std::endl;
            if( omp_get_thread_num() == 0 ) start_time=omp_get_wtime();
 #endif
 
-#ifdef _MIRROR_RIGHT_OPENMP_
 #pragma omp single nowait
            {
              // Start the inner product
@@ -5891,18 +5796,8 @@ statusOFS<<"Content of U"<<std::endl;
                {    
 #pragma omp task firstprivate(plist,ib,ibJ) 
                  {
-#ifdef TIMING
-                   if( omp_get_thread_num() == 0 ) {
-                     gettimeofday(&tt0, NULL);
-                     gettimeofday(&ttx, NULL);
-                   }
-#endif
                    LBlock<T> & LB = Lcol[ib];
                    LBlock<T> &  LBJ = LcolJ[ibJ];
-                   //std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-                   //std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
-                   //LBlock<T> & LB = Lcol[ib]; 
-                   //LBlock<T> &  LBJ = LcolJ[ibJ];
                    NumMat<T> AinvBuf(LBJ.numRow,topLfactorBJ.numRow);
                    std::vector<Int>  &rowColPtr= *plist;
                    //Get the row pointers of rows of LBJ in LB
@@ -5915,36 +5810,15 @@ statusOFS<<"Content of U"<<std::endl;
                        rowPtr[irowJ++] = irow;
                      }
                    }
-                   //Now make the copy
-                   if(0){
-                     statusOFS << "LBJ.numRow= " << LBJ.numRow << std::endl;
-                     statusOFS << "topLfactorBJ.numRow= " << topLfactorBJ.numRow << std::endl;
-                     statusOFS << "rowColPtr = " << rowColPtr << std::endl;
-                     statusOFS << "rowPtr    = " << rowPtr << std::endl;
-                   }
-
                    for(irow = 0;irow<LBJ.numRow;irow++){
                      for(jcol = 0;jcol<topLfactorBJ.numRow;jcol++){
                        AinvBuf(irow,jcol) =LB.nzval(rowPtr[irow],rowColPtr[jcol]);//there is a error or debug here
                      }
                    }
-#ifdef TIMING
-                   if( omp_get_thread_num() == 0 ) {
-                     gettimeofday(&tt1, NULL);
-                     indirect_time += ((tt1.tv_sec - tt0.tv_sec) + (tt1.tv_usec - tt0.tv_usec)/1000000.0);
-                   }
-#endif
                    blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, AinvBuf.n(), MINUS_ONE<T>(), 
                        AinvBuf.Data(), AinvBuf.m(), topLfactorBJ.nzval.Data(), topLfactorBJ.numRow, 
                        ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
-#ifdef TIMING
-                   if( omp_get_thread_num() == 0 ) {
-                     gettimeofday(&tt0, NULL);
-                     gettimeofday(&tty, NULL);
-                     gemm_time += ((tt0.tv_sec - tt1.tv_sec) + (tt0.tv_usec - tt1.tv_usec)/1000000.0);
-                     outer_time += ((tty.tv_sec - ttx.tv_sec) + (tty.tv_usec - ttx.tv_usec)/1000000.0);
-                   }
-#endif
+
                  }//end_omp_task 
                  ib=*it_ib; 
                  it_ib++;
@@ -5964,45 +5838,428 @@ statusOFS<<"Content of U"<<std::endl;
              par_time = par_time +end_time-start_time;
            }
 #endif
-#endif
          }//end for omp parallel
 
      } //end for ksup
-#ifdef TIMING
-     if( omp_get_thread_num() == 0 ){
-       end_total_time=omp_get_wtime();
-       total_time += end_total_time - start_total_time;
-     }
-     if( omp_get_thread_num() == 0 ){
-       cout<<"-------------------------------------------------------------"<<endl;
-       cout<<"** part timing:    diag part        time: "<<diag_time<<endl;
-       cout<<"** part timing:    outer loop       time: "<<outer_time<<endl;
-       cout<<"** part timing:    inner loop       time: "<<inner_time<<endl;
-       cout<<"** part timing:    diag+out+inner   time: "<<diag_time+outer_time+inner_time<<endl;
-       cout<<"** part timing: Indirect addressing time: "<<indirect_time<<endl;
-       cout<<"** part timing: Gemm time               : "<<gemm_time<<endl;
-       cout<<"** part timing: Gemm +indirect address  : "<<gemm_time+indirect_time<<endl;
-       cout<<"............................................................."<<endl;
-       cout<<"** BLAS timing for the Diag Part:         "<<blas_time<<endl;
-       cout<<"** Diag part total time:                  "<<single_time<<endl;
-       cout<<"............................................................."<<endl;
-       cout<<"Total time of outer and inner product   : "<<par_time<<endl;
-       cout<<"Total time for iterating ksup:            "<< total_time <<endl;
-       cout<<"-------------------------------------------------------------"<<endl;
-     }
+
+
+#else
+
+//#define LOCKS
+        //trick to express OpenMP dependencies
+int * Ldeps[numSuper];
+int * Udeps[numSuper];
+int Lsizes[numSuper];
+int Usizes[numSuper];
+  for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
+            std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+            std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_));
+//      Ldeps[ksup] = (int*)&LcolK[0]; 
+//      Udeps[ksup] = (int*)&UrowK[0]; 
+      Ldeps[ksup] = new int[LcolK.size()];//(int*)&LcolK[0]; 
+      Udeps[ksup] = new int[UrowK.size()];//(int*)&UrowK[0]; 
+      Lsizes[ksup] = LcolK.size();
+      Usizes[ksup] = UrowK.size();
+  }
+Int dummy[numSuper];
+
+
+#pragma omp parallel shared(task_counter)
+  {
+#pragma omp single nowait
+    {
+      for( Int ksup = numSuper-1; ksup >= 0; ksup-- ){
+        LBlock<T> &  DiagB = this->L( LBj( ksup, grid_ ) )[0];
+        std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+        std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_));
+        std::vector<LBlock<T> >&  Lfactorcol = this->Lfactor( LBj(ksup, grid_) );
+
+        Int LcolKN = LcolK.size();
+        Int UrowKN = UrowK.size();
+
+        //this gives us more freedom in the order in which we submit the tasks
+        //store the pair jsup,firstIbJ
+        std::list<std::pair<Int,Int> > descendants;
+
+//#pragma omp task firstprivate(ksup) depend(inout:Ldeps[ksup][0]) depend(in:Ldeps[ksup][1:Lsizes[ksup]])
+#pragma omp task firstprivate(ksup) depend(inout:Ldeps[ksup][0]) depend(in:Ldeps[ksup][1])
+        {
+#ifdef COUNT_OMP_TASK
+#pragma omp atomic
+          task_counter++;
 #endif
 
-     MPI_Barrier(grid_->comm);
+#ifdef DEBUG_OMP
+#pragma omp critical
+          {
+            statusOFS<<"--- Diag Update("<<ksup<<") --- T"<<omp_get_thread_num()<<" -------"<<std::endl;
+          }
+#endif
+          std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+          std::vector<LBlock<T> >&  Lfactorcol = this->Lfactor( LBj(ksup, grid_) );
+          LBlock<T> &  DiagB = LcolK[0]; 
+          for( Int ib = 1; ib < LcolK.size(); ib++ ){
+            LBlock<T> &  LB = LcolK[ib]; 
+            LBlock<T> &  LfactorB = Lfactorcol[ib];
+            blas::Gemm( 'T', 'N', DiagB.numRow, DiagB.numCol, LB.numRow, MINUS_ONE<T>(), 
+                LfactorB.nzval.Data(), LfactorB.numRow, LB.nzval.Data(), LB.numRow,
+                ONE<T>(), DiagB.nzval.Data(), DiagB.numRow );
+          }
+
+          Symmetrize( DiagB.nzval ); 
+        }//end omp task
+
+        if(UrowK.size()>0){
+#pragma omp task firstprivate(ksup) depend(in:Ldeps[ksup][0]) depend(inout:Udeps[ksup][0]) depend(inout:dummy[ksup])
+{
+          std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+          std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_));
+          for( Int ib = 1; ib < LcolK.size(); ib++ ){
+//#pragma omp task firstprivate(ksup,ib) depend(in:Ldeps[ksup][ib]) depend(out:Udeps[ksup][ib-1])
+            {
+              std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+              std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_));
+              LBlock<T> &  LB = LcolK[ib]; 
+              // U does not have the diagonal block
+              UBlock<T> &  UB = UrowK[ib-1];
+              Transpose( LB.nzval, UB.nzval );
+            }//end omp task
+          } //end for ib
+}
+        }//end if urowk
+
+        // Mirror right-looking L-part
+        // Loop over all the supernodes to the left of ksup
+        for( Int jsup = ksup-1; jsup >= 0; jsup-- ){
+          //jsup is a descendant of ksup, find the updates from ksup in L
+          bool found = false;
+          Int firstIbJ = -1;
+          std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+
+          Int parentJ =  snodeEtree[jsup];
+          while(parentJ<ksup){parentJ =  snodeEtree[parentJ];}
+
+          if(parentJ==ksup){
+            //jsup is a descendant of ksup, find the updates from ksup in L
+            for( Int ibJ = 1; ibJ < LcolJ.size(); ibJ++ ){
+              LBlock<T> &  LBJ = LcolJ[ibJ]; 
+
+              if(LBJ.blockIdx == ksup){
+                found = true;
+                firstIbJ = ibJ;
+                break;
+              }
+              else if(LBJ.blockIdx>ksup){
+                break;
+              }
+            }
+          }
+
+          if(found){
+            descendants.push_back(std::make_pair(jsup,firstIbJ));
+          }//end if found
+        }//end for jsup
+
+//#pragma omp taskwait
+
+        for(auto it = descendants.begin();it!=descendants.end();it++){
+          Int jsup = it->first;
+          Int firstIbJ = it->second;
+
+          std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+          if(firstIbJ<LcolJ.size()){
+            std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+            std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+            LBlock<T> &  topLBJ = LcolJ[firstIbJ]; 
+            LBlock<T> &  topLfactorBJ = LfactorcolJ[firstIbJ];
+
+//            std::vector<Int>  rowColPtr(topLBJ.numRow);
+//            LBlock<T> &  DiagB = LcolK[0]; 
+//            //Get the row/column pointers of rows of topLBJ in DiagB
+//            Int irowJ = 0;
+//            for(int irow = 0;irow<DiagB.numRow && irowJ<topLBJ.numRow;irow++){
+//              if(DiagB.rows[irow] == topLBJ.rows[irowJ]){
+//                rowColPtr[irowJ++] = irow;
+//              }
+//            }
+
+            //inner product
+            if(firstIbJ+1<LcolJ.size()){
+              std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_));
+              LBlock<T> &  topLBJ = LcolJ[firstIbJ];
+
+#pragma omp task firstprivate(ksup,firstIbJ,jsup) depend(in:Udeps[ksup][0]) depend(inout:Ldeps[jsup][firstIbJ]) depend(inout:dummy[ksup])
+{
+              std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+              std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_));
+
+              std::vector<Int>  rowColPtr(topLBJ.numRow);
+              {
+              LBlock<T> &  topLfactorBJ = LfactorcolJ[firstIbJ];
+              LBlock<T> &  DiagB = LcolK[0]; 
+              //Get the row/column pointers of rows of topLBJ in DiagB
+              Int irowJ = 0;
+              for(int irow = 0;irow<DiagB.numRow && irowJ<topLBJ.numRow;irow++){
+                if(DiagB.rows[irow] == topLBJ.rows[irowJ]){
+                  rowColPtr[irowJ++] = irow;
+                }
+              }
+              }
+
+
+              Int ibJ = firstIbJ+1;
+              for(Int jb = 0 ; jb < UrowK.size() && ibJ < LfactorcolJ.size(); jb++ ){
+                UBlock<T> &  UB = UrowK[jb]; 
+                LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
+                if(UB.blockIdx == LfactorBJ.blockIdx){
+
+#if 1
+//#pragma omp task firstprivate(ksup,firstIbJ,jsup,jb) depend(in:Udeps[ksup][jb]) depend(inout:Ldeps[jsup][firstIbJ])
+                  {
+#ifdef COUNT_OMP_TASK
+#pragma omp atomic
+                    task_counter++;
+#endif
+
+                    std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+                    std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_));
+                    std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+                    LBlock<T> &  topLBJ = LcolJ[firstIbJ];
+                    UBlock<T> &  UB = UrowK[jb]; 
+                    LBlock<T> &  LfactorBJ = LfactorcolJ[ibJ];
+
+                    //std::vector<Int>  rowColPtr(topLBJ.numRow);
+                    //{
+                    //LBlock<T> &  topLfactorBJ = LfactorcolJ[firstIbJ];
+                    //LBlock<T> &  DiagB = LcolK[0]; 
+                    ////Get the row/column pointers of rows of topLBJ in DiagB
+                    //Int irowJ = 0;
+                    //for(int irow = 0;irow<DiagB.numRow && irowJ<topLBJ.numRow;irow++){
+                    //  if(DiagB.rows[irow] == topLBJ.rows[irowJ]){
+                    //    rowColPtr[irowJ++] = irow;
+                    //  }
+                    //}
+                    //pRowColPtr = &rowColPtr[0];
+                    //}
+
+                    Int * pRowColPtr = &rowColPtr[0];
+
+                    //Get the column pointers of rows of LfactorBJ in columns of UB
+                    std::vector<Int> colPtr(LfactorBJ.numRow);
+                    Int irowJ = 0;
+                    for(int jcol = 0;jcol<UB.numCol && irowJ<LfactorBJ.numRow;jcol++){
+                      if(UB.cols[jcol] == LfactorBJ.rows[irowJ]){
+                        colPtr[irowJ++] = jcol;
+                      }
+                    }
+
+                  //Now make the copy
+                    NumMat<T> AinvBuf(topLBJ.numRow,LfactorBJ.numRow);
+                    for(int irow = 0;irow<topLBJ.nzval.m();irow++){
+                      for(int jrow = 0;jrow<LfactorBJ.numRow;jrow++){
+                        AinvBuf(irow,jrow) = UB.nzval(pRowColPtr[irow],colPtr[jrow]);
+                      }
+                    }
+                  //std::fill((int*)topLBJ.nzval.Data(),(int*)(topLBJ.nzval.Data()+topLBJ.nzval.m()*topLBJ.nzval.n()),jb);
+                    blas::Gemm( 'N', 'N', topLBJ.numRow, topLBJ.numCol, LfactorBJ.numRow, MINUS_ONE<T>(), 
+                        AinvBuf.Data(), AinvBuf.m(), LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
+                        ONE<T>(), topLBJ.nzval.Data(), topLBJ.numRow );
+
+                  }//end omp task
+#endif
+                  ibJ++;
+                }//end if
+              }//end for
+}
+
+
+            }//end if inner product
+
+            //inner product diag
+#if 1
+#pragma omp task firstprivate(firstIbJ,ksup,jsup) depend(in:Ldeps[ksup][0]) depend(inout:Ldeps[jsup][firstIbJ]) depend(inout:dummy[ksup])
+            {
+#ifdef COUNT_OMP_TASK
+#pragma omp atomic
+              task_counter++;
+#endif
+
+#ifdef DEBUG_OMP
+#pragma omp critical
+              {
+                statusOFS<<"---Inner Product Diag("<<ksup<<","<<jsup<<") --- T"<<omp_get_thread_num()<<" -------"<<std::endl;
+              }
+#endif
+              std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+              std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+              std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+              LBlock<T> &  DiagB = LcolK[0]; 
+              LBlock<T> &  topLBJ = LcolJ[firstIbJ];
+              LBlock<T> &  topLfactorBJ = LfactorcolJ[firstIbJ];
+
+              std::vector<Int>  rowColPtr(topLBJ.numRow);
+              //Get the row/column pointers of rows of topLBJ in DiagB
+              Int irowJ = 0;
+              for(int irow = 0;irow<DiagB.numRow && irowJ<topLBJ.numRow;irow++){
+                if(DiagB.rows[irow] == topLBJ.rows[irowJ]){
+                  rowColPtr[irowJ++] = irow;
+                }
+              }
+              Int * pRowColPtr = &rowColPtr[0];
+
+              // Now make the copy
+              NumMat<T> AinvBuf(topLBJ.numRow,topLBJ.numRow);
+              for(int irow = 0;irow<topLBJ.numRow;irow++){
+                for(int jrow = 0;jrow<topLBJ.numRow;jrow++){
+                  AinvBuf(irow,jrow) = DiagB.nzval(pRowColPtr[irow],pRowColPtr[jrow]);
+                }
+              }
+              blas::Gemm( 'N', 'N', topLBJ.numRow, topLBJ.numCol, topLBJ.numRow, MINUS_ONE<T>(), 
+                  AinvBuf.Data(), topLBJ.numRow, topLfactorBJ.nzval.Data(), topLfactorBJ.numRow, 
+                  ONE<T>(), topLBJ.nzval.Data(), topLBJ.numRow );
+            }//omp end task
+#endif
+          }//end if
+        }//end for
+
+
+//#pragma omp taskwait
+
+
+        for(auto it = descendants.begin();it!=descendants.end();it++){
+          Int jsup = it->first;
+          Int firstIbJ = it->second;
+
+          std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+          Int LcolJN = LcolJ.size();
+          if(firstIbJ+1<LcolJ.size()) {
+//            std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+//            std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+//            LBlock<T> &  topLBJ = LcolJ[firstIbJ]; 
+//            LBlock<T> &  topLfactorBJ = LfactorcolJ[firstIbJ];
+//
+//            std::vector<Int>  rowColPtr(topLBJ.numRow);
+//            LBlock<T> &  DiagB = LcolK[0]; 
+//            //Get the row/column pointers of rows of topLBJ in DiagB
+//            Int irowJ = 0;
+//            for(int irow = 0;irow<DiagB.numRow && irowJ<topLBJ.numRow;irow++){
+//              if(DiagB.rows[irow] == topLBJ.rows[irowJ]){
+//                rowColPtr[irowJ++] = irow;
+//              }
+//            }
+
+//#pragma omp task firstprivate(jsup,ksup,firstIbJ) depend(in:Ldeps[ksup][1:Lsizes[ksup]]) depend(out:Ldeps[jsup][firstIbJ+1:Lsizes[jsup]])
+#pragma omp task firstprivate(jsup,ksup,firstIbJ) depend(in:Ldeps[ksup][1]) depend(out:Ldeps[jsup][firstIbJ+1])
+{
+            std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+            std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+            std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+            LBlock<T> &  topLBJ = LcolJ[firstIbJ]; 
+            LBlock<T> &  topLfactorBJ = LfactorcolJ[firstIbJ];
+
+            std::vector<Int>  rowColPtr(topLBJ.numRow);
+            LBlock<T> &  DiagB = LcolK[0]; 
+            //Get the row/column pointers of rows of topLBJ in DiagB
+            Int irowJ = 0;
+            for(int irow = 0;irow<DiagB.numRow && irowJ<topLBJ.numRow;irow++){
+              if(DiagB.rows[irow] == topLBJ.rows[irowJ]){
+                rowColPtr[irowJ++] = irow;
+              }
+            }
+
+
+            //Outer product
+            Int ibJ = firstIbJ+1;
+            for(Int ib = 1 ; ib < LcolK.size() && ibJ < LcolJ.size(); ib++ ){
+              LBlock<T> & LB = LcolK[ib];
+              LBlock<T> &  LBJ = LcolJ[ibJ];
+              if(LB.blockIdx == LBJ.blockIdx){
+#if 1
+//#pragma omp task firstprivate(jsup,ksup,firstIbJ,ib,ibJ,rowColPtr) depend(in:Ldeps[ksup][ib]) depend(out:Ldeps[jsup][ibJ])
+                {
+#ifdef COUNT_OMP_TASK
+#pragma omp atomic
+                  task_counter++;
+#endif
+
+
+
+                  std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+                  std::vector<LBlock<T> >&  LcolJ = this->L( LBj(jsup, grid_) );
+                  std::vector<LBlock<T> >&  LfactorcolJ = this->Lfactor( LBj(jsup, grid_) );
+                  LBlock<T> &  topLBJ = LcolJ[firstIbJ]; 
+                  LBlock<T> &  topLfactorBJ = LfactorcolJ[firstIbJ];
+                  LBlock<T> & LB = LcolK[ib];
+                  LBlock<T> &  LBJ = LcolJ[ibJ];
+
+
+                  //std::vector<Int>  rowColPtr(topLBJ.numRow);
+                  //{
+                  //LBlock<T> &  DiagB = LcolK[0]; 
+                  ////Get the row/column pointers of rows of topLBJ in DiagB
+                  //Int irowJ = 0;
+                  //for(int irow = 0;irow<DiagB.numRow && irowJ<topLBJ.numRow;irow++){
+                  //  if(DiagB.rows[irow] == topLBJ.rows[irowJ]){
+                  //    rowColPtr[irowJ++] = irow;
+                  //  }
+                  //}
+                  //pRowColPtr = &rowColPtr[0];
+                  //}
+                  Int * pRowColPtr = &rowColPtr[0];
+
+
+                  //Get the row pointers of rows of LBJ in LB
+                  std::vector<Int>  rowPtr(LBJ.numRow);
+                  Int irowJ = 0;
+                  Int irow;
+                  Int jcol; 
+                  for(irow = 0;irow<LB.numRow && irowJ<LBJ.numRow;irow++){
+                    if(LB.rows[irow] == LBJ.rows[irowJ]){
+                      rowPtr[irowJ++] = irow;
+                    }
+                  }
+                  NumMat<T> AinvBuf(LBJ.numRow,topLfactorBJ.numRow);
+                  //Now make the copy
+                  for(irow = 0;irow<LBJ.numRow;irow++){
+                    for(jcol = 0;jcol<topLfactorBJ.numRow;jcol++){
+                      AinvBuf(irow,jcol) =LB.nzval(rowPtr[irow],pRowColPtr[jcol]);
+                    }
+                  }
+
+                  blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, AinvBuf.n(), MINUS_ONE<T>(), 
+                      AinvBuf.Data(), AinvBuf.m(), topLfactorBJ.nzval.Data(), topLfactorBJ.numRow, 
+                      ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
+                }//end omp task
+#endif
+
+                ibJ++;
+              }
+            } //end for
+}
+          }//end if
+        }//end for
+
+//        #pragma omp taskwait
+        #pragma omp taskwait
+      } //end for ksup
+
+    }//end omp single nowait
+  }//end for omp parallel
+#endif
+
+statusOFS<<"Total tasks: "<<task_counter<<endl;
+cout<<"Total tasks: "<<task_counter<<endl;
+
+       MPI_Barrier(grid_->comm);
 #ifndef _RELEASE_
-     PopCallStack();
+       PopCallStack();
 #endif
 
-     TIMER_STOP(SelInv_MirrorRight);
+       TIMER_STOP(SelInv_MirrorRight);
 
-     return ;
+       return ;
      } 		// -----  end of method PMatrix::SelInv_MirrorRight_Seq  ----- 
 
-   // Mirror right looking selected inversion. Sequential version
 
 
 
@@ -6423,8 +6680,8 @@ statusOFS<<"Content of U"<<std::endl;
          std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
          std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_) );
          int * LcolKptr = (int*)&LcolK[0];
-         int * UrowKptr = (int*)&UrowK[0];
          Int NLcolK = LcolK.size();
+         int * UrowKptr = (int*)&UrowK[0];
          Int NUrowK = UrowK.size();
 
          std::vector<std::vector<Int> > arrColPtr;
@@ -6437,12 +6694,9 @@ statusOFS<<"Content of U"<<std::endl;
 
 #pragma omp single nowait
            {
-
-
-
              //we need to zero out Lcol
              Int LcolKIdx = LBj(ksup, grid_);
-               std::vector<LBlock<T> >&  LcolK = this->L( LcolKIdx  );
+             std::vector<LBlock<T> >&  LcolK = this->L( LcolKIdx  );
              for( Int ibK = 1; ibK < LcolK.size(); ibK++ ){
                LBlock<T> &  LBK = LcolK[ibK];
                SetValue(LBK.nzval,ZERO<T>());
@@ -6451,11 +6705,8 @@ statusOFS<<"Content of U"<<std::endl;
 
 
 #ifdef VARIANT4
-             std::vector<Int> * pFirstColPtr = NULL;
-
-
-                 Int UrowKIdx = LBi(ksup, grid_);
-                 std::vector<UBlock<T> >&  UrowK = this->U( UrowKIdx );
+             Int UrowKIdx = LBi(ksup, grid_);
+             std::vector<UBlock<T> >&  UrowK = this->U( UrowKIdx );
              Int jsup = -1;
              for( Int FacingIbK = 1; FacingIbK < LcolK.size(); FacingIbK++ ){
                LBlock<T> &  FacingLBK = LcolK[FacingIbK];
@@ -6467,27 +6718,6 @@ statusOFS<<"Content of U"<<std::endl;
                  std::vector<LBlock<T> >&  LcolJ = this->L( LcolJIdx );
                  int * LcolJptr = (int*)&LcolJ[0];
 
-#ifndef VARIANT4
-                 std::vector<Int> colPtr;
-                 colPtr.resize(FacingLBK.numRow);
-                 {
-                   LBlock<T> &  DiagJ = LcolJ[0];
-                   Int irowK = 0;
-                   for(int irow = 0;irow<DiagJ.numRow && irowK<FacingLBK.numRow;irow++){
-                     if(DiagJ.rows[irow] == FacingLBK.rows[irowK]){
-                       colPtr[irowK++] = irow;
-                     }
-                   }
-                 }
-                 arrColPtr.push_back(colPtr);
-                 std::vector<std::vector<Int> >::iterator itColPtr = arrColPtr.rbegin().base();
-                 std::vector<Int> * pColPtr = &*itColPtr;
-
-                 if(jsup==snodeEtree[ksup]){
-                   pFirstColPtr = pColPtr;
-                 }
-#endif
-
 #pragma omp task firstprivate(ksup,jsup,LcolKIdx,LcolJIdx,UrowKIdx,FacingIbK) depend(inout:LcolKptr[FacingIbK])
                  {
                    std::vector<LBlock<T> >&  LcolK = this->L( LcolKIdx );
@@ -6496,14 +6726,14 @@ statusOFS<<"Content of U"<<std::endl;
                    LBlock<T> &  FacingLBK = LcolK[FacingIbK];
                    UBlock<T> &  FacingUBK = UrowK[FacingIbK-1];
 
-//#ifdef DEBUG_OMP
-//#pragma omp critical
-//{
-//statusOFS<<"---Update L from L --- T"<<omp_get_thread_num()<<" -------"<<std::endl;
-//statusOFS<<"ksup="<<ksup<<" jsup="<<jsup<<std::endl<<"FacingIbK="<<FacingIbK<<std::endl;
-//statusOFS<<"FacingLBK "<<FacingLBK<<std::endl;
-//}
-//#endif
+                   //#ifdef DEBUG_OMP
+                   //#pragma omp critical
+                   //{
+                   //statusOFS<<"---Update L from L --- T"<<omp_get_thread_num()<<" -------"<<std::endl;
+                   //statusOFS<<"ksup="<<ksup<<" jsup="<<jsup<<std::endl<<"FacingIbK="<<FacingIbK<<std::endl;
+                   //statusOFS<<"FacingLBK "<<FacingLBK<<std::endl;
+                   //}
+                   //#endif
 
 
 
@@ -6560,11 +6790,11 @@ statusOFS<<"Content of U"<<std::endl;
 
 #ifdef DEBUG_OMP
 #pragma omp critical
-{
-statusOFS<<"---Update L from L --- T"<<omp_get_thread_num()<<" -------"<<std::endl;
-statusOFS<<"ksup="<<ksup<<" jsup="<<jsup<<std::endl<<"FacingIbK="<<FacingIbK<<std::endl;
-statusOFS<<"FacingLBK Now "<<FacingLBK<<std::endl;
-}
+                   {
+                     statusOFS<<"---Update L from L --- T"<<omp_get_thread_num()<<" -------"<<std::endl;
+                     statusOFS<<"ksup="<<ksup<<" jsup="<<jsup<<std::endl<<"FacingIbK="<<FacingIbK<<std::endl;
+                     statusOFS<<"FacingLBK Now "<<FacingLBK<<std::endl;
+                   }
 #endif
 
 
@@ -6574,184 +6804,89 @@ statusOFS<<"FacingLBK Now "<<FacingLBK<<std::endl;
 
 
 
-#if 0
-#pragma omp task firstprivate(ksup) depend(inout:LcolKptr[0]) //depend(in:LcolKptr[:NLcolK])
-             {
-             //alternative loop not using the elimination tree
-             // since we have L
-             std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
-             Int jsup = -1;
-             for( Int FacingIbK = 1; FacingIbK < LcolK.size(); FacingIbK++ ){
-                LBlock<T> &  FacingLBK = LcolK[FacingIbK];
-                if(jsup!=FacingLBK.blockIdx){
-                  jsup = FacingLBK.blockIdx;
 
-                   Int LcolJIdx = LBi(jsup, grid_);
-                  std::vector<LBlock<T> >&  LcolJ = this->L( LcolJIdx );
-                  int * LcolJptr = (int*)&LcolJ[0];
-
-                   Int LcolKIdx = LBj(ksup, grid_);
-                   Int UrowKIdx = LBi(ksup, grid_);
-                   std::vector<UBlock<T> >&  UrowK = this->U( UrowKIdx );
-                   UBlock<T> &  FacingUBK = UrowK[FacingIbK-1];
-
-                   std::vector<Int> colPtr(FacingLBK.numRow);
-                 {
-                   LBlock<T> &  DiagJ = LcolJ[0];
-                   Int irowK = 0;
-                   for(int irow = 0;irow<DiagJ.numRow && irowK<FacingLBK.numRow;irow++){
-                     if(DiagJ.rows[irow] == FacingLBK.rows[irowK]){
-                       colPtr[irowK++] = irow;
-                     }
-                   }
-                 }
-
-#ifdef DEBUG_OMP
-#pragma omp critical
-{
-   statusOFS<<"T"<<omp_get_thread_num()<<" ksup="<<ksup<<" jsup="<<jsup<<" colPtr:"<<colPtr<<endl;
-}
-#endif
-
-                   Int ibK = FacingIbK+1;
-                   for( Int ibJ = 0; ibJ < LcolJ.size(),ibK<LcolK.size(); ibJ++ ){
-                     LBlock<T> &  LBJ = LcolJ[ibJ];
-                     LBlock<T> &  LBK = LcolK[ibK];
-                     if(LBJ.blockIdx == LBK.blockIdx){
-                       if(ibK>FacingIbK){
-                         //Get the rows pointers of rows of LBK in rows of LBJ
-                         std::vector<Int> rowPtr(LBK.numRow);
-                         Int irowK = 0;
-                         for(int irow = 0;irow<LBJ.numRow && irowK<LBK.numRow;irow++){
-                           if(LBJ.rows[irow] == LBK.rows[irowK]){
-                             rowPtr[irowK++] = irow;
-                           }
-                         }
-
-                         NumMat<T> AinvBuf(rowPtr.size(),colPtr.size());
-
-                         //Now make the copy
-                         for(int irow = 0;irow<rowPtr.size();irow++){
-                           for(int jcol = 0;jcol<colPtr.size();jcol++){
-                             AinvBuf(irow,jcol) = LBJ.nzval(rowPtr[irow],colPtr[jcol]);
-                           }
-                         }
-
-
-                         blas::Gemm( 'N', 'T', LBK.numRow, LBK.nzval.n(), FacingUBK.numCol, 
-                             MINUS_ONE<T>(), AinvBuf.Data(), AinvBuf.m(), 
-                             FacingUBK.nzval.Data(), FacingUBK.nzval.m(), 
-                             ONE<T>(), LBK.nzval.Data(), LBK.nzval.m() );
-                       }
-                       //proceed to the next block in ksup
-                       ibK++;
-                     } // end if
-                   } // end for
-                 }
-
-
-                }
-             }
-
-#else
-
-for( Int ibK = 1; ibK < LcolK.size(); ibK++ ){
-  //pragma omp task
+             for( Int ibK = 1; ibK < LcolK.size(); ibK++ ){
+               //pragma omp task
 #pragma omp task firstprivate(ksup,ibK) depend(inout:LcolKptr[ibK])
-  {
-    Int LcolKIdx = LBj(ksup, grid_);
-    Int UrowKIdx = LBi(ksup, grid_);
-    std::vector<LBlock<T> >&  LcolK = this->L( LcolKIdx );
-    std::vector<UBlock<T> >&  UrowK = this->U( UrowKIdx );
-    LBlock<T> &  LBK = LcolK[ibK];
+               {
+                 Int LcolKIdx = LBj(ksup, grid_);
+                 Int UrowKIdx = LBi(ksup, grid_);
+                 std::vector<LBlock<T> >&  LcolK = this->L( LcolKIdx );
+                 std::vector<UBlock<T> >&  UrowK = this->U( UrowKIdx );
+                 LBlock<T> &  LBK = LcolK[ibK];
+
+                 std::vector<Int> colPtr;
+                 Int jsup = -1;
+                 for( Int FacingIbK = 1; FacingIbK < LcolK.size(); FacingIbK++ ){
+                   LBlock<T> &  FacingLBK = LcolK[FacingIbK];
+                   if(jsup!=FacingLBK.blockIdx){
+                     jsup = FacingLBK.blockIdx;
+
+                     if(jsup<LBK.blockIdx){
+
+                       Int LcolJIdx = LBi(jsup, grid_);
+                       std::vector<LBlock<T> >&  LcolJ = this->L( LcolJIdx );
+
+                       colPtr.resize(FacingLBK.numRow);
+                       {
+                         LBlock<T> &  DiagJ = LcolJ[0];
+                         Int irowK = 0;
+                         for(int irow = 0;irow<DiagJ.numRow && irowK<FacingLBK.numRow;irow++){
+                           if(DiagJ.rows[irow] == FacingLBK.rows[irowK]){
+                             colPtr[irowK++] = irow;
+                           }
+                         }
+                       }
+
+                       Int ibJ = 0;
+                       while(ibJ<LcolJ.size() && LcolJ[ibJ].blockIdx!=LBK.blockIdx){ibJ++;}
+
+                       UBlock<T> &  FacingUBK = UrowK[FacingIbK-1];
+                       //std::vector<Int> * pColPtr = &colPtr;//&*itColPtr;
+                       LBlock<T> &  LBJ = LcolJ[ibJ];
+                       //Get the rows pointers of rows of LBK in rows of LBJ
+                       //std::vector<Int> & colPtr = *pColPtr;
+                       std::vector<Int> rowPtr(LBK.numRow);
+                       Int irowK = 0;
+                       for(int irow = 0;irow<LBJ.numRow && irowK<LBK.numRow;irow++){
+                         if(LBJ.rows[irow] == LBK.rows[irowK]){
+                           rowPtr[irowK++] = irow;
+                         }
+                       }
+
+                       NumMat<T> AinvBuf(rowPtr.size(),FacingUBK.numCol);
+
+                       //Now make the copy
+                       for(int irow = 0;irow<rowPtr.size();irow++){
+                         for(int jcol = 0;jcol<colPtr.size();jcol++){
+                           AinvBuf(irow,jcol) = LBJ.nzval(rowPtr[irow],colPtr[jcol]);
+                         }
+                       }
 
 
-//#ifdef DEBUG_OMP
-//#pragma omp critical
-//{
-//statusOFS<<"---Update L from U --- T"<<omp_get_thread_num()<<" -------"<<std::endl;
-//statusOFS<<"ksup="<<ksup<<std::endl<<"ibK="<<ibK<<std::endl;
-//statusOFS<<"LBK "<<LBK<<std::endl;
-//}
-//#endif
+                       blas::Gemm( 'N', 'T', LBK.numRow, LBK.nzval.n(), FacingUBK.numCol, 
+                           MINUS_ONE<T>(), AinvBuf.Data(), AinvBuf.m(), 
+                           FacingUBK.nzval.Data(), FacingUBK.nzval.m(), 
+                           ONE<T>(), LBK.nzval.Data(), LBK.nzval.m() );
 
-
-    std::vector<Int> colPtr;
-    Int jsup = -1;
-    for( Int FacingIbK = 1; FacingIbK < LcolK.size(); FacingIbK++ ){
-      LBlock<T> &  FacingLBK = LcolK[FacingIbK];
-      if(jsup!=FacingLBK.blockIdx){
-        jsup = FacingLBK.blockIdx;
-
-        if(jsup<LBK.blockIdx){
-
-          Int LcolJIdx = LBi(jsup, grid_);
-          std::vector<LBlock<T> >&  LcolJ = this->L( LcolJIdx );
-
-          colPtr.resize(FacingLBK.numRow);
-          {
-            LBlock<T> &  DiagJ = LcolJ[0];
-            Int irowK = 0;
-            for(int irow = 0;irow<DiagJ.numRow && irowK<FacingLBK.numRow;irow++){
-              if(DiagJ.rows[irow] == FacingLBK.rows[irowK]){
-                colPtr[irowK++] = irow;
-              }
-            }
-          }
-
-          Int ibJ = 0;
-          while(ibJ<LcolJ.size() && LcolJ[ibJ].blockIdx!=LBK.blockIdx){ibJ++;}
-
-          UBlock<T> &  FacingUBK = UrowK[FacingIbK-1];
-          //std::vector<Int> * pColPtr = &colPtr;//&*itColPtr;
-          LBlock<T> &  LBJ = LcolJ[ibJ];
-          //Get the rows pointers of rows of LBK in rows of LBJ
-          //std::vector<Int> & colPtr = *pColPtr;
-          std::vector<Int> rowPtr(LBK.numRow);
-          Int irowK = 0;
-          for(int irow = 0;irow<LBJ.numRow && irowK<LBK.numRow;irow++){
-            if(LBJ.rows[irow] == LBK.rows[irowK]){
-              rowPtr[irowK++] = irow;
-            }
-          }
-
-          NumMat<T> AinvBuf(rowPtr.size(),FacingUBK.numCol);
-
-          //Now make the copy
-          for(int irow = 0;irow<rowPtr.size();irow++){
-            for(int jcol = 0;jcol<colPtr.size();jcol++){
-              AinvBuf(irow,jcol) = LBJ.nzval(rowPtr[irow],colPtr[jcol]);
-            }
-          }
-
-
-          blas::Gemm( 'N', 'T', LBK.numRow, LBK.nzval.n(), FacingUBK.numCol, 
-              MINUS_ONE<T>(), AinvBuf.Data(), AinvBuf.m(), 
-              FacingUBK.nzval.Data(), FacingUBK.nzval.m(), 
-              ONE<T>(), LBK.nzval.Data(), LBK.nzval.m() );
-
-        } //end if
+                     } //end if
 
 
 
-      } //end if
-    }//end for
+                   } //end if
+                 }//end for
 #ifdef DEBUG_OMP
 #pragma omp critical
-{
-statusOFS<<"---Update L from U --- T"<<omp_get_thread_num()<<" -------"<<std::endl;
-statusOFS<<"ksup="<<ksup<<std::endl<<"ibK="<<ibK<<std::endl;
-statusOFS<<"LBK now "<<LBK<<std::endl;
-}
+                 {
+                   statusOFS<<"---Update L from U --- T"<<omp_get_thread_num()<<" -------"<<std::endl;
+                   statusOFS<<"ksup="<<ksup<<std::endl<<"ibK="<<ibK<<std::endl;
+                   statusOFS<<"LBK now "<<LBK<<std::endl;
+                 }
 #endif
 
 
-  }//end task
-}//end for
-
-#endif
-
-
+               }//end task
+             }//end for
 #else
 
              //Update L and U first
@@ -6938,52 +7073,52 @@ statusOFS<<"LBK now "<<LBK<<std::endl;
 
 
 
-//#pragma omp task firstprivate(ksup) depend(in:UrowKptr[:NUrowK],LcolKptr[:NLcolK]) depend(inout:LcolKptr[0])
+               //#pragma omp task firstprivate(ksup) depend(in:UrowKptr[:NUrowK],LcolKptr[:NLcolK]) depend(inout:LcolKptr[0])
                {
                  //Update the diagonal block
                  {
                    std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
                    std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_) );
                    for( Int jbK = 0; jbK < UrowK.size(); jbK++ ){
-                    Int ibK = jbK+1;
+                     Int ibK = jbK+1;
 #pragma omp task firstprivate(jbK,ibK,ksup) depend(in:UrowKptr[jbK]) depend(inout:LcolKptr[ibK]) depend(out:LcolKptr[0])
-{
-                   std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
-                   std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_) );
-                   LBlock<T> &  DiagB = LcolK[0]; 
-                     UBlock<T> &  UBK = UrowK[jbK];
-                     LBlock<T> &  LBK = LcolK[ibK];
+                     {
+                       std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+                       std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_) );
+                       LBlock<T> &  DiagB = LcolK[0]; 
+                       UBlock<T> &  UBK = UrowK[jbK];
+                       LBlock<T> &  LBK = LcolK[ibK];
 
-                     blas::Gemm( 'N', 'N', DiagB.nzval.m(), DiagB.nzval.n(), UBK.numCol, 
-                         MINUS_ONE<T>(), UBK.nzval.Data(), UBK.nzval.m(), 
-                         LBK.nzval.Data(), LBK.nzval.m(),ONE<T>(), 
-                         DiagB.nzval.Data(), DiagB.nzval.m() );
+                       blas::Gemm( 'N', 'N', DiagB.nzval.m(), DiagB.nzval.n(), UBK.numCol, 
+                           MINUS_ONE<T>(), UBK.nzval.Data(), UBK.nzval.m(), 
+                           LBK.nzval.Data(), LBK.nzval.m(),ONE<T>(), 
+                           DiagB.nzval.Data(), DiagB.nzval.m() );
 #ifdef DEBUG_OMP
 #pragma omp critical
-{
-statusOFS<<"---DIAG----- T"<<omp_get_thread_num()<<" -------"<<std::endl;
-statusOFS<<"ksup="<<ksup<<std::endl<<"ibK="<<ibK<<std::endl<<"jbK="<<jbK<<std::endl;
-statusOFS<<"LBK="<<LBK<<std::endl<<"UBK="<<UBK<<std::endl<<"DiagB="<<DiagB<<std::endl;
-}
+                       {
+                         statusOFS<<"---DIAG----- T"<<omp_get_thread_num()<<" -------"<<std::endl;
+                         statusOFS<<"ksup="<<ksup<<std::endl<<"ibK="<<ibK<<std::endl<<"jbK="<<jbK<<std::endl;
+                         statusOFS<<"LBK="<<LBK<<std::endl<<"UBK="<<UBK<<std::endl<<"DiagB="<<DiagB<<std::endl;
+                       }
 #endif
+                     }
                    }
-}
 
                    // Symmetrize the diagonal block. Important for numerical
                    // stability
 #pragma omp task firstprivate(ksup) depend(inout:LcolKptr[0])
-{
-                   std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
-                   LBlock<T> &  DiagB = LcolK[0]; 
-                   Symmetrize( DiagB.nzval ); 
-}
+                   {
+                     std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
+                     LBlock<T> &  DiagB = LcolK[0]; 
+                     Symmetrize( DiagB.nzval ); 
+                   }
                  }
                }
              }
 
 
              //Overwrite U with L^T
-//#pragma omp task firstprivate(ksup) depend(in:LcolKptr[1:NLcolK]) depend(out:UrowKptr[:NUrowK])
+             //#pragma omp task firstprivate(ksup) depend(in:LcolKptr[1:NLcolK]) depend(out:UrowKptr[:NUrowK])
              {
                std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
                std::vector<UBlock<T> >&  UrowK = this->U( LBi(ksup, grid_) );
@@ -6991,7 +7126,7 @@ statusOFS<<"LBK="<<LBK<<std::endl<<"UBK="<<UBK<<std::endl<<"DiagB="<<DiagB<<std:
                //UBlock<T> * UrowKptr = &UrowK[0];
                for( Int jbK = 0; jbK < UrowK.size(); jbK++ ){
                  Int ibK = jbK+1;
-//adding extran dependency to LcolKptr[0] to ensure all tasks have been executed
+                 //adding extran dependency to LcolKptr[0] to ensure all tasks have been executed
 #pragma omp task firstprivate(ksup,jbK,ibK) depend(in:LcolKptr[0]) depend(in:LcolKptr[ibK]) depend(out:UrowKptr[jbK])
                  {
                    std::vector<LBlock<T> >&  LcolK = this->L( LBj(ksup, grid_) );
@@ -7001,18 +7136,18 @@ statusOFS<<"LBK="<<LBK<<std::endl<<"UBK="<<UBK<<std::endl<<"DiagB="<<DiagB<<std:
                    Transpose( LBK.nzval, UBK.nzval );
 #ifdef DEBUG_OMP
 #pragma omp critical
-{
-statusOFS<<"---CrossDIAG----- T"<<omp_get_thread_num()<<" -------"<<std::endl;
-statusOFS<<"ksup="<<ksup<<std::endl<<"jbK="<<jbK<<std::endl;
-statusOFS<<"LBK="<<LBK<<std::endl<<"UBK="<<UBK<<std::endl;
-}
+                   {
+                     statusOFS<<"---CrossDIAG----- T"<<omp_get_thread_num()<<" -------"<<std::endl;
+                     statusOFS<<"ksup="<<ksup<<std::endl<<"jbK="<<jbK<<std::endl;
+                     statusOFS<<"LBK="<<LBK<<std::endl<<"UBK="<<UBK<<std::endl;
+                   }
 #endif
 
 
                  }
                }
              }
-//#pragma omp taskwait
+             //#pragma omp taskwait
            } //end omp single
          } // end omp parallel
        } //end for ksup
