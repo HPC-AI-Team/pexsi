@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-//#define _MYCOMPLEX_
+#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -543,12 +543,6 @@ int main(int argc, char **argv)
       luOpt.Symmetric = isSym;
       luOpt.Transpose = transpose;
 
-
-      //Initialize SuperLU data structures
-      //SuperLUGrid<MYSCALAR> * pLuGrid;
-      //SuperLUMatrix<MYSCALAR> * pLuMat;
-      //SuperNodeType * pSuper;
-      //PEXSICreator<MYSCALAR>::CreateSuperLUMatrix(world_comm, nprow, npcol, luOpt, pLuMat, pLuGrid, pSuper);
 
       SuperLUGrid<MYSCALAR> * pLuGrid = new SuperLUGrid<MYSCALAR>(world_comm,nprow,npcol);
       SuperLUMatrix<MYSCALAR> * pLuMat = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);

@@ -71,6 +71,13 @@ namespace PEXSI{
 
     struct CDBuffers;
 
+
+  struct SuperNodeIndex{
+    Int Index;
+    Int Rank;
+  };
+
+
     template<typename T>
     bool LBlockEqualComparator(const LBlock<T> & a,const LBlock<T> & b){
       return a.blockIdx==b.blockIdx;
@@ -165,6 +172,13 @@ namespace PEXSI{
       std::vector<std::vector<UBlock<T> > > Ucol_;
       std::vector<std::vector<LBlock<T> > > Lrow_;
 
+      std::vector<TreeBcast *> fwdUToBelowTree_; 
+      std::vector<TreeBcast *> fwdUcolToRightTree_; 
+      std::vector<TreeReduce<T> *> redUToAboveTree_; 
+
+
+
+
       std::vector<Int > UcolSize_;
       std::vector<Int > LrowSize_;
 
@@ -210,7 +224,7 @@ namespace PEXSI{
       };
 
       /// @brief SelInvIntra_P2p
-      inline void SelInvIntra_P2p(Int lidx);
+      inline void SelInvIntra_P2p(Int lidx, Int & rank);
 
       /// @brief SelInv_lookup_indexes
       inline void SelInv_lookup_indexes(SuperNodeBufferTypeUnsym & snode,
@@ -240,14 +254,15 @@ namespace PEXSI{
                             );
 
 
-    inline void SendRecvSizesCD(std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
-    inline void IRecvContentCD( std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
-    inline void WaitContentLCD( std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
-    inline void WaitContentUCD( std::vector<Int > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
+    inline void SendRecvSizesCD(std::vector<SuperNodeIndex > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
+    inline void IRecvContentCD( std::vector<SuperNodeIndex > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
+    inline void WaitContentLCD( std::vector<SuperNodeIndex > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
+    inline void WaitContentUCD( std::vector<SuperNodeIndex > & arrSuperNodes, Int stepSuper, CDBuffers & buffers);
 
 
-
-
+    void alloc_buffers(Int & lidx, Int & stepSuper, std::vector<std::vector<Int> > & superList,
+      std::vector<MPI_Request> & arrMpireqsRecvLUContentFromAny, std::vector<SuperNodeBufferTypeUnsym> & arrSuperNodes, Int & rank, std::vector<SuperNodeIndex> & arrSuperNodesIndex ,std::vector<SuperNodeIndex> & arrSuperNodesIndexNext,std::vector<std::vector<MPI_Request> > & arrMpireqsSendLToBelow ,std::vector<std::vector<MPI_Request> > & arrMpireqsSendLToRight ,std::vector<std::vector<MPI_Request> > & arrMpireqsSendUToBelow ,std::vector<std::vector<MPI_Request> > & arrMpireqsSendUToRight
+);
 
 
     public:
@@ -256,6 +271,11 @@ namespace PEXSI{
       // *********************************************************************
 
       PMatrixUnsym():PMatrix<T>() {}
+
+      virtual void deallocate();
+      virtual ~PMatrixUnsym();
+      PMatrixUnsym( const PMatrixUnsym & C);
+      PMatrixUnsym & operator = ( const PMatrixUnsym & C);
 
       PMatrixUnsym( const GridType* g, const SuperNodeType* s, const PSelInvOptions * o, const SuperLUOptions * oLU  );
 

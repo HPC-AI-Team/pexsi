@@ -417,16 +417,7 @@ namespace PEXSI{
   template<typename T>
     PMatrix<T>::~PMatrix ( )
     {
-
-#ifndef _RELEASE_
-      PushCallStack("PMatrix::~PMatrix");
-#endif
-
       deallocate();
-
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
       return ;
     } 		// -----  end of method PMatrix::~PMatrix  ----- 
 
@@ -1575,8 +1566,6 @@ namespace PEXSI{
 
       //This is required to receive the size and content of U/L
 #ifndef NEW_BCAST
-      std::vector<MPI_Request>   arrMpireqsRecvSizeFromAny;
-      arrMpireqsRecvSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
       std::vector<MPI_Request>   arrMpireqsRecvContentFromAny;
       arrMpireqsRecvContentFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
 #endif
@@ -1612,23 +1601,14 @@ namespace PEXSI{
         if(participating){
           arrSuperNodes[pos].Index = superList[lidx][supidx];  
           arrSuperNodes[pos].Rank = rank;
-
-
           SuperNodeBufferType & snode = arrSuperNodes[pos];
-
           pos++;
         }
         rank++;
       }
 
 
-
-      int numSentToLeft = 0;
-      std::vector<int> reqSentToLeft;
-
-
       NumMat<T> AinvBuf, UBuf;
-
       TIMER_STOP(AllocateBuffer);
 
 #ifndef _RELEASE_
@@ -1785,12 +1765,12 @@ namespace PEXSI{
             if(bcastUTree!=NULL){
               bcastUTree->ForwardMessage((char*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, 
                   IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0]);
+#if ( _DEBUGlevel_ >= 1 )
               for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
                 Int iProcRow = bcastUTree->GetDest(idxRecv);
-#if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_) << std::endl <<  std::endl; 
-#endif
               }
+#endif
             }
 
 #endif
@@ -1860,12 +1840,12 @@ namespace PEXSI{
               bcastLTree->ForwardMessage((char*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, 
                   IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
 
+#if ( _DEBUGlevel_ >= 1 )
               for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
                 Int iProcCol = bcastLTree->GetDest(idxRecv);
-#if ( _DEBUGlevel_ >= 1 )
                 statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend << " BYTES on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_) << std::endl <<  std::endl; 
-#endif
               }
+#endif
             }
 #endif
           } // if I am the sender
@@ -1900,8 +1880,6 @@ namespace PEXSI{
         //find local things to do
         for(Int supidx = 0;supidx<stepSuper;supidx++){
           SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-
           if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
             gemmToDo++;
             if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
@@ -1937,7 +1915,7 @@ namespace PEXSI{
 #endif
               TIMER_STOP(Reduce_Sinv_LT_Isend);
             }
-          }// if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ))
+          }// if( isRecvFromLeft_( snode.Index ))
 
           if(MYROW(grid_)!=PROW(snode.Index,grid_)){
 #ifdef NEW_BCAST
@@ -2622,8 +2600,6 @@ namespace PEXSI{
         if(redLTree != NULL){
           redLTree->Wait();
           redLTree->CleanupBuffers();
-          //          delete redLTree;
-          //          redLTree = NULL;
         }
       }
 
@@ -2634,8 +2610,6 @@ namespace PEXSI{
         if(redDTree != NULL){
           redDTree->Wait();
           redDTree->CleanupBuffers();
-          //          delete redDTree;
-          //          redDTree = NULL;
         }
       }
 
@@ -3285,24 +3259,6 @@ namespace PEXSI{
             if( amISTD ){
               vector<Int> tree_ranks;
               Int msgSize = 0;
-#if 0
-              set<Int> set_ranks;
-              for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
-                Int isSTD = globalAggSTD[iProcRow*numSuper + ksup];
-                if(isSTD>0){
-                  if( iProcRow != PROW( ksup, grid_ ) ){
-                    set_ranks.insert(iProcRow);
-                  }
-                  else{
-                    msgSize = isSTD;
-                  }
-                }
-              }
-
-
-              tree_ranks.push_back(PROW(ksup,grid_));
-              tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
-#else
               Int countSTD= 0;
               for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
                 if( iProcRow != PROW( ksup, grid_ ) ){
@@ -3327,11 +3283,8 @@ namespace PEXSI{
                   }
                 }
               }
-#endif
-              //assert(set_ranks.find(MYROW(grid_))!= set_ranks.end() || MYROW(grid_)==tree_ranks[0]);
 
               TreeReduce<T> * & redDTree = redToAboveTree_[ksup];
-
 
             if(redDTree!=NULL){delete redDTree; redDTree=NULL;}
               redDTree = TreeReduce<T>::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedSTD[ksup]);
@@ -3679,20 +3632,10 @@ namespace PEXSI{
         }
 #endif
 
-
-
-        //        assert(workingRanks_[lidx].size()==stepSuper);
-
         //find max snode.Index
         if(lidx>0 && (rank-1)%limIndex_==0){
-          //#if ( _DEBUGlevel_ >= 1 )
-          //          statusOFS<<rank-1<<" Barrier "<<std::endl;
-          //#endif
           MPI_Barrier(grid_->comm);
         }
-
-
-        //        if(lidx==1){ return;};
       }
 
       MPI_Barrier(grid_->comm);
