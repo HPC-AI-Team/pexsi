@@ -4251,7 +4251,7 @@ if(snode.Index==3450){
             all_done = true;
 
             for (Int supidx=0; supidx<stepSuper; supidx++){
-              SuperNodeBufferType & snode = arrSuperNodes[supidx];
+              SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
               TreeReduce<T> * redDTree = this->redToAboveTree_[snode.Index];
 
               if(redDTree != NULL && !is_done[supidx])
