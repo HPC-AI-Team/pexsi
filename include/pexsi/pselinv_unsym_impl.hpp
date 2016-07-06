@@ -3399,9 +3399,25 @@ namespace PEXSI{
                 TIMER_START(WaitContent_LU_First);
               }
 #endif
-
-              MPI_Waitsome(4*stepSuper, &arrMpireqsRecvLUContentFromAny[0],
+     
+MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+MPI_Errhandler_set(this->grid_->rowComm, MPI_ERRORS_RETURN);
+MPI_Errhandler_set(this->grid_->colComm, MPI_ERRORS_RETURN);
+              int error_code = MPI_Waitsome(4*stepSuper, &arrMpireqsRecvLUContentFromAny[0],
                   &numRecv, reqIndicesLU, MPI_STATUSES_IGNORE);
+
+if (error_code != MPI_SUCCESS) {
+   char error_string[2000];
+   int length_of_error_string, error_class;
+
+   MPI_Error_class(error_code, &error_class);
+   MPI_Error_string(error_class, error_string, &length_of_error_string);
+   fprintf(stderr, "%3d: %s\n", this->grid_->mpirank, error_string);
+   MPI_Error_string(error_code, error_string, &length_of_error_string);
+   fprintf(stderr, "%3d: %s\n", this->grid_->mpirank, error_string);
+   MPI_Abort(MPI_COMM_WORLD, error_code);
+}
+
 
               for(int i =0;i<numRecv;i++){
                 reqidx = reqIndicesLU[i];
