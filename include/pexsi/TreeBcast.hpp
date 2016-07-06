@@ -1478,7 +1478,21 @@ class TreeReduce: public TreeBcast{
         int recvCount = -1;
         int reqCnt = GetDestCount();
         assert(reqCnt == myRequests_.m());
-        MPI_Testsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
+        
+MPI_Errhandler_set(this->comm_, MPI_ERRORS_RETURN);
+        int error_code = MPI_Testsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
+
+if (error_code != MPI_SUCCESS) {
+   char error_string[2000];
+   int length_of_error_string, error_class;
+
+   MPI_Error_class(error_code, &error_class);
+   MPI_Error_string(error_class, error_string, &length_of_error_string);
+   fprintf(stderr, "%3d: %s\n", this->myRank_, error_string);
+   MPI_Error_string(error_code, error_string, &length_of_error_string);
+   fprintf(stderr, "%3d: %s\n", this->myRank_, error_string);
+   MPI_Abort(MPI_COMM_WORLD, error_code);
+}
         //if something has been received, accumulate and potentially forward it
         for(Int i = 0;i<recvCount;++i ){
           Int idx = recvIdx_[i];
@@ -1721,7 +1735,22 @@ class FTreeReduce: public TreeReduce<T>{
         int recvCount = -1;
         int reqCnt = 1;
 
-        MPI_Testsome(reqCnt,&this->myRequests_[0],&recvCount,&this->recvIdx_[0],&this->myStatuses_[0]);
+MPI_Errhandler_set(this->comm_, MPI_ERRORS_RETURN);
+        int error_code = MPI_Testsome(reqCnt,&this->myRequests_[0],&recvCount,&this->recvIdx_[0],&this->myStatuses_[0]);
+
+if (error_code != MPI_SUCCESS) {
+   char error_string[2000];
+   int length_of_error_string, error_class;
+
+   MPI_Error_class(error_code, &error_class);
+   MPI_Error_string(error_class, error_string, &length_of_error_string);
+   fprintf(stderr, "%3d: %s\n", this->myRank_, error_string);
+   MPI_Error_string(error_code, error_string, &length_of_error_string);
+   fprintf(stderr, "%3d: %s\n", this->myRank_, error_string);
+   MPI_Abort(MPI_COMM_WORLD, error_code);
+}
+
+
         //MPI_Waitsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
         //if something has been received, accumulate and potentially forward it
         for(Int i = 0;i<recvCount;++i ){
