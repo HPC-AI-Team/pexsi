@@ -51,6 +51,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 #include "pexsi/superlu_dist_interf.hpp"
+#include "omp.h"
 
 
 #define MPI_MAX_COMM (1024)
@@ -77,6 +78,7 @@ namespace PEXSI{
 }
 #endif
 
+      double time1, time2, time3, time4,time5,time6, time7, time8;
 
 
 namespace PEXSI{
@@ -1519,6 +1521,9 @@ namespace PEXSI{
       Int numSteps = superList.size();
       Int stepSuper = superList[lidx].size(); 
 
+      Real timeSta, timeEnd;
+      Real timeSta1, timeEnd1;
+      Real timeSta2, timeEnd2;
 
 
 
@@ -1887,7 +1892,7 @@ namespace PEXSI{
         }
       }
 
-
+      GetTime(timeSta);
       TIMER_START(Compute_Sinv_LT);
       {
         Int msgForwarded = 0;
@@ -1897,6 +1902,7 @@ namespace PEXSI{
         //      Int toRecvGemm = 0;
         //copy the list of supernodes we need to process
         std::list<Int> readySupidx;
+        std::list<Int> readySupidx_duplicate;
         //find local things to do
         for(Int supidx = 0;supidx<stepSuper;supidx++){
           SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -1914,6 +1920,7 @@ namespace PEXSI{
 
             if(snode.isReady==2){
               readySupidx.push_back(supidx);
+              readySupidx_duplicate.push_back(supidx);
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS<<std::endl<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
 #endif
@@ -1988,6 +1995,11 @@ namespace PEXSI{
         begin_SendULWaitContentFirst=0;
 #endif
 
+        GetTime(timeSta1);
+#pragma omp parallel 
+        {
+#pragma omp single nowait
+         {
         while(gemmProcessed<gemmToDo || msgForwarded < msgToFwd)
         {
           Int reqidx = MPI_UNDEFINED;
@@ -1996,8 +2008,6 @@ namespace PEXSI{
 
           //while I don't have anything to do, wait for data to arrive 
           do{
-
-
 
             //then process with the remote ones
 
@@ -2008,9 +2018,6 @@ namespace PEXSI{
               TIMER_START(WaitContent_UL_First);
             }
 #endif
-
-
-
 
 
 #ifdef NEW_BCAST
@@ -2040,6 +2047,7 @@ namespace PEXSI{
                         //if we received both L and U, the supernode is ready
                         if(snode.isReady==2){
                           readySupidx.push_back(supidx2);
+                          readySupidx_duplicate.push_back(supidx2);
 #if defined(PROFILE)
                           if(end_SendULWaitContentFirst==0){
                             TIMER_STOP(WaitContent_UL_First);
@@ -2072,14 +2080,6 @@ namespace PEXSI{
 #endif
               }
 
-
-
-
-
-
-
-
-
               TreeBcast2<T> * bcastLTree2 = fwdToRightTree2_[snode.Index];
 
               if(bcastLTree2 != NULL /*&& (!bcastLdone[supidx2])*/){
@@ -2100,6 +2100,7 @@ namespace PEXSI{
                         //if we received both L and L, the supernode is ready
                         if(snode.isReady==2){
                           readySupidx.push_back(supidx2);
+                          readySupidx_duplicate.push_back(supidx2);
 #if defined(PROFILE)
                           if(end_SendULWaitContentFirst==0){
                             TIMER_STOP(WaitContent_UL_First);
@@ -2131,19 +2132,6 @@ namespace PEXSI{
                 statusOFS<<"["<<snode.Index<<"] "<<" trying to progress bcast L "<<done<<std::endl;
 #endif
               }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             }
@@ -2234,6 +2222,7 @@ namespace PEXSI{
                   //if we received both L and U, the supernode is ready
                   if(snode.isReady==2){
                     readySupidx.push_back(supidx);
+                    readySupidx_duplicate.push_back(supidx);
 
 #if defined(PROFILE)
                     if(end_SendULWaitContentFirst==0){
@@ -2250,17 +2239,27 @@ namespace PEXSI{
 
             TIMER_STOP(WaitContent_UL);
 
+          //} while( (readySupidx.size() < gemmToDo ) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
           } while( (gemmProcessed<gemmToDo && readySupidx.size()==0) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
 
           //If I have some work to do 
-          if(readySupidx.size()>0)
+          GetTime(timeSta2);
+          //if(readySupidx.size()>0)
+#ifdef TIMING
+          cout<< "ready size: "<< readySupidx.size() << "gemmToDo: "<< gemmToDo <<endl;
+          fflush(stdout);
+#endif
+          while(readySupidx.size()>0) 
           {
-            supidx = readySupidx.back();
+            //cout << "supidx "<< supidx << "is ready"<< endl;
+            Int supidx = readySupidx.back();
             readySupidx.pop_back();
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
+            gemmProcessed++;
 
             // Only the processors received information participate in the Gemm 
+#pragma omp task firstprivate(supidx)
+            {
+            SuperNodeBufferType & snode = arrSuperNodes[supidx];
             if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ) ){
 
               std::vector<LBlock<T> > LcolRecv;
@@ -2269,87 +2268,164 @@ namespace PEXSI{
               // The size will be updated in the Gemm phase and the reduce phase
 
               UnpackData(snode, LcolRecv, UrowRecv);
-#ifdef NEW_BCAST
-              //cleanup corresponding tree
-              TreeBcast2<T> * bcastUTree2 = fwdToBelowTree2_[snode.Index];
-              TreeBcast2<T> * bcastLTree2 = fwdToRightTree2_[snode.Index];
-              if(bcastUTree2->IsDone()){
-                bcastUTree2->CleanupBuffers();
-              }
-              if(bcastLTree2->IsDone()){
-                bcastLTree2->CleanupBuffers();
-              }
-#endif
 
-              //NumMat<T> AinvBuf, UBuf;
-              SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,AinvBuf,UBuf);
+              NumMat<T> XinvBuf, XBuf;
+              SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,XinvBuf,XBuf);
 
-              snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
-
-#ifdef GEMM_PROFILE
-              gemm_stat.push_back(AinvBuf.m());
-              gemm_stat.push_back(UBuf.m());
-              gemm_stat.push_back(AinvBuf.n());
-#endif
+              snode.LUpdateBuf.Resize( XinvBuf.m(), SuperSize( snode.Index, super_ ) );
 
               TIMER_START(Compute_Sinv_LT_GEMM);
-              blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
-                  AinvBuf.Data(), AinvBuf.m(), 
-                  UBuf.Data(), UBuf.m(), ZERO<T>(),
-                  snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
-              TIMER_STOP(Compute_Sinv_LT_GEMM);
-
-
-#if ( _DEBUGlevel_ >= 2 )
-              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
+#ifdef TIMING
+          if(supidx == 0) 
+          cout<< "Matrix size: ["<< XinvBuf.m() <<" "<< XinvBuf.n() << " ]  [" << XinvBuf.n() <<"  "<< XBuf.m() << " ]"<<endl;
+          fflush(stdout);
 #endif
-            } // if Gemm is to be done locally
+              Int numThreads = omp_get_num_threads();
+              /*
+              Int mBlockSize = (XinvBuf.m() + numThreads -1) / numThreads;
+              Int rBlockSize = (XBuf.m()    + numThreads -1) / numThreads;
+              */
 
-            //Get the reduction tree
-            TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-            if(redLTree != NULL){
-              assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
-                TIMER_START(Reduce_Sinv_LT_Isend);
-                //send the data
-                redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-                redLTree->SetDataReady(true);
+              Int mBlockSize = 64; // note XinvBuf.m() is the 'm'
+              Int rBlockSize = 64; // Note XBuf.m() is the 'r'
+              Int mMax = ((XinvBuf.m() + omp_get_num_threads() -1)/ omp_get_num_threads());
+              Int rMax = ((XBuf.m() + omp_get_num_threads() -1)/ omp_get_num_threads());
+              if( mMax > mBlockSize) mBlockSize = mMax;
+              if( rMax > rBlockSize) rBlockSize = rMax;
 
-                bool done = redLTree->Progress();
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-#endif
-                TIMER_STOP(Reduce_Sinv_LT_Isend);
-            }
+              Int mBlock = (XinvBuf.m() + mBlockSize - 1) / mBlockSize;  // the mBlock number.
+              Int rBlock = (XBuf.m()    + rBlockSize - 1) / rBlockSize;     // the rBlock number.
+              Int rowNum = XinvBuf.m();
+              Int nnum   = XinvBuf.n();
+              Int colNum = XBuf.m();
 
-            gemmProcessed++;
-
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<"/"<<gemmToDo<<std::endl;
-#endif
-
-            //advance reductions
-            for (Int supidx=0; supidx<stepSuper; supidx++){
-              SuperNodeBufferType & snode = arrSuperNodes[supidx];
-              TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-              if(redLTree != NULL && !redLdone[supidx]){
-                bool done = redLTree->Progress();
-
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-#endif
+              if(( XinvBuf.m() < mBlockSize) && ( XBuf.m() < rBlockSize) || (omp_get_num_threads() == 1))
+              //if(( XinvBuf.m() < numThreads) && ( XBuf.m() < numThreads) || (omp_get_num_threads() == 1))
+#pragma omp task
+              {
+                blas::Gemm( 'N', 'T', XinvBuf.m(), XBuf.m(), XinvBuf.n(), MINUS_ONE<T>(), 
+                    XinvBuf.Data(), XinvBuf.m(), 
+                    XBuf.Data(), XBuf.m(), ZERO<T>(),
+                    snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
               }
-            }
-          }
-        }
+              else
+              for(Int m = 0; m < mBlock; m++){
+                for(Int r = 0; r < rBlock; r++){
+#pragma omp task //private(rowStart, rowEnd, colStart, colEnd, row, col) privatefirst(snode)
+                {
+                NumMat<T> tempLUpdate;  // temp data used in the next task.
+                
+                // both start and end for the small matrix. 
+                Int rowStart = m * mBlockSize;
+                Int rowEnd   = rowStart + mBlockSize;
+                if( rowEnd > rowNum) rowEnd = rowNum;
+                
+                Int colStart = r * rBlockSize;
+                Int colEnd   = colStart + rBlockSize;
+                if( colEnd > colNum) colEnd = colNum;
+                /*
+                temp_AinvBuf.Resize( rowEnd-rowStart, nnum);
+                temp_LBuf.Resize( colEnd-colStart, nnum);
+                tempLUpdate.Resize(rowEnd-rowStart,colEnd-colStart);
+                
+                // pick the matrix out of the A-1 and U 
+                for(Int row = rowStart; row < rowEnd; row++)
+                for(Int col = 0; col < nnum; col++)
+                {
+
+                    temp_AinvBuf( row-rowStart, col) = XinvBuf(row, col);
+                }
+
+                for(Int row = colStart; row < colEnd; row++)
+                for(Int col = 0; col < nnum; col++)
+                {
+                    //resize the temp buf.
+                    temp_LBuf(row-colStart, col) = XBuf(row,col);
+                }
+
+                //T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
+                //resize the LUpdate...
+
+                //blas::Gemm( 'N', 'T', rowEnd-rowStart, colEnd-colStart,nnum, MINUS_ONE<T>(), 
+                  //  temp_AinvBuf.Data(), rowEnd-rowStart,
+                    //temp_LBuf.Data(), colEnd-colStart, ZERO<T>(),
+                   // temp_LUpdate.Data(), rowEnd-rowStart); 
+                */
+                blas::Gemm( 'N', 'T', rowEnd-rowStart, colEnd-colStart, nnum, MINUS_ONE<T>(), 
+                    &XinvBuf(rowStart,0), XinvBuf.m(),
+                    &XBuf(colStart,0), XBuf.m(), ZERO<T>(),
+                    //tempLUpdate.Data(), tempLUpdate.m() );
+                    &snode.LUpdateBuf(rowStart,colStart),snode.LUpdateBuf.m() ); 
+
+/*
+                for(Int row = rowStart; row < rowEnd; row++)
+                for(Int col = colStart; col < colEnd; col++)
+                    snode.LUpdateBuf(row, col) = tempLUpdate(row-rowStart, col-colStart);
+                    */
+
+                }
+                }
+              }
+#pragma omp taskwait
+              TIMER_STOP(Compute_Sinv_LT_GEMM);
+            } // if Gemm is to be done locally
+           } //pragma omp task 
+          } // while readySupidx.size > 0
+
+        GetTime(timeEnd2);
+        time8 += timeEnd2 - timeSta2;
+        }  // end while gemmProcessed < gemmToDo
+        }  // end omp single
+        } // end pragma omp parallel
+//#pragma omp taskwait
+        GetTime(timeEnd1);
+        time7 += timeEnd1 - timeSta1;
+
+       // recution of the AinL
+       if(readySupidx_duplicate.size() != gemmToDo) {
+          cout << "Error! the number of gemmToDo not equal readySupidx_duplicate size!" << endl;
+       }
+       while(readySupidx_duplicate.size()>0) 
+       {
+
+         Int supidx = readySupidx_duplicate.back();
+         readySupidx_duplicate.pop_back();
+         SuperNodeBufferType & snode = arrSuperNodes[supidx];
+         //Get the reduction tree
+         TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+         if(redLTree != NULL){
+           assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
+             TIMER_START(Reduce_Sinv_LT_Isend);
+             //send the data
+             redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+             redLTree->SetDataReady(true);
+
+             bool done = redLTree->Progress();
+             TIMER_STOP(Reduce_Sinv_LT_Isend);
+         }
+
+         //advance reductions
+         for (Int supidx=0; supidx<stepSuper; supidx++){
+           SuperNodeBufferType & snode = arrSuperNodes[supidx];
+           TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+           if(redLTree != NULL && !redLdone[supidx]){
+             bool done = redLTree->Progress();
+           }
+         }
+       } // while readySupidx.size > 0
+
 
       }
       TIMER_STOP(Compute_Sinv_LT);
+      GetTime(timeEnd);
+      time1 += timeEnd - timeSta;
 
       //Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
 
 
       TIMER_START(Reduce_Sinv_LT);
       //blocking wait for the reduction
+      GetTime(timeSta);
       bool all_done = false;
       while(!all_done)
       {
@@ -2425,6 +2501,8 @@ namespace PEXSI{
       }
       TIMER_STOP(Reduce_Sinv_LT);
 
+      GetTime(timeEnd);
+      time2 += timeEnd - timeSta;
 
 
 #ifndef _RELEASE_
@@ -2437,6 +2515,7 @@ namespace PEXSI{
 
       TIMER_START(Update_Diagonal);
 
+      GetTime(timeSta);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
 
@@ -2488,7 +2567,10 @@ namespace PEXSI{
         }
       }
       TIMER_STOP(Update_Diagonal);
+      GetTime(timeEnd);
+      time3 += timeEnd - timeSta;
 
+      GetTime(timeSta);
       TIMER_START(Reduce_Diagonal);
       //blocking wait for the reduction
       {
@@ -2540,6 +2622,8 @@ namespace PEXSI{
       }
       TIMER_STOP(Reduce_Diagonal);
 
+      GetTime(timeEnd);
+      time4 += timeEnd - timeSta;
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -2551,7 +2635,10 @@ namespace PEXSI{
 
 
 
+      GetTime(timeSta);
       SendRecvCD_UpdateU(arrSuperNodes, stepSuper);
+      GetTime(timeEnd);
+      time6 += timeEnd - timeSta;
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -2561,6 +2648,7 @@ namespace PEXSI{
       PushCallStack("PMatrix::SelInv_P2p::UpdateLFinal");
 #endif
 
+      GetTime(timeSta);
       TIMER_START(Update_L);
       for (Int supidx=0; supidx<stepSuper; supidx++){
         SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -2582,6 +2670,8 @@ namespace PEXSI{
       } // for (snode.Index) : Main loop
       TIMER_STOP(Update_L);
 
+      GetTime(timeEnd);
+      time5 += timeEnd - timeSta;
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -3656,12 +3746,25 @@ namespace PEXSI{
 #endif
 
       Int numSuper = this->NumSuper(); 
-
+     
       // Main loop
       std::vector<std::vector<Int> > & superList = this->WorkingSet();
       Int numSteps = superList.size();
+#ifdef JIAWEILE
+      if(grid_->mpirank==0)
+		cout << "the total number of superNode:" << numSteps << endl;
+#endif
 
       Int rank = 0;
+      time1 = 0.0;
+      time2 = 0.0;
+      time3 = 0.0;
+      time4 = 0.0;
+      time5 = 0.0;
+      time6 = 0.0;
+      time7 = 0.0;
+      time8 = 0.0;
+
       for (Int lidx=0; lidx<numSteps ; lidx++){
         Int stepSuper = superList[lidx].size(); 
         //statusOFS<<"IN "<<lidx<<"/"<<numSteps<<std::endl;
@@ -3694,6 +3797,16 @@ namespace PEXSI{
 
         //        if(lidx==1){ return;};
       }
+      cout << "---------------- JIA WEILE -----------------------"<< endl;
+      cout <<"Comptute SinV LT time: "<< time1 <<endl;
+      cout <<"Reduce Sinv LT time: "<< time2 <<endl;
+      cout <<"Update Diag time: "<< time3 <<endl;
+      cout <<"Reduce Diag time: "<< time4 <<endl;
+      cout <<"Upate L time: "<< time5 <<endl;
+      cout <<": SendRecvCD_UpdateU: "<< time6 <<endl;
+      cout <<"** Part 7 of Gemm: "<< time7 <<endl;
+      cout <<"** Gemm:           "<< time8 <<endl;
+      cout << "---------------- JIA WEILE -----------------------"<< endl;
 
       MPI_Barrier(grid_->comm);
 #ifndef _RELEASE_
