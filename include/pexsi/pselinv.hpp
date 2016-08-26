@@ -554,6 +554,8 @@ namespace PEXSI{
       };
 
 
+      std::vector<std::vector<Int> > ColBlockIdx_;
+      std::vector<std::vector<Int> > RowBlockIdx_;
     protected:
       // *********************************************************************
       // Variables
@@ -570,8 +572,6 @@ namespace PEXSI{
       Int limIndex_;
       Int maxTag_;
 
-      std::vector<std::vector<Int> > ColBlockIdx_;
-      std::vector<std::vector<Int> > RowBlockIdx_;
       std::vector<std::vector<LBlock<T> > > L_;
       std::vector<std::vector<UBlock<T> > > U_;
 
@@ -986,6 +986,7 @@ namespace PEXSI{
       void DumpLU();      
 
       void CopyLU( const PMatrix & C);
+      inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
   };
 
   template<typename T>  class PMatrixUnsym;

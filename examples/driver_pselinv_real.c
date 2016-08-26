@@ -53,6 +53,7 @@
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  "c_pexsi_interface.h"
+#include  <omp.h>
 
 int main(int argc, char **argv) 
 {
@@ -72,19 +73,26 @@ int main(int argc, char **argv)
   int           i, j, irow, jcol;
   int           numColLocalFirst, firstCol;
 
+  double tsymfact1, tsymfact2, tinvert1, tinvert2;
+
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
+  TAU_PROFILE_INIT(argc, argv);
+  TAU_PROFILE_SET_CONTEXT(MPI_COMM_WORLD);
+
+
 
   /* Below is the data used for the toy g20 matrix */
 
-  nprow               = 1;
-  npcol               = mpisize;
-  //npcol               = 1;
-  //nprow               = mpisize;
-  Rfile               = "lap2dr.matrix";
+  npcol               = 1;
+  nprow               = mpisize;
+  Rfile               = "laplace200-200+1full.matrix";
+  //Rfile               = "laplace128full.csr";
 
+  if (argc > 1)
+      Rfile = argv[1];
 
   /* Read the matrix */
   ReadDistSparseMatrixFormattedHeadInterface(
@@ -153,12 +161,20 @@ int main(int argc, char **argv)
       NULL,  // S is identity
       &info );
 
-  PPEXSISymbolicFactorizeRealSymmetricMatrix( 
+  if (mpirank == 0)
+    tsymfact1 = omp_get_wtime();
+  
+
+   PPEXSISymbolicFactorizeRealSymmetricMatrix( 
       plan,
       options,
       &info );
-
-
+   
+   if (mpirank == 0)
+    tsymfact2 = omp_get_wtime();
+    
+   if (mpirank == 0)
+    tinvert1 = omp_get_wtime();
 
   PPEXSISelInvRealSymmetricMatrix (
       plan,
@@ -166,6 +182,9 @@ int main(int argc, char **argv)
       AnzvalLocal,
       AinvnzvalLocal,
       &info );
+
+    if (mpirank == 0)
+        tinvert2 = omp_get_wtime();
 
 
 
@@ -179,13 +198,12 @@ int main(int argc, char **argv)
   }
 
 
-
   /* The first processor output the diagonal elements in natural order
    */
   if( mpirank == 0 ){
     numColLocalFirst = nrows / mpisize;
     firstCol         = mpirank * numColLocalFirst;
-    for( j = 0; j < numColLocal; j++ ){
+    for( j = 0; j < 10; j++ ){
       jcol = firstCol + j + 1;
       for( i = colptrLocal[j]-1; 
            i < colptrLocal[j+1]-1; i++ ){
@@ -209,7 +227,11 @@ int main(int argc, char **argv)
     printf("\nAll calculation is finished. Exit the program.\n");
   }
 
-
+  if (mpirank == 0)
+  {
+    printf("Time needed for symb. fact. : %e \n", tsymfact2-tsymfact1);
+    printf("Time needed for sel. invers.: %e \n", tinvert2-tinvert1);
+  }
 
   /* Deallocate memory */
   free( colptrLocal );

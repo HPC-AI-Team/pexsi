@@ -2752,6 +2752,11 @@ namespace PEXSI{
       // localColBlockRowIdx stores the nonzero block indices for each local block column.
       // The nonzero block indices including contribution from both L and U.
       // Dimension: numLocalBlockCol x numNonzeroBlock
+      std::vector<Int >   localColBlockRowIdxPos;
+      std::vector<std::vector<Int> >   localColBlockRowIdxVec;
+      localColBlockRowIdxPos.resize( this->NumLocalBlockCol(),0 );
+      localColBlockRowIdxVec.resize( this->NumLocalBlockCol() );
+
       std::vector<std::set<Int> >   localColBlockRowIdx;
 
       localColBlockRowIdx.resize( this->NumLocalBlockCol() );
@@ -2778,6 +2783,12 @@ namespace PEXSI{
 
           localColBlockRowIdx[LBj( ksup, grid_ )].insert(
               tAllBlockRowIdx.begin(), tAllBlockRowIdx.end() );
+
+localColBlockRowIdxVec[LBj( ksup, grid_ )].resize(localColBlockRowIdx[LBj( ksup, grid_ )].size());
+std::copy(localColBlockRowIdx[LBj( ksup, grid_ )].begin(),localColBlockRowIdx[LBj( ksup, grid_ )].end(),localColBlockRowIdxVec[LBj( ksup, grid_ )].begin());
+localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVec[LBj( ksup, grid_ )].begin(),
+                        std::lower_bound(localColBlockRowIdxVec[LBj( ksup, grid_ )].begin(),localColBlockRowIdxVec[LBj( ksup, grid_ )].end(),ksup));
+
 
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS 
@@ -2858,6 +2869,124 @@ namespace PEXSI{
 #ifndef _RELEASE_
       PushCallStack("SendToBelow / RecvFromAbove");
 #endif
+
+      if(1){
+      //transform
+      std::vector< BolNumVec >localColProcStruct;
+      localColProcStruct.resize( this->NumLocalBlockCol() );
+      for(Int jsupLocal = 0 ; jsupLocal<localColProcStruct.size();jsupLocal++){
+        Int jsup = GBj(jsupLocal, grid_);
+        localColProcStruct[jsupLocal].Resize(grid_->numProcRow);
+        SetValue(localColProcStruct[jsupLocal], false);
+        for(Int r = localColBlockRowIdxPos[jsupLocal]; 
+            r<localColBlockRowIdxVec[jsupLocal].size(); r++){
+          Int isup = localColBlockRowIdxVec[jsupLocal][r];
+          Int isupProcRow = PROW( isup, grid_ );
+          localColProcStruct[jsupLocal][isupProcRow] = true;
+        }
+      }
+      TIMER_START(STB_RFA_alt2);
+      for( Int jsupLocal = 0; jsupLocal < localColBlockRowIdxVec.size(); jsupLocal++ ){
+          Int jsup = GBj(jsupLocal, grid_);
+
+          for( Int k = 0; k< localColBlockRowIdxPos[jsupLocal]; k++){
+            Int ksup = localColBlockRowIdxVec[jsupLocal][k];
+
+            isRecvFromAbove_(ksup) = localColProcStruct[jsupLocal][MYROW(grid_)];
+            if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+              //this is where a union would be useful
+              std::copy(&localColProcStruct[jsupLocal][0],&localColProcStruct[jsupLocal][0]+localColProcStruct[jsupLocal].m(),&isSendToBelow_(0, ksup));
+            }
+
+            for( Int i = k; i< localColBlockRowIdxPos[jsupLocal]; i++){
+              Int isup = localColBlockRowIdxVec[jsupLocal][i];
+              Int isupProcRow = PROW( isup, grid_ );
+              if( MYROW( grid_ ) == isupProcRow ){
+                isRecvFromAbove_(ksup) = true;
+              }
+              if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+                isSendToBelow_( isupProcRow, ksup ) = true;
+              }
+            }
+            
+          }
+      }
+      TIMER_STOP(STB_RFA_alt2);
+      }
+
+//      TIMER_START(STB_RFA_alt);
+//      if(grid_->numProcRow >= 1){
+//        //std::vector<bool> done(localColBlockRowIdxVec.size(),false);
+//        for( Int jsupLocalBlockCol = 0; jsupLocalBlockCol < localColBlockRowIdxVec.size(); jsupLocalBlockCol++ ){
+//          //if(!done[jsupLocalBlockCol])
+//          {
+//            Int jsup = GBj(jsupLocalBlockCol, grid_);
+//            Int pjsup = jsup;
+//            Int lpjsup = jsup;
+//            //while(pjsup<numSuper){ 
+//            //  if(MYCOL(grid_)==PCOL(pjsup,grid_)){ 
+//            //    done[lpjsup]=true; 
+//            //    lpjsup = pjsup;
+//            //  }
+//            //  pjsup = snodeEtree[pjsup];
+//            //}
+//            //statusOFS<<"last local ancestor of "<<jsup<<" is "<<lpjsup<<std::endl;
+//
+//            Int lpjsupLocalBlockCol = LBj(lpjsup,grid_);
+//
+//            std::vector<Int>::iterator jit = localColBlockRowIdxVec[lpjsupLocalBlockCol].begin() + localColBlockRowIdxPos[lpjsupLocalBlockCol];
+//
+//            for( std::vector<Int>::iterator si = localColBlockRowIdxVec[lpjsupLocalBlockCol].begin();
+//                si != localColBlockRowIdxVec[lpjsupLocalBlockCol].end(); si++	 ){
+//              Int isup = *si;
+//              Int isupProcRow = PROW( isup, grid_ );
+//              for( std::vector<Int>::iterator ssi = localColBlockRowIdxVec[lpjsupLocalBlockCol].begin();
+//                  ssi!=jit; ssi++){
+//                Int ksup = *ssi;
+//                if( isup > ksup ){
+//                  if( MYROW( grid_ ) == isupProcRow ){
+//assert(isRecvFromAbove_(ksup));
+//                    isRecvFromAbove_(ksup) = true;
+//                  }
+//                  if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+//                    assert(isSendToBelow_( isupProcRow, ksup ) );
+//                    isSendToBelow_( isupProcRow, ksup ) = true;
+//                  }
+//                } // if( isup > ksup )
+//              }
+//            }
+//          }
+//        }
+//      }
+//      else{
+//        SetValue(isRecvFromAbove_, true);
+//        SetValue(isSendToBelow_, true);
+//      }
+//      TIMER_STOP(STB_RFA_alt);
+
+//      for( Int jsupLocalBlockCol = 0; jsupLocalBlockCol < localColBlockRowIdxVec.size(); jsupLocalBlockCol++ ){
+//        if(!done[jsupLocalBlockCol]){
+//          Int jsup = GBj(jsupLocalBlockCol, grid_);
+//          Int pjsup = jsup;
+//          Int lpjsup = jsup;
+//          while(pjsup<numSuper){ 
+//            if(MYCOL(grid_)==PCOL(pjsup,grid_)){ 
+//              done[lpjsup]=true; 
+//              lpjsup = pjsup;
+//statusOFS<<lpjsup<<" : [";
+//                if( MYROW( grid_ ) == PROW( lpjsup, grid_ ) ){
+//for(int i=0;i<grid_->numProcRow;i++){
+//  statusOFS<<(isSendToBelow_( i, lpjsup )?1:0)<<" ";
+//}
+//                }
+//statusOFS<<"]"<<endl;
+//            }
+//            pjsup = snodeEtree[pjsup];
+//          }
+//        }
+//      }
+
+{
       for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
 
 #ifdef COMMUNICATOR_PROFILE
@@ -2869,10 +2998,20 @@ namespace PEXSI{
           Int jsupLocalBlockCol = LBj( jsup, grid_ );
           Int jsupProcCol = PCOL( jsup, grid_ );
           if( MYCOL( grid_ ) == jsupProcCol ){
+              //statusOFS<<ksup<<" "<<localColBlockRowIdxVec[LBj(ksup,grid_)]<<std::endl;
+
             // SendToBelow / RecvFromAbove only if (ksup, jsup) is nonzero.
-            if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 ) {
-              for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
-                  si != localColBlockRowIdx[jsupLocalBlockCol].end(); si++	 ){
+      TIMER_START(STB_RFA_count);
+      Int cnt = localColBlockRowIdx[jsupLocalBlockCol].count( ksup );
+      TIMER_STOP(STB_RFA_count);
+        
+            if( cnt > 0 ) {
+      
+      TIMER_START(STB_RFA_iterate);
+              for( std::vector<Int>::iterator si = localColBlockRowIdxVec[jsupLocalBlockCol].begin();
+                  si != localColBlockRowIdxVec[jsupLocalBlockCol].end(); si++	 ){
+//              for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
+//                  si != localColBlockRowIdx[jsupLocalBlockCol].end(); si++	 ){
                 Int isup = *si;
                 Int isupProcRow = PROW( isup, grid_ );
                 if( isup > ksup ){
@@ -2884,6 +3023,7 @@ namespace PEXSI{
                   }
                 } // if( isup > ksup )
               } // for (si)
+      TIMER_STOP(STB_RFA_iterate);
             } // if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 )
 #ifdef COMMUNICATOR_PROFILE
             sTB[ PROW(ksup,grid_) ] = true;
@@ -2917,6 +3057,7 @@ namespace PEXSI{
 
 
       } // for(ksup)
+}
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -2926,93 +3067,99 @@ namespace PEXSI{
 #ifndef _RELEASE_
       PushCallStack("SendToRight / RecvFromLeft");
 #endif
-      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+
+      if(grid_->numProcCol >= 1){
+        for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
 
 #ifdef COMMUNICATOR_PROFILE
-        std::vector<bool> sTR(grid_->numProcCol,false);
-        std::vector<bool> rFB(grid_->numProcRow,false);
+          std::vector<bool> sTR(grid_->numProcCol,false);
+          std::vector<bool> rFB(grid_->numProcRow,false);
 #endif
-        // Loop over all the supernodes below ksup
-        Int isup = snodeEtree[ksup];
-        while(isup<numSuper){
-          Int isupLocalBlockRow = LBi( isup, grid_ );
-          Int isupProcRow       = PROW( isup, grid_ );
-          if( MYROW( grid_ ) == isupProcRow ){
-            // SendToRight / RecvFromLeft only if (isup, ksup) is nonzero.
-            if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
-              for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
-                  si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
-                Int jsup = *si;
-                Int jsupProcCol = PCOL( jsup, grid_ );
-                if( jsup > ksup ){
-                  if( MYCOL( grid_ ) == jsupProcCol ){
-                    isRecvFromLeft_(ksup) = true;
+          // Loop over all the supernodes below ksup
+          Int isup = snodeEtree[ksup];
+          while(isup<numSuper){
+            Int isupLocalBlockRow = LBi( isup, grid_ );
+            Int isupProcRow       = PROW( isup, grid_ );
+            if( MYROW( grid_ ) == isupProcRow ){
+              // SendToRight / RecvFromLeft only if (isup, ksup) is nonzero.
+              if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
+                for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
+                    si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
+                  Int jsup = *si;
+                  Int jsupProcCol = PCOL( jsup, grid_ );
+                  if( jsup > ksup ){
+                    if( MYCOL( grid_ ) == jsupProcCol ){
+                      isRecvFromLeft_(ksup) = true;
+                    }
+                    if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+                      isSendToRight_( jsupProcCol, ksup ) = true;
+                    }
                   }
-                  if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-                    isSendToRight_( jsupProcCol, ksup ) = true;
-                  }
-                }
-              } // for (si)
-            } // if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 )
+                } // for (si)
+              } // if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 )
 
 #ifdef COMMUNICATOR_PROFILE
-            sTR[ PCOL(ksup,grid_) ] = true;
-            if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
-              for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
-                  si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
-                Int jsup = *si;
-                Int jsupProcCol = PCOL( jsup, grid_ );
-                if( jsup > ksup ){
-                  sTR[ jsupProcCol ] = true;
-                } // if( jsup > ksup )
-              } // for (si)
-            }
+              sTR[ PCOL(ksup,grid_) ] = true;
+              if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
+                for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
+                    si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
+                  Int jsup = *si;
+                  Int jsupProcCol = PCOL( jsup, grid_ );
+                  if( jsup > ksup ){
+                    sTR[ jsupProcCol ] = true;
+                  } // if( jsup > ksup )
+                } // for (si)
+              }
 #endif
 
 
-          } // if( MYROW( grid_ ) == isupProcRow )
+            } // if( MYROW( grid_ ) == isupProcRow )
 
-          if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
-            if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){ 
-              isRecvFromBelow_(isupProcRow,ksup) = true;
-            }    
-            else if (MYROW(grid_) == isupProcRow){
-              isSendToDiagonal_(ksup)=true;
-            }    
-          } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
+            if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
+              if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){ 
+                isRecvFromBelow_(isupProcRow,ksup) = true;
+              }    
+              else if (MYROW(grid_) == isupProcRow){
+                isSendToDiagonal_(ksup)=true;
+              }    
+            } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
 
 #ifdef COMMUNICATOR_PROFILE
-          rFB[ PROW(ksup,grid_) ] = true;
-          if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
-            rFB[ isupProcRow ] = true;
-          } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
+            rFB[ PROW(ksup,grid_) ] = true;
+            if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
+              rFB[ isupProcRow ] = true;
+            } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
 #endif
 
 
-          isup = snodeEtree[isup];
-        } // for (isup)
+            isup = snodeEtree[isup];
+          } // for (isup)
 
 #ifdef COMMUNICATOR_PROFILE
-        Int count= std::count(rFB.begin(), rFB.end(), true);
-        Int color = rFB[MYROW(grid_)];
-        if(count>1){
-          std::vector<Int> & snodeList = stats.maskRecvFromBelow_[rFB];
-          snodeList.push_back(ksup);
-        }
-        stats.countRecvFromBelow_(ksup) = count * color;
+          Int count= std::count(rFB.begin(), rFB.end(), true);
+          Int color = rFB[MYROW(grid_)];
+          if(count>1){
+            std::vector<Int> & snodeList = stats.maskRecvFromBelow_[rFB];
+            snodeList.push_back(ksup);
+          }
+          stats.countRecvFromBelow_(ksup) = count * color;
 
-        count= std::count(sTR.begin(), sTR.end(), true);
-        color = sTR[MYCOL(grid_)];
-        if(count>1){
-          std::vector<Int> & snodeList = stats.maskSendToRight_[sTR];
-          snodeList.push_back(ksup);
-        }
-        stats.countSendToRight_(ksup) = count * color;
+          count= std::count(sTR.begin(), sTR.end(), true);
+          color = sTR[MYCOL(grid_)];
+          if(count>1){
+            std::vector<Int> & snodeList = stats.maskSendToRight_[sTR];
+            snodeList.push_back(ksup);
+          }
+          stats.countSendToRight_(ksup) = count * color;
 #endif
 
 
-      }	 // for (ksup)
-
+        }	 // for (ksup)
+      }
+      else{
+        SetValue(isRecvFromLeft_, true);
+        SetValue(isSendToRight_, true);
+      }
 #ifndef _RELEASE_
       PopCallStack();
 #endif

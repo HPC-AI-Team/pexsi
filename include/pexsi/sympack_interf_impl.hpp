@@ -41,14 +41,14 @@
    such enhancements or derivative works thereof, in binary and source code form.
  */
 /// @file ngchol_interf_impl.hpp
-/// @brief Implementation of interface with NGCHOL.
+/// @brief Implementation of interface with symPACK.
 /// @date 2014-07-08 Original version
-#ifndef _PEXSI_NGCHOL_INTERF_IMPL_HPP_
-#define _PEXSI_NGCHOL_INTERF_IMPL_HPP_
+#ifndef _PEXSI_symPACK_INTERF_IMPL_HPP_
+#define _PEXSI_symPACK_INTERF_IMPL_HPP_
 
-// Interface with NGCHOL
-#include "ngchol.hpp"
-#include "ngchol/sp_blas.hpp"
+// Interface with symPACK
+#include "sympack.hpp"
+//#include "sympack/sp_blas.hpp"
 
 // Interface with PSelInv
 #include "pexsi/pselinv.hpp"
@@ -68,19 +68,20 @@
 
 namespace PEXSI{
 
-template<typename T> void NGCHOLMatrixToSuperNode( 
-    LIBCHOLESKY::SupernodalMatrix<T>& SMat,
+template<typename T> void symPACKMatrixToSuperNode( 
+    SYMPACK::SupernodalMatrix<T>& SMat,
     SuperNodeType& super ){
 #ifndef _RELEASE_
-	PushCallStack("NGCHOLMatrixToSuperNode");
+	PushCallStack("symPACKMatrixToSuperNode");
 #endif
   Int n = SMat.Size();
 
   // perm
-  const LIBCHOLESKY::IntNumVec& SPerm = SMat.GetOrdering().perm;
-  super.perm.Resize( SPerm.m() );
-  for( Int i = 0; i < SPerm.m(); i++ ){
-    super.perm[i] = SPerm[i];
+  SYMPACK::Ordering & Order = (SYMPACK::Ordering &)SMat.GetOrdering();
+  const std::vector<Int>& SPerm = Order.perm;
+  super.perm.Resize( SPerm.size() );
+  for( Int i = 0; i < SPerm.size(); i++ ){
+    super.perm[i] = SPerm[i]-1;
   }
   
   // permInv
@@ -91,8 +92,15 @@ template<typename T> void NGCHOLMatrixToSuperNode(
   std::sort( super.permInv.Data(), super.permInv.Data() + n,
       IndexComp<IntNumVec&>(super.perm) );
 
-  LIBCHOLESKY::IntNumVec& XSuper = SMat.GetSupernodalPartition();
-  Int numSuper = XSuper.m() - 1;
+  super.perm_r.Resize( n);
+  for( Int i = 0; i < n; i++ ){
+    super.perm_r[i] = i;
+  }
+  super.permInv_r = super.perm_r;
+
+
+  std::vector<Int>& XSuper = SMat.GetSupernodalPartition();
+  Int numSuper = XSuper.size() - 1;
 
   // superPtr
   IntNumVec& superPtr = super.superPtr;
@@ -104,30 +112,45 @@ template<typename T> void NGCHOLMatrixToSuperNode(
   // superIdx
   IntNumVec& superIdx = super.superIdx;
   superIdx.Resize( n );
-  const LIBCHOLESKY::IntNumVec& superMember = SMat.GetSupMembership();
+  const std::vector<Int>& superMember = SMat.GetSupMembership();
   for( Int i = 0; i < n; i++ ){
     superIdx(i) = superMember[i] - 1;
   }
 
   // etree
-  LIBCHOLESKY::ETree& etree = SMat.GetETree();
+  const SYMPACK::ETree& etree = SMat.GetETree();
   super.etree.Resize(n);
-  for( Int i = 0; i < n; i++ ){
+  for( Int i = 0; i < etree.Size(); i++ ){
     super.etree[i] = etree.PostParent(i);
+    if(super.etree[i]==0){
+      super.etree[i]=n+1;
+    }
+    super.etree[i]-=1;
   }
+
+
+//  SYMPACK::ETree SupETree = etree.ToSupernodalETree(XSuper,(std::vector<Int>&)superMember,Order);
+//  super.etree.Resize(SupETree.Size());
+//  for( Int i = 0; i < SupETree.Size(); i++ ){
+//    super.etree[i] = SupETree.PostParent(i);
+//    if(super.etree[i]==0){
+//      super.etree[i]=numSuper+1;
+//    }
+//    super.etree[i]-=1;
+//  }
 
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
-}  // -----  end of NGCHOLMatrixToSuperNode ----- 
+}  // -----  end of symPACKMatrixToSuperNode ----- 
 
 
 
-template<typename T> void NGCHOLMatrixToPMatrix( 
-    LIBCHOLESKY::SupernodalMatrix<T>& SMat,
+template<typename T> void symPACKMatrixToPMatrix( 
+    SYMPACK::SupernodalMatrix<T>& SMat,
     PMatrix<T>& PMat ){
 #ifndef _RELEASE_
-	PushCallStack("NGCHOLMatrixToPMatrix");
+	PushCallStack("symPACKMatrixToPMatrix");
 #endif
   // This routine assumes that the g, supernode and options of PMatrix
   // has been set outside this routine.
@@ -204,36 +227,30 @@ template<typename T> void NGCHOLMatrixToPMatrix(
   //   way.  This may not be very fast.  A first improvement is to
   //   broadcast all local supernodes at once and then do local
   //   post-processing.
+  SYMPACK::Mapping * mapping = (SYMPACK::Mapping*)SMat.GetMapping();
 
   Int numSuper = PMat.NumSuper();
-  LIBCHOLESKY::Icomm snodeIcomm;
+  SYMPACK::Icomm snodeIcomm;
   std::vector<char> buffer;
   for( Int iSuper = 0; iSuper < numSuper; iSuper++ ){
-    LIBCHOLESKY::SuperNode<T> snode;
+    SYMPACK::SuperNode<T> * snode;
 
-    if( mpirank == ( iSuper % mpisize ) ){
+    Int iOwner = mapping->Map(iSuper,iSuper);
+
+    if( mpirank == iOwner ){
       // Get the local supernode
-      Int iSuperLocal = iSuper / mpisize;
-      LIBCHOLESKY::SuperNode<T>& snodetmp = 
-        SMat.GetLocalSupernode(iSuperLocal);
+      Int iSuperLocal = SMat.snodeLocalIndex(iSuper+1);
+      //SYMPACK::SuperNode<T>& snodetmp = SMat.GetLocalSupernode(iSuperLocal-1);
+      SYMPACK::SuperNode<T>* snodetmp = SMat.snodeLocal(iSuper+1); 
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << "iSuper = " << iSuper << ", iSuperLocal = " <<
-        iSuperLocal << ", id = " << snodetmp.Id() << ", size = " << 
-        snodetmp.Size() << ", #Block = " << snodetmp.NZBlockCnt() <<
+        iSuperLocal << ", id = " << snodetmp->Id() << ", size = " << 
+        snodetmp->Size() << ", #Block = " << snodetmp->NZBlockCnt() <<
         std::endl;
-    statusOFS << "snode (before bcast) = " << snodetmp << std::endl;
+//    statusOFS << "snode (before bcast) = " << *snodetmp << std::endl;
 #endif
       // Serialize the information in the current supernode
-//      std::stringstream sstm;
-//      serialize( snodetmp.Id(), sstm, NO_MASK );
-//      serialize( snodetmp.Size(), sstm, NO_MASK );
-//      serialize( snodetmp.NZBlockCnt(), sstm, NO_MASK );
-//      for( Int blkidx = 0; blkidx < snodetmp.NZBlockCnt(); blkidx++){
-//        LIBCHOLESKY::NZBlockDesc & nzblk_desc =
-//          snodetmp.GetNZBlockDesc( blkidx );
-//      } // for (blkidx)
-
-      LIBCHOLESKY::Serialize( snodeIcomm, snodetmp );
+      snodetmp->Serialize( snodeIcomm);
       Int msgSize = snodeIcomm.size();
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << "msgSize = " << msgSize << std::endl;
@@ -243,16 +260,22 @@ template<typename T> void NGCHOLMatrixToPMatrix(
       MPI_Bcast( &msgSize, 1, MPI_INT, mpirank, comm );
       MPI_Bcast( snodeIcomm.front(), msgSize, MPI_CHAR, mpirank, comm );
       // Copy the data from buffer to snode
-      LIBCHOLESKY::Deserialize( snodeIcomm.front(), snode );
+      //SYMPACK::Deserialize( snodeIcomm.front(), snode );
+
+      snode = SMat.CreateSuperNode(SMat.GetOptions().decomposition,snodeIcomm.front(),msgSize,-1);
+      snode->InitIdxToBlk();
     } // if owning the supernode
     else{
       // Receive the supernode
-      Int rootRank = ( iSuper % mpisize );
+      Int rootRank = iOwner;
       Int msgSize;
       MPI_Bcast( &msgSize, 1, MPI_INT, rootRank, comm );
       buffer.resize(msgSize);
       MPI_Bcast( &buffer[0], msgSize, MPI_CHAR, rootRank, comm );
-      LIBCHOLESKY::Deserialize( &buffer[0], snode );
+      //SYMPACK::Deserialize( &buffer[0], snode );
+
+      snode = SMat.CreateSuperNode(SMat.GetOptions().decomposition,&buffer[0],msgSize,-1);
+      snode->InitIdxToBlk();
     } // if not owning the supernode but is in the receiving column
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -264,13 +287,13 @@ template<typename T> void NGCHOLMatrixToPMatrix(
       Int jb = iSuper / npcol;
       std::vector<LBlock<T> >& Lcol = PMat.L(jb);
       std::set<Int> blkSet;
-      Int superSize = snode.Size();
+      Int superSize = snode->Size();
 
       // Count the number of blocks in the supernode belonging to this
       // processor
-      for( Int blkidx = 0; blkidx < snode.NZBlockCnt(); blkidx++ ){
-        LIBCHOLESKY::NZBlockDesc desc = snode.GetNZBlockDesc( blkidx );
-        Int nrows = snode.NRows(blkidx);
+      for( Int blkidx = 0; blkidx < snode->NZBlockCnt(); blkidx++ ){
+        SYMPACK::NZBlockDesc desc = snode->GetNZBlockDesc( blkidx );
+        Int nrows = snode->NRows(blkidx);
         Int firstRow = desc.GIndex - 1;
         Int lastRow = firstRow + nrows - 1;
 #if ( _DEBUGlevel_ >= 1 )
@@ -298,12 +321,12 @@ template<typename T> void NGCHOLMatrixToPMatrix(
       std::vector<std::vector<Int> > rowsBlk( Lcol.size() );
       std::vector<std::vector<T> > nzvalBlk( Lcol.size() );
 
-      for( Int blkidx = 0; blkidx < snode.NZBlockCnt(); blkidx++ ){
-        LIBCHOLESKY::NZBlockDesc desc = snode.GetNZBlockDesc( blkidx );
-        Int nrows = snode.NRows(blkidx);
+      for( Int blkidx = 0; blkidx < snode->NZBlockCnt(); blkidx++ ){
+        SYMPACK::NZBlockDesc desc = snode->GetNZBlockDesc( blkidx );
+        Int nrows = snode->NRows(blkidx);
         Int firstRow = desc.GIndex - 1;
         Int lastRow = firstRow + nrows - 1;
-        T* nzval = snode.GetNZval( desc.Offset );
+        T* nzval = snode->GetNZval( desc.Offset );
         std::vector<Int>::iterator vi;
         Int pos;
         for( Int i = firstRow; i <= lastRow; i++ ){
@@ -342,16 +365,76 @@ template<typename T> void NGCHOLMatrixToPMatrix(
     } // if the current processor is in the right processor column
 
     // Set the MPI Barrier
+    delete snode;
     MPI_Barrier( comm );
   }
 
 
   PMatrixLtoU( PMat );
 
+
+  //Fill ColBlockIdx and RowBlockIdx
+  for( Int jb = 0; jb < PMat.NumLocalBlockCol(); jb++ ){
+    Int bnum = GBj( jb, g );
+    if( bnum >= numSuper ) continue;
+    std::vector<LBlock<T> >& Lcol = PMat.L(jb);
+    for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
+      LBlock<T>& LB = Lcol[iblk];
+      PMat.ColBlockIdx(jb).push_back(LB.blockIdx);
+      Int LBi = LB.blockIdx / g->numProcRow; 
+      PMat.RowBlockIdx( LBi ).push_back( bnum );
+    }
+  }
+
+  for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
+    Int bnum = GBi( ib, g );
+    if( bnum >= numSuper ) continue;
+    std::vector<UBlock<T> >& Urow = PMat.U(ib);
+    for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
+      UBlock<T> & UB = Urow[jblk];
+      PMat.RowBlockIdx(ib).push_back(UB.blockIdx);
+      Int LBj = UB.blockIdx / g->numProcCol; 
+      PMat.ColBlockIdx( LBj ).push_back( bnum );
+    }
+  }
+
+  const SuperNodeType* super = PMat.SuperNode();
+  for( Int ksup = 0; ksup < numSuper; ksup++ ){
+    Int pcol = ( ksup % npcol );
+    Int prow = ( ksup % nprow );
+    if( mpirow == prow ){
+      NumMat<T> DiagBuf;
+      DiagBuf.Resize(SuperSize( ksup, super ), SuperSize( ksup, super ));
+      if( mpicol == pcol ){
+        Int jb = ksup / npcol;
+        std::vector<LBlock<T> >& Lcol = PMat.L(jb);
+        LBlock<T>& LB = Lcol[0];
+        for(Int row = 0; row<LB.nzval.m(); row++){
+          for(Int col = row+1; col<LB.nzval.n(); col++){
+            LB.nzval(row,col) = LB.nzval(col,row) * LB.nzval(row,row);
+          }
+        } 
+        DiagBuf = LB.nzval;
+      }
+      //send the LBlock to the processors in same row
+      MPI_Bcast(DiagBuf.Data(),DiagBuf.m()*DiagBuf.n()*sizeof(T),MPI_BYTE,pcol,g->rowComm);
+      Int ib = ksup / nprow;
+      std::vector<UBlock<T> >& Urow = PMat.U(ib);
+
+      for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
+        UBlock<T>& UB = Urow[jblk];
+        for(Int row = 0; row<UB.nzval.m(); row++){
+          for(Int col = 0; col<UB.nzval.n(); col++){
+            UB.nzval(row,col) = UB.nzval(row,col) * DiagBuf(row,row);
+          }
+        }
+      }
+    }
+  }
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
-}  // -----  end of NGCHOLMatrixToPMatrix ----- 
+}  // -----  end of symPACKMatrixToPMatrix ----- 
 
 template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
 {
@@ -600,5 +683,5 @@ statusOFS<<"Received LB: "<<LB<<std::endl;
 }
 
 
-#endif //_PEXSI_NGCHOL_INTERF_IMPL_HPP_
+#endif //_PEXSI_symPACK_INTERF_IMPL_HPP_
 

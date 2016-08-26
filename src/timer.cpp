@@ -323,3 +323,12 @@ void CTF_set_context(MPI_Comm ctxt){
   set_contxt = 1;
   comm = ctxt;
 }
+
+
+
+void TAU_PROFILE_INIT(int argc, char ** argv){
+  CTF_set_main_args(argc, argv);
+}
+void TAU_PROFILE_SET_CONTEXT(MPI_Comm comm){
+  CTF_set_context(comm);
+}

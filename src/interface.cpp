@@ -424,6 +424,8 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
   const GridType* gridPole = 
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
+
+
   *info = 0;
 
   try{

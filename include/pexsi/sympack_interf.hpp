@@ -41,13 +41,13 @@
    such enhancements or derivative works thereof, in binary and source code form.
  */
 /// @file ngchol_interf.hpp
-/// @brief Interface with NGCHOL
+/// @brief Interface with symPACK
 /// @date 2014-07-08 Original version
-#ifndef _PEXSI_NGCHOL_INTERF_HPP_
-#define _PEXSI_NGCHOL_INTERF_HPP_
+#ifndef _PEXSI_symPACK_INTERF_HPP_
+#define _PEXSI_symPACK_INTERF_HPP_
 
-// Interface with NGCHOL
-#include "ngchol.hpp"
+// Interface with symPACK
+#include "sympack.hpp"
 
 // Interface with PSelInv
 #include "pexsi/pselinv.hpp"
@@ -56,21 +56,22 @@ namespace PEXSI{
 
   template<typename T> class PMatrix;
 
-  /// @brief Converts the NGCHOL supernodal structure to PMatrix
+  /// @brief Converts the symPACK supernodal structure to PMatrix
   /// SuperNodeType structure.
-  template<typename T> void NGCHOLMatrixToSuperNode( 
-      LIBCHOLESKY::SupernodalMatrix<T>& SMat,
+  template<typename T> void symPACKMatrixToSuperNode( 
+      SYMPACK::SupernodalMatrix<T>& SMat,
       SuperNodeType& super );
-  /// @brief Converts a matrix of NGCHOL type to PMatrix.
+
+  /// @brief Converts a matrix of symPACK type to PMatrix.
   template<typename T> 
-    void NGCHOLMatrixToPMatrix( 
-        LIBCHOLESKY::SupernodalMatrix<T>& SMat,
+    void symPACKMatrixToPMatrix( 
+        SYMPACK::SupernodalMatrix<T>& SMat,
         PMatrix<T>& PMat );
 
   template<typename T> void PMatrixLtoU( PMatrix<T>& PMat );
 }
 
-#include "pexsi/ngchol_interf_impl.hpp"
+#include "sympack_interf_impl.hpp"
 
-#endif //_PEXSI_NGCHOL_INTERF_HPP_
+#endif //_PEXSI_symPACK_INTERF_HPP_
 

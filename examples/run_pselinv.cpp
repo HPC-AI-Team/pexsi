@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-#define _MYCOMPLEX_
+//#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -265,13 +265,7 @@ int main(int argc, char **argv)
       // *********************************************************************
 
       // Setup grid.
-#ifdef SWAP_ROWS_COLS
-      SuperLUGrid<MYSCALAR> g( world_comm, npcol, nprow );
-      //SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
-#else
       SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
-#endif
-      //      SuperLUGrid<Complex> g1( world_comm, nprow, npcol );
 
       int      m, n;
       DistSparseMatrix<MYSCALAR>  AMat;

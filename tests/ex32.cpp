@@ -12,8 +12,8 @@
 // Libraries from NGCHOL BEGIN
 #include  "ppexsi.hpp"
 
-#include "ngchol.hpp"
-#include "ngchol/sp_blas.hpp"
+#include "sympack.hpp"
+#include "sympack/sp_blas.hpp"
 
 
 using namespace PEXSI;
@@ -53,40 +53,40 @@ int main(int argc, char **argv)
 
 
   //Temporarily required
-  MPI_Comm_size(world_comm, &LIBCHOLESKY::np);
-  MPI_Comm_rank(world_comm, &LIBCHOLESKY::iam);
+  MPI_Comm_size(world_comm, &SYMPACK::np);
+  MPI_Comm_rank(world_comm, &SYMPACK::iam);
 
   std::stringstream suffix;
   suffix<<mpirank;
-  LIBCHOLESKY::logfileptr = new LIBCHOLESKY::LogFile("status",suffix.str().c_str());
-  LIBCHOLESKY::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<endl;
-  LIBCHOLESKY::logfileptr->OFS()<<"**********************************"<<endl;
+  SYMPACK::logfileptr = new SYMPACK::LogFile("status",suffix.str().c_str());
+  SYMPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<endl;
+  SYMPACK::logfileptr->OFS()<<"**********************************"<<endl;
 
 
 
 
-  LIBCHOLESKY::Modwrap2D * mapping = new LIBCHOLESKY::Modwrap2D(mpisize, mpisize, mpisize, 1);
-  //LIBCHOLESKY::Modwrap2D * mapping = new LIBCHOLESKY::Modwrap2D(mpisize, sqrt(mpisize), mpisize, 1);
-  LIBCHOLESKY::DistSparseMatrix<SCALAR > HMat(world_comm);
-  LIBCHOLESKY::ParaReadDistSparseMatrix( argv[1], HMat, world_comm ); 
+  SYMPACK::Modwrap2D * mapping = new SYMPACK::Modwrap2D(mpisize, mpisize, mpisize, 1);
+  //SYMPACK::Modwrap2D * mapping = new SYMPACK::Modwrap2D(mpisize, sqrt(mpisize), mpisize, 1);
+  SYMPACK::DistSparseMatrix<SCALAR > HMat(world_comm);
+  SYMPACK::ParaReadDistSparseMatrix( argv[1], HMat, world_comm ); 
 
 
   //Prepare for a solve
   Int n = HMat.size;
   Int nrhs = 5;
-  LIBCHOLESKY::DblNumMat RHS(n,nrhs);
-  LIBCHOLESKY::DblNumMat XTrue(n,nrhs);
-  LIBCHOLESKY::UniformRandom(XTrue);
-  LIBCHOLESKY::sp_dgemm_dist("N","N", n, XTrue.n(), n, 
-      LIBCHOLESKY::ONE<SCALAR>(), HMat, XTrue.Data(), XTrue.m(), 
-      LIBCHOLESKY::ZERO<SCALAR>(), RHS.Data(), RHS.m());
+  SYMPACK::DblNumMat RHS(n,nrhs);
+  SYMPACK::DblNumMat XTrue(n,nrhs);
+  SYMPACK::UniformRandom(XTrue);
+  SYMPACK::sp_dgemm_dist("N","N", n, XTrue.n(), n, 
+  SYMPACK::ONE<SCALAR>(), HMat, XTrue.Data(), XTrue.m(), 
+  SYMPACK::ZERO<SCALAR>(), RHS.Data(), RHS.m());
 
 
   //Create the supernodal matrix
-  LIBCHOLESKY::SupernodalMatrix<SCALAR> SMat(HMat,-1,*mapping,0,0,world_comm);
+  SYMPACK::SupernodalMatrix<SCALAR> SMat(HMat,-1,*mapping,0,0,world_comm);
 
   //sort X the same way (permute rows)
-  LIBCHOLESKY::DblNumMat X(RHS.m(),RHS.n());
+  SYMPACK::DblNumMat X(RHS.m(),RHS.n());
   for(Int row = 1; row<= RHS.m(); ++row){
     for(Int col = 1; col<= RHS.n(); ++col){
       X(row-1,col-1) = RHS(SMat.perm_[row-1]-1,col-1);
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
   SMat.GetSolution(X,world_comm);
 
   //Sort back X
-  LIBCHOLESKY::DblNumMat X2(X.m(),X.n());
+  SYMPACK::DblNumMat X2(X.m(),X.n());
   for(Int row = 1; row<= X.m(); ++row){
     for(Int col = 1; col<= X.n(); ++col){
       X2(SMat.perm_[row-1]-1,col-1) = X(row-1,col-1);
@@ -110,15 +110,15 @@ int main(int argc, char **argv)
   }
 
   //Check the error
-  LIBCHOLESKY::blas::Axpy(X2.m()*X2.n(),-1.0,&XTrue(0,0),1,&X2(0,0),1);
-  double norm = LIBCHOLESKY::lapack::Lange('F',X2.m(),X2.n(),&X2(0,0),X2.m());
+  SYMPACK::blas::Axpy(X2.m()*X2.n(),-1.0,&XTrue(0,0),1,&X2(0,0),1);
+  double norm = SYMPACK::lapack::Lange('F',X2.m(),X2.n(),&X2(0,0),X2.m());
   if(mpirank==0){
     cout<<"Norm of residual after SPCHOL is "<<norm<<std::endl;
   }
 
   //sample loop to convert it to PMatrix
   //for(Int i = 0; i<SMat.SupernodeCnt();++i){
-  //  LIBCHOLESKY::SuperNode<SCALAR> curSnode = SMat.GetLocalSupernode(i);
+  //  SYMPACK::SuperNode<SCALAR> curSnode = SMat.GetLocalSupernode(i);
   //}
 
 
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
   }
 
   delete mapping;
-  delete LIBCHOLESKY::logfileptr;
+  delete SYMPACK::logfileptr;
   statusOFS.close();
 
 
