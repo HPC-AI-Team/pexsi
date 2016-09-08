@@ -1,4 +1,5 @@
-function nzval = WriteSparseMatrixLU2(A, filename, colptr, rowind)
+function nzval = ...
+  WriteSparseMatrixLU2(A, filename, colptr, rowind, formatted)
 % Write a sparse matrix A in compressed sparse column format. Both upper
 % and lower triangular matrices are saved. The sparsity pattern is given
 % by colptr, rowind
@@ -8,9 +9,9 @@ function nzval = WriteSparseMatrixLU2(A, filename, colptr, rowind)
 
 disp('Computing the compressed sparse column format...');
 tic
-disp('norm(A-A'')_{inf} = ');
-norm(A-A',inf)
-A = (A+A')/2; % Make sure symmetry
+% disp('norm(A-A'')_{inf} = ');
+% norm(A-A',inf)
+% A = (A+A')/2; % Make sure symmetry
 N = length(A);
 nnzA = length(rowind);
 disp('Preparing nzval according to the sparsity pattern');
@@ -26,11 +27,11 @@ tic
 toc
 	
 
-if(0)
+if(formatted)
 	disp('Writing the matrix to file (text format)...');
 	tic
 		fid = fopen(filename,'w');
-		fprintf(fid, '%d %d ', [N, nnzA]);
+		fprintf(fid, '%d %d %d %d', [N, N, nnzA, 0]);
 		fprintf(fid, '\n');
 		fprintf(fid, '%d ', colptr);
 		fprintf(fid, '\n');

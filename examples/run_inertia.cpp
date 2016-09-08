@@ -45,6 +45,9 @@
 /// stencil. This can be used for estimating the density of states in a
 /// local region, when diagonalization is too expensive but
 /// factorization is still possible.
+/// 
+/// FIXME This file is OBSOLETE.
+///
 /// @date 2014-01-24
 #include  "ppexsi.hpp"
 #include "pexsi/timer.h"

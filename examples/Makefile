@@ -4,12 +4,11 @@
 include ../make.inc
 
 SRCS_CPP  = run_inertia.cpp run_ppexsi.cpp run_pselinv.cpp run_pselinv_unsym.cpp \
-						run_ksdft.cpp
+						run_ksdft.cpp run_fermi.cpp run_fermi_complex.cpp
 SRCS_C    = driver_pselinv_real.c driver_pselinv_complex.c driver_pselinv_real_unsym.c \
 					 	driver_pselinv_complex_unsym.c driver_ksdft.c driver_ksdft_2.c
 
 all: driver_pselinv_real driver_pselinv_complex driver_ksdft 
-
 
 driver_ksdft_2: driver_ksdft_2.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} driver_ksdft_2.o  $(LOADOPTS) )
@@ -28,6 +27,12 @@ driver_pselinv_complex_unsym: driver_pselinv_complex_unsym.o ${PEXSI_LIB}
 
 driver_pselinv_real_unsym: driver_pselinv_real_unsym.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} driver_pselinv_real_unsym.o  $(LOADOPTS) )
+
+run_fermi_complex: run_fermi_complex.o ${PEXSI_LIB} 
+	($(LOADER) -o $@_${SUFFIX} run_fermi_complex.o  $(LOADOPTS) )
+
+run_fermi: run_fermi.o ${PEXSI_LIB} 
+	($(LOADER) -o $@_${SUFFIX} run_fermi.o  $(LOADOPTS) )
 
 run_ksdft: run_ksdft.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_ksdft.o  $(LOADOPTS) )

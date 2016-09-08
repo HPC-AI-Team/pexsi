@@ -46,9 +46,11 @@
 /// @date Revision:      2014-03-09  Second generation interface.
 /// @date Revision:      2015-11-25  Update strategy with pole
 /// expansion.
+/// @date Revision:      2016-09-04  Update interface for unsymmetric
+/// solvers.
 
 // FIXME
-#define _DEBUGlevel_ 0
+//#define _DEBUGlevel_ 0
 
 #include "ppexsi.hpp"
 #include "pexsi/utility.hpp"
@@ -82,9 +84,9 @@ PPEXSIData::PPEXSIData	(
   }
 
   gridPole_     = new GridType( comm, mpisize / npPerPole, npPerPole );
-	gridSuperLUReal_     = new SuperLUGrid<Real>( 
+  gridSuperLUReal_     = new SuperLUGrid<Real>( 
       gridPole_->rowComm, numProcRow, numProcCol );
-	gridSuperLUComplex_  = new SuperLUGrid<Complex>( 
+  gridSuperLUComplex_  = new SuperLUGrid<Complex>( 
       gridPole_->rowComm, numProcRow, numProcCol );
 
 	gridSelInv_   = new GridType( gridPole_->rowComm, 
@@ -128,6 +130,8 @@ PPEXSIData::PPEXSIData	(
   isMatrixLoaded_       = false;
   isRealSymmetricSymbolicFactorized_ = false;
   isComplexSymmetricSymbolicFactorized_ = false;
+  isRealUnsymmetricSymbolicFactorized_ = false;
+  isComplexUnsymmetricSymbolicFactorized_ = false;
 
   // Initialize the empty matrices
   luRealMat_ = new SuperLUMatrix<Real>;
@@ -466,6 +470,266 @@ PPEXSIData::LoadRealUnsymmetricMatrix	(
 }    	// -----  end of method PPEXSIData::LoadRealUnsymmetricMatrix  ----- 
 
 
+void
+PPEXSIData::LoadComplexSymmetricMatrix	(
+    Int           nrows,                        
+    Int           nnz,                          
+    Int           nnzLocal,                     
+    Int           numColLocal,                  
+    Int*          colptrLocal,                  
+    Int*          rowindLocal,                  
+    Complex*      HnzvalLocal,                  
+    Int           isSIdentity,                  
+    Complex*      SnzvalLocal,
+    Int           verbosity )
+{
+#ifndef _RELEASE_
+  PushCallStack("PPEXSIData::LoadComplexSymmetricMatrix");
+#endif
+  // Clear the previously saved information
+  HComplexMat_ = DistSparseMatrix<Complex>();
+  SComplexMat_ = DistSparseMatrix<Complex>();
+
+  // Data communication
+  std::vector<char> sstr;
+  Int sizeStm;
+  if( MYROW( gridPole_ ) == 0 ){
+    std::stringstream sstm;
+
+    HComplexMat_.size        = nrows;
+    HComplexMat_.nnz         = nnz;
+    HComplexMat_.nnzLocal    = nnzLocal;
+    // The first row processor does not need extra copies of the index /
+    // value of the matrix. 
+    HComplexMat_.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
+    HComplexMat_.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
+    // H value
+    HComplexMat_.nzvalLocal  = CpxNumVec( nnzLocal,      false, HnzvalLocal );
+    HComplexMat_.comm        = gridPole_->rowComm;
+
+    // Serialization will copy the values regardless of the ownership
+    serialize( HComplexMat_, sstm, NO_MASK );
+
+    // S value
+    if( isSIdentity ){
+      SComplexMat_.size = 0;
+      SComplexMat_.nnz  = 0;
+      SComplexMat_.nnzLocal = 0;
+      SComplexMat_.comm = HComplexMat_.comm; 
+    }
+    else{
+      CopyPattern( HComplexMat_, SComplexMat_ );
+      SComplexMat_.comm = HComplexMat_.comm; 
+      SComplexMat_.nzvalLocal  = CpxNumVec( nnzLocal,      false, SnzvalLocal );
+      serialize( SComplexMat_.nzvalLocal, sstm, NO_MASK );
+    }
+
+    sstr.resize( Size( sstm ) );
+    sstm.read( &sstr[0], sstr.size() ); 	
+    sizeStm = sstr.size();
+  }
+
+  MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole_->colComm );
+
+  if( verbosity >= 2 ){
+    statusOFS << "sizeStm = " << sizeStm << std::endl;
+  }
+
+  if( MYROW( gridPole_ ) != 0 ) sstr.resize( sizeStm );
+
+  MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole_->colComm );
+
+  if( MYROW( gridPole_ ) != 0 ){
+    std::stringstream sstm;
+    sstm.write( &sstr[0], sizeStm );
+    deserialize( HComplexMat_, sstm, NO_MASK );
+    // Communicator
+    HComplexMat_.comm = gridPole_->rowComm;
+    if( isSIdentity ){
+      SComplexMat_.size = 0;    // Means S is an identity matrix
+      SComplexMat_.nnz  = 0;
+      SComplexMat_.nnzLocal = 0;
+      SComplexMat_.comm = HComplexMat_.comm;
+    }
+    else{
+      CopyPattern( HComplexMat_, SComplexMat_ );
+      SComplexMat_.comm = HComplexMat_.comm;
+      deserialize( SComplexMat_.nzvalLocal, sstm, NO_MASK );
+    }
+  }
+  sstr.clear();
+
+
+  if( verbosity >= 1 ){
+    statusOFS << "H.size     = " << HComplexMat_.size     << std::endl;
+    statusOFS << "H.nnzLocal = " << HComplexMat_.nnzLocal << std::endl;
+    statusOFS << "S.size     = " << SComplexMat_.size     << std::endl;
+    statusOFS << "S.nnzLocal = " << SComplexMat_.nnzLocal << std::endl;
+    statusOFS << std::endl << std::endl;
+  }
+
+
+  // Record the index for the diagonal elements to handle the case if S
+  // is identity.
+	{
+		Int numColLocal      = HComplexMat_.colptrLocal.m() - 1;
+		Int numColLocalFirst = HComplexMat_.size / gridSelInv_->mpisize;
+		Int firstCol         = gridSelInv_->mpirank * numColLocalFirst;
+		
+		diagIdxLocal_.clear();
+
+		for( Int j = 0; j < numColLocal; j++ ){
+			Int jcol = firstCol + j + 1;
+			for( Int i = HComplexMat_.colptrLocal(j)-1; 
+				 	 i < HComplexMat_.colptrLocal(j+1)-1; i++ ){
+				Int irow = HComplexMat_.rowindLocal(i);
+				if( irow == jcol ){
+					diagIdxLocal_.push_back( i );
+				}
+			}
+		} // for (j)
+	}
+
+  isMatrixLoaded_ = true;
+
+#ifndef _RELEASE_
+  PopCallStack();
+#endif
+
+  return ;
+}    	// -----  end of method PPEXSIData::LoadComplexSymmetricMatrix  ----- 
+
+
+
+
+void
+PPEXSIData::LoadComplexUnsymmetricMatrix	(
+    Int           nrows,                        
+    Int           nnz,                          
+    Int           nnzLocal,                     
+    Int           numColLocal,                  
+    Int*          colptrLocal,                  
+    Int*          rowindLocal,                  
+    Complex*      HnzvalLocal,                  
+    Int           isSIdentity,                  
+    Complex*      SnzvalLocal,
+    Int           verbosity )
+{
+#ifndef _RELEASE_
+  PushCallStack("PPEXSIData::LoadComplexUnsymmetricMatrix");
+#endif
+  // Clear the previously saved information
+  HComplexMat_ = DistSparseMatrix<Complex>();
+  SComplexMat_ = DistSparseMatrix<Complex>();
+
+  // Data communication
+  std::vector<char> sstr;
+  Int sizeStm;
+  if( MYROW( gridPole_ ) == 0 ){
+    std::stringstream sstm;
+
+    HComplexMat_.size        = nrows;
+    HComplexMat_.nnz         = nnz;
+    HComplexMat_.nnzLocal    = nnzLocal;
+    // The first row processor does not need extra copies of the index /
+    // value of the matrix. 
+    HComplexMat_.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
+    HComplexMat_.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
+    // H value
+    HComplexMat_.nzvalLocal  = CpxNumVec( nnzLocal,      false, HnzvalLocal );
+    HComplexMat_.comm        = gridPole_->rowComm;
+
+    // Serialization will copy the values regardless of the ownership
+    serialize( HComplexMat_, sstm, NO_MASK );
+
+    // S value
+    if( isSIdentity ){
+      SComplexMat_.size = 0;
+      SComplexMat_.nnz  = 0;
+      SComplexMat_.nnzLocal = 0;
+      SComplexMat_.comm = HComplexMat_.comm; 
+    }
+    else{
+      CopyPattern( HComplexMat_, SComplexMat_ );
+      SComplexMat_.comm = HComplexMat_.comm; 
+      SComplexMat_.nzvalLocal  = CpxNumVec( nnzLocal,      false, SnzvalLocal );
+      serialize( SComplexMat_.nzvalLocal, sstm, NO_MASK );
+    }
+
+    sstr.resize( Size( sstm ) );
+    sstm.read( &sstr[0], sstr.size() ); 	
+    sizeStm = sstr.size();
+  }
+
+  MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole_->colComm );
+
+  if( verbosity >= 2 ){
+    statusOFS << "sizeStm = " << sizeStm << std::endl;
+  }
+
+  if( MYROW( gridPole_ ) != 0 ) sstr.resize( sizeStm );
+
+  MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole_->colComm );
+
+  if( MYROW( gridPole_ ) != 0 ){
+    std::stringstream sstm;
+    sstm.write( &sstr[0], sizeStm );
+    deserialize( HComplexMat_, sstm, NO_MASK );
+    // Communicator
+    HComplexMat_.comm = gridPole_->rowComm;
+    if( isSIdentity ){
+      SComplexMat_.size = 0;    // Means S is an identity matrix
+      SComplexMat_.nnz  = 0;
+      SComplexMat_.nnzLocal = 0;
+      SComplexMat_.comm = HComplexMat_.comm;
+    }
+    else{
+      CopyPattern( HComplexMat_, SComplexMat_ );
+      SComplexMat_.comm = HComplexMat_.comm;
+      deserialize( SComplexMat_.nzvalLocal, sstm, NO_MASK );
+    }
+  }
+  sstr.clear();
+
+
+  if( verbosity >= 1 ){
+    statusOFS << "H.size     = " << HComplexMat_.size     << std::endl;
+    statusOFS << "H.nnzLocal = " << HComplexMat_.nnzLocal << std::endl;
+    statusOFS << "S.size     = " << SComplexMat_.size     << std::endl;
+    statusOFS << "S.nnzLocal = " << SComplexMat_.nnzLocal << std::endl;
+    statusOFS << std::endl << std::endl;
+  }
+
+
+  // Record the index for the diagonal elements to handle the case if S
+  // is identity.
+	{
+		Int numColLocal      = HComplexMat_.colptrLocal.m() - 1;
+		Int numColLocalFirst = HComplexMat_.size / gridSelInv_->mpisize;
+		Int firstCol         = gridSelInv_->mpirank * numColLocalFirst;
+		
+		diagIdxLocal_.clear();
+
+		for( Int j = 0; j < numColLocal; j++ ){
+			Int jcol = firstCol + j + 1;
+			for( Int i = HComplexMat_.colptrLocal(j)-1; 
+				 	 i < HComplexMat_.colptrLocal(j+1)-1; i++ ){
+				Int irow = HComplexMat_.rowindLocal(i);
+				if( irow == jcol ){
+					diagIdxLocal_.push_back( i );
+				}
+			}
+		} // for (j)
+	}
+
+  isMatrixLoaded_ = true;
+
+#ifndef _RELEASE_
+  PopCallStack();
+#endif
+
+  return ;
+}    	// -----  end of method PPEXSIData::LoadComplexUnsymmetricMatrix  ----- 
 
 
 
@@ -877,7 +1141,7 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
     luMat.Setup( *gridSuperLUComplex_, luOpt_ );  // SuperLU matrix.
 
     DistSparseMatrix<Complex> AMat;
-    CopyPattern( HRealMat_, AMat );
+    CopyPattern( HComplexMat_, AMat );
 
     if(luOpt_.RowPerm == "LargeDiag"){
       if(AnzvalLocal != NULL){
@@ -1345,7 +1609,7 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
     DistSparseMatrix<Complex>& AMat      = shiftComplexMat_;
     DistSparseMatrix<Complex>& AinvMat   = shiftInvComplexMat_;
     SuperLUMatrix<Complex>&    luMat     = *luComplexMat_;
-    PMatrixUnsym<Complex>&          PMloc     = *PMComplexUnsymMat_;
+    PMatrixUnsym<Complex>&     PMloc     = *PMComplexUnsymMat_;
 
     // Copy the pattern
     CopyPattern( HRealMat_, AMat );
@@ -2194,6 +2458,598 @@ throw std::logic_error( "Must be even number of poles!" );
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal  ----- 
 
 
+// Main subroutine for the electronic structure calculation with Hermitian Hamiltonian
+void PPEXSIData::CalculateFermiOperatorComplex(
+    Int   numPole, 
+    Real  temperature,
+    Real  gap,
+    Real  deltaE,
+    Real  mu,
+    Real  numElectronExact,
+    Real  numElectronTolerance,
+    Int   verbosity,
+    Real& numElectron,
+    Real& numElectronDrvMu ){
+
+#ifndef _RELEASE_
+  PushCallStack("PPEXSIData::CalculateFermiOperatorComplex");
+#endif
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadRealSymmetricMatrix first." << std::endl;
+#ifdef USE_ABORT
+    abort();
+#endif
+    throw std::runtime_error( msg.str().c_str() );
+  }
+
+  if( isComplexUnsymmetricSymbolicFactorized_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been factorized symbolically." << std::endl
+      << "Call SymbolicFactorizeComplexUnsymmetricMatrix first." << std::endl;
+    throw std::runtime_error( msg.str().c_str() );
+  }
+
+  // *********************************************************************
+  // Check the input parameters
+  // *********************************************************************
+  if( numPole % 2 != 0 ){
+#ifdef USE_ABORT
+    abort();
+#endif
+throw std::logic_error( "Must be even number of poles!" );
+  }
+
+  // *********************************************************************
+  // Initialize
+  // *********************************************************************
+  // Rename for convenience
+  DistSparseMatrix<Complex>&  HMat        = HComplexMat_;
+  DistSparseMatrix<Complex>&  SMat        = SComplexMat_;
+
+  DistSparseMatrix<Complex>& rhoMat       = rhoComplexMat_;     
+  DistSparseMatrix<Complex>& rhoDrvMuMat  = rhoDrvMuComplexMat_;
+  DistSparseMatrix<Complex>& rhoDrvTMat   = rhoDrvTComplexMat_;
+  DistSparseMatrix<Complex>& hmzMat       = freeEnergyDensityComplexMat_;
+  DistSparseMatrix<Complex>& frcMat       = energyDensityComplexMat_;
+
+  DistSparseMatrix<Complex>& AMat      = shiftComplexMat_;
+  DistSparseMatrix<Complex>& AinvMat   = shiftInvComplexMat_;
+
+  // The symbolic information should have already been there.
+  SuperLUMatrix<Complex>& luMat        = *luComplexMat_;
+  PMatrixUnsym<Complex>&  PMloc        = *PMComplexUnsymMat_;
+
+  // 
+  bool isFreeEnergyDensityMatrix = true;
+  bool isEnergyDensityMatrix     = true;
+  bool isDerivativeTMatrix       = false;
+
+  // Copy the pattern
+  CopyPattern( HMat, AMat );
+  CopyPattern( HMat, rhoMat );
+  CopyPattern( HMat, rhoDrvMuMat );
+  if( isFreeEnergyDensityMatrix )
+    CopyPattern( HMat, hmzMat );
+  if( isEnergyDensityMatrix )
+    CopyPattern( HMat, frcMat );
+  if( isDerivativeTMatrix )
+    CopyPattern( HMat, rhoDrvTMat );
+
+  // Reinitialize the variables
+  SetValue( rhoMat.nzvalLocal, Z_ZERO );
+  SetValue( rhoDrvMuMat.nzvalLocal, Z_ZERO );
+  if( isFreeEnergyDensityMatrix )
+    SetValue( hmzMat.nzvalLocal, Z_ZERO );
+  if( isEnergyDensityMatrix )
+    SetValue( frcMat.nzvalLocal, Z_ZERO );
+  if( isDerivativeTMatrix )
+    SetValue( rhoDrvTMat.nzvalLocal, Z_ZERO );
+
+  // Refine the pole expansion  
+  // numPoleInput is the number of poles to be given to other parts of
+  // the pole expansion, which is larger than or equal to numPole.
+  Int numPoleInput;
+  // poleIdx is a vector of size numPole.  Only poles with index in
+  // poleIdx are used for actual computation. The rest of the poles are
+  // discarded according to tolerance criterion
+  //
+  //   numElectronTolerance / numElectronExact / numPole
+  //
+  // FIXME The heuristics should be refined to give error estimate to
+  // other quantities such as the energy.
+  // FIXME The heuristics part should also be given in a separate
+  // routine, and the input of this file does not need mu, gap etc.
+  //
+  // This part should be kept the same as CalculateFermiOperatorReal
+  std::vector<Int>  poleIdx(numPole);
+  {
+    // Setup a grid from (mu - deltaE, mu + deltaE), and measure
+    // the error bound in the L^infty sense on this grid.
+    //
+    // fdGrid:      Exact Fermi-Dirac function evaluated on xGrid
+    // fdPoleGrid:  Fermi-Dirac function using pole expansion
+    // evaluated on the grid.
+    Int numX = 10000;
+    std::vector<Real>    xGrid( numX );
+    std::vector<Real>    fdGrid( numX );
+
+    Real x0 = mu - deltaE;
+    Real x1 = mu + deltaE;
+    Real h  = (x1 - x0) / (numX - 1);
+    Real ez;
+    for( Int i = 0; i < numX; i++ ){
+      xGrid[i]  = x0 + i * h;
+      if( xGrid[i] - mu >= 0 ){
+        ez = std::exp(- (xGrid[i] - mu) / temperature );
+        fdGrid[i] = 2.0 * ez / (1.0 + ez);
+      }
+      else{
+        ez = std::exp((xGrid[i] - mu) / temperature );
+        fdGrid[i] = 2.0 / (1.0 + ez);
+      }
+    }
+
+
+    numPoleInput = numPole;
+    Real tol;
+    Int  numPoleSignificant;
+
+    Int poleIter = 0;
+    do{
+      // If the number of significant poles is less than numPole,
+      // increase numPoleInput by 2 at a time and redo the
+      // computation.
+      if( poleIter > 0 )
+        numPoleInput += 2;
+
+      zshift_.resize( numPoleInput );
+      zweightRho_.resize( numPoleInput );
+      GetPoleDensity( &zshift_[0], &zweightRho_[0],
+          numPoleInput, temperature, gap, deltaE, mu ); 
+
+      std::vector<Complex>  zshiftTmp( numPoleInput );
+      zweightForce_.resize( numPoleInput );
+      GetPoleForce( &zshiftTmp[0], &zweightForce_[0],
+          numPoleInput, temperature, gap, deltaE, mu ); 
+
+
+      std::vector<Real>  maxMagPole(numPoleInput);
+      for( Int l = 0; l < numPoleInput; l++ ){
+        maxMagPole[l] = 0.0;
+      }
+
+      // Compute the approximation due to pole expansion, as well as
+      // the maximum magnitude of each pole
+      Complex cpxmag;
+      Real    mag;
+      numPoleSignificant = 0;
+      tol = numElectronTolerance / numElectronExact / numPoleInput;
+      for( Int l = 0; l < numPoleInput; l++ ){
+        for( Int i = 0; i < numX; i++ ){
+          cpxmag = zweightRho_[l] / ( xGrid[i] - zshift_[l] );
+          mag    = cpxmag.imag();
+          maxMagPole[l] = ( maxMagPole[l] >= mag ) ?  maxMagPole[l] : mag;
+        }
+        if( maxMagPole[l] > tol ){
+          numPoleSignificant++;
+        }	
+      } // for (l)
+
+      // Pick the most significant numPole poles and update poleIdx
+      // Sort in DESCENDING order
+      std::vector<Int>  sortIdx( numPoleInput );
+      for( Int i = 0; i < sortIdx.size(); i++ ){
+        sortIdx[i]      = i;
+      }
+      std::sort( sortIdx.begin(), sortIdx.end(), 
+          IndexComp<std::vector<Real>& >( maxMagPole ) ) ;
+      std::reverse( sortIdx.begin(), sortIdx.end() );
+
+      for( Int l = 0; l < numPole; l++ ){
+        poleIdx[l]      = sortIdx[l];
+      }
+
+
+      // Update poleIter
+      poleIter++; 
+    } while( numPoleSignificant < numPole );
+
+
+    // Estimate the error of the number of electrons and the band energy
+    // by assuming a flat density of states within a interval of size
+    // deltaE, i.e. each unit interval contains 
+    // HMat.size / deltaE 
+    // number of electrons
+
+    std::vector<Real>  fdPoleGrid( numX );
+    std::vector<Real>  fdEPoleGrid( numX );
+    std::vector<Real>  fdTimesEPoleGrid( numX );
+    Real errAbs1, errorAbsMax1;
+    Real errAbs2, errorAbsMax2;
+    Real errorNumElectron, errorBandEnergy, errorBandEnergy2;
+    Complex cpxmag1, cpxmag2;
+
+    errorAbsMax1 = 0.0; 
+    errorAbsMax2 = 0.0; 
+    for( Int i = 0; i < numX; i++ ){
+      fdPoleGrid[i] = 0.0;
+      fdEPoleGrid[i] = 0.0;
+      for( Int lidx = 0; lidx < numPoleInput; lidx++ ){
+        Int l = lidx;
+        cpxmag1 = zweightRho_[l] / ( xGrid[i] - zshift_[l] );
+        cpxmag2 = zweightForce_[l] / ( xGrid[i] - zshift_[l] );
+        fdPoleGrid[i] += cpxmag1.imag();
+        fdTimesEPoleGrid[i] += cpxmag1.imag() * xGrid[i];
+        fdEPoleGrid[i]      += cpxmag2.imag();
+      }
+      errAbs1 = std::abs( fdPoleGrid[i] - fdGrid[i] );
+      errorAbsMax1 = ( errorAbsMax1 >= errAbs1 ) ? errorAbsMax1 : errAbs1;
+      errAbs2 = std::abs( fdEPoleGrid[i] - fdTimesEPoleGrid[i] );
+      errorAbsMax2 = ( errorAbsMax2 >= errAbs2 ) ? errorAbsMax2 : errAbs2;
+    }
+
+    errorNumElectron = errorAbsMax1 * HMat.size;
+    errorBandEnergy  = 0.5 * deltaE * errorAbsMax1 * HMat.size;
+    errorBandEnergy2 = errorAbsMax2 * HMat.size;
+
+    if( verbosity >= 1 ){
+      statusOFS 
+        << std::endl 
+        << "Estimated error of pole expansion by assuming a flat spectrum."
+        << std::endl;
+
+      // The estimation of energy using the difference of DM and EDM
+      // seems to be more reliable
+      Print( statusOFS, "Error of num electron             = ", errorNumElectron );
+//      Print( statusOFS, "Error of band energy (DM only)    = ", errorBandEnergy );
+      Print( statusOFS, "Error of band energy (DM and EDM) = ", errorBandEnergy2 );
+      Print( statusOFS, "Required accuracy (num electron)  = ", numElectronTolerance );
+
+      statusOFS << std::endl;
+
+      if( errorNumElectron > numElectronTolerance ){
+        statusOFS << "WARNING!!! " 
+          << "Pole expansion may not be accurate enough to reach numElectronTolerance. " << std::endl
+          << "Try to increase numPole or increase numElectronTolerance." << std::endl << std::endl;
+      }
+      statusOFS << "numPoleInput =" << numPoleInput << std::endl;
+      statusOFS << "numPoleSignificant = " << numPoleSignificant << std::endl;
+    }
+  }
+
+  // Initialize the number of electrons
+  numElectron  = 0.0;
+
+  //Initialize the pole expansion
+  zweightRhoDrvMu_.resize( numPoleInput );
+
+  GetPoleDensityDrvMu( &zshift_[0], &zweightRhoDrvMu_[0],
+      numPoleInput, temperature, gap, deltaE, mu ); 
+
+  if( isFreeEnergyDensityMatrix ){
+    std::vector<Complex>  zshiftTmp( numPoleInput );
+    zweightHelmholtz_.resize( numPoleInput );
+    GetPoleHelmholtz( &zshiftTmp[0], &zweightHelmholtz_[0], 
+        numPoleInput, temperature, gap, deltaE, mu ); 
+  }
+
+  if( isEnergyDensityMatrix ){
+    std::vector<Complex>  zshiftTmp( numPoleInput );
+    zweightForce_.resize( numPoleInput );
+    GetPoleForce( &zshiftTmp[0], &zweightForce_[0],
+        numPoleInput, temperature, gap, deltaE, mu ); 
+  }
+
+  if( isDerivativeTMatrix ){
+    std::vector<Complex>  zshiftTmp( numPoleInput );
+    zweightRhoDrvT_.resize( numPoleInput );
+    GetPoleDensityDrvT( &zshiftTmp[0], &zweightRhoDrvT_[0],
+        numPoleInput, temperature, gap, deltaE, mu ); 
+  }
+
+  if( verbosity >= 2 ){
+    statusOFS << "zshift" << std::endl << zshift_ << std::endl;
+    statusOFS << "zweightRho" << std::endl << zweightRho_ << std::endl;
+  }
+
+  // for each pole, perform LDLT factoriation and selected inversion
+  Real timePoleSta, timePoleEnd;
+
+  Int numPoleComputed = 0;
+  for(Int lidx = 0; lidx < numPole; lidx++){
+    if( MYROW( gridPole_ ) == PROW( lidx, gridPole_ ) ){
+
+      Int l = poleIdx[lidx];
+
+      GetTime( timePoleSta );
+
+      if( verbosity >= 1 ){
+        statusOFS << "Pole " << lidx << " processing..." << std::endl;
+      }
+      if( verbosity >= 2 ){
+        statusOFS << "zshift           = " << zshift_[l] << std::endl;
+        statusOFS	<< "zweightRho       = " << zweightRho_[l] << std::endl;
+        statusOFS	<< "zweightRhoDrvMu  = " << zweightRhoDrvMu_[l] << std::endl;
+        if( isFreeEnergyDensityMatrix )
+          statusOFS << "zweightHelmholtz = " << zweightHelmholtz_[l] << std::endl;
+        if( isEnergyDensityMatrix )
+          statusOFS << "zweightForce     = " << zweightForce_[l] << std::endl;
+        if( isDerivativeTMatrix )
+          statusOFS << "zweightRhoDrvT   = " << zweightRhoDrvT_[l] << std::endl;
+      }
+
+      {
+        AinvMat.Clear();
+
+
+        numPoleComputed++;
+
+        if( SMat.size != 0 ){
+          // S is not an identity matrix
+          for( Int i = 0; i < HMat.nnzLocal; i++ ){
+            AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
+          }
+        }
+        else{
+          // S is an identity matrix
+          for( Int i = 0; i < HMat.nnzLocal; i++ ){
+            AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+          }
+
+          for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+            AMat.nzvalLocal( diagIdxLocal_[i] ) -= zshift_[l];
+          }
+        } // if (SMat.size != 0 )
+
+
+        // *********************************************************************
+        // Factorization
+        // *********************************************************************
+        // Important: the distribution in pzsymbfact is going to mess up the
+        // A matrix.  Recompute the matrix A here.
+        if( verbosity >= 2 ){
+          statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+        }
+        luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+        if( verbosity >= 2 ){
+          statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+        }
+
+        Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+        GetTime( timeTotalFactorizationSta );
+
+        // Data redistribution
+        if( verbosity >= 2 ){
+          statusOFS << "Before Distribute." << std::endl;
+        }
+        luMat.Distribute();
+        if( verbosity >= 2 ){
+          statusOFS << "After Distribute." << std::endl;
+        }
+
+        // Numerical factorization
+        if( verbosity >= 2 ){
+          statusOFS << "Before NumericalFactorize." << std::endl;
+        }
+        luMat.NumericalFactorize();
+        if( verbosity >= 2 ){
+          statusOFS << "After NumericalFactorize." << std::endl;
+        }
+        luMat.DestroyAOnly();
+
+        GetTime( timeTotalFactorizationEnd );
+
+        if( verbosity >= 1 ){
+          statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+        }
+
+        // *********************************************************************
+        // Selected inversion
+        // *********************************************************************
+        Real timeTotalSelInvSta, timeTotalSelInvEnd;
+        GetTime( timeTotalSelInvSta );
+
+        luMat.LUstructToPMatrix( PMloc );
+
+
+        // Collective communication version
+        //          PMloc.ConstructCommunicationPattern_Collectives();
+
+        PMloc.PreSelInv();
+
+        // Main subroutine for selected inversion
+        //
+        // P2p communication version
+        PMloc.SelInv();
+
+        // Collective communication version
+        //          PMloc.SelInv_Collectives();
+
+        GetTime( timeTotalSelInvEnd );
+
+        if( verbosity >= 1 ){
+          statusOFS << "Time for total selected inversion is " <<
+            timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
+        }
+
+        // *********************************************************************
+        // Postprocessing
+        // *********************************************************************
+
+        Real timePostProcessingSta, timePostProcessingEnd;
+
+        GetTime( timePostProcessingSta );
+
+        PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+
+        if( verbosity >= 2 ){
+          statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
+          statusOFS << "AinvMat.nnzLocal = " << AinvMat.nnzLocal << std::endl;
+        }
+
+
+        // Update the density matrix. Note complex arithmetic is used.
+        blas::Axpy( rhoMat.nnzLocal, zweightRho_[l], AinvMat.nzvalLocal.Data(), 1,
+            rhoMat.nzvalLocal.Data(), 1 );
+
+        // Derivative of the Fermi-Dirac with respect to mu
+        blas::Axpy( rhoDrvMuMat.nnzLocal, zweightRhoDrvMu_[l], 
+            AinvMat.nzvalLocal.Data(), 1, rhoDrvMuMat.nzvalLocal.Data(), 1 );
+
+        // Free energy density matrix
+        if( isFreeEnergyDensityMatrix ){
+          blas::Axpy( hmzMat.nnzLocal, zweightHelmholtz_[l], 
+              AinvMat.nzvalLocal.Data(), 1,
+              hmzMat.nzvalLocal.Data(), 1 );
+        }
+
+        // Energy density matrix
+        if( isEnergyDensityMatrix ){
+          blas::Axpy( frcMat.nnzLocal, zweightForce_[l], 
+              AinvMat.nzvalLocal.Data(), 1,
+              frcMat.nzvalLocal.Data(), 1 );
+        }
+
+        // Derivative of the Fermi-Dirac with respect to T
+        if( isDerivativeTMatrix ){
+          blas::Axpy( rhoDrvTMat.nnzLocal, zweightRhoDrvT_[l], 
+              AinvMat.nzvalLocal.Data(), 1,
+              rhoDrvTMat.nzvalLocal.Data(), 1 );
+        }
+
+        GetTime( timePostProcessingEnd );
+
+        if( verbosity >= 1 ){
+          statusOFS << "Time for postprocessing is " <<
+            timePostProcessingEnd - timePostProcessingSta << " [s]" << std::endl;
+        }
+
+      }
+      GetTime( timePoleEnd );
+
+      if( verbosity >= 1 ){
+        statusOFS << "Time for pole " << lidx << " is " <<
+          timePoleEnd - timePoleSta << " [s]" << std::endl << std::endl;
+      }
+
+    } // if I am in charge of this pole
+
+
+  } // for(lidx)
+
+  // Reduce the density matrix across the processor rows in gridPole_
+  {
+    CpxNumVec nzvalRhoMatLocal = rhoMat.nzvalLocal;
+    SetValue( rhoMat.nzvalLocal, Z_ZERO );
+
+    mpi::Allreduce( nzvalRhoMatLocal.Data(), rhoMat.nzvalLocal.Data(),
+        rhoMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+  }
+
+  // Reduce the derivative of density matrix with respect to mu across
+  // the processor rows in gridPole_ 
+  {
+    CpxNumVec nzvalRhoDrvMuMatLocal = rhoDrvMuMat.nzvalLocal;
+    SetValue( rhoDrvMuMat.nzvalLocal, Z_ZERO );
+
+    mpi::Allreduce( nzvalRhoDrvMuMatLocal.Data(), rhoDrvMuMat.nzvalLocal.Data(),
+        rhoDrvMuMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+  }
+
+  // Reduce the free energy density matrix across the processor rows in gridPole_ 
+  if( isFreeEnergyDensityMatrix ){
+    CpxNumVec nzvalHmzMatLocal = hmzMat.nzvalLocal;
+    SetValue( hmzMat.nzvalLocal, Z_ZERO );
+
+    mpi::Allreduce( nzvalHmzMatLocal.Data(), hmzMat.nzvalLocal.Data(),
+        hmzMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+  }
+
+  // Reduce the energy density matrix across the processor rows in gridPole_ 
+  if( isEnergyDensityMatrix ){
+    CpxNumVec nzvalFrcMatLocal = frcMat.nzvalLocal;
+    SetValue( frcMat.nzvalLocal, Z_ZERO );
+
+    mpi::Allreduce( nzvalFrcMatLocal.Data(), frcMat.nzvalLocal.Data(),
+        frcMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+  }
+
+  // Reduce the derivative of density matrix with respect to T across
+  // the processor rows in gridPole_ 
+  if( isDerivativeTMatrix ){
+    CpxNumVec nzvalRhoDrvTMatLocal = rhoDrvTMat.nzvalLocal;
+    SetValue( rhoDrvTMat.nzvalLocal, Z_ZERO );
+
+    mpi::Allreduce( nzvalRhoDrvTMatLocal.Data(), rhoDrvTMat.nzvalLocal.Data(),
+        rhoDrvTMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+  }
+
+  // Compute the number of electrons
+  // The number of electrons is computed by Tr[DM*S]
+  {
+    Complex numElecLocal = Z_ZERO;
+    if( SMat.size != 0 ){
+      // S is not an identity matrix
+      numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+          1, rhoMat.nzvalLocal.Data(), 1 );
+    }
+    else{
+      // S is an identity matrix
+      CpxNumVec& nzval = rhoMat.nzvalLocal;
+      for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+        numElecLocal += nzval(diagIdxLocal_[i]);
+      }
+    } // if ( SMat.size != 0 )
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << std::endl << "numElecLocal = " << numElecLocal << std::endl;
+#endif
+
+    Complex numElectronCpx;
+    mpi::Allreduce( &numElecLocal, &numElectronCpx, 1, MPI_SUM, rhoMat.comm ); 
+
+    numElectron = numElectronCpx.real();
+  }
+
+  // Compute the derivative of the number of electrons with respect to mu
+  // The number of electrons is computed by Tr[f'(H-\muS)*S]
+  {
+    Complex numElecDrvLocal = Z_ZERO;
+    if( SMat.size != 0 ){
+      // S is not an identity matrix
+      numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+          1, rhoDrvMuMat.nzvalLocal.Data(), 1 );
+    }
+    else{
+      // S is an identity matrix
+      CpxNumVec& nzval = rhoDrvMuMat.nzvalLocal;
+      for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+        numElecDrvLocal += nzval(diagIdxLocal_[i]);
+      }
+    }
+
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS << std::endl << "numElecDrvLocal = " << numElecDrvLocal << std::endl;
+#endif
+
+    Complex numElectronDrvMuCpx;
+    mpi::Allreduce( &numElecDrvLocal, &numElectronDrvMuCpx, 1, MPI_SUM, rhoDrvMuMat.comm ); 
+
+    numElectronDrvMu = numElectronDrvMuCpx.real();
+  }
+
+#ifndef _RELEASE_
+  PopCallStack();
+#endif
+
+  return ;
+}    // -----  end of method PPEXSIData::CalculateFermiOperatorComplex  ----- 
+
+
 void
 PPEXSIData::DFTDriver (
     Real       numElectronExact,
@@ -2260,14 +3116,14 @@ PPEXSIData::DFTDriver (
 #ifdef USE_ABORT
       abort();
 #endif
-throw std::logic_error("Unsupported ordering strategy.");
+      throw std::logic_error("Unsupported ordering strategy.");
   }
 
   if( matrixType != 0 ){
 #ifdef USE_ABORT
     abort();
 #endif
-throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
+    throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
   }
 
   // Perform symbolic factorization first if required
