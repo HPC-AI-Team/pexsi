@@ -2894,7 +2894,10 @@ throw std::logic_error( "Must be even number of poles!" );
         }
 
 
-        // Update the density matrix. Note complex arithmetic is used.
+        // Update the density matrix. 
+        // NOTE: All physical quantities X must be post-processed by
+        // X <- 1/(2i) (X - X^*)
+        // where X^* is the Hermitian transpose
         blas::Axpy( rhoMat.nnzLocal, zweightRho_[l], AinvMat.nzvalLocal.Data(), 1,
             rhoMat.nzvalLocal.Data(), 1 );
 
@@ -2950,6 +2953,19 @@ throw std::logic_error( "Must be even number of poles!" );
 
     mpi::Allreduce( nzvalRhoMatLocal.Data(), rhoMat.nzvalLocal.Data(),
         rhoMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+
+    // Post-processing via transpose. 
+    DistSparseMatrix<Complex>& regMat       = rhoMat;
+    DistSparseMatrix<Complex>  transMat;
+
+    CSCToCSR( regMat, transMat );
+    Complex* ptrReg   = regMat.nzvalLocal.Data();
+    Complex* ptrTrans = transMat.nzvalLocal.Data();
+    // fac = 1/(2i)
+    Complex  fac = Complex( 0.0, -0.5 );
+    for( Int g = 0; g < regMat.nnzLocal; g++ ){
+      ptrReg[g] = fac * ( ptrReg[g] - std::conj( ptrTrans[g] ) );
+    }
   }
 
   // Reduce the derivative of density matrix with respect to mu across
@@ -2960,6 +2976,19 @@ throw std::logic_error( "Must be even number of poles!" );
 
     mpi::Allreduce( nzvalRhoDrvMuMatLocal.Data(), rhoDrvMuMat.nzvalLocal.Data(),
         rhoDrvMuMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+
+    // Post-processing via transpose. 
+    DistSparseMatrix<Complex>& regMat       = rhoDrvMuMat;
+    DistSparseMatrix<Complex>  transMat;
+
+    CSCToCSR( regMat, transMat );
+    Complex* ptrReg   = regMat.nzvalLocal.Data();
+    Complex* ptrTrans = transMat.nzvalLocal.Data();
+    // fac = 1/(2i)
+    Complex  fac = Complex( 0.0, -0.5 );
+    for( Int g = 0; g < regMat.nnzLocal; g++ ){
+      ptrReg[g] = fac * ( ptrReg[g] - std::conj( ptrTrans[g] ) );
+    }
   }
 
   // Reduce the free energy density matrix across the processor rows in gridPole_ 
@@ -2969,6 +2998,19 @@ throw std::logic_error( "Must be even number of poles!" );
 
     mpi::Allreduce( nzvalHmzMatLocal.Data(), hmzMat.nzvalLocal.Data(),
         hmzMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+
+    // Post-processing via transpose. 
+    DistSparseMatrix<Complex>& regMat       = hmzMat;
+    DistSparseMatrix<Complex>  transMat;
+
+    CSCToCSR( regMat, transMat );
+    Complex* ptrReg   = regMat.nzvalLocal.Data();
+    Complex* ptrTrans = transMat.nzvalLocal.Data();
+    // fac = 1/(2i)
+    Complex  fac = Complex( 0.0, -0.5 );
+    for( Int g = 0; g < regMat.nnzLocal; g++ ){
+      ptrReg[g] = fac * ( ptrReg[g] - std::conj( ptrTrans[g] ) );
+    }
   }
 
   // Reduce the energy density matrix across the processor rows in gridPole_ 
@@ -2978,6 +3020,20 @@ throw std::logic_error( "Must be even number of poles!" );
 
     mpi::Allreduce( nzvalFrcMatLocal.Data(), frcMat.nzvalLocal.Data(),
         frcMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+
+    // Post-processing via transpose. 
+    DistSparseMatrix<Complex>& regMat       = frcMat;
+    DistSparseMatrix<Complex>  transMat;
+
+    CSCToCSR( regMat, transMat );
+    Complex* ptrReg   = regMat.nzvalLocal.Data();
+    Complex* ptrTrans = transMat.nzvalLocal.Data();
+    // fac = 1/(2i)
+    Complex  fac = Complex( 0.0, -0.5 );
+    for( Int g = 0; g < regMat.nnzLocal; g++ ){
+      ptrReg[g] = fac * ( ptrReg[g] - std::conj( ptrTrans[g] ) );
+    }
+
   }
 
   // Reduce the derivative of density matrix with respect to T across
@@ -2988,6 +3044,20 @@ throw std::logic_error( "Must be even number of poles!" );
 
     mpi::Allreduce( nzvalRhoDrvTMatLocal.Data(), rhoDrvTMat.nzvalLocal.Data(),
         rhoDrvTMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+
+    // Post-processing via transpose. 
+    DistSparseMatrix<Complex>& regMat       = rhoDrvTMat;
+    DistSparseMatrix<Complex>  transMat;
+
+    CSCToCSR( regMat, transMat );
+    Complex* ptrReg   = regMat.nzvalLocal.Data();
+    Complex* ptrTrans = transMat.nzvalLocal.Data();
+    // fac = 1/(2i)
+    Complex  fac = Complex( 0.0, -0.5 );
+    for( Int g = 0; g < regMat.nnzLocal; g++ ){
+      ptrReg[g] = fac * ( ptrReg[g] - std::conj( ptrTrans[g] ) );
+    }
+
   }
 
   // Compute the number of electrons
