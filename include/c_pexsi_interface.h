@@ -397,6 +397,51 @@ void PPEXSILoadRealSymmetricHSMatrix(
     int*          info );
 
 /**
+ * @brief Load the complex symmetric H and S matrices into the %PEXSI
+ * internal data structure.
+ *
+ * @note Only input from the processors associated with the first pole
+ * is required. The information will be broadcast to the other
+ * processors in the communicator.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] nrows (global) Number of rows and columns of the matrix.
+ * @param[in] nnz (global) Total number of nonzeros of H.
+ * @param[in] nnzLocal (local) Number of local nonzeros of H.
+ * @param[in] numColLocal (local) Number of local columns for H.
+ * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
+ * pointer in CSC format.
+ * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
+ * pointer in CSC format.
+ * @param[in] HnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * values of H in CSC format. 
+ * @param[in] isSIdentity (global) Whether S is an identity matrix. 
+ * If so, the variable SnzvalLocal is omitted.
+ * @param[in] SnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * value of S in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSILoadComplexSymmetricHSMatrix(
+    PPEXSIPlan    plan,
+    PPEXSIOptions options,
+    int           nrows,                        
+    int           nnz,                          
+    int           nnzLocal,                     
+    int           numColLocal,                  
+    int*          colptrLocal,                  
+    int*          rowindLocal,                  
+    double*       HnzvalLocal,                  
+    int           isSIdentity,                  
+    double*       SnzvalLocal,
+    int*          info );
+
+
+
+/**
  * @brief Separately perform symbolic factorization to prepare
  * factorization and selected inversion for real arithmetic matrices.
  *
@@ -510,6 +555,50 @@ void PPEXSILoadRealUnsymmetricHSMatrix(
     int           isSIdentity,                  
     double*       SnzvalLocal,
     int*          info );
+
+/**
+ * @brief Load the complex unsymmetric H and S matrices into the %PEXSI
+ * internal data structure.
+ *
+ * @note Only input from the processors associated with the first pole
+ * is required. The information will be broadcast to the other
+ * processors in the communicator.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] nrows (global) Number of rows and columns of the matrix.
+ * @param[in] nnz (global) Total number of nonzeros of H.
+ * @param[in] nnzLocal (local) Number of local nonzeros of H.
+ * @param[in] numColLocal (local) Number of local columns for H.
+ * @param[in] colptrLocal (local) Dimension: numColLocal+1. Local column
+ * pointer in CSC format.
+ * @param[in] rowindLocal (local) Dimension: nnzLocal. Local row index
+ * pointer in CSC format.
+ * @param[in] HnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * values of H in CSC format.
+ * @param[in] isSIdentity (global) Whether S is an identity matrix. 
+ * If so, the variable SnzvalLocal is omitted.
+ * @param[in] SnzvalLocal (local) Dimension: 2*nnzLocal. Local nonzero
+ * value of S in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSILoadComplexUnsymmetricHSMatrix(
+    PPEXSIPlan    plan,
+    PPEXSIOptions options,
+    int           nrows,                        
+    int           nnz,                          
+    int           nnzLocal,                     
+    int           numColLocal,                  
+    int*          colptrLocal,                  
+    int*          rowindLocal,                  
+    double*       HnzvalLocal,                  
+    int           isSIdentity,                  
+    double*       SnzvalLocal,
+    int*          info );
+
 
 /**
  * @brief Separately perform symbolic factorization to prepare

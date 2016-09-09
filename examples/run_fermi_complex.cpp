@@ -135,6 +135,7 @@ int main(int argc, char **argv)
         HMat.nzvalLocal[g] += Complex(0.0, ReadMat.nzvalLocal[g]);
       }
 
+      numColLocal = HMat.colptrLocal.m() - 1;
 
       if( mpirank == 0 ){
         printf("On processor 0...\n");
@@ -193,7 +194,7 @@ int main(int argc, char **argv)
     PPEXSISetDefaultOptions( &options );
     options.muMin0 = 0.0;
     options.muMax0 = 0.5;
-    options.mu0    = +2.55555567e-01;
+    options.mu0    = +0.270;
     options.npSymbFact = 1;
     options.ordering = 0;
     options.isInertiaCount = 1;
@@ -240,17 +241,17 @@ int main(int argc, char **argv)
     }
 
 
-//    pexsi.CalculateFermiOperatorComplex(
-//        options.numPole,
-//        options.temperature,
-//        options.gap,
-//        options.deltaE,
-//        options.mu0,
-//        numElectronExact, 
-//        options.numElectronPEXSITolerance,
-//        options.verbosity,
-//        numElectron,
-//        numElectronDrvMu );
+    pexsi.CalculateFermiOperatorComplex(
+        options.numPole,
+        options.temperature,
+        options.gap,
+        options.deltaE,
+        options.mu0,
+        numElectronExact, 
+        options.numElectronPEXSITolerance,
+        options.verbosity,
+        numElectron,
+        numElectronDrvMu );
 
     if( mpirank == 0 ){
       printf("numElectron       = %25.15f\n", numElectron);

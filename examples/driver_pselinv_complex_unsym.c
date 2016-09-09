@@ -163,9 +163,7 @@ int main(int argc, char **argv)
       mpirank, 
       &info );
 
-  // For complex matrices, this is just to load a pattern
-  // FIXME Now it should not work. Use LoadComplexUnsymmetric
-  PPEXSILoadRealUnsymmetricHSMatrix( 
+  PPEXSILoadComplexUnsymmetricHSMatrix( 
       plan, 
       options,
       nrows,

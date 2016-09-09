@@ -1026,7 +1026,8 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
     luMat.Setup( *gridSuperLUComplex_, luOpt_ );  // SuperLU matrix.
 
     DistSparseMatrix<Complex> AMat;
-    CopyPattern( HRealMat_, AMat );
+    // FIXME
+    CopyPattern( HComplexMat_, AMat );
 
     SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
 
@@ -1494,7 +1495,7 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
     PMatrix<Complex>&          PMloc     = *PMComplexMat_;
 
     // Copy the pattern
-    CopyPattern( HRealMat_, AMat );
+    CopyPattern( HComplexMat_, AMat );
 
     blas::Copy( 2*AMat.nnzLocal, AnzvalLocal, 1, 
        reinterpret_cast<double*>(AMat.nzvalLocal.Data()), 1 );
@@ -1612,7 +1613,7 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
     PMatrixUnsym<Complex>&     PMloc     = *PMComplexUnsymMat_;
 
     // Copy the pattern
-    CopyPattern( HRealMat_, AMat );
+    CopyPattern( HComplexMat_, AMat );
 
     blas::Copy( 2*AMat.nnzLocal, AnzvalLocal, 1, 
        reinterpret_cast<double*>(AMat.nzvalLocal.Data()), 1 );

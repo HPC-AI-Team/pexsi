@@ -417,6 +417,106 @@ void PPEXSILoadRealUnsymmetricHSMatrix(
 
 
 extern "C"
+void PPEXSILoadComplexSymmetricHSMatrix(
+    PPEXSIPlan    plan,
+    PPEXSIOptions options,
+    int           nrows,                        
+    int           nnz,                          
+    int           nnzLocal,                     
+    int           numColLocal,                  
+    int*          colptrLocal,                  
+    int*          rowindLocal,                  
+    double*       HnzvalLocal,                  
+    int           isSIdentity,                  
+    double*       SnzvalLocal, 
+    int*          info ){
+
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  *info = 0;
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->
+      LoadComplexSymmetricMatrix(
+          nrows,                        
+          nnz,                          
+          nnzLocal,                     
+          numColLocal,                  
+          colptrLocal,                  
+          rowindLocal,                  
+          reinterpret_cast<Complex*>(HnzvalLocal), 
+          isSIdentity,                  
+          reinterpret_cast<Complex*>(SnzvalLocal),
+          options.verbosity );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+  return;
+}   // -----  end of function PPEXSILoadComplexSymmetricHSMatrix  ----- 
+
+
+extern "C"
+void PPEXSILoadComplexUnsymmetricHSMatrix(
+    PPEXSIPlan    plan,
+    PPEXSIOptions options,
+    int           nrows,                        
+    int           nnz,                          
+    int           nnzLocal,                     
+    int           numColLocal,                  
+    int*          colptrLocal,                  
+    int*          rowindLocal,                  
+    double*       HnzvalLocal,                  
+    int           isSIdentity,                  
+    double*       SnzvalLocal, 
+    int*          info ){
+
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  *info = 0;
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->
+      LoadComplexUnsymmetricMatrix(
+          nrows,                        
+          nnz,                          
+          nnzLocal,                     
+          numColLocal,                  
+          colptrLocal,                  
+          rowindLocal,                  
+          reinterpret_cast<Complex*>(HnzvalLocal),                  
+          isSIdentity,                  
+          reinterpret_cast<Complex*>(SnzvalLocal),
+          options.verbosity );
+  }
+	catch( std::exception& e )
+	{
+		statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+			<< std::endl << e.what() << std::endl;
+		*info = 1;
+#ifndef _RELEASE_
+		DumpCallStack();
+#endif
+	}
+
+  return;
+}   // -----  end of function PPEXSILoadComplexUnsymmetricHSMatrix  ----- 
+
+
+
+
+extern "C"
 void PPEXSISymbolicFactorizeRealSymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,

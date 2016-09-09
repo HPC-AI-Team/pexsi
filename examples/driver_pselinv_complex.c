@@ -163,7 +163,7 @@ int main(int argc, char **argv)
       &info );
 
   // For complex matrices, this is just to load a pattern
-  PPEXSILoadRealSymmetricHSMatrix( 
+  PPEXSILoadComplexSymmetricHSMatrix( 
       plan, 
       options,
       nrows,
