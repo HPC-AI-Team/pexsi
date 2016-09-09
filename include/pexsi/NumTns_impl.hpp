@@ -54,7 +54,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::runtime_error("Cannot allocate memory.");}
+      ErrorHandling("Cannot allocate memory.");}
     } else data_=NULL;
   }
 
@@ -64,7 +64,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error("Cannot allocate memory.");}
+        ErrorHandling("Cannot allocate memory.");}
       } else data_=NULL;
       if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = data[i]; }
     } else {
@@ -79,7 +79,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
           abort();
 #endif
-          throw std::runtime_error("Cannot allocate memory.");} 
+          ErrorHandling("Cannot allocate memory.");} 
       } else data_=NULL;
 
       if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = C.data_[i]; }
@@ -104,7 +104,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error("Cannot allocate memory.");} } else data_=NULL;
+        ErrorHandling("Cannot allocate memory.");} } else data_=NULL;
       if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = C.data_[i]; }
     } else {
       data_ = C.data_;
@@ -117,7 +117,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error("Tensor being resized must own data.");
+      ErrorHandling("Tensor being resized must own data.");
     }
     if(m_!=m || n_!=n || p_!=p) {
       if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
@@ -126,7 +126,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error("Cannot allocate memory.");}
+        ErrorHandling("Cannot allocate memory.");}
       } else data_=NULL;
     }
   }
@@ -138,7 +138,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "Index is out of bound." );
+      ErrorHandling( "Index is out of bound." );
     }
     return data_[i+j*m_+k*m_*n_];
   }
@@ -150,7 +150,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "Index is out of bound." );
+      ErrorHandling( "Index is out of bound." );
     }
     return data_[i+j*m_+k*m_*n_];
   }
@@ -161,7 +161,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "Index is out of bound." );
+      ErrorHandling( "Index is out of bound." );
     }
     return &(data_[j*m_*n_]);
   };
@@ -172,7 +172,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "Index is out of bound." );
+      ErrorHandling( "Index is out of bound." );
     }
 
     return &(data_[k*m_*n_+j*m_]);

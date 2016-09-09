@@ -74,7 +74,7 @@ Int SeparateRead(std::string name, std::istringstream& is)
     #ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
   }
 
   is.str( std::string(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>()) );
@@ -104,7 +104,7 @@ Int SeparateWrite(std::string name, std::ostringstream& os)
 		#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
 	}
   fout<<os.str();
   fout.close();
@@ -133,7 +133,7 @@ Int SharedRead(std::string name, std::istringstream& is)
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
 		}
     //std::string str(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>());
     //tmpstr.insert(tmpstr.end(), str.begin(), str.end());
@@ -173,7 +173,7 @@ Int SharedWrite(std::string name, std::ostringstream& os)
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
 		}
     // Corrected by Patrick Seewald 5/30/2015
     fout<<os.str();
@@ -204,7 +204,7 @@ Int SeparateWriteAscii(std::string name, std::ostringstream& os)
 		#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
 	}
   fout<<os.str();
   fout.close();
@@ -242,7 +242,7 @@ abort();
 //statusOFS<<"x["<<i<<"] = "<<x[i]<<std::endl;
 //statusOFS<<"x["<<i-1<<"] = "<<x[i-1]<<std::endl;
 //statusOFS<<"x"<<x<<std::endl;
-throw std::runtime_error("x must be sorted strictly ascendingly.");
+ErrorHandling("x must be sorted strictly ascendingly.");
 }
   }
 
@@ -252,7 +252,7 @@ throw std::runtime_error("x must be sorted strictly ascendingly.");
 abort();
 #endif
 //statusOFS<<"xx"<<x<<std::endl;
-throw std::runtime_error("xx must be sorted ascendingly.");
+ErrorHandling("xx must be sorted ascendingly.");
 }
   }
 

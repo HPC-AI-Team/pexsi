@@ -258,7 +258,7 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::runtime_error( msg.str().c_str() );
+      ErrorHandling( msg.str().c_str() );
     }
 
     // Setup grids
@@ -307,7 +307,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::logic_error( "SuperMatrix has not been allocated." );
+        ErrorHandling( "SuperMatrix has not been allocated." );
       }
       switch ( A.Stype ){
         case SLU_NC:
@@ -323,7 +323,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
           abort();
 #endif
-          throw std::runtime_error( msg.str().c_str() );
+          ErrorHandling( msg.str().c_str() );
       }
       isSuperMatrixAllocated = false;
 #ifndef _RELEASE_
@@ -348,7 +348,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
+      ErrorHandling( "SuperLUMatrix cannot be allocated." );
     }
 
 #ifndef _RELEASE_
@@ -377,7 +377,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #endif
     
     if( g.ptrData == NULL ){
-      throw std::runtime_error( "Copied SuperLUMatrix is not allocated." );
+      ErrorHandling( "Copied SuperLUMatrix is not allocated." );
     }
 
     ptrData = new ComplexSuperLUData_internal(*g.ptrData);
@@ -386,7 +386,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
+      ErrorHandling( "SuperLUMatrix cannot be allocated." );
     }
 
 #ifndef _RELEASE_
@@ -402,7 +402,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
     }
 
     if( g.ptrData == NULL ){
-      throw std::runtime_error( "Copied SuperLUMatrix is not allocated." );
+      ErrorHandling( "Copied SuperLUMatrix is not allocated." );
     }
     
     delete ptrData;
@@ -411,7 +411,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::runtime_error( "SuperLUMatrix cannot be allocated." );
+      ErrorHandling( "SuperLUMatrix cannot be allocated." );
     }
 
     return *this;
@@ -440,7 +440,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "SuperMatrix is already allocated." );
+      ErrorHandling( "SuperMatrix is already allocated." );
     }
     gridinfo_t* grid = ptrData->grid;
 
@@ -541,19 +541,19 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::logic_error( "ScalePermstruct is already allocated." );
+        ErrorHandling( "ScalePermstruct is already allocated." );
       }
       if( ptrData->isLUstructAllocated){
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::logic_error( "LUstruct is already allocated." );
+        ErrorHandling( "LUstruct is already allocated." );
       }
 //      if(ptrData->options.RowPerm != NOROWPERM ){
 //#ifdef USE_ABORT
 //        abort();
 //#endif
-//        throw std::logic_error( "For PEXSI there must be no row permutation." );
+//        ErrorHandling( "For PEXSI there must be no row permutation." );
 //      }
 
       SuperMatrix&  A = ptrData->A;
@@ -609,19 +609,19 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::logic_error( "ScalePermstruct has not been allocated by SymbolicFactorize." );
+        ErrorHandling( "ScalePermstruct has not been allocated by SymbolicFactorize." );
       }	
       if( ptrData->isLUstructAllocated == false ){
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::logic_error( "LUstruct has not been allocated by SymbolicFactorize." );
+        ErrorHandling( "LUstruct has not been allocated by SymbolicFactorize." );
       }	
       if( ptrData->isSuperMatrixAllocated == false ){
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::logic_error( "SuperMatrix has not been allocated." );
+        ErrorHandling( "SuperMatrix has not been allocated." );
       }	
 
       Int* perm_c = ptrData->ScalePermstruct.perm_c;
@@ -655,7 +655,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::logic_error( "LUstruct has not been allocated." );
+        ErrorHandling( "LUstruct has not been allocated." );
       }
       // Estimate the 1-norm
       char norm[1]; *norm = '1';
@@ -684,7 +684,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
         printf("P%d %s\n",ptrData->grid->iam,msg.str().c_str());
         abort();
 #endif
-        throw std::runtime_error( msg.str().c_str() );
+        ErrorHandling( msg.str().c_str() );
       }
 
       //assert(ptrData->ScalePermstruct.DiagScale == BOTH );
@@ -710,13 +710,13 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error( "The local SuperMatrix has not been allocated." );
+        ErrorHandling( "The local SuperMatrix has not been allocated." );
       }
       if( aptrData->ptrData->isSuperMatrixAllocated ){
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error( "The global SuperMatrix has been allocated." );
+        ErrorHandling( "The global SuperMatrix has been allocated." );
       }
       // TODO make sure the two grids are the same
 
@@ -753,7 +753,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error( msg.str().c_str() );
+        ErrorHandling( msg.str().c_str() );
       }	
       zFillRHS_dist(trans, nrhs, (doublecomplex*)xGlobal.Data(), m, 
           &ptrData->A, (doublecomplex*) bGlobal.Data(), m);
@@ -779,7 +779,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error( msg.str().c_str() );
+        ErrorHandling( msg.str().c_str() );
       }	
 
       NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
@@ -816,7 +816,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::runtime_error( msg.str().c_str() );
+      ErrorHandling( msg.str().c_str() );
     }	
 
     NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
@@ -880,7 +880,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error( msg.str().c_str() );
+        ErrorHandling( msg.str().c_str() );
       }
 
 

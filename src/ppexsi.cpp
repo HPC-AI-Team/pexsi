@@ -80,7 +80,7 @@ PPEXSIData::PPEXSIData	(
 #ifdef USE_ABORT
     abort();
 #endif
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
   gridPole_     = new GridType( comm, mpisize / npPerPole, npPerPole );
@@ -752,7 +752,7 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
 #ifdef USE_ABORT
     abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
   }
   
   {
@@ -868,7 +868,7 @@ PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix	(
 #ifdef USE_ABORT
     abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
   }
   
   {
@@ -907,7 +907,7 @@ throw std::runtime_error( msg.str().c_str() );
         std::ostringstream msg;
         msg  << std::endl
           << "LargeDiag requires the non zero values to be provided." << std::endl;
-          throw std::runtime_error( msg.str().c_str() );
+          ErrorHandling( msg.str().c_str() );
 
       }
     }
@@ -1001,7 +1001,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
   
   // Complex matrices
@@ -1114,7 +1114,7 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealUnsymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
   
   // Complex matrices
@@ -1155,7 +1155,7 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
         std::ostringstream msg;
         msg  << std::endl
           << "LargeDiag requires the non zero values to be provided." << std::endl;
-          throw std::runtime_error( msg.str().c_str() );
+          ErrorHandling( msg.str().c_str() );
 
       }
     }
@@ -1242,7 +1242,7 @@ PPEXSIData::SelInvRealSymmetricMatrix(
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
   if( isRealSymmetricSymbolicFactorized_ == false ){
@@ -1250,7 +1250,7 @@ PPEXSIData::SelInvRealSymmetricMatrix(
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
       << "Call SymbolicFactorizeRealSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
   
   // Only the processor group corresponding to the first pole participate
@@ -1358,7 +1358,7 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealUnsymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
   if( isRealUnsymmetricSymbolicFactorized_ == false ){
@@ -1366,7 +1366,7 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
       << "Call SymbolicFactorizeRealUnsymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
   
   // Only the processor group corresponding to the first pole participate
@@ -1475,7 +1475,7 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
   if( isComplexSymmetricSymbolicFactorized_ == false ){
@@ -1483,7 +1483,7 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
       << "Call SymbolicFactorizeComplexSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
   
   // Only the processor group corresponding to the first pole participate
@@ -1593,7 +1593,7 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealUnsymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
   if( isComplexUnsymmetricSymbolicFactorized_ == false ){
@@ -1601,7 +1601,7 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
       << "Call SymbolicFactorizeComplexUnsymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
   
   // Only the processor group corresponding to the first pole participate
@@ -1718,7 +1718,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 #ifdef USE_ABORT
     abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
   }
 
   if( isRealSymmetricSymbolicFactorized_ == false ){
@@ -1729,7 +1729,7 @@ throw std::runtime_error( msg.str().c_str() );
 #ifdef USE_ABORT
     abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
   }
 
 
@@ -1882,7 +1882,7 @@ void PPEXSIData::CalculateFermiOperatorReal(
 #ifdef USE_ABORT
     abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
   }
 
   if( isComplexSymmetricSymbolicFactorized_ == false ){
@@ -1890,7 +1890,7 @@ throw std::runtime_error( msg.str().c_str() );
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
       << "Call SymbolicFactorizeComplexSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
   // *********************************************************************
@@ -1900,7 +1900,7 @@ throw std::runtime_error( msg.str().c_str() );
 #ifdef USE_ABORT
     abort();
 #endif
-throw std::logic_error( "Must be even number of poles!" );
+ErrorHandling( "Must be even number of poles!" );
   }
 
   // *********************************************************************
@@ -2483,7 +2483,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
 #ifdef USE_ABORT
     abort();
 #endif
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
   if( isComplexUnsymmetricSymbolicFactorized_ == false ){
@@ -2491,7 +2491,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
       << "Call SymbolicFactorizeComplexUnsymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
   // *********************************************************************
@@ -2501,7 +2501,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
 #ifdef USE_ABORT
     abort();
 #endif
-throw std::logic_error( "Must be even number of poles!" );
+ErrorHandling( "Must be even number of poles!" );
   }
 
   // *********************************************************************
@@ -3187,14 +3187,14 @@ PPEXSIData::DFTDriver (
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error("Unsupported ordering strategy.");
+      ErrorHandling("Unsupported ordering strategy.");
   }
 
   if( matrixType != 0 ){
 #ifdef USE_ABORT
     abort();
 #endif
-    throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
+    ErrorHandling("Unsupported matrixType. The variable has to be 0.");
   }
 
   // Perform symbolic factorization first if required
@@ -3281,7 +3281,7 @@ PPEXSIData::DFTDriver (
 #ifdef USE_ABORT
           abort();
 #endif
-          throw std::runtime_error( msg.str().c_str() );
+          ErrorHandling( msg.str().c_str() );
         }
 
         numTotalInertiaIter++;
@@ -3689,14 +3689,14 @@ PPEXSIData::DFTDriver2 (
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error("Unsupported ordering strategy.");
+      ErrorHandling("Unsupported ordering strategy.");
   }
 
   if( matrixType != 0 ){
 #ifdef USE_ABORT
     abort();
 #endif
-    throw std::logic_error("Unsupported matrixType. The variable has to be 0.");
+    ErrorHandling("Unsupported matrixType. The variable has to be 0.");
   }
 
   if( muInertiaTolerance < 4.0 * temperature ){
@@ -3784,7 +3784,7 @@ PPEXSIData::DFTDriver2 (
 #ifdef USE_ABORT
           abort();
 #endif
-          throw std::runtime_error( msg.str().c_str() );
+          ErrorHandling( msg.str().c_str() );
         }
 
         numTotalInertiaIter++;
@@ -4100,7 +4100,7 @@ PPEXSIData::DFTDriver2 (
 #ifdef USE_ABORT
     abort();
 #endif
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
 #ifndef _RELEASE_
@@ -4138,7 +4138,7 @@ void PPEXSIData::CalculateFermiOperatorReal2(
     #ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
   }
 
   if( isComplexSymmetricSymbolicFactorized_ == false ){
@@ -4146,7 +4146,7 @@ throw std::runtime_error( msg.str().c_str() );
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
       << "Call SymbolicFactorizeComplexSymmetricMatrix first." << std::endl;
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
   // *********************************************************************
@@ -4156,7 +4156,7 @@ throw std::runtime_error( msg.str().c_str() );
     #ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "Must be even number of poles!" );
+ErrorHandling( "Must be even number of poles!" );
   }
 
   // *********************************************************************
@@ -4604,7 +4604,7 @@ throw std::logic_error( "Must be even number of poles!" );
 //#ifdef USE_ABORT
 //    abort();
 //#endif
-    throw std::runtime_error( msg.str().c_str() );
+    ErrorHandling( msg.str().c_str() );
   }
 
   Real muInit = mu;

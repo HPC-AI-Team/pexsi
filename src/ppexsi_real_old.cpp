@@ -355,7 +355,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
           #ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
         }
       }
 #if ( _DEBUGlevel_ >= 1 )
@@ -411,7 +411,7 @@ throw std::runtime_error( msg.str().c_str() );
                 #ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
               }
               NumMat<Real>  nzval( numRow, numCol );
 
@@ -491,7 +491,7 @@ throw std::runtime_error( msg.str().c_str() );
 //			#ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( " mpisize != nprow * npcol ." );
+ErrorHandling( " mpisize != nprow * npcol ." );
 //		}
 //
 //    SuperMatrix         A;
@@ -541,7 +541,7 @@ throw std::runtime_error( " mpisize != nprow * npcol ." );
 //				#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error("Unsupported ordering strategy.");
+ErrorHandling("Unsupported ordering strategy.");
 //		}
 //
 //
@@ -642,7 +642,7 @@ throw std::logic_error("Unsupported ordering strategy.");
 //        #ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
 //      }
 //    }
 //#if ( _DEBUGlevel_ >= 1 )

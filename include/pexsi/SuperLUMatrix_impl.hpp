@@ -136,7 +136,7 @@ SuperLUMatrix<Real>::Setup ( const SuperLUGrid<Real>& g, const SuperLUOptions& o
 //    #ifdef USE_ABORT
 //abort();
 //#endif
-//throw std::logic_error("SuperLUMatrix has been set up before.");
+//ErrorHandling("SuperLUMatrix has been set up before.");
 //  }
 #ifndef _RELEASE_
 	PopCallStack();
@@ -439,7 +439,7 @@ SuperLUMatrix<Complex>::Setup ( const SuperLUGrid<Complex>& g, const SuperLUOpti
 //    #ifdef USE_ABORT
 //abort();
 //#endif
-//throw std::logic_error("SuperLUMatrix has been set up before.");
+//ErrorHandling("SuperLUMatrix has been set up before.");
 //  }
 #ifndef _RELEASE_
 	PopCallStack();

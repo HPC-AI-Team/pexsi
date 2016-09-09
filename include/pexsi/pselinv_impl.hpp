@@ -91,7 +91,7 @@ namespace PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "MPI has not been initialized." );
+      ErrorHandling( "MPI has not been initialized." );
     }
     MPI_Group  comm_group;
     MPI_Comm_group( Bcomm, &comm_group );
@@ -104,7 +104,7 @@ namespace PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "mpisize != nprow * npcol." ); 
+      ErrorHandling( "mpisize != nprow * npcol." ); 
     }
 
 
@@ -451,7 +451,7 @@ namespace PEXSI{
       //      #ifdef USE_ABORT
       //abort();
       //#endif
-      //throw std::runtime_error( "The current version of SelInv only works for square processor grids." ); }
+      //ErrorHandling( "The current version of SelInv only works for square processor grids." ); }
 
       L_.clear();
       U_.clear();
@@ -549,7 +549,7 @@ namespace PEXSI{
       for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
         UBlock<T>& UB = UrowRecv[jb];
         if( UB.numRow != SuperSize(snode.Index, super_) ){
-          throw std::logic_error( "The size of UB is not right.  Something is seriously wrong." );
+          ErrorHandling( "The size of UB is not right.  Something is seriously wrong." );
         }
         lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
             UB.numRow, UBuf.VecData( colPtr[jb] ), SuperSize( snode.Index, super_ ) );	
@@ -613,7 +613,7 @@ namespace PEXSI{
       //                    " in LB cannot find the corresponding row in SinvB" << std::endl
       //                    << "LB.rows    = " << LB.rows << std::endl
       //                    << "SinvB.rows = " << SinvB.rows << std::endl;
-      //                  throw std::runtime_error( msg.str().c_str() );
+      //                  ErrorHandling( msg.str().c_str() );
       //                }
       //              }
       //              TIMER_STOP(STDFIND_ROW);
@@ -639,7 +639,7 @@ namespace PEXSI{
       //            std::ostringstream msg;
       //            msg << "Block(" << isup << ", " << jsup 
       //              << ") did not find a matching block in Sinv." << std::endl;
-      //            throw std::runtime_error( msg.str().c_str() );
+      //            ErrorHandling( msg.str().c_str() );
       //          }
       //        } // if (isup, jsup) is in L
       //        else{
@@ -678,7 +678,7 @@ namespace PEXSI{
       //                    " in UB cannot find the corresponding row in SinvB" << std::endl
       //                    << "UB.cols    = " << UB.cols << std::endl
       //                    << "UinvB.cols = " << SinvB.cols << std::endl;
-      //                  throw std::runtime_error( msg.str().c_str() );
+      //                  ErrorHandling( msg.str().c_str() );
       //                }
       //              }
       //              TIMER_STOP(STDFIND_COL);
@@ -705,7 +705,7 @@ namespace PEXSI{
       //            std::ostringstream msg;
       //            msg << "Block(" << isup << ", " << jsup 
       //              << ") did not find a matching block in Sinv." << std::endl;
-      //            throw std::runtime_error( msg.str().c_str() );
+      //            ErrorHandling( msg.str().c_str() );
       //          }
       //        } // if (isup, jsup) is in U
       //
@@ -750,7 +750,7 @@ namespace PEXSI{
                       " in LB cannot find the corresponding row in SinvB" << std::endl
                       << "LB.rows    = " << LB.rows << std::endl
                       << "SinvB.rows = " << SinvB.rows << std::endl;
-                    throw std::runtime_error( msg.str().c_str() );
+                    ErrorHandling( msg.str().c_str() );
                   }
                 }
 
@@ -780,7 +780,7 @@ namespace PEXSI{
               std::ostringstream msg;
               msg << "Block(" << isup << ", " << jsup 
                 << ") did not find a matching block in Sinv." << std::endl;
-              throw std::runtime_error( msg.str().c_str() );
+              ErrorHandling( msg.str().c_str() );
             }
           } // if (isup, jsup) is in L
           else{
@@ -818,7 +818,7 @@ namespace PEXSI{
                       " in UB cannot find the corresponding row in SinvB" << std::endl
                       << "UB.cols    = " << UB.cols << std::endl
                       << "UinvB.cols = " << SinvB.cols << std::endl;
-                    throw std::runtime_error( msg.str().c_str() );
+                    ErrorHandling( msg.str().c_str() );
                   }
                 }
 
@@ -842,7 +842,7 @@ namespace PEXSI{
               std::ostringstream msg;
               msg << "Block(" << isup << ", " << jsup 
                 << ") did not find a matching block in Sinv." << std::endl;
-              throw std::runtime_error( msg.str().c_str() );
+              ErrorHandling( msg.str().c_str() );
             }
           } // if (isup, jsup) is in U
 
@@ -1080,7 +1080,7 @@ namespace PEXSI{
 #ifdef USE_ABORT
               abort();
 #endif
-              throw std::logic_error( "UBlock cannot find its update. Something is seriously wrong." );
+              ErrorHandling( "UBlock cannot find its update. Something is seriously wrong." );
             }
           }
         } // receiver
@@ -3741,7 +3741,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
     {
 
       if(optionsLU_->Symmetric == 0){
-        throw std::logic_error( "The matrix is not symmetric, this routine can't handle it !" );
+        ErrorHandling( "The matrix is not symmetric, this routine can't handle it !" );
       }
       SelInv_P2p	(  );
 
@@ -3881,7 +3881,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
 #ifdef USE_ABORT
               abort();
 #endif
-              throw std::runtime_error( "The size of the diagonal block of L is wrong." );
+              ErrorHandling( "The size of the diagonal block of L is wrong." );
             }
           } // Owns the diagonal block
           else
@@ -4148,7 +4148,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
 #ifdef USE_ABORT
                   abort();
 #endif
-                  throw std::logic_error( "LcolRecv contains the wrong blocks." );
+                  ErrorHandling( "LcolRecv contains the wrong blocks." );
                 }
                 for( Int jb = 0; jb < Urow.size(); jb++ ){
                   UBlock<T> &  UB = Urow[jb];
@@ -4163,7 +4163,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
 #ifdef USE_ABORT
                       abort();
 #endif
-                      throw std::runtime_error( msg.str().c_str() );
+                      ErrorHandling( msg.str().c_str() );
                     }
 
                     // Note that the order of the column indices of the U
@@ -4189,7 +4189,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
 #ifdef USE_ABORT
               abort();
 #endif
-              throw std::logic_error( "UBlock cannot find its update. Something is seriously wrong." );
+              ErrorHandling( "UBlock cannot find its update. Something is seriously wrong." );
             }
           }
 
@@ -4546,7 +4546,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
 #ifdef USE_ABORT
           abort();
 #endif
-          throw std::runtime_error( "Sizes of the sending information do not match." );
+          ErrorHandling( "Sizes of the sending information do not match." );
         }
       }
 
@@ -4839,7 +4839,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
 #ifdef USE_ABORT
           abort();
 #endif
-          throw std::runtime_error( "Sizes of the sending information do not match." );
+          ErrorHandling( "Sizes of the sending information do not match." );
         }
       }
 
@@ -4911,13 +4911,13 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error( "The DistSparseMatrix providing the pattern has a different size from PMatrix." );
+        ErrorHandling( "The DistSparseMatrix providing the pattern has a different size from PMatrix." );
       }
       if( A.colptrLocal.m() != numColLocal + 1 ){
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error( "The DistSparseMatrix providing the pattern has a different number of local columns from PMatrix." );
+        ErrorHandling( "The DistSparseMatrix providing the pattern has a different number of local columns from PMatrix." );
       }
 
       B.size = A.size;
@@ -4933,7 +4933,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
       //				#ifdef USE_ABORT
       //      abort();
       //#endif
-      //throw std::runtime_error( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
+      //ErrorHandling( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
       //			}
       B.comm = grid_->comm;
 
@@ -5137,7 +5137,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
 #ifdef USE_ABORT
           abort();
 #endif
-          throw std::runtime_error( "Sizes of the sending information do not match." );
+          ErrorHandling( "Sizes of the sending information do not match." );
         }
       }
 
@@ -5261,7 +5261,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
       //				#ifdef USE_ABORT
       //abort();
       //#endif
-      //throw std::runtime_error( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
+      //ErrorHandling( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
       //			}
       B.comm = grid_->comm;
 
@@ -5294,7 +5294,7 @@ localColBlockRowIdxPos[LBj( ksup, grid_ )] = std::distance(localColBlockRowIdxVe
 #ifdef USE_ABORT
           abort();
 #endif
-          throw std::runtime_error( "Sizes of the sending information do not match." );
+          ErrorHandling( "Sizes of the sending information do not match." );
         }
       }
 

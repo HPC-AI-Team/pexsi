@@ -540,7 +540,7 @@ namespace PEXSI{
 
 	inline Int combine(char& val, char& ext)
 	{
-		throw  std::logic_error( "Combine operation not implemented." );
+		ErrorHandling( "Combine operation not implemented." );
 	}
 
 	//-------------------
@@ -640,7 +640,7 @@ namespace PEXSI{
 	//
 	//inline Int combine(Index2& val, Index2& ext)
 	//{
-	//	throw  std::logic_error( "Combine operation not implemented." );
+	//	ErrorHandling( "Combine operation not implemented." );
 	//  return 0;
 	//}
 
@@ -660,7 +660,7 @@ namespace PEXSI{
 	//
 	//inline Int combine(Point2& val, Point2& ext)
 	//{
-	//	throw  std::logic_error( "Combine operation not implemented." );
+	//	ErrorHandling( "Combine operation not implemented." );
 	//  return 0;
 	//}
 
@@ -680,7 +680,7 @@ namespace PEXSI{
 
 	inline Int combine(Index3& val, Index3& ext)
 	{
-		throw  std::logic_error( "Combine operation not implemented." );
+		ErrorHandling( "Combine operation not implemented." );
 	}
 
 	//-------------------
@@ -699,7 +699,7 @@ namespace PEXSI{
 
 	inline Int combine(Point3& val, Point3& ext)
 	{
-		throw  std::logic_error( "Combine operation not implemented." );
+		ErrorHandling( "Combine operation not implemented." );
 	}
 
 	//-------------------
@@ -728,7 +728,7 @@ namespace PEXSI{
 	template<class T>
 		Int combine(std::vector<T>& val, std::vector<T>& ext)
 		{
-			throw  std::logic_error( "Combine operation not implemented." );
+			ErrorHandling( "Combine operation not implemented." );
 			return 0;
 		}
 
@@ -760,7 +760,7 @@ namespace PEXSI{
 	template<class T>
 		Int combine(std::set<T>& val, std::set<T>& ext)
 		{
-			throw  std::logic_error( "Combine operation not implemented." );
+			ErrorHandling( "Combine operation not implemented." );
 			return 0;
 		}
 
@@ -795,7 +795,7 @@ namespace PEXSI{
 	template<class T, class S>
 		Int combine(std::map<T,S>& val, std::map<T,S>& ext)
 		{
-			throw  std::logic_error( "Combine operation not implemented." );
+			ErrorHandling( "Combine operation not implemented." );
 			return 0;
 		}
 
@@ -820,7 +820,7 @@ namespace PEXSI{
 	template<class T, class S>
 		Int combine(std::pair<T,S>& val, std::pair<T,S>& ext)
 		{
-			throw  std::logic_error( "Combine operation not implemented." );
+			ErrorHandling( "Combine operation not implemented." );
 			return 0;
 		}
 
@@ -1201,7 +1201,7 @@ namespace PEXSI{
 	template<class T>
 		Int inline combine(NumVec<T>& val, NumVec<T>& ext)
 		{
-			throw  std::logic_error( "Combine operation not implemented." );
+			ErrorHandling( "Combine operation not implemented." );
 			return 0;
 		}
 
@@ -1236,7 +1236,7 @@ namespace PEXSI{
 	template<class T>
 		Int inline combine(NumMat<T>& val, NumMat<T>& ext)
 		{
-			throw  std::logic_error( "Combine operation not implemented." );
+			ErrorHandling( "Combine operation not implemented." );
 			return 0;
 		}
 
@@ -1279,7 +1279,7 @@ namespace PEXSI{
 	template<class T>
 		Int inline combine(NumTns<T>& val, NumTns<T>& ext)
 		{
-			throw  std::logic_error( "Combine operation not implemented." );
+			ErrorHandling( "Combine operation not implemented." );
 			return 0;
 		}
 
@@ -1314,7 +1314,7 @@ namespace PEXSI{
 	template<class T>
 		Int inline combine(DistSparseMatrix<T>& val, DistSparseMatrix<T>& ext)
 		{
-			throw  std::logic_error( "Combine operation not implemented." );
+			ErrorHandling( "Combine operation not implemented." );
 			return 0;
 		}
 
@@ -1601,7 +1601,7 @@ namespace PEXSI{
           #ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
       }
       if( C.m() != AMat.size ){
         std::ostringstream msg;
@@ -1612,7 +1612,7 @@ throw std::runtime_error( msg.str().c_str() );
           #ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
       }
 
       MPI_Comm  comm = AMat.comm;
@@ -1713,7 +1713,7 @@ throw std::runtime_error( msg.str().c_str() );
         #ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
       }
 
       std::vector<Real>::const_iterator vi = std::lower_bound( 

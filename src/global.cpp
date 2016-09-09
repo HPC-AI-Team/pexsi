@@ -54,65 +54,37 @@ namespace PEXSI{
 // *********************************************************************
 // IO
 // *********************************************************************
-  std::ofstream  statusOFS;
+std::ofstream  statusOFS;
 
 #ifdef GEMM_PROFILE
-  std::ofstream  statOFS;
-  std::deque<int > gemm_stat;
+std::ofstream  statOFS;
+std::deque<int > gemm_stat;
 #endif
 
 #if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
-  std::ofstream  commOFS;
-  std::deque<int > comm_stat;
+std::ofstream  commOFS;
+std::deque<int > comm_stat;
 #endif
 
 
 // *********************************************************************
 // Error handling
 // *********************************************************************
-  void ErrorHandling( const char * msg ){
+void ErrorHandling( const char * msg ){
 #ifdef _COREDUMPER_
-    int mpirank, mpisize;
-    MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
-    MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
-    char filename[100];
-    sprintf(filename, "core_%d_%d", mpirank, mpisize);
+  int mpirank, mpisize;
+  MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
+  MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
+  char filename[100];
+  sprintf(filename, "core_%d_%d", mpirank, mpisize);
 
-    if( WriteCoreDump(filename) ==0 ) {   
-      statusOFS << "success: WriteCoreDump to " << filename << std::endl;
-    } else {  
-      statusOFS << "failed:  WriteCoreDump to " << filename << std::endl;
-    }     
+  if( WriteCoreDump(filename) ==0 ) {   
+    statusOFS << "success: WriteCoreDump to " << filename << std::endl;
+  } else {  
+    statusOFS << "failed:  WriteCoreDump to " << filename << std::endl;
+  }     
 #endif // #ifdef _COREDUMPER_
-    throw std::runtime_error( msg );
-  }
+  throw std::runtime_error( msg );
+}
 
-
-// If we are not in RELEASE mode, then implement wrappers for a
-	// CallStack
-#ifndef _RELEASE_
-	std::stack<std::string> callStack;	
-
-	void PushCallStack( const std::string& s )
-	{ 
-//    callStack.push(s); 
-  }
-
-	void PopCallStack()
-	{ 
-//    callStack.pop(); 
-  }
-
-	void DumpCallStack()
-	{
-		std::ostringstream msg;
-		while( ! callStack.empty() )
-		{
-			msg << "Stack[" << callStack.size() << "]: " << callStack.top() << "\n";
-			callStack.pop();
-		}
-		std::cerr << msg.str() << std::endl;
-	}
-
-#endif // ifndef _RELEASE_
 } // namespace PEXSI

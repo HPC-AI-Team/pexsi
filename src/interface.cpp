@@ -77,7 +77,7 @@ void ReadDistSparseMatrixFormattedHeadInterface (
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be openeded!" );
+ErrorHandling( "File cannot be openeded!" );
 		}
 		Int dummy;
 		fin >> *size >> dummy;
@@ -170,7 +170,7 @@ void ReadDistSparseMatrixHeadInterface (
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be openeded!" );
+ErrorHandling( "File cannot be openeded!" );
 		}
 		fin.read((char*)size, sizeof(int));
 		fin.read((char*)nnz,  sizeof(int));
@@ -188,7 +188,7 @@ throw std::logic_error( "File cannot be openeded!" );
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "colptr is not of the right size." );
+ErrorHandling( "colptr is not of the right size." );
 		}
 
 		Int* ptr = colptr.Data();
@@ -541,7 +541,7 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
         colPerm = "MMD_AT_PLUS_A";
         break;
       default:
-        throw std::logic_error("Unsupported ordering strategy.");
+        ErrorHandling("Unsupported ordering strategy.");
     }
 
     reinterpret_cast<PPEXSIData*>(plan)->
@@ -588,7 +588,7 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
         colPerm = "MMD_AT_PLUS_A";
         break;
       default:
-        throw std::logic_error("Unsupported ordering strategy.");
+        ErrorHandling("Unsupported ordering strategy.");
     }
 
 
@@ -601,7 +601,7 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
         rowPerm = "LargeDiag";
         break;
       default:
-        throw std::logic_error("Unsupported row ordering strategy.");
+        ErrorHandling("Unsupported row ordering strategy.");
     }
 
 
@@ -654,7 +654,7 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
         colPerm = "MMD_AT_PLUS_A";
         break;
       default:
-        throw std::logic_error("Unsupported ordering strategy.");
+        ErrorHandling("Unsupported ordering strategy.");
     }
 
     reinterpret_cast<PPEXSIData*>(plan)->
@@ -701,7 +701,7 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
         colPerm = "MMD_AT_PLUS_A";
         break;
       default:
-        throw std::logic_error("Unsupported ordering strategy.");
+        ErrorHandling("Unsupported ordering strategy.");
     }
 
     std::string rowPerm;
@@ -713,7 +713,7 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
         rowPerm = "LargeDiag";
         break;
       default:
-        throw std::logic_error("Unsupported row ordering strategy.");
+        ErrorHandling("Unsupported row ordering strategy.");
     }
 
 

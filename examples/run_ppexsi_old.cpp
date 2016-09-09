@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 			temperature = std::atof(options["-temp"].c_str());
 		}
 		else{
-      throw std::logic_error("temp must be provided.");
+      ErrorHandling("temp must be provided.");
 		}
 
 		Real mu0;
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 			mu0 = std::atof(options["-mu0"].c_str());
 		}
 		else{
-      throw std::logic_error("mu0 must be provided.");
+      ErrorHandling("mu0 must be provided.");
 		}
 
 		Real muMin;
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 			muMin = std::atof(options["-muMin"].c_str());
 		}
 		else{
-      throw std::logic_error("muMin must be provided.");
+      ErrorHandling("muMin must be provided.");
 		}
 
 		Real muMax;
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 			muMax = std::atof(options["-muMax"].c_str());
 		}
 		else{
-      throw std::logic_error("muMax must be provided.");
+      ErrorHandling("muMax must be provided.");
 		}
 
 		Real numElectronExact;
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 			numElectronExact = std::atof(options["-numel"].c_str());
 		}
 		else{
-      throw std::logic_error("numel must be provided.");
+      ErrorHandling("numel must be provided.");
 		}
 		
 		Int numPole;
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 			numPole = std::atof(options["-numPole"].c_str());
 		}
 		else{
-      throw std::logic_error("numPole must be provided.");
+      ErrorHandling("numPole must be provided.");
 		}
 
 
@@ -159,7 +159,7 @@ int main(int argc, char **argv)
 			deltaE = std::atof(options["-deltaE"].c_str());
 		}
 		else{
-      throw std::logic_error("deltaE must be provided.");
+      ErrorHandling("deltaE must be provided.");
 		}
 
 		Real gap;
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 			gap = std::atof(options["-gap"].c_str());
 		}
 		else{
-      throw std::logic_error("gap must be provided.");
+      ErrorHandling("gap must be provided.");
 		}
 
 
@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 			npPerPole = std::atoi(options["-npPerPole"].c_str());
 		}
 		else{
-      throw std::logic_error("npPerPole must be provided.");
+      ErrorHandling("npPerPole must be provided.");
 		}
 
 		Int npSymbFact;
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 			npSymbFact = std::atoi(options["-npSymbFact"].c_str());
 		}
 		else{
-      throw std::logic_error("npSymbFact must be provided.");
+      ErrorHandling("npSymbFact must be provided.");
 		}
 
 		Int isFormatted;
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 			Hfile = options["-H"];
 		}
 		else{
-      throw std::logic_error("Hfile must be provided.");
+      ErrorHandling("Hfile must be provided.");
 		}
 
 		if( options.find("-S") != options.end() ){ 
@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 			ColPerm = options["-colperm"];
 		}
 		else{
-      throw std::logic_error("colperm must be provided.");
+      ErrorHandling("colperm must be provided.");
 		}
 
 		bool isFreeEnergyDensityMatrix = true;
@@ -232,13 +232,13 @@ int main(int argc, char **argv)
 		// Check the input parameters
 		// *********************************************************************
 		if( mpisize % npPerPole != 0 ){
-			throw std::logic_error( "mpisize cannot be divided evenly by npPerPole." );
+			ErrorHandling( "mpisize cannot be divided evenly by npPerPole." );
 		}
 
 	  Int nprow = iround( std::sqrt( (double)npPerPole) );
 		Int npcol = npPerPole / nprow;
 		if( npPerPole != nprow * npcol || nprow != npcol ){
-			throw std::runtime_error( "npPerPole must be a perfect square due to the current implementation of PSelInv." );
+			ErrorHandling( "npPerPole must be a perfect square due to the current implementation of PSelInv." );
 		}
 
 		Int muMaxIter;
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 			muMaxIter = std::atoi(options["-muiter"].c_str());
 		}
 		else{
-      throw std::logic_error("muiter must be provided.");
+      ErrorHandling("muiter must be provided.");
 		}
 
 
@@ -451,10 +451,10 @@ int main(int argc, char **argv)
 		vi1 = std::upper_bound( inertiaVec.begin(), inertiaVec.end(), 
 				numElectronExact+EPS );
 		if( vi0 == inertiaVec.begin() || vi0 == inertiaVec.end() ){
-			throw std::runtime_error("Increase the range of [muMin, muMax].");
+			ErrorHandling("Increase the range of [muMin, muMax].");
 		}
 		if( vi1 == inertiaVec.begin() || vi1 == inertiaVec.end() ){
-			throw std::runtime_error("Increase the range of [muMin, muMax].");
+			ErrorHandling("Increase the range of [muMin, muMax].");
 		}
 		Int idx0 = vi0 - inertiaVec.begin() - 1;
 		Int idx1 = vi1 - inertiaVec.begin();

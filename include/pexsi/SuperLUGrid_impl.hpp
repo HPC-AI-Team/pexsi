@@ -63,7 +63,7 @@ namespace PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+      ErrorHandling( "SuperLUGrid cannot be allocated." );
     }
     ptrData->GridInit(comm, nprow, npcol);	
 
@@ -105,7 +105,7 @@ namespace PEXSI{
 #endif
 
     if(g.ptrData == NULL){
-      throw std::runtime_error( "Original SuperLUGrid not allocated." );
+      ErrorHandling( "Original SuperLUGrid not allocated." );
     }
 
     ptrData = new RealGridData(*g.ptrData);
@@ -113,7 +113,7 @@ namespace PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+      ErrorHandling( "SuperLUGrid cannot be allocated." );
     }
 
 #ifndef _RELEASE_
@@ -132,12 +132,12 @@ namespace PEXSI{
       }
 
     if(g.ptrData == NULL){
-      throw std::runtime_error( "Original SuperLUGrid not allocated." );
+      ErrorHandling( "Original SuperLUGrid not allocated." );
     }
     else{
         ptrData = new RealGridData(*g.ptrData);
         if( ptrData == NULL ){
-          throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+          ErrorHandling( "SuperLUGrid cannot be allocated." );
         }
       }
     }
@@ -165,7 +165,7 @@ namespace PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+      ErrorHandling( "SuperLUGrid cannot be allocated." );
     }
     ptrData->GridInit(comm, nprow, npcol);	
 
@@ -204,7 +204,7 @@ namespace PEXSI{
 #endif
 
     if(g.ptrData == NULL){
-      throw std::runtime_error( "Original SuperLUGrid not allocated." );
+      ErrorHandling( "Original SuperLUGrid not allocated." );
     }
 
     ptrData = new ComplexGridData(*g.ptrData);
@@ -212,7 +212,7 @@ namespace PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+      ErrorHandling( "SuperLUGrid cannot be allocated." );
     }
 
 #ifndef _RELEASE_
@@ -231,12 +231,12 @@ namespace PEXSI{
       }
 
     if(g.ptrData == NULL){
-      throw std::runtime_error( "Original SuperLUGrid not allocated." );
+      ErrorHandling( "Original SuperLUGrid not allocated." );
     }
     else{
         ptrData = new ComplexGridData(*g.ptrData);
         if( ptrData == NULL ){
-          throw std::runtime_error( "SuperLUGrid cannot be allocated." );
+          ErrorHandling( "SuperLUGrid cannot be allocated." );
         }
       }
     }

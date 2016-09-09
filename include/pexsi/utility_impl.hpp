@@ -133,7 +133,7 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
 		}
 		fin.read((char*)&pspmat.size, sizeof(Int));
 		fin.read((char*)&pspmat.nnz,  sizeof(Int));
@@ -154,7 +154,7 @@ throw std::logic_error( "File cannot be opened!" );
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "colptr is not of the right size." );
+ErrorHandling( "colptr is not of the right size." );
 		}
 
 		fin.read((char*)colptr.Data(), sizeof(Int)*tmp);
@@ -196,7 +196,7 @@ throw std::logic_error( "colptr is not of the right size." );
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
 		}
 		IntNumVec buf;
 		Int numRead;
@@ -226,7 +226,7 @@ throw std::logic_error( msg.str().c_str() );
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
 		}
 
     pspmat.rowindLocal.Resize( numRead );
@@ -247,7 +247,7 @@ throw std::logic_error( msg.str().c_str() );
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
 		}
 		NumVec<Real> buf;
 		Int numRead;
@@ -277,7 +277,7 @@ throw std::logic_error( msg.str().c_str() );
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
 		}
 
     pspmat.nzvalLocal.Resize( numRead );
@@ -327,7 +327,7 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<R
     #ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
   }
 
   // FIXME Note that nnz uses the Int data type for consistency of writing / reading
@@ -471,7 +471,7 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
     #ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
   }
 
   // FIXME Note that nnz uses the Int data type for consistency of writing / reading
@@ -527,7 +527,7 @@ throw std::logic_error( "File cannot be opened!" );
 #ifdef USE_ABORT
     abort();
 #endif
-    throw std::logic_error( "error reading colptr" );
+    ErrorHandling( "error reading colptr" );
   }
   MPI_Type_free(&type);
 
@@ -556,7 +556,7 @@ throw std::logic_error( "File cannot be opened!" );
     #ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "error reading rowind" );
+ErrorHandling( "error reading rowind" );
   }
   MPI_Type_free(&type);
 
@@ -582,7 +582,7 @@ throw std::logic_error( "error reading rowind" );
     #ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "error reading nzval" );
+ErrorHandling( "error reading nzval" );
   }
 
   MPI_Type_free(&type);
@@ -628,7 +628,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
 		}
 		Int dummy;
 
@@ -704,7 +704,7 @@ throw std::logic_error( "File cannot be opened!" );
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
 		}
 
     pspmat.rowindLocal.Resize( numRead );
@@ -748,7 +748,7 @@ throw std::logic_error( msg.str().c_str() );
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
 		}
 
     pspmat.nzvalLocal.Resize( numRead );
@@ -802,7 +802,7 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
 #ifdef USE_ABORT
     abort();
 #endif
-    throw std::logic_error( "File cannot be opened!" );
+    ErrorHandling( "File cannot be opened!" );
   }
 
   // FIXME Note that nnz uses the Int data type for consistency of writing / reading
@@ -858,7 +858,7 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
 #ifdef USE_ABORT
     abort();
 #endif
-    throw std::logic_error( "error reading colptr" );
+    ErrorHandling( "error reading colptr" );
   }
   MPI_Type_free(&type);
 
@@ -887,7 +887,7 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
 #ifdef USE_ABORT
     abort();
 #endif
-    throw std::logic_error( "error reading rowind" );
+    ErrorHandling( "error reading rowind" );
   }
   MPI_Type_free(&type);
 
@@ -913,7 +913,7 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
 #ifdef USE_ABORT
     abort();
 #endif
-    throw std::logic_error( "error reading nzval" );
+    ErrorHandling( "error reading nzval" );
   }
 
   MPI_Type_free(&type);
@@ -962,7 +962,7 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<C
     #ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
   }
 
   // FIXME Note that nnz uses the Int data type for consistency of writing / reading
@@ -1102,7 +1102,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "File cannot be opened!" );
+ErrorHandling( "File cannot be opened!" );
 		}
 		Int dummy;
 
@@ -1180,7 +1180,7 @@ throw std::logic_error( "File cannot be opened!" );
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( msg.str().c_str() );
+      ErrorHandling( msg.str().c_str() );
     }
 
     pspmat.rowindLocal.Resize( numRead );
@@ -1235,7 +1235,7 @@ throw std::logic_error( "File cannot be opened!" );
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( msg.str().c_str() );
+      ErrorHandling( msg.str().c_str() );
 		}
 
     pspmat.nzvalLocal.Resize( numRead/2 );
@@ -1300,7 +1300,7 @@ throw std::logic_error( "File cannot be opened!" );
 			#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
 		}
 		Int diagIdx = ptr - A.rowindLocal.Data();
     diagLocal( jcol - 1 ) = A.nzvalLocal( diagIdx );

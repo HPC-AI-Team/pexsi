@@ -356,7 +356,7 @@ template<typename T> void symPACKMatrixToPMatrix(
           msg << "message size does not match for the blockIdx " << LB.blockIdx << std::endl
             << "LB.numRow * LB.numCol = " << LB.numRow * LB.numCol << std::endl
             << "nzval.size            = " << nzval.size() << std::endl;
-          throw std::runtime_error( msg.str().c_str() );
+          ErrorHandling( msg.str().c_str() );
         }
         // Convert the row major format to column major format
         Transpose( NumMat<T>( LB.numCol, LB.numRow, true,

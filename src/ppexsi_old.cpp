@@ -59,13 +59,13 @@ PPEXSIData::PPEXSIData	( const GridType* g, Int nprow, Int npcol ): gridPole_(g)
 		#ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( "PSelInv only allows to use square grid." );
+ErrorHandling( "PSelInv only allows to use square grid." );
 	}
 	if( gridPole_->numProcCol != nprow * npcol ){
 		#ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( "The number of processors numProcCol do not match nprow * npcol." );
+ErrorHandling( "The number of processors numProcCol do not match nprow * npcol." );
 	}
 	zGridSuperLU_  = new SuperLUGrid<Complex>( gridPole_->rowComm, nprow, npcol );
 	dGridSuperLU_  = new SuperLUGrid<Real>( gridPole_->rowComm, nprow, npcol );
@@ -232,7 +232,7 @@ void PPEXSIData::Solve(
 		#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "Must be even number of poles!" );
+ErrorHandling( "Must be even number of poles!" );
 	}
 
 	// TODO Check H and S have the same pattern
@@ -1402,7 +1402,7 @@ PPEXSIData::EstimateSpectralRadius(
 		#ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
   }
 
   // Locally Optimal Conjugate Gradient method
@@ -1442,7 +1442,7 @@ throw std::runtime_error( msg.str().c_str() );
         #ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( msg.str().c_str() );
+ErrorHandling( msg.str().c_str() );
       }
       blas::Copy( n, v0.Data(), 1, X.Data(), 1 );
     }
@@ -1618,7 +1618,7 @@ throw std::runtime_error( msg.str().c_str() );
     #ifdef USE_ABORT
 abort();
 #endif
-throw std::runtime_error( "Method != 0 is not yet supported." );
+ErrorHandling( "Method != 0 is not yet supported." );
   }
 
 

@@ -62,7 +62,7 @@ namespace PEXSI{
 				#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "Index is out of bound." );
+ErrorHandling( "Index is out of bound." );
 			}
 #ifndef _RELEASE_
 			PopCallStack();
@@ -81,7 +81,7 @@ throw std::logic_error( "Index is out of bound." );
 				#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "Index is out of bound." );
+ErrorHandling( "Index is out of bound." );
 			}
 #ifndef _RELEASE_
 			PopCallStack();
@@ -100,7 +100,7 @@ throw std::logic_error( "Index is out of bound." );
 				#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "Index is out of bound." );
+ErrorHandling( "Index is out of bound." );
 			}
 #ifndef _RELEASE_
 			PopCallStack();
@@ -119,7 +119,7 @@ throw std::logic_error( "Index is out of bound." );
 				#ifdef USE_ABORT
 abort();
 #endif
-throw std::logic_error( "Index is out of bound." );
+ErrorHandling( "Index is out of bound." );
 			}
 #ifndef _RELEASE_
 			PopCallStack();

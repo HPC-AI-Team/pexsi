@@ -219,7 +219,7 @@ namespace PEXSI{
             statusOFS<<"The size of LB is not right. Something is seriously wrong."<<std::endl;
             abort();
 #endif
-            throw std::logic_error( 
+            ErrorHandling( 
                 "The size of LB is not right. Something is seriously wrong." );
           }
           lapack::Lacpy( 'A', LB.numRow, LB.numCol, LB.nzval.Data(),
@@ -240,7 +240,7 @@ namespace PEXSI{
             statusOFS<<"The size of UB is not right. Something is seriously wrong."<<std::endl;
             abort();
 #endif
-            throw std::logic_error( 
+            ErrorHandling( 
                 "The size of UB is not right. Something is seriously wrong." );
           }
 
@@ -308,7 +308,7 @@ namespace PEXSI{
 #ifdef USE_ABORT
                   abort();
 #endif
-                  throw std::runtime_error( msg.str().c_str() );
+                  ErrorHandling( msg.str().c_str() );
                 }
               }
               TIMER_STOP(STDFIND_ROW);
@@ -342,7 +342,7 @@ namespace PEXSI{
 //#ifdef USE_ABORT
 //            abort();
 //#endif
-//            throw std::runtime_error( msg.str().c_str() );
+//            ErrorHandling( msg.str().c_str() );
           }
         } // if (isup, jsup) is in L
         else{
@@ -385,7 +385,7 @@ namespace PEXSI{
 #ifdef USE_ABORT
             abort();
 #endif
-                  throw std::runtime_error( msg.str().c_str() );
+                  ErrorHandling( msg.str().c_str() );
                 }
               }
               TIMER_STOP(STDFIND_COL);
@@ -418,7 +418,7 @@ namespace PEXSI{
 //#ifdef USE_ABORT
 //            abort();
 //#endif
-//            throw std::runtime_error( msg.str().c_str() );
+//            ErrorHandling( msg.str().c_str() );
           }
         } // if (isup, jsup) is in U
 
@@ -892,7 +892,7 @@ struct CDBuffers{
 #ifdef USE_ABORT
                   abort();
 #endif
-                  throw std::logic_error( "LcolRecv contains the wrong blocks." );
+                  ErrorHandling( "LcolRecv contains the wrong blocks." );
                 }
 
                 //check that LB would be on this proc if it was a UB
@@ -947,7 +947,7 @@ struct CDBuffers{
           for( Int jb = 0; jb < Lrow.size(); jb++ ){ statusOFS<<Lrow[jb].blockIdx<<" "; }statusOFS<<endl;
               abort();
 #endif
-              throw std::logic_error( 
+              ErrorHandling( 
                   "LBlock cannot find its update. Something is seriously wrong."
                   );
             }
@@ -1052,7 +1052,7 @@ struct CDBuffers{
 #ifdef USE_ABORT
                   abort();
 #endif
-                  throw std::logic_error( "UrowRecv contains the wrong blocks." );
+                  ErrorHandling( "UrowRecv contains the wrong blocks." );
                 }
 
                 //check that UB would be on this proc if it was a LB
@@ -1105,7 +1105,7 @@ struct CDBuffers{
           for( Int jb = 0; jb < Ucol.size(); jb++ ){ statusOFS<<Ucol[jb].blockIdx<<" "; }statusOFS<<endl;
               abort();
 #endif
-              throw std::logic_error( 
+              ErrorHandling( 
                   "UBlock cannot find its update. Something is seriously wrong."
                   );
             }
@@ -1514,7 +1514,7 @@ struct CDBuffers{
 #ifdef USE_ABORT
                   abort();
 #endif
-                  throw std::logic_error( "LcolRecv contains the wrong blocks." );
+                  ErrorHandling( "LcolRecv contains the wrong blocks." );
                 }
 
                 //check that LB would be on this proc if it was a UB
@@ -1563,7 +1563,7 @@ struct CDBuffers{
 #ifdef USE_ABORT
               abort();
 #endif
-              throw std::logic_error( 
+              ErrorHandling( 
                   "LBlock cannot find its update. Something is seriously wrong."
                   );
             }
@@ -1657,7 +1657,7 @@ struct CDBuffers{
 #ifdef USE_ABORT
                   abort();
 #endif
-                  throw std::logic_error( "UrowRecv contains the wrong blocks." );
+                  ErrorHandling( "UrowRecv contains the wrong blocks." );
                 }
 
                 //check that UB would be on this proc if it was a LB
@@ -1703,7 +1703,7 @@ struct CDBuffers{
 #ifdef USE_ABORT
               abort();
 #endif
-              throw std::logic_error( 
+              ErrorHandling( 
                   "UBlock cannot find its update. Something is seriously wrong."
                   );
             }
@@ -3331,7 +3331,7 @@ delete pAinvBuf;
 #ifdef USE_ABORT
               abort();
 #endif
-              throw std::runtime_error( 
+              ErrorHandling( 
                   "The size of the diagonal block of L is wrong." );
             }
           } // Owns the diagonal block
@@ -3414,7 +3414,7 @@ delete pAinvBuf;
 #ifdef USE_ABORT
               abort();
 #endif
-              throw std::runtime_error( 
+              ErrorHandling( 
                   "The size of the diagonal block of U is wrong." );
             }
           } // Owns the diagonal block

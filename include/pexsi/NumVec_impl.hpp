@@ -144,7 +144,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error("Vector being resized must own data.");
+      ErrorHandling("Vector being resized must own data.");
     }
     if(m > bufsize_) {
       this->deallocate();
@@ -187,7 +187,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "Index is out of bound." );
+      ErrorHandling( "Index is out of bound." );
     }
     PopCallStack();
 #endif  // ifndef _RELEASE_
@@ -206,7 +206,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::logic_error( "Index is out of bound." );
+        ErrorHandling( "Index is out of bound." );
       }
       PopCallStack();
 #endif  // ifndef _RELEASE_
@@ -223,7 +223,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "Index is out of bound." );
+      ErrorHandling( "Index is out of bound." );
     }
     PopCallStack();
 #endif  // ifndef _RELEASE_
@@ -239,7 +239,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "Index is out of bound." );
+      ErrorHandling( "Index is out of bound." );
     }
     PopCallStack();
 #endif  // ifndef _RELEASE_
@@ -255,7 +255,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
           abort();
 #endif
-          throw std::runtime_error("Cannot allocate memory.");
+          ErrorHandling("Cannot allocate memory.");
         }
       } 
       else{

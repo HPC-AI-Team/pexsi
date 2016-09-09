@@ -55,7 +55,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::runtime_error("Cannot allocate memory.");}
+        ErrorHandling("Cannot allocate memory.");}
       } else data_=NULL;
       if(data!=NULL){std::copy(data,data+m_*n_,data_);}
     } else {
@@ -104,7 +104,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error("Matrix being resized must own data.");
+      ErrorHandling("Matrix being resized must own data.");
     }
 
     if(m*n > bufsize_) {
@@ -122,7 +122,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error("Matrix being cleared must own data.");
+      ErrorHandling("Matrix being cleared must own data.");
     }
 
       this->deallocate();
@@ -140,7 +140,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "Index is out of bound." );
+      ErrorHandling( "Index is out of bound." );
     }
     return data_[i+j*m_];
   }
@@ -151,7 +151,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "Index is out of bound." );
+      ErrorHandling( "Index is out of bound." );
     }
     return data_[i+j*m_];
   }
@@ -162,7 +162,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
       abort();
 #endif
-      throw std::logic_error( "Index is out of bound." );
+      ErrorHandling( "Index is out of bound." );
     }
     return &(data_[j*m_]); 
   }
@@ -220,7 +220,7 @@ namespace  PEXSI{
 #ifdef USE_ABORT
         abort();
 #endif
-        throw std::logic_error( "The matrix to be symmetrized should be a square matrix." );
+        ErrorHandling( "The matrix to be symmetrized should be a square matrix." );
       }
 
       NumMat<F> B;

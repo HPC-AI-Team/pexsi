@@ -92,11 +92,11 @@ int main(int argc, char **argv)
         nprow= atoi(options["-r"].c_str());
         npcol= atoi(options["-c"].c_str());
         if(nprow*npcol > mpisize){
-          throw std::runtime_error("The number of used processors cannot be higher than the total number of available processors." );
+          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
         } 
       }
       else{
-        throw std::runtime_error( "When using -r option, -c also needs to be provided." );
+        ErrorHandling( "When using -r option, -c also needs to be provided." );
       }
     }
     else if( options.find("-c") != options.end() ){
@@ -104,11 +104,11 @@ int main(int argc, char **argv)
         nprow= atoi(options["-r"].c_str());
         npcol= atoi(options["-c"].c_str());
         if(nprow*npcol > mpisize){
-          throw std::runtime_error("The number of used processors cannot be higher than the total number of available processors." );
+          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
         } 
       }
       else{
-        throw std::runtime_error( "When using -c option, -r also needs to be provided." );
+        ErrorHandling( "When using -c option, -r also needs to be provided." );
       }
     }
 
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 			muMin = std::atof(options["-muMin"].c_str());
 		}
 		else{
-      throw std::logic_error("muMin must be provided.");
+      ErrorHandling("muMin must be provided.");
 		}
 
 		Real muMax;
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 			muMax = std::atof(options["-muMax"].c_str());
 		}
 		else{
-      throw std::logic_error("muMax must be provided.");
+      ErrorHandling("muMax must be provided.");
 		}
 
 		Int numShift;
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 			numShift = std::atof(options["-numShift"].c_str());
 		}
 		else{
-      throw std::logic_error("numShift must be provided.");
+      ErrorHandling("numShift must be provided.");
 		}
 
 		Int npPerShift;
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 			npPerShift = std::atoi(options["-npPerShift"].c_str());
 		}
 		else{
-      throw std::logic_error("npPerShift must be provided.");
+      ErrorHandling("npPerShift must be provided.");
 		}
 
     std::string Hfile, Sfile;
@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 			Hfile = options["-H"];
 		}
 		else{
-      throw std::logic_error("Hfile must be provided.");
+      ErrorHandling("Hfile must be provided.");
 		}
 
 		if( options.find("-S") != options.end() ){ 
@@ -200,11 +200,11 @@ int main(int argc, char **argv)
 		// Check the input parameters
 		// *********************************************************************
 		if( mpisize % npPerShift != 0 ){
-			throw std::logic_error( "mpisize cannot be divided evenly by npPerShift." );
+			ErrorHandling( "mpisize cannot be divided evenly by npPerShift." );
 		}
 
 		if( npPerShift != nprow * npcol  ){
-			throw std::runtime_error( "npPerShift should be equal to nprow * npcol." );
+			ErrorHandling( "npPerShift should be equal to nprow * npcol." );
 		}
 
     // *********************************************************************
