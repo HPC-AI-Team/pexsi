@@ -276,7 +276,24 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
-- v0.9.2 (2/29/2016) **Beta version**
+- v10.0.0 (2016) **Beta version**
+
+    - Combine LoadRealSymmetricMatrix / LoadRealUnsymmetricMatrix into
+      one single function LoadRealMatrix. Similar change for
+      LoadComplexMatrix.
+
+    - Replace the debugging with PushCallStack / PopCallStack debugging by
+      Google's coredumper.
+
+    - Experimental feature: Add CalculateFermiOperatorComplex function.
+      The implementation corresponds to CalculateFermiOperatorReal, but
+      is applicable to the case when H and S are complex Hermitian
+      matrices. This feature will facilitates the future integration
+      with the Electronic Structure Infrastructure (ELSI) project.
+
+    - Experimental feature: integration with SymPack
+
+- v0.9.2 (2/29/2016) 
     - **v0.9.2 contains major changes to SuperLU_DIST v4.3 and new DFTDriver. Use with care.**
 
     - Add support for SuperLU_DIST v4.3. Starting from v0.9.2, the
