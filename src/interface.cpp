@@ -304,7 +304,7 @@ PPEXSIPlan PPEXSIPlanInitialize(
 
 
 extern "C"
-void PPEXSILoadRealSymmetricHSMatrix(
+void PPEXSILoadRealHSMatrix(
     PPEXSIPlan    plan,
     PPEXSIOptions options,
     int           nrows,                        
@@ -325,7 +325,7 @@ void PPEXSILoadRealSymmetricHSMatrix(
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->
-      LoadRealSymmetricMatrix(
+      LoadRealMatrix(
           nrows,                        
           nnz,                          
           nnzLocal,                     
@@ -346,11 +346,13 @@ void PPEXSILoadRealSymmetricHSMatrix(
   }
 
   return;
-}   // -----  end of function PPEXSILoadRealSymmetricHSMatrix  ----- 
+}   // -----  end of function PPEXSILoadRealHSMatrix  ----- 
+
+
 
 
 extern "C"
-void PPEXSILoadRealUnsymmetricHSMatrix(
+void PPEXSILoadComplexHSMatrix(
     PPEXSIPlan    plan,
     PPEXSIOptions options,
     int           nrows,                        
@@ -371,56 +373,7 @@ void PPEXSILoadRealUnsymmetricHSMatrix(
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->
-      LoadRealUnsymmetricMatrix(
-          nrows,                        
-          nnz,                          
-          nnzLocal,                     
-          numColLocal,                  
-          colptrLocal,                  
-          rowindLocal,                  
-          HnzvalLocal,                  
-          isSIdentity,                  
-          SnzvalLocal,
-          options.verbosity );
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-
-  return;
-}   // -----  end of function PPEXSILoadRealUnsymmetricHSMatrix  ----- 
-
-
-
-
-
-extern "C"
-void PPEXSILoadComplexSymmetricHSMatrix(
-    PPEXSIPlan    plan,
-    PPEXSIOptions options,
-    int           nrows,                        
-    int           nnz,                          
-    int           nnzLocal,                     
-    int           numColLocal,                  
-    int*          colptrLocal,                  
-    int*          rowindLocal,                  
-    double*       HnzvalLocal,                  
-    int           isSIdentity,                  
-    double*       SnzvalLocal, 
-    int*          info ){
-
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  *info = 0;
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->
-      LoadComplexSymmetricMatrix(
+      LoadComplexMatrix(
           nrows,                        
           nnz,                          
           nnzLocal,                     
@@ -441,54 +394,7 @@ void PPEXSILoadComplexSymmetricHSMatrix(
   }
 
   return;
-}   // -----  end of function PPEXSILoadComplexSymmetricHSMatrix  ----- 
-
-
-extern "C"
-void PPEXSILoadComplexUnsymmetricHSMatrix(
-    PPEXSIPlan    plan,
-    PPEXSIOptions options,
-    int           nrows,                        
-    int           nnz,                          
-    int           nnzLocal,                     
-    int           numColLocal,                  
-    int*          colptrLocal,                  
-    int*          rowindLocal,                  
-    double*       HnzvalLocal,                  
-    int           isSIdentity,                  
-    double*       SnzvalLocal, 
-    int*          info ){
-
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  *info = 0;
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->
-      LoadComplexUnsymmetricMatrix(
-          nrows,                        
-          nnz,                          
-          nnzLocal,                     
-          numColLocal,                  
-          colptrLocal,                  
-          rowindLocal,                  
-          reinterpret_cast<Complex*>(HnzvalLocal),                  
-          isSIdentity,                  
-          reinterpret_cast<Complex*>(SnzvalLocal),
-          options.verbosity );
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-
-  return;
-}   // -----  end of function PPEXSILoadComplexUnsymmetricHSMatrix  ----- 
-
+}   // -----  end of function PPEXSILoadComplexHSMatrix  ----- 
 
 
 

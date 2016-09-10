@@ -49,6 +49,7 @@
  * @date 2013-11-10 Original version.
  * @date 2014-01-26 Change the interface.
  * @date 2014-04-01 Compatible with the interface at version 0.7.0.
+ * @date 2016-09-10 Compatible with the interface at version 0.10.0
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -163,7 +164,7 @@ int main(int argc, char **argv)
       &info );
 
   // For complex matrices, this is just to load a pattern
-  PPEXSILoadComplexSymmetricHSMatrix( 
+  PPEXSILoadComplexHSMatrix( 
       plan, 
       options,
       nrows,

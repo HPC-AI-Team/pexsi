@@ -175,7 +175,7 @@ public:
 
   ~PPEXSIData();
 
-  void LoadRealSymmetricMatrix(
+  void LoadRealMatrix(
       Int           nrows,                        
       Int           nnz,                          
       Int           nnzLocal,                     
@@ -187,31 +187,8 @@ public:
       Real*         SnzvalLocal,
       Int           verbosity );
 
-  void LoadRealUnsymmetricMatrix(
-      Int           nrows,                        
-      Int           nnz,                          
-      Int           nnzLocal,                     
-      Int           numColLocal,                  
-      Int*          colptrLocal,                  
-      Int*          rowindLocal,                  
-      Real*         HnzvalLocal,                  
-      Int           isSIdentity,                  
-      Real*         SnzvalLocal,
-      Int           verbosity );
 
-  void LoadComplexSymmetricMatrix(
-      Int           nrows,                        
-      Int           nnz,                          
-      Int           nnzLocal,                     
-      Int           numColLocal,                  
-      Int*          colptrLocal,                  
-      Int*          rowindLocal,                  
-      Complex*      HnzvalLocal,                  
-      Int           isSIdentity,                  
-      Complex*      SnzvalLocal,
-      Int           verbosity );
-
-  void LoadComplexUnsymmetricMatrix(
+  void LoadComplexMatrix(
       Int           nrows,                        
       Int           nnz,                          
       Int           nnzLocal,                     

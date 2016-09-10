@@ -49,6 +49,7 @@
  *
  * @date 2015-11-25  Test for DFTDriver2 with updating strategy of pole
  * expansion
+ * @date 2016-09-10 Compatible with the interface at version 0.10.0
  *
  */
 #include  <stdio.h>
@@ -291,7 +292,7 @@ int main(int argc, char **argv)
       outputFileIndex, 
       &info );
 
-  PPEXSILoadRealSymmetricHSMatrix( 
+  PPEXSILoadRealHSMatrix( 
       plan, 
       options,
       nrows,
@@ -353,7 +354,7 @@ int main(int argc, char **argv)
       printf("again without symbolic factorization or inertia counting.\n");
     }
 
-    PPEXSILoadRealSymmetricHSMatrix( 
+    PPEXSILoadRealHSMatrix( 
         plan, 
         options,
         nrows,

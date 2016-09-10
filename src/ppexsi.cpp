@@ -49,8 +49,6 @@ such enhancements or derivative works thereof, in binary and source code form.
 /// @date Revision:      2016-09-04  Update interface for unsymmetric
 /// solvers.
 
-// FIXME
-//#define _DEBUGlevel_ 0
 
 #include "ppexsi.hpp"
 #include "pexsi/utility.hpp"
@@ -194,7 +192,7 @@ PPEXSIData::~PPEXSIData	(  )
 
 
 void
-PPEXSIData::LoadRealSymmetricMatrix	(
+PPEXSIData::LoadRealMatrix	(
     Int           nrows,                        
     Int           nnz,                          
     Int           nnzLocal,                     
@@ -314,137 +312,12 @@ PPEXSIData::LoadRealSymmetricMatrix	(
 
 
   return ;
-}    	// -----  end of method PPEXSIData::LoadRealSymmetricMatrix  ----- 
-
+}    	// -----  end of method PPEXSIData::LoadRealMatrix  ----- 
 
 
 
 void
-PPEXSIData::LoadRealUnsymmetricMatrix	(
-    Int           nrows,                        
-    Int           nnz,                          
-    Int           nnzLocal,                     
-    Int           numColLocal,                  
-    Int*          colptrLocal,                  
-    Int*          rowindLocal,                  
-    Real*         HnzvalLocal,                  
-    Int           isSIdentity,                  
-    Real*         SnzvalLocal,
-    Int           verbosity )
-{
-  // Clear the previously saved information
-  HRealMat_ = DistSparseMatrix<Real>();
-  SRealMat_ = DistSparseMatrix<Real>();
-
-  // Data communication
-  std::vector<char> sstr;
-  Int sizeStm;
-  if( MYROW( gridPole_ ) == 0 ){
-    std::stringstream sstm;
-
-    HRealMat_.size        = nrows;
-    HRealMat_.nnz         = nnz;
-    HRealMat_.nnzLocal    = nnzLocal;
-    // The first row processor does not need extra copies of the index /
-    // value of the matrix. 
-    HRealMat_.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
-    HRealMat_.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
-    // H value
-    HRealMat_.nzvalLocal  = DblNumVec( nnzLocal,      false, HnzvalLocal );
-    HRealMat_.comm        = gridPole_->rowComm;
-
-    // Serialization will copy the values regardless of the ownership
-    serialize( HRealMat_, sstm, NO_MASK );
-
-    // S value
-    if( isSIdentity ){
-      SRealMat_.size = 0;
-      SRealMat_.nnz  = 0;
-      SRealMat_.nnzLocal = 0;
-      SRealMat_.comm = HRealMat_.comm; 
-    }
-    else{
-      CopyPattern( HRealMat_, SRealMat_ );
-      SRealMat_.comm = HRealMat_.comm; 
-      SRealMat_.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
-      serialize( SRealMat_.nzvalLocal, sstm, NO_MASK );
-    }
-
-    sstr.resize( Size( sstm ) );
-    sstm.read( &sstr[0], sstr.size() ); 	
-    sizeStm = sstr.size();
-  }
-
-  MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole_->colComm );
-
-  if( verbosity >= 2 ){
-    statusOFS << "sizeStm = " << sizeStm << std::endl;
-  }
-
-  if( MYROW( gridPole_ ) != 0 ) sstr.resize( sizeStm );
-
-  MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole_->colComm );
-
-  if( MYROW( gridPole_ ) != 0 ){
-    std::stringstream sstm;
-    sstm.write( &sstr[0], sizeStm );
-    deserialize( HRealMat_, sstm, NO_MASK );
-    // Communicator
-    HRealMat_.comm = gridPole_->rowComm;
-    if( isSIdentity ){
-      SRealMat_.size = 0;    // Means S is an identity matrix
-      SRealMat_.nnz  = 0;
-      SRealMat_.nnzLocal = 0;
-      SRealMat_.comm = HRealMat_.comm;
-    }
-    else{
-      CopyPattern( HRealMat_, SRealMat_ );
-      SRealMat_.comm = HRealMat_.comm;
-      deserialize( SRealMat_.nzvalLocal, sstm, NO_MASK );
-    }
-  }
-  sstr.clear();
-
-
-  if( verbosity >= 1 ){
-    statusOFS << "H.size     = " << HRealMat_.size     << std::endl;
-    statusOFS << "H.nnzLocal = " << HRealMat_.nnzLocal << std::endl;
-    statusOFS << "S.size     = " << SRealMat_.size     << std::endl;
-    statusOFS << "S.nnzLocal = " << SRealMat_.nnzLocal << std::endl;
-    statusOFS << std::endl << std::endl;
-  }
-
-
-  // Record the index for the diagonal elements to handle the case if S
-  // is identity.
-  {
-    Int numColLocal      = HRealMat_.colptrLocal.m() - 1;
-    Int numColLocalFirst = HRealMat_.size / gridSelInv_->mpisize;
-    Int firstCol         = gridSelInv_->mpirank * numColLocalFirst;
-
-    diagIdxLocal_.clear();
-
-    for( Int j = 0; j < numColLocal; j++ ){
-      Int jcol = firstCol + j + 1;
-      for( Int i = HRealMat_.colptrLocal(j)-1; 
-          i < HRealMat_.colptrLocal(j+1)-1; i++ ){
-        Int irow = HRealMat_.rowindLocal(i);
-        if( irow == jcol ){
-          diagIdxLocal_.push_back( i );
-        }
-      }
-    } // for (j)
-  }
-
-  isMatrixLoaded_ = true;
-
-
-  return ;
-}    	// -----  end of method PPEXSIData::LoadRealUnsymmetricMatrix  ----- 
-
-
-void
-PPEXSIData::LoadComplexSymmetricMatrix	(
+PPEXSIData::LoadComplexMatrix	(
     Int           nrows,                        
     Int           nnz,                          
     Int           nnzLocal,                     
@@ -564,133 +437,7 @@ PPEXSIData::LoadComplexSymmetricMatrix	(
 
 
   return ;
-}    	// -----  end of method PPEXSIData::LoadComplexSymmetricMatrix  ----- 
-
-
-
-
-void
-PPEXSIData::LoadComplexUnsymmetricMatrix	(
-    Int           nrows,                        
-    Int           nnz,                          
-    Int           nnzLocal,                     
-    Int           numColLocal,                  
-    Int*          colptrLocal,                  
-    Int*          rowindLocal,                  
-    Complex*      HnzvalLocal,                  
-    Int           isSIdentity,                  
-    Complex*      SnzvalLocal,
-    Int           verbosity )
-{
-  // Clear the previously saved information
-  HComplexMat_ = DistSparseMatrix<Complex>();
-  SComplexMat_ = DistSparseMatrix<Complex>();
-
-  // Data communication
-  std::vector<char> sstr;
-  Int sizeStm;
-  if( MYROW( gridPole_ ) == 0 ){
-    std::stringstream sstm;
-
-    HComplexMat_.size        = nrows;
-    HComplexMat_.nnz         = nnz;
-    HComplexMat_.nnzLocal    = nnzLocal;
-    // The first row processor does not need extra copies of the index /
-    // value of the matrix. 
-    HComplexMat_.colptrLocal = IntNumVec( numColLocal+1, false, colptrLocal );
-    HComplexMat_.rowindLocal = IntNumVec( nnzLocal,      false, rowindLocal );
-    // H value
-    HComplexMat_.nzvalLocal  = CpxNumVec( nnzLocal,      false, HnzvalLocal );
-    HComplexMat_.comm        = gridPole_->rowComm;
-
-    // Serialization will copy the values regardless of the ownership
-    serialize( HComplexMat_, sstm, NO_MASK );
-
-    // S value
-    if( isSIdentity ){
-      SComplexMat_.size = 0;
-      SComplexMat_.nnz  = 0;
-      SComplexMat_.nnzLocal = 0;
-      SComplexMat_.comm = HComplexMat_.comm; 
-    }
-    else{
-      CopyPattern( HComplexMat_, SComplexMat_ );
-      SComplexMat_.comm = HComplexMat_.comm; 
-      SComplexMat_.nzvalLocal  = CpxNumVec( nnzLocal,      false, SnzvalLocal );
-      serialize( SComplexMat_.nzvalLocal, sstm, NO_MASK );
-    }
-
-    sstr.resize( Size( sstm ) );
-    sstm.read( &sstr[0], sstr.size() ); 	
-    sizeStm = sstr.size();
-  }
-
-  MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole_->colComm );
-
-  if( verbosity >= 2 ){
-    statusOFS << "sizeStm = " << sizeStm << std::endl;
-  }
-
-  if( MYROW( gridPole_ ) != 0 ) sstr.resize( sizeStm );
-
-  MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole_->colComm );
-
-  if( MYROW( gridPole_ ) != 0 ){
-    std::stringstream sstm;
-    sstm.write( &sstr[0], sizeStm );
-    deserialize( HComplexMat_, sstm, NO_MASK );
-    // Communicator
-    HComplexMat_.comm = gridPole_->rowComm;
-    if( isSIdentity ){
-      SComplexMat_.size = 0;    // Means S is an identity matrix
-      SComplexMat_.nnz  = 0;
-      SComplexMat_.nnzLocal = 0;
-      SComplexMat_.comm = HComplexMat_.comm;
-    }
-    else{
-      CopyPattern( HComplexMat_, SComplexMat_ );
-      SComplexMat_.comm = HComplexMat_.comm;
-      deserialize( SComplexMat_.nzvalLocal, sstm, NO_MASK );
-    }
-  }
-  sstr.clear();
-
-
-  if( verbosity >= 1 ){
-    statusOFS << "H.size     = " << HComplexMat_.size     << std::endl;
-    statusOFS << "H.nnzLocal = " << HComplexMat_.nnzLocal << std::endl;
-    statusOFS << "S.size     = " << SComplexMat_.size     << std::endl;
-    statusOFS << "S.nnzLocal = " << SComplexMat_.nnzLocal << std::endl;
-    statusOFS << std::endl << std::endl;
-  }
-
-
-  // Record the index for the diagonal elements to handle the case if S
-  // is identity.
-  {
-    Int numColLocal      = HComplexMat_.colptrLocal.m() - 1;
-    Int numColLocalFirst = HComplexMat_.size / gridSelInv_->mpisize;
-    Int firstCol         = gridSelInv_->mpirank * numColLocalFirst;
-
-    diagIdxLocal_.clear();
-
-    for( Int j = 0; j < numColLocal; j++ ){
-      Int jcol = firstCol + j + 1;
-      for( Int i = HComplexMat_.colptrLocal(j)-1; 
-          i < HComplexMat_.colptrLocal(j+1)-1; i++ ){
-        Int irow = HComplexMat_.rowindLocal(i);
-        if( irow == jcol ){
-          diagIdxLocal_.push_back( i );
-        }
-      }
-    } // for (j)
-  }
-
-  isMatrixLoaded_ = true;
-
-
-  return ;
-}    	// -----  end of method PPEXSIData::LoadComplexUnsymmetricMatrix  ----- 
+}    	// -----  end of method PPEXSIData::LoadComplexMatrix  ----- 
 
 
 
@@ -966,7 +713,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
     luMat.Setup( *gridSuperLUComplex_, luOpt_ );  // SuperLU matrix.
 
     DistSparseMatrix<Complex> AMat;
-    // FIXME
+    
     CopyPattern( HComplexMat_, AMat );
 
     SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
@@ -3070,6 +2817,8 @@ PPEXSIData::DFTDriver (
           numProcSymbFact,
           verbosity );
 
+      // Important since HComplexMat_ has not been loaded yet
+      CopyPattern( HRealMat_, HComplexMat_ );
 
       SymbolicFactorizeComplexSymmetricMatrix( 
           colPerm, 
@@ -3566,6 +3315,8 @@ PPEXSIData::DFTDriver2 (
           numProcSymbFact,
           verbosity );
 
+      // Important since HComplexMat_ has not been loaded yet
+      CopyPattern( HRealMat_, HComplexMat_ );
 
       SymbolicFactorizeComplexSymmetricMatrix( 
           colPerm, 

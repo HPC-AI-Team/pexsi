@@ -191,7 +191,7 @@ interface
     integer(c_intptr_t)                :: f_ppexsi_plan_initialize
   end function
 
-  subroutine f_ppexsi_load_real_symmetric_hs_matrix(&
+  subroutine f_ppexsi_load_real_hs_matrix(&
       plan,&
       options,&
       nrows,&
@@ -204,7 +204,7 @@ interface
       isSIdentity,&
       SnzvalLocal,&
       info) &
-      bind(C, Name="PPEXSILoadRealSymmetricHSMatrix")
+      bind(C, Name="PPEXSILoadRealHSMatrix")
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
@@ -219,7 +219,7 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_ppexsi_load_real_unsymmetric_hs_matrix(&
+  subroutine f_ppexsi_load_complex_hs_matrix(&
       plan,&
       options,&
       nrows,&
@@ -232,7 +232,7 @@ interface
       isSIdentity,&
       SnzvalLocal,&
       info) &
-      bind(C, Name="PPEXSILoadRealUnsymmetricHSMatrix")
+      bind(C, Name="PPEXSILoadComplexHSMatrix")
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
