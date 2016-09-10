@@ -255,9 +255,6 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
       std::ostringstream msg;
       msg << opt.ColPerm << " is not a supported ColPerm type. Try (case sensitive) " << std::endl
         << "NATURAL | MMD_AT_PLUS_A | METIS_AT_PLUS_A | PARMETIS" << std::endl;
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( msg.str().c_str() );
     }
 
@@ -300,13 +297,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
   void ComplexSuperLUData_internal::DestroyAOnly	(  )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData_internal::DestroyAOnly");
-#endif
       if( isSuperMatrixAllocated == false ){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "SuperMatrix has not been allocated." );
       }
       switch ( A.Stype ){
@@ -320,15 +311,9 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
           std::ostringstream msg;
           msg << "Type " << SLU_NR_loc << " is to be destroyed" << std::endl
             << "This is an unsupported SuperMatrix format to be destroyed." << std::endl;
-#ifdef USE_ABORT
-          abort();
-#endif
           ErrorHandling( msg.str().c_str() );
       }
       isSuperMatrixAllocated = false;
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData_internal::DestroyAOnly  ----- 
@@ -339,42 +324,24 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
 
   ComplexSuperLUData::ComplexSuperLUData( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt ){
-#ifndef _RELEASE_
-    PushCallStack("ComplexSuperLUData::ComplexSuperLUData");
-#endif
 
     ptrData = new ComplexSuperLUData_internal(g,opt);
     if( ptrData == NULL ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "SuperLUMatrix cannot be allocated." );
     }
 
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
   }
 
 
   ComplexSuperLUData::~ComplexSuperLUData(){
-#ifndef _RELEASE_
-    PushCallStack("ComplexSuperLUData::~ComplexSuperLUData");
-#endif
     delete ptrData;
 
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
   }
 
 
 
   ComplexSuperLUData::ComplexSuperLUData(const ComplexSuperLUData & g)
   {
-#ifndef _RELEASE_
-    PushCallStack("ComplexSuperLUData::ComplexSuperLUData");
-#endif
     
     if( g.ptrData == NULL ){
       ErrorHandling( "Copied SuperLUMatrix is not allocated." );
@@ -383,15 +350,9 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
     ptrData = new ComplexSuperLUData_internal(*g.ptrData);
 
     if( ptrData == NULL ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "SuperLUMatrix cannot be allocated." );
     }
 
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
   }
 
   ComplexSuperLUData & ComplexSuperLUData::operator = (const ComplexSuperLUData & g)
@@ -408,9 +369,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
     delete ptrData;
     ptrData = new ComplexSuperLUData_internal(*g.ptrData);
     if( ptrData == NULL ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "SuperLUMatrix cannot be allocated." );
     }
 
@@ -433,13 +391,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
 
   void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA, const SuperLUOptions & options ){
-#ifndef _RELEASE_
-    PushCallStack( "ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc" );
-#endif
     if( ptrData->isSuperMatrixAllocated == true ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "SuperMatrix is already allocated." );
     }
     gridinfo_t* grid = ptrData->grid;
@@ -509,9 +461,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
     ptrData->isSuperMatrixAllocated = true;
 
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 
     return;
 
@@ -521,38 +470,20 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::DestroyAOnly	(  )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::DestroyAOnly");
-#endif
       ptrData->DestroyAOnly();
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
       return ;
     } 		// -----  end of method ComplexSuperLUData::DestroyAOnly  ----- 
 
   void
     ComplexSuperLUData::SymbolicFactorize	(  )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::SymbolicFactorize");
-#endif
       if( ptrData->isScalePermstructAllocated ){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "ScalePermstruct is already allocated." );
       }
       if( ptrData->isLUstructAllocated){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "LUstruct is already allocated." );
       }
 //      if(ptrData->options.RowPerm != NOROWPERM ){
-//#ifdef USE_ABORT
-//        abort();
-//#endif
 //        ErrorHandling( "For PEXSI there must be no row permutation." );
 //      }
 
@@ -591,9 +522,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
       ptrData->isScalePermstructAllocated = true;
       ptrData->isLUstructAllocated        = true; 
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData::SymbolicFactorize  ----- 
@@ -602,25 +530,13 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::Distribute	(  )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::Distribute");
-#endif
       if( ptrData->isScalePermstructAllocated == false ){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "ScalePermstruct has not been allocated by SymbolicFactorize." );
       }	
       if( ptrData->isLUstructAllocated == false ){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "LUstruct has not been allocated by SymbolicFactorize." );
       }	
       if( ptrData->isSuperMatrixAllocated == false ){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "SuperMatrix has not been allocated." );
       }	
 
@@ -637,9 +553,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
       float dist_mem_use = pzdistribute(SamePattern_SameRowPerm, ptrData->A.nrow, 
           &ptrData->A, &ptrData->ScalePermstruct, NULL, &ptrData->LUstruct, ptrData->grid);
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData::Distribute  ----- 
@@ -648,13 +561,7 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::NumericalFactorize	(  )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::NumericalFactorize");
-#endif
       if( !ptrData->isLUstructAllocated ){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "LUstruct has not been allocated." );
       }
       // Estimate the 1-norm
@@ -680,10 +587,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
       if( ptrData->info != 0 ){
         std::ostringstream msg;
         msg << "Numerical factorization error, info =  " << ptrData->info << std::endl;
-#ifdef USE_ABORT
-        printf("P%d %s\n",ptrData->grid->iam,msg.str().c_str());
-        abort();
-#endif
         ErrorHandling( msg.str().c_str() );
       }
 
@@ -692,9 +595,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
       // Prepare for Solve.
       ptrData->options.Fact = FACTORED;
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData::NumericalFactorize  ----- 
@@ -703,19 +603,10 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::ConvertNRlocToNC	( ComplexSuperLUData * aptrData )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::ConvertNRlocToNC");
-#endif
       if( !ptrData->isSuperMatrixAllocated ){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "The local SuperMatrix has not been allocated." );
       }
       if( aptrData->ptrData->isSuperMatrixAllocated ){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "The global SuperMatrix has been allocated." );
       }
       // TODO make sure the two grids are the same
@@ -727,9 +618,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
       ptrData->isSuperMatrixAllocated = true;
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData::ConvertNRlocToNC  ----- 
@@ -737,9 +625,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::MultiplyGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& bGlobal )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::MultiplyGlobalMultiVector");
-#endif
       char trans[1]; *trans = 'N';
       Int m = xGlobal.m();
       Int nrhs = xGlobal.n();
@@ -750,16 +635,10 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
         msg << "MultiplyGlobalMultiVector requires SLU_NC matrix with type " << SLU_NC << std::endl
           << "The matrix is of type " << ptrData->A.Stype << std::endl
           << "Consider using ConvertNRlocToNC subroutine" << std::endl;
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( msg.str().c_str() );
       }	
       zFillRHS_dist(trans, nrhs, (doublecomplex*)xGlobal.Data(), m, 
           &ptrData->A, (doublecomplex*) bGlobal.Data(), m);
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData::MultiplyGlobalMultiVector  ----- 
@@ -768,17 +647,11 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::DistributeGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::DistributeGlobalMultiVector");
-#endif
       SuperMatrix& A = ptrData->A;
       if( ptrData->A.Stype != SLU_NR_loc ){
         std::ostringstream msg;
         msg << "DistributeGlobalMultiVector requires SLU_NR_loc matrix with type " << SLU_NR_loc << std::endl
           << "The matrix is of type " << ptrData->A.Stype << std::endl;
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( msg.str().c_str() );
       }	
 
@@ -795,9 +668,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
             xLocal.VecData(j) );
       }
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData::DistributeGlobalMultiVector  ----- 
@@ -805,17 +675,11 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
   void ComplexSuperLUData::GatherDistributedMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal )
   {
-#ifndef _RELEASE_
-    PushCallStack("ComplexSuperLUData::GatherDistributedMultiVector");
-#endif
     SuperMatrix& A = ptrData->A;
     if( ptrData->A.Stype != SLU_NR_loc ){
       std::ostringstream msg;
       msg << "GatherDistributedMultiVector requires SLU_NR_loc matrix with type " << SLU_NR_loc << std::endl
         << "The matrix is of type " << ptrData->A.Stype << std::endl;
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( msg.str().c_str() );
     }	
 
@@ -840,9 +704,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
     MPI_Allreduce(tmpLocal.Data(),xGlobal.Data(),2*tmpLocal.m()*tmpLocal.n(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 
     return ;
   } 		// -----  end of method ComplexSuperLUData::GatherDistributedMultiVector  ----- 
@@ -851,9 +712,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::SolveDistMultiVector	( NumMat<Complex>& bLocal, DblNumVec& berr )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::SolveDistMultiVector");
-#endif
       Int nrhs = bLocal.n();
       NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
       Int numRowLocal = Astore->m_loc;
@@ -877,18 +735,12 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
       if( ptrData->info ){
         std::ostringstream msg;
         msg << "Numerical solve error, info =  " << ptrData->info << std::endl;
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( msg.str().c_str() );
       }
 
 
 
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData::SolveDistMultiVector  ----- 
@@ -897,9 +749,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::CheckErrorDistMultiVector	( NumMat<Complex>& xLocal, NumMat<Complex>& xTrueLocal )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::CheckErrorDistMultiVector");
-#endif
       Int nrhs = xLocal.n();
       NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
       Int numRowLocal = Astore->m_loc;
@@ -908,9 +757,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
           (doublecomplex*)xLocal.Data(), numRowLocal, 
           (doublecomplex*)xTrueLocal.Data(), numRowLocal, ptrData->grid);
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData::CheckErrorDistMultiVector  ----- 
@@ -919,9 +765,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::LUstructToPMatrix");
-#endif
       const LocalLU_t* Llu   = ptrData->LUstruct.Llu;
       const GridType* grid   = PMloc.Grid();
       const SuperNodeType* super = PMloc.SuperNode();
@@ -942,9 +785,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
 
       // L part   
-#ifndef _RELEASE_
-      PushCallStack("L part");
-#endif
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "LUstructToPMatrix::L part" << std::endl;
 #endif
@@ -1053,9 +893,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
         }  // if(index)
       } // for(jb)
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
 
@@ -1063,9 +900,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
 
       // U part
-#ifndef _RELEASE_
-      PushCallStack("U part");
-#endif
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "LUstructToPMatrix::U part" << std::endl;
 #endif
@@ -1173,9 +1007,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
         } // if( index )
 
       } // for(ib)
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
 
@@ -1194,9 +1025,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
 
 
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData::LUstructToPMatrix  ----- 
@@ -1206,9 +1034,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
   void
     ComplexSuperLUData::SymbolicToSuperNode	( SuperNodeType& super )
     {
-#ifndef _RELEASE_
-      PushCallStack("ComplexSuperLUData::SymbolicToSuperNode");
-#endif
       Int n = ptrData->A.ncol;
       // Permutation vector
       Int *perm_c = ptrData->ScalePermstruct.perm_c;
@@ -1254,9 +1079,6 @@ ComplexSuperLUData_internal & ComplexSuperLUData_internal::operator = (const Com
       super.etree.Resize( n );
       std::copy( etree, etree + n, super.etree.Data() );
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method ComplexSuperLUData::SymbolicToSuperNode  ----- 

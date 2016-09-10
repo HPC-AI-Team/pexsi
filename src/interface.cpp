@@ -74,9 +74,6 @@ void ReadDistSparseMatrixFormattedHeadInterface (
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be openeded!" );
 		}
 		Int dummy;
@@ -167,9 +164,6 @@ void ReadDistSparseMatrixHeadInterface (
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be openeded!" );
 		}
 		fin.read((char*)size, sizeof(int));
@@ -185,9 +179,6 @@ ErrorHandling( "File cannot be openeded!" );
 		fin.read((char*)&tmp, sizeof(int));  
 
 		if( tmp != (*size)+1 ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "colptr is not of the right size." );
 		}
 
@@ -306,9 +297,6 @@ PPEXSIPlan PPEXSIPlanInitialize(
 		statusOFS << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
   return reinterpret_cast<PPEXSIPlan>(ptrData);
@@ -355,9 +343,6 @@ void PPEXSILoadRealSymmetricHSMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
   return;
@@ -404,9 +389,6 @@ void PPEXSILoadRealUnsymmetricHSMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
   return;
@@ -456,9 +438,6 @@ void PPEXSILoadComplexSymmetricHSMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
   return;
@@ -505,9 +484,6 @@ void PPEXSILoadComplexUnsymmetricHSMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
   return;
@@ -556,9 +532,6 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -621,9 +594,6 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -669,9 +639,6 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -732,9 +699,6 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -781,9 +745,6 @@ void PPEXSIInertiaCountRealSymmetricMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -828,9 +789,6 @@ void PPEXSIInertiaCountRealUnsymmetricMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -870,9 +828,6 @@ void PPEXSICalculateFermiOperatorReal(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -904,9 +859,6 @@ void PPEXSISelInvRealSymmetricMatrix (
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -936,9 +888,6 @@ void PPEXSISelInvRealUnsymmetricMatrix (
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -968,9 +917,6 @@ void PPEXSISelInvComplexSymmetricMatrix (
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -1000,9 +946,6 @@ void PPEXSISelInvComplexUnsymmetricMatrix (
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	return ;
@@ -1061,9 +1004,6 @@ void PPEXSIDFTDriver(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
   return;
 }   // -----  end of function PPEXSIDFTDriver  ----- 
@@ -1116,9 +1056,6 @@ void PPEXSIDFTDriver2(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
   return;
 }   // -----  end of function PPEXSIDFTDriver2  ----- 
@@ -1163,9 +1100,6 @@ void PPEXSIRetrieveRealSymmetricDFTMatrix(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
   return;
 }   // -----  end of function PPEXSIRetrieveRealSymmetricDFTMatrix  ----- 
@@ -1190,9 +1124,6 @@ void PPEXSIPlanFinalize(
       << " caught exception with message: "
 			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
   return;
 }   // -----  end of function PPEXSIPlanFinalize  ----- 

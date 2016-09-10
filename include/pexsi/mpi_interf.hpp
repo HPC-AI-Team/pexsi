@@ -77,9 +77,6 @@ Gatherv (
     Int root,
 		MPI_Comm          comm )
 {
-#ifndef _RELEASE_
-  PushCallStack("mpi::Gatherv");
-#endif
   Int mpirank, mpisize;
   MPI_Comm_rank( comm, &mpirank );
   MPI_Comm_size( comm, &mpisize );
@@ -106,9 +103,6 @@ Gatherv (
     MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, NULL, 
         NULL, NULL, MPI_INT, root, comm	);
   }
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }		// -----  end of function Gatherv  ----- 
@@ -134,9 +128,6 @@ Gatherv (
     Int root,
 		MPI_Comm          comm )
 {
-#ifndef _RELEASE_
-  PushCallStack("mpi::Gatherv");
-#endif
   Int mpirank, mpisize;
   MPI_Comm_rank( comm, &mpirank );
   MPI_Comm_size( comm, &mpisize );
@@ -166,9 +157,6 @@ Gatherv (
     MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, NULL, 
         NULL, NULL, MPI_INT, root, comm	);
   }
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }		// -----  end of function Gatherv  ----- 
@@ -198,9 +186,6 @@ Allgatherv (
 		std::vector<T>& allVec,
 		MPI_Comm          comm )
 {
-#ifndef _RELEASE_
-	PushCallStack("mpi::Allgatherv");
-#endif
 	Int mpirank, mpisize;
 	MPI_Comm_rank( comm, &mpirank );
 	MPI_Comm_size( comm, &mpisize );
@@ -221,9 +206,6 @@ Allgatherv (
 	MPI_Allgatherv( &localVec[0], localSize, MPI_BYTE, &allVec[0], 
 		 &localSizeVec[0], &localSizeDispls[0], MPI_BYTE, comm	);
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 };		// -----  end of function Allgatherv  ----- 
@@ -240,9 +222,6 @@ Bcast (
     Int root, 
 		MPI_Comm          comm )
 {
-#ifndef _RELEASE_
-	PushCallStack("mpi::Bcast");
-#endif
 	Int mpirank, mpisize;
 	MPI_Comm_rank( comm, &mpirank );
 	MPI_Comm_size( comm, &mpisize );
@@ -257,9 +236,6 @@ Bcast (
 
 	MPI_Bcast( &dataVec[0], localSize*sizeof(T), MPI_BYTE, root , comm );
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 };		// -----  end of function Bcast  ----- 

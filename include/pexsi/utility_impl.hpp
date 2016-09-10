@@ -64,9 +64,6 @@ namespace PEXSI{
 //---------------------------------------------------------
 inline void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat )
 {
-#ifndef _RELEASE_
-	PushCallStack("ReadSparseMatrix");
-#endif
 	
 	// FIXME
 	// Binary format
@@ -103,9 +100,6 @@ inline void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat )
 
 		fin.close();
 	}
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 }		// -----  end of function ReadSparseMatrix  ----- 
@@ -113,9 +107,6 @@ inline void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat )
 //---------------------------------------------------------
 inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
 {
-#ifndef _RELEASE_
-	PushCallStack("ReadDistSparseMatrix");
-#endif
 	// Get the processor information within the current communicator
   MPI_Barrier( comm );
   Int mpirank;  MPI_Comm_rank(comm, &mpirank);
@@ -130,9 +121,6 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
 		}
 		fin.read((char*)&pspmat.size, sizeof(Int));
@@ -151,9 +139,6 @@ ErrorHandling( "File cannot be opened!" );
 		fin.read((char*)&tmp, sizeof(Int));  
 
 		if( tmp != pspmat.size+1 ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "colptr is not of the right size." );
 		}
 
@@ -193,9 +178,6 @@ ErrorHandling( "colptr is not of the right size." );
 				<< "The number of nonzeros in row indices do not match." << std::endl
 				<< "nnz = " << pspmat.nnz << std::endl
 				<< "size of row indices = " << tmp << std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 		IntNumVec buf;
@@ -223,9 +205,6 @@ ErrorHandling( msg.str().c_str() );
 			msg << "The number of columns in row indices do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 
@@ -244,9 +223,6 @@ ErrorHandling( msg.str().c_str() );
 				<< "The number of nonzeros in values do not match." << std::endl
 				<< "nnz = " << pspmat.nnz << std::endl
 				<< "size of values = " << tmp << std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 		NumVec<Real> buf;
@@ -274,9 +250,6 @@ ErrorHandling( msg.str().c_str() );
 			msg << "The number of columns in values do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 
@@ -293,18 +266,12 @@ ErrorHandling( msg.str().c_str() );
 
   MPI_Barrier( comm );
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 }		// -----  end of function ReadDistSparseMatrix  ----- 
 
 inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
 {
-#ifndef _RELEASE_
-  PushCallStack("ParaWriteDistSparseMatrix");
-#endif
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
   Int mpirank;  MPI_Comm_rank(comm, &mpirank);
@@ -324,9 +291,6 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<R
   err = MPI_File_open(comm,(char*) filename, filemode, MPI_INFO_NULL,  &fout);
 
   if (err != MPI_SUCCESS) {
-    #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
   }
 
@@ -434,18 +398,12 @@ ErrorHandling( "File cannot be opened!" );
   MPI_Barrier( comm );
 
   MPI_File_close(&fout);
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }		// -----  end of function ParaWriteDistSparseMatrix  ----- 
 
 inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
 {
-#ifndef _RELEASE_
-  PushCallStack("ParaReadDistSparseMatrix");
-#endif
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
   Int mpirank;  MPI_Comm_rank(comm, &mpirank);
@@ -468,9 +426,6 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
   err = MPI_File_open(comm,(char*) filename, filemode, MPI_INFO_NULL,  &fin);
 
   if (err != MPI_SUCCESS) {
-    #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
   }
 
@@ -524,9 +479,6 @@ ErrorHandling( "File cannot be opened!" );
   err= MPI_File_read_at_all(fin, myColPtrOffset, MPI_BOTTOM, 1, type, &status);
 
   if (err != MPI_SUCCESS) {
-#ifdef USE_ABORT
-    abort();
-#endif
     ErrorHandling( "error reading colptr" );
   }
   MPI_Type_free(&type);
@@ -553,9 +505,6 @@ ErrorHandling( "File cannot be opened!" );
   err= MPI_File_read_at_all(fin, myRowIdxOffset, MPI_BOTTOM, 1, type,&status);
 
   if (err != MPI_SUCCESS) {
-    #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "error reading rowind" );
   }
   MPI_Type_free(&type);
@@ -579,9 +528,6 @@ ErrorHandling( "error reading rowind" );
   err = MPI_File_read_at_all(fin, myNzValOffset, MPI_BOTTOM, 1, type,&status);
 
   if (err != MPI_SUCCESS) {
-    #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "error reading nzval" );
   }
 
@@ -597,18 +543,12 @@ ErrorHandling( "error reading nzval" );
   MPI_Barrier( comm );
 
   MPI_File_close(&fin);
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }		// -----  end of function ParaReadDistSparseMatrix  ----- 
 
 inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
 {
-#ifndef _RELEASE_
-	PushCallStack("ReadDistSparseMatrixFormatted");
-#endif
 	// Get the processor information within the current communicator
   MPI_Barrier( comm );
   Int mpirank;  MPI_Comm_rank(comm, &mpirank);
@@ -625,9 +565,6 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
 		}
 		Int dummy;
@@ -701,9 +638,6 @@ ErrorHandling( "File cannot be opened!" );
 			msg << "The number of columns in row indices do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 
@@ -745,9 +679,6 @@ ErrorHandling( msg.str().c_str() );
 			msg << "The number of columns in values do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 
@@ -764,9 +695,6 @@ ErrorHandling( msg.str().c_str() );
 
   MPI_Barrier( comm );
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 }		// -----  end of function ReadDistSparseMatrixFormatted  ----- 
@@ -774,9 +702,6 @@ ErrorHandling( msg.str().c_str() );
 
 inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm )
 {
-#ifndef _RELEASE_
-  PushCallStack("ParaReadDistSparseMatrix");
-#endif
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
   Int mpirank;  MPI_Comm_rank(comm, &mpirank);
@@ -799,9 +724,6 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
   err = MPI_File_open(comm,(char*) filename, filemode, MPI_INFO_NULL,  &fin);
 
   if (err != MPI_SUCCESS) {
-#ifdef USE_ABORT
-    abort();
-#endif
     ErrorHandling( "File cannot be opened!" );
   }
 
@@ -855,9 +777,6 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
   err= MPI_File_read_at_all(fin, myColPtrOffset, MPI_BOTTOM, 1, type, &status);
 
   if (err != MPI_SUCCESS) {
-#ifdef USE_ABORT
-    abort();
-#endif
     ErrorHandling( "error reading colptr" );
   }
   MPI_Type_free(&type);
@@ -884,9 +803,6 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
   err= MPI_File_read_at_all(fin, myRowIdxOffset, MPI_BOTTOM, 1, type,&status);
 
   if (err != MPI_SUCCESS) {
-#ifdef USE_ABORT
-    abort();
-#endif
     ErrorHandling( "error reading rowind" );
   }
   MPI_Type_free(&type);
@@ -910,9 +826,6 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
   err = MPI_File_read_at_all(fin, myNzValOffset, MPI_BOTTOM, 1, type,&status);
 
   if (err != MPI_SUCCESS) {
-#ifdef USE_ABORT
-    abort();
-#endif
     ErrorHandling( "error reading nzval" );
   }
 
@@ -928,18 +841,12 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
   MPI_Barrier( comm );
 
   MPI_File_close(&fin);
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }		// -----  end of function ParaReadDistSparseMatrix  ----- 
 
 inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm )
 {
-#ifndef _RELEASE_
-  PushCallStack("ParaWriteDistSparseMatrix");
-#endif
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
   Int mpirank;  MPI_Comm_rank(comm, &mpirank);
@@ -959,9 +866,6 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<C
   err = MPI_File_open(comm,(char*) filename, filemode, MPI_INFO_NULL,  &fout);
 
   if (err != MPI_SUCCESS) {
-    #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
   }
 
@@ -1069,9 +973,6 @@ ErrorHandling( "File cannot be opened!" );
   MPI_Barrier( comm );
 
   MPI_File_close(&fout);
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }		// -----  end of function ParaWriteDistSparseMatrix  ----- 
@@ -1080,9 +981,6 @@ ErrorHandling( "File cannot be opened!" );
 
 inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm )
 {
-#ifndef _RELEASE_
-	PushCallStack("ReadDistSparseMatrixFormatted");
-#endif
 	// Get the processor information within the current communicator
   MPI_Barrier( comm );
   Int mpirank;  MPI_Comm_rank(comm, &mpirank);
@@ -1099,9 +997,6 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
 		}
 		Int dummy;
@@ -1177,9 +1072,6 @@ ErrorHandling( "File cannot be opened!" );
 			msg << "The number of columns in row indices do not match." << std::endl
 				<< "numRead  = " << numRead << std::endl
 				<< "nnzLocal = " << pspmat.nnzLocal << std::endl;
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( msg.str().c_str() );
     }
 
@@ -1232,9 +1124,6 @@ ErrorHandling( "File cannot be opened!" );
 			msg << "The number of columns in values do not match." << std::endl
 				<< "numRead    = " << numRead << std::endl
 				<< "2*nnzLocal = " << 2*pspmat.nnzLocal << std::endl;
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( msg.str().c_str() );
 		}
 
@@ -1252,9 +1141,6 @@ ErrorHandling( "File cannot be opened!" );
 
   MPI_Barrier( comm );
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 }		// -----  end of function ReadDistSparseMatrixFormatted  ----- 
@@ -1262,9 +1148,6 @@ ErrorHandling( "File cannot be opened!" );
 
   template<typename T> inline void GetDiagonal ( const DistSparseMatrix<T>& A, NumVec<T>& diag )
 {
-#ifndef _RELEASE_
-	PushCallStack("GetDiagonal");
-#endif
 	Int mpirank, mpisize;
 	MPI_Comm_rank( A.comm, &mpirank );
 	MPI_Comm_size( A.comm, &mpisize );
@@ -1297,9 +1180,6 @@ ErrorHandling( "File cannot be opened!" );
 			msg << "Serious problem. Did not find the row corresponding to the column." << std::endl
 				<< "This happens when j = " << j << ", jcol = " << jcol << ", and the row indices are " << std::endl
 				<< IntNumVec( numRow, false, const_cast<Int*>(rowPtr) ) << std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 		Int diagIdx = ptr - A.rowindLocal.Data();
@@ -1308,9 +1188,6 @@ ErrorHandling( msg.str().c_str() );
 
 	mpi::Allreduce( &diagLocal[0], &diag[0], A.size, MPI_SUM, A.comm );
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 }		// -----  end of function GetDiagonal  ----- 
@@ -1441,9 +1318,6 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
     //    Int row = colindGlobal[j-1];
 
     //    Int * ptr = std::find(&rowindGlobal[colbeg-1],&rowindGlobal[colend-1]+1,row);
-    //    if(ptr==&rowindGlobal[colend-1]+1){
-    //      abort();
-    //    }
     //  }
     //}
 
@@ -1493,9 +1367,6 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
     //    Int row = colindLocal[j-1];
 
     //    const Int * ptr = std::find(&sparseA.rowindLocal[colbeg-1],&sparseA.rowindLocal[colend-1]+1,row);
-    //    if(ptr==&sparseA.rowindLocal[colend-1]+1){
-    //      abort();
-    //    }
     //  }
 
     //}

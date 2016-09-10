@@ -52,9 +52,6 @@ namespace  PEXSI{
   template <class F> inline void NumMat<F>::allocate(F* data) {
     if(owndata_) {
       if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) {
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling("Cannot allocate memory.");}
       } else data_=NULL;
       if(data!=NULL){std::copy(data,data+m_*n_,data_);}
@@ -101,9 +98,6 @@ namespace  PEXSI{
 
   template <class F> void NumMat<F>::Resize(Int m, Int n)  {
     if( owndata_ == false ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling("Matrix being resized must own data.");
     }
 
@@ -119,9 +113,6 @@ namespace  PEXSI{
 
   template <class F> void NumMat<F>::Clear()  {
     if( owndata_ == false ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling("Matrix being cleared must own data.");
     }
 
@@ -137,9 +128,6 @@ namespace  PEXSI{
   template <class F> const F& NumMat<F>::operator()(Int i, Int j) const  { 
     if( i < 0 || i >= m_ ||
         j < 0 || j >= n_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "Index is out of bound." );
     }
     return data_[i+j*m_];
@@ -148,9 +136,6 @@ namespace  PEXSI{
   template <class F> F& NumMat<F>::operator()(Int i, Int j)  { 
     if( i < 0 || i >= m_ ||
         j < 0 || j >= n_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "Index is out of bound." );
     }
     return data_[i+j*m_];
@@ -159,9 +144,6 @@ namespace  PEXSI{
   template <class F> F* NumMat<F>::VecData(Int j)  const 
   { 
     if( j < 0 || j >= n_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "Index is out of bound." );
     }
     return &(data_[j*m_]); 
@@ -186,9 +168,6 @@ namespace  PEXSI{
   template <class F> inline void
     Transpose ( const NumMat<F>& A, NumMat<F>& B )
     {
-#ifndef _RELEASE_
-      PushCallStack("Transpose");
-#endif
       if( A.m() != B.n() || A.n() != B.m() ){
         B.Resize( A.n(), A.m() );
       }
@@ -203,9 +182,6 @@ namespace  PEXSI{
         }
       }
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     }		// -----  end of function Transpose  ----- 
@@ -213,13 +189,7 @@ namespace  PEXSI{
   template <class F> inline void
     Symmetrize( NumMat<F>& A )
     {
-#ifndef _RELEASE_
-      PushCallStack("Symmetrize");
-#endif
       if( A.m() != A.n() ){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "The matrix to be symmetrized should be a square matrix." );
       }
 
@@ -236,9 +206,6 @@ namespace  PEXSI{
         Adata++; Bdata++;
       }
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     }		// -----  end of function Symmetrize ----- 

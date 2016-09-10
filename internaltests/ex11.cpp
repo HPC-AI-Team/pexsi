@@ -23,9 +23,6 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 
 
 // FIXME: IntNumVec convention.  Assumes a symmetric matrix
-void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Complex>& A, gridinfo_t* grid){
-	PushCallStack( "DistSparseMatrixToSuperMatrixNRloc" );
-	Int mpirank = grid->iam;
 	Int mpisize = grid->nprow * grid->npcol;
 
 	Int numRowLocal = A.colptrLocal.m() - 1;
@@ -66,9 +63,6 @@ void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Co
 			numRowLocal, firstRow,
 			nzvalLocal, colindLocal, rowptrLocal,
 			SLU_NR_loc, SLU_Z, SLU_GE);
-
-	PopCallStack();
-	return;
 }
 
 
@@ -354,9 +348,6 @@ int main(int argc, char **argv)
 	catch( std::exception& e )
 	{
 		std::cerr << "Processor " << mpirank << " caught exception with message: "
-			<< e.what() << std::endl;
-		DumpCallStack();
-	}
 	
 	MPI_Finalize();
 

@@ -16,9 +16,6 @@ void Usage(){
 }
 
 // FIXME: IntNumVec convention.  Assumes a symmetric matrix
-void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Real>& A, gridinfo_t* grid){
-	PushCallStack( "DistSparseMatrixToSuperMatrixNRloc" );
-	Int mpirank = grid->iam;
 	Int mpisize = grid->nprow * grid->npcol;
 
 	Int numRowLocal = A.colptrLocal.m() - 1;
@@ -58,9 +55,6 @@ void DistSparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, DistSparseMatrix<Re
 			numRowLocal, firstRow,
 			nzvalLocal, colindLocal, rowptrLocal,
 			SLU_NR_loc, SLU_D, SLU_GE);
-
-	PopCallStack();
-	return;
 }
 
 
@@ -293,9 +287,6 @@ int main(int argc, char **argv)
 	catch( std::exception& e )
 	{
 		std::cerr << "Processor " << mpirank << " caught exception with message: "
-			<< e.what() << std::endl;
-		DumpCallStack();
-	}
 	
 	MPI_Finalize();
 

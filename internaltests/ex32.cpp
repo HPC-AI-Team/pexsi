@@ -128,9 +128,6 @@ int main(int argc, char **argv)
   {
     std::cerr << "Processor " << mpirank << " caught exception with message: "
       << e.what() << std::endl;
-#ifndef _RELEASE_
-    DumpCallStack();
-#endif
   }
 
   delete mapping;

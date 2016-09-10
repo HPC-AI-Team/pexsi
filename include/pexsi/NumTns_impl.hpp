@@ -51,9 +51,6 @@ namespace  PEXSI{
 
   template <class F> NumTns<F>::NumTns(Int m, Int n, Int p): m_(m), n_(n), p_(p), owndata_(true) {
     if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling("Cannot allocate memory.");}
     } else data_=NULL;
   }
@@ -61,9 +58,6 @@ namespace  PEXSI{
   template <class F> NumTns<F>::NumTns(Int m, Int n, Int p, bool owndata, F* data): m_(m), n_(n), p_(p), owndata_(owndata) {
     if(owndata_) {
       if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling("Cannot allocate memory.");}
       } else data_=NULL;
       if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = data[i]; }
@@ -76,9 +70,6 @@ namespace  PEXSI{
     if(owndata_) {
       if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; 
         if( data_ == NULL ) {
-#ifdef USE_ABORT
-          abort();
-#endif
           ErrorHandling("Cannot allocate memory.");} 
       } else data_=NULL;
 
@@ -101,9 +92,6 @@ namespace  PEXSI{
     m_ = C.m_; n_=C.n_; p_=C.p_; owndata_=C.owndata_;
     if(owndata_) {
       if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling("Cannot allocate memory.");} } else data_=NULL;
       if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = C.data_[i]; }
     } else {
@@ -114,18 +102,12 @@ namespace  PEXSI{
 
   template <class F> void NumTns<F>::Resize(Int m, Int n, Int p)  {
     if( owndata_ == false ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling("Tensor being resized must own data.");
     }
     if(m_!=m || n_!=n || p_!=p) {
       if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
       m_ = m; n_ = n; p_=p;
       if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling("Cannot allocate memory.");}
       } else data_=NULL;
     }
@@ -135,9 +117,6 @@ namespace  PEXSI{
     if( i < 0 || i >= m_ ||
         j < 0 || j >= n_ ||
         k < 0 || k >= p_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "Index is out of bound." );
     }
     return data_[i+j*m_+k*m_*n_];
@@ -147,9 +126,6 @@ namespace  PEXSI{
     if( i < 0 || i >= m_ ||
         j < 0 || j >= n_ ||
         k < 0 || k >= p_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "Index is out of bound." );
     }
     return data_[i+j*m_+k*m_*n_];
@@ -158,9 +134,6 @@ namespace  PEXSI{
 
   template <class F> F* NumTns<F>::MatData (Int j) const {
     if( j < 0 || j >= p_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "Index is out of bound." );
     }
     return &(data_[j*m_*n_]);
@@ -169,9 +142,6 @@ namespace  PEXSI{
   template <class F> F* NumTns<F>::VecData (Int j, Int k) const {
     if( j < 0 || j >= n_ ||
         k < 0 || k >= p_ ) {
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "Index is out of bound." );
     }
 

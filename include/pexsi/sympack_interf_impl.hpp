@@ -71,9 +71,6 @@ namespace PEXSI{
 template<typename T> void symPACKMatrixToSuperNode( 
     SYMPACK::SupernodalMatrix<T>& SMat,
     SuperNodeType& super ){
-#ifndef _RELEASE_
-	PushCallStack("symPACKMatrixToSuperNode");
-#endif
   Int n = SMat.Size();
 
   // perm
@@ -139,9 +136,6 @@ template<typename T> void symPACKMatrixToSuperNode(
 //    super.etree[i]-=1;
 //  }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 }  // -----  end of symPACKMatrixToSuperNode ----- 
 
 
@@ -149,9 +143,6 @@ template<typename T> void symPACKMatrixToSuperNode(
 template<typename T> void symPACKMatrixToPMatrix( 
     SYMPACK::SupernodalMatrix<T>& SMat,
     PMatrix<T>& PMat ){
-#ifndef _RELEASE_
-	PushCallStack("symPACKMatrixToPMatrix");
-#endif
   // This routine assumes that the g, supernode and options of PMatrix
   // has been set outside this routine.
   
@@ -431,17 +422,11 @@ template<typename T> void symPACKMatrixToPMatrix(
       }
     }
   }
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 }  // -----  end of symPACKMatrixToPMatrix ----- 
 
 template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
 {
 
-#ifndef _RELEASE_
-	PushCallStack("PMatrixLtoU");
-#endif
   //Send L to U
   Int mpirank, mpisize;
   const GridType *g = PMat.Grid();
@@ -673,9 +658,6 @@ statusOFS<<"Received LB: "<<LB<<std::endl;
         }
      }
   }
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 }  // -----  end of PMatrixLToU ----- 
 

@@ -79,9 +79,6 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 		std::string                    ColPerm,
 		Int                            numProcSymbFact
     ){
-#ifndef _RELEASE_
-  PushCallStack("PPEXSIData::CalculateNegativeInertiaReal");
-#endif
 
   // *********************************************************************
   // Initialize
@@ -352,9 +349,6 @@ void PPEXSIData::CalculateNegativeInertiaReal(
         if( info ){
           std::ostringstream msg;
           msg << "Numerical factorization error, info =  " << info << std::endl;
-          #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
         }
       }
@@ -408,9 +402,6 @@ ErrorHandling( msg.str().c_str() );
                   << "blockIdx  = " << blockIdx << std::endl
                   << "numRow    = " << numRow 
                   << ", numCol = " << numCol << std::endl;
-                #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
               }
               NumMat<Real>  nzval( numRow, numCol );
@@ -448,9 +439,6 @@ ErrorHandling( msg.str().c_str() );
   superlu_gridexit(grid);
   delete grid;
 
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 } 		// -----  end of method PPEXSIData::CalculateNegativeInertiaReal ----- 
@@ -488,9 +476,6 @@ ErrorHandling( msg.str().c_str() );
 //
 //	try{
 //		if( mpisize != nprow * npcol ){
-//			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( " mpisize != nprow * npcol ." );
 //		}
 //
@@ -538,9 +523,6 @@ ErrorHandling( " mpisize != nprow * npcol ." );
 //        options.ColPerm           = MMD_AT_PLUS_A;
 //				break;
 //			default:
-//				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Unsupported ordering strategy.");
 //		}
 //
@@ -639,9 +621,6 @@ ErrorHandling("Unsupported ordering strategy.");
 //      if( info ){
 //        std::ostringstream msg;
 //        msg << "Numerical factorization error, info =  " << info << std::endl;
-//        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 //      }
 //    }
@@ -720,9 +699,6 @@ ErrorHandling( msg.str().c_str() );
 ////		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 ////			<< std::endl << e.what() << std::endl;
 //		*info = 1;
-//#ifndef _RELEASE_
-//		DumpCallStack();
-//#endif
 //	}
 //	
 //	// Synchronize the info among all processors. 

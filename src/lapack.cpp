@@ -276,106 +276,58 @@ void LAPACK(zgetri)
 
 void Potrf( char uplo, Int n, const float* A, Int lda )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Potrf");
-#endif
     Int info;
     LAPACK(spotrf)( &uplo, &n, A, &lda, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "spotrf returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is not HPD.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Potrf( char uplo, Int n, const double* A, Int lda )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Potrf");
-#endif
     Int info;
     LAPACK(dpotrf)( &uplo, &n, A, &lda, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "dpotrf returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is not HPD.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Potrf( char uplo, Int n, const scomplex* A, Int lda )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Potrf");
-#endif
     Int info;
     LAPACK(cpotrf)( &uplo, &n, A, &lda, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "cpotrf returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is not HPD.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Potrf( char uplo, Int n, const dcomplex* A, Int lda )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Potrf");
-#endif
     Int info;
     LAPACK(zpotrf)( &uplo, &n, A, &lda, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "zpotrf returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is not HPD.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 // *********************************************************************
@@ -384,106 +336,58 @@ ErrorHandling("Matrix is not HPD.");
 
 void Getrf( Int m, Int n, float* A, Int lda, Int* p )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Getrf");
-#endif
     Int info;
     LAPACK(sgetrf)( &m, &n, A, &lda, p, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "sgetrf returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is singular.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Getrf( Int m, Int n, double* A, Int lda, Int* p )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Getrf");
-#endif
     Int info;
     LAPACK(dgetrf)( &m, &n, A, &lda, p, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "dgetrf returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is singular.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Getrf( Int m, Int n, scomplex* A, Int lda, Int* p )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Getrf");
-#endif
     Int info;
     LAPACK(cgetrf)( &m, &n, A, &lda, p, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "cgetrf returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is singular.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Getrf( Int m, Int n, dcomplex* A, Int lda, Int* p )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Getrf");
-#endif
     Int info;
     LAPACK(zgetrf)( &m, &n, A, &lda, p, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "zgetrf returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is singular.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 //
@@ -495,92 +399,56 @@ void Hegst
 ( Int itype, char uplo, Int n,
   float* A, Int lda, const float* B, Int ldb )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Hegst");
-#endif
     Int info;
     LAPACK(ssygst)( &itype, &uplo, &n, A, &lda, B, &ldb, &info );
     if( info != 0 )
     {
         std::ostringstream msg;
         msg << "ssygst returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Hegst
 ( Int itype, char uplo, Int n,
   double* A, Int lda, const double* B, Int ldb )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Hegst");
-#endif
     Int info;
     LAPACK(dsygst)( &itype, &uplo, &n, A, &lda, B, &ldb, &info );
     if( info != 0 )
     {
         std::ostringstream msg;
         msg << "dsygst returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Hegst
 ( Int itype, char uplo, Int n,
   scomplex* A, Int lda, const scomplex* B, Int ldb )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Hegst");
-#endif
     Int info;
     LAPACK(chegst)( &itype, &uplo, &n, A, &lda, B, &ldb, &info );
     if( info != 0 )
     {
         std::ostringstream msg;
         msg << "chegst returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Hegst
 ( Int itype, char uplo, Int n,
   dcomplex* A, Int lda, const dcomplex* B, Int ldb )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Hegst");
-#endif
     Int info;
     LAPACK(zhegst)( &itype, &uplo, &n, A, &lda, B, &ldb, &info );
     if( info != 0 )
     {
         std::ostringstream msg;
         msg << "zhegst returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 // *********************************************************************
@@ -590,9 +458,6 @@ ErrorHandling( msg.str().c_str() );
 
 void Syevd
 ( char jobz, char uplo, Int n, double* A, Int lda, double* eigs ){
-#ifndef _RELEASE_
-	PushCallStack("lapack::Syevd");
-#endif
 	Int lwork = -1, info;
 	Int liwork = -1;
 	std::vector<double> work(1);
@@ -612,14 +477,8 @@ void Syevd
 	{
 		std::ostringstream msg;
 		msg << "syevd returned with info = " << info;
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 	}
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 
@@ -631,9 +490,6 @@ ErrorHandling( msg.str().c_str() );
 void Sygvd
 ( int itype, char jobz, char uplo, Int n, double* A, Int lda, 
   double* B, Int ldb, double* eigs ){
-#ifndef _RELEASE_
-  PushCallStack("lapack::Sygvd");
-#endif
   Int lwork = -1, info;
   Int liwork = -1;
   std::vector<double> work(1);
@@ -653,14 +509,8 @@ void Sygvd
   {
     std::ostringstream msg;
     msg << "sygvd returned with info = " << info;
-    #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
   }
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 }
 
 
@@ -670,108 +520,60 @@ ErrorHandling( msg.str().c_str() );
 
 void Trtri( char uplo, char diag, Int n, const float* A, Int lda )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Trtri");
-#endif
     Int info;
     LAPACK(strtri)( &uplo, &diag, &n, A, &lda, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "strtri returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is singular.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Trtri( char uplo, char diag, Int n, const double* A, Int lda )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Trtri");
-#endif
     Int info;
     LAPACK(dtrtri)( &uplo, &diag, &n, A, &lda, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "dtrtri returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is singular.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Trtri
 ( char uplo, char diag, Int n, const scomplex* A, Int lda )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Trtri");
-#endif
     Int info;
     LAPACK(ctrtri)( &uplo, &diag, &n, A, &lda, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "ctrtri returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is singular.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Trtri
 ( char uplo, char diag, Int n, const dcomplex* A, Int lda )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::Trtri");
-#endif
     Int info;
     LAPACK(ztrtri)( &uplo, &diag, &n, A, &lda, &info );
     if( info < 0 )
     {
         std::ostringstream msg;
         msg << "ztrtri returned with info = " << info;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Matrix is singular.");
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 //
@@ -782,14 +584,8 @@ void BidiagQRAlg
 ( char uplo, Int n, Int numColsVTrans, Int numRowsU,
   float* d, float* e, float* VTrans, Int ldVTrans, float* U, Int ldU )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::BidiagQRAlg");
-#endif
     if( n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -804,37 +600,22 @@ void BidiagQRAlg
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
         std::ostringstream msg;
         msg << "sbdsqr had " << info << " elements of e not converge";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void BidiagQRAlg
 ( char uplo, Int n, Int numColsVTrans, Int numRowsU, 
   double* d, double* e, double* VTrans, Int ldVTrans, double* U, Int ldU )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::BidiagQRAlg");
-#endif
     if( n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -849,37 +630,22 @@ void BidiagQRAlg
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
         std::ostringstream msg;
         msg << "dbdsqr had " << info << " elements of e not converge";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void BidiagQRAlg
 ( char uplo, Int n, Int numColsVAdj, Int numRowsU, 
   float* d, float* e, scomplex* VAdj, Int ldVAdj, scomplex* U, Int ldU )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::BidiagQRAlg");
-#endif
     if( n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -894,37 +660,22 @@ void BidiagQRAlg
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
         std::ostringstream msg;
         msg << "cbdsqr had " << info << " elements of e not converge";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void BidiagQRAlg
 ( char uplo, Int n, Int numColsVAdj, Int numRowsU, 
   double* d, double* e, dcomplex* VAdj, Int ldVAdj, dcomplex* U, Int ldU )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::BidiagQRAlg");
-#endif
     if( n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -939,23 +690,14 @@ void BidiagQRAlg
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
         std::ostringstream msg;
         msg << "zbdsqr had " << info << " elements of e not converge";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 // *********************************************************************
@@ -966,14 +708,8 @@ void DivideAndConquerSVD
 ( Int m, Int n, float* A, Int lda, 
   float* s, float* U, Int ldu, float* VTrans, Int ldvt )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::DivideAndConquerSVD");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -996,35 +732,20 @@ void DivideAndConquerSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("sgesdd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void DivideAndConquerSVD
 ( Int m, Int n, double* A, Int lda, 
   double* s, double* U, Int ldu, double* VTrans, Int ldvt )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::DivideAndConquerSVD");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1047,35 +768,20 @@ void DivideAndConquerSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("dgesdd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void DivideAndConquerSVD
 ( Int m, Int n, scomplex* A, Int lda, 
   float* s, scomplex* U, Int ldu, scomplex* VAdj, Int ldva )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::DivideAndConquerSVD");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1101,35 +807,20 @@ void DivideAndConquerSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("cgesdd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void DivideAndConquerSVD
 ( Int m, Int n, dcomplex* A, Int lda, 
   double* s, dcomplex* U, Int ldu, dcomplex* VAdj, Int ldva )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::DivideAndConquerSVD");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1155,21 +846,12 @@ void DivideAndConquerSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("zgesdd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 //
@@ -1180,14 +862,8 @@ void QRSVD
 ( Int m, Int n, float* A, Int lda, 
   float* s, float* U, Int ldu, float* VTrans, Int ldvt )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::QRSVD");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1208,35 +884,20 @@ void QRSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("sgesvd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void QRSVD
 ( Int m, Int n, double* A, Int lda, 
   double* s, double* U, Int ldu, double* VTrans, Int ldvt )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::QRSVD");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1257,35 +918,20 @@ void QRSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("dgesvd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void QRSVD
 ( Int m, Int n, scomplex* A, Int lda, 
   float* s, scomplex* U, Int ldu, scomplex* VAdj, Int ldva )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::QRSVD");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1308,35 +954,20 @@ void QRSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("cgesvd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void QRSVD
 ( Int m, Int n, dcomplex* A, Int lda, 
   double* s, dcomplex* U, Int ldu, dcomplex* VAdj, Int ldva )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::QRSVD");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1359,21 +990,12 @@ void QRSVD
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("zgesvd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 //
@@ -1382,14 +1004,8 @@ ErrorHandling("zgesvd's updating process failed");
 
 void SingularValues( Int m, Int n, float* A, Int lda, float* s )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::SingularValues");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1410,33 +1026,18 @@ void SingularValues( Int m, Int n, float* A, Int lda, float* s )
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("sgesvd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void SingularValues( Int m, Int n, double* A, Int lda, double* s )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::SingularValues");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1457,33 +1058,18 @@ void SingularValues( Int m, Int n, double* A, Int lda, double* s )
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("dgesvd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void SingularValues( Int m, Int n, scomplex* A, Int lda, float* s )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::SingularValues");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1506,33 +1092,18 @@ void SingularValues( Int m, Int n, scomplex* A, Int lda, float* s )
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("cgesvd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void SingularValues( Int m, Int n, dcomplex* A, Int lda, double* s )
 {
-#ifndef _RELEASE_
-    PushCallStack("lapack::SingularValues");
-#endif
     if( m==0 || n==0 )
     {
-#ifndef _RELEASE_
-        PopCallStack();
-#endif
         return;
     }
 
@@ -1555,21 +1126,12 @@ void SingularValues( Int m, Int n, dcomplex* A, Int lda, double* s )
     {
         std::ostringstream msg;
         msg << "Argument " << -info << " had illegal value";
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
     }
     else if( info > 0 )
     {
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("zgesvd's updating process failed");
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 
@@ -1580,14 +1142,8 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, float * A, Int lda,
 		float * B, Int ldb, float * S, float rcond,
 		Int* rank )
 {
-#ifndef _RELEASE_
-	PushCallStack("lapack::SVDLeastSquare");
-#endif
 	if( m==0 || n==0 )
 	{
-#ifndef _RELEASE_
-		PopCallStack();
-#endif
 		return;
 	}
 
@@ -1609,35 +1165,20 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, float * A, Int lda,
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("sgelss's svd failed to converge.");
 	}
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 }
 
 void SVDLeastSquare( Int m, Int n, Int nrhs, double * A, Int lda,
 		double * B, Int ldb, double * S, double rcond,
 		Int* rank )
 {
-#ifndef _RELEASE_
-	PushCallStack("lapack::SVDLeastSquare");
-#endif
 	if( m==0 || n==0 )
 	{
-#ifndef _RELEASE_
-		PopCallStack();
-#endif
 		return;
 	}
 
@@ -1659,35 +1200,20 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, double * A, Int lda,
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("dgelss's svd failed to converge.");
 	}
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 }
 
 void SVDLeastSquare( Int m, Int n, Int nrhs, scomplex * A, Int lda,
 		scomplex * B, Int ldb, float * S, float rcond,
 		Int* rank )
 {
-#ifndef _RELEASE_
-	PushCallStack("lapack::SVDLeastSquare");
-#endif
 	if( m==0 || n==0 )
 	{
-#ifndef _RELEASE_
-		PopCallStack();
-#endif
 		return;
 	}
 
@@ -1711,35 +1237,20 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, scomplex * A, Int lda,
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("cgelss's svd failed to converge.");
 	}
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 }
 
 void SVDLeastSquare( Int m, Int n, Int nrhs, dcomplex * A, Int lda,
 		dcomplex * B, Int ldb, double * S, double rcond,
 		Int* rank )
 {
-#ifndef _RELEASE_
-	PushCallStack("lapack::SVDLeastSquare");
-#endif
 	if( m==0 || n==0 )
 	{
-#ifndef _RELEASE_
-		PopCallStack();
-#endif
 		return;
 	}
 
@@ -1763,21 +1274,12 @@ void SVDLeastSquare( Int m, Int n, Int nrhs, dcomplex * A, Int lda,
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("zgelss's svd failed to converge.");
 	}
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 }
 
 // *********************************************************************
@@ -1786,24 +1288,12 @@ ErrorHandling("zgelss's svd failed to converge.");
 
 void Lacpy( char uplo, Int m, Int n, const double* A, Int lda,
 	double* B, Int ldb	){
-#ifndef _RELEASE_
-    PushCallStack("lapack::Lacpy");
-#endif
 		LAPACK(dlacpy)( &uplo, &m, &n, A, &lda, B, &ldb );
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 void Lacpy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
 	dcomplex* B, Int ldb	){
-#ifndef _RELEASE_
-    PushCallStack("lapack::Lacpy");
-#endif
   LAPACK(zlacpy)( &uplo, &m, &n, A, &lda, B, &ldb );
-#ifndef _RELEASE_
-    PopCallStack();
-#endif
 }
 
 // *********************************************************************
@@ -1812,9 +1302,6 @@ void Lacpy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
 void
 Getri ( Int n, double* A, Int lda, const Int* ipiv )
 {
-#ifndef _RELEASE_
-	PushCallStack("lapack::Getri");
-#endif
 	Int lwork = -1, info;
 	double dummyWork;
 
@@ -1829,24 +1316,15 @@ Getri ( Int n, double* A, Int lda, const Int* ipiv )
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
 		std::ostringstream msg;
 		msg << "U(" << info << ", " << info << ") = 0. The matrix is singular and cannot be inverted.";
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 	}
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 }		// -----  end of function Getri  ----- 
@@ -1855,9 +1333,6 @@ ErrorHandling( msg.str().c_str() );
 void
 Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv )
 {
-#ifndef _RELEASE_
-	PushCallStack("lapack::Getri");
-#endif
 	Int lwork = -1, info;
 	dcomplex dummyWork;
 
@@ -1872,24 +1347,15 @@ Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv )
 	{
 		std::ostringstream msg;
 		msg << "Argument " << -info << " had illegal value";
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 	}
 	else if( info > 0 )
 	{
 		std::ostringstream msg;
 		msg << "U(" << info << ", " << info << ") = 0. The matrix is singular and cannot be inverted.";
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 	}
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 }		// -----  end of function Getri  ----- 

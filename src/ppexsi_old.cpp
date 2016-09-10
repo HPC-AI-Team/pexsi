@@ -52,19 +52,10 @@ namespace PEXSI{
 
 PPEXSIData::PPEXSIData	( const GridType* g, Int nprow, Int npcol ): gridPole_(g)
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::PPEXSIData");
-#endif
 	if( nprow != npcol ){
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "PSelInv only allows to use square grid." );
 	}
 	if( gridPole_->numProcCol != nprow * npcol ){
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "The number of processors numProcCol do not match nprow * npcol." );
 	}
 	zGridSuperLU_  = new SuperLUGrid<Complex>( gridPole_->rowComm, nprow, npcol );
@@ -72,9 +63,6 @@ ErrorHandling( "The number of processors numProcCol do not match nprow * npcol."
 	gridSelInv_   = new GridType( gridPole_->rowComm, nprow, npcol );
 
   
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::PPEXSIData  ----- 
@@ -82,9 +70,6 @@ ErrorHandling( "The number of processors numProcCol do not match nprow * npcol."
 
 PPEXSIData::~PPEXSIData	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::~PPEXSIData");
-#endif
 	if( zGridSuperLU_ != NULL ){
 		delete zGridSuperLU_;
 	}
@@ -95,9 +80,6 @@ PPEXSIData::~PPEXSIData	(  )
 	if( gridSelInv_ != NULL ){
 		delete gridSelInv_;
 	}
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::~PPEXSIData  ----- 
@@ -110,9 +92,6 @@ Real PPEXSIData::CalculateChemicalPotentialNewtonFD (
 			const std::vector<Real>& muList,
 			const std::vector<Real>& numElectronList )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::CalculateChemicalPotentialNewtonFD");
-#endif
   // FIXME Magic number here
 	Real  muMin = -5.0, muMax = 5.0, muMinStep = 0.01;;
 	Real  muNew;
@@ -157,9 +136,6 @@ Real PPEXSIData::CalculateChemicalPotentialNewtonFD (
 		} // if ( numElectron changed )
 	} // if (iter == 0)
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return muNew;
 } 		// -----  end of method PPEXSIData::CalculateChemicalPotentialNewtonFD  ----- 
@@ -172,9 +148,6 @@ Real PPEXSIData::CalculateChemicalPotentialNewtonBisection (
 			const Real muMin,
 			const Real muMax )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::CalculateChemicalPotentialNewtonBisection");
-#endif
 	Real  muNew, muNewton;
 
 	muNewton = mu - ( numElectron - numElectronExact ) / numElectronDrvMu;
@@ -189,9 +162,6 @@ Real PPEXSIData::CalculateChemicalPotentialNewtonBisection (
 	else
 		muNew = muNewton;
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return muNew;
 } 		// -----  end of method PPEXSIData::CalculateChemicalPotentialNewtonBisection  ----- 
@@ -220,18 +190,12 @@ void PPEXSIData::Solve(
 		std::vector<Real>&  numElectronDrvMuList,
 		bool&               isConverged
 		){
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::Solve");
-#endif
 
 
 	// *********************************************************************
 	// Check the input parameters
 	// *********************************************************************
 	if( numPole % 2 != 0 ){
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "Must be even number of poles!" );
 	}
 
@@ -905,9 +869,6 @@ ErrorHandling( "Must be even number of poles!" );
 	// NOT computed yet.
 	mu = muNow;
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::Solve----- 
@@ -917,9 +878,6 @@ ErrorHandling( "Must be even number of poles!" );
 Real
 PPEXSIData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::CalculateNumElectron");
-#endif
 	Real numElecLocal = 0.0, numElec = 0.0;
 	
 	// TODO Check SMat and rhoMat has the same sparsity if SMat is not
@@ -944,9 +902,6 @@ PPEXSIData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
 
 	mpi::Allreduce( &numElecLocal, &numElec, 1, MPI_SUM, rhoMat_.comm ); 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return numElec;
 } 		// -----  end of method PPEXSIData::CalculateNumElectron  ----- 
@@ -954,9 +909,6 @@ PPEXSIData::CalculateNumElectron	( const DistSparseMatrix<Real>& SMat )
 Real
 PPEXSIData::CalculateNumElectronDrvMu	( const DistSparseMatrix<Real>& SMat )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::CalculateNumElectronDrvMu");
-#endif
 	Real numElecDrvLocal = 0.0, numElecDrv = 0.0;
 	
 	// TODO Check SMat and rhoDrvMuMat has the same sparsity
@@ -981,9 +933,6 @@ PPEXSIData::CalculateNumElectronDrvMu	( const DistSparseMatrix<Real>& SMat )
 
 	mpi::Allreduce( &numElecDrvLocal, &numElecDrv, 1, MPI_SUM, rhoDrvMuMat_.comm ); 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return numElecDrv;
 } 		// -----  end of method PPEXSIData::CalculateNumElectronDrvMu  ----- 
@@ -991,9 +940,6 @@ PPEXSIData::CalculateNumElectronDrvMu	( const DistSparseMatrix<Real>& SMat )
 Real
 PPEXSIData::CalculateNumElectronDrvT	( const DistSparseMatrix<Real>& SMat )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::CalculateNumElectronDrvT");
-#endif
 	Real numElecDrvLocal = 0.0, numElecDrv = 0.0;
 	
 	// TODO Check SMat and rhoDrvTMat has the same sparsity
@@ -1016,9 +962,6 @@ PPEXSIData::CalculateNumElectronDrvT	( const DistSparseMatrix<Real>& SMat )
 
 	mpi::Allreduce( &numElecDrvLocal, &numElecDrv, 1, MPI_SUM, rhoDrvTMat_.comm ); 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return numElecDrv;
 } 		// -----  end of method PPEXSIData::CalculateNumElectronDrvT  ----- 
@@ -1027,9 +970,6 @@ PPEXSIData::CalculateNumElectronDrvT	( const DistSparseMatrix<Real>& SMat )
 Real
 PPEXSIData::CalculateTotalEnergy	( const DistSparseMatrix<Real>& HMat )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::CalculateTotalEnergy");
-#endif
 	
 	Real totalEnergyLocal = 0.0, totalEnergy = 0.0;
 	
@@ -1043,9 +983,6 @@ PPEXSIData::CalculateTotalEnergy	( const DistSparseMatrix<Real>& HMat )
 
 	mpi::Allreduce( &totalEnergyLocal, &totalEnergy, 1, MPI_SUM, rhoMat_.comm ); 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return totalEnergy;
 } 		// -----  end of method PPEXSIData::CalculateTotalEnergy  ----- 
@@ -1053,9 +990,6 @@ PPEXSIData::CalculateTotalEnergy	( const DistSparseMatrix<Real>& HMat )
 Real 
 PPEXSIData::CalculateFreeEnergy	( const DistSparseMatrix<Real>& SMat )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::CalculateFreeEnergy");
-#endif
 	
 	Real totalFreeEnergyLocal = 0.0, totalFreeEnergy = 0.0;
 
@@ -1081,9 +1015,6 @@ PPEXSIData::CalculateFreeEnergy	( const DistSparseMatrix<Real>& SMat )
 	mpi::Allreduce( &totalFreeEnergyLocal, &totalFreeEnergy, 1, MPI_SUM, 
 			freeEnergyDensityMat_.comm ); 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return totalFreeEnergy;
 } 		// -----  end of method PPEXSIData::CalculateFreeEnergy  ----- 
@@ -1094,9 +1025,6 @@ PPEXSIData::CalculateForce	(
 		const DistSparseMatrix<Real>& HDerivativeMat,  
 		const DistSparseMatrix<Real>& SDerivativeMat )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::CalculateForce");
-#endif
 
 	Real totalForceLocal = 0.0, totalForce = 0.0;
 
@@ -1120,9 +1048,6 @@ PPEXSIData::CalculateForce	(
 
 	mpi::Allreduce( &totalForceLocal, &totalForce, 1, MPI_SUM, rhoMat_.comm );
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return totalForce;
 } 		// -----  end of method PPEXSIData::CalculateForce  ----- 
@@ -1135,9 +1060,6 @@ PPEXSIData::EstimateZeroTemperatureChemicalPotential	(
 		Real mu,
 	 	const DistSparseMatrix<Real>& SMat )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::EstimateZeroTemperatureChemicalPotential");
-#endif
  
   Real numElecDrvMu, numElecDrvT, muDrvT;
   Real beta;
@@ -1153,9 +1075,6 @@ PPEXSIData::EstimateZeroTemperatureChemicalPotential	(
 
 	mu0 = mu - 0.5 * muDrvT / beta;
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return mu0;
 } 		// -----  end of method PPEXSIData::EstimateZeroTemperatureChemicalPotential  ----- 
@@ -1168,9 +1087,6 @@ void PPEXSIData::CalculateNegativeInertia(
 		std::string                    ColPerm,
 		Int                            numProcSymbFact
 		){
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::CalculateNegativeInertia");
-#endif
 
 
 
@@ -1368,9 +1284,6 @@ void PPEXSIData::CalculateNegativeInertia(
 			MPI_SUM, gridPole_->colComm );
 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::CalculateNegativeInertia ----- 
@@ -1386,9 +1299,6 @@ PPEXSIData::EstimateSpectralRadius(
     Int                            maxNumIter,
     Int&                           numIter,
     Real&                          sigma ){
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::EstimateSpectralRadius");
-#endif
   Int n = HMat.size;
 
   bool isSIdentity = ( SMat.size == 0 );
@@ -1399,9 +1309,6 @@ PPEXSIData::EstimateSpectralRadius(
 			<< "The sizes of H and S do not match." << std::endl
       << "H.size = " << HMat.size << std::endl
       << "S.size = " << SMat.size << std::endl;
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
   }
 
@@ -1439,9 +1346,6 @@ ErrorHandling( msg.str().c_str() );
           << "The sizes of H and v0 do not match." << std::endl
           << "H.size = " << HMat.size << std::endl
           << "v0.size = " << v0.m() << std::endl;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
       }
       blas::Copy( n, v0.Data(), 1, X.Data(), 1 );
@@ -1615,16 +1519,10 @@ ErrorHandling( msg.str().c_str() );
     sigma = QAQ(0,0) / QBQ(0,0);
   }
   else{
-    #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "Method != 0 is not yet supported." );
   }
 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 }		// -----  end of function PPEXSIData::EstimateSpectralRadius  ----- 

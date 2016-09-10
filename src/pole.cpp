@@ -384,9 +384,6 @@ void ellipjc(Complex* psn, Complex* pcn,
 int GetPoleFunc(Complex (*func)(Complex, double, double),
 	      Complex* zshift, Complex* zweight, int* Npole,
 	      double* temp, double* gap, double* deltaE, double* mu){
-#ifndef _RELEASE_
-	PushCallStack("GetPoleFunc");
-#endif
   double beta;
   double M, mshift, m2, M2, kr, L, K, Kp, coef;
   Complex t, sn, cn, dn, z, dzdt, zsq, funczsq;
@@ -445,9 +442,6 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
 
   }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
   return 0;
 }
 
@@ -485,9 +479,6 @@ int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
 	      Complex* zshift, Complex* zweight, int* Npole,
 	      double* temp, double* gap, double* deltaE, double* mu, 
         double* dmu){
-#ifndef _RELEASE_
-	PushCallStack("GetPoleUpdateFunc");
-#endif
   double beta;
   double M, mshift, m2, M2, kr, L, K, Kp, coef;
   Complex t, sn, cn, dn, z, dzdt, zsq, funczsq, zsqweight;
@@ -550,9 +541,6 @@ int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
 
   }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
   return 0;
 }
 

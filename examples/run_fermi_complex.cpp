@@ -266,9 +266,6 @@ int main(int argc, char **argv)
     statusOFS.close();
     statusOFS << std::endl << " ERROR!!! Proc " << mpirank << " caught exception with message: "
       << e.what() << std::endl;
-#ifndef _RELEASE_
-    DumpCallStack();
-#endif
   }
 
   MPI_Finalize();

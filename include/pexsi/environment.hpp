@@ -222,13 +222,6 @@ namespace PEXSI{
 
 
 
-
-#ifndef _RELEASE_
-  void PushCallStack( const std::string& s );
-  void PopCallStack();
-  void DumpCallStack();
-#endif // ifndef _RELEASE_
-
   void ErrorHandling( const char * msg );
 
   // We define an output stream that does nothing. This is done so that the 

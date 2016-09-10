@@ -57,79 +57,43 @@ namespace  PEXSI{
 
   template <class F> NumVec<F>::NumVec	() : m_(0), owndata_(true), data_(NULL), bufsize_(0)
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::NumVec");
-#endif  // ifndef _RELEASE_
     m_ = 0;
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
   } 		// -----  end of method NumVec<F>::NumVec  ----- 
 
 
   template <class F> NumVec<F>::NumVec	( Int m ) : m_(m), owndata_(true), data_(NULL), bufsize_(0)
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::NumVec");
-#endif  // ifndef _RELEASE_
 
     this->allocate();
 
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
   } 		// -----  end of method NumVec<F>::NumVec  ----- 
 
   template <class F> NumVec<F>::NumVec	( Int m, bool owndata, F* data ) : m_(m), owndata_(owndata), data_(NULL), bufsize_(0)
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::NumVec");
-#endif  // ifndef _RELEASE_
 
     this->allocate(data);
 
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
   } 		// -----  end of method NumVec<F>::NumVec  ----- 
 
   template <class F> NumVec<F>::NumVec	( const NumVec<F>& C ) : m_(C.m_), owndata_(C.owndata_), data_(NULL), bufsize_(0)
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::NumVec");
-#endif  // ifndef _RELEASE_
     this->allocate(C.data_);
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
   } 		// -----  end of method NumVec<F>::NumVec  ----- 
 
 
   template < class F > NumVec<F>::~NumVec	(  )
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::~NumVec");
-#endif  // ifndef _RELEASE_
     this->deallocate();
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
 
   } 		// -----  end of method NumVec<F>::~NumVec  ----- 
 
 
   template < class F > inline NumVec<F>& NumVec<F>::operator =	( const NumVec& C  )
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::operator=");
-#endif  // ifndef _RELEASE_
     this->deallocate();
     m_ = C.m_;
     owndata_ = C.owndata_;
     this->allocate(C.data_);
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
 
     return *this;
   } 		// -----  end of method NumVec<F>::operator=  ----- 
@@ -137,13 +101,7 @@ namespace  PEXSI{
 
   template < class F > inline void NumVec<F>::Resize	( const Int m )
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::Resize");
-#endif  // ifndef _RELEASE_
     if( owndata_ == false ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling("Vector being resized must own data.");
     }
     if(m > bufsize_) {
@@ -154,26 +112,17 @@ namespace  PEXSI{
     else{
       m_ = m;
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
     return ;
   } 		// -----  end of method NumVec<F>::Resize  ----- 
 
   template < class F > inline void NumVec<F>::Clear	( )
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::Clear");
-#endif  // ifndef _RELEASE_
     if( owndata_ == false ){
       data_ = NULL;
     }
     else{
       this->deallocate();
     }
-#ifndef _RELEASE_
-    PopCallStack();
-#endif  // ifndef _RELEASE_
     return ;
   } 		// -----  end of method NumVec<F>::Clear  ----- 
 
@@ -181,16 +130,9 @@ namespace  PEXSI{
 
   template <class F> inline F& NumVec<F>::operator()	( Int i )
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::operator()");
     if( i < 0 || i >= m_ ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "Index is out of bound." );
     }
-    PopCallStack();
-#endif  // ifndef _RELEASE_
     return data_[i];
 
   } 		// -----  end of method NumVec<F>::operator()  ----- 
@@ -200,16 +142,9 @@ namespace  PEXSI{
     inline const F&
     NumVec<F>::operator()	( Int i ) const
     {
-#ifndef _RELEASE_
-      PushCallStack("NumVec<F>::operator()");
       if( i < 0 || i >= m_ ){
-#ifdef USE_ABORT
-        abort();
-#endif
         ErrorHandling( "Index is out of bound." );
       }
-      PopCallStack();
-#endif  // ifndef _RELEASE_
       return data_[i];
 
     } 		// -----  end of method NumVec<F>::operator()  ----- 
@@ -217,32 +152,18 @@ namespace  PEXSI{
 
   template <class F> inline F& NumVec<F>::operator[]	( Int i )
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::operator[]");
     if( i < 0 || i >= m_ ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "Index is out of bound." );
     }
-    PopCallStack();
-#endif  // ifndef _RELEASE_
     return data_[i];
   } 		// -----  end of method NumVec<F>::operator[]  ----- 
 
 
   template <class F> inline const F& NumVec<F>::operator[]	( Int i ) const
   {
-#ifndef _RELEASE_
-    PushCallStack("NumVec<F>::operator[]");
     if( i < 0 || i >= m_ ){
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling( "Index is out of bound." );
     }
-    PopCallStack();
-#endif  // ifndef _RELEASE_
     return data_[i];
 
   } 		// -----  end of method NumVec<F>::operator[]  ----- 
@@ -252,9 +173,6 @@ namespace  PEXSI{
       if(m_>0) { 
         data_ = new F[m_]; 
         if( data_ == NULL ) {
-#ifdef USE_ABORT
-          abort();
-#endif
           ErrorHandling("Cannot allocate memory.");
         }
       } 

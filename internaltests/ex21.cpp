@@ -317,9 +317,6 @@ int main(int argc, char **argv)
 	{
 		std::cerr << " caught exception with message: "
 			<< e.what() << std::endl;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 	
 	MPI_Finalize();

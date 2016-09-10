@@ -1519,17 +1519,11 @@ namespace PEXSI{
 		void
 		CopyPattern	( const SparseMatrix<F1>& A, SparseMatrix<F2>& B )
 		{
-#ifndef _RELEASE_
-			PushCallStack("CopyPattern");
-#endif
 			B.size        = A.size;
 			B.nnz         = A.nnz;
 			B.colptr      = A.colptr;
 			B.rowind      = A.rowind;
 			B.nzval.Resize( A.nnz );
-#ifndef _RELEASE_
-			PopCallStack();
-#endif
 			return ;
 		}		// -----  end of template function CopyPattern  ----- 
 
@@ -1547,9 +1541,6 @@ namespace PEXSI{
 		void
 		CopyPattern	( const DistSparseMatrix<F1>& A, DistSparseMatrix<F2>& B )
 		{
-#ifndef _RELEASE_
-			PushCallStack("CopyPattern");
-#endif
 			B.size        = A.size;
 			B.nnz         = A.nnz;
 			B.nnzLocal    = A.nnzLocal;
@@ -1557,9 +1548,6 @@ namespace PEXSI{
 			B.rowindLocal = A.rowindLocal;
 			B.nzvalLocal.Resize( A.nnzLocal );
 			B.comm        = A.comm;
-#ifndef _RELEASE_
-			PopCallStack();
-#endif
 			return ;
 		}		// -----  end of template function CopyPattern  ----- 
 
@@ -1589,18 +1577,12 @@ namespace PEXSI{
         const F                    beta,
         NumVec<F>&                 C )
 		{
-#ifndef _RELEASE_
-			PushCallStack("DistSparseMatMultGlobalVec");
-#endif
       if( B.m() != AMat.size ){
         std::ostringstream msg;
         msg << std::endl
           << "The size of the matrix A is " << AMat.size << std::endl
           << "The size of the vector B is " << B.m() << std::endl 
           << "and they must agree with each other.";
-          #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
       }
       if( C.m() != AMat.size ){
@@ -1609,9 +1591,6 @@ ErrorHandling( msg.str().c_str() );
           << "The size of the matrix A is " << AMat.size << std::endl
           << "The size of the vector C is " << C.m() << std::endl 
           << "and they must agree with each other.";
-          #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
       }
 
@@ -1652,9 +1631,6 @@ ErrorHandling( msg.str().c_str() );
         C(i) = beta * C(i) + alpha * DeltaC(i);
       }
       
-#ifndef _RELEASE_
-			PopCallStack();
-#endif
 			return ;
 		}		// -----  end of template function DistSparseMatMultGlobalVec  ----- 
 
@@ -1699,9 +1675,6 @@ ErrorHandling( msg.str().c_str() );
         const std::vector<Real>&  y,
         Real val )
     {
-#ifndef _RELEASE_
-      PushCallStack("MonotoneRootFinding");
-#endif
       Int numX = x.size();
 
       if( val <= y[0] || val >= y[numX-1] ){
@@ -1710,9 +1683,6 @@ ErrorHandling( msg.str().c_str() );
           << "The root finding procedure cannot find the solution for y(x)=" 
           << val << std::endl << "here [min(y) max(y)] = [" << y[0] << ", "
           << y[numX-1] << "]" << std::endl;
-        #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
       }
 
@@ -1731,9 +1701,6 @@ ErrorHandling( msg.str().c_str() );
           * ( val - y[idx-1] );
       }
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return root;
     }		// -----  end of function MonotoneRootFinding  ----- 

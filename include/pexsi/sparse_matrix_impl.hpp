@@ -68,9 +68,6 @@ namespace  PEXSI{
 template <typename F> inline void DistSparseMatrix<F>::SortIndices()
 {
 
-#ifndef _RELEASE_
-	PushCallStack("DistSparseMatrix<F>::SortIndices");
-#endif  
 
   for(Int col = 0; col<colptrLocal.m()-1;++col){
     Int colbeg = colptrLocal[col]-1;
@@ -97,27 +94,18 @@ template <typename F> inline void DistSparseMatrix<F>::SortIndices()
   }
 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif  
 
 
 }
 
 template <class F> inline LongInt DistSparseMatrix<F>::Nnz ( )
 {
-#ifndef _RELEASE_
-	PushCallStack("DistSparseMatrix<F>::Nnz");
-#endif  
   LongInt nnzLocalLong = nnzLocal;
   LongInt nnz;
 
   MPI_Allreduce( &nnzLocalLong, &nnz, 1, MPI_LONG_LONG, MPI_SUM,
       comm );
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif  
 
   return nnz;
 } 		// -----  end of method DistSparseMatrix<F>::Nnz  ----- 
@@ -125,9 +113,6 @@ template <class F> inline LongInt DistSparseMatrix<F>::Nnz ( )
 template <typename F> inline void DistSparseMatrix<F>::Clear()
 {
 
-#ifndef _RELEASE_
-	PushCallStack("DistSparseMatrix<F>::Clear");
-#endif  
 
     size = 0;
     nnzLocal = 0;
@@ -140,9 +125,6 @@ template <typename F> inline void DistSparseMatrix<F>::Clear()
 
 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif  
 
 
 }

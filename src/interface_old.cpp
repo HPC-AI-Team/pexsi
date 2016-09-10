@@ -107,9 +107,6 @@ void ReadDistSparseMatrixFormattedHeadInterface (
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be openeded!" );
 		}
 		Int dummy;
@@ -200,9 +197,6 @@ void ReadDistSparseMatrixHeadInterface (
 	if( mpirank == 0 ){
 		fin.open(filename);
 		if( !fin.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be openeded!" );
 		}
 		fin.read((char*)size, sizeof(int));
@@ -218,9 +212,6 @@ ErrorHandling( "File cannot be openeded!" );
 		fin.read((char*)&tmp, sizeof(int));  
 
 		if( tmp != (*size)+1 ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "colptr is not of the right size." );
 		}
 
@@ -338,9 +329,6 @@ void PPEXSIInertiaCountInterface(
 				<< "mpisize    = " << mpisize << std::endl
 				<< "npPerPole = " << npPerPole << std::endl
 				<< "mpisize is not divisible by npPerPole!" << std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 
@@ -351,9 +339,6 @@ ErrorHandling( msg.str().c_str() );
 				<< ", which is less than 1. " <<
 				"This is probably too tight for the purpose of inertia count." 
 				<< std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 
@@ -464,9 +449,6 @@ ErrorHandling( msg.str().c_str() );
 				colPerm = "MMD_AT_PLUS_A";
 				break;
 			default:
-				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Unsupported ordering strategy.");
 		}
 
@@ -575,9 +557,6 @@ ErrorHandling("Unsupported ordering strategy.");
 					<< " ) " << std::endl
 					<< "NeExact = " << numElectronExact << std::endl
 					<< "Try to increase numElectronTolerance or initial search interval for mu." << std::endl;
-				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 			}
 
@@ -712,9 +691,6 @@ ErrorHandling( msg.str().c_str() );
 //		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 //			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	// Synchronize the info among all processors. 
@@ -771,9 +747,6 @@ void PPEXSIRawInertiaCountInterface(
 				<< "mpisize    = " << mpisize << std::endl
 				<< "npPerPole = " << npPerPole << std::endl
 				<< "mpisize is not divisible by npPerPole!" << std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 
@@ -881,9 +854,6 @@ ErrorHandling( msg.str().c_str() );
 				colPerm = "MMD_AT_PLUS_A";
 				break;
 			default:
-				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Unsupported ordering strategy.");
 		}
 
@@ -934,9 +904,6 @@ ErrorHandling("Unsupported ordering strategy.");
 //		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 //			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	// Synchronize the info among all processors. 
@@ -1009,9 +976,6 @@ void PPEXSISolveInterface (
 				<< "mpisize    = " << mpisize << std::endl
 				<< "npPerPole  = " << npPerPole << std::endl
 				<< "mpisize is not divisible by npPerPole!" << std::endl;
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
 		}
 
@@ -1124,9 +1088,6 @@ ErrorHandling( msg.str().c_str() );
 				colPerm = "MMD_AT_PLUS_A";
 				break;
 			default:
-				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Unsupported ordering strategy.");
 		}
 
@@ -1231,9 +1192,6 @@ ErrorHandling("Unsupported ordering strategy.");
 //		std::cerr << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 //			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 
 	// Synchronize the info among all processors. 
@@ -1284,9 +1242,6 @@ void PPEXSISelInvInterface (
 	  Int nprow = iround( std::sqrt( (double)mpisize) );
 		Int npcol = mpisize / nprow;
 		if( mpisize != nprow * npcol || nprow != npcol ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "nprow == npcol is assumed in this test routine." );
 		}
 
@@ -1392,9 +1347,6 @@ ErrorHandling( "nprow == npcol is assumed in this test routine." );
 				colPerm = "MMD_AT_PLUS_A";
 				break;
 			default:
-				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Unsupported ordering strategy.");
 		}
 
@@ -1481,9 +1433,6 @@ ErrorHandling("Unsupported ordering strategy.");
 //		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 //			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 	
 	// Synchronize the info among all processors. 
@@ -1562,9 +1511,6 @@ void PPEXSILocalDOSInterface (
 
 
 		if( *info ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Error in SelInv!.");
 		}
 
@@ -1579,9 +1525,6 @@ ErrorHandling("Error in SelInv!.");
 //		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 //			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 	
 	// Synchronize the info among all processors. 
@@ -1628,9 +1571,6 @@ void PSelInvComplexSymmetricInterface (
 
 	try{
 		if( mpisize != nprow * npcol ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( " mpisize != nprow * npcol ." );
 		}
 
@@ -1665,9 +1605,6 @@ ErrorHandling( " mpisize != nprow * npcol ." );
 				colPerm = "MMD_AT_PLUS_A";
 				break;
 			default:
-				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling("Unsupported ordering strategy.");
 		}
 
@@ -1754,9 +1691,6 @@ ErrorHandling("Unsupported ordering strategy.");
 //		std::cerr  << std::endl << "ERROR!!! Proc " << mpirank << " caught exception with message: "
 //			<< std::endl << e.what() << std::endl;
 		*info = 1;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 	
 	// Synchronize the info among all processors. 

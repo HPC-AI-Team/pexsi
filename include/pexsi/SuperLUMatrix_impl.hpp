@@ -50,55 +50,31 @@ namespace PEXSI{
 
 inline SuperLUMatrix<Real>::SuperLUMatrix	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::SuperLUMatrix");
-#endif
   ptrData = NULL;
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 } 		// -----  end of method SuperLUMatrix<Real>::SuperLUMatrix  ----- 
 
 
 inline SuperLUMatrix<Real>::SuperLUMatrix	( const SuperLUGrid<Real>& g, const SuperLUOptions& opt )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::SuperLUMatrix");
-#endif
     ptrData = new RealSuperLUData(g,opt);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 } 		// -----  end of method SuperLUMatrix<Real>::SuperLUMatrix  ----- 
 
 inline SuperLUMatrix<Real>::~SuperLUMatrix	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::~SuperLUMatrix");
-#endif
   if( ptrData != NULL )
     delete ptrData;
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 } 		// -----  end of method SuperLUMatrix<Real>::~SuperLUMatrix  ----- 
 
 
 
 
 inline SuperLUMatrix<Real>::SuperLUMatrix(const SuperLUMatrix<Real> & g){
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::SuperLUMatrix");
-#endif
     if(g.ptrData==NULL){
       ptrData=NULL;
     }
     else{
       ptrData = new RealSuperLUData(*g.ptrData);
     }
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 }
 
 inline SuperLUMatrix<Real> & SuperLUMatrix<Real>::operator = (const SuperLUMatrix<Real> & g){
@@ -126,21 +102,12 @@ inline SuperLUMatrix<Real> & SuperLUMatrix<Real>::operator = (const SuperLUMatri
 inline void 
 SuperLUMatrix<Real>::Setup ( const SuperLUGrid<Real>& g, const SuperLUOptions& opt )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::Setup");
-#endif
 //  if( ptrData == NULL ){
     ptrData = new RealSuperLUData(g,opt);
 //  }
 //  else{
-//    #ifdef USE_ABORT
-//abort();
-//#endif
 //ErrorHandling("SuperLUMatrix has been set up before.");
 //  }
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
   return;
 } 		// -----  end of method SuperLUMatrix<Real>::Setup  ----- 
 
@@ -161,13 +128,7 @@ inline Int SuperLUMatrix<Real>::n (  ) const
 inline void
 SuperLUMatrix<Real>::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA , const SuperLUOptions& opt )
 {
-#ifndef _RELEASE_
-	PushCallStack( "SuperLUMatrix<Real>::DistSparseMatrixToSuperMatrixNRloc" );
-#endif
   ptrData->DistSparseMatrixToSuperMatrixNRloc(sparseA, opt );
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 	return;
 } 		// -----  end of method SuperLUMatrix<Real>::DistSparseMatrixToSuperMatrixNRloc ----- 
 
@@ -175,13 +136,7 @@ SuperLUMatrix<Real>::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>&
 inline void
 SuperLUMatrix<Real>::DestroyAOnly	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::DestroyAOnly");
-#endif
   ptrData->DestroyAOnly();
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::DestroyAOnly  ----- 
@@ -189,13 +144,7 @@ SuperLUMatrix<Real>::DestroyAOnly	(  )
 inline void
 SuperLUMatrix<Real>::SymbolicFactorize	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::SymbolicFactorize");
-#endif
   ptrData->SymbolicFactorize();
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::SymbolicFactorize  ----- 
@@ -204,13 +153,7 @@ SuperLUMatrix<Real>::SymbolicFactorize	(  )
 inline void
 SuperLUMatrix<Real>::Distribute	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::Distribute");
-#endif
   ptrData->Distribute();
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::Distribute  ----- 
@@ -219,13 +162,7 @@ SuperLUMatrix<Real>::Distribute	(  )
 inline void
 SuperLUMatrix<Real>::NumericalFactorize	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::NumericalFactorize");
-#endif
   ptrData->NumericalFactorize();
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::NumericalFactorize  ----- 
@@ -234,13 +171,7 @@ SuperLUMatrix<Real>::NumericalFactorize	(  )
 inline void
 SuperLUMatrix<Real>::ConvertNRlocToNC	( SuperLUMatrix& AGlobal )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::ConvertNRlocToNC");
-#endif
   ptrData->ConvertNRlocToNC(AGlobal.ptrData);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::ConvertNRlocToNC  ----- 
@@ -248,13 +179,7 @@ SuperLUMatrix<Real>::ConvertNRlocToNC	( SuperLUMatrix& AGlobal )
 inline void
 SuperLUMatrix<Real>::MultiplyGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& bGlobal )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::MultiplyGlobalMultiVector");
-#endif
   ptrData->MultiplyGlobalMultiVector(xGlobal, bGlobal);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
  
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::MultiplyGlobalMultiVector  ----- 
@@ -263,13 +188,7 @@ SuperLUMatrix<Real>::MultiplyGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<R
 inline void
 SuperLUMatrix<Real>::DistributeGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& xLocal )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::DistributeGlobalMultiVector");
-#endif
   ptrData->DistributeGlobalMultiVector(xGlobal, xLocal );
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::DistributeGlobalMultiVector  ----- 
@@ -277,13 +196,7 @@ SuperLUMatrix<Real>::DistributeGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat
 
 inline void SuperLUMatrix<Real>::GatherDistributedMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& xLocal )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::GatherDistributedMultiVector");
-#endif
   ptrData->GatherDistributedMultiVector(xGlobal, xLocal );
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::GatherDistributedMultiVector  ----- 
@@ -292,13 +205,7 @@ inline void SuperLUMatrix<Real>::GatherDistributedMultiVector	( NumMat<Real>& xG
 inline void
 SuperLUMatrix<Real>::SolveDistMultiVector	( NumMat<Real>& bLocal, DblNumVec& berr )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::SolveDistMultiVector");
-#endif
   ptrData->SolveDistMultiVector(bLocal, berr );
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::SolveDistMultiVector  ----- 
@@ -307,13 +214,7 @@ SuperLUMatrix<Real>::SolveDistMultiVector	( NumMat<Real>& bLocal, DblNumVec& ber
 inline void
 SuperLUMatrix<Real>::CheckErrorDistMultiVector	( NumMat<Real>& xLocal, NumMat<Real>& xTrueLocal )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::CheckErrorDistMultiVector");
-#endif
   ptrData->CheckErrorDistMultiVector(xLocal, xTrueLocal );
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::CheckErrorDistMultiVector  ----- 
@@ -322,13 +223,7 @@ SuperLUMatrix<Real>::CheckErrorDistMultiVector	( NumMat<Real>& xLocal, NumMat<Re
 inline void
 SuperLUMatrix<Real>::LUstructToPMatrix	( PMatrix<Real>& PMloc )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::LUstructToPMatrix");
-#endif
   ptrData->LUstructToPMatrix(PMloc);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::LUstructToPMatrix  ----- 
@@ -338,13 +233,7 @@ SuperLUMatrix<Real>::LUstructToPMatrix	( PMatrix<Real>& PMloc )
 inline void
 SuperLUMatrix<Real>::SymbolicToSuperNode	( SuperNodeType& super )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Real>::SymbolicToSuperNode");
-#endif
   ptrData->SymbolicToSuperNode(super);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Real>::SymbolicToSuperNode  ----- 
@@ -355,54 +244,30 @@ namespace PEXSI{
 
 inline SuperLUMatrix<Complex>::SuperLUMatrix	( )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::SuperLUMatrix");
-#endif
   ptrData = NULL;
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 } 		// -----  end of method SuperLUMatrix<Complex>::SuperLUMatrix  ----- 
 
 
 inline SuperLUMatrix<Complex>::SuperLUMatrix	( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::SuperLUMatrix");
-#endif
     ptrData = new ComplexSuperLUData(g,opt);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 } 		// -----  end of method SuperLUMatrix<Complex>::SuperLUMatrix  ----- 
 
 inline SuperLUMatrix<Complex>::~SuperLUMatrix	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::~SuperLUMatrix");
-#endif
   if( ptrData != NULL ){
     delete ptrData;
   }
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 } 		// -----  end of method SuperLUMatrix<Complex>::~SuperLUMatrix  ----- 
 
 
 inline SuperLUMatrix<Complex>::SuperLUMatrix(const SuperLUMatrix<Complex> & g){
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::SuperLUMatrix");
-#endif
     if(g.ptrData==NULL){
       ptrData=NULL;
     }
     else{
       ptrData = new ComplexSuperLUData(*g.ptrData);
     }
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 }
 
 inline SuperLUMatrix<Complex> & SuperLUMatrix<Complex>::operator = (const SuperLUMatrix<Complex> & g){
@@ -429,21 +294,12 @@ inline SuperLUMatrix<Complex> & SuperLUMatrix<Complex>::operator = (const SuperL
 inline void
 SuperLUMatrix<Complex>::Setup ( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::Setup");
-#endif
 //  if( ptrData == NULL ){
     ptrData = new ComplexSuperLUData(g,opt);
 //  }
 //  else{
-//    #ifdef USE_ABORT
-//abort();
-//#endif
 //ErrorHandling("SuperLUMatrix has been set up before.");
 //  }
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 } 		// -----  end of method SuperLUMatrix<Complex>::Setup  ----- 
 
 
@@ -460,26 +316,14 @@ inline Int SuperLUMatrix<Complex>::n (  ) const
 inline void
 SuperLUMatrix<Complex>::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA , const SuperLUOptions& opt)
 {
-#ifndef _RELEASE_
-	PushCallStack( "SuperLUMatrix<Complex>::DistSparseMatrixToSuperMatrixNRloc" );
-#endif
   ptrData->DistSparseMatrixToSuperMatrixNRloc(sparseA, opt);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 	return;
 } 		// -----  end of method SuperLUMatrix<Complex>::DistSparseMatrixToSuperMatrixNRloc ----- 
 
 inline void
 SuperLUMatrix<Complex>::DestroyAOnly	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::DestroyAOnly");
-#endif
   ptrData->DestroyAOnly();
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::DestroyAOnly  ----- 
@@ -487,13 +331,7 @@ SuperLUMatrix<Complex>::DestroyAOnly	(  )
 inline void
 SuperLUMatrix<Complex>::SymbolicFactorize	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::SymbolicFactorize");
-#endif
   ptrData->SymbolicFactorize();
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::SymbolicFactorize  ----- 
@@ -501,13 +339,7 @@ SuperLUMatrix<Complex>::SymbolicFactorize	(  )
 inline void
 SuperLUMatrix<Complex>::Distribute	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::Distribute");
-#endif
   ptrData->Distribute();
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::Distribute  ----- 
@@ -515,13 +347,7 @@ SuperLUMatrix<Complex>::Distribute	(  )
 inline void
 SuperLUMatrix<Complex>::NumericalFactorize	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::NumericalFactorize");
-#endif
   ptrData->NumericalFactorize();
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::NumericalFactorize  ----- 
@@ -529,13 +355,7 @@ SuperLUMatrix<Complex>::NumericalFactorize	(  )
 inline void
 SuperLUMatrix<Complex>::ConvertNRlocToNC	( SuperLUMatrix& AGlobal )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::ConvertNRlocToNC");
-#endif
   ptrData->ConvertNRlocToNC(AGlobal.ptrData);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::ConvertNRlocToNC  ----- 
@@ -543,13 +363,7 @@ SuperLUMatrix<Complex>::ConvertNRlocToNC	( SuperLUMatrix& AGlobal )
 inline void
 SuperLUMatrix<Complex>::MultiplyGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& bGlobal )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::MultiplyGlobalMultiVector");
-#endif
   ptrData->MultiplyGlobalMultiVector(xGlobal, bGlobal);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
  
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::MultiplyGlobalMultiVector  ----- 
@@ -557,26 +371,14 @@ SuperLUMatrix<Complex>::MultiplyGlobalMultiVector	( NumMat<Complex>& xGlobal, Nu
 inline void
 SuperLUMatrix<Complex>::DistributeGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::DistributeGlobalMultiVector");
-#endif
   ptrData->DistributeGlobalMultiVector(xGlobal, xLocal );
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::DistributeGlobalMultiVector  ----- 
 
 inline void SuperLUMatrix<Complex>::GatherDistributedMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::GatherDistributedMultiVector");
-#endif
   ptrData->GatherDistributedMultiVector(xGlobal, xLocal );
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::GatherDistributedMultiVector  ----- 
@@ -584,13 +386,7 @@ inline void SuperLUMatrix<Complex>::GatherDistributedMultiVector	( NumMat<Comple
 inline void
 SuperLUMatrix<Complex>::SolveDistMultiVector	( NumMat<Complex>& bLocal, DblNumVec& berr )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::SolveDistMultiVector");
-#endif
   ptrData->SolveDistMultiVector(bLocal, berr );
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::SolveDistMultiVector  ----- 
@@ -598,13 +394,7 @@ SuperLUMatrix<Complex>::SolveDistMultiVector	( NumMat<Complex>& bLocal, DblNumVe
 inline void
 SuperLUMatrix<Complex>::CheckErrorDistMultiVector	( NumMat<Complex>& xLocal, NumMat<Complex>& xTrueLocal )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::CheckErrorDistMultiVector");
-#endif
   ptrData->CheckErrorDistMultiVector(xLocal, xTrueLocal );
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::CheckErrorDistMultiVector  ----- 
@@ -612,13 +402,7 @@ SuperLUMatrix<Complex>::CheckErrorDistMultiVector	( NumMat<Complex>& xLocal, Num
 inline void
 SuperLUMatrix<Complex>::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::LUstructToPMatrix");
-#endif
   ptrData->LUstructToPMatrix(PMloc);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::LUstructToPMatrix  ----- 
@@ -626,13 +410,7 @@ SuperLUMatrix<Complex>::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 inline void
 SuperLUMatrix<Complex>::SymbolicToSuperNode	( SuperNodeType& super )
 {
-#ifndef _RELEASE_
-	PushCallStack("SuperLUMatrix<Complex>::SymbolicToSuperNode");
-#endif
   ptrData->SymbolicToSuperNode(super);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method SuperLUMatrix<Complex>::SymbolicToSuperNode  ----- 

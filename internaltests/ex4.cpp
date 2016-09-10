@@ -13,9 +13,6 @@ void Usage(){
 }
 
 // FIXME: IntNumVec convention.  Assumes a symmetric matrix
-void SparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, SparseMatrix<Complex>& A, gridinfo_t* grid){
-	PushCallStack( "SparseMatrixToSuperMatrixNRloc" );
-	int      m, n;
 	doublecomplex  *nzval_loc;         /* local */
 	int_t    *colind_loc, *rowptr_loc;	 /* local */
 	int_t    m_loc, fst_row, nnz_loc;
@@ -74,9 +71,6 @@ void SparseMatrixToSuperMatrixNRloc(SuperMatrix* ANRloc, SparseMatrix<Complex>& 
 			nzval_loc, colind_loc, rowptr_loc,
 			SLU_NR_loc, SLU_Z, SLU_GE);
 
-	free(m_loc_vec);
-	PopCallStack();
-	return;
 }
 
 
@@ -295,9 +289,6 @@ int main(int argc, char **argv)
 	catch( std::exception& e )
 	{
 		std::cerr << " caught exception with message: "
-			<< e.what() << std::endl;
-		DumpCallStack();
-	}
 	
 	MPI_Finalize();
 

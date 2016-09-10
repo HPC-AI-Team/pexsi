@@ -60,9 +60,6 @@ namespace PEXSI{
 //---------------------------------------------------------
 Int SeparateRead(std::string name, std::istringstream& is)
 {
-#ifndef _RELEASE_
-  PushCallStack("SeparateRead");
-#endif
   MPI_Barrier(MPI_COMM_WORLD);
   int mpirank;  MPI_Comm_rank(MPI_COMM_WORLD, &mpirank);
   int mpisize;  MPI_Comm_size(MPI_COMM_WORLD, &mpisize);
@@ -71,9 +68,6 @@ Int SeparateRead(std::string name, std::istringstream& is)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);  //cerr<<filename<<endl;
   ifstream fin(filename);
   if( !fin.good() ){
-    #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
   }
 
@@ -81,18 +75,12 @@ ErrorHandling( "File cannot be opened!" );
   fin.close();
   //
   MPI_Barrier(MPI_COMM_WORLD);
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
   return 0;
 }
 
 //---------------------------------------------------------
 Int SeparateWrite(std::string name, std::ostringstream& os)
 {
-#ifndef _RELEASE_
-	PushCallStack("SeparateWrite");
-#endif
    MPI_Barrier(MPI_COMM_WORLD);
   int mpirank;  MPI_Comm_rank(MPI_COMM_WORLD, &mpirank);
   int mpisize;  MPI_Comm_size(MPI_COMM_WORLD, &mpisize);
@@ -101,27 +89,18 @@ Int SeparateWrite(std::string name, std::ostringstream& os)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);
   ofstream fout(filename);
 	if( !fout.good() ){
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
 	}
   fout<<os.str();
   fout.close();
   //
   MPI_Barrier(MPI_COMM_WORLD);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
   return 0;
 }
 
 //---------------------------------------------------------
 Int SharedRead(std::string name, std::istringstream& is)
 {
-#ifndef _RELEASE_
-	PushCallStack("SharedRead");
-#endif
   MPI_Barrier(MPI_COMM_WORLD);
   int mpirank;  MPI_Comm_rank(MPI_COMM_WORLD, &mpirank);
   int mpisize;  MPI_Comm_size(MPI_COMM_WORLD, &mpisize);
@@ -130,9 +109,6 @@ Int SharedRead(std::string name, std::istringstream& is)
   if(mpirank==0) {
     ifstream fin(name.c_str());
 		if( !fin.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
 		}
     //std::string str(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>());
@@ -151,18 +127,12 @@ ErrorHandling( "File cannot be opened!" );
   is.str( std::string(tmpstr.begin(), tmpstr.end()) );
   //
   MPI_Barrier(MPI_COMM_WORLD);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
   return 0;
 }
 
 //---------------------------------------------------------
 Int SharedWrite(std::string name, std::ostringstream& os)
 {
-#ifndef _RELEASE_
-	PushCallStack("SharedWrite");
-#endif
   MPI_Barrier(MPI_COMM_WORLD);
   int mpirank;  MPI_Comm_rank(MPI_COMM_WORLD, &mpirank);
   int mpisize;  MPI_Comm_size(MPI_COMM_WORLD, &mpisize);
@@ -170,9 +140,6 @@ Int SharedWrite(std::string name, std::ostringstream& os)
   if(mpirank==0) {
     ofstream fout(name.c_str());
 		if( !fout.good() ){
-			#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
 		}
     // Corrected by Patrick Seewald 5/30/2015
@@ -180,9 +147,6 @@ ErrorHandling( "File cannot be opened!" );
     fout.close();
   }
   MPI_Barrier(MPI_COMM_WORLD);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
   return 0;
 }
 
@@ -190,9 +154,6 @@ ErrorHandling( "File cannot be opened!" );
 //---------------------------------------------------------
 Int SeparateWriteAscii(std::string name, std::ostringstream& os)
 {
-#ifndef _RELEASE_
-	PushCallStack("SeparateWriteAscii");
-#endif
   MPI_Barrier(MPI_COMM_WORLD);
   int mpirank;  MPI_Comm_rank(MPI_COMM_WORLD, &mpirank);
   int mpisize;  MPI_Comm_size(MPI_COMM_WORLD, &mpisize);
@@ -201,18 +162,12 @@ Int SeparateWriteAscii(std::string name, std::ostringstream& os)
   sprintf(filename, "%s_%d_%d", name.c_str(), mpirank, mpisize);
   ofstream fout(filename, ios::trunc);
 	if( !fout.good() ){
-		#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "File cannot be opened!" );
 	}
   fout<<os.str();
   fout.close();
   //
   MPI_Barrier(MPI_COMM_WORLD);
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
   return 0;
 }
 
@@ -228,17 +183,11 @@ LinearInterpolation (
 		const std::vector<Real>& xx,
 		std::vector<Real>& yy )
 {
-#ifndef _RELEASE_
-  PushCallStack("LinearInterpolation");
-#endif
   Int numX  = x.size();
   Int numXX = xx.size();
 
   for( Int i = 1; i < numX; i++ ){
     if( x[i] <= x[i-1] ){ 
-#ifdef USE_ABORT
-abort();
-#endif
 //statusOFS<<"x["<<i<<"] = "<<x[i]<<std::endl;
 //statusOFS<<"x["<<i-1<<"] = "<<x[i-1]<<std::endl;
 //statusOFS<<"x"<<x<<std::endl;
@@ -248,9 +197,6 @@ ErrorHandling("x must be sorted strictly ascendingly.");
 
   for( Int i = 1; i < numXX; i++){
     if( xx[i] < xx[i-1] ){
-      #ifdef USE_ABORT
-abort();
-#endif
 //statusOFS<<"xx"<<x<<std::endl;
 ErrorHandling("xx must be sorted ascendingly.");
 }
@@ -276,9 +222,6 @@ ErrorHandling("xx must be sorted ascendingly.");
     }
   } // for (i)
 
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }		// -----  end of function LinearInterpolation  ----- 

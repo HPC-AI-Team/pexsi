@@ -62,9 +62,6 @@ PPEXSIData::PPEXSIData	(
     Int        numProcRow, 
     Int        numProcCol, 
     Int        outputFileIndex ){
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::PPEXSIData");
-#endif
 
   Int mpirank, mpisize;
   MPI_Comm_rank( comm, &mpirank );
@@ -77,9 +74,6 @@ PPEXSIData::PPEXSIData	(
       << "mpisize    = " << mpisize << std::endl
       << "npPerPole = " << npPerPole << std::endl
       << "mpisize is not divisible by npPerPole!" << std::endl;
-#ifdef USE_ABORT
-    abort();
-#endif
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -142,9 +136,6 @@ PPEXSIData::PPEXSIData	(
   
   PMRealUnsymMat_ = new PMatrixUnsym<Real>;
   PMComplexUnsymMat_ = new PMatrixUnsym<Complex>;
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::PPEXSIData  ----- 
@@ -152,9 +143,6 @@ PPEXSIData::PPEXSIData	(
 
 PPEXSIData::~PPEXSIData	(  )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::~PPEXSIData");
-#endif
   if( luRealMat_ != NULL ){
     delete luRealMat_;
   }
@@ -200,9 +188,6 @@ PPEXSIData::~PPEXSIData	(  )
   // Close the log file
   statusOFS.close();
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::~PPEXSIData  ----- 
@@ -221,9 +206,6 @@ PPEXSIData::LoadRealSymmetricMatrix	(
     Real*         SnzvalLocal,
     Int           verbosity )
 {
-#ifndef _RELEASE_
-  PushCallStack("PPEXSIData::LoadRealSymmetricMatrix");
-#endif
   // Clear the previously saved information
   HRealMat_ = DistSparseMatrix<Real>();
   SRealMat_ = DistSparseMatrix<Real>();
@@ -330,9 +312,6 @@ PPEXSIData::LoadRealSymmetricMatrix	(
 
   isMatrixLoaded_ = true;
 
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }    	// -----  end of method PPEXSIData::LoadRealSymmetricMatrix  ----- 
@@ -353,9 +332,6 @@ PPEXSIData::LoadRealUnsymmetricMatrix	(
     Real*         SnzvalLocal,
     Int           verbosity )
 {
-#ifndef _RELEASE_
-  PushCallStack("PPEXSIData::LoadRealUnsymmetricMatrix");
-#endif
   // Clear the previously saved information
   HRealMat_ = DistSparseMatrix<Real>();
   SRealMat_ = DistSparseMatrix<Real>();
@@ -462,9 +438,6 @@ PPEXSIData::LoadRealUnsymmetricMatrix	(
 
   isMatrixLoaded_ = true;
 
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }    	// -----  end of method PPEXSIData::LoadRealUnsymmetricMatrix  ----- 
@@ -483,9 +456,6 @@ PPEXSIData::LoadComplexSymmetricMatrix	(
     Complex*      SnzvalLocal,
     Int           verbosity )
 {
-#ifndef _RELEASE_
-  PushCallStack("PPEXSIData::LoadComplexSymmetricMatrix");
-#endif
   // Clear the previously saved information
   HComplexMat_ = DistSparseMatrix<Complex>();
   SComplexMat_ = DistSparseMatrix<Complex>();
@@ -592,9 +562,6 @@ PPEXSIData::LoadComplexSymmetricMatrix	(
 
   isMatrixLoaded_ = true;
 
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }    	// -----  end of method PPEXSIData::LoadComplexSymmetricMatrix  ----- 
@@ -615,9 +582,6 @@ PPEXSIData::LoadComplexUnsymmetricMatrix	(
     Complex*      SnzvalLocal,
     Int           verbosity )
 {
-#ifndef _RELEASE_
-  PushCallStack("PPEXSIData::LoadComplexUnsymmetricMatrix");
-#endif
   // Clear the previously saved information
   HComplexMat_ = DistSparseMatrix<Complex>();
   SComplexMat_ = DistSparseMatrix<Complex>();
@@ -724,9 +688,6 @@ PPEXSIData::LoadComplexUnsymmetricMatrix	(
 
   isMatrixLoaded_ = true;
 
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }    	// -----  end of method PPEXSIData::LoadComplexUnsymmetricMatrix  ----- 
@@ -741,17 +702,11 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
     Int                            numProcSymbFact,
     Int                            verbosity )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::SymbolicFactorizeRealSymmetricMatrix");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-#ifdef USE_ABORT
-    abort();
-#endif
 ErrorHandling( msg.str().c_str() );
   }
   
@@ -838,9 +793,6 @@ ErrorHandling( msg.str().c_str() );
 
   isRealSymmetricSymbolicFactorized_ = true;
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::SymbolicFactorizeRealSymmetricMatrix  ----- 
@@ -857,17 +809,11 @@ PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix	(
     double*                        AnzvalLocal,                  
     Int                            verbosity )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealUnsymmetricMatrix first." << std::endl;
-#ifdef USE_ABORT
-    abort();
-#endif
 ErrorHandling( msg.str().c_str() );
   }
   
@@ -972,9 +918,6 @@ ErrorHandling( msg.str().c_str() );
 
   isRealUnsymmetricSymbolicFactorized_ = true;
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix  ----- 
@@ -993,9 +936,6 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
     Int                            numProcSymbFact,
     Int                            verbosity )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
@@ -1090,9 +1030,6 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
 
   isComplexSymmetricSymbolicFactorized_ = true;
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix  ----- 
@@ -1106,9 +1043,6 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
     double*                        AnzvalLocal,                  
     Int                            verbosity )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
@@ -1219,9 +1153,6 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
 
   isComplexUnsymmetricSymbolicFactorized_ = true;
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix  ----- 
@@ -1234,9 +1165,6 @@ PPEXSIData::SelInvRealSymmetricMatrix(
     Int               verbosity,
     double*           AinvnzvalLocal )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::SelInvRealSymmetricMatrix");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
@@ -1337,9 +1265,6 @@ PPEXSIData::SelInvRealSymmetricMatrix(
     blas::Copy( AMat.nnzLocal, AinvMat.nzvalLocal.Data(), 1, AinvnzvalLocal, 1 );
   }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::SelInvRealSymmetricMatrix  ----- 
@@ -1350,9 +1275,6 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
     Int               verbosity,
     double*           AinvnzvalLocal )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::SelInvRealUnsymmetricMatrix");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
@@ -1453,9 +1375,6 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
     blas::Copy( AMat.nnzLocal, AinvMat.nzvalLocal.Data(), 1, AinvnzvalLocal, 1 );
   }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::SelInvRealUnsymmetricMatrix  ----- 
@@ -1467,9 +1386,6 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
     Int               verbosity,
     double*           AinvnzvalLocal )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::SelInvComplexSymmetricMatrix");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
@@ -1572,9 +1488,6 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
         AinvnzvalLocal, 1 );
   }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::SelInvComplexSymmetricMatrix  ----- 
@@ -1585,9 +1498,6 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
     Int               verbosity,
     double*           AinvnzvalLocal )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::SelInvComplexUnsymmetricMatrix");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
@@ -1690,9 +1600,6 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
         AinvnzvalLocal, 1 );
   }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::SelInvComplexUnsymmetricMatrix  ----- 
@@ -1703,9 +1610,6 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 		const std::vector<Real>&       shiftVec, 
 		std::vector<Real>&             inertiaVec,
     Int                            verbosity ){
-#ifndef _RELEASE_
-  PushCallStack("PPEXSIData::CalculateNegativeInertiaReal");
-#endif
 
 	// *********************************************************************
 	// Initialize
@@ -1715,9 +1619,6 @@ void PPEXSIData::CalculateNegativeInertiaReal(
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-#ifdef USE_ABORT
-    abort();
-#endif
 ErrorHandling( msg.str().c_str() );
   }
 
@@ -1726,9 +1627,6 @@ ErrorHandling( msg.str().c_str() );
     msg  << std::endl
       << "Matrix has not been factorized symbolically." << std::endl
       << "Call SymbolicFactorizeRealSymmetricMatrix first." << std::endl;
-#ifdef USE_ABORT
-    abort();
-#endif
 ErrorHandling( msg.str().c_str() );
   }
 
@@ -1850,9 +1748,6 @@ ErrorHandling( msg.str().c_str() );
 			MPI_SUM, gridPole_->colComm );
 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::CalculateNegativeInertiaReal ----- 
@@ -1871,17 +1766,11 @@ void PPEXSIData::CalculateFermiOperatorReal(
     Real& numElectron,
     Real& numElectronDrvMu ){
 
-#ifndef _RELEASE_
-  PushCallStack("PPEXSIData::CalculateFermiOperatorReal");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-#ifdef USE_ABORT
-    abort();
-#endif
 ErrorHandling( msg.str().c_str() );
   }
 
@@ -1897,9 +1786,6 @@ ErrorHandling( msg.str().c_str() );
   // Check the input parameters
   // *********************************************************************
   if( numPole % 2 != 0 ){
-#ifdef USE_ABORT
-    abort();
-#endif
 ErrorHandling( "Must be even number of poles!" );
   }
 
@@ -2451,9 +2337,6 @@ ErrorHandling( "Must be even number of poles!" );
     mpi::Allreduce( &numElecDrvLocal, &numElectronDrvMu, 1, MPI_SUM, rhoDrvMuMat.comm ); 
   }
 
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal  ----- 
@@ -2472,17 +2355,11 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     Real& numElectron,
     Real& numElectronDrvMu ){
 
-#ifndef _RELEASE_
-  PushCallStack("PPEXSIData::CalculateFermiOperatorComplex");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-#ifdef USE_ABORT
-    abort();
-#endif
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -2498,9 +2375,6 @@ void PPEXSIData::CalculateFermiOperatorComplex(
   // Check the input parameters
   // *********************************************************************
   if( numPole % 2 != 0 ){
-#ifdef USE_ABORT
-    abort();
-#endif
 ErrorHandling( "Must be even number of poles!" );
   }
 
@@ -3113,9 +2987,6 @@ ErrorHandling( "Must be even number of poles!" );
     numElectronDrvMu = numElectronDrvMuCpx.real();
   }
 
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorComplex  ----- 
@@ -3149,9 +3020,6 @@ PPEXSIData::DFTDriver (
     Int&       numTotalInertiaIter,   
     Int&       numTotalPEXSIIter )
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::DFTDriver");
-#endif
   numTotalInertiaIter = 0;
   numTotalPEXSIIter   = 0;
 
@@ -3184,16 +3052,10 @@ PPEXSIData::DFTDriver (
       colPerm = "MMD_AT_PLUS_A";
       break;
     default:
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling("Unsupported ordering strategy.");
   }
 
   if( matrixType != 0 ){
-#ifdef USE_ABORT
-    abort();
-#endif
     ErrorHandling("Unsupported matrixType. The variable has to be 0.");
   }
 
@@ -3278,9 +3140,6 @@ PPEXSIData::DFTDriver (
             << " inertia counts have been proceeded." << std::endl
             << "Try to revise the initial interval for the chemical potential, "
             << "or increase muInertiaTolerance. " << std::endl;
-#ifdef USE_ABORT
-          abort();
-#endif
           ErrorHandling( msg.str().c_str() );
         }
 
@@ -3622,9 +3481,6 @@ PPEXSIData::DFTDriver (
   }
 
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::DFTDriver  ----- 
@@ -3654,9 +3510,6 @@ PPEXSIData::DFTDriver2 (
     Real&      muMaxInertia,             
     Int&       numTotalInertiaIter ) 
 {
-#ifndef _RELEASE_
-	PushCallStack("PPEXSIData::DFTDriver2");
-#endif
 	Real timeSta, timeEnd;
   Real timeInertiaSta, timeInertiaEnd;
   Real timePEXSISta, timePEXSIEnd;
@@ -3686,16 +3539,10 @@ PPEXSIData::DFTDriver2 (
       colPerm = "MMD_AT_PLUS_A";
       break;
     default:
-#ifdef USE_ABORT
-      abort();
-#endif
       ErrorHandling("Unsupported ordering strategy.");
   }
 
   if( matrixType != 0 ){
-#ifdef USE_ABORT
-    abort();
-#endif
     ErrorHandling("Unsupported matrixType. The variable has to be 0.");
   }
 
@@ -3781,9 +3628,6 @@ PPEXSIData::DFTDriver2 (
             << " inertia counts have been proceeded." << std::endl
             << "Try to revise the initial interval for the chemical potential, "
             << "or increase muInertiaTolerance. " << std::endl;
-#ifdef USE_ABORT
-          abort();
-#endif
           ErrorHandling( msg.str().c_str() );
         }
 
@@ -4097,15 +3941,9 @@ PPEXSIData::DFTDriver2 (
     std::ostringstream msg;
     msg  << "PEXSI did not converge. " << std::endl;
     msg << "Aborting..." << std::endl;
-#ifdef USE_ABORT
-    abort();
-#endif
     ErrorHandling( msg.str().c_str() );
   }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 	return ;
 } 		// -----  end of method PPEXSIData::DFTDriver2  ----- 
@@ -4127,17 +3965,11 @@ void PPEXSIData::CalculateFermiOperatorReal2(
     Real& mu,
     Real& numElectron,
     bool& isPEXSIConverged){
-#ifndef _RELEASE_
-  PushCallStack("PPEXSIData::CalculateFermiOperatorReal2");
-#endif
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
       << "Call LoadRealSymmetricMatrix first." << std::endl;
-    #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( msg.str().c_str() );
   }
 
@@ -4153,9 +3985,6 @@ ErrorHandling( msg.str().c_str() );
   // Check the input parameters
   // *********************************************************************
   if( numPole % 2 != 0 ){
-    #ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "Must be even number of poles!" );
   }
 
@@ -4601,9 +4430,6 @@ ErrorHandling( "Must be even number of poles!" );
       << "This is outside the interval [muMinPEXSI,muMaxPEXSI] = " 
       << "[" << muMinPEXSI << ", " << muMaxPEXSI << "]" << std::endl;
     msg << "Aborting..." << std::endl;
-//#ifdef USE_ABORT
-//    abort();
-//#endif
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -4765,9 +4591,6 @@ ErrorHandling( "Must be even number of poles!" );
   // Free the space for the saved Green's functions
   AinvMatVec.clear();
 
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 
   return ;
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal2  ----- 

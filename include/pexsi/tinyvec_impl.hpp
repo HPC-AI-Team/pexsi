@@ -55,18 +55,9 @@ namespace PEXSI{
 		inline F&
 		Vec3T<F>::operator() ( Int i ) 
 		{
-#ifndef _RELEASE_
-			PushCallStack("Vec3T::operator()");
-#endif  // ifndef _RELEASE_
 			if( i < 0 || i > 2 ){
-				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "Index is out of bound." );
 			}
-#ifndef _RELEASE_
-			PopCallStack();
-#endif  // ifndef _RELEASE_
 			return v_[i];
 		} 		// -----  end of method Vec3T::operator()  ----- 
 
@@ -74,18 +65,9 @@ ErrorHandling( "Index is out of bound." );
 		inline const F&
 		Vec3T<F>::operator() ( Int i ) const
 		{
-#ifndef _RELEASE_
-			PushCallStack("Vec3T::operator()");
-#endif  // ifndef _RELEASE_
 			if( i < 0 || i > 2 ){
-				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "Index is out of bound." );
 			}
-#ifndef _RELEASE_
-			PopCallStack();
-#endif  // ifndef _RELEASE_
 			return v_[i];
 		} 		// -----  end of method Vec3T::operator()  ----- 
 
@@ -93,18 +75,9 @@ ErrorHandling( "Index is out of bound." );
 		inline F&
 		Vec3T<F>::operator[] ( Int i ) 
 		{
-#ifndef _RELEASE_
-			PushCallStack("Vec3T::operator[]");
-#endif  // ifndef _RELEASE_
 			if( i < 0 || i > 2 ){
-				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "Index is out of bound." );
 			}
-#ifndef _RELEASE_
-			PopCallStack();
-#endif  // ifndef _RELEASE_
 			return v_[i];
 		} 		// -----  end of method Vec3T::operator[]  ----- 
 
@@ -112,18 +85,9 @@ ErrorHandling( "Index is out of bound." );
 		inline const F&
 		Vec3T<F>::operator[] ( Int i ) const
 		{
-#ifndef _RELEASE_
-			PushCallStack("Vec3T::operator[]");
-#endif  // ifndef _RELEASE_
 			if( i < 0 || i > 2 ){
-				#ifdef USE_ABORT
-abort();
-#endif
 ErrorHandling( "Index is out of bound." );
 			}
-#ifndef _RELEASE_
-			PopCallStack();
-#endif  // ifndef _RELEASE_
 			return v_[i];
 		} 		// -----  end of method Vec3T::operator[]  ----- 
 

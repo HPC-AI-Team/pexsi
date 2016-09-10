@@ -62,15 +62,9 @@ namespace PEXSI{
         const SuperLUOptions * oLU  
         )
     {
-#ifndef _RELEASE_
-      PushCallStack("PMatrixUnsym::PMatrixUnsym");
-#endif
 
       this->Setup( g, s, o, oLU );
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
       return ;
     } 		// -----  end of method PMatrixUnsym::PMatrixUnsym  ----- 
 
@@ -82,9 +76,6 @@ namespace PEXSI{
         const PSelInvOptions * o, 
         const SuperLUOptions * oLU  
         ) {
-#ifndef _RELEASE_
-      PushCallStack("PMatrixUnsym::Setup");
-#endif
 
       PMatrix<T>::Setup(g,s,o,oLU);
 
@@ -100,9 +91,6 @@ namespace PEXSI{
       LrowSize_.resize( this->NumLocalBlockRow() );
       UcolSize_.resize( this->NumLocalBlockCol() );
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
       return ;
     } 		// -----  end of method PMatrixUnsym::Setup   ----- 
 
@@ -215,10 +203,6 @@ namespace PEXSI{
         LBlock<T>& LB = LrowRecv[jb];
         if(1 || (LB.numRow>0 && LB.numCol>0)){
           if( LB.numRow != SuperSize(snode.Index, this->super_) ){
-#ifdef USE_ABORT
-            statusOFS<<"The size of LB is not right. Something is seriously wrong."<<std::endl;
-            abort();
-#endif
             ErrorHandling( 
                 "The size of LB is not right. Something is seriously wrong." );
           }
@@ -236,10 +220,6 @@ namespace PEXSI{
 
         if(1||(UB.numRow>0 && UB.numCol>0)){
           if( UB.numRow != SuperSize(snode.Index, this->super_) ){
-#ifdef USE_ABORT
-            statusOFS<<"The size of UB is not right. Something is seriously wrong."<<std::endl;
-            abort();
-#endif
             ErrorHandling( 
                 "The size of UB is not right. Something is seriously wrong." );
           }
@@ -305,9 +285,6 @@ namespace PEXSI{
                     << std::endl
                     << "LB.rows    = " << LB.rows << std::endl
                     << "SinvB.rows = " << SinvB.rows << std::endl;
-#ifdef USE_ABORT
-                  abort();
-#endif
                   ErrorHandling( msg.str().c_str() );
                 }
               }
@@ -338,9 +315,6 @@ namespace PEXSI{
               << ") did not find a matching block in Sinv." << std::endl;
 //#if ( _DEBUGlevel_ >= 1 )
             statusOFS<<msg.str();
-//#endif
-//#ifdef USE_ABORT
-//            abort();
 //#endif
 //            ErrorHandling( msg.str().c_str() );
           }
@@ -382,9 +356,6 @@ namespace PEXSI{
                     << std::endl
                     << "LrowB.rows    = " << LrowB.rows << std::endl
                     << "UinvB.cols = " << SinvB.cols << std::endl;
-#ifdef USE_ABORT
-            abort();
-#endif
                   ErrorHandling( msg.str().c_str() );
                 }
               }
@@ -415,9 +386,6 @@ namespace PEXSI{
             msg << "["<<snode.Index<<"] "<< "Block(" << isup << ", " << jsup
               << ") did not find a matching block in Sinv." << std::endl;
                   statusOFS<<msg.str();
-//#ifdef USE_ABORT
-//            abort();
-//#endif
 //            ErrorHandling( msg.str().c_str() );
           }
         } // if (isup, jsup) is in U
@@ -889,9 +857,6 @@ struct CDBuffers{
               for( Int ib = startIdx; ib < pLcol->size(); ib++ ){
                 LBlock<T> & LB = (*pLcol)[ib];
                 if( LB.blockIdx <= snode_index ){
-#ifdef USE_ABORT
-                  abort();
-#endif
                   ErrorHandling( "LcolRecv contains the wrong blocks." );
                 }
 
@@ -938,15 +903,6 @@ struct CDBuffers{
           for( Int ib = 0; ib < Lrow.size(); ib++ ){
             LBlock<T> &  LB = Lrow[ib];
             if( !isBlockFound[ib] ){
-#ifdef USE_ABORT
-          std::vector<LBlock<T> >& Lcol = this->L( LBj( snode_index, this->grid_ ) );
-          std::vector<UBlock<T> >& Urow = this->U( LBi( snode_index, this->grid_ ) );
-
-          for( Int ib = 0; ib < Lcol.size(); ib++ ){ statusOFS<<Lcol[ib].blockIdx<<" "; }statusOFS<<endl;
-          for( Int jb = 0; jb < Urow.size(); jb++ ){ statusOFS<<Urow[jb].blockIdx; }statusOFS<<endl;
-          for( Int jb = 0; jb < Lrow.size(); jb++ ){ statusOFS<<Lrow[jb].blockIdx<<" "; }statusOFS<<endl;
-              abort();
-#endif
               ErrorHandling( 
                   "LBlock cannot find its update. Something is seriously wrong."
                   );
@@ -1049,9 +1005,6 @@ struct CDBuffers{
               for( Int jb = 0; jb < pUrow->size(); jb++ ){
                 UBlock<T> & UB = (*pUrow)[jb];
                 if( UB.blockIdx <= snode_index ){
-#ifdef USE_ABORT
-                  abort();
-#endif
                   ErrorHandling( "UrowRecv contains the wrong blocks." );
                 }
 
@@ -1096,15 +1049,6 @@ struct CDBuffers{
             UBlock<T> &  UB = Ucol[jb];
             if( !isBlockFound[jb] ){
 
-#ifdef USE_ABORT
-          std::vector<LBlock<T> >& Lcol = this->L( LBj( snode_index, this->grid_ ) );
-          std::vector<UBlock<T> >& Urow = this->U( LBi( snode_index, this->grid_ ) );
-
-          for( Int ib = 0; ib < Lcol.size(); ib++ ){ statusOFS<<Lcol[ib].blockIdx<<" "; }statusOFS<<endl;
-          for( Int jb = 0; jb < Urow.size(); jb++ ){ statusOFS<<Urow[jb].blockIdx; }statusOFS<<endl;
-          for( Int jb = 0; jb < Ucol.size(); jb++ ){ statusOFS<<Ucol[jb].blockIdx<<" "; }statusOFS<<endl;
-              abort();
-#endif
               ErrorHandling( 
                   "UBlock cannot find its update. Something is seriously wrong."
                   );
@@ -1511,9 +1455,6 @@ struct CDBuffers{
               for( Int ib = startIdx; ib < pLcol->size(); ib++ ){
                 LBlock<T> & LB = (*pLcol)[ib];
                 if( LB.blockIdx <= snode.Index ){
-#ifdef USE_ABORT
-                  abort();
-#endif
                   ErrorHandling( "LcolRecv contains the wrong blocks." );
                 }
 
@@ -1560,9 +1501,6 @@ struct CDBuffers{
           for( Int ib = 0; ib < Lrow.size(); ib++ ){
             LBlock<T> &  LB = Lrow[ib];
             if( !isBlockFound[ib] ){
-#ifdef USE_ABORT
-              abort();
-#endif
               ErrorHandling( 
                   "LBlock cannot find its update. Something is seriously wrong."
                   );
@@ -1654,9 +1592,6 @@ struct CDBuffers{
               for( Int jb = 0; jb < pUrow->size(); jb++ ){
                 UBlock<T> & UB = (*pUrow)[jb];
                 if( UB.blockIdx <= snode.Index ){
-#ifdef USE_ABORT
-                  abort();
-#endif
                   ErrorHandling( "UrowRecv contains the wrong blocks." );
                 }
 
@@ -1700,9 +1635,6 @@ struct CDBuffers{
           for( Int jb = 0; jb < Ucol.size(); jb++ ){
             UBlock<T> &  UB = Ucol[jb];
             if( !isBlockFound[jb] ){
-#ifdef USE_ABORT
-              abort();
-#endif
               ErrorHandling( 
                   "UBlock cannot find its update. Something is seriously wrong."
                   );
@@ -1989,9 +1921,6 @@ struct CDBuffers{
         Int next_lidx = lidx+1;
         CDBuffers nextCDBuffers;
 
-#ifndef _RELEASE_
-      PushCallStack("PMatrixUnsym::SelInv_P2p::SendRecvCD");
-#endif
 
 //Perhaps this should be done for the next step super in a non blocking way
       if(lidx==0){
@@ -2052,14 +1981,8 @@ struct CDBuffers{
 
           SendRecvSizesCD(superList[next_lidx],superList[next_lidx].size(),nextCDBuffers);
         }
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
-#ifndef _RELEASE_
-      PushCallStack("PMatrixUnsym::SelInv_P2p::UpdateLU");
-#endif
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
 #endif
@@ -2830,9 +2753,6 @@ delete pAinvBuf;
 
 
 
-#ifndef _RELEASE_
-      PushCallStack("PMatrixUnsym::SelInv_P2p::UpdateD");
-#endif
 
       TIMER_START(Update_Diagonal);
       for (Int supidx=0; supidx<stepSuper; supidx++){
@@ -2911,9 +2831,6 @@ delete pAinvBuf;
 
       TIMER_STOP(Reduce_Diagonal);
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
       //Reduce U Sinv  to the processors in PROW(ksup,this->grid_)
@@ -3119,9 +3036,6 @@ delete pAinvBuf;
         }
       }
 
-#ifndef _RELEASE_
-      PushCallStack("PMatrixUnsym::SelInv_P2p::UpdateLFinal");
-#endif
 
       TIMER_START(Update_L);
 
@@ -3154,14 +3068,8 @@ delete pAinvBuf;
 
       TIMER_STOP(Update_L);
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
-#ifndef _RELEASE_
-      PushCallStack("PMatrixUnsym::SelInv_P2p::UpdateUFinal");
-#endif
 
       TIMER_START(Update_U);
 
@@ -3202,9 +3110,6 @@ delete pAinvBuf;
 
       TIMER_STOP(Update_U);
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
 
@@ -3265,9 +3170,6 @@ delete pAinvBuf;
     {
       TIMER_START(SelInv_P2p);
 
-#ifndef _RELEASE_
-      PushCallStack("PMatrixUnsym::SelInv_P2p");
-#endif
 
 
       Int numSuper = this->NumSuper(); 
@@ -3281,9 +3183,6 @@ delete pAinvBuf;
         this->SelInvIntra_P2p(lidx);
       }
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       TIMER_STOP(SelInv_P2p);
 
@@ -3305,15 +3204,9 @@ delete pAinvBuf;
   template<typename T> 
     void PMatrixUnsym<T>::PreSelInv	(  )
     {
-#ifndef _RELEASE_
-      PushCallStack("PMatrixUnsym::PreSelInv");
-#endif
 
       Int numSuper = this->NumSuper(); 
 
-#ifndef _RELEASE_
-      PushCallStack("L(i,k) <- L(i,k) * L(k,k)^{-1}");
-#endif
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "L(i,k) <- L(i,k) * L(k,k)^{-1}"
         << std::endl << std::endl; 
@@ -3328,9 +3221,6 @@ delete pAinvBuf;
             nzvalLDiag = Lcol[0].nzval;
             if( nzvalLDiag.m() != SuperSize(ksup, this->super_) ||
                 nzvalLDiag.n() != SuperSize(ksup, this->super_) ){
-#ifdef USE_ABORT
-              abort();
-#endif
               ErrorHandling( 
                   "The size of the diagonal block of L is wrong." );
             }
@@ -3389,14 +3279,8 @@ delete pAinvBuf;
       } // for (ksup)
 
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
-#ifndef _RELEASE_
-      PushCallStack("U(k,j) <- U(k,k)^{-1} * U(k,j)");
-#endif
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "U(k,j) <- U(k,k)^{-1} * U(k,j)" 
         << std::endl << std::endl; 
@@ -3411,9 +3295,6 @@ delete pAinvBuf;
             nzvalUDiag = Lcol[0].nzval;
             if( nzvalUDiag.m() != SuperSize(ksup, this->super_) ||
                 nzvalUDiag.n() != SuperSize(ksup, this->super_) ){
-#ifdef USE_ABORT
-              abort();
-#endif
               ErrorHandling( 
                   "The size of the diagonal block of U is wrong." );
             }
@@ -3465,16 +3346,10 @@ delete pAinvBuf;
       } // for (ksup)
 
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
 
 
-#ifndef _RELEASE_
-      PushCallStack("L(i,i) <- [L(k,k) * U(k,k)]^{-1} ");
-#endif
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "L(i,i) <- [L(k,k) * U(k,k)]^{-1}" << std::endl 
         << std::endl; 
@@ -3541,13 +3416,7 @@ delete pAinvBuf;
       } // for (ksup)
 
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method PMatrixUnsym::PreSelInv  ----- 
@@ -3564,9 +3433,6 @@ delete pAinvBuf;
   template<typename T>
     void PMatrixUnsym<T>::ConstructCommunicationPattern_P2p	(  )
     {
-#ifndef _RELEASE_
-      PushCallStack("PMatrixUnsym::ConstructCommunicationPattern_P2p");
-#endif
 
       TIMER_START(ConstructCommunicationPattern);
 
@@ -3574,9 +3440,6 @@ delete pAinvBuf;
 
       TIMER_START(Allocate);
 
-#ifndef _RELEASE_
-      PushCallStack( "Initialize the communication pattern" );
-#endif
       this->isSendToBelow_.Resize(this->grid_->numProcRow, numSuper);
       this->isSendToRight_.Resize(this->grid_->numProcCol, numSuper);
       this->isSendToDiagonal_.Resize( numSuper );
@@ -3595,9 +3458,6 @@ delete pAinvBuf;
       SetValue( this->isRecvFromAbove_, false );
       SetValue( this->isRecvFromBelow_, false );
       SetValue( this->isRecvFromLeft_, false );
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       TIMER_STOP(Allocate);
 
@@ -3607,9 +3467,6 @@ delete pAinvBuf;
       this->GetEtree(snodeEtree);
       TIMER_STOP(GetEtree);
 
-#ifndef _RELEASE_
-      PushCallStack( "Local column communication" );
-#endif
       // localColBlockRowIdx stores the nonzero block indices for each local block column.
       // The nonzero block indices including contribution from both L and U.
       // Dimension: numLocalBlockCol x numNonzeroBlock
@@ -3693,13 +3550,7 @@ delete pAinvBuf;
       }
       TIMER_STOP(Column_communication);
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
-#ifndef _RELEASE_
-      PushCallStack( "Local row communication" );
-#endif
       TIMER_START(Row_communication);
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
         // All block columns perform independently
@@ -3758,12 +3609,6 @@ delete pAinvBuf;
       }
       TIMER_STOP(Row_communication);
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
-#ifndef _RELEASE_
-      PushCallStack( "Local row communication" );
-#endif
       //Broadcast from diagonal processor and merge
       TIMER_START(Row_communication);
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
@@ -3887,14 +3732,8 @@ delete pAinvBuf;
         } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
       }
       TIMER_STOP(Row_communication);
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
-#ifndef _RELEASE_
-      PushCallStack( "Local col communication" );
-#endif
       TIMER_START(Col_communication);
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
         // All block columns perform independently
@@ -3954,13 +3793,7 @@ delete pAinvBuf;
         } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
       }
       TIMER_STOP(Col_communication);
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
-#ifndef _RELEASE_
-      PushCallStack("Extending_UL");
-#endif
 
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
         // All block columns perform independently
@@ -4154,15 +3987,9 @@ delete pAinvBuf;
         } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
       } // for(ksup)
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
 
-#ifndef _RELEASE_
-      PushCallStack("Compute_full_row_struct");
-#endif
 
       //pointers to next non zero block
       std::vector<Int> nextNZColBlockRow;
@@ -4328,16 +4155,10 @@ delete pAinvBuf;
     }
 
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
 
       TIMER_START(STB_RFA);
-#ifndef _RELEASE_
-      PushCallStack("SendToBelow / RecvFromAbove");
-#endif
       for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
         // Loop over all the supernodes to the right of ksup
 
@@ -4396,9 +4217,6 @@ delete pAinvBuf;
       }
 #endif
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
 
       TIMER_STOP(STB_RFA);
@@ -4413,9 +4231,6 @@ delete pAinvBuf;
       TIMER_START(STR_RFL_RFB);
 
 
-#ifndef _RELEASE_
-      PushCallStack("SendToRight / RecvFromLeft");
-#endif
       for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
         // Loop over all the supernodes below ksup
 
@@ -4490,9 +4305,6 @@ delete pAinvBuf;
       }
 #endif
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       TIMER_STOP(STR_RFL_RFB);
 
@@ -4502,9 +4314,6 @@ delete pAinvBuf;
       TIMER_START(STCD_RFCD);
 
 
-#ifndef _RELEASE_
-      PushCallStack("SendToCrossDiagonal / RecvFromCrossDiagonal");
-#endif
       for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
         if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) ){
           std::vector< LBlock<T> > & Union = *colBlockRowBuf[ksup];
@@ -4566,9 +4375,6 @@ delete pAinvBuf;
 
 #endif
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       TIMER_STOP(STCD_RFCD);
 
@@ -4587,9 +4393,6 @@ delete pAinvBuf;
 
       TIMER_STOP(ConstructCommunicationPattern);
 
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
 
       return ;
     } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern_P2p  ----- 
