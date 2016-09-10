@@ -1,55 +1,55 @@
 /*
-	 Copyright (c) 2012 The Regents of the University of California,
-	 through Lawrence Berkeley National Laboratory.  
+   Copyright (c) 2012 The Regents of the University of California,
+   through Lawrence Berkeley National Laboratory.  
 
-   Author: Lin Lin
-	 
-   This file is part of PEXSI. All rights reserved.
+Author: Lin Lin
 
-	 Redistribution and use in source and binary forms, with or without
-	 modification, are permitted provided that the following conditions are met:
+This file is part of PEXSI. All rights reserved.
 
-	 (1) Redistributions of source code must retain the above copyright notice, this
-	 list of conditions and the following disclaimer.
-	 (2) Redistributions in binary form must reproduce the above copyright notice,
-	 this list of conditions and the following disclaimer in the documentation
-	 and/or other materials provided with the distribution.
-	 (3) Neither the name of the University of California, Lawrence Berkeley
-	 National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-	 be used to endorse or promote products derived from this software without
-	 specific prior written permission.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-	 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-	 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-	 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-	 DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-	 ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-	 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-	 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-	 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-	 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-	 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-	 You are under no obligation whatsoever to provide any bug fixes, patches, or
-	 upgrades to the features, functionality or performance of the source code
-	 ("Enhancements") to anyone; however, if you choose to make your Enhancements
-	 available either publicly, or directly to Lawrence Berkeley National
-	 Laboratory, without imposing a separate written license agreement for such
-	 Enhancements, then you hereby grant the following license: a non-exclusive,
-	 royalty-free perpetual license to install, use, modify, prepare derivative
-	 works, incorporate into other computer software, distribute, and sublicense
-	 such enhancements or derivative works thereof, in binary and source code form.
-*/
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+ */
 /// @file mpi_interf.cpp
 /// @brief Interface with MPI to facilitate communication.
 /// @date 2012-11-03
 #include "pexsi/mpi_interf.hpp"
 
 #ifdef USE_TAU
-  #include "pexsi/TAU.h"
+#include "pexsi/TAU.h"
 #elif defined (PROFILE) || defined(PMPI)
-  #define TAU
-  #include "pexsi/timer.h"
+#define TAU
+#include "pexsi/timer.h"
 #endif
 
 
@@ -66,22 +66,103 @@ namespace mpi{
 // *********************************************************************
 
 void
-Gatherv ( 
-		std::vector<Int>& localVec, 
-		std::vector<Int>& allVec,
-    Int root,
-		MPI_Comm          comm )
-{
-  Int mpirank, mpisize;
-  MPI_Comm_rank( comm, &mpirank );
-  MPI_Comm_size( comm, &mpisize );
+  Gatherv ( 
+      std::vector<Int>& localVec, 
+      std::vector<Int>& allVec,
+      Int root,
+      MPI_Comm          comm )
+  {
+    Int mpirank, mpisize;
+    MPI_Comm_rank( comm, &mpirank );
+    MPI_Comm_size( comm, &mpisize );
 
-  Int localSize = localVec.size();
-  std::vector<Int>  localSizeVec( mpisize );
-  MPI_Gather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT,root, comm );
+    Int localSize = localVec.size();
+    std::vector<Int>  localSizeVec( mpisize );
+    MPI_Gather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT,root, comm );
 
-  if(mpirank==root){
+    if(mpirank==root){
+      std::vector<Int>  localSizeDispls( mpisize );
+      localSizeDispls[0] = 0;
+      for( Int ip = 1; ip < mpisize; ip++ ){
+        localSizeDispls[ip] = localSizeDispls[ip-1] + localSizeVec[ip-1];
+      }
+      Int totalSize = localSizeDispls[mpisize-1] + localSizeVec[mpisize-1];
+
+      allVec.clear();
+      allVec.resize( totalSize );
+
+      MPI_Gatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
+          &localSizeVec[0], &localSizeDispls[0], MPI_INT, root, comm	);
+    }
+    else{
+      MPI_Gatherv( &localVec[0], localSize, MPI_INT, NULL, 
+          NULL, NULL, MPI_INT, root, comm	);
+    }
+
+    return ;
+  }		// -----  end of function Gatherv  ----- 
+
+
+
+void
+  Gatherv ( 
+      std::vector<Int>& localVec, 
+      std::vector<Int>& allVec,
+      std::vector<Int>& sizes,
+      std::vector<Int>& displs,
+      Int root,
+      MPI_Comm          comm )
+  {
+    Int mpirank, mpisize;
+    MPI_Comm_rank( comm, &mpirank );
+    MPI_Comm_size( comm, &mpisize );
+
+    Int localSize = localVec.size();
+
+    if(mpirank==root){
+      std::vector<Int> & localSizeVec = sizes;
+      localSizeVec.resize( mpisize );
+      MPI_Gather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT,root, comm );
+      std::vector<Int> &  localSizeDispls = displs;
+      localSizeDispls.resize( mpisize );
+      localSizeDispls[0] = 0;
+      for( Int ip = 1; ip < mpisize; ip++ ){
+        localSizeDispls[ip] = localSizeDispls[ip-1] + localSizeVec[ip-1];
+      }
+      Int totalSize = localSizeDispls[mpisize-1] + localSizeVec[mpisize-1];
+
+      allVec.clear();
+      allVec.resize( totalSize);
+
+      MPI_Gatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
+          &localSizeVec[0], &localSizeDispls[0], MPI_INT, root, comm	);
+    }
+    else{
+      MPI_Gather( &localSize, 1, MPI_INT, NULL, 1, MPI_INT,root, comm );
+      MPI_Gatherv( &localVec[0], localSize, MPI_INT, NULL, 
+          NULL, NULL, MPI_INT, root, comm	);
+    }
+
+    return ;
+  }		// -----  end of function Gatherv  ----- 
+
+
+
+
+void
+  Allgatherv ( 
+      std::vector<Int>& localVec, 
+      std::vector<Int>& allVec,
+      MPI_Comm          comm )
+  {
+    Int mpirank, mpisize;
+    MPI_Comm_rank( comm, &mpirank );
+    MPI_Comm_size( comm, &mpisize );
+
+    Int localSize = localVec.size();
+    std::vector<Int>  localSizeVec( mpisize );
     std::vector<Int>  localSizeDispls( mpisize );
+    MPI_Allgather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT, comm );
     localSizeDispls[0] = 0;
     for( Int ip = 1; ip < mpisize; ip++ ){
       localSizeDispls[ip] = localSizeDispls[ip-1] + localSizeVec[ip-1];
@@ -91,138 +172,57 @@ Gatherv (
     allVec.clear();
     allVec.resize( totalSize );
 
-    MPI_Gatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
-        &localSizeVec[0], &localSizeDispls[0], MPI_INT, root, comm	);
-  }
-  else{
-    MPI_Gatherv( &localVec[0], localSize, MPI_INT, NULL, 
-        NULL, NULL, MPI_INT, root, comm	);
-  }
-
-  return ;
-}		// -----  end of function Gatherv  ----- 
+    MPI_Allgatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
+        &localSizeVec[0], &localSizeDispls[0], MPI_INT, comm	);
 
 
-
-void
-Gatherv ( 
-		std::vector<Int>& localVec, 
-		std::vector<Int>& allVec,
-		std::vector<Int>& sizes,
-		std::vector<Int>& displs,
-    Int root,
-		MPI_Comm          comm )
-{
-  Int mpirank, mpisize;
-  MPI_Comm_rank( comm, &mpirank );
-  MPI_Comm_size( comm, &mpisize );
-
-  Int localSize = localVec.size();
-
-  if(mpirank==root){
-    std::vector<Int> & localSizeVec = sizes;
-    localSizeVec.resize( mpisize );
-    MPI_Gather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT,root, comm );
-    std::vector<Int> &  localSizeDispls = displs;
-    localSizeDispls.resize( mpisize );
-    localSizeDispls[0] = 0;
-    for( Int ip = 1; ip < mpisize; ip++ ){
-      localSizeDispls[ip] = localSizeDispls[ip-1] + localSizeVec[ip-1];
-    }
-    Int totalSize = localSizeDispls[mpisize-1] + localSizeVec[mpisize-1];
-
-    allVec.clear();
-    allVec.resize( totalSize);
-
-    MPI_Gatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
-        &localSizeVec[0], &localSizeDispls[0], MPI_INT, root, comm	);
-  }
-  else{
-    MPI_Gather( &localSize, 1, MPI_INT, NULL, 1, MPI_INT,root, comm );
-    MPI_Gatherv( &localVec[0], localSize, MPI_INT, NULL, 
-        NULL, NULL, MPI_INT, root, comm	);
-  }
-
-  return ;
-}		// -----  end of function Gatherv  ----- 
-
-
-
-
-void
-Allgatherv ( 
-		std::vector<Int>& localVec, 
-		std::vector<Int>& allVec,
-		MPI_Comm          comm )
-{
-	Int mpirank, mpisize;
-	MPI_Comm_rank( comm, &mpirank );
-	MPI_Comm_size( comm, &mpisize );
-
-	Int localSize = localVec.size();
-	std::vector<Int>  localSizeVec( mpisize );
-	std::vector<Int>  localSizeDispls( mpisize );
-	MPI_Allgather( &localSize, 1, MPI_INT, &localSizeVec[0], 1, MPI_INT, comm );
-	localSizeDispls[0] = 0;
-	for( Int ip = 1; ip < mpisize; ip++ ){
-    localSizeDispls[ip] = localSizeDispls[ip-1] + localSizeVec[ip-1];
-	}
-	Int totalSize = localSizeDispls[mpisize-1] + localSizeVec[mpisize-1];
-
-	allVec.clear();
-	allVec.resize( totalSize );
-
-	MPI_Allgatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
-		 &localSizeVec[0], &localSizeDispls[0], MPI_INT, comm	);
-
-
-	return ;
-}		// -----  end of function Allgatherv  ----- 
+    return ;
+  }		// -----  end of function Allgatherv  ----- 
 
 
 // *********************************************************************
 // Send / Recv
 // *********************************************************************
 void 
-Send( std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
-		MPI_Comm comm ){
-	std::vector<char> sstr;
-	sstr.resize( Size( sstm ) );
-	Int sizeStm = sstr.size();
-	sstm.read( &sstr[0], sizeStm );
-	MPI_Send( &sizeStm, 1, MPI_INT,  dest, tagSize, comm );
-	MPI_Send( (void*)&sstr[0], sizeStm, MPI_BYTE, dest, tagContent, comm );
-	return; 
-} // -----  end of function Send ----- 
+  Send( std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
+      MPI_Comm comm ){
+    std::vector<char> sstr;
+    sstr.resize( Size( sstm ) );
+    Int sizeStm = sstr.size();
+    sstm.read( &sstr[0], sizeStm );
+    MPI_Send( &sizeStm, 1, MPI_INT,  dest, tagSize, comm );
+    MPI_Send( (void*)&sstr[0], sizeStm, MPI_BYTE, dest, tagContent, comm );
+    return; 
+  } // -----  end of function Send ----- 
 
 
 void
-Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
-		MPI_Comm comm, MPI_Status& statSize, MPI_Status& statContent )
-{
-	std::vector<char> sstr;
-	Int sizeStm;
-	MPI_Recv( &sizeStm, 1, MPI_INT, src, tagSize, comm, &statSize );
-	sstr.resize( sizeStm );
-	MPI_Recv( (void*) &sstr[0], sizeStm, MPI_BYTE, src, tagContent, comm, &statContent );
-	sstm.write( &sstr[0], sizeStm );
+  Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
+      MPI_Comm comm, MPI_Status& statSize, MPI_Status& statContent )
+  {
+    std::vector<char> sstr;
+    Int sizeStm;
+    MPI_Recv( &sizeStm, 1, MPI_INT, src, tagSize, comm, &statSize );
+    sstr.resize( sizeStm );
+    MPI_Recv( (void*) &sstr[0], sizeStm, MPI_BYTE, src, tagContent, comm, &statContent );
+    sstm.write( &sstr[0], sizeStm );
 
-	return ;
-}		// -----  end of function Recv  ----- 
+    return ;
+  }		// -----  end of function Recv  ----- 
 
 void
-Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
-		MPI_Comm comm )
-{
-	std::vector<char> str;
-	Int sizeStm;
-	MPI_Recv( &sizeStm, 1, MPI_INT, src, tagSize, comm, MPI_STATUS_IGNORE );
-	str.resize( sizeStm );
-	MPI_Recv( (void*) &str[0], sizeStm, MPI_BYTE, src, tagContent, comm, MPI_STATUS_IGNORE );
-	sstm.write( &str[0], sizeStm );
+  Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
+      MPI_Comm comm )
+  {
+    std::vector<char> str;
+    Int sizeStm;
+    MPI_Recv( &sizeStm, 1, MPI_INT, src, tagSize, comm, MPI_STATUS_IGNORE );
+    str.resize( sizeStm );
+    MPI_Recv( (void*) &str[0], sizeStm, MPI_BYTE, src, tagContent, comm, MPI_STATUS_IGNORE );
+    sstm.write( &str[0], sizeStm );
 
-	return ;
-}		// -----  end of function Recv  ----- 
+    return ;
+  }		// -----  end of function Recv  ----- 
 
 
 // *********************************************************************
@@ -231,35 +231,35 @@ Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
 
 
 void
-Wait	( MPI_Request& req  )
-{
-  MPI_Wait( &req, MPI_STATUS_IGNORE );
+  Wait	( MPI_Request& req  )
+  {
+    MPI_Wait( &req, MPI_STATUS_IGNORE );
 
-	return ;
-} 		// -----  end of method Wait  ----- 
-
-void
-Waitall ( std::vector<MPI_Request>& reqs, std::vector<MPI_Status>& stats )
-{
-  if( reqs.size() != stats.size() ){
-ErrorHandling( "MPI_Request does not have the same as as MPI_Status." );
-	}
-	for( Int i = 0; i < reqs.size(); i++ ){
-		MPI_Wait( &reqs[i], &stats[i] );
-	}
-
-	return ;
-}		// -----  end of function Waitall  ----- 
+    return ;
+  } 		// -----  end of method Wait  ----- 
 
 void
-Waitall ( std::vector<MPI_Request>& reqs )
-{
-	for( Int i = 0; i < reqs.size(); i++ ){
-		MPI_Wait( &reqs[i], MPI_STATUS_IGNORE );
-	}
+  Waitall ( std::vector<MPI_Request>& reqs, std::vector<MPI_Status>& stats )
+  {
+    if( reqs.size() != stats.size() ){
+      ErrorHandling( "MPI_Request does not have the same as as MPI_Status." );
+    }
+    for( Int i = 0; i < reqs.size(); i++ ){
+      MPI_Wait( &reqs[i], &stats[i] );
+    }
 
-	return ;
-}		// -----  end of function Waitall  ----- 
+    return ;
+  }		// -----  end of function Waitall  ----- 
+
+void
+  Waitall ( std::vector<MPI_Request>& reqs )
+  {
+    for( Int i = 0; i < reqs.size(); i++ ){
+      MPI_Wait( &reqs[i], MPI_STATUS_IGNORE );
+    }
+
+    return ;
+  }		// -----  end of function Waitall  ----- 
 
 
 // *********************************************************************
@@ -268,39 +268,39 @@ Waitall ( std::vector<MPI_Request>& reqs )
 
 
 void
-Reduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm )
-{
-	MPI_Reduce( sendbuf,  recvbuf, count, MPI_DOUBLE, op, root, comm );
+  Reduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm )
+  {
+    MPI_Reduce( sendbuf,  recvbuf, count, MPI_DOUBLE, op, root, comm );
 
-	return ;
-}		// -----  end of function Reduce  ----- 
+    return ;
+  }		// -----  end of function Reduce  ----- 
 
 void
-Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm )
-{
-	MPI_Reduce( (Real*)sendbuf,  (Real*)recvbuf, 2 * count, MPI_DOUBLE, op, root, comm );
+  Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm )
+  {
+    MPI_Reduce( (Real*)sendbuf,  (Real*)recvbuf, 2 * count, MPI_DOUBLE, op, root, comm );
 
-	return ;
-}		// -----  end of function Reduce  ----- 
+    return ;
+  }		// -----  end of function Reduce  ----- 
 
 
 
 #ifdef _USE_MPI3_
 void
-Ireduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm, MPI_Request & request )
-{
-	MPI_Ireduce( sendbuf,  recvbuf, count, MPI_DOUBLE, op, root, comm,&request );
+  Ireduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm, MPI_Request & request )
+  {
+    MPI_Ireduce( sendbuf,  recvbuf, count, MPI_DOUBLE, op, root, comm,&request );
 
-	return ;
-}		// -----  end of function Reduce  ----- 
+    return ;
+  }		// -----  end of function Reduce  ----- 
 
 void
-Ireduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm , MPI_Request & request)
-{
-	MPI_Ireduce( (Real*)sendbuf,  (Real*)recvbuf, 2 * count, MPI_DOUBLE, op, root, comm ,&request);
+  Ireduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm , MPI_Request & request)
+  {
+    MPI_Ireduce( (Real*)sendbuf,  (Real*)recvbuf, 2 * count, MPI_DOUBLE, op, root, comm ,&request);
 
-	return ;
-}		// -----  end of function Reduce  ----- 
+    return ;
+  }		// -----  end of function Reduce  ----- 
 #endif
 
 
@@ -308,33 +308,33 @@ Ireduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MP
 
 
 void
-Allreduce ( Int* sendbuf, Int* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
-{
-	MPI_Allreduce( sendbuf,  recvbuf, count, MPI_INT, 
-			op, comm );
+  Allreduce ( Int* sendbuf, Int* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
+  {
+    MPI_Allreduce( sendbuf,  recvbuf, count, MPI_INT, 
+        op, comm );
 
-	return ;
-}		// -----  end of function Allreduce  ----- 
-
-
-void
-Allreduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
-{
-	MPI_Allreduce( sendbuf,  recvbuf, count, MPI_DOUBLE, 
-			op, comm );
-
-	return ;
-}		// -----  end of function Allreduce  ----- 
+    return ;
+  }		// -----  end of function Allreduce  ----- 
 
 
 void
-Allreduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
-{
-	MPI_Allreduce( (Real*)sendbuf, (Real*) recvbuf, 2*count, MPI_DOUBLE, 
-			op, comm );
+  Allreduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
+  {
+    MPI_Allreduce( sendbuf,  recvbuf, count, MPI_DOUBLE, 
+        op, comm );
 
-	return ;
-}		// -----  end of function Allreduce  ----- 
+    return ;
+  }		// -----  end of function Allreduce  ----- 
+
+
+void
+  Allreduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
+  {
+    MPI_Allreduce( (Real*)sendbuf, (Real*) recvbuf, 2*count, MPI_DOUBLE, 
+        op, comm );
+
+    return ;
+  }		// -----  end of function Allreduce  ----- 
 
 
 // *********************************************************************
@@ -342,51 +342,51 @@ Allreduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, MPI_Comm c
 // *********************************************************************
 
 void
-Alltoallv ( Int *bufSend, Int *sizeSend, Int *displsSend, 
-		Int *bufRecv, Int *sizeRecv, 
-		Int *displsRecv, MPI_Comm comm )
-{
-  MPI_Alltoallv( bufSend, sizeSend, displsSend, MPI_INT,
-		 bufRecv, sizeRecv, displsRecv, MPI_INT, comm );	
-	return ;
-}		// -----  end of function Alltoallv  ----- 
+  Alltoallv ( Int *bufSend, Int *sizeSend, Int *displsSend, 
+      Int *bufRecv, Int *sizeRecv, 
+      Int *displsRecv, MPI_Comm comm )
+  {
+    MPI_Alltoallv( bufSend, sizeSend, displsSend, MPI_INT,
+        bufRecv, sizeRecv, displsRecv, MPI_INT, comm );	
+    return ;
+  }		// -----  end of function Alltoallv  ----- 
 
 
 void
-Alltoallv ( Real *bufSend, Int *sizeSend, Int *displsSend, 
-		Real *bufRecv, Int *sizeRecv, 
-		Int *displsRecv, MPI_Comm comm )
-{
-  MPI_Alltoallv( bufSend, sizeSend, displsSend, MPI_DOUBLE,
-		 bufRecv, sizeRecv, displsRecv, MPI_DOUBLE, comm );	
-	return ;
-}		// -----  end of function Alltoallv  ----- 
+  Alltoallv ( Real *bufSend, Int *sizeSend, Int *displsSend, 
+      Real *bufRecv, Int *sizeRecv, 
+      Int *displsRecv, MPI_Comm comm )
+  {
+    MPI_Alltoallv( bufSend, sizeSend, displsSend, MPI_DOUBLE,
+        bufRecv, sizeRecv, displsRecv, MPI_DOUBLE, comm );	
+    return ;
+  }		// -----  end of function Alltoallv  ----- 
 
 void
-Alltoallv ( Complex *bufSend, Int *sizeSend, Int *displsSend, 
-		Complex *bufRecv, Int *sizeRecv, 
-		Int *displsRecv, MPI_Comm comm )
-{
-	Int mpisize; 
-	MPI_Comm_size( comm, &mpisize );
-	std::vector<Int> dblSizeSend( mpisize );
-	std::vector<Int> dblDisplsSend( mpisize ); 
-	std::vector<Int> dblSizeRecv( mpisize );
-	std::vector<Int> dblDisplsRecv( mpisize );
+  Alltoallv ( Complex *bufSend, Int *sizeSend, Int *displsSend, 
+      Complex *bufRecv, Int *sizeRecv, 
+      Int *displsRecv, MPI_Comm comm )
+  {
+    Int mpisize; 
+    MPI_Comm_size( comm, &mpisize );
+    std::vector<Int> dblSizeSend( mpisize );
+    std::vector<Int> dblDisplsSend( mpisize ); 
+    std::vector<Int> dblSizeRecv( mpisize );
+    std::vector<Int> dblDisplsRecv( mpisize );
 
-	for( Int ip = 0; ip < mpisize; ip++ ){
-    dblSizeSend[ip] = 2 * sizeSend[ip];
-		dblSizeRecv[ip] = 2 * sizeRecv[ip];
-		dblDisplsSend[ip] = 2 * displsSend[ip];
-		dblDisplsRecv[ip] = 2 * displsRecv[ip];
-	}
+    for( Int ip = 0; ip < mpisize; ip++ ){
+      dblSizeSend[ip] = 2 * sizeSend[ip];
+      dblSizeRecv[ip] = 2 * sizeRecv[ip];
+      dblDisplsSend[ip] = 2 * displsSend[ip];
+      dblDisplsRecv[ip] = 2 * displsRecv[ip];
+    }
 
-  MPI_Alltoallv( 
-			(Real*)bufSend, &dblSizeSend[0], &dblDisplsSend[0], MPI_DOUBLE, 
-			(Real*)bufRecv, &dblSizeRecv[0], &dblDisplsRecv[0], MPI_DOUBLE, comm );	
+    MPI_Alltoallv( 
+        (Real*)bufSend, &dblSizeSend[0], &dblDisplsSend[0], MPI_DOUBLE, 
+        (Real*)bufRecv, &dblSizeRecv[0], &dblDisplsRecv[0], MPI_DOUBLE, comm );	
 
-	return ;
-}		// -----  end of function Alltoallv  ----- 
+    return ;
+  }		// -----  end of function Alltoallv  ----- 
 
 
 } // namespace mpi

@@ -2,44 +2,44 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Authors: Lin Lin
+Authors: Lin Lin
 
-   This file is part of PEXSI. All rights reserved.
+This file is part of PEXSI. All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-   (1) Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-   (2) Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   (3) Neither the name of the University of California, Lawrence Berkeley
-   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-   You are under no obligation whatsoever to provide any bug fixes, patches, or
-   upgrades to the features, functionality or performance of the source code
-   ("Enhancements") to anyone; however, if you choose to make your Enhancements
-   available either publicly, or directly to Lawrence Berkeley National
-   Laboratory, without imposing a separate written license agreement for such
-   Enhancements, then you hereby grant the following license: a non-exclusive,
-   royalty-free perpetual license to install, use, modify, prepare derivative
-   works, incorporate into other computer software, distribute, and sublicense
-   such enhancements or derivative works thereof, in binary and source code form.
-*/
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+ */
 /// @file run_inertia.cpp
 /// @brief Test routine for computing a series of inertia for a matrix
 /// stencil. This can be used for estimating the density of states in a
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     // *********************************************************************
 
     std::map<std::string,std::string> options;
-    
+
     OptionsCreate(argc, argv, options);
 
     // Default processor number
@@ -112,37 +112,37 @@ int main(int argc, char **argv)
       }
     }
 
-		Real muMin;
-		if( options.find("-muMin") != options.end() ){
-			muMin = std::atof(options["-muMin"].c_str());
-		}
-		else{
+    Real muMin;
+    if( options.find("-muMin") != options.end() ){
+      muMin = std::atof(options["-muMin"].c_str());
+    }
+    else{
       ErrorHandling("muMin must be provided.");
-		}
+    }
 
-		Real muMax;
-		if( options.find("-muMax") != options.end() ){
-			muMax = std::atof(options["-muMax"].c_str());
-		}
-		else{
+    Real muMax;
+    if( options.find("-muMax") != options.end() ){
+      muMax = std::atof(options["-muMax"].c_str());
+    }
+    else{
       ErrorHandling("muMax must be provided.");
-		}
+    }
 
-		Int numShift;
+    Int numShift;
     if( options.find("-numShift") != options.end() ){
-			numShift = std::atof(options["-numShift"].c_str());
-		}
-		else{
+      numShift = std::atof(options["-numShift"].c_str());
+    }
+    else{
       ErrorHandling("numShift must be provided.");
-		}
+    }
 
-		Int npPerShift;
+    Int npPerShift;
     if( options.find("-npPerShift") != options.end() ){
-			npPerShift = std::atoi(options["-npPerShift"].c_str());
-		}
-		else{
+      npPerShift = std::atoi(options["-npPerShift"].c_str());
+    }
+    else{
       ErrorHandling("npPerShift must be provided.");
-		}
+    }
 
     std::string Hfile, Sfile;
     int isCSC = true;
@@ -150,23 +150,23 @@ int main(int argc, char **argv)
       isCSC= ! atoi(options["-T"].c_str());
     }
 
-		if( options.find("-H") != options.end() ){ 
-			Hfile = options["-H"];
-		}
-		else{
+    if( options.find("-H") != options.end() ){ 
+      Hfile = options["-H"];
+    }
+    else{
       ErrorHandling("Hfile must be provided.");
-		}
+    }
 
-		if( options.find("-S") != options.end() ){ 
-			Sfile = options["-S"];
-		}
-		else{
+    if( options.find("-S") != options.end() ){ 
+      Sfile = options["-S"];
+    }
+    else{
       if( mpirank == 0 ){
         std::cout << "-S option is not given. " 
           << "Treat the overlap matrix as an identity matrix." 
           << std::endl << std::endl;
       }
-		}
+    }
 
 
     Int numProcSymbFact;
@@ -194,18 +194,18 @@ int main(int argc, char **argv)
       }
       ordering = 0;
     }
-    
 
-		// *********************************************************************
-		// Check the input parameters
-		// *********************************************************************
-		if( mpisize % npPerShift != 0 ){
-			ErrorHandling( "mpisize cannot be divided evenly by npPerShift." );
-		}
 
-		if( npPerShift != nprow * npcol  ){
-			ErrorHandling( "npPerShift should be equal to nprow * npcol." );
-		}
+    // *********************************************************************
+    // Check the input parameters
+    // *********************************************************************
+    if( mpisize % npPerShift != 0 ){
+      ErrorHandling( "mpisize cannot be divided evenly by npPerShift." );
+    }
+
+    if( npPerShift != nprow * npcol  ){
+      ErrorHandling( "npPerShift should be equal to nprow * npcol." );
+    }
 
     // *********************************************************************
     // Read input matrix
@@ -223,7 +223,7 @@ int main(int argc, char **argv)
       isProcRead = 0;
 
     MPI_Comm_split( MPI_COMM_WORLD, isProcRead, mpirank, &readComm );
-   
+
     DistSparseMatrix<Real> HMat;
     DistSparseMatrix<Real> SMat;
 

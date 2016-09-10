@@ -594,17 +594,17 @@ int main(int argc, char **argv)
         if( mpirank == 0 )
           cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
 
-//        {
-//          SuperNodeType * pSuper = new SuperNodeType();
-//          pLuMat->SymbolicToSuperNode( *pSuper );
-//          GridType * pGrid = new GridType(world_comm,nprow,npcol);
-//          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
-//          pLuMat->LUstructToPMatrix( *pMat );
-//          pMat->DumpLU();
-//          delete pMat;
-//          delete pGrid;
-//          delete pSuper;
-//        }
+        //        {
+        //          SuperNodeType * pSuper = new SuperNodeType();
+        //          pLuMat->SymbolicToSuperNode( *pSuper );
+        //          GridType * pGrid = new GridType(world_comm,nprow,npcol);
+        //          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &luOpt);
+        //          pLuMat->LUstructToPMatrix( *pMat );
+        //          pMat->DumpLU();
+        //          delete pMat;
+        //          delete pGrid;
+        //          delete pSuper;
+        //        }
 
         GetTime( timeSta );
         pLuMat->NumericalFactorize();
@@ -748,13 +748,13 @@ int main(int argc, char **argv)
               Aptr = &AMat;
             }
 
-              GetTime( timeSta );
-              pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
-              GetTime( timeEnd );
+            GetTime( timeSta );
+            pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
+            GetTime( timeEnd );
 
-              traceLocal = ZERO<MYSCALAR>();
-              traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
-                  Aptr->nzvalLocal.Data(), 1 );
+            traceLocal = ZERO<MYSCALAR>();
+            traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
+                Aptr->nzvalLocal.Data(), 1 );
 
             if(luOpt.Symmetric==0 && luOpt.Transpose==0){
               delete Aptr;
@@ -781,45 +781,45 @@ int main(int argc, char **argv)
 #endif
             }
 
-if( doDiag ){
-            NumVec<MYSCALAR> diag;
+            if( doDiag ){
+              NumVec<MYSCALAR> diag;
 
-            GetTime( timeSta );
-            pMat->GetDiagonal( diag );
-            GetTime( timeEnd );
-
-
-            if( mpirank == 0 )
-              cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+              GetTime( timeSta );
+              pMat->GetDiagonal( diag );
+              GetTime( timeEnd );
 
 
-            NumVec<MYSCALAR> diagDistSparse;
-            GetTime( timeSta );
-            GetDiagonal( Ainv, diagDistSparse );
-            GetTime( timeEnd );
-            if( mpirank == 0 )
-              cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+              if( mpirank == 0 )
+                cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
 
-            if( mpirank == 0 ){
-              statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format: " << std::endl << diagDistSparse << std::endl;
-              Real diffNorm = 0.0;;
-              for( Int i = 0; i < diag.m(); i++ ){
-                diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+
+              NumVec<MYSCALAR> diagDistSparse;
+              GetTime( timeSta );
+              GetDiagonal( Ainv, diagDistSparse );
+              GetTime( timeEnd );
+              if( mpirank == 0 )
+                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+
+              if( mpirank == 0 ){
+                statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format: " << std::endl << diagDistSparse << std::endl;
+                Real diffNorm = 0.0;;
+                for( Int i = 0; i < diag.m(); i++ ){
+                  diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+                }
+                diffNorm = std::sqrt( diffNorm );
+                cout << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
               }
-              diffNorm = std::sqrt( diffNorm );
-              cout << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-            }
 
 
-            if( mpirank == 0 ){
-              statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
-              ofstream ofs("diag");
-              if( !ofs.good() ) 
-                ErrorHandling("file cannot be opened.");
-              serialize( diag, ofs, NO_MASK );
-              ofs.close();
+              if( mpirank == 0 ){
+                statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
+                ofstream ofs("diag");
+                if( !ofs.good() ) 
+                  ErrorHandling("file cannot be opened.");
+                serialize( diag, ofs, NO_MASK );
+                ofs.close();
+              }
             }
-          }
 
 
           }
