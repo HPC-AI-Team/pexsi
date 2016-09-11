@@ -276,11 +276,16 @@ Fermi-Dirac function, Chin. Ann. Math. 30B, 729, 2009
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
-- v10.0.0 (2016) **Beta version**
+- v0.10.0 (2016) **Beta version**
 
     - Combine LoadRealSymmetricMatrix / LoadRealUnsymmetricMatrix into
       one single function LoadRealMatrix. Similar change for
-      LoadComplexMatrix.
+      LoadComplexMatrix. The driver routines and output are updated as
+      well.
+
+    - Updated makefile (contributed by Patrick Seewald)
+
+    - Compatible with SuperLU_DIST_v5.1.0
 
     - Replace the debugging with PushCallStack / PopCallStack debugging by
       Google's coredumper.

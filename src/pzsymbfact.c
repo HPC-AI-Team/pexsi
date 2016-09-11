@@ -89,6 +89,9 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 	symb_comm = MPI_COMM_NULL;
 	symb_mem_usage.total = 0.;
 
+  /* Suggested from Valgrind debugging by Patrick Seewald */
+  stat->peak_buffer    = 0.0;
+
 	/* Test the input parameters. */
 	*info = 0;
 	Fact = options->Fact;
