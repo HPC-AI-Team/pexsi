@@ -329,7 +329,7 @@ int main(int argc, char **argv)
 
 
   if( isProcRead == 1 ){
-    PPEXSIRetrieveRealSymmetricDFTMatrix(
+    PPEXSIRetrieveRealDFTMatrix(
         plan,
         DMnzvalLocal,
         EDMnzvalLocal,
@@ -398,7 +398,7 @@ int main(int argc, char **argv)
     }
 
     if( isProcRead == 1 ){
-      PPEXSIRetrieveRealSymmetricDFTMatrix(
+      PPEXSIRetrieveRealDFTMatrix(
           plan,
           DMnzvalLocal,
           EDMnzvalLocal,

@@ -2085,6 +2085,62 @@ void PPEXSIData::CalculateFermiOperatorReal(
   }
 
 
+  // Compute the energy, and free energy
+  {
+    // Energy computed from Tr[H*DM]
+    {
+      Real local = 0.0;
+      local = blas::Dot( HRealMat_.nnzLocal, 
+          HRealMat_.nzvalLocal.Data(),
+          1, rhoRealMat_.nzvalLocal.Data(), 1 );
+      mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+    }
+
+    // Energy computed from Tr[S*EDM]
+    if( isEnergyDensityMatrix )
+    {
+      Real local = 0.0;
+      if( SRealMat_.size != 0 ){
+        local = blas::Dot( SRealMat_.nnzLocal, 
+            SRealMat_.nzvalLocal.Data(),
+            1, energyDensityRealMat_.nzvalLocal.Data(), 1 );
+      }
+      else{
+        DblNumVec& nzval = energyDensityRealMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]);
+        }
+      }
+
+      mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+    }
+
+
+    // Free energy 
+    if( isFreeEnergyDensityMatrix )
+    {
+      Real local = 0.0;
+      if( SRealMat_.size != 0 ){
+        local = blas::Dot( SRealMat_.nnzLocal, 
+            SRealMat_.nzvalLocal.Data(),
+            1, freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
+      }
+      else{
+        DblNumVec& nzval = freeEnergyDensityRealMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]);
+        }
+      }
+
+      mpi::Allreduce( &local, &totalFreeEnergy_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+
+      // Correction
+      totalFreeEnergy_ += mu * numElectron;
+    }
+  } 
   return ;
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal  ----- 
 
@@ -2735,6 +2791,63 @@ void PPEXSIData::CalculateFermiOperatorComplex(
   }
 
 
+  // Compute the energy, and free energy
+  {
+    // Energy computed from Tr[H*DM]
+    {
+      Real local = 0.0;
+      local = (blas::Dotc( HComplexMat_.nnzLocal, 
+          HComplexMat_.nzvalLocal.Data(),
+          1, rhoComplexMat_.nzvalLocal.Data(), 1 )).real();
+      mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+    }
+
+    // Energy computed from Tr[S*EDM]
+    if( isEnergyDensityMatrix )
+    {
+      Real local = 0.0;
+      if( SRealMat_.size != 0 ){
+        local = (blas::Dotc( SComplexMat_.nnzLocal, 
+            SComplexMat_.nzvalLocal.Data(),
+            1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
+      }
+      else{
+        CpxNumVec& nzval = energyDensityComplexMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]).real();
+        }
+      }
+
+      mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+    }
+
+
+    // Free energy 
+    if( isFreeEnergyDensityMatrix )
+    {
+      Real local = 0.0;
+      if( SComplexMat_.size != 0 ){
+        local = (blas::Dotc( SComplexMat_.nnzLocal, 
+            SComplexMat_.nzvalLocal.Data(),
+            1, freeEnergyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
+      }
+      else{
+        CpxNumVec& nzval = freeEnergyDensityComplexMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]).real();
+        }
+      }
+
+      mpi::Allreduce( &local, &totalFreeEnergy_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+
+      // Correction
+      totalFreeEnergy_ += mu * numElectron;
+    }
+  } 
+
   return ;
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorComplex  ----- 
 
@@ -3146,61 +3259,6 @@ PPEXSIData::DFTDriver (
 
   GetTime( timeTotalEnd );
 
-  // Compute the energy, and free energy
-  if( matrixType == 0 ){
-    // Energy computed from Tr[H*DM]
-    {
-      Real local = 0.0;
-      local = blas::Dot( HRealMat_.nnzLocal, 
-          HRealMat_.nzvalLocal.Data(),
-          1, rhoRealMat_.nzvalLocal.Data(), 1 );
-      mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
-          gridPole_->rowComm ); 
-    }
-
-    // Energy computed from Tr[S*EDM]
-    {
-      Real local = 0.0;
-      if( SRealMat_.size != 0 ){
-        local = blas::Dot( SRealMat_.nnzLocal, 
-            SRealMat_.nzvalLocal.Data(),
-            1, energyDensityRealMat_.nzvalLocal.Data(), 1 );
-      }
-      else{
-        DblNumVec& nzval = energyDensityRealMat_.nzvalLocal;
-        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-          local += nzval(diagIdxLocal_[i]);
-        }
-      }
-
-      mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
-          gridPole_->rowComm ); 
-    }
-
-
-    // Free energy 
-    {
-      Real local = 0.0;
-      if( SRealMat_.size != 0 ){
-        local = blas::Dot( SRealMat_.nnzLocal, 
-            SRealMat_.nzvalLocal.Data(),
-            1, freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
-      }
-      else{
-        DblNumVec& nzval = freeEnergyDensityRealMat_.nzvalLocal;
-        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-          local += nzval(diagIdxLocal_[i]);
-        }
-      }
-
-      mpi::Allreduce( &local, &totalFreeEnergy_, 1, MPI_SUM, 
-          gridPole_->rowComm ); 
-
-      // Correction
-      totalFreeEnergy_ += muPEXSI * numElectronPEXSI;
-    }
-  } // if( matrixType == 0 )
-
   if( verbosity == 1 ){
     if( isConverged == 1 ){
       statusOFS << std::endl << "PEXSI has converged!" << std::endl;
@@ -3609,61 +3667,6 @@ PPEXSIData::DFTDriver2 (
     timePEXSI = timePEXSIEnd - timePEXSISta;
   }
 
-
-  // Compute the energy, and free energy
-  if( matrixType == 0 ){
-    // Energy computed from Tr[H*DM]
-    {
-      Real local = 0.0;
-      local = blas::Dot( HRealMat_.nnzLocal, 
-          HRealMat_.nzvalLocal.Data(),
-          1, rhoRealMat_.nzvalLocal.Data(), 1 );
-      mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
-          gridPole_->rowComm ); 
-    }
-
-    // Energy computed from Tr[S*EDM]
-    {
-      Real local = 0.0;
-      if( SRealMat_.size != 0 ){
-        local = blas::Dot( SRealMat_.nnzLocal, 
-            SRealMat_.nzvalLocal.Data(),
-            1, energyDensityRealMat_.nzvalLocal.Data(), 1 );
-      }
-      else{
-        DblNumVec& nzval = energyDensityRealMat_.nzvalLocal;
-        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-          local += nzval(diagIdxLocal_[i]);
-        }
-      }
-
-      mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
-          gridPole_->rowComm ); 
-    }
-
-
-    // Free energy 
-    {
-      Real local = 0.0;
-      if( SRealMat_.size != 0 ){
-        local = blas::Dot( SRealMat_.nnzLocal, 
-            SRealMat_.nzvalLocal.Data(),
-            1, freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
-      }
-      else{
-        DblNumVec& nzval = freeEnergyDensityRealMat_.nzvalLocal;
-        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-          local += nzval(diagIdxLocal_[i]);
-        }
-      }
-
-      mpi::Allreduce( &local, &totalFreeEnergy_, 1, MPI_SUM, 
-          gridPole_->rowComm ); 
-
-      // Correction
-      totalFreeEnergy_ += muPEXSI * numElectronPEXSI;
-    }
-  } // if( matrixType == 0 )
 
   GetTime( timeTotalEnd );
 
@@ -4342,6 +4345,62 @@ void PPEXSIData::CalculateFermiOperatorReal2(
   // Free the space for the saved Green's functions
   AinvMatVec.clear();
 
+  // Compute the energy, and free energy
+  {
+    // Energy computed from Tr[H*DM]
+    {
+      Real local = 0.0;
+      local = blas::Dot( HRealMat_.nnzLocal, 
+          HRealMat_.nzvalLocal.Data(),
+          1, rhoRealMat_.nzvalLocal.Data(), 1 );
+      mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+    }
+
+    // Energy computed from Tr[S*EDM]
+    if( isEnergyDensityMatrix )
+    {
+      Real local = 0.0;
+      if( SRealMat_.size != 0 ){
+        local = blas::Dot( SRealMat_.nnzLocal, 
+            SRealMat_.nzvalLocal.Data(),
+            1, energyDensityRealMat_.nzvalLocal.Data(), 1 );
+      }
+      else{
+        DblNumVec& nzval = energyDensityRealMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]);
+        }
+      }
+
+      mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+    }
+
+
+    // Free energy 
+    if( isFreeEnergyDensityMatrix )
+    {
+      Real local = 0.0;
+      if( SRealMat_.size != 0 ){
+        local = blas::Dot( SRealMat_.nnzLocal, 
+            SRealMat_.nzvalLocal.Data(),
+            1, freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
+      }
+      else{
+        DblNumVec& nzval = freeEnergyDensityRealMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]);
+        }
+      }
+
+      mpi::Allreduce( &local, &totalFreeEnergy_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+
+      // Correction
+      totalFreeEnergy_ += mu * numElectron;
+    }
+  } 
 
   return ;
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal2  ----- 

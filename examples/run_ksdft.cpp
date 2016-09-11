@@ -202,7 +202,7 @@ int main(int argc, char **argv)
     options.isSymbolicFactorize = 1;
 
 
-    pexsi.LoadRealSymmetricMatrix(
+    pexsi.LoadRealMatrix(
         HMat.size,                        
         HMat.nnz,                          
         HMat.nnzLocal,                     

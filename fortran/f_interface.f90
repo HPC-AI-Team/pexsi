@@ -435,7 +435,7 @@ interface
   end subroutine 
 
 
-  subroutine f_ppexsi_retrieve_real_symmetric_dft_matrix(&
+  subroutine f_ppexsi_retrieve_real_dft_matrix(&
       plan,&
       DMnzvalLocal,&
       EDMnzvalLocal,&
@@ -444,7 +444,7 @@ interface
       totalEnergyS,&
       totalFreeEnergy,&
       info) &
-      bind(C, Name="PPEXSIRetrieveRealSymmetricDFTMatrix")
+      bind(C, Name="PPEXSIRetrieveRealDFTMatrix")
     use, intrinsic :: iso_c_binding
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
@@ -453,6 +453,23 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
+  subroutine f_ppexsi_retrieve_complex_dft_matrix(&
+      plan,&
+      DMnzvalLocal,&
+      EDMnzvalLocal,&
+      FDMnzvalLocal,&
+      totalEnergyH,&
+      totalEnergyS,&
+      totalFreeEnergy,&
+      info) &
+      bind(C, Name="PPEXSIRetrieveComplexDFTMatrix")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    real(c_double), intent(out)   :: DMnzvalLocal(*), EDMnzvalLocal(*), FDMnzvalLocal(*)
+    real(c_double), intent(out)   :: totalEnergyH, totalEnergyS, totalFreeEnergy
+    integer(c_int), intent(out)            :: info
+  end subroutine 
 
   subroutine f_ppexsi_plan_finalize(&
       plan,&

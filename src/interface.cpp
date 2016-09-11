@@ -739,6 +739,43 @@ void PPEXSICalculateFermiOperatorReal(
   return ;
 }		// -----  end of function PPEXSICalculateFermiOperatorReal  ----- 
 
+extern "C"
+void PPEXSICalculateFermiOperatorComplex(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double            mu,
+    double            numElectronExact,
+    double*           numElectronPEXSI,
+    double*           numElectronDrvMuPEXSI,
+    int*              info )
+{
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+
+  try{
+    reinterpret_cast<PPEXSIData*>(plan)->CalculateFermiOperatorComplex(
+        options.numPole,
+        options.temperature,
+        options.gap,
+        options.deltaE,
+        mu,
+        numElectronExact,
+        options.numElectronPEXSITolerance,
+        options.verbosity,
+        *numElectronPEXSI,
+        *numElectronDrvMuPEXSI );
+  }
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+
+  return ;
+}		// -----  end of function PPEXSICalculateFermiOperatorComplex   ----- 
 
 
 extern "C"
@@ -969,7 +1006,7 @@ void PPEXSIDFTDriver2(
 
 
 extern "C"
-void PPEXSIRetrieveRealSymmetricDFTMatrix(
+void PPEXSIRetrieveRealDFTMatrix(
     PPEXSIPlan        plan,
     double*      DMnzvalLocal,
     double*     EDMnzvalLocal,
@@ -1008,9 +1045,53 @@ void PPEXSIRetrieveRealSymmetricDFTMatrix(
     *info = 1;
   }
   return;
-}   // -----  end of function PPEXSIRetrieveRealSymmetricDFTMatrix  ----- 
+}   // -----  end of function PPEXSIRetrieveRealDFTMatrix  ----- 
 
 
+extern "C"
+void PPEXSIRetrieveComplexDFTMatrix(
+    PPEXSIPlan        plan,
+    double*      DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    double*     FDMnzvalLocal,
+    double*     totalEnergyH,
+    double*     totalEnergyS,
+    double*     totalFreeEnergy,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->RhoComplexMat().nzvalLocal.Data()), 1,
+        DMnzvalLocal, 1 );
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->EnergyDensityComplexMat().nzvalLocal.Data()), 1,
+        EDMnzvalLocal, 1 );
+
+    blas::Copy( 2*nnzLocal, 
+        reinterpret_cast<double*>(ptrData->FreeEnergyDensityComplexMat().nzvalLocal.Data()), 1,
+        FDMnzvalLocal, 1 );
+
+    *totalEnergyH = ptrData->TotalEnergyH();
+
+    *totalEnergyS = ptrData->TotalEnergyS();
+
+    *totalFreeEnergy = ptrData->TotalFreeEnergy();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveComplexDFTMatrix  ----- 
 
 extern "C"
 void PPEXSIPlanFinalize( 

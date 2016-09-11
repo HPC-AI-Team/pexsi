@@ -574,6 +574,7 @@ public:
   /// Can be used to estimate the number of electrons by Tr[DM*S]
   /// or the band energy via Tr[DM*H]
   const DistSparseMatrix<Real>&   RhoRealMat() const {return rhoRealMat_;}
+  const DistSparseMatrix<Complex>&   RhoComplexMat() const {return rhoComplexMat_;}
 
   /// @brief Energy density matrix.  
   ///
@@ -581,6 +582,7 @@ public:
   /// the force, including the Hellman-Feynman force and the Pulay
   /// force. 
   const DistSparseMatrix<Real>&   EnergyDensityRealMat() const {return energyDensityRealMat_;}
+  const DistSparseMatrix<Complex>&   EnergyDensityComplexMat() const {return energyDensityComplexMat_;}
 
   /// @brief Total Helmholtz free energy matrix (band energy part only).  
   ///
@@ -591,6 +593,7 @@ public:
   /// initio molecular dynamics with excited electrons. Physical review
   /// letters, 73(19), 2599–2602. 
   const DistSparseMatrix<Real>&   FreeEnergyDensityRealMat() const {return freeEnergyDensityRealMat_;}
+  const DistSparseMatrix<Complex>& FreeEnergyDensityComplexMat() const {return freeEnergyDensityComplexMat_;}
 
   Real   TotalEnergyH() const {return totalEnergyH_;}
 

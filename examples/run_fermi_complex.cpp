@@ -208,7 +208,7 @@ int main(int argc, char **argv)
     options.isSymbolicFactorize = 1;
 
 
-    pexsi.LoadComplexUnsymmetricMatrix(
+    pexsi.LoadComplexMatrix(
         HMat.size,                        
         HMat.nnz,                          
         HMat.nnzLocal,                     

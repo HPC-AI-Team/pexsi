@@ -219,7 +219,7 @@ if( mpirank == 0 ) then
 endif
 
 if( isProcRead == 1 ) then
-  call f_ppexsi_retrieve_real_symmetric_dft_matrix(&
+  call f_ppexsi_retrieve_real_dft_matrix(&
     plan,&
     DMnzvalLocal,&
     EDMnzvalLocal,&
