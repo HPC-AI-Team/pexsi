@@ -226,11 +226,13 @@ int main(int argc, char **argv)
 
     if( options.matrixType == 0 ){
 
-      // FIXME RowPerm can only be "LargeDiag"
-      if( mpirank == 0 ){
-        printf("Before factorization.\n");
-      }
+      // No permutation
+      pexsi.SymbolicFactorizeComplexSymmetricMatrix( 
+          colPerm, 
+          options.npSymbFact,
+          options.verbosity );
 
+      // Can have permutation
       pexsi.SymbolicFactorizeComplexUnsymmetricMatrix( 
           colPerm, 
           rowPerm,
@@ -240,7 +242,27 @@ int main(int argc, char **argv)
           options.verbosity );
     }
 
+    // Inertia counting
+    Int numShift = options.numPole;
+    std::vector<double> shiftVec( numShift );
+    for( Int i = 0; i < numShift; i++ ){
+      shiftVec[i] = options.muMin0 + 
+        ( options.muMax0 - options.muMin0 ) / numShift * double(i);
+    }
+    std::vector<double> inertiaVec( numShift );
+    pexsi.CalculateNegativeInertiaComplex(
+        shiftVec,
+        inertiaVec,
+        options.verbosity );
 
+    if( mpirank == 0 ){
+      for( Int i = 0; i < numShift; i++ )
+        printf( "Shift = %25.15f  inertia = %25.1f\n", 
+            shiftVec[i], inertiaVec[i] );
+    }
+
+
+    // Compute Fermi operator
     pexsi.CalculateFermiOperatorComplex(
         options.numPole,
         options.temperature,

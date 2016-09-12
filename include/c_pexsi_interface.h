@@ -476,7 +476,7 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
 
 
 /**
- * @brief Directly compute the negative inertia at a set of shifts.
+ * @brief Directly compute the negative inertia at a set of shifts for real matrices.
  *
  * This can be used as an "expert" interface for solving KSDFT with
  * user-implemented heuristics strategies.
@@ -496,7 +496,7 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PPEXSIInertiaCountRealSymmetricMatrix(
+void PPEXSIInertiaCountRealMatrix(
     /* Input parameters */
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -506,6 +506,36 @@ void PPEXSIInertiaCountRealSymmetricMatrix(
     double*           inertiaList,
     int*              info );
 
+/**
+ * @brief Directly compute the negative inertia at a set of shifts for complex matrices.
+ *
+ * This can be used as an "expert" interface for solving KSDFT with
+ * user-implemented heuristics strategies.
+ *
+ * @note Only input from the processors associated with the first pole
+ * is required. The information will be broadcast to the other
+ * processors in the communicator.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[in] numShift (global) Number of shifts.
+ * @param[in] shiftList (global) The list of shifts. Size: numShift
+ * @param[out] inertiaList (global) The list of inertia counts (in
+ * double precision but are of integer values). Size: numShift
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIInertiaCountComplexMatrix(
+    /* Input parameters */
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int               numShift,
+    double*           shiftList,
+    /* Output parameters */
+    double*           inertiaList,
+    int*              info );
 
 
 

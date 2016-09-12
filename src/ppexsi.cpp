@@ -236,7 +236,7 @@ PPEXSIData::LoadRealMatrix	(
       SRealMat_.comm = HRealMat_.comm; 
     }
     else{
-      CopyPattern( HRealMat_, SRealMat_ );
+      CopyPattern( PatternMat_, SRealMat_ );
       SRealMat_.comm = HRealMat_.comm; 
       SRealMat_.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
       serialize( SRealMat_.nzvalLocal, sstm, NO_MASK );
@@ -310,6 +310,7 @@ PPEXSIData::LoadRealMatrix	(
 
   isMatrixLoaded_ = true;
 
+  CopyPattern( HRealMat_, PatternMat_ ); 
 
   return ;
 }    	// -----  end of method PPEXSIData::LoadRealMatrix  ----- 
@@ -435,6 +436,7 @@ PPEXSIData::LoadComplexMatrix	(
 
   isMatrixLoaded_ = true;
 
+  CopyPattern( HComplexMat_, PatternMat_ ); 
 
   return ;
 }    	// -----  end of method PPEXSIData::LoadComplexMatrix  ----- 
@@ -453,7 +455,7 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealSymmetricMatrix first." << std::endl;
+      << "Call LoadRealMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -478,7 +480,7 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
     luMat.Setup( *gridSuperLUReal_, luOpt_ );  // SuperLU matrix.
 
     DistSparseMatrix<Real> AMat;
-    CopyPattern( HRealMat_, AMat );
+    CopyPattern( PatternMat_, AMat );
 
     SetValue( AMat.nzvalLocal, D_ZERO );          // Symbolic factorization does not need value
 
@@ -560,7 +562,7 @@ PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix	(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealUnsymmetricMatrix first." << std::endl;
+      << "Call LoadRealMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -588,7 +590,7 @@ PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix	(
     luMat.Setup( *gridSuperLUReal_, luOpt_ );  // SuperLU matrix.
 
     DistSparseMatrix<Real> AMat;
-    CopyPattern( HRealMat_, AMat );
+    CopyPattern( PatternMat_, AMat );
 
     if(luOpt_.RowPerm == "LargeDiag"){
       if(AnzvalLocal != NULL){
@@ -687,7 +689,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealSymmetricMatrix first." << std::endl;
+      << "Call LoadComplexMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -714,7 +716,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
 
     DistSparseMatrix<Complex> AMat;
     
-    CopyPattern( HComplexMat_, AMat );
+    CopyPattern( PatternMat_, AMat );
 
     SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
 
@@ -794,7 +796,7 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealUnsymmetricMatrix first." << std::endl;
+      << "Call LoadComplexMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -823,7 +825,7 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
     luMat.Setup( *gridSuperLUComplex_, luOpt_ );  // SuperLU matrix.
 
     DistSparseMatrix<Complex> AMat;
-    CopyPattern( HComplexMat_, AMat );
+    CopyPattern( PatternMat_, AMat );
 
     if(luOpt_.RowPerm == "LargeDiag"){
       if(AnzvalLocal != NULL){
@@ -916,7 +918,7 @@ PPEXSIData::SelInvRealSymmetricMatrix(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealSymmetricMatrix first." << std::endl;
+      << "Call LoadRealMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -937,7 +939,7 @@ PPEXSIData::SelInvRealSymmetricMatrix(
     PMatrix<Real>&          PMloc     = *PMRealMat_;
 
     // Copy the pattern
-    CopyPattern( HRealMat_, AMat );
+    CopyPattern( PatternMat_, AMat );
 
     blas::Copy( AMat.nnzLocal, AnzvalLocal, 1, AMat.nzvalLocal.Data(), 1 );
 
@@ -1026,7 +1028,7 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealUnsymmetricMatrix first." << std::endl;
+      << "Call LoadRealMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -1047,7 +1049,7 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
     PMatrixUnsym<Real>&          PMloc     = *PMRealUnsymMat_;
 
     // Copy the pattern
-    CopyPattern( HRealMat_, AMat );
+    CopyPattern( PatternMat_, AMat );
 
     blas::Copy( AMat.nnzLocal, AnzvalLocal, 1, AMat.nzvalLocal.Data(), 1 );
 
@@ -1137,7 +1139,7 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealSymmetricMatrix first." << std::endl;
+      << "Call LoadComplexMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -1158,7 +1160,7 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
     PMatrix<Complex>&          PMloc     = *PMComplexMat_;
 
     // Copy the pattern
-    CopyPattern( HComplexMat_, AMat );
+    CopyPattern( PatternMat_, AMat );
 
     blas::Copy( 2*AMat.nnzLocal, AnzvalLocal, 1, 
         reinterpret_cast<double*>(AMat.nzvalLocal.Data()), 1 );
@@ -1249,7 +1251,7 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealUnsymmetricMatrix first." << std::endl;
+      << "Call LoadComplexMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -1270,7 +1272,7 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
     PMatrixUnsym<Complex>&     PMloc     = *PMComplexUnsymMat_;
 
     // Copy the pattern
-    CopyPattern( HComplexMat_, AMat );
+    CopyPattern( PatternMat_, AMat );
 
     blas::Copy( 2*AMat.nnzLocal, AnzvalLocal, 1, 
         reinterpret_cast<double*>(AMat.nzvalLocal.Data()), 1 );
@@ -1365,7 +1367,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealSymmetricMatrix first." << std::endl;
+      << "Call LoadRealMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -1386,7 +1388,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
   SuperLUMatrix<Real>&    luMat     = *luRealMat_;
   PMatrix<Real>&          PMloc     = *PMRealMat_;
 
-  CopyPattern( HMat, AMat );
+  CopyPattern( PatternMat_, AMat );
 
   Real timeShiftSta, timeShiftEnd;
 
@@ -1499,6 +1501,150 @@ void PPEXSIData::CalculateNegativeInertiaReal(
   return ;
 } 		// -----  end of method PPEXSIData::CalculateNegativeInertiaReal ----- 
 
+void PPEXSIData::CalculateNegativeInertiaComplex(
+    const std::vector<Real>&       shiftVec, 
+    std::vector<Real>&             inertiaVec,
+    Int                            verbosity ){
+
+  // *********************************************************************
+  // Initialize
+  // *********************************************************************
+  if( isMatrixLoaded_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been loaded." << std::endl
+      << "Call LoadComplexMatrix first." << std::endl;
+    ErrorHandling( msg.str().c_str() );
+  }
+
+  // Use ComplexSymmetric factorization 
+  // FIXME This could change when interfacing with LDL^* factorization.
+  if( isComplexSymmetricSymbolicFactorized_ == false ){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Matrix has not been factorized symbolically." << std::endl
+      << "Call SymbolicFactorizeRealSymmetricMatrix first." << std::endl;
+    ErrorHandling( msg.str().c_str() );
+  }
+
+
+  // Rename for convenience.
+  // The symbolic information should have already been there.
+  DistSparseMatrix<Complex>&  HMat     = HComplexMat_;
+  DistSparseMatrix<Complex>&  SMat     = SComplexMat_;
+  DistSparseMatrix<Complex>&  AMat     = shiftComplexMat_;  // A = H - \lambda  S
+  SuperLUMatrix<Complex>&    luMat     = *luComplexMat_;
+  PMatrix<Complex>&          PMloc     = *PMComplexMat_;
+
+  CopyPattern( PatternMat_, AMat );
+
+  Real timeShiftSta, timeShiftEnd;
+
+  Int numShift = shiftVec.size();
+  std::vector<Real>  inertiaVecLocal(numShift);
+  inertiaVec.resize(numShift);
+  for(Int l = 0; l < numShift; l++){
+    inertiaVecLocal[l] = 0.0;
+    inertiaVec[l]      = 0.0;
+  }
+
+  for(Int l = 0; l < numShift; l++){
+    if( MYROW( gridPole_ ) == PROW( l, gridPole_ ) ){
+
+      GetTime( timeShiftSta );
+
+      if( verbosity >= 1 ){
+        statusOFS << "Shift " << l << " = " << shiftVec[l] 
+          << " processing..." << std::endl;
+      }
+
+      if( SMat.size != 0 ){
+        // S is not an identity matrix
+        for( Int i = 0; i < HMat.nnzLocal; i++ ){
+          AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - shiftVec[l] * SMat.nzvalLocal(i);
+        }
+      }
+      else{
+        // S is an identity matrix
+        for( Int i = 0; i < HMat.nnzLocal; i++ ){
+          AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+        }
+
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          AMat.nzvalLocal( diagIdxLocal_[i] ) -= shiftVec[l];
+        }
+      } // if (SMat.size != 0 )
+
+
+      // *********************************************************************
+      // Factorization
+      // *********************************************************************
+      // Important: the distribution in pzsymbfact is going to mess up the
+      // A matrix.  Recompute the matrix A here.
+      if( verbosity >= 2 ){
+        statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+      }
+      luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+      if( verbosity >= 2 ){
+        statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+      }
+
+      Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+      GetTime( timeTotalFactorizationSta );
+
+      // Data redistribution
+      if( verbosity >= 2 ){
+        statusOFS << "Before Distribute." << std::endl;
+      }
+      luMat.Distribute();
+      if( verbosity >= 2 ){
+        statusOFS << "After Distribute." << std::endl;
+      }
+
+      // Numerical factorization
+      if( verbosity >= 2 ){
+        statusOFS << "Before NumericalFactorize." << std::endl;
+      }
+      luMat.NumericalFactorize();
+      if( verbosity >= 2 ){
+        statusOFS << "After NumericalFactorize." << std::endl;
+      }
+      luMat.DestroyAOnly();
+
+      GetTime( timeTotalFactorizationEnd );
+
+      if( verbosity >= 1 ){
+        statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+      }
+
+      // *********************************************************************
+      // Compute inertia
+      // *********************************************************************
+      Real timeInertiaSta, timeInertiaEnd;
+      GetTime( timeInertiaSta );
+
+      luMat.LUstructToPMatrix( PMloc );
+
+      // Compute the negative inertia of the matrix.
+      PMloc.GetNegativeInertia( inertiaVecLocal[l] );
+
+      GetTime( timeInertiaEnd );
+
+      if( verbosity >= 1 ){
+        statusOFS << "Time for computing the inertia is " <<
+          timeInertiaEnd  - timeInertiaSta << " [s]" << std::endl;
+      }
+
+    } // if I am in charge of this shift
+  } // for(l)
+
+  // Collect all the negative inertia together
+  mpi::Allreduce( &inertiaVecLocal[0], &inertiaVec[0], numShift, 
+      MPI_SUM, gridPole_->colComm );
+
+  return ;
+} 		// -----  end of method PPEXSIData::CalculateNegativeInertiaComplex ----- 
 
 // Main subroutine for the electronic structure calculation
 void PPEXSIData::CalculateFermiOperatorReal(
@@ -1517,7 +1663,7 @@ void PPEXSIData::CalculateFermiOperatorReal(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealSymmetricMatrix first." << std::endl;
+      << "Call LoadRealMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -1562,15 +1708,15 @@ void PPEXSIData::CalculateFermiOperatorReal(
   bool isDerivativeTMatrix       = false;
 
   // Copy the pattern
-  CopyPattern( HMat, AMat );
-  CopyPattern( HMat, rhoMat );
-  CopyPattern( HMat, rhoDrvMuMat );
+  CopyPattern( PatternMat_, AMat );
+  CopyPattern( PatternMat_, rhoMat );
+  CopyPattern( PatternMat_, rhoDrvMuMat );
   if( isFreeEnergyDensityMatrix )
-    CopyPattern( HMat, hmzMat );
+    CopyPattern( PatternMat_, hmzMat );
   if( isEnergyDensityMatrix )
-    CopyPattern( HMat, frcMat );
+    CopyPattern( PatternMat_, frcMat );
   if( isDerivativeTMatrix )
-    CopyPattern( HMat, rhoDrvTMat );
+    CopyPattern( PatternMat_, rhoDrvTMat );
 
   // Reinitialize the variables
   SetValue( rhoMat.nzvalLocal, 0.0 );
@@ -2162,7 +2308,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealSymmetricMatrix first." << std::endl;
+      << "Call LoadComplexMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -2207,15 +2353,15 @@ void PPEXSIData::CalculateFermiOperatorComplex(
   bool isDerivativeTMatrix       = false;
 
   // Copy the pattern
-  CopyPattern( HMat, AMat );
-  CopyPattern( HMat, rhoMat );
-  CopyPattern( HMat, rhoDrvMuMat );
+  CopyPattern( PatternMat_, AMat );
+  CopyPattern( PatternMat_, rhoMat );
+  CopyPattern( PatternMat_, rhoDrvMuMat );
   if( isFreeEnergyDensityMatrix )
-    CopyPattern( HMat, hmzMat );
+    CopyPattern( PatternMat_, hmzMat );
   if( isEnergyDensityMatrix )
-    CopyPattern( HMat, frcMat );
+    CopyPattern( PatternMat_, frcMat );
   if( isDerivativeTMatrix )
-    CopyPattern( HMat, rhoDrvTMat );
+    CopyPattern( PatternMat_, rhoDrvTMat );
 
   // Reinitialize the variables
   SetValue( rhoMat.nzvalLocal, Z_ZERO );
@@ -2930,9 +3076,6 @@ PPEXSIData::DFTDriver (
           numProcSymbFact,
           verbosity );
 
-      // Important since HComplexMat_ has not been loaded yet
-      CopyPattern( HRealMat_, HComplexMat_ );
-
       SymbolicFactorizeComplexSymmetricMatrix( 
           colPerm, 
           numProcSymbFact,
@@ -3373,9 +3516,6 @@ PPEXSIData::DFTDriver2 (
           numProcSymbFact,
           verbosity );
 
-      // Important since HComplexMat_ has not been loaded yet
-      CopyPattern( HRealMat_, HComplexMat_ );
-
       SymbolicFactorizeComplexSymmetricMatrix( 
           colPerm, 
           numProcSymbFact,
@@ -3723,7 +3863,7 @@ void PPEXSIData::CalculateFermiOperatorReal2(
     std::ostringstream msg;
     msg  << std::endl
       << "Matrix has not been loaded." << std::endl
-      << "Call LoadRealSymmetricMatrix first." << std::endl;
+      << "Call LoadRealMatrix first." << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
@@ -3768,15 +3908,15 @@ void PPEXSIData::CalculateFermiOperatorReal2(
 
 
   // Copy the pattern
-  CopyPattern( HMat, AMat );
-  CopyPattern( HMat, rhoMat );
-  CopyPattern( HMat, rhoDrvMuMat );
+  CopyPattern( PatternMat_, AMat );
+  CopyPattern( PatternMat_, rhoMat );
+  CopyPattern( PatternMat_, rhoDrvMuMat );
   if( isFreeEnergyDensityMatrix )
-    CopyPattern( HMat, hmzMat );
+    CopyPattern( PatternMat_, hmzMat );
   if( isEnergyDensityMatrix )
-    CopyPattern( HMat, frcMat );
+    CopyPattern( PatternMat_, frcMat );
   if( isDerivativeTMatrix )
-    CopyPattern( HMat, rhoDrvTMat );
+    CopyPattern( PatternMat_, rhoDrvTMat );
 
   // Reinitialize the variables
   SetValue( rhoMat.nzvalLocal, 0.0 );

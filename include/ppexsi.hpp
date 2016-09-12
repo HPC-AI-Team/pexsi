@@ -92,6 +92,8 @@ private:
   const SuperLUGrid<Real>*       gridSuperLUReal_;           
   const SuperLUGrid<Complex>*    gridSuperLUComplex_;           
 
+  // Used for performing "CopyPattern"
+  DistSparseMatrix<Real>     PatternMat_;
 
   DistSparseMatrix<Real>     HRealMat_;
   DistSparseMatrix<Real>     SRealMat_;
@@ -348,9 +350,9 @@ public:
       std::vector<Real>&             inertiaVec,
       Int                            verbosity );
 
-
-  /// @brief TODO Compute the negative inertia (the number of eigenvalues
-  /// below a shift) for complex Hermitian matrices. 
+  /// @brief Compute the negative inertia (the number of eigenvalues
+  /// below a shift) for complex Hermitian matrices. Currently this is
+  /// performed with LU factorization without row permutation. 
   ///
   /// This subroutine computes the negative inertia of the matrix
   ///
@@ -380,6 +382,7 @@ public:
       const std::vector<Real>&       shiftVec, 
       std::vector<Real>&             inertiaVec,
       Int                            verbosity );
+
 
 
   /// @brief Compute the Fermi operator for a given chemical
@@ -568,6 +571,7 @@ public:
   // *********************************************************************
 
   const GridType*  GridPole() const {return gridPole_;}
+
 
   /// @brief Density matrix.
   ///

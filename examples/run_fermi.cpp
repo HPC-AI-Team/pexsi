@@ -209,7 +209,6 @@ int main(int argc, char **argv)
           1,
           options.verbosity );
 
-
       pexsi.SymbolicFactorizeComplexSymmetricMatrix( 
           colPerm, 
           1,
@@ -217,6 +216,26 @@ int main(int argc, char **argv)
     }
 
 
+    // Inertia counting
+    Int numShift = options.numPole;
+    std::vector<double> shiftVec( numShift );
+    for( Int i = 0; i < numShift; i++ ){
+      shiftVec[i] = options.muMin0 + 
+        ( options.muMax0 - options.muMin0 ) / numShift * i;
+    }
+    std::vector<double> inertiaVec( numShift );
+    pexsi.CalculateNegativeInertiaReal(
+        shiftVec,
+        inertiaVec,
+        options.verbosity );
+
+    if( mpirank == 0 ){
+      for( Int i = 0; i < numShift; i++ )
+        printf( "Shift = %25.15f  inertia = %25.1f\n", 
+            shiftVec[i], inertiaVec[i] );
+    }
+
+    // Compute Fermi operator
     pexsi.CalculateFermiOperatorReal(
         options.numPole,
         options.temperature,

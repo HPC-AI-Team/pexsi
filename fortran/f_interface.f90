@@ -300,14 +300,14 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_ppexsi_inertia_count_real_symmetric_matrix(&
+  subroutine f_ppexsi_inertia_count_real_matrix(&
       plan,&
       options,&
       numShift,&
       shiftList,&
       inertiaList,&
       info) &
-      bind(C, Name="PPEXSIInertiaCountRealSymmetricMatrix")
+      bind(C, Name="PPEXSIInertiaCountRealMatrix")
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
@@ -319,6 +319,24 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
+  subroutine f_ppexsi_inertia_count_complx_matrix(&
+      plan,&
+      options,&
+      numShift,&
+      shiftList,&
+      inertiaList,&
+      info) &
+      bind(C, Name="PPEXSIInertiaCountComplexMatrix")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    integer(c_int), value, intent(in)      :: numShift
+    real(c_double), intent(in)             :: shiftList(*)
+    real(c_double), intent(out)            :: inertiaList(*)
+    integer(c_int), intent(out)            :: info
+  end subroutine 
 
   subroutine f_ppexsi_calculate_fermi_operator_real(&
       plan,&
@@ -340,6 +358,24 @@ interface
   end subroutine 
 
 
+  subroutine f_ppexsi_calculate_fermi_operator_complex(&
+      plan,&
+      options,&
+      mu,&
+      numElectronExact,&
+      numElectronPEXSI,&
+      numElectronDrvMuPEXSI,&
+      info) &
+      bind(C, Name="PPEXSICalculateFermiOperatorComplex")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    real(c_double), value, intent(in)      :: mu, numElectronExact
+    real(c_double), intent(out)   :: numElectronPEXSI, numElectronDrvMuPEXSI
+    integer(c_int), intent(out)            :: info
+  end subroutine 
 
   subroutine f_ppexsi_selinv_real_symmetric_matrix(&
       plan,&
@@ -434,6 +470,29 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
+  subroutine f_ppexsi_dft_driver2(&
+      plan,&
+      options,&
+      numElectronExact,&
+      muPEXSI,&
+      numElectronPEXSI,&
+      muMinInertia,&
+      muMaxInertia,& 
+      numTotalInertiaIter,&
+      numTotalPEXSIIter,&
+      info) &
+      bind(C, Name="PPEXSIDFTDriver2")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    real(c_double), value, intent(in)      :: numElectronExact
+    real(c_double), intent(out)   :: muPEXSI, numElectronPEXSI
+    real(c_double), intent(out)   :: muMinInertia, muMaxInertia
+    integer(c_int), intent(out)   :: numTotalInertiaIter, numTotalPEXSIIter
+    integer(c_int), intent(out)            :: info
+  end subroutine 
 
   subroutine f_ppexsi_retrieve_real_dft_matrix(&
       plan,&

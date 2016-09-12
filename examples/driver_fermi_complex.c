@@ -76,6 +76,10 @@ int main(int argc, char **argv)
   double*       EDMnzvalLocal;
   double*       FDMnzvalLocal;
 
+  int           numShift;
+  double*       shiftVec;
+  double*       inertiaVec;
+
   double        Energy;
   double        eta;
 
@@ -202,6 +206,10 @@ int main(int argc, char **argv)
     EDMnzvalLocal           = (double*) malloc( sizeof(double) * nnzLocal * 2 );
     FDMnzvalLocal           = (double*) malloc( sizeof(double) * nnzLocal * 2 );
 
+    numShift = options.numPole;
+    shiftVec                = (double*) malloc( sizeof(double) * numShift );
+    inertiaVec              = (double*) malloc( sizeof(double) * numShift );
+
     /* Actually read the matrix */
     if( isFormatted == 1 ){
       ReadDistSparseMatrixFormattedInterface(
@@ -277,9 +285,7 @@ int main(int argc, char **argv)
     }
   }
 
-  /* Call the PEXSI interface */
-
-  /* Step 1. Initialize PEXSI */
+  /* Initialize PEXSI */
 
   PPEXSISetDefaultOptions( &options );
   options.muMin0 = 0.0;
@@ -328,14 +334,46 @@ int main(int argc, char **argv)
       SnzvalLocal,
       &info );
 
-  /* Step 2. PEXSI Solve */
+  /* Symbolic factorization */
 
+  // No permutation
+  options.rowOrdering = 0;
+  PPEXSISymbolicFactorizeComplexSymmetricMatrix( 
+      plan,
+      options,
+      &info );
+
+  // Can change row ordering optionally now.
+  // options.rowOrdering = 1;
   PPEXSISymbolicFactorizeComplexUnsymmetricMatrix( 
       plan,
       options,
       HnzvalLocal,
       &info );
 
+  /* Inertia counting */
+  numShift = options.numPole;
+  for( i = 0; i < numShift; i++ ){
+    shiftVec[i] = options.muMin0 + 
+      ( options.muMax0 - options.muMin0 ) / numShift * (double)i;
+  }
+
+
+  PPEXSIInertiaCountComplexMatrix( 
+      plan,
+      options,
+      numShift,
+      shiftVec,
+      inertiaVec,
+      &info );
+
+  if( mpirank == 0 ){
+    for( i = 0; i < numShift; i++ )
+      printf( "Shift = %25.15f  inertia = %25.1f\n", 
+          shiftVec[i], inertiaVec[i] );
+  }
+
+  /* Evaluate the Fermi operator */
   PPEXSICalculateFermiOperatorComplex(
       plan,
       options,
@@ -358,6 +396,7 @@ int main(int argc, char **argv)
     return info;
   }
 
+  /* Retrieve matrix and energy */
 
   if( isProcRead == 1 ){
     PPEXSIRetrieveComplexDFTMatrix(
@@ -378,7 +417,7 @@ int main(int argc, char **argv)
     }
   }
 
-  /* Step 4. Clean up */
+  /* Clean up */
 
   PPEXSIPlanFinalize( 
       plan,
@@ -399,6 +438,8 @@ int main(int argc, char **argv)
     free( DMnzvalLocal );
     free( EDMnzvalLocal );
     free( FDMnzvalLocal );
+    free( shiftVec );
+    free( inertiaVec );
   }
 
   

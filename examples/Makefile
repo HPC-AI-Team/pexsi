@@ -3,7 +3,7 @@
 
 include ../make.inc
 
-SRCS_CPP  = run_inertia.cpp run_ppexsi.cpp run_pselinv.cpp run_pselinv_unsym.cpp \
+SRCS_CPP  = run_pselinv.cpp run_pselinv_unsym.cpp \
  						run_ksdft.cpp run_fermi.cpp run_fermi_complex.cpp
 SRCS_C    = driver_pselinv_real.c driver_pselinv_complex.c driver_pselinv_real_unsym.c \
 					 	driver_pselinv_complex_unsym.c driver_ksdft.c driver_ksdft_2.c \

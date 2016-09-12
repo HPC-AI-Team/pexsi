@@ -613,7 +613,7 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
 
 
 extern "C"
-void PPEXSIInertiaCountRealSymmetricMatrix(
+void PPEXSIInertiaCountRealMatrix(
     /* Input parameters */
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -654,10 +654,11 @@ void PPEXSIInertiaCountRealSymmetricMatrix(
   }
 
   return ;
-}		// -----  end of function PPEXSIInertiaCountRealSymmetricMatrix  ----- 
+}		// -----  end of function PPEXSIInertiaCountRealMatrix  ----- 
+
 
 extern "C"
-void PPEXSIInertiaCountRealUnsymmetricMatrix(
+void PPEXSIInertiaCountComplexMatrix(
     /* Input parameters */
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -680,7 +681,7 @@ void PPEXSIInertiaCountRealUnsymmetricMatrix(
     }
 
     reinterpret_cast<PPEXSIData*>(plan)->
-      CalculateNegativeInertiaReal(
+      CalculateNegativeInertiaComplex(
           shiftVec,
           inertiaVec,
           options.verbosity );
@@ -698,7 +699,8 @@ void PPEXSIInertiaCountRealUnsymmetricMatrix(
   }
 
   return ;
-}		// -----  end of function PPEXSIInertiaCountRealUnsymmetricMatrix  ----- 
+}		// -----  end of function PPEXSIInertiaCountComplexMatrix  ----- 
+
 
 
 extern "C"
