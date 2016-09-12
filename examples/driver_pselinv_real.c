@@ -49,6 +49,7 @@
  * @date 2013-11-10 Original version.
  * @date 2014-01-26 Change the interface.
  * @date 2014-04-01 Compatible with the interface at version 0.7.0.
+ * @date 2016-09-10 Compatible with the interface at version 0.10.0
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -90,7 +91,7 @@ int main(int argc, char **argv)
 
   npcol               = 1;
   nprow               = mpisize;
-  Rfile               = "laplace200-200+1full.matrix";
+  Rfile               = "lap2dr.matrix";
   //Rfile               = "laplace128full.csr";
 
   if (argc > 1)
@@ -149,7 +150,7 @@ int main(int argc, char **argv)
       mpirank, 
       &info );
 
-  PPEXSILoadRealSymmetricHSMatrix( 
+  PPEXSILoadRealHSMatrix( 
       plan, 
       options,
       nrows,
@@ -205,7 +206,7 @@ int main(int argc, char **argv)
   if( mpirank == 0 ){
     numColLocalFirst = nrows / mpisize;
     firstCol         = mpirank * numColLocalFirst;
-    for( j = 0; j < 10; j++ ){
+    for( j = 0; j < numColLocal; j++ ){
       jcol = firstCol + j + 1;
       for( i = colptrLocal[j]-1; 
            i < colptrLocal[j+1]-1; i++ ){

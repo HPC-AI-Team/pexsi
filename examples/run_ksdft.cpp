@@ -2,44 +2,44 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Author: Lin Lin
+Author: Lin Lin
 
-   This file is part of PEXSI. All rights reserved.
+This file is part of PEXSI. All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-   (1) Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-   (2) Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   (3) Neither the name of the University of California, Lawrence Berkeley
-   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-   You are under no obligation whatsoever to provide any bug fixes, patches, or
-   upgrades to the features, functionality or performance of the source code
-   ("Enhancements") to anyone; however, if you choose to make your Enhancements
-   available either publicly, or directly to Lawrence Berkeley National
-   Laboratory, without imposing a separate written license agreement for such
-   Enhancements, then you hereby grant the following license: a non-exclusive,
-   royalty-free perpetual license to install, use, modify, prepare derivative
-   works, incorporate into other computer software, distribute, and sublicense
-   such enhancements or derivative works thereof, in binary and source code form.
-*/
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
+ */
 /// @file run_ksdft.cpp
 /// @brief Similar to driver_ksdft_2 but test the CPP interface
 /// directly.
@@ -56,15 +56,15 @@ using namespace std;
 
 void Usage(){
   std::cout 
-		<< "run_ksdft" << std::endl;
+    << "run_ksdft" << std::endl;
 }
 
 int main(int argc, char **argv) 
 {
-	MPI_Init(&argc, &argv);
-	int mpirank, mpisize;
-	MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
-	MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
+  MPI_Init(&argc, &argv);
+  int mpirank, mpisize;
+  MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
+  MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
   // PEXSI parameters
   int           isSIdentity;                  
@@ -93,19 +93,19 @@ int main(int argc, char **argv)
   int           outputFileIndex;
 
 
-//	if( argc < 25 || argc%2 == 0 ) {
-//		if( mpirank == 0 ) Usage();
-//		MPI_Finalize();
-//		return 0;
-//	}
-			
-	
-	try{
-		// *********************************************************************
-		// Input parameter
+  //	if( argc < 25 || argc%2 == 0 ) {
+  //		if( mpirank == 0 ) Usage();
+  //		MPI_Finalize();
+  //		return 0;
+  //	}
+
+
+  try{
+    // *********************************************************************
+    // Input parameter
     // 
     // FIXME: Currently hard coded
-		// *********************************************************************
+    // *********************************************************************
 
     numElectronExact    = 12.0;
     nprow               = 1;
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
       isProcRead = 0;
 
     MPI_Comm_split( MPI_COMM_WORLD, isProcRead, mpirank, &readComm );
-		
+
     DistSparseMatrix<Real> HMat;
     DistSparseMatrix<Real> SMat;
 
@@ -162,11 +162,11 @@ int main(int argc, char **argv)
     } // Read the matrix
 
 
-		// *********************************************************************
-		// Check the input parameters
-		// *********************************************************************
+    // *********************************************************************
+    // Check the input parameters
+    // *********************************************************************
 
-		// Initialize
+    // Initialize
 
     /* Set the outputFileIndex to be the pole index */
     /* The first processor for each pole outputs information */
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
     }
 
     Int npPerPole = nprow * npcol;
-		PPEXSIData pexsi( MPI_COMM_WORLD, nprow, npcol, outputFileIndex );
+    PPEXSIData pexsi( MPI_COMM_WORLD, nprow, npcol, outputFileIndex );
 
 
     /* Step 1. Initialize PEXSI */
@@ -202,17 +202,17 @@ int main(int argc, char **argv)
     options.isSymbolicFactorize = 1;
 
 
-    pexsi.LoadRealSymmetricMatrix(
-          HMat.size,                        
-          HMat.nnz,                          
-          HMat.nnzLocal,                     
-          numColLocal,                  
-          HMat.colptrLocal.Data(),
-          HMat.rowindLocal.Data(),
-          HMat.nzvalLocal.Data(),
-          isSIdentity,
-          SMat.nzvalLocal.Data(),
-          options.verbosity );
+    pexsi.LoadRealMatrix(
+        HMat.size,                        
+        HMat.nnz,                          
+        HMat.nnzLocal,                     
+        numColLocal,                  
+        HMat.colptrLocal.Data(),
+        HMat.rowindLocal.Data(),
+        HMat.nzvalLocal.Data(),
+        isSIdentity,
+        SMat.nzvalLocal.Data(),
+        options.verbosity );
 
     // PEXSI Solve
     pexsi.DFTDriver2(
@@ -251,20 +251,17 @@ int main(int argc, char **argv)
     }
 
     // No need for clean up
-	}
-	catch( std::exception& e )
-	{
-		statusOFS << std::endl << " ERROR!!! Proc " << mpirank << " caught exception with message: "
-			<< e.what() << std::endl;
-		statusOFS.close();
-		statusOFS << std::endl << " ERROR!!! Proc " << mpirank << " caught exception with message: "
-			<< e.what() << std::endl;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
-	}
-	
-	MPI_Finalize();
+  }
+  catch( std::exception& e )
+  {
+    statusOFS << std::endl << " ERROR!!! Proc " << mpirank << " caught exception with message: "
+      << e.what() << std::endl;
+    statusOFS.close();
+    statusOFS << std::endl << " ERROR!!! Proc " << mpirank << " caught exception with message: "
+      << e.what() << std::endl;
+  }
 
-	return 0;
+  MPI_Finalize();
+
+  return 0;
 }

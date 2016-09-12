@@ -1,8 +1,14 @@
-/// @file ex24.cpp
-/// @brief Mainly test the new PMatrixToDistSparseMatrix2 interface.
+/// @file ex16.cpp
+/// @brief Check step-by-step the correctness of PSelInv.
 /// @author Lin Lin
-/// @date 2013-06-27
-#include  "ppexsi.hpp"
+/// @version 0.1
+/// @date 2012-12-19
+#include  "environment_impl.hpp"
+#include  "sparse_matrix_impl.hpp"
+#include  "numvec_impl.hpp"
+#include  "utility.hpp"
+#include  "superlu_dist_interf.hpp"
+#include	"pselinv.hpp"
 
 using namespace PEXSI;
 using namespace std;
@@ -10,12 +16,12 @@ using namespace std;
 void Usage(){
   std::cout 
 		<< "Usage" << std::endl
-		<< "run_pselinv -H <Hfile> -S [Sfile] -colperm [colperm]" << std::endl;
+		<< "ex16 -H [Hfile] -S [Sfile] -colperm [colperm]" << std::endl;
 }
 
 int main(int argc, char **argv) 
 {
-	if( argc < 3 ) {
+	if( argc < 5 ) {
 		Usage();
 		return 0;
 	}
@@ -35,6 +41,7 @@ int main(int argc, char **argv)
 		// Input parameter
 		// *********************************************************************
 		std::map<std::string,std::string> options;
+		std::string Hfile, Sfile;                   
 
 		OptionsCreate(argc, argv, options);
 	  Int nprow = iround( std::sqrt( (double)mpisize) );
@@ -46,21 +53,18 @@ int main(int argc, char **argv)
 		if( mpirank == 0 )
 			cout << "nprow = " << nprow << ", npcol = " << npcol << endl;
 		
-		std::string Hfile, Sfile;                   
 		if( options.find("-H") != options.end() ){ 
 			Hfile = options["-H"];
 		}
 		else{
-      throw std::logic_error("Hfile must be provided.");
+			Hfile = "H_LU.csc";
 		}
 
 		if( options.find("-S") != options.end() ){ 
 			Sfile = options["-S"];
 		}
 		else{
-			statusOFS << "-S option is not given. " 
-				<< "Treat the overlap matrix as an identity matrix." 
-				<< std::endl << std::endl;
+			Sfile = "S_LU.csc";
 		}
 
 		std::string ColPerm;
@@ -68,18 +72,12 @@ int main(int argc, char **argv)
 			ColPerm = options["-colperm"];
 		}
 		else{
-			statusOFS << "-colperm option is not given. " 
-				<< "Use MMD_AT_PLUS_A." 
-				<< std::endl << std::endl;
-			ColPerm = "MMD_AT_PLUS_A";
+      throw std::logic_error("colperm must be provided.");
 		}
 
 		// *********************************************************************
 		// Read input matrix
 		// *********************************************************************
-		
-		// Setup grid.
-		SuperLUGrid g( MPI_COMM_WORLD, nprow, npcol );
 
 		int      m, n;
 		DistSparseMatrix<Complex>  AMat;
@@ -88,16 +86,8 @@ int main(int argc, char **argv)
 		DistSparseMatrix<Real> SMat;
 		Real timeSta, timeEnd;
 		GetTime( timeSta );
-		ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, MPI_COMM_WORLD ); 
-		if( Sfile.empty() ){
-			// Set the size to be zero.  This will tell PPEXSI.Solve to treat
-			// the overlap matrix as an identity matrix implicitly.
-			SMat.size = 0;  
-		}
-		else{
-			ReadDistSparseMatrixFormatted( Sfile.c_str(), SMat, MPI_COMM_WORLD ); 
-		}
-
+		ReadDistSparseMatrix( Hfile.c_str(), HMat, MPI_COMM_WORLD ); 
+		ReadDistSparseMatrix( Sfile.c_str(), SMat, MPI_COMM_WORLD ); 
 		GetTime( timeEnd );
 		if( mpirank == 0 ){
 			cout << "Time for reading H and S is " << timeEnd - timeSta << endl;
@@ -105,61 +95,22 @@ int main(int argc, char **argv)
 			cout << "H.nnz  = " << HMat.nnz  << endl;
 		}
 
-		// Get the diagonal indices for H and save it n diagIdxLocal_
-
-		std::vector<Int>  diagIdxLocal;
-		{ 
-			Int numColLocal      = HMat.colptrLocal.m() - 1;
-			Int numColLocalFirst = HMat.size / mpisize;
-			Int firstCol         = mpirank * numColLocalFirst;
-
-			diagIdxLocal.clear();
-
-			for( Int j = 0; j < numColLocal; j++ ){
-				Int jcol = firstCol + j + 1;
-				for( Int i = HMat.colptrLocal(j)-1; 
-						i < HMat.colptrLocal(j+1)-1; i++ ){
-					Int irow = HMat.rowindLocal(i);
-					if( irow == jcol ){
-						diagIdxLocal.push_back( i );
-					}
-				}
-			} // for (j)
-		}
-
-
 		GetTime( timeSta );
 
-		AMat.size          = HMat.size;
-		AMat.nnz           = HMat.nnz;
-		AMat.nnzLocal      = HMat.nnzLocal;
-		AMat.colptrLocal   = HMat.colptrLocal;
-		AMat.rowindLocal   = HMat.rowindLocal;
+		AMat.size   = HMat.size;
+		AMat.nnz    = HMat.nnz;
+		AMat.nnzLocal = HMat.nnzLocal;
+		AMat.colptrLocal = HMat.colptrLocal;
+		AMat.rowindLocal = HMat.rowindLocal;
 		AMat.nzvalLocal.Resize( HMat.nnzLocal );
 		AMat.comm = MPI_COMM_WORLD;
 
 		Complex *ptr0 = AMat.nzvalLocal.Data();
 		Real *ptr1 = HMat.nzvalLocal.Data();
 		Real *ptr2 = SMat.nzvalLocal.Data();
-		Complex zshift = Complex(1.0, 0.0);
-
-		if( SMat.size != 0 ){
-			// S is not an identity matrix
-			for( Int i = 0; i < HMat.nnzLocal; i++ ){
-				AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift * SMat.nzvalLocal(i);
-			}
+		for(Int i = 0; i < HMat.nnzLocal; i++){
+			*(ptr0++) = *(ptr1++);// - Z_I * *(ptr2++);
 		}
-		else{
-			// S is an identity matrix
-			for( Int i = 0; i < HMat.nnzLocal; i++ ){
-				AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
-			}
-
-			for( Int i = 0; i < diagIdxLocal.size(); i++ ){
-				AMat.nzvalLocal( diagIdxLocal[i] ) -= zshift;
-			}
-		} // if (SMat.size != 0 )
-
 		GetTime( timeEnd );
 		if( mpirank == 0 )
 			cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;
@@ -168,6 +119,9 @@ int main(int argc, char **argv)
 		// *********************************************************************
 		// Symbolic factorization 
 		// *********************************************************************
+
+		// Setup grid.
+		SuperLUGrid g( MPI_COMM_WORLD, nprow, npcol );
 
 		GetTime( timeSta );
 		SuperLUOptions luOpt;
@@ -274,6 +228,20 @@ int main(int argc, char **argv)
 			statusOFS << "superIdx:" << endl << super.superIdx << endl;
 			statusOFS << "superPtr:" << endl << super.superPtr << endl; 
 
+			// Convert the LU factors into DistSparseMatrix
+			{
+				DistSparseMatrix<Scalar> Ainv;
+				PMloc.PMatrixToDistSparseMatrix( Ainv );
+				ofstream ofs("LU");
+				if( !ofs.good() ) 
+					throw std::runtime_error("file cannot be opened.");
+				serialize( Ainv, ofs, NO_MASK );
+				ofs.close();
+			}
+
+
+
+
 
 			// Preparation for the selected inversion
 			GetTime( timeSta );
@@ -290,6 +258,18 @@ int main(int argc, char **argv)
 			if( mpirank == 0 )
 				cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
+
+			// Convert the matrix after PreSelInv into DistSparseMatrix
+			{
+				DistSparseMatrix<Scalar> Ainv;
+				PMloc.PMatrixToDistSparseMatrix( Ainv );
+				ofstream ofs("PreInv");
+				if( !ofs.good() ) 
+					throw std::runtime_error("file cannot be opened.");
+				serialize( Ainv, ofs, NO_MASK );
+				ofs.close();
+			}
+
 			// Main subroutine for selected inversion
 			GetTime( timeSta );
 			PMloc.SelInv();
@@ -299,54 +279,93 @@ int main(int argc, char **argv)
 				cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 
 
-			GetTime( timeTotalSelInvEnd );
-			if( mpirank == 0 )
-				cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
-
-			NumVec<Scalar> diag;
-			
-			GetTime( timeSta );
-			PMloc.GetDiagonal( diag );
-			GetTime( timeEnd );
-			if( mpirank == 0 )
-				cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
-
-			if( mpirank == 0 ){
-				statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
-				ofstream ofs("diag");
+			// Convert the matrix after PreSelInv into DistSparseMatrix
+			{
+				DistSparseMatrix<Scalar> Ainv;
+				PMloc.PMatrixToDistSparseMatrix( Ainv );
+				ofstream ofs("Ainv");
 				if( !ofs.good() ) 
 					throw std::runtime_error("file cannot be opened.");
-				serialize( diag, ofs, NO_MASK );
+				serialize( Ainv, ofs, NO_MASK );
 				ofs.close();
 			}
-
-
-
-			// Convert to DistSparseMatrix in the 2nd format and get the diagonal
-			GetTime( timeSta );
-			DistSparseMatrix<Scalar> Ainv2;
-			PMloc.PMatrixToDistSparseMatrix2( AMat, Ainv2 );
-			GetTime( timeEnd );
-			
-			if( mpirank == 0 )
-				cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
-
-			NumVec<Scalar> diagDistSparse2;
-			GetTime( timeSta );
-			GetDiagonal( Ainv2, diagDistSparse2 );
-			GetTime( timeEnd );
-			if( mpirank == 0 )
-				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-			if( mpirank == 0 ){
-				statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-				Real diffNorm = 0.0;;
-				for( Int i = 0; i < diag.m(); i++ ){
-					diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
-				}
-				diffNorm = std::sqrt( diffNorm );
-				statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-			}
+//
+//
+//			GetTime( timeTotalSelInvEnd );
+//			if( mpirank == 0 )
+//				cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+//
+//			NumVec<Scalar> diag;
+//			
+//			GetTime( timeSta );
+//			PMloc.GetDiagonal( diag );
+//			GetTime( timeEnd );
+//			if( mpirank == 0 )
+//				cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+//
+//			if( mpirank == 0 ){
+//				statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
+//				ofstream ofs("diag");
+//				if( !ofs.good() ) 
+//					throw std::runtime_error("file cannot be opened.");
+//				serialize( diag, ofs, NO_MASK );
+//				ofs.close();
+//			}
+//
+//
+//
+//
+//			// Convert to DistSparseMatrix and get the diagonal
+//			GetTime( timeSta );
+//			DistSparseMatrix<Scalar> Ainv;
+//			PMloc.PMatrixToDistSparseMatrix( Ainv );
+//			GetTime( timeEnd );
+//			
+//			if( mpirank == 0 )
+//				cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
+//
+//			NumVec<Scalar> diagDistSparse;
+//			GetTime( timeSta );
+//			GetDiagonal( Ainv, diagDistSparse );
+//			GetTime( timeEnd );
+//			if( mpirank == 0 )
+//				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+//
+//			if( mpirank == 0 ){
+//				statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+//				Real diffNorm = 0.0;;
+//				for( Int i = 0; i < diag.m(); i++ ){
+//					diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+//				}
+//				diffNorm = std::sqrt( diffNorm );
+//				statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+//			}
+//
+//			// Convert to DistSparseMatrix in the 2nd format and get the diagonal
+//			GetTime( timeSta );
+//			DistSparseMatrix<Scalar> Ainv2;
+//			PMloc.PMatrixToDistSparseMatrix( AMat, Ainv2 );
+//			GetTime( timeEnd );
+//			
+//			if( mpirank == 0 )
+//				cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
+//
+//			NumVec<Scalar> diagDistSparse2;
+//			GetTime( timeSta );
+//			GetDiagonal( Ainv2, diagDistSparse2 );
+//			GetTime( timeEnd );
+//			if( mpirank == 0 )
+//				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+//
+//			if( mpirank == 0 ){
+//				statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+//				Real diffNorm = 0.0;;
+//				for( Int i = 0; i < diag.m(); i++ ){
+//					diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
+//				}
+//				diffNorm = std::sqrt( diffNorm );
+//				statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
+//			}
 //
 //			Complex traceLocal = blas::Dot( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1, 
 //					Ainv2.nzvalLocal.Data(), 1 );
@@ -355,7 +374,7 @@ int main(int argc, char **argv)
 //
 //			if( mpirank == 0 )
 //				statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
-
+//
 
 		}
 		
@@ -365,9 +384,6 @@ int main(int argc, char **argv)
 	{
 		std::cerr << "Processor " << mpirank << " caught exception with message: "
 			<< e.what() << std::endl;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 	
 	MPI_Finalize();

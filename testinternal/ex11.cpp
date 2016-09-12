@@ -2,22 +2,16 @@
 #include  "sparse_matrix_impl.hpp"
 #include  "numvec_impl.hpp"
 #include  "utility.hpp"
-#include  "pluselinv.hpp"
+#include  "superlu_zdefs.h"
+#include  "Cnames.h"
 
 using namespace PEXSI;
 using namespace std;
 
 void Usage(){
   std::cout 
-		<< "Test for the factorization and the selected inversion with complex arithmetic." <<std::endl
-		<< "The code is divided into different phases: " <<std:: endl
-		<< "1. symbolic factorization " << std::endl
-		<< "2. data distribution CompRow->SuperLU " << std::endl
-		<< "3. numerical factorization" << std::endl
-		<< "4. data distribution SuperLU->PMatrix" << std::endl
-		<< "5. selected inversion" << std::endl 
-		<< std::endl
-		<< "ex12 -r [nprow] -c [npcol]" << std::endl;
+		<< "Test for both the factorization using SuperLU for complex arithmetic with parallel input matrices, but with the permutation and the factorization phase completely separated." << std::endl
+		<< "ex11 -r [nprow] -c [npcol]" << std::endl;
 }
 
 extern "C"{
@@ -28,6 +22,48 @@ pzsymbfact(superlu_options_t *options, SuperMatrix *A,
 }
 
 
+// FIXME: IntNumVec convention.  Assumes a symmetric matrix
+	Int mpisize = grid->nprow * grid->npcol;
+
+	Int numRowLocal = A.colptrLocal.m() - 1;
+	Int numRowLocalFirst = A.size / mpisize;
+	Int firstRow = mpirank * numRowLocalFirst;
+
+  int_t *colindLocal, *rowptrLocal;
+	doublecomplex *nzvalLocal;
+	rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
+	colindLocal = (int_t*)intMalloc_dist(A.nnzLocal); 
+	nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(A.nnzLocal);
+  
+	std::copy( A.colptrLocal.Data(), A.colptrLocal.Data() + A.colptrLocal.m(),
+			rowptrLocal );
+	std::copy( A.rowindLocal.Data(), A.rowindLocal.Data() + A.rowindLocal.m(),
+			colindLocal );
+	std::copy( A.nzvalLocal.Data(), A.nzvalLocal.Data() + A.nzvalLocal.m(),
+			(Complex*)nzvalLocal );
+
+//	std::cout << "Processor " << mpirank << " rowptrLocal[end] = " << 
+//		rowptrLocal[numRowLocal] << std::endl;
+
+
+	// Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
+	for(Int i = 0; i < A.rowindLocal.m(); i++){
+		colindLocal[i]--;
+	}
+
+	for(Int i = 0; i < A.colptrLocal.m(); i++){
+		rowptrLocal[i]--;
+	}
+
+//	std::cout << "Processor " << mpirank << " colindLocal[end] = " << 
+//		colindLocal[A.nnzLocal-1] << std::endl;
+
+	// Construct the distributed matrix according to the SuperLU_DIST format
+	zCreate_CompRowLoc_Matrix_dist(ANRloc, A.size, A.size, A.nnzLocal, 
+			numRowLocal, firstRow,
+			nzvalLocal, colindLocal, rowptrLocal,
+			SLU_NR_loc, SLU_Z, SLU_GE);
+}
 
 
 int main(int argc, char **argv) 
@@ -59,10 +95,6 @@ int main(int argc, char **argv)
 		int      m, n;
 		DistSparseMatrix<Complex>  AMat;
 		std::string Hfile, Sfile;
-
-		// For selected inversion
-		PMatrix PMloc;
-		std::vector<std::vector<Int> > localEtree; 
 
 		// *********************************************************************
 		// Input parameter
@@ -147,8 +179,8 @@ int main(int argc, char **argv)
 		superlu_options.ParSymbFact       = NO;
 		superlu_options.Equil             = NO; 
 		superlu_options.ReplaceTinyPivot  = NO;
-//		superlu_options.ColPerm           = METIS_AT_PLUS_A;
-		superlu_options.ColPerm           = MMD_AT_PLUS_A;
+		superlu_options.ColPerm           = METIS_AT_PLUS_A;
+//		superlu_options.ColPerm           = MMD_AT_PLUS_A;
 //		superlu_options.ColPerm = NATURAL;
 		superlu_options.PrintStat         = YES;
 		superlu_options.SolveInitialized  = NO;
@@ -224,8 +256,7 @@ int main(int argc, char **argv)
 		string norm = "1";
 		double anorm = pzlangs((char*)norm.c_str(), &A, &grid);
 		if(mpirank == 0) cout << "anorm = " << anorm << endl;
-		
-		// Numerical factorization phase
+		// Factorization
 		pzgstrf(&superlu_options, m, n, anorm, &LUstruct, &grid, &stat, &info); 
 		PStatFree(&stat); 
 		GetTime( timeFactorEnd );
@@ -239,12 +270,13 @@ int main(int argc, char **argv)
 		// Test the accuracy of factorization by solve
 		// *********************************************************************
 
-		if(0){
+		// Initialize the statistics variables.
+		if(1){
 			PStatInit(&stat);
 			superlu_options.Fact              = FACTORED;
 
 			int nrhs = 1;
-			PEXSI::CpxNumVec  xTrueGlobal(n), bGlobal(n);
+			CpxNumVec  xTrueGlobal(n), bGlobal(n);
 			{
 				SuperMatrix GA, A1;
 				int needValue = 1;
@@ -271,8 +303,8 @@ int main(int argc, char **argv)
 			Int numRowLocalFirst = AMat.size / mpisize;
 			Int firstRow = mpirank * numRowLocalFirst;
 			bLocal = doublecomplexMalloc_dist( numRowLocal ); 
-			cout << "Proc " << mpirank << " outputs numRowLocal = " <<
-				numRowLocal << " firstRow = " << firstRow << endl;
+//			cout << "Proc " << mpirank << " outputs numRowLocal = " <<
+//				numRowLocal << " firstRow = " << firstRow << endl;
 			std::copy( bGlobal.Data()+firstRow, bGlobal.Data()+firstRow+numRowLocal,
 					(Complex*)bLocal );
 			xTrueLocal = doublecomplexMalloc_dist( numRowLocal ); 
@@ -302,34 +334,6 @@ int main(int argc, char **argv)
 			SUPERLU_FREE( berr );
 		}
 
-
-		// *********************************************************************
-		// Selected inversion
-		// *********************************************************************
-		
-		{
-			GetTime(timeSta);
-			SuperLU2SelInv(n, &LUstruct, &grid, PMloc);
-			GetTime(timeEnd);
-			if( mpirank == 0 )
-				cout << "Time for converting the SuperLU to SelInv format is " 
-					<< timeEnd - timeSta << " sec" << endl; 
-
-			GetTime(timeSta);
-			ConstructLocalEtree(n, &grid, PMloc, localEtree);
-			GetTime(timeEnd);
-			if( mpirank == 0 )
-				cout << "Time for converting the SelInv elimination tree is " 
-					<< timeEnd - timeSta << " sec" << endl; 
-			
-			GetTime(timeSta);
-			PLUSelInv(&grid, PMloc, localEtree);
-			GetTime(timeEnd);
-			if( mpirank == 0 )
-				cout << "Time for the selected inversion is " 
-					<< timeEnd - timeSta << " sec" << endl; 
-		}
-
 		// *********************************************************************
 		// Deallocate the storage
 		// *********************************************************************
@@ -344,9 +348,6 @@ int main(int argc, char **argv)
 	catch( std::exception& e )
 	{
 		std::cerr << "Processor " << mpirank << " caught exception with message: "
-			<< e.what() << std::endl;
-		DumpCallStack();
-	}
 	
 	MPI_Finalize();
 

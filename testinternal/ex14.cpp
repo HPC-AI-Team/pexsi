@@ -1,8 +1,9 @@
-/// @file ex16.cpp
-/// @brief Check step-by-step the correctness of PSelInv.
+/// @file ex14.cpp
+/// @brief Test for the new input interface for SuperLU together with
+/// the new parallel selected inversion.
 /// @author Lin Lin
 /// @version 0.1
-/// @date 2012-12-19
+/// @date 2012-11-16
 #include  "environment_impl.hpp"
 #include  "sparse_matrix_impl.hpp"
 #include  "numvec_impl.hpp"
@@ -16,7 +17,7 @@ using namespace std;
 void Usage(){
   std::cout 
 		<< "Usage" << std::endl
-		<< "ex16 -H [Hfile] -S [Sfile] -colperm [colperm]" << std::endl;
+		<< "ex14 -H [Hfile] -S [Sfile] -colperm [colperm]" << std::endl;
 }
 
 int main(int argc, char **argv) 
@@ -108,8 +109,13 @@ int main(int argc, char **argv)
 		Complex *ptr0 = AMat.nzvalLocal.Data();
 		Real *ptr1 = HMat.nzvalLocal.Data();
 		Real *ptr2 = SMat.nzvalLocal.Data();
+//		Complex zshift = Complex(-3.84573575e-03, -4.38677095e-03);
+//		for(Int i = 0; i < HMat.nnzLocal; i++){
+//			*(ptr0++) = *(ptr1++) - zshift * *(ptr2++);
+//		}
+//		Complex zshift = Complex(-3.84573575e-03, -4.38677095e-03);
 		for(Int i = 0; i < HMat.nnzLocal; i++){
-			*(ptr0++) = *(ptr1++);// - Z_I * *(ptr2++);
+			*(ptr0++) = *(ptr1++);// - zshift * *(ptr2++);
 		}
 		GetTime( timeEnd );
 		if( mpirank == 0 )
@@ -228,20 +234,6 @@ int main(int argc, char **argv)
 			statusOFS << "superIdx:" << endl << super.superIdx << endl;
 			statusOFS << "superPtr:" << endl << super.superPtr << endl; 
 
-			// Convert the LU factors into DistSparseMatrix
-			{
-				DistSparseMatrix<Scalar> Ainv;
-				PMloc.PMatrixToDistSparseMatrix( Ainv );
-				ofstream ofs("LU");
-				if( !ofs.good() ) 
-					throw std::runtime_error("file cannot be opened.");
-				serialize( Ainv, ofs, NO_MASK );
-				ofs.close();
-			}
-
-
-
-
 
 			// Preparation for the selected inversion
 			GetTime( timeSta );
@@ -258,18 +250,6 @@ int main(int argc, char **argv)
 			if( mpirank == 0 )
 				cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
-
-			// Convert the matrix after PreSelInv into DistSparseMatrix
-			{
-				DistSparseMatrix<Scalar> Ainv;
-				PMloc.PMatrixToDistSparseMatrix( Ainv );
-				ofstream ofs("PreInv");
-				if( !ofs.good() ) 
-					throw std::runtime_error("file cannot be opened.");
-				serialize( Ainv, ofs, NO_MASK );
-				ofs.close();
-			}
-
 			// Main subroutine for selected inversion
 			GetTime( timeSta );
 			PMloc.SelInv();
@@ -279,102 +259,90 @@ int main(int argc, char **argv)
 				cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 
 
-			// Convert the matrix after PreSelInv into DistSparseMatrix
-			{
-				DistSparseMatrix<Scalar> Ainv;
-				PMloc.PMatrixToDistSparseMatrix( Ainv );
-				ofstream ofs("Ainv");
+			GetTime( timeTotalSelInvEnd );
+			if( mpirank == 0 )
+				cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+
+			NumVec<Scalar> diag;
+			
+			GetTime( timeSta );
+			PMloc.GetDiagonal( diag );
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+
+			if( mpirank == 0 ){
+				statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
+				ofstream ofs("diag");
 				if( !ofs.good() ) 
 					throw std::runtime_error("file cannot be opened.");
-				serialize( Ainv, ofs, NO_MASK );
+				serialize( diag, ofs, NO_MASK );
 				ofs.close();
 			}
-//
-//
-//			GetTime( timeTotalSelInvEnd );
-//			if( mpirank == 0 )
-//				cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
-//
-//			NumVec<Scalar> diag;
-//			
-//			GetTime( timeSta );
-//			PMloc.GetDiagonal( diag );
-//			GetTime( timeEnd );
-//			if( mpirank == 0 )
-//				cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
-//
-//			if( mpirank == 0 ){
-//				statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
-//				ofstream ofs("diag");
-//				if( !ofs.good() ) 
-//					throw std::runtime_error("file cannot be opened.");
-//				serialize( diag, ofs, NO_MASK );
-//				ofs.close();
-//			}
-//
-//
-//
-//
-//			// Convert to DistSparseMatrix and get the diagonal
-//			GetTime( timeSta );
-//			DistSparseMatrix<Scalar> Ainv;
-//			PMloc.PMatrixToDistSparseMatrix( Ainv );
-//			GetTime( timeEnd );
-//			
-//			if( mpirank == 0 )
-//				cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
-//
-//			NumVec<Scalar> diagDistSparse;
-//			GetTime( timeSta );
-//			GetDiagonal( Ainv, diagDistSparse );
-//			GetTime( timeEnd );
-//			if( mpirank == 0 )
-//				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-//
-//			if( mpirank == 0 ){
-//				statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-//				Real diffNorm = 0.0;;
-//				for( Int i = 0; i < diag.m(); i++ ){
-//					diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
-//				}
-//				diffNorm = std::sqrt( diffNorm );
-//				statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-//			}
-//
-//			// Convert to DistSparseMatrix in the 2nd format and get the diagonal
-//			GetTime( timeSta );
-//			DistSparseMatrix<Scalar> Ainv2;
-//			PMloc.PMatrixToDistSparseMatrix( AMat, Ainv2 );
-//			GetTime( timeEnd );
-//			
-//			if( mpirank == 0 )
-//				cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
-//
-//			NumVec<Scalar> diagDistSparse2;
-//			GetTime( timeSta );
-//			GetDiagonal( Ainv2, diagDistSparse2 );
-//			GetTime( timeEnd );
-//			if( mpirank == 0 )
-//				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-//
-//			if( mpirank == 0 ){
-//				statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-//				Real diffNorm = 0.0;;
-//				for( Int i = 0; i < diag.m(); i++ ){
-//					diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
-//				}
-//				diffNorm = std::sqrt( diffNorm );
-//				statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-//			}
-//
-//			Complex traceLocal = blas::Dot( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1, 
-//					Ainv2.nzvalLocal.Data(), 1 );
-//			Complex trace = Z_ZERO;
-//			mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, MPI_COMM_WORLD );
-//
-//			if( mpirank == 0 )
-//				statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
-//
+
+
+
+
+			// Convert to DistSparseMatrix and get the diagonal
+			GetTime( timeSta );
+			DistSparseMatrix<Scalar> Ainv;
+			PMloc.PMatrixToDistSparseMatrix( Ainv );
+			GetTime( timeEnd );
+			
+			if( mpirank == 0 )
+				cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
+
+			NumVec<Scalar> diagDistSparse;
+			GetTime( timeSta );
+			GetDiagonal( Ainv, diagDistSparse );
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+
+			if( mpirank == 0 ){
+				statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+				Real diffNorm = 0.0;;
+				for( Int i = 0; i < diag.m(); i++ ){
+					diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+				}
+				diffNorm = std::sqrt( diffNorm );
+				statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+			}
+
+			// Convert to DistSparseMatrix in the 2nd format and get the diagonal
+			GetTime( timeSta );
+			DistSparseMatrix<Scalar> Ainv2;
+			PMloc.PMatrixToDistSparseMatrix( AMat, Ainv2 );
+			GetTime( timeEnd );
+			
+			if( mpirank == 0 )
+				cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
+
+			NumVec<Scalar> diagDistSparse2;
+			GetTime( timeSta );
+			GetDiagonal( Ainv2, diagDistSparse2 );
+			GetTime( timeEnd );
+			if( mpirank == 0 )
+				cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+
+			if( mpirank == 0 ){
+				statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+				Real diffNorm = 0.0;;
+				for( Int i = 0; i < diag.m(); i++ ){
+					diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
+				}
+				diffNorm = std::sqrt( diffNorm );
+				statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
+			}
+
+			Complex traceLocal = blas::Dot( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1, 
+					Ainv2.nzvalLocal.Data(), 1 );
+			Complex trace = Z_ZERO;
+			mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, MPI_COMM_WORLD );
+
+			if( mpirank == 0 )
+				statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
+
 
 		}
 		
@@ -384,9 +352,6 @@ int main(int argc, char **argv)
 	{
 		std::cerr << "Processor " << mpirank << " caught exception with message: "
 			<< e.what() << std::endl;
-#ifndef _RELEASE_
-		DumpCallStack();
-#endif
 	}
 	
 	MPI_Finalize();

@@ -1,4 +1,4 @@
-/// @file ex30.cpp
+/// @file ex31.cpp
 /// @brief Test the routine of MPI/OpenMP hybrid ISend/IRecv with the
 /// MPI_THREAD_MULTIPLE mode
 /// @author Lin Lin
@@ -55,19 +55,21 @@ int main(int argc, char **argv)
       ompsize = omp_get_num_threads(); 
     }
 
-    stringstream ofs[ompsize];
 
-#pragma omp parallel shared(errorMax, statusOFS, mpirank, mpisize, ofs)
+#pragma omp parallel shared(errorMax, statusOFS, mpirank, mpisize)
     {
       Int omprank = omp_get_thread_num();
       Int ompsize = omp_get_num_threads();
 
-      stringstream& msg = ofs[omprank];
+      stringstream msg;
 
       msg << "I have mpirank = " << mpirank << " and thread rank " << omprank 
         << ", thread size " << ompsize << std::endl;
+      statusOFS << msg.str().c_str();
+      msg.str(std::string());
 
-      Int m = 100000, n = 1200/ompsize;
+      Int loop = 1;
+      Int m = 100000/loop, n = 1200/ompsize;
       DblNumMat smat(m, n), rmat(m, n);
       Real timeSta, timeEnd;
 
@@ -84,27 +86,39 @@ int main(int argc, char **argv)
 
       msg << "Thread " << omprank << ": Generate a matrix of size " << 
         m << " x " << n << " takes " << timeEnd - timeSta << " s." << std::endl;
+      statusOFS << msg.str().c_str();
+      msg.str(std::string());
 
-      Int src, dest;
-      std::vector<MPI_Request> mpiReq;
-      mpiReq.resize( ompsize, MPI_REQUEST_NULL );
-      
       timeSta = omp_get_wtime();
-      if( mpirank < mpisize / 2 ){
-        dest = mpirank + mpisize/2;
-        MPI_Isend( smat.Data(), m*n, MPI_DOUBLE, dest, omprank, MPI_COMM_WORLD, &mpiReq[omprank] );
+      for( Int l = 0; l < loop; l++ ){
+        Int src, dest;
+        std::vector<MPI_Request> mpiReq;
+        mpiReq.resize( ompsize, MPI_REQUEST_NULL );
+
+//#pragma critical
+        {
+        if( mpirank < mpisize / 2 ){
+          dest = mpirank + mpisize/2;
+          MPI_Isend( smat.Data(), m*n, MPI_DOUBLE, dest, omprank, MPI_COMM_WORLD, &mpiReq[omprank] );
+        }
+        else{
+          src = mpirank - mpisize/2;
+          MPI_Irecv( rmat.Data(), m*n, MPI_DOUBLE, src, omprank, MPI_COMM_WORLD, &mpiReq[omprank]);
+        }
+        }
+//#pragma critical
+        {
+        mpi::Wait( mpiReq[omprank] );
+        }
       }
-      else{
-        src = mpirank - mpisize/2;
-        MPI_Irecv( rmat.Data(), m*n, MPI_DOUBLE, src, omprank, MPI_COMM_WORLD, &mpiReq[omprank]);
-      }
-      mpi::Wait( mpiReq[omprank] );
 
       timeEnd = omp_get_wtime();
 
 
       msg << "Thread " << omprank << ": Send/Recv time for a matrix of size " << 
         m << " x " << n << " takes " << timeEnd - timeSta << " s." << std::endl;
+      statusOFS << msg.str().c_str();
+      msg.str(std::string());
 
 
       if( mpirank >= mpisize / 2 ){
@@ -125,9 +139,6 @@ int main(int argc, char **argv)
       }
     }
 
-    for( Int i = 0; i < ompsize; i++ ){
-      statusOFS << ofs[i].str();
-    }
 
     if( mpirank >= mpisize / 2 ){
       statusOFS << "Max error for the received matrix is " << 
@@ -140,9 +151,6 @@ int main(int argc, char **argv)
   {
     std::cerr << "Processor " << mpirank << " caught exception with message: "
       << e.what() << std::endl;
-#ifndef _RELEASE_
-    DumpCallStack();
-#endif
   }
 
   MPI_Finalize();

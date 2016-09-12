@@ -192,9 +192,6 @@ int main(int argc, char **argv)
 	catch( std::exception& e )
 	{
 		std::cerr << "Processor " << mpirank << " caught exception with message: "
-			<< e.what() << std::endl;
-		DumpCallStack();
-	}
 	
 	MPI_Finalize();
 
