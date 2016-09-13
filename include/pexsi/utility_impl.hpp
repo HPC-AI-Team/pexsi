@@ -48,7 +48,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include <numeric>
 
-using namespace std;
+//using namespace std;
 using std::ifstream;
 using std::ofstream;
 using std::vector;
@@ -1174,7 +1174,7 @@ template<typename T> inline void GetDiagonal ( const DistSparseMatrix<T>& A, Num
     const Int* rowPtr = &A.rowindLocal( A.colptrLocal(j) - 1 );
     // NOTE: The rows in DistSparseMatrix are not necessarily ordered.
     // So lower_bound cannot be used here for fast searching. find has to be used. 
-    const Int* ptr = find( rowPtr, rowPtr + numRow, jcol ); 
+    const Int* ptr = std::find( rowPtr, rowPtr + numRow, jcol ); 
     if( ptr == rowPtr + numRow ){
       std::ostringstream msg;
       msg << "Serious problem. Did not find the row corresponding to the column." << std::endl
@@ -1393,7 +1393,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
           for(Int i=colbeg;i<=colend;++i){
             Int row = rowindGlobal[i-1];  
             //determine where it should be packed ?
-            Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
+            Int p_dest = std::min(mpisize-1,(row-1)/(numRowLocalFirst));
             bufsizes[p_dest]+=sizeof(T);
           }
         }
@@ -1420,7 +1420,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
           for(Int i=colbeg;i<=colend;++i){
             Int row = sparseA.rowindLocal[i-1];  
             //determine where it should be packed ?
-            Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
+            Int p_dest = std::min(mpisize-1,(row-1)/(numRowLocalFirst));
             Int p_displs = displs[p_dest];
             Int p_bufpos = bufpos[p_dest];
             *((T *)&send_buffer.at( displs[p_dest] + bufpos[p_dest] )) = sparseA.nzvalLocal[i-1];
@@ -1447,7 +1447,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
           Int colend = colptrGlobal[col]-1;
           for(Int i=colbeg;i<=colend;++i){
             Int row = rowindGlobal[i-1];  
-            Int p_dest = min(mpisize-1,(row-1)/(numRowLocalFirst));
+            Int p_dest = std::min(mpisize-1,(row-1)/(numRowLocalFirst));
             if(p_dest==mpirank){
               //compute local CSR coordinates
               Int local_row = row - mpirank*numRowLocalFirst;

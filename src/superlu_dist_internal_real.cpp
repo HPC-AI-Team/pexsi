@@ -53,7 +53,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include <Cnames.h>
 extern "C"{ void
-pdsymbfact(superlu_options_t *options, SuperMatrix *A, 
+pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
@@ -144,7 +144,7 @@ protected:
   /// 
   /// to make sure that symmetric permutation is used.
   ///
-  superlu_options_t   options;                  
+  superlu_dist_options_t   options;                  
 
   /// @brief Saves the permutation vectors.  Only perm_c (permutation of
   /// column as well as rows due to the symmetric permutation) will be used.

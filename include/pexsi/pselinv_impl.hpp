@@ -1321,7 +1321,7 @@ template<typename T>
           splitIdx = maxRank - maxRank%limIndex_ - rank; 
         }
 
-        Int splitPoint = min((Int)WSet[lidx].size()-1,splitIdx>0?min(limit-1,splitIdx):limit-1);
+        Int splitPoint = std::min((Int)WSet[lidx].size()-1,splitIdx>0?std::min(limit-1,splitIdx):limit-1);
 #if ( _DEBUGlevel_ >= 1 )
         if(split){ 
           statusOFS<<"TEST SPLIT at "<<splitIdx<<" "<<std::endl;
