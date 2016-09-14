@@ -733,7 +733,7 @@ namespace PEXSI{
         else{
             Int multi = (blockSize + optimal_size - 1) / optimal_size;
             if(multi > 2) {
-                blockSize = multi/2 * optimal_size;
+                blockSize = multi * optimal_size;
             }
         }
         if(omp_get_num_threads() == 1) blockSize = numRowAinvBuf;
@@ -746,6 +746,12 @@ namespace PEXSI{
         row_trunk_size += rowPtr[index+1] - rowPtr[index];
         end = index;
         if((row_trunk_size >= blockSize) || (index == LcolRecv.size()-1 )){
+#pragma omp task shared(UrowRecv,colPtr,UBuf,LcolRecv,AinvBuf,snode) firstprivate(begin,end,blockSize)
+        {
+        //for( Int ib = 0; ib < LcolRecv.size(); ib++ )
+        //for( Int jb = 0; jb < UrowRecv.size(); jb++ )
+        for( Int ib = begin; ib <= end; ib++ ){
+        
         Int start = 0; 
         Int finish = 0;
         Int col_trunk_size = 0;
@@ -755,10 +761,10 @@ namespace PEXSI{
         finish = col_index;
 
         if((col_trunk_size >= blockSize) || (col_index == UrowRecv.size()-1)){
-#pragma omp task shared(UrowRecv,colPtr,UBuf,LcolRecv,AinvBuf,snode) firstprivate(start,finish, begin, end, blockSize)
+#pragma omp task shared(UrowRecv,colPtr,UBuf,LcolRecv,AinvBuf,snode) firstprivate(start,finish)
         {
-        for( Int ib = begin; ib <= end; ib++ ){
-        for( Int jb = start; jb <= finish; jb++ ){
+        for( Int jb = start; jb <= finish; jb++ )
+          {
           LBlock<T>& LB = LcolRecv[ib];
           UBlock<T>& UB = UrowRecv[jb];
           Int isup = LB.blockIdx;
@@ -891,12 +897,12 @@ namespace PEXSI{
             }
           } // if (isup, jsup) is in U
         } // for jb
-        } // for ib
         } // omp task
         col_trunk_size = 0;
         start = col_index+1;
-        } // if col_trunk
-      } // for( col_index )
+        } // if statement 
+        } // for ( col_index )
+      } // for( ib )
 #pragma omp taskwait
       if(UBuf.m() <= blockSize || omp_get_num_threads()== 1)
       {
@@ -920,11 +926,13 @@ namespace PEXSI{
             }
           }
       }
+#pragma omp taskwait
+      } // omp task 
 
       row_trunk_size = 0;
       begin = index+1;
-      } // end if row_index
-    } // for index
+      } // end if
+    }
 #pragma omp taskwait
 #endif
       TIMER_STOP(JB_Loop);
@@ -1584,7 +1592,7 @@ namespace PEXSI{
     }
 
   template<typename T>
-    inline void PMatrix<T>::SelInvIntra_P2p(Int lidx,Int & rank)
+    inline void PMatrix<T>::SelInvIntra_P2p(Int lidx,Int & rank, vector<NumMat<T>> &AinvBufs)
     {
 
 #if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
@@ -1705,7 +1713,7 @@ namespace PEXSI{
       std::vector<int> reqSentToLeft;
 
 
-      std::vector<NumMat<T> > AinvBufs(omp_get_max_threads());
+      //std::vector<NumMat<T> > AinvBufs(omp_get_max_threads());
       std::vector<NumMat<T> > UBufs(omp_get_max_threads());
       //NumMat<T> AinvBuf, UBuf;
 
@@ -3749,11 +3757,12 @@ namespace PEXSI{
       //NumMat<T> global_AinvBuf, global_UBuf;
       //Int m = 5000;
       //global_AinvBuf.Resize(m,m);
+      std::vector<NumMat<T> > AinvBufs(omp_get_max_threads());
 
       for (Int lidx=0; lidx<numSteps ; lidx++){
         Int stepSuper = superList[lidx].size(); 
         //statusOFS<<"IN "<<lidx<<"/"<<numSteps<<std::endl;
-        SelInvIntra_P2p(lidx,rank);
+        SelInvIntra_P2p(lidx,rank, AinvBufs);
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS<<"OUT "<<lidx<<"/"<<numSteps<<" "<<limIndex_<<std::endl;
 #endif
