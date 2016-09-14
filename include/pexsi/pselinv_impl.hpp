@@ -738,19 +738,33 @@ namespace PEXSI{
         }
         if(omp_get_num_threads() == 1) blockSize = numRowAinvBuf;
         //blockSize = 128;
-        Int start = 0;
+        Int begin = 0;
         Int end   = 0;
-        Int trunk_size = 0;
+        Int row_trunk_size = 0;
 
         for( Int index = 0; index < LcolRecv.size(); index++){
-        trunk_size += rowPtr[index+1] - rowPtr[index];
+        row_trunk_size += rowPtr[index+1] - rowPtr[index];
         end = index;
-        if((trunk_size >= blockSize) || (index == LcolRecv.size()-1 )){
-#pragma omp task shared(UrowRecv,colPtr,UBuf,LcolRecv,AinvBuf,snode) firstprivate(start,end,blockSize)
+        if((row_trunk_size >= blockSize) || (index == LcolRecv.size()-1 )){
+#pragma omp task shared(UrowRecv,colPtr,UBuf,LcolRecv,AinvBuf,snode) firstprivate(begin,end,blockSize)
         {
         //for( Int ib = 0; ib < LcolRecv.size(); ib++ )
-        for( Int ib = start; ib <= end; ib++ ){
-        for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+        //for( Int jb = 0; jb < UrowRecv.size(); jb++ )
+        for( Int ib = begin; ib <= end; ib++ ){
+        
+        Int start = 0; 
+        Int finish = 0;
+        Int col_trunk_size = 0;
+
+        for( Int col_index = 0; col_index < UrowRecv.size(); col_index++ ){
+        col_trunk_size += colPtr[col_index +1] - colPtr[col_index];
+        finish = col_index;
+
+        if((col_trunk_size >= blockSize) || (col_index == UrowRecv.size()-1)){
+#pragma omp task shared(UrowRecv,colPtr,UBuf,LcolRecv,AinvBuf,snode) firstprivate(start,finish)
+        {
+        for( Int jb = start; jb <= finish; jb++ )
+          {
           LBlock<T>& LB = LcolRecv[ib];
           UBlock<T>& UB = UrowRecv[jb];
           Int isup = LB.blockIdx;
@@ -882,16 +896,20 @@ namespace PEXSI{
               throw std::runtime_error( msg.str().c_str() );
             }
           } // if (isup, jsup) is in U
-
-        } // for ( jb )
+        } // for jb
+        } // omp task
+        col_trunk_size = 0;
+        start = col_index+1;
+        } // if statement 
+        } // for ( col_index )
       } // for( ib )
-
+#pragma omp taskwait
       if(UBuf.m() <= blockSize || omp_get_num_threads()== 1)
       {
-          blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[start], UBuf.m(), UBuf.n(), MINUS_ONE<T>(), 
-                      &AinvBuf(rowPtr[start],0), AinvBuf.m(), 
+          blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[begin], UBuf.m(), UBuf.n(), MINUS_ONE<T>(), 
+                      &AinvBuf(rowPtr[begin],0), AinvBuf.m(), 
                       UBuf.Data(),UBuf.m(), ZERO<T>(),
-                      &snode.LUpdateBuf(rowPtr[start],0),snode.LUpdateBuf.m() ); 
+                      &snode.LUpdateBuf(rowPtr[begin],0),snode.LUpdateBuf.m() ); 
       }
       else{
           Int njob = (UBuf.m() + blockSize - 1) / blockSize;
@@ -899,20 +917,20 @@ namespace PEXSI{
             Int stride = blockSize;
             Int currentCol = index * blockSize;
             if( currentCol + stride > UBuf.m()) stride = UBuf.m() - currentCol;
-#pragma omp task firstprivate(end,start,stride, currentCol) shared(rowPtr,UBuf,AinvBuf,snode)
+#pragma omp task firstprivate(end,begin,stride, currentCol) shared(rowPtr,UBuf,AinvBuf,snode)
             {
-              blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[start], stride, UBuf.n(), MINUS_ONE<T>(),
-                          &AinvBuf(rowPtr[start],0), AinvBuf.m(),
+              blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[begin], stride, UBuf.n(), MINUS_ONE<T>(),
+                          &AinvBuf(rowPtr[begin],0), AinvBuf.m(),
                           &UBuf(currentCol,0), UBuf.m(), ZERO<T>(),
-                          &snode.LUpdateBuf(rowPtr[start],currentCol), snode.LUpdateBuf.m() );
+                          &snode.LUpdateBuf(rowPtr[begin],currentCol), snode.LUpdateBuf.m() );
             }
           }
       }
 #pragma omp taskwait
       } // omp task 
 
-      trunk_size = 0;
-      start = index+1;
+      row_trunk_size = 0;
+      begin = index+1;
       } // end if
     }
 #pragma omp taskwait
@@ -3775,13 +3793,13 @@ namespace PEXSI{
 #ifdef TIMING
       cout << "---------------- JIA WEILE -----------------------"<< endl;
       cout <<"Comptute SinV LT time: "<< time1 <<endl;
-      cout <<"Reduce Sinv LT time: "<< time2 <<endl;
-      cout <<"Update Diag time: "<< time3 <<endl;
-      cout <<"Reduce Diag time: "<< time4 <<endl;
-      cout <<"find U time: "<< time5 <<endl;
-      cout <<"Resize time: "<< time6 <<endl;
-      cout <<"** Part 7 of Gemm: "<< time7 <<endl;
-      cout <<"** Gemm:           "<< time8 <<endl;
+      cout <<"Reduce Sinv LT time:   "<< time2 <<endl;
+      cout <<"Update Diag time:      "<< time3 <<endl;
+      cout <<"Reduce Diag time:      "<< time4 <<endl;
+      cout <<"find U time:           "<< time5 <<endl;
+      cout <<"Resize time:           "<< time6 <<endl;
+      cout <<"** Part 7 of Gemm:     "<< time7 <<endl;
+      cout <<"** Gemm:               "<< time8 <<endl;
       cout << "---------------- JIA WEILE -----------------------"<< endl;
 #endif
       MPI_Barrier(grid_->comm);
