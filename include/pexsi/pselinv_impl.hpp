@@ -733,7 +733,7 @@ namespace PEXSI{
         else{
             Int multi = (blockSize + optimal_size - 1) / optimal_size;
             if(multi > 2) {
-                blockSize = multi * optimal_size;
+                blockSize = multi/2 * optimal_size;
             }
         }
         if(omp_get_num_threads() == 1) blockSize = numRowAinvBuf;
@@ -746,12 +746,6 @@ namespace PEXSI{
         row_trunk_size += rowPtr[index+1] - rowPtr[index];
         end = index;
         if((row_trunk_size >= blockSize) || (index == LcolRecv.size()-1 )){
-#pragma omp task shared(UrowRecv,colPtr,UBuf,LcolRecv,AinvBuf,snode) firstprivate(begin,end,blockSize)
-        {
-        //for( Int ib = 0; ib < LcolRecv.size(); ib++ )
-        //for( Int jb = 0; jb < UrowRecv.size(); jb++ )
-        for( Int ib = begin; ib <= end; ib++ ){
-        
         Int start = 0; 
         Int finish = 0;
         Int col_trunk_size = 0;
@@ -761,10 +755,10 @@ namespace PEXSI{
         finish = col_index;
 
         if((col_trunk_size >= blockSize) || (col_index == UrowRecv.size()-1)){
-#pragma omp task shared(UrowRecv,colPtr,UBuf,LcolRecv,AinvBuf,snode) firstprivate(start,finish)
+#pragma omp task shared(UrowRecv,colPtr,UBuf,LcolRecv,AinvBuf,snode) firstprivate(start,finish, begin, end, blockSize)
         {
-        for( Int jb = start; jb <= finish; jb++ )
-          {
+        for( Int ib = begin; ib <= end; ib++ ){
+        for( Int jb = start; jb <= finish; jb++ ){
           LBlock<T>& LB = LcolRecv[ib];
           UBlock<T>& UB = UrowRecv[jb];
           Int isup = LB.blockIdx;
@@ -897,12 +891,12 @@ namespace PEXSI{
             }
           } // if (isup, jsup) is in U
         } // for jb
+        } // for ib
         } // omp task
         col_trunk_size = 0;
         start = col_index+1;
-        } // if statement 
-        } // for ( col_index )
-      } // for( ib )
+        } // if col_trunk
+      } // for( col_index )
 #pragma omp taskwait
       if(UBuf.m() <= blockSize || omp_get_num_threads()== 1)
       {
@@ -926,13 +920,11 @@ namespace PEXSI{
             }
           }
       }
-#pragma omp taskwait
-      } // omp task 
 
       row_trunk_size = 0;
       begin = index+1;
-      } // end if
-    }
+      } // end if row_index
+    } // for index
 #pragma omp taskwait
 #endif
       TIMER_STOP(JB_Loop);
