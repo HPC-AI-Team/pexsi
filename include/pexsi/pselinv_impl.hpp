@@ -78,7 +78,7 @@ namespace PEXSI{
 }
 #endif
 
-      double time1, time2, time3, time4,time5,time6, time7, time8;
+      double time1, time2, time3, time4,time5,time6, time7, time8, time9, time10, time11;
 
       
 namespace PEXSI{
@@ -545,7 +545,7 @@ namespace PEXSI{
       UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
       snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) ); // weile
       GetTime(timeEnd);
-      time6 += timeEnd - timeSta;
+      if(omp_get_thread_num() == 0) time6 += timeEnd - timeSta;
       //    TIMER_START(SetValue_lookup);
       //    SetValue( AinvBuf, ZERO<T>() );
       //SetValue( snode.LUpdateBuf, ZERO<T>() );
@@ -567,7 +567,7 @@ namespace PEXSI{
             UrowRecv[jb].numRow, UBuf.VecData(colPtr[jb]),UrowRecv[jb].numRow);
       }
       GetTime(timeEnd);
-      time5 += timeEnd - timeSta;
+      if(omp_get_thread_num() == 0) time5 += timeEnd - timeSta;
       TIMER_STOP(Fill_UBuf);
 
       // Calculate the relative indices for (isup, jsup)
@@ -2348,7 +2348,10 @@ namespace PEXSI{
               // The size will be updated in the Gemm phase and the reduce phase
 
               //Unpack data for all threads/tasks created later
+              GetTime(timeSta2);
               UnpackData(snode, LcolRecv, UrowRecv);
+              GetTime(timeEnd2);
+              if(omp_get_thread_num() == 0) time10 += timeEnd2 - timeSta2;
 
               NumMat<T> & AinvBuf = AinvBufs[omp_get_thread_num()];
               NumMat<T> & UBuf = UBufs[omp_get_thread_num()];
@@ -2356,7 +2359,7 @@ namespace PEXSI{
               GetTime(timeSta2);
               SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,AinvBuf,UBuf);
               GetTime(timeEnd2);
-              time8 += timeEnd2 - timeSta2;
+              if(omp_get_thread_num() == 0) time8 += timeEnd2 - timeSta2;
 
               TIMER_STOP(Compute_Sinv_LT_GEMM);
              } // if Gemm is to be done locally
@@ -2627,7 +2630,7 @@ namespace PEXSI{
       GetTime(timeSta);
       SendRecvCD_UpdateU(arrSuperNodes, stepSuper);
       GetTime(timeEnd);
-//      time6 += timeEnd - timeSta;
+      time9 += timeEnd - timeSta;
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -2660,7 +2663,7 @@ namespace PEXSI{
       TIMER_STOP(Update_L);
 
       GetTime(timeEnd);
-//      time5 += timeEnd - timeSta;
+      time11+= timeEnd - timeSta;
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -3753,12 +3756,34 @@ namespace PEXSI{
       time6 = 0.0;
       time7 = 0.0;
       time8 = 0.0;
+      time9 = 0.0;
+      time10= 0.0;
+      time11= 0.0;
 
-      //NumMat<T> global_AinvBuf, global_UBuf;
-      //Int m = 5000;
-      //global_AinvBuf.Resize(m,m);
+      Real timeSta, timeEnd;
+      /*
+       // to test the allocate and deallocate time. 
+      cout << "*******************************************"<< endl;
+      cout << "*  testing the allocate and deallocate  ***"<< endl;
+      cout << "*******************************************"<< endl;
+
+      NumMat <T> tempBuf;
+      Int ntimes = 100;
+      for(Int size = 800; size <= 5000; size+= 200)
+      {
+            GetTime(timeSta);
+            for(Int i = 0; i < ntimes; i++)
+            tempBuf.Resize(size+i, size+i);
+            GetTime(timeEnd);
+            
+            cout << ntimes <<" times of allocate size: " << size << " To  " << size + ntimes<< " takes " << timeEnd-timeSta << " " <<tempBuf.data_[size-1]<<endl;
+      }
+      */
+      // to re-use the memory if AinvBuf is big than needed.
       std::vector<NumMat<T> > AinvBufs(omp_get_max_threads());
 
+      GetTime(timeSta);
+      
       for (Int lidx=0; lidx<numSteps ; lidx++){
         Int stepSuper = superList[lidx].size(); 
         //statusOFS<<"IN "<<lidx<<"/"<<numSteps<<std::endl;
@@ -3776,8 +3801,6 @@ namespace PEXSI{
         }
 #endif
 
-
-
         //        assert(workingRanks_[lidx].size()==stepSuper);
 
         //find max snode.Index
@@ -3791,18 +3814,28 @@ namespace PEXSI{
 
         //        if(lidx==1){ return;};
       }
+      GetTime(timeEnd);
+
+      
 #ifdef TIMING
-      cout << "---------------- JIA WEILE -----------------------"<< endl;
-      cout <<"Comptute SinV LT time: "<< time1 <<endl;
-      cout <<"Reduce Sinv LT time:   "<< time2 <<endl;
+      cout << "**************************************************"<< endl;
+      cout <<"Comptute SinV LT       "<< time1 <<endl;
+      cout <<"Reduce Sinv LT         "<< time2 <<endl;
       cout <<"Update Diag time:      "<< time3 <<endl;
       cout <<"Reduce Diag time:      "<< time4 <<endl;
+      cout <<"The SendRecvCD updateU "<< time9 <<endl;
+      cout <<"The UpdateL time       "<< time11<<endl;
+      cout <<" Adding up above:      "<< time1 + time2 + time3 + time4 + time9 + time11<<endl;
+      cout <<"The total Intra_p2p    "<< timeEnd - timeSta<<endl;
+      cout << endl;
       cout <<"find U time:           "<< time5 <<endl;
-      cout <<"Resize time:           "<< time6 <<endl;
-      cout <<"** Part 7 of Gemm:     "<< time7 <<endl;
-      cout <<"** Gemm:               "<< time8 <<endl;
-      cout << "---------------- JIA WEILE -----------------------"<< endl;
+      cout <<"The Resize time:       "<< time6 <<endl;
+      cout <<"Lookup index subroutin "<< time8 <<endl;
+      cout <<"Unpack data time       "<< time10<<endl;
+      cout <<"HaveWork Todo Total    "<< time7 <<endl;
+      cout << "**************************************************"<< endl;
 #endif
+
       MPI_Barrier(grid_->comm);
 #ifndef _RELEASE_
       PopCallStack();

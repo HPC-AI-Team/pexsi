@@ -48,10 +48,14 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 
 namespace  PEXSI{
-
+ 
   template <class F> inline void NumMat<F>::allocate(F* data) {
     if(owndata_) {
-      if(m_>0 && n_>0) { data_ = new F[m_*n_]; if( data_ == NULL ) {
+      if(m_>0 && n_>0) { 
+          //data_ = new F[m_*n_]; 
+          char * temp = new char[sizeof(F) *m_ *n_];
+          data_ = reinterpret_cast<F*>(temp);
+        if( data_ == NULL ) {
 #ifdef USE_ABORT
         abort();
 #endif

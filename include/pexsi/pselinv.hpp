@@ -642,6 +642,7 @@ namespace PEXSI{
 
       /// @brief SelInvIntra_P2p
       inline void SelInvIntra_P2p(Int lidx,Int & rank);
+      inline void SelInvIntra_P2p(Int lidx,Int & rank, vector<NumMat<T>> & AinvBuf);
 
       /// @brief SelInv_lookup_indexes
       inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
