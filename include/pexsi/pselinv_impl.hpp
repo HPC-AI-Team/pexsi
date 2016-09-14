@@ -80,7 +80,7 @@ namespace PEXSI{
 
       double time1, time2, time3, time4,time5,time6, time7, time8;
 
-
+      
 namespace PEXSI{
   inline GridType::GridType	( MPI_Comm Bcomm, int nprow, int npcol )
   {
@@ -510,6 +510,7 @@ namespace PEXSI{
         NumMat<T> & AinvBuf,
         NumMat<T> & UBuf )
     {
+      Real timeSta, timeEnd;
       TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
 
       TIMER_START(Build_colptr_rowptr);
@@ -517,6 +518,7 @@ namespace PEXSI{
       // nonzero row in LcolRecv[ib]. The total number of rows in
       // snode.LUpdateBuf is given by rowPtr[end]-1
       std::vector<Int> rowPtr(LcolRecv.size() + 1);
+
       // colPtr[jb] gives the column index in UBuf for the first
       // nonzero column in UrowRecv[jb]. The total number of rows in
       // UBuf is given by colPtr[end]-1
@@ -536,9 +538,14 @@ namespace PEXSI{
       TIMER_STOP(Build_colptr_rowptr);
 
       TIMER_START(Allocate_lookup);
+
       // Allocate for the computational storage
+      GetTime(timeSta);
       AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
       UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
+      snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) ); // weile
+      GetTime(timeEnd);
+      time6 += timeEnd - timeSta;
       //    TIMER_START(SetValue_lookup);
       //    SetValue( AinvBuf, ZERO<T>() );
       //SetValue( snode.LUpdateBuf, ZERO<T>() );
@@ -547,20 +554,25 @@ namespace PEXSI{
       TIMER_STOP(Allocate_lookup);
 
       TIMER_START(Fill_UBuf);
+
       // Fill UBuf first.  Make the transpose later in the Gemm phase.
+      GetTime(timeSta);
       for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
         UBlock<T>& UB = UrowRecv[jb];
         if( UB.numRow != SuperSize(snode.Index, super_) ){
           throw std::logic_error( "The size of UB is not right.  Something is seriously wrong." );
         }
-        lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
-            UB.numRow, UBuf.VecData( colPtr[jb] ), SuperSize( snode.Index, super_ ) );	
+
+        lapack::Lacpy( 'A', UrowRecv[jb].numRow, UrowRecv[jb].numCol, UrowRecv[jb].nzval.Data(),
+            UrowRecv[jb].numRow, UBuf.VecData(colPtr[jb]),UrowRecv[jb].numRow);
       }
+      GetTime(timeEnd);
+      time5 += timeEnd - timeSta;
       TIMER_STOP(Fill_UBuf);
 
       // Calculate the relative indices for (isup, jsup)
       // Fill AinvBuf with the information in L or U block.
-      TIMER_START(JB_Loop);
+      //TIMER_START(JB_Loop);
 
 #ifdef STDFIND
       //    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
@@ -714,14 +726,37 @@ namespace PEXSI{
       //      } // for( ib )
       //    } // for ( jb )
 #else
-      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-        for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+        Int numThreads = omp_get_num_threads();
+        Int blockSize = (numRowAinvBuf + numThreads - 1)/ numThreads;
+        Int optimal_size = 16;
+        if(blockSize < optimal_size) blockSize = optimal_size;
+        else{
+            Int multi = (blockSize + optimal_size - 1) / optimal_size;
+            if(multi > 2) {
+                blockSize = multi * optimal_size;
+            }
+        }
+        if(omp_get_num_threads() == 1) blockSize = numRowAinvBuf;
+        //blockSize = 128;
+        Int start = 0;
+        Int end   = 0;
+        Int trunk_size = 0;
+
+        for( Int index = 0; index < LcolRecv.size(); index++){
+        trunk_size += rowPtr[index+1] - rowPtr[index];
+        end = index;
+        if((trunk_size >= blockSize) || (index == LcolRecv.size()-1 )){
+#pragma omp task shared(UrowRecv,colPtr,UBuf,LcolRecv,AinvBuf,snode) firstprivate(start,end,blockSize)
+        {
+        //for( Int ib = 0; ib < LcolRecv.size(); ib++ )
+        for( Int ib = start; ib <= end; ib++ ){
+        for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
           LBlock<T>& LB = LcolRecv[ib];
           UBlock<T>& UB = UrowRecv[jb];
           Int isup = LB.blockIdx;
           Int jsup = UB.blockIdx;
           T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
-          Int     ldAinv    = AinvBuf.m();
+          Int  ldAinv  = AinvBuf.m();
 
           // Pin down the corresponding block in the part of Sinv.
           if( isup >= jsup ){
@@ -848,10 +883,39 @@ namespace PEXSI{
             }
           } // if (isup, jsup) is in U
 
-        } // for( ib )
-      } // for ( jb )
+        } // for ( jb )
+      } // for( ib )
 
+      if(UBuf.m() <= blockSize || omp_get_num_threads()== 1)
+      {
+          blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[start], UBuf.m(), UBuf.n(), MINUS_ONE<T>(), 
+                      &AinvBuf(rowPtr[start],0), AinvBuf.m(), 
+                      UBuf.Data(),UBuf.m(), ZERO<T>(),
+                      &snode.LUpdateBuf(rowPtr[start],0),snode.LUpdateBuf.m() ); 
+      }
+      else{
+          Int njob = (UBuf.m() + blockSize - 1) / blockSize;
+          for(Int index = 0; index < njob; index++){
+            Int stride = blockSize;
+            Int currentCol = index * blockSize;
+            if( currentCol + stride > UBuf.m()) stride = UBuf.m() - currentCol;
+#pragma omp task firstprivate(end,start,stride, currentCol) shared(rowPtr,UBuf,AinvBuf,snode)
+            {
+              blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[start], stride, UBuf.n(), MINUS_ONE<T>(),
+                          &AinvBuf(rowPtr[start],0), AinvBuf.m(),
+                          &UBuf(currentCol,0), UBuf.m(), ZERO<T>(),
+                          &snode.LUpdateBuf(rowPtr[start],currentCol), snode.LUpdateBuf.m() );
+            }
+          }
+      }
+#pragma omp taskwait
+      } // omp task 
 
+      trunk_size = 0;
+      start = index+1;
+      } // end if
+    }
+#pragma omp taskwait
 #endif
       TIMER_STOP(JB_Loop);
 
@@ -1526,7 +1590,6 @@ namespace PEXSI{
       Real timeSta2, timeEnd2;
 
 
-
       TIMER_START(AllocateBuffer);
 
       stepSuper = 0;
@@ -1632,7 +1695,9 @@ namespace PEXSI{
       std::vector<int> reqSentToLeft;
 
 
-      NumMat<T> AinvBuf, UBuf;
+      std::vector<NumMat<T> > AinvBufs(omp_get_max_threads());
+      std::vector<NumMat<T> > UBufs(omp_get_max_threads());
+      //NumMat<T> AinvBuf, UBuf;
 
       TIMER_STOP(AllocateBuffer);
 
@@ -1893,6 +1958,7 @@ namespace PEXSI{
       }
 
       GetTime(timeSta);
+      GetTime(timeSta1);
       TIMER_START(Compute_Sinv_LT);
       {
         Int msgForwarded = 0;
@@ -1995,7 +2061,6 @@ namespace PEXSI{
         begin_SendULWaitContentFirst=0;
 #endif
 
-        GetTime(timeSta1);
 #pragma omp parallel 
         {
 #pragma omp single nowait
@@ -2243,21 +2308,18 @@ namespace PEXSI{
           } while( (gemmProcessed<gemmToDo && readySupidx.size()==0) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
 
           //If I have some work to do 
-          GetTime(timeSta2);
           //if(readySupidx.size()>0)
 #ifdef TIMING
-          cout<< "ready size: "<< readySupidx.size() << "gemmToDo: "<< gemmToDo <<endl;
           fflush(stdout);
 #endif
           while(readySupidx.size()>0) 
           {
-            //cout << "supidx "<< supidx << "is ready"<< endl;
             Int supidx = readySupidx.back();
             readySupidx.pop_back();
             gemmProcessed++;
 
             // Only the processors received information participate in the Gemm 
-#pragma omp task firstprivate(supidx)
+#pragma omp task firstprivate(supidx) shared(AinvBufs, UBufs)
             {
             SuperNodeBufferType & snode = arrSuperNodes[supidx];
             if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ) ){
@@ -2267,117 +2329,26 @@ namespace PEXSI{
               // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
               // The size will be updated in the Gemm phase and the reduce phase
 
+              //Unpack data for all threads/tasks created later
               UnpackData(snode, LcolRecv, UrowRecv);
 
-              NumMat<T> XinvBuf, XBuf;
-              SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,XinvBuf,XBuf);
+              NumMat<T> & AinvBuf = AinvBufs[omp_get_thread_num()];
+              NumMat<T> & UBuf = UBufs[omp_get_thread_num()];
 
-              snode.LUpdateBuf.Resize( XinvBuf.m(), SuperSize( snode.Index, super_ ) );
+              GetTime(timeSta2);
+              SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,AinvBuf,UBuf);
+              GetTime(timeEnd2);
+              time8 += timeEnd2 - timeSta2;
 
-              TIMER_START(Compute_Sinv_LT_GEMM);
-#ifdef TIMING
-          if(supidx == 0) 
-          cout<< "Matrix size: ["<< XinvBuf.m() <<" "<< XinvBuf.n() << " ]  [" << XinvBuf.n() <<"  "<< XBuf.m() << " ]"<<endl;
-          fflush(stdout);
-#endif
-              Int numThreads = omp_get_num_threads();
-              /*
-              Int mBlockSize = (XinvBuf.m() + numThreads -1) / numThreads;
-              Int rBlockSize = (XBuf.m()    + numThreads -1) / numThreads;
-              */
-
-              Int mBlockSize = 64; // note XinvBuf.m() is the 'm'
-              Int rBlockSize = 64; // Note XBuf.m() is the 'r'
-              Int mMax = ((XinvBuf.m() + omp_get_num_threads() -1)/ omp_get_num_threads());
-              Int rMax = ((XBuf.m() + omp_get_num_threads() -1)/ omp_get_num_threads());
-              if( mMax > mBlockSize) mBlockSize = mMax;
-              if( rMax > rBlockSize) rBlockSize = rMax;
-
-              Int mBlock = (XinvBuf.m() + mBlockSize - 1) / mBlockSize;  // the mBlock number.
-              Int rBlock = (XBuf.m()    + rBlockSize - 1) / rBlockSize;     // the rBlock number.
-              Int rowNum = XinvBuf.m();
-              Int nnum   = XinvBuf.n();
-              Int colNum = XBuf.m();
-
-              if(( XinvBuf.m() < mBlockSize) && ( XBuf.m() < rBlockSize) || (omp_get_num_threads() == 1))
-              //if(( XinvBuf.m() < numThreads) && ( XBuf.m() < numThreads) || (omp_get_num_threads() == 1))
-#pragma omp task
-              {
-                blas::Gemm( 'N', 'T', XinvBuf.m(), XBuf.m(), XinvBuf.n(), MINUS_ONE<T>(), 
-                    XinvBuf.Data(), XinvBuf.m(), 
-                    XBuf.Data(), XBuf.m(), ZERO<T>(),
-                    snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
-              }
-              else
-              for(Int m = 0; m < mBlock; m++){
-                for(Int r = 0; r < rBlock; r++){
-#pragma omp task //private(rowStart, rowEnd, colStart, colEnd, row, col) privatefirst(snode)
-                {
-                NumMat<T> tempLUpdate;  // temp data used in the next task.
-                
-                // both start and end for the small matrix. 
-                Int rowStart = m * mBlockSize;
-                Int rowEnd   = rowStart + mBlockSize;
-                if( rowEnd > rowNum) rowEnd = rowNum;
-                
-                Int colStart = r * rBlockSize;
-                Int colEnd   = colStart + rBlockSize;
-                if( colEnd > colNum) colEnd = colNum;
-                /*
-                temp_AinvBuf.Resize( rowEnd-rowStart, nnum);
-                temp_LBuf.Resize( colEnd-colStart, nnum);
-                tempLUpdate.Resize(rowEnd-rowStart,colEnd-colStart);
-                
-                // pick the matrix out of the A-1 and U 
-                for(Int row = rowStart; row < rowEnd; row++)
-                for(Int col = 0; col < nnum; col++)
-                {
-
-                    temp_AinvBuf( row-rowStart, col) = XinvBuf(row, col);
-                }
-
-                for(Int row = colStart; row < colEnd; row++)
-                for(Int col = 0; col < nnum; col++)
-                {
-                    //resize the temp buf.
-                    temp_LBuf(row-colStart, col) = XBuf(row,col);
-                }
-
-                //T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
-                //resize the LUpdate...
-
-                //blas::Gemm( 'N', 'T', rowEnd-rowStart, colEnd-colStart,nnum, MINUS_ONE<T>(), 
-                  //  temp_AinvBuf.Data(), rowEnd-rowStart,
-                    //temp_LBuf.Data(), colEnd-colStart, ZERO<T>(),
-                   // temp_LUpdate.Data(), rowEnd-rowStart); 
-                */
-                blas::Gemm( 'N', 'T', rowEnd-rowStart, colEnd-colStart, nnum, MINUS_ONE<T>(), 
-                    &XinvBuf(rowStart,0), XinvBuf.m(),
-                    &XBuf(colStart,0), XBuf.m(), ZERO<T>(),
-                    //tempLUpdate.Data(), tempLUpdate.m() );
-                    &snode.LUpdateBuf(rowStart,colStart),snode.LUpdateBuf.m() ); 
-
-/*
-                for(Int row = rowStart; row < rowEnd; row++)
-                for(Int col = colStart; col < colEnd; col++)
-                    snode.LUpdateBuf(row, col) = tempLUpdate(row-rowStart, col-colStart);
-                    */
-
-                }
-                }
-              }
-#pragma omp taskwait
               TIMER_STOP(Compute_Sinv_LT_GEMM);
-            } // if Gemm is to be done locally
-           } //pragma omp task 
+             } // if Gemm is to be done locally
+            } //pragma omp task 
           } // while readySupidx.size > 0
 
-        GetTime(timeEnd2);
-        time8 += timeEnd2 - timeSta2;
         }  // end while gemmProcessed < gemmToDo
         }  // end omp single
-        } // end pragma omp parallel
-//#pragma omp taskwait
+        } // omp parallel
+
         GetTime(timeEnd1);
         time7 += timeEnd1 - timeSta1;
 
@@ -2638,7 +2609,7 @@ namespace PEXSI{
       GetTime(timeSta);
       SendRecvCD_UpdateU(arrSuperNodes, stepSuper);
       GetTime(timeEnd);
-      time6 += timeEnd - timeSta;
+//      time6 += timeEnd - timeSta;
 
 #ifndef _RELEASE_
       PopCallStack();
@@ -2671,7 +2642,7 @@ namespace PEXSI{
       TIMER_STOP(Update_L);
 
       GetTime(timeEnd);
-      time5 += timeEnd - timeSta;
+//      time5 += timeEnd - timeSta;
 #ifndef _RELEASE_
       PopCallStack();
 #endif
@@ -3752,7 +3723,7 @@ namespace PEXSI{
       Int numSteps = superList.size();
 #ifdef JIAWEILE
       if(grid_->mpirank==0)
-		cout << "the total number of superNode:" << numSteps << endl;
+		cout << "the total number of step:" << numSteps << endl;
 #endif
 
       Int rank = 0;
@@ -3764,6 +3735,10 @@ namespace PEXSI{
       time6 = 0.0;
       time7 = 0.0;
       time8 = 0.0;
+
+      //NumMat<T> global_AinvBuf, global_UBuf;
+      //Int m = 5000;
+      //global_AinvBuf.Resize(m,m);
 
       for (Int lidx=0; lidx<numSteps ; lidx++){
         Int stepSuper = superList[lidx].size(); 
@@ -3797,17 +3772,18 @@ namespace PEXSI{
 
         //        if(lidx==1){ return;};
       }
+#ifdef TIMING
       cout << "---------------- JIA WEILE -----------------------"<< endl;
       cout <<"Comptute SinV LT time: "<< time1 <<endl;
       cout <<"Reduce Sinv LT time: "<< time2 <<endl;
       cout <<"Update Diag time: "<< time3 <<endl;
       cout <<"Reduce Diag time: "<< time4 <<endl;
-      cout <<"Upate L time: "<< time5 <<endl;
-      cout <<": SendRecvCD_UpdateU: "<< time6 <<endl;
+      cout <<"find U time: "<< time5 <<endl;
+      cout <<"Resize time: "<< time6 <<endl;
       cout <<"** Part 7 of Gemm: "<< time7 <<endl;
       cout <<"** Gemm:           "<< time8 <<endl;
       cout << "---------------- JIA WEILE -----------------------"<< endl;
-
+#endif
       MPI_Barrier(grid_->comm);
 #ifndef _RELEASE_
       PopCallStack();
