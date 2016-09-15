@@ -48,6 +48,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include <list>
 #include <limits>
+#include <sys/time.h>
 
 #include "pexsi/timer.h"
 #include "pexsi/superlu_dist_interf.hpp"
@@ -78,7 +79,7 @@ namespace PEXSI{
 }
 #endif
 
-      double time1, time2, time3, time4,time5,time6, time7, time8, time9, time10, time11;
+      double time1, time2, time3, time4,Find_U_time,Resize_time, time_work_ToDo, Lookup_index_time, time9, Unpack_data_time, time11;
 
       
 namespace PEXSI{
@@ -545,7 +546,7 @@ namespace PEXSI{
       UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
       snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) ); // weile
       GetTime(timeEnd);
-      if(omp_get_thread_num() == 0) time6 += timeEnd - timeSta;
+      if(omp_get_thread_num() == 0) Resize_time += timeEnd - timeSta;
       //    TIMER_START(SetValue_lookup);
       //    SetValue( AinvBuf, ZERO<T>() );
       //SetValue( snode.LUpdateBuf, ZERO<T>() );
@@ -567,7 +568,7 @@ namespace PEXSI{
             UrowRecv[jb].numRow, UBuf.VecData(colPtr[jb]),UrowRecv[jb].numRow);
       }
       GetTime(timeEnd);
-      if(omp_get_thread_num() == 0) time5 += timeEnd - timeSta;
+      if(omp_get_thread_num() == 0) Find_U_time += timeEnd - timeSta;
       TIMER_STOP(Fill_UBuf);
 
       // Calculate the relative indices for (isup, jsup)
@@ -734,6 +735,7 @@ namespace PEXSI{
             Int multi = (blockSize + optimal_size - 1) / optimal_size;
             if(multi > 2) {
                 blockSize = multi * optimal_size;
+                //blockSize = multi * optimal_size/2;
             }
         }
         if(omp_get_num_threads() == 1) blockSize = numRowAinvBuf;
@@ -2351,7 +2353,7 @@ namespace PEXSI{
               GetTime(timeSta2);
               UnpackData(snode, LcolRecv, UrowRecv);
               GetTime(timeEnd2);
-              if(omp_get_thread_num() == 0) time10 += timeEnd2 - timeSta2;
+              if(omp_get_thread_num() == 0) Unpack_data_time += timeEnd2 - timeSta2;
 
               NumMat<T> & AinvBuf = AinvBufs[omp_get_thread_num()];
               NumMat<T> & UBuf = UBufs[omp_get_thread_num()];
@@ -2359,7 +2361,7 @@ namespace PEXSI{
               GetTime(timeSta2);
               SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,AinvBuf,UBuf);
               GetTime(timeEnd2);
-              if(omp_get_thread_num() == 0) time8 += timeEnd2 - timeSta2;
+              if(omp_get_thread_num() == 0) Lookup_index_time += timeEnd2 - timeSta2;
 
               TIMER_STOP(Compute_Sinv_LT_GEMM);
              } // if Gemm is to be done locally
@@ -2371,7 +2373,7 @@ namespace PEXSI{
         } // omp parallel
 
         GetTime(timeEnd1);
-        time7 += timeEnd1 - timeSta1;
+        time_work_ToDo += timeEnd1 - timeSta1;
 
        // recution of the AinL
        if(readySupidx_duplicate.size() != gemmToDo) {
@@ -3727,6 +3729,8 @@ namespace PEXSI{
   template<typename T> 
     void PMatrix<T>::SelInv_P2p	(  )
     {
+      timeval start, end;
+      gettimeofday(&start, NULL);
       TIMER_START(SelInv_P2p);
 
 #ifndef _RELEASE_
@@ -3752,15 +3756,14 @@ namespace PEXSI{
       time2 = 0.0;
       time3 = 0.0;
       time4 = 0.0;
-      time5 = 0.0;
-      time6 = 0.0;
-      time7 = 0.0;
-      time8 = 0.0;
+      Find_U_time = 0.0;
+      Resize_time = 0.0;
+      time_work_ToDo = 0.0;
+      Lookup_index_time = 0.0;
       time9 = 0.0;
-      time10= 0.0;
+      Unpack_data_time= 0.0;
       time11= 0.0;
 
-      Real timeSta, timeEnd;
       /*
        // to test the allocate and deallocate time. 
       cout << "*******************************************"<< endl;
@@ -3780,9 +3783,12 @@ namespace PEXSI{
       }
       */
       // to re-use the memory if AinvBuf is big than needed.
-      std::vector<NumMat<T> > AinvBufs(omp_get_max_threads());
 
-      GetTime(timeSta);
+      //gettimeofday(&start, NULL);
+      std::vector<NumMat<T> > AinvBufs(omp_get_max_threads());
+      //gettimeofday(&end, NULL);
+      //cout <<  " Init AinvBufs takes " << ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6 << endl;
+
       
       for (Int lidx=0; lidx<numSteps ; lidx++){
         Int stepSuper = superList[lidx].size(); 
@@ -3814,9 +3820,14 @@ namespace PEXSI{
 
         //        if(lidx==1){ return;};
       }
-      GetTime(timeEnd);
+      MPI_Barrier(grid_->comm);
+#ifndef _RELEASE_
+      PopCallStack();
+#endif
 
-      
+      TIMER_STOP(SelInv_P2p);
+
+      gettimeofday(&end, NULL);
 #ifdef TIMING
       cout << "**************************************************"<< endl;
       cout <<"Comptute SinV LT       "<< time1 <<endl;
@@ -3826,22 +3837,16 @@ namespace PEXSI{
       cout <<"The SendRecvCD updateU "<< time9 <<endl;
       cout <<"The UpdateL time       "<< time11<<endl;
       cout <<" Adding up above:      "<< time1 + time2 + time3 + time4 + time9 + time11<<endl;
-      cout <<"The total Intra_p2p    "<< timeEnd - timeSta<<endl;
+      cout <<"The total Intra_p2p    "<< ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6 <<endl;
       cout << endl;
-      cout <<"find U time:           "<< time5 <<endl;
-      cout <<"The Resize time:       "<< time6 <<endl;
-      cout <<"Lookup index subroutin "<< time8 <<endl;
-      cout <<"Unpack data time       "<< time10<<endl;
-      cout <<"HaveWork Todo Total    "<< time7 <<endl;
+      cout <<"find U time:           "<< Find_U_time <<endl;
+      cout <<"The Resize time:       "<< Resize_time <<endl;
+      cout <<"Lookup index subroutin "<< Lookup_index_time <<endl;
+      cout <<"Unpack data time       "<< Unpack_data_time<<endl;
+      cout <<"HaveWork Todo Total    "<< time_work_ToDo <<endl;
       cout << "**************************************************"<< endl;
 #endif
 
-      MPI_Barrier(grid_->comm);
-#ifndef _RELEASE_
-      PopCallStack();
-#endif
-
-      TIMER_STOP(SelInv_P2p);
 
       return ;
     } 		// -----  end of method PMatrix::SelInv_P2p  ----- 
