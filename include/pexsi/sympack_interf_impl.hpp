@@ -76,21 +76,21 @@ template<typename T> void symPACKMatrixToSuperNode(
 #endif
   Int n = SMat.Size();
 
-  // perm
   SYMPACK::Ordering & Order = (SYMPACK::Ordering &)SMat.GetOrdering();
+  const std::vector<Int>& SInvp = Order.invp;
+  super.permInv.Resize( SInvp.size() );
   const std::vector<Int>& SPerm = Order.perm;
   super.perm.Resize( SPerm.size() );
+
+  // perm
   for( Int i = 0; i < SPerm.size(); i++ ){
-    super.perm[i] = SPerm[i]-1;
+    super.permInv[i] = SPerm[i]-1;
   }
   
   // permInv
-  super.permInv.Resize( n );
-  for( Int i = 0; i < n; i++ ){
-    super.permInv[i] = i;
+  for( Int i = 0; i < SInvp.size(); i++ ){
+    super.perm[i] = SInvp[i]-1;
   }
-  std::sort( super.permInv.Data(), super.permInv.Data() + n,
-      IndexComp<IntNumVec&>(super.perm) );
 
   super.perm_r.Resize( n);
   for( Int i = 0; i < n; i++ ){
@@ -128,17 +128,6 @@ template<typename T> void symPACKMatrixToSuperNode(
     super.etree[i]-=1;
   }
 
-
-//  SYMPACK::ETree SupETree = etree.ToSupernodalETree(XSuper,(std::vector<Int>&)superMember,Order);
-//  super.etree.Resize(SupETree.Size());
-//  for( Int i = 0; i < SupETree.Size(); i++ ){
-//    super.etree[i] = SupETree.PostParent(i);
-//    if(super.etree[i]==0){
-//      super.etree[i]=numSuper+1;
-//    }
-//    super.etree[i]-=1;
-//  }
-
 #ifndef _RELEASE_
 	PopCallStack();
 #endif
@@ -148,13 +137,14 @@ template<typename T> void symPACKMatrixToSuperNode(
 
 template<typename T> void symPACKMatrixToPMatrix( 
     SYMPACK::SupernodalMatrix<T>& SMat,
-    PMatrix<T>& PMat ){
+    PMatrix<T>& PMat
+ ){
 #ifndef _RELEASE_
-	PushCallStack("symPACKMatrixToPMatrix");
+  PushCallStack("symPACKMatrixToPMatrix");
 #endif
   // This routine assumes that the g, supernode and options of PMatrix
   // has been set outside this routine.
-  
+
   Int mpirank, mpisize;
   const GridType *g = PMat.Grid();
 
@@ -178,7 +168,7 @@ template<typename T> void symPACKMatrixToPMatrix(
 
   const IntNumVec& superIdx = PMat.SuperNode()->superIdx;
 #if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "superIdx = " << superIdx << std::endl;
+  statusOFS << "superIdx = " << superIdx << std::endl;
 #endif
 
 
@@ -247,7 +237,7 @@ template<typename T> void symPACKMatrixToPMatrix(
         iSuperLocal << ", id = " << snodetmp->Id() << ", size = " << 
         snodetmp->Size() << ", #Block = " << snodetmp->NZBlockCnt() <<
         std::endl;
-//    statusOFS << "snode (before bcast) = " << *snodetmp << std::endl;
+      //    statusOFS << "snode (before bcast) = " << *snodetmp << std::endl;
 #endif
       // Serialize the information in the current supernode
       snodetmp->Serialize( snodeIcomm);
@@ -297,7 +287,7 @@ template<typename T> void symPACKMatrixToPMatrix(
         Int firstRow = desc.GIndex - 1;
         Int lastRow = firstRow + nrows - 1;
 #if ( _DEBUGlevel_ >= 1 )
-    statusOFS << "firstRow = " << firstRow << ", lastRow = " << lastRow << std::endl;
+        statusOFS << "firstRow = " << firstRow << ", lastRow = " << lastRow << std::endl;
 #endif
         for( Int i = superIdx(firstRow); i <= superIdx(lastRow); i++ ){
           if( mpirow == ( i % nprow ) ){
@@ -305,7 +295,7 @@ template<typename T> void symPACKMatrixToPMatrix(
           } // if the current processor is in the right processor row
         }
       } // for ( blkidx )
-      
+
       Int numBlkLocal = blkSet.size();
       std::vector<Int> blkVec;
       blkVec.insert( blkVec.end(), blkSet.begin(), blkSet.end() );
@@ -341,7 +331,7 @@ template<typename T> void symPACKMatrixToPMatrix(
           nzval += superSize;
         }
       } // for ( blkidx )
-      
+
       // Save the information to Lcol
       for ( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
         std::vector<Int>& rows = rowsBlk[iblk];
@@ -360,7 +350,7 @@ template<typename T> void symPACKMatrixToPMatrix(
         }
         // Convert the row major format to column major format
         Transpose( NumMat<T>( LB.numCol, LB.numRow, true,
-            &nzval[0] ), LB.nzval );
+              &nzval[0] ), LB.nzval );
       }
     } // if the current processor is in the right processor column
 
@@ -398,17 +388,24 @@ template<typename T> void symPACKMatrixToPMatrix(
     }
   }
 
+  for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
+    std::sort(PMat.RowBlockIdx(ib).begin(),PMat.RowBlockIdx(ib).end(),std::less<Int>());
+  }
+  for( Int jb = 0; jb < PMat.NumLocalBlockCol(); jb++ ){
+    std::sort(PMat.ColBlockIdx(jb).begin(),PMat.ColBlockIdx(jb).end(),std::less<Int>());
+  }
+
   const SuperNodeType* super = PMat.SuperNode();
   for( Int ksup = 0; ksup < numSuper; ksup++ ){
     Int pcol = ( ksup % npcol );
     Int prow = ( ksup % nprow );
     if( mpirow == prow ){
-      NumMat<T> DiagBuf;
+      NumMat<SCALAR> DiagBuf;
       DiagBuf.Resize(SuperSize( ksup, super ), SuperSize( ksup, super ));
       if( mpicol == pcol ){
         Int jb = ksup / npcol;
-        std::vector<LBlock<T> >& Lcol = PMat.L(jb);
-        LBlock<T>& LB = Lcol[0];
+        std::vector<LBlock<SCALAR> >& Lcol = PMat.L(jb);
+        LBlock<SCALAR>& LB = Lcol[0];
         for(Int row = 0; row<LB.nzval.m(); row++){
           for(Int col = row+1; col<LB.nzval.n(); col++){
             LB.nzval(row,col) = LB.nzval(col,row) * LB.nzval(row,row);
@@ -416,23 +413,13 @@ template<typename T> void symPACKMatrixToPMatrix(
         } 
         DiagBuf = LB.nzval;
       }
-      //send the LBlock to the processors in same row
-      MPI_Bcast(DiagBuf.Data(),DiagBuf.m()*DiagBuf.n()*sizeof(T),MPI_BYTE,pcol,g->rowComm);
-      Int ib = ksup / nprow;
-      std::vector<UBlock<T> >& Urow = PMat.U(ib);
-
-      for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
-        UBlock<T>& UB = Urow[jblk];
-        for(Int row = 0; row<UB.nzval.m(); row++){
-          for(Int col = 0; col<UB.nzval.n(); col++){
-            UB.nzval(row,col) = UB.nzval(row,col) * DiagBuf(row,row);
-          }
-        }
-      }
     }
   }
+
+
+
 #ifndef _RELEASE_
-	PopCallStack();
+  PopCallStack();
 #endif
 }  // -----  end of symPACKMatrixToPMatrix ----- 
 
@@ -454,8 +441,6 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
   MPI_Comm_rank(comm, &mpirank);
 
   Int nprow = g->numProcRow, npcol = g->numProcCol;
-
-
   Int mpirow = mpirank / npcol;  
   Int mpicol = mpirank % npcol;
 
