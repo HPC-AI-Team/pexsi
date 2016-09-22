@@ -5,6 +5,19 @@ For full documentation, including instructions for installation please see
 
 http://www.pexsi.org
 
+Migration to PEXSI v0.10.0
+==========================
+
+The following changes are made in the C interfaces. The changes in the
+FORTRAN interface is similar.
+
+- PPEXSILoadRealSymmetricHSMatrix is now PPEXSILoadRealHSMatrix
+
+- PPEXSIRetrieveRealSymmetricDFTMatrix is now
+  PPEXSIRetrieveRealDFTMatrix
+
+
+
 Installation       
 ============
 
@@ -182,4 +195,5 @@ saved on the 0-th processor, where \f$A\f$ is the five-point
 discretization of a Laplacian operator on a 2D domain.  The result can
 be compared with `examples/driver_pselinv_complex.out` to check the
 correctness of the result. For more examples see @ref pageTutorial.
+
 

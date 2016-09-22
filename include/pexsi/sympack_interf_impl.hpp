@@ -2,43 +2,43 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Author: Mathias Jacquelin and Lin Lin
+Author: Mathias Jacquelin and Lin Lin
 
-   This file is part of PEXSI. All rights reserved.
+This file is part of PEXSI. All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-   (1) Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-   (2) Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-   (3) Neither the name of the University of California, Lawrence Berkeley
-   National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
-   be used to endorse or promote products derived from this software without
-   specific prior written permission.
+(1) Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+(3) Neither the name of the University of California, Lawrence Berkeley
+National Laboratory, U.S. Dept. of Energy nor the names of its contributors may
+be used to endorse or promote products derived from this software without
+specific prior written permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-   You are under no obligation whatsoever to provide any bug fixes, patches, or
-   upgrades to the features, functionality or performance of the source code
-   ("Enhancements") to anyone; however, if you choose to make your Enhancements
-   available either publicly, or directly to Lawrence Berkeley National
-   Laboratory, without imposing a separate written license agreement for such
-   Enhancements, then you hereby grant the following license: a non-exclusive,
-   royalty-free perpetual license to install, use, modify, prepare derivative
-   works, incorporate into other computer software, distribute, and sublicense
-   such enhancements or derivative works thereof, in binary and source code form.
+You are under no obligation whatsoever to provide any bug fixes, patches, or
+upgrades to the features, functionality or performance of the source code
+("Enhancements") to anyone; however, if you choose to make your Enhancements
+available either publicly, or directly to Lawrence Berkeley National
+Laboratory, without imposing a separate written license agreement for such
+Enhancements, then you hereby grant the following license: a non-exclusive,
+royalty-free perpetual license to install, use, modify, prepare derivative
+works, incorporate into other computer software, distribute, and sublicense
+such enhancements or derivative works thereof, in binary and source code form.
  */
 /// @file ngchol_interf_impl.hpp
 /// @brief Implementation of interface with symPACK.
@@ -71,9 +71,6 @@ namespace PEXSI{
 template<typename T> void symPACKMatrixToSuperNode( 
     SYMPACK::SupernodalMatrix<T>& SMat,
     SuperNodeType& super ){
-#ifndef _RELEASE_
-	PushCallStack("symPACKMatrixToSuperNode");
-#endif
   Int n = SMat.Size();
 
   SYMPACK::Ordering & Order = (SYMPACK::Ordering &)SMat.GetOrdering();
@@ -86,7 +83,7 @@ template<typename T> void symPACKMatrixToSuperNode(
   for( Int i = 0; i < SPerm.size(); i++ ){
     super.permInv[i] = SPerm[i]-1;
   }
-  
+
   // permInv
   for( Int i = 0; i < SInvp.size(); i++ ){
     super.perm[i] = SInvp[i]-1;
@@ -128,20 +125,13 @@ template<typename T> void symPACKMatrixToSuperNode(
     super.etree[i]-=1;
   }
 
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 }  // -----  end of symPACKMatrixToSuperNode ----- 
 
 
 
 template<typename T> void symPACKMatrixToPMatrix( 
     SYMPACK::SupernodalMatrix<T>& SMat,
-    PMatrix<T>& PMat
- ){
-#ifndef _RELEASE_
-  PushCallStack("symPACKMatrixToPMatrix");
-#endif
+    PMatrix<T>& PMat ){
   // This routine assumes that the g, supernode and options of PMatrix
   // has been set outside this routine.
 
@@ -346,7 +336,7 @@ template<typename T> void symPACKMatrixToPMatrix(
           msg << "message size does not match for the blockIdx " << LB.blockIdx << std::endl
             << "LB.numRow * LB.numCol = " << LB.numRow * LB.numCol << std::endl
             << "nzval.size            = " << nzval.size() << std::endl;
-          throw std::runtime_error( msg.str().c_str() );
+          ErrorHandling( msg.str().c_str() );
         }
         // Convert the row major format to column major format
         Transpose( NumMat<T>( LB.numCol, LB.numRow, true,
@@ -415,20 +405,11 @@ template<typename T> void symPACKMatrixToPMatrix(
       }
     }
   }
-
-
-
-#ifndef _RELEASE_
-  PopCallStack();
-#endif
 }  // -----  end of symPACKMatrixToPMatrix ----- 
 
 template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
 {
 
-#ifndef _RELEASE_
-	PushCallStack("PMatrixLtoU");
-#endif
   //Send L to U
   Int mpirank, mpisize;
   const GridType *g = PMat.Grid();
@@ -447,220 +428,217 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
   Int numSuper = PMat.NumSuper();
   for( Int ksup = 0; ksup < numSuper; ksup++ ){
 #if ( _DEBUGlevel_ >= 1 )
-statusOFS<<"----------------------- "<< ksup<<std::endl;
+    statusOFS<<"----------------------- "<< ksup<<std::endl;
 #endif
-     //If I'm in the supernodal column
-     std::vector<Int> all_proc_list;
-     std::vector<Int> all_blocks_cnt;
-     std::vector<Int> sizes;
-     std::vector<Int> displs;
+    //If I'm in the supernodal column
+    std::vector<Int> all_proc_list;
+    std::vector<Int> all_blocks_cnt;
+    std::vector<Int> sizes;
+    std::vector<Int> displs;
 
-     std::vector<Int> sender_proc;
-     std::vector<std::list<LBlock<T> * > > blocks_to_receiver;
+    std::vector<Int> sender_proc;
+    std::vector<std::list<LBlock<T> * > > blocks_to_receiver;
 
-     std::vector<Int> receiver_proc;
-     if( mpicol == ( ksup % npcol ) ){
-        Int jb = ksup / npcol;
-        std::vector<LBlock<T> >& Lcol = PMat.L(jb);
-        Int root = (ksup % nprow);
-        //compute the list of receiving processors based on my local structure
-        std::set<Int> proc_set;
-        blocks_to_receiver.resize(npcol);
-        Int startBlk = mpirow==root?1:0;
-        for ( Int iblk = startBlk; iblk < Lcol.size(); iblk++ ){
-          LBlock<T>& LB = Lcol[iblk];
-          //column of the target processor
-          Int snode_idx = LB.blockIdx;
-          Int tgt_pcol =  snode_idx % npcol;
-          blocks_to_receiver[tgt_pcol].push_back(&LB);
-          proc_set.insert(tgt_pcol);
+    std::vector<Int> receiver_proc;
+    if( mpicol == ( ksup % npcol ) ){
+      Int jb = ksup / npcol;
+      std::vector<LBlock<T> >& Lcol = PMat.L(jb);
+      Int root = (ksup % nprow);
+      //compute the list of receiving processors based on my local structure
+      std::set<Int> proc_set;
+      blocks_to_receiver.resize(npcol);
+      Int startBlk = mpirow==root?1:0;
+      for ( Int iblk = startBlk; iblk < Lcol.size(); iblk++ ){
+        LBlock<T>& LB = Lcol[iblk];
+        //column of the target processor
+        Int snode_idx = LB.blockIdx;
+        Int tgt_pcol =  snode_idx % npcol;
+        blocks_to_receiver[tgt_pcol].push_back(&LB);
+        proc_set.insert(tgt_pcol);
+      }
+      //Insert the set into the vector to be able to send it
+      receiver_proc.insert(receiver_proc.begin(),proc_set.begin(),proc_set.end());
+
+      //Now do a gatherv on the root
+      mpi::Gatherv(receiver_proc,all_proc_list,sizes,displs,root, colComm);
+
+      //Do a gatherv of the local blocks to each processors
+      std::vector<Int> blocks_cnt(receiver_proc.size());
+      for(Int j = 0; j< receiver_proc.size();++j){
+        Int pcol = receiver_proc[j];
+        std::list<LBlock<T> *> & blocks = blocks_to_receiver[pcol];
+        blocks_cnt[j] = blocks.size();
+      }
+      mpi::Gatherv(blocks_cnt,all_blocks_cnt,root, colComm);
+
+
+      //On the root, convert from a sender array to a receiver array
+      if(mpirow == root){
+        //sender_proc[i] contains the set of sender to processor column i
+        std::vector<std::set<Int> > sender_procs(npcol);
+        std::vector<Int> urow_sizes(npcol,0);      
+        for(Int prow = 0; prow < nprow; ++prow){
+          Int * recv_list = &all_proc_list[displs[prow]];
+          Int * recv_blocks = &all_blocks_cnt[displs[prow]];
+          Int size = sizes[prow];
+          for(Int i = 0; i<size;++i){
+            Int pcol = recv_list[i];
+            sender_procs[pcol].insert(prow);
+            Int ucol_contrib = recv_blocks[i];
+            urow_sizes[pcol]+=ucol_contrib;
+          }
         }
-        //Insert the set into the vector to be able to send it
-        receiver_proc.insert(receiver_proc.begin(),proc_set.begin(),proc_set.end());
-        
-        //Now do a gatherv on the root
-        mpi::Gatherv(receiver_proc,all_proc_list,sizes,displs,root, colComm);
+        //now prepare the data structures for a scatterv along the rows
+        all_blocks_cnt = urow_sizes;
+        all_proc_list.clear();
+        sizes.resize(npcol);
+        displs.resize(npcol);
+        Int totalsize = 0;
+        for(Int pcol = 0; pcol < npcol; ++pcol){
+          sizes[pcol] = sender_procs[pcol].size()*sizeof(Int);
+          displs[pcol] = totalsize;
+          totalsize += sizes[pcol];
+        }
+        //put the senders in the all_proc_list_array
+        all_proc_list.reserve(totalsize / sizeof(Int) );
+        for(Int pcol = 0; pcol < npcol; ++pcol){
+          all_proc_list.insert(all_proc_list.end(),sender_procs[pcol].begin(),sender_procs[pcol].end());
+        }
+      }
+    }
 
-        //Do a gatherv of the local blocks to each processors
-        std::vector<Int> blocks_cnt(receiver_proc.size());
-        for(Int j = 0; j< receiver_proc.size();++j){
-          Int pcol = receiver_proc[j];
+    //If I'm in the supernodal row
+    if( mpirow == ( ksup % nprow ) ){
+      Int root = (ksup % npcol);
+      //scatter the sizes
+      Int localSize = 0;
+      MPI_Scatter(mpicol==root?&sizes[0]:NULL,sizeof(Int),MPI_BYTE,
+          &localSize,sizeof(Int),MPI_BYTE, root, rowComm);
+      sender_proc.resize(localSize / sizeof(Int));
+      //Now do the scatterv; 
+      if(mpicol==root){
+        MPI_Scatterv(&all_proc_list[0],&sizes[0],&displs[0],MPI_BYTE,
+            &sender_proc[0],localSize,MPI_BYTE, root, rowComm);
+      }
+      else{
+        MPI_Scatterv(NULL,NULL,NULL,MPI_BYTE,
+            &sender_proc[0],localSize,MPI_BYTE, root, rowComm);
+      }
+
+      Int urowSize = 0;
+      MPI_Scatter(mpicol==root?&all_blocks_cnt[0]:NULL,sizeof(Int),MPI_BYTE,
+          &urowSize,sizeof(Int),MPI_BYTE, root, rowComm);
+      //Resize Urow
+      Int ib = ksup / nprow;
+      std::vector<UBlock<T> >& Urow = PMat.U(ib);
+      Urow.resize(urowSize);
+
+
+      //At this point we have both a sender AND a receiver list
+      //and Urows are resized
+    }
+
+    //Communicate this supernode
+    //If I'm a sender
+    if( mpicol == ( ksup % npcol ) ){
+      std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+      //for each target col
+      for(Int pcol = 0; pcol < npcol; pcol++){
+        Int pnum = (ksup % nprow)*npcol + pcol;
+        if(pnum!=mpirank){
+          //Serialize everything in the blocks_to_receiver list
           std::list<LBlock<T> *> & blocks = blocks_to_receiver[pcol];
-          blocks_cnt[j] = blocks.size();
-        }
-        mpi::Gatherv(blocks_cnt,all_blocks_cnt,root, colComm);
-  
-
-        //On the root, convert from a sender array to a receiver array
-        if(mpirow == root){
-          //sender_proc[i] contains the set of sender to processor column i
-          std::vector<std::set<Int> > sender_procs(npcol);
-          std::vector<Int> urow_sizes(npcol,0);      
-          for(Int prow = 0; prow < nprow; ++prow){
-            Int * recv_list = &all_proc_list[displs[prow]];
-            Int * recv_blocks = &all_blocks_cnt[displs[prow]];
-            Int size = sizes[prow];
-            for(Int i = 0; i<size;++i){
-              Int pcol = recv_list[i];
-              sender_procs[pcol].insert(prow);
-              Int ucol_contrib = recv_blocks[i];
-              urow_sizes[pcol]+=ucol_contrib;
+          if(blocks.size()>0){
+            std::stringstream sstm;
+            Int numLBlocks = blocks.size();
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<"Sending "<<numLBlocks<<" LBlocks"<<std::endl;
+#endif
+            serialize( numLBlocks , sstm, NO_MASK);
+            typename std::list<LBlock<T> *>::iterator it;
+            for(it = blocks.begin(); 
+                it!=blocks.end();++it){
+              LBlock<T> & LB = *(*it);
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<"Sent LB: "<<LB<<std::endl;
+#endif
+              serialize(LB, sstm,mask);
             }
-          }
-          //now prepare the data structures for a scatterv along the rows
-          all_blocks_cnt = urow_sizes;
-          all_proc_list.clear();
-          sizes.resize(npcol);
-          displs.resize(npcol);
-          Int totalsize = 0;
-          for(Int pcol = 0; pcol < npcol; ++pcol){
-            sizes[pcol] = sender_procs[pcol].size()*sizeof(Int);
-            displs[pcol] = totalsize;
-            totalsize += sizes[pcol];
-          }
-          //put the senders in the all_proc_list_array
-          all_proc_list.reserve(totalsize / sizeof(Int) );
-          for(Int pcol = 0; pcol < npcol; ++pcol){
-            all_proc_list.insert(all_proc_list.end(),sender_procs[pcol].begin(),sender_procs[pcol].end());
+            mpi::Send(sstm, pnum, PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_SIZE),
+                PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_CONTENT), comm);
           }
         }
-     }
+      }
+    }
+    //If I'm a receiver 
+    if( mpirow == ( ksup % nprow ) ){
+      std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+      Int ib = ksup / nprow;
+      std::vector<UBlock<T> >& Urow = PMat.U(ib);
 
-     //If I'm in the supernodal row
-     if( mpirow == ( ksup % nprow ) ){
-        Int root = (ksup % npcol);
-        //scatter the sizes
-        Int localSize = 0;
-        MPI_Scatter(mpicol==root?&sizes[0]:NULL,sizeof(Int),MPI_BYTE,
-                      &localSize,sizeof(Int),MPI_BYTE, root, rowComm);
-        sender_proc.resize(localSize / sizeof(Int));
-        //Now do the scatterv; 
-        if(mpicol==root){
-          MPI_Scatterv(&all_proc_list[0],&sizes[0],&displs[0],MPI_BYTE,
-              &sender_proc[0],localSize,MPI_BYTE, root, rowComm);
+      //for each target row
+      Int idx = 0;
+      for(Int i = 0; i < sender_proc.size(); ++i){
+
+        Int prow = sender_proc[i];
+        Int pnum = (prow)*npcol + (ksup % npcol);
+        if(pnum != mpirank){
+          std::stringstream sstm;
+          mpi::Recv(sstm,pnum,PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_SIZE),
+              PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_CONTENT), comm);
+
+          //now deserialize and put everything in U
+          Int numLBlocks = 0;
+          deserialize(numLBlocks, sstm, NO_MASK);
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS<<"Receiving "<<numLBlocks<<" LBlocks"<<std::endl;
+#endif
+          for(Int i = 0; i<numLBlocks;++i){
+            LBlock<T> LB;
+            deserialize(LB, sstm, mask);
+
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<"Received LB: "<<LB<<std::endl;
+#endif
+            //put this LBlock in the appropriate UBlock
+            UBlock<T> & UB = Urow[idx];
+
+            UB.blockIdx = LB.blockIdx;
+            UB.numCol = LB.numRow;
+            UB.numRow = LB.numCol;
+            UB.cols = LB.rows;
+            Transpose(LB.nzval,UB.nzval);
+            ++idx; 
+          }
         }
         else{
-          MPI_Scatterv(NULL,NULL,NULL,MPI_BYTE,
-              &sender_proc[0],localSize,MPI_BYTE, root, rowComm);
-        }
-        
-        Int urowSize = 0;
-        MPI_Scatter(mpicol==root?&all_blocks_cnt[0]:NULL,sizeof(Int),MPI_BYTE,
-                      &urowSize,sizeof(Int),MPI_BYTE, root, rowComm);
-        //Resize Urow
-        Int ib = ksup / nprow;
-        std::vector<UBlock<T> >& Urow = PMat.U(ib);
-        Urow.resize(urowSize);
+          Int pcol = mpicol ;
+          //do the copy locally
+          Int ib = ksup / nprow;
+          std::vector<UBlock<T> >& Urow = PMat.U(ib);
+          //Serialize everything in the blocks_to_receiver list
+          std::list<LBlock<T> *> & blocks = blocks_to_receiver[pcol];
+          if(blocks.size()>0){
+            typename std::list<LBlock<T> *>::iterator it;
+            for(it = blocks.begin(); 
+                it!=blocks.end();++it){
+              LBlock<T> & LB = *(*it);
+              UBlock<T> & UB = Urow[idx];
 
-
-        //At this point we have both a sender AND a receiver list
-        //and Urows are resized
-     }
-
-     //Communicate this supernode
-     //If I'm a sender
-     if( mpicol == ( ksup % npcol ) ){
-        std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-        //for each target col
-        for(Int pcol = 0; pcol < npcol; pcol++){
-          Int pnum = (ksup % nprow)*npcol + pcol;
-          if(pnum!=mpirank){
-            //Serialize everything in the blocks_to_receiver list
-            std::list<LBlock<T> *> & blocks = blocks_to_receiver[pcol];
-            if(blocks.size()>0){
-              std::stringstream sstm;
-              Int numLBlocks = blocks.size();
-#if ( _DEBUGlevel_ >= 1 )
-statusOFS<<"Sending "<<numLBlocks<<" LBlocks"<<std::endl;
-#endif
-              serialize( numLBlocks , sstm, NO_MASK);
-              typename std::list<LBlock<T> *>::iterator it;
-              for(it = blocks.begin(); 
-                  it!=blocks.end();++it){
-                LBlock<T> & LB = *(*it);
-#if ( _DEBUGlevel_ >= 1 )
-statusOFS<<"Sent LB: "<<LB<<std::endl;
-#endif
-                serialize(LB, sstm,mask);
-              }
-              mpi::Send(sstm, pnum, PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_SIZE),
-                  PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_CONTENT), comm);
+              UB.blockIdx = LB.blockIdx;
+              UB.numCol = LB.numRow;
+              UB.numRow = LB.numCol;
+              UB.cols = LB.rows;
+              Transpose(LB.nzval,UB.nzval);
+              ++idx; 
             }
           }
         }
-     }
-     //If I'm a receiver 
-     if( mpirow == ( ksup % nprow ) ){
-      std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-        Int ib = ksup / nprow;
-        std::vector<UBlock<T> >& Urow = PMat.U(ib);
 
-        //for each target row
-        Int idx = 0;
-        for(Int i = 0; i < sender_proc.size(); ++i){
 
-          Int prow = sender_proc[i];
-          Int pnum = (prow)*npcol + (ksup % npcol);
-          if(pnum != mpirank){
-            std::stringstream sstm;
-            mpi::Recv(sstm,pnum,PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_SIZE),
-                PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_CONTENT), comm);
-
-            //now deserialize and put everything in U
-            Int numLBlocks = 0;
-            deserialize(numLBlocks, sstm, NO_MASK);
-#if ( _DEBUGlevel_ >= 1 )
-statusOFS<<"Receiving "<<numLBlocks<<" LBlocks"<<std::endl;
-#endif
-            for(Int i = 0; i<numLBlocks;++i){
-              LBlock<T> LB;
-              deserialize(LB, sstm, mask);
-
-#if ( _DEBUGlevel_ >= 1 )
-statusOFS<<"Received LB: "<<LB<<std::endl;
-#endif
-              //put this LBlock in the appropriate UBlock
-                UBlock<T> & UB = Urow[idx];
-
-                UB.blockIdx = LB.blockIdx;
-                UB.numCol = LB.numRow;
-                UB.numRow = LB.numCol;
-                UB.cols = LB.rows;
-                Transpose(LB.nzval,UB.nzval);
-                ++idx; 
-            }
-          }
-          else{
-            Int pcol = mpicol ;
-            //do the copy locally
-            Int ib = ksup / nprow;
-            std::vector<UBlock<T> >& Urow = PMat.U(ib);
-            //Serialize everything in the blocks_to_receiver list
-            std::list<LBlock<T> *> & blocks = blocks_to_receiver[pcol];
-            if(blocks.size()>0){
-              typename std::list<LBlock<T> *>::iterator it;
-              for(it = blocks.begin(); 
-                  it!=blocks.end();++it){
-                LBlock<T> & LB = *(*it);
-                UBlock<T> & UB = Urow[idx];
-
-                UB.blockIdx = LB.blockIdx;
-                UB.numCol = LB.numRow;
-                UB.numRow = LB.numCol;
-                UB.cols = LB.rows;
-                Transpose(LB.nzval,UB.nzval);
-                ++idx; 
-              }
-            }
-          }
-
-          
-        }
-     }
+      }
+    }
   }
-#ifndef _RELEASE_
-	PopCallStack();
-#endif
 
 }  // -----  end of PMatrixLToU ----- 
 

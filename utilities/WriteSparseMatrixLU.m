@@ -1,4 +1,5 @@
-function [colptr, rowind, nzval] = WriteSparseMatrixLU(A, filename)
+function [colptr, rowind, nzval] = ...
+  WriteSparseMatrixLU(A, filename,formatted)
 % Write a sparse matrix A in compressed sparse column format. It is used
 % for LU factorization
 %
@@ -7,9 +8,9 @@ function [colptr, rowind, nzval] = WriteSparseMatrixLU(A, filename)
 
 disp('Computing the compressed sparse column format...');
 tic
-disp('norm(A-A'')_{inf} = ');
-norm(A-A',inf)
-A = (A+A')/2; % Make sure symmetry
+% disp('norm(A-A'')_{inf} = ');
+% norm(A-A',inf)
+% A = (A+A')/2; % Make sure symmetry
 N = length(A);
 nnzA = nnz( A );
 [rowind, colind, nzval] = find( A );
@@ -17,11 +18,11 @@ nnzA = nnz( A );
 colptr = [ colptr; nnzA+1 ];
 toc
 
-if(0)
+if(formatted)
 	disp('Writing the matrix to file (text format)...');
 	tic
 		fid = fopen(filename,'w');
-		fprintf(fid, '%d %d ', [N, nnzA]);
+		fprintf(fid, '%d %d %d %d', [N, N, nnzA, 0]);
 		fprintf(fid, '\n');
 		fprintf(fid, '%d ', colptr);
 		fprintf(fid, '\n');

@@ -5,7 +5,7 @@ PAR_ND_LIBRARY   = ptscotch
 SEQ_ND_LIBRARY   = scotch
 
 # Different compiling and linking options.
-SUFFIX       = linux_v0.9.2
+SUFFIX       = linux_v0.10.0
 
 # Compiler and tools
 ################################################################
@@ -33,7 +33,7 @@ PEXSI_DIR     = $(HOME)/Projects/pexsi
 PEXSI_BUILD_DIR = $(PEXSI_DIR)/build
 
 # Required libraries directories
-DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_4.3
+DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_5.1.0
 METIS_DIR     = $(HOME)/Software/metis-5.1.0/build_release
 PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.3/build_release
 PTSCOTCH_DIR  = $(HOME)/Software/scotch_6.0.0/build_release
@@ -50,7 +50,7 @@ CPP_LIB          = -lstdc++ -lmpi -lmpi_cxx
 GFORTRAN_LIB     = /usr/lib/gcc/x86_64-linux-gnu/4.8/libgfortran.a
 LAPACK_LIB       = ${LAPACK_DIR}/liblapack.a
 BLAS_LIB         = ${BLAS_DIR}/lib/libopenblas.a
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_4.3.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_5.1.0.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
 # Graph partitioning libraries

@@ -5,7 +5,7 @@ PAR_ND_LIBRARY   = ptscotch
 SEQ_ND_LIBRARY   = scotch
 
 # Different compiling and linking options.
-SUFFIX       = osx_v0.9.2
+SUFFIX       = osx_v0.10.0
 
 #compiler, options and tools
 ################################################################
@@ -33,7 +33,7 @@ PEXSI_DIR     = $(HOME)/Projects/pexsi
 PEXSI_BUILD_DIR = $(PEXSI_DIR)/build
 
 # Required libraries directories
-DSUPERLU_DIR  = $(HOME)/Documents/Software/SuperLU_DIST_4.3
+DSUPERLU_DIR  = $(HOME)/Documents/Software/SuperLU_DIST_5.1.0
 METIS_DIR     = $(HOME)/Software/metis-5.1.0/build_release
 PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.2/build/Darwin-x86_64
 PTSCOTCH_DIR  = $(HOME)/Software/scotch_6.0.0
@@ -57,7 +57,7 @@ CPP_LIB          = -lstdc++ -lmpi -lmpi_cxx
 GFORTRAN_LIB     = /usr/local/lib/libgfortran.dylib 
 LAPACK_LIB       = -llapack
 BLAS_LIB         = -lblas
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/libsuperlu_dist_4.3.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/libsuperlu_dist_5.1.0.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
 
