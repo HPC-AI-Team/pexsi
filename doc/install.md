@@ -18,6 +18,10 @@ and ParMETIS for the parallel fill-in reducing reordering.  It is also
 possible to use PT-Scotch for the reordering.  But we recommend to first
 download ParMETIS.
 
+@attention **The installation procedure and dependencies of every version of the %PEXSI
+package may be different. Please follow the documentation of the version
+of the %PEXSI package you are working with 
+(provided in the @ref pageDownload page)**
 
 Build ParMETIS
 --------------
@@ -47,12 +51,12 @@ fine.
 Build SuperLU_DIST
 ------------------
 
-**SuperLU_DIST v4.3 starting from %PEXSI v0.9.2**
+**SuperLU_DIST v5.1.0 starting from %PEXSI v0.10.0**
 
 
-Download SuperLU_DIST (latest version 4.3) from
+Download SuperLU_DIST (latest version 5.1.0) from
 
-http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_4.3.tar.gz
+http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_5.1.0.tar.gz
 
 Follow the installation step to install SuperLU_DIST.
 
@@ -60,12 +64,12 @@ Follow the installation step to install SuperLU_DIST.
 to build SuperLU_DIST with -O2 option than the more aggresive
 optimization options provided by vendors.
 
-@attention In SuperLU_DIST v4.3, some functions conflict when both real
+@attention In SuperLU_DIST v5.1.0, some functions conflict when both real
 and complex arithmetic factorization is needed. This can be temporarily
 solved by adding  `-Wl,--allow-multiple-definition` in the linking
 option.
 
-@attention In SuperLU_DIST v4.3, there could be some excessive outputs.
+@attention In SuperLU_DIST v5.1.0, there could be some excessive outputs.
 This can be removed by going to the SRC/ directory of superlu, and
 comment out the line starting with `printf(".. dQuery_Space` in
 dmemory_dist.c. Do the same thing for the line starting with
@@ -75,12 +79,6 @@ dmemory_dist.c. Do the same thing for the line starting with
 factorization cannot be too large when PARMETIS is used together with
 SuperLU. The exact number of processors for symbolic factorization is
 unfortunately a **magic parameter**.  See @ref pageFAQ.
-
-**SuperLU_DIST v3.3 for %PEXSI v0.9.0 and before**
-
-Download SuperLU_DIST (latest version 3.3) from
-
-http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_3.3.tar.gz
 
 
 (Optional) Build PT-Scotch
@@ -106,6 +104,12 @@ PT-Scotch is also METIS-Compatible.  See the following section in
 INSTALL.TXT for more information.
 
     2.9) MeTiS compatibility library
+
+(Optional) Build SymPack
+--------------------------
+
+**Mathias: please add instructions to build SymPack with PEXSI. You
+might also need to add something for the next page**
 
 <!-- ************************************************************ -->
 @page pageBuild Build %PEXSI
@@ -161,20 +165,33 @@ set this to 0.
 Build the %PEXSI library
 ------------------------
 
+@attention **The installation procedure and dependencies of every version of the %PEXSI
+package may be different. Please follow the documentation of the version
+of the %PEXSI package you are working with 
+(provided in the @ref pageDownload page)**
+
 If make.inc is configured correctly,
     
     make 
     make install
 
 Should build the %PEXSI library under the `build` directory ready to be
-used in an external package.  If
+used in an external package.  If the FORTRAN interface is needed, type
+
+    make finstall
+
+If
 examples are needed (not necessary if you use %PEXSI in an external
 package), type 
 
-    make all
+    make examples
 
 which will generate C examples in `examples/` directory and FORTRAN examples in
 `fortran/` directory, respectively.
+
+    make all
+
+will make the library and the examples.
 
 For more information on the examples, see @ref pageTutorial.
 

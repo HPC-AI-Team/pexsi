@@ -9,6 +9,7 @@ Main Page           {#mainpage}
   - @ref pageLicense
   - @ref pageReference
   - @ref pageChangeLog
+  - @ref pageImportantChange
 - @subpage pageDownload
 - @subpage pageInstall
   - @ref pageDependency
@@ -21,6 +22,7 @@ Main Page           {#mainpage}
   - @ref pagePselinvComplexUnsymmetric
   - @ref pageDFT1
   - @ref pageDFT2
+  - @ref pageFermiComplex
 - @subpage pageCoreFunction
   - @ref pageBasicCore
   - @ref pageDataType
