@@ -109,7 +109,6 @@ void TAU_PROFILE_SET_CONTEXT(MPI_Comm comm);
 }
 #endif
 
-#ifdef TAU
 
 #define TAU_PROFILE_SET_NODE(ARG)
 
