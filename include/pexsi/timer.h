@@ -100,6 +100,7 @@ void CTF_set_context(MPI_Comm ctxt);
 
 #define TAU_PROFILE_TIMER(ARG1, ARG2, ARG3, ARG4)                 
 
+#endif
 extern "C"{
 #endif
 void TAU_PROFILE_INIT(int argc, char ** argv);
@@ -107,6 +108,7 @@ void TAU_PROFILE_SET_CONTEXT(MPI_Comm comm);
 #ifdef __cplusplus
 }
 
+#ifdef TAU
 
 #define TAU_PROFILE_SET_NODE(ARG)
 
