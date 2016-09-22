@@ -15,7 +15,6 @@
 #include "sympack.hpp"
 #include "sympack/SupernodalMatrix.hpp"
 #include "pexsi/sympack_interf.hpp"
-#include <upcxx.h>
 
 using namespace PEXSI;
 using namespace std;
@@ -35,7 +34,7 @@ int main(int argc, char **argv)
   int mpirank;
 
   MPI_Init(&argc,&argv);
-  upcxx::init(&argc, &argv);
+  //upcxx::init(&argc, &argv);
 
   //Create a communicator with npcol*nprow processors
   MPI_Comm world_comm;
@@ -43,6 +42,11 @@ int main(int argc, char **argv)
 
   MPI_Comm_size(world_comm, &mpisize);
   MPI_Comm_rank(world_comm, &mpirank);
+
+#if defined(SPROFILE) || defined(PMPI)
+  SYMPACK::symPACK_set_main_args(argc,argv);
+//  SYMPACK_SPROFILE_INIT(argc, argv);
+#endif
 
   stringstream  ss;
   ss << "logTest" << mpirank;
@@ -68,9 +72,6 @@ int main(int argc, char **argv)
       if( options.find("-c") != options.end() ){
         nprow= atoi(options["-r"].c_str());
         npcol= atoi(options["-c"].c_str());
-        if(nprow*npcol != mpisize){
-          throw std::runtime_error("The number of used processors can't be larger than the total number of available processors." );
-        } 
       }
       else{
         throw std::runtime_error( "When using -r option, -c also needs to be provided." );
@@ -80,14 +81,14 @@ int main(int argc, char **argv)
       if( options.find("-r") != options.end() ){
         nprow= atoi(options["-r"].c_str());
         npcol= atoi(options["-c"].c_str());
-        if(nprow*npcol > mpisize){
-          throw std::runtime_error("The number of used processors can't be larger than the total number of available processors." );
-        } 
       }
       else{
         throw std::runtime_error( "When using -c option, -r also needs to be provided." );
       }
     }
+    if(nprow*npcol > mpisize){
+      throw std::runtime_error("The number of used processors can't be larger than the total number of available processors." );
+    } 
 
     std::string Hfile;
     if( options.find("-H") != options.end() ){ 
@@ -97,12 +98,9 @@ int main(int argc, char **argv)
       throw std::logic_error("Hfile must be provided.");
     }
 
-    std::string Afile;
-    if( options.find("-A") != options.end() ){ 
-      Afile = options["-A"];
-    }
-    else{
-      throw std::logic_error("Afile must be provided.");
+    std::string format("CSC");
+    if( options.find("-Hf") != options.end() ){ 
+      format = options["-Hf"];
     }
 
 
@@ -112,46 +110,52 @@ int main(int argc, char **argv)
     SYMPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<endl;
     SYMPACK::logfileptr->OFS()<<"**********************************"<<endl;
 
-    SYMPACK::NGCholOptions optionsFact;
-    optionsFact.relax.SetMaxSize(10);
-    optionsFact.maxSnode = 10;
-    optionsFact.factorization = SYMPACK::FANBOTH;
-    optionsFact.decomposition = SYMPACK::LDL;
-    optionsFact.ordering = SYMPACK::MMD;
-    optionsFact.scheduler = SYMPACK::DL;
-    optionsFact.mappingTypeStr = "ROW2D";
 
-
-    Int all_np = nprow*npcol;//mpisize;
-    mpisize = optionsFact.used_procs(all_np);
+    mpisize = nprow*npcol;//mpisize;
 
     MPI_Comm workcomm;
     MPI_Comm_split(world_comm,mpirank<mpisize,mpirank,&workcomm);
 
-    upcxx::team * workteam;
-    Int new_rank = (mpirank<mpisize)?mpirank:mpirank-mpisize;
-    upcxx::team_all.split(mpirank<mpisize,new_rank, workteam);
+    SYMPACK::symPACKOptions optionsFact;
+    optionsFact.relax.SetMaxSize(200);
+//    optionsFact.relax.SetMaxSize(1000);
+//    optionsFact.relax.SetNrelax0(60);
+//    optionsFact.relax.SetNrelax1(100);
+//    optionsFact.relax.SetNrelax2(300);
+    optionsFact.factorization = SYMPACK::FANBOTH;
+    optionsFact.decomposition = SYMPACK::LDL;
+    optionsFact.ordering = SYMPACK::METIS;
+    optionsFact.scheduler = SYMPACK::DL;
+    optionsFact.mappingTypeStr = "ROW2D";
+    optionsFact.load_balance_str = "SUBCUBE-FO";
+    optionsFact.MPIcomm = workcomm;
+
+    //hide it in sympack ?
+    upcxx::init(&argc, &argv);
 
     if(mpirank<mpisize){
       Real timeSta, timeEnd;
       Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
       Real timeTotalSelInvSta, timeTotalSelInvEnd;
-      MPI_Comm_size(workcomm,&SYMPACK::np);
-      MPI_Comm_rank(workcomm,&SYMPACK::iam);
+//      MPI_Comm_size(workcomm,&SYMPACK::np);
+//      MPI_Comm_rank(workcomm,&SYMPACK::iam);
 
 
       
 
-      optionsFact.commEnv = new SYMPACK::CommEnvironment(workcomm);
       SYMPACK::DistSparseMatrix<SCALAR> HMat(workcomm);
-      std::string format("CSC");
+//SYMPACK_TIMER_START(SYMPACK);
       SYMPACK::ReadMatrix<SCALAR,SCALAR>(Hfile, format, HMat);
 
       GetTime( timeTotalFactorizationSta );
 
       SYMPACK::SupernodalMatrix<SCALAR>*  SMat = new SYMPACK::SupernodalMatrix<SCALAR>();
-      SMat->team_ = workteam;
-      SMat->Init(HMat,optionsFact);
+      //optionsFact.commEnv = new SYMPACK::CommEnvironment(workcomm);
+      SMat->Init(optionsFact);
+      SMat->SymbolicFactorization(HMat);
+
+      SMat->DistributeMatrix(HMat);
+
 
       GetTime( timeSta );
       SMat->Factorize();
@@ -163,110 +167,11 @@ int main(int argc, char **argv)
       GetTime( timeTotalFactorizationEnd );
       if( mpirank == 0 )
         cout << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
+//SYMPACK_TIMER_STOP(SYMPACK);
 
-      {
-         Int nrhs = 1;
-         Int n = HMat.size;
-    std::vector<SCALAR> RHS,XTrue;
-    if(nrhs>0){
-      RHS.resize(n*nrhs);
-      XTrue.resize(n*nrhs);
-
-      //Initialize XTrue;
-      Int val = 1.0;
-      for(Int i = 0; i<n;++i){ 
-        for(Int j=0;j<nrhs;++j){
-          XTrue[i+j*n] = val;
-          val = -val;
-        }
-      }
+      //SMat->Dump();
 
 
-      timeSta = get_time();
-
-        //TODO HANDLE MULTIPLE RHS
-        SYMPACK::SparseMatrixStructure Local = HMat.GetLocalStructure();
-        SYMPACK::SparseMatrixStructure Global;
-        Local.ToGlobal(Global,workcomm);
-        Global.ExpandSymmetric();
-
-        Int numColFirst = std::max(1,n / mpisize);
-
-        RHS.assign(n*nrhs,0.0);
-        for(Int k = 0; k<nrhs; ++k){
-          for(Int j = 0; j<n; ++j){
-            Int iOwner = std::min(j/numColFirst,mpisize-1);
-            if(mpirank == iOwner){
-              Int iLocal = (j-(numColFirst)*iOwner);
-
-              //do I own the column ?
-              SCALAR t = XTrue[j+k*n];
-              //do a dense mat mat mul ?
-              for(Int ii = Local.colptr[iLocal]-1; ii< Local.colptr[iLocal+1]-1;++ii){
-                Int row = Local.rowind[ii]-1;
-                RHS[row+k*n] += t*HMat.nzvalLocal[ii];
-                if(row>j){
-                  RHS[j+k*n] += XTrue[row+k*n]*HMat.nzvalLocal[ii];
-                }
-              }
-            }
-          }
-        }
-        //Do a reduce of RHS
-        mpi::Allreduce((SCALAR*)MPI_IN_PLACE,&RHS[0],RHS.size(),MPI_SUM,workcomm);
-
-      timeEnd = get_time();
-      if(mpirank==0){
-        cout<<"spGEMM time: "<<timeEnd-timeSta<<endl;
-      }
-
-        /**************** SOLVE PHASE ***********/
-        std::vector<SCALAR> XFinal;
-        XFinal = RHS;
-
-        SMat->Solve(&XFinal[0],nrhs);
-
-        SMat->GetSolution(&XFinal[0],nrhs);
-
-
-
-
-      std::vector<SCALAR> AX(n*nrhs,0.0);
-
-      for(Int k = 0; k<nrhs; ++k){
-        for(Int j = 1; j<=n; ++j){
-          Int iOwner = std::min((j-1)/numColFirst,mpisize-1);
-          if(mpirank == iOwner){
-            Int iLocal = (j-(numColFirst)*iOwner);
-            //do I own the column ?
-            SCALAR t = XFinal[j-1+k*n];
-            //do a dense mat mat mul ?
-            for(Int ii = Local.colptr[iLocal-1]; ii< Local.colptr[iLocal];++ii){
-              Int row = Local.rowind[ii-1];
-              AX[row-1+k*n] += t*HMat.nzvalLocal[ii-1];
-              if(row>j){
-                AX[j-1+k*n] += XFinal[row-1+k*n]*HMat.nzvalLocal[ii-1];
-              }
-            }
-          }
-        }
-      }
-
-      //Do a reduce of RHS
-      mpi::Allreduce((SCALAR*)MPI_IN_PLACE,&AX[0],AX.size(),MPI_SUM,workcomm);
-
-      if(mpirank==0){
-        blas::Axpy(AX.size(),-1.0,&RHS[0],1,&AX[0],1);
-        double normAX = SYMPACK::lapack::Lange('F',n,nrhs,&AX[0],n);
-        double normRHS = SYMPACK::lapack::Lange('F',n,nrhs,&RHS[0],n);
-        cout<<"Norm of residual after SPCHOL is "<<normAX/normRHS<<std::endl;
-      }
-
-
-    }
-
-
-      }
 
 
       GetTime( timeTotalSelInvSta );
@@ -279,158 +184,303 @@ int main(int argc, char **argv)
       luOpt.ColPerm = "METIS_AT_PLUS_A";
       luOpt.numProcSymbFact = 1;
 
+
+//#define UNSYM
+//#ifdef UNSYM
+//      luOpt.Symmetric = 0;
+//#else
+//      luOpt.Symmetric = 1;
+//#endif
+      luOpt.Symmetric = 1;
+      luOpt.Transpose = 0;//transpose;
+
       PSelInvOptions selInvOpt;
       selInvOpt.maxPipelineDepth = -1;
 
       GetTime( timeSta );
       symPACKMatrixToSuperNode( *SMat, *superPtr );
 
-      statusOFS << "super.permInv = " << superPtr->permInv << std::endl;
-      statusOFS << "super.superIdx = " << superPtr->superIdx << std::endl;
-      statusOFS << "super.etree = " << superPtr->etree << std::endl;
 
-      PMatrix<SCALAR> PMat( gPtr, superPtr, &selInvOpt ,&luOpt );
-      symPACKMatrixToPMatrix( *SMat, PMat );
+      PMatrix<SCALAR> * pMat = PMatrix<SCALAR>::Create(gPtr,superPtr, &selInvOpt, &luOpt);
+      symPACKMatrixToPMatrix( *SMat, *pMat );
       GetTime( timeEnd );
 
-      statusOFS << "ColBlockIdx = " << PMat.ColBlockIdx_ << std::endl;
-      statusOFS << "RowBlockIdx = " << PMat.RowBlockIdx_ << std::endl;
+      statusOFS << "super.perm = " << superPtr->perm << std::endl;
+      statusOFS << "super.permInv = " << superPtr->permInv << std::endl;
+      statusOFS << "super.perm_r = " << superPtr->perm_r << std::endl;
+      statusOFS << "super.permInv_r = " << superPtr->permInv_r << std::endl;
+      statusOFS << "super.superIdx = " << superPtr->superIdx << std::endl;
+      statusOFS << "super.etree = " << superPtr->etree << std::endl;
+      statusOFS << "ColBlockIdx = " << pMat->ColBlockIdx_ << std::endl;
+      statusOFS << "RowBlockIdx = " << pMat->RowBlockIdx_ << std::endl;
       if( mpirank == 0 )
          cout << "Time for converting symPACK matrix to PMatrix is " << timeEnd  - timeSta << endl;
 
       delete SMat;
       delete optionsFact.commEnv;
 
-        SYMPACK::logfileptr->OFS() << "********************** L ************************" << std::endl;
-      // Dump out the L factor
-      for( Int jb = 0; jb < PMat.NumLocalBlockCol(); jb++ ){
-        SYMPACK::logfileptr->OFS() << "------------ SuperNode " << GBj( jb, PMat.Grid() ) << std::endl;
-        std::vector<LBlock<SCALAR> >& Lcol = PMat.L(jb);
-        for( Int ib = 0; ib < PMat.NumBlockL(jb); ib++ ){
-          LBlock<SCALAR>& LB = Lcol[ib];
-          SYMPACK::logfileptr->OFS() << LB << std::endl;
+
+#if 0 //this is not compatible with the symmetric version of pexsi
+{
+  GridType *g = gPtr;
+  Int nprow = g->numProcRow, npcol = g->numProcCol;
+  Int mpirow = mpirank / npcol;  
+  Int mpicol = mpirank % npcol;
+  const SuperNodeType* super = pMat->SuperNode();
+  Int numSuper = super->superPtr.m()-1; 
+  for( Int ksup = 0; ksup < numSuper; ksup++ ){
+    Int pcol = ( ksup % npcol );
+    Int prow = ( ksup % nprow );
+    if( mpirow == prow ){
+      NumMat<SCALAR> DiagBuf;
+      DiagBuf.Resize(SuperSize( ksup, super ), SuperSize( ksup, super ));
+      if( mpicol == pcol ){
+        Int jb = ksup / npcol;
+        std::vector<LBlock<SCALAR> >& Lcol = pMat->L(jb);
+        LBlock<SCALAR>& LB = Lcol[0];
+        for(Int row = 0; row<LB.nzval.m(); row++){
+          for(Int col = row+1; col<LB.nzval.n(); col++){
+            LB.nzval(row,col) = LB.nzval(col,row) * LB.nzval(row,row);
+          }
+        } 
+        DiagBuf = LB.nzval;
+      }
+#ifdef UNSYM
+      //send the LBlock to the processors in same row
+      MPI_Bcast(DiagBuf.Data(),DiagBuf.m()*DiagBuf.n()*sizeof(SCALAR),MPI_BYTE,pcol,g->rowComm);
+      Int ib = ksup / nprow;
+      std::vector<UBlock<SCALAR> >& Urow = pMat->U(ib);
+
+      for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
+        UBlock<SCALAR>& UB = Urow[jblk];
+        for(Int row = 0; row<UB.nzval.m(); row++){
+          for(Int col = 0; col<UB.nzval.n(); col++){
+            UB.nzval(row,col) = UB.nzval(row,col) * DiagBuf(row,row);
+          }
         }
       }
+#endif
+    }
+  }
+//  pMat->DumpLU2();
+}
+#endif
 
-        SYMPACK::logfileptr->OFS() << "********************** U ************************" << std::endl;
-      // Dump out the U factor
-      for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
-        SYMPACK::logfileptr->OFS() << "------------ SuperNode " << GBi( ib, PMat.Grid() ) << std::endl;
-        std::vector<UBlock<SCALAR> >& Urow = PMat.U(ib);
-        for( Int jb = 0; jb < PMat.NumBlockU(ib); jb++ ){
-          UBlock<SCALAR>& UB = Urow[jb];
-          SYMPACK::logfileptr->OFS() << UB << std::endl;
-        }
-      }
 
+
+#if 1
       // Preparation for the selected inversion
       GetTime( timeSta );
-      PMat.ConstructCommunicationPattern();
+      pMat->ConstructCommunicationPattern();
       GetTime( timeEnd );
       if( mpirank == 0 )
         cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
-      PMat.DumpLU();
 
       GetTime( timeSta );
-      PMat.PreSelInv();
+      pMat->PreSelInv();
       GetTime( timeEnd );
       if( mpirank == 0 )
         cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
-      PMat.DumpLU();
+      statusOFS << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
       GetTime( timeSta );
-      PMat.SelInv();
+      pMat->SelInv();
       GetTime( timeEnd );
       GetTime( timeTotalSelInvEnd );
       if( mpirank == 0 )
         cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
+      statusOFS << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 
 
       if( mpirank == 0 )
         cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 
-      PMat.DumpLU();
+#if 0
+    std::string Afile;
+    if( options.find("-A") != options.end() ){ 
+      Afile = options["-A"];
+    }
+    else{
+      throw std::logic_error("Afile must be provided.");
+    }
+
+
+
+
 
       DistSparseMatrix<SCALAR> AMat;
       ParaReadDistSparseMatrix( Afile.c_str(), AMat, workcomm ); 
       NumVec<SCALAR> diag;
 
-//      // Convert to DistSparseMatrix and get the diagonal
-//      GetTime( timeSta );
-//      DistSparseMatrix<SCALAR> Ainv;
-//      PMat.PMatrixToDistSparseMatrix( Ainv );
-//      GetTime( timeEnd );
+
+            // Convert to DistSparseMatrix in the 2nd format and get the diagonal
+            DistSparseMatrix<SCALAR> Ainv;
+            SCALAR traceLocal;
+
+
+            DistSparseMatrix<SCALAR> * Aptr;
+            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
+              Aptr = new DistSparseMatrix<SCALAR>();
+              //compute the transpose
+              CSCToCSR(AMat,*Aptr);
+            }
+            else{
+              Aptr = &AMat;
+            }
+
+              GetTime( timeSta );
+              pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
+              GetTime( timeEnd );
+
+              traceLocal = ZERO<SCALAR>();
+              traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
+                  Aptr->nzvalLocal.Data(), 1 );
+
+            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
+              delete Aptr;
+            }
+
+
+            if( mpirank == 0 )
+              cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
+
+            SCALAR trace = ZERO<SCALAR>();
+            mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, workcomm );
+
+            if( mpirank == 0 ){
+
+              cout << "A.size = "  << AMat.size << endl;
+              cout << std::endl << "Tr[Ainv * AMat] = " <<  trace << std::endl;
+              statusOFS << std::endl << "Tr[Ainv * AMat] = " << std::endl << trace << std::endl;
+#ifdef _MYCOMPLEX_ 
+              cout << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
+              statusOFS << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
+#else
+              cout << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
+              statusOFS << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
+#endif
+            }
+
+          if( true ){
+
+
+
+
+
+
+
+//      for( Int orow = 0; orow < AMat.size; orow++){
+//        //row index in the permuted order
+//        Int row         = superPtr->perm[ orow ];
+//        //col index in the permuted order
+//        Int col         = superPtr->perm[ superPtr->perm_r[ orow] ];
 //
-//      if( mpirank == 0 )
-//        cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
+//        Int blockColIdx = BlockIdx( col, superPtr );
+//        Int blockRowIdx = BlockIdx( row, superPtr );
 //
-//      NumVec<SCALAR> diagDistSparse;
-//      GetTime( timeSta );
-//      GetDiagonal( Ainv, diagDistSparse );
-//      GetTime( timeEnd );
-//      if( mpirank == 0 )
-//        cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-//
-//      if( mpirank == 0 ){
-//        statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-//        Real diffNorm = 0.0;;
-//        for( Int i = 0; i < diag.m(); i++ ){
-//          diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
-//        }
-//        diffNorm = std::sqrt( diffNorm );
-//        statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+//        statusOFS<<"A("<<orow<<","<<orow<<") = Ap("<<row<<","<<col<<") in BLOCK("<<blockRowIdx<<","<<blockColIdx<<")"<<endl;
 //      }
 
-      // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-      GetTime( timeSta );
-      DistSparseMatrix<SCALAR> Ainv2;
-      PMat.PMatrixToDistSparseMatrix( AMat, Ainv2 );
-      GetTime( timeEnd );
-
-      if( mpirank == 0 )
-        cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
-
-      NumVec<SCALAR> diagDistSparse2;
-      GetTime( timeSta );
-      GetDiagonal( Ainv2, diagDistSparse2 );
-      GetTime( timeEnd );
-      if( mpirank == 0 )
-        cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-      if( mpirank == 0 ){
-        statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
-        Real diffNorm = 0.0;;
-        for( Int i = 0; i < diag.m(); i++ ){
-          diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
-        }
-        diffNorm = std::sqrt( diffNorm );
-        statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
-      }
-
-      Complex traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1,
-          Ainv2.nzvalLocal.Data(), 1 );
-      Complex trace = Z_ZERO;
-      mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
-
-      if( mpirank == 0 ){
-
-        cout << "H.size = "  << AMat.size << endl;
-        cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
-        statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
-
-        cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
-        statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
-
-      }
+//      {
+//
+//        // Count the sizes from the A matrix first
+//        Int numColFirst = pMat->NumCol() / mpisize;
+//        Int firstCol = mpirank * numColFirst;
+//        Int numColLocal;
+//        if( mpirank == mpisize-1 )
+//          numColLocal = pMat->NumCol() - numColFirst * (mpisize-1);
+//        else
+//          numColLocal = numColFirst;
+//
+//        Int*     rowPtr = AMat.rowindLocal.Data();
+//        Int*     colPtr = AMat.colptrLocal.Data();
+//
+//        for( Int j = 0; j < numColLocal; j++ ){
+//
+//        Int ocol = firstCol + j;
+//        Int col         = superPtr->perm[ superPtr->perm_r[ ocol] ];
+//        Int blockColIdx = BlockIdx( col, superPtr );
+//        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+//          Int orow = rowPtr[i]-1;
+//          Int row         = superPtr->perm[ orow ];
+//          Int blockRowIdx = BlockIdx( row, superPtr );
+//            statusOFS<<"A("<<orow<<","<<ocol<<") = Ap("<<row<<","<<col<<") in BLOCK("<<blockRowIdx<<","<<blockColIdx<<")"<<endl;
+//          } // for (i)
+//        } // for (j)
+//      }
 
 
 
 
 
 
+            NumVec<SCALAR> diag;
+
+            GetTime( timeSta );
+            pMat->GetDiagonal( diag );
+            GetTime( timeEnd );
 
 
+            if( mpirank == 0 )
+              cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+
+
+            NumVec<SCALAR> diagDistSparse;
+            GetTime( timeSta );
+            GetDiagonal( Ainv, diagDistSparse );
+            GetTime( timeEnd );
+            if( mpirank == 0 )
+              cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+
+            if( mpirank == 0 ){
+              statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format: " << std::endl << diagDistSparse << std::endl;
+              Real diffNorm = 0.0;;
+              for( Int i = 0; i < diag.m(); i++ ){
+                diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+              }
+              diffNorm = std::sqrt( diffNorm );
+              cout << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+            }
+
+
+            if( mpirank == 0 ){
+              statusOFS << std::endl << "Diagonal of inverse in natural order: " << std::endl << diag << std::endl;
+              ofstream ofs("diag");
+              if( !ofs.good() ) 
+                throw std::runtime_error("file cannot be opened.");
+              serialize( diag, ofs, NO_MASK );
+              ofs.close();
+            }
+
+
+            {
+            NumVec<SCALAR> diagUNP;
+            superPtr->perm = superPtr->perm_r;
+            superPtr->permInv = superPtr->permInv_r;
+            GetTime( timeSta );
+            pMat->GetDiagonal( diagUNP );
+            GetTime( timeEnd );
+
+
+            if( mpirank == 0 )
+              cout << "Time for getting the permuted diagonal is " << timeEnd  - timeSta << endl;
+              statusOFS << std::endl << "Diagonal of inverse in permuted order: " << std::endl << diagUNP << std::endl;
+
+            }
+
+
+
+          }
+#endif
+#endif
+
+
+
+
+
+
+      delete pMat;
 
 
       delete superPtr;

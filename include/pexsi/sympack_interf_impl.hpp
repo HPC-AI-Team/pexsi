@@ -73,21 +73,21 @@ template<typename T> void symPACKMatrixToSuperNode(
     SuperNodeType& super ){
   Int n = SMat.Size();
 
-  // perm
   SYMPACK::Ordering & Order = (SYMPACK::Ordering &)SMat.GetOrdering();
+  const std::vector<Int>& SInvp = Order.invp;
+  super.permInv.Resize( SInvp.size() );
   const std::vector<Int>& SPerm = Order.perm;
   super.perm.Resize( SPerm.size() );
+
+  // perm
   for( Int i = 0; i < SPerm.size(); i++ ){
-    super.perm[i] = SPerm[i]-1;
+    super.permInv[i] = SPerm[i]-1;
   }
 
   // permInv
-  super.permInv.Resize( n );
-  for( Int i = 0; i < n; i++ ){
-    super.permInv[i] = i;
+  for( Int i = 0; i < SInvp.size(); i++ ){
+    super.perm[i] = SInvp[i]-1;
   }
-  std::sort( super.permInv.Data(), super.permInv.Data() + n,
-      IndexComp<IntNumVec&>(super.perm) );
 
   super.perm_r.Resize( n);
   for( Int i = 0; i < n; i++ ){
@@ -124,17 +124,6 @@ template<typename T> void symPACKMatrixToSuperNode(
     }
     super.etree[i]-=1;
   }
-
-
-  //  SYMPACK::ETree SupETree = etree.ToSupernodalETree(XSuper,(std::vector<Int>&)superMember,Order);
-  //  super.etree.Resize(SupETree.Size());
-  //  for( Int i = 0; i < SupETree.Size(); i++ ){
-  //    super.etree[i] = SupETree.PostParent(i);
-  //    if(super.etree[i]==0){
-  //      super.etree[i]=numSuper+1;
-  //    }
-  //    super.etree[i]-=1;
-  //  }
 
 }  // -----  end of symPACKMatrixToSuperNode ----- 
 
@@ -389,36 +378,30 @@ template<typename T> void symPACKMatrixToPMatrix(
     }
   }
 
+  for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
+    std::sort(PMat.RowBlockIdx(ib).begin(),PMat.RowBlockIdx(ib).end(),std::less<Int>());
+  }
+  for( Int jb = 0; jb < PMat.NumLocalBlockCol(); jb++ ){
+    std::sort(PMat.ColBlockIdx(jb).begin(),PMat.ColBlockIdx(jb).end(),std::less<Int>());
+  }
+
   const SuperNodeType* super = PMat.SuperNode();
   for( Int ksup = 0; ksup < numSuper; ksup++ ){
     Int pcol = ( ksup % npcol );
     Int prow = ( ksup % nprow );
     if( mpirow == prow ){
-      NumMat<T> DiagBuf;
+      NumMat<SCALAR> DiagBuf;
       DiagBuf.Resize(SuperSize( ksup, super ), SuperSize( ksup, super ));
       if( mpicol == pcol ){
         Int jb = ksup / npcol;
-        std::vector<LBlock<T> >& Lcol = PMat.L(jb);
-        LBlock<T>& LB = Lcol[0];
+        std::vector<LBlock<SCALAR> >& Lcol = PMat.L(jb);
+        LBlock<SCALAR>& LB = Lcol[0];
         for(Int row = 0; row<LB.nzval.m(); row++){
           for(Int col = row+1; col<LB.nzval.n(); col++){
             LB.nzval(row,col) = LB.nzval(col,row) * LB.nzval(row,row);
           }
         } 
         DiagBuf = LB.nzval;
-      }
-      //send the LBlock to the processors in same row
-      MPI_Bcast(DiagBuf.Data(),DiagBuf.m()*DiagBuf.n()*sizeof(T),MPI_BYTE,pcol,g->rowComm);
-      Int ib = ksup / nprow;
-      std::vector<UBlock<T> >& Urow = PMat.U(ib);
-
-      for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
-        UBlock<T>& UB = Urow[jblk];
-        for(Int row = 0; row<UB.nzval.m(); row++){
-          for(Int col = 0; col<UB.nzval.n(); col++){
-            UB.nzval(row,col) = UB.nzval(row,col) * DiagBuf(row,row);
-          }
-        }
       }
     }
   }
@@ -439,8 +422,6 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
   MPI_Comm_rank(comm, &mpirank);
 
   Int nprow = g->numProcRow, npcol = g->numProcCol;
-
-
   Int mpirow = mpirank / npcol;  
   Int mpicol = mpirank % npcol;
 
