@@ -80,6 +80,10 @@ run_ppexsi_old: run_ppexsi_old.o ${PEXSI_LIB}
 run_ppexsi_old.o: run_ppexsi_old.cpp 
 	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
 
+run_superlu.o: run_superlu.cpp 
+	${CXX} -c ${CXXFLAGS} ${CPPDEFS} $< 
+run_superlu: run_superlu.o ${PEXSI_LIB} 
+	($(LOADER) -o $@_${SUFFIX} run_superlu.o  $(LOADOPTS) )
 
 OBJS = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o} 
 DEPS = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d}

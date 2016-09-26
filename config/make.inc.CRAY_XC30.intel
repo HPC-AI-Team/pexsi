@@ -94,7 +94,7 @@ FFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES}
 CXXFLAGS     = ${COMPILE_FLAG} ${CPPFLAG} ${PROFILE_FLAG} ${INCLUDES} 
 CCDEFS       = ${COMPILE_DEF} 
 CPPDEFS      = ${COMPILE_DEF} 
-LOADOPTS     = ${PROFILE_FLAG} ${LIBS} -Wl,--allow-multiple-definition
+LOADOPTS     = ${PROFILE_FLAG} ${LIBS} -no-ipo -Wl,--allow-multiple-definition
 FLOADOPTS    = ${LIBS} -no-ipo -lstdc++ -Wl,--allow-multiple-definition
 
 
