@@ -390,12 +390,12 @@ template<typename T> void symPACKMatrixToPMatrix(
     Int pcol = ( ksup % npcol );
     Int prow = ( ksup % nprow );
     if( mpirow == prow ){
-      NumMat<SCALAR> DiagBuf;
+      NumMat<T> DiagBuf;
       DiagBuf.Resize(SuperSize( ksup, super ), SuperSize( ksup, super ));
       if( mpicol == pcol ){
         Int jb = ksup / npcol;
-        std::vector<LBlock<SCALAR> >& Lcol = PMat.L(jb);
-        LBlock<SCALAR>& LB = Lcol[0];
+        std::vector<LBlock<T> >& Lcol = PMat.L(jb);
+        LBlock<T>& LB = Lcol[0];
         for(Int row = 0; row<LB.nzval.m(); row++){
           for(Int col = row+1; col<LB.nzval.n(); col++){
             LB.nzval(row,col) = LB.nzval(col,row) * LB.nzval(row,row);

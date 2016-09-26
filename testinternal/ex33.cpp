@@ -125,6 +125,7 @@ int main(int argc, char **argv)
     optionsFact.factorization = SYMPACK::FANBOTH;
     optionsFact.decomposition = SYMPACK::LDL;
     optionsFact.ordering = SYMPACK::METIS;
+    //optionsFact.ordering = SYMPACK::NATURAL;
     optionsFact.scheduler = SYMPACK::DL;
     optionsFact.mappingTypeStr = "ROW2D";
     optionsFact.load_balance_str = "SUBCUBE-FO";
@@ -133,30 +134,37 @@ int main(int argc, char **argv)
     //hide it in sympack ?
     upcxx::init(&argc, &argv);
 
+//{
+//  int error_code = 671345422;
+//  char error_string[500];
+//   int length_of_error_string, error_class;
+//
+//   MPI_Error_class(error_code, &error_class);
+//   MPI_Error_string(error_class, error_string, &length_of_error_string);
+//   fprintf(stderr, "%3d: %s\n", mpirank, error_string);
+//   MPI_Error_string(error_code, error_string, &length_of_error_string);
+//   fprintf(stderr, "%3d: %s\n", mpirank, error_string);
+//}
+
     if(mpirank<mpisize){
       Real timeSta, timeEnd;
       Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
       Real timeTotalSelInvSta, timeTotalSelInvEnd;
-//      MPI_Comm_size(workcomm,&SYMPACK::np);
-//      MPI_Comm_rank(workcomm,&SYMPACK::iam);
+      MPI_Comm_size(workcomm,&SYMPACK::np);
+      MPI_Comm_rank(workcomm,&SYMPACK::iam);
 
 
       
 
       SYMPACK::DistSparseMatrix<SCALAR> HMat(workcomm);
-//SYMPACK_TIMER_START(SYMPACK);
       SYMPACK::ReadMatrix<SCALAR,SCALAR>(Hfile, format, HMat);
 
       GetTime( timeTotalFactorizationSta );
-
       SYMPACK::SupernodalMatrix<SCALAR>*  SMat = new SYMPACK::SupernodalMatrix<SCALAR>();
-      //optionsFact.commEnv = new SYMPACK::CommEnvironment(workcomm);
+      optionsFact.commEnv = new SYMPACK::CommEnvironment(workcomm);
       SMat->Init(optionsFact);
       SMat->SymbolicFactorization(HMat);
-
       SMat->DistributeMatrix(HMat);
-
-
       GetTime( timeSta );
       SMat->Factorize();
       GetTime( timeEnd );
@@ -167,15 +175,8 @@ int main(int argc, char **argv)
       GetTime( timeTotalFactorizationEnd );
       if( mpirank == 0 )
         cout << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
-//SYMPACK_TIMER_STOP(SYMPACK);
-
-      //SMat->Dump();
-
-
-
 
       GetTime( timeTotalSelInvSta );
-
       GridType *gPtr = new GridType( workcomm, nprow, npcol );
       SuperNodeType *superPtr = new SuperNodeType();
 
@@ -183,7 +184,6 @@ int main(int argc, char **argv)
       SuperLUOptions luOpt;
       luOpt.ColPerm = "METIS_AT_PLUS_A";
       luOpt.numProcSymbFact = 1;
-
 
 //#define UNSYM
 //#ifdef UNSYM
@@ -205,20 +205,21 @@ int main(int argc, char **argv)
       symPACKMatrixToPMatrix( *SMat, *pMat );
       GetTime( timeEnd );
 
-      statusOFS << "super.perm = " << superPtr->perm << std::endl;
-      statusOFS << "super.permInv = " << superPtr->permInv << std::endl;
-      statusOFS << "super.perm_r = " << superPtr->perm_r << std::endl;
-      statusOFS << "super.permInv_r = " << superPtr->permInv_r << std::endl;
-      statusOFS << "super.superIdx = " << superPtr->superIdx << std::endl;
-      statusOFS << "super.etree = " << superPtr->etree << std::endl;
-      statusOFS << "ColBlockIdx = " << pMat->ColBlockIdx_ << std::endl;
-      statusOFS << "RowBlockIdx = " << pMat->RowBlockIdx_ << std::endl;
+//      statusOFS << "super.perm = " << superPtr->perm << std::endl;
+//      statusOFS << "super.permInv = " << superPtr->permInv << std::endl;
+//      statusOFS << "super.perm_r = " << superPtr->perm_r << std::endl;
+//      statusOFS << "super.permInv_r = " << superPtr->permInv_r << std::endl;
+//      statusOFS << "super.superIdx = " << superPtr->superIdx << std::endl;
+//      statusOFS << "super.etree = " << superPtr->etree << std::endl;
+//      statusOFS << "ColBlockIdx = " << pMat->ColBlockIdx_ << std::endl;
+//      statusOFS << "RowBlockIdx = " << pMat->RowBlockIdx_ << std::endl;
       if( mpirank == 0 )
          cout << "Time for converting symPACK matrix to PMatrix is " << timeEnd  - timeSta << endl;
 
       delete SMat;
       delete optionsFact.commEnv;
 
+      MPI_Barrier(workcomm);
 
 #if 0 //this is not compatible with the symmetric version of pexsi
 {
