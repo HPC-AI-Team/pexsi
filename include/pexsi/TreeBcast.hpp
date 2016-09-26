@@ -1478,7 +1478,41 @@ public:
       int recvCount = -1;
       int reqCnt = GetDestCount();
       assert(reqCnt == myRequests_.m());
-      MPI_Testsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
+
+
+
+
+      int error_code;
+      MPI_Errhandler_set(this->comm_, MPI_ERRORS_RETURN);
+      error_code = MPI_Testsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
+      if (error_code != MPI_SUCCESS) {
+         char error_string[BUFSIZ];
+         int length_of_error_string, error_class;
+      
+         MPI_Error_class(error_code, &error_class);
+         MPI_Error_string(error_class, error_string, &length_of_error_string);
+         statusOFS<<error_string<<std::endl;
+         MPI_Error_string(error_code, error_string, &length_of_error_string);
+         statusOFS<<error_string<<std::endl;
+
+        //now check the status
+        for(int i = 0; i<reqCnt;i++){
+          error_code = this->myStatuses_[i].MPI_ERROR;
+          if(error_code != MPI_SUCCESS){
+             MPI_Error_class(error_code, &error_class);
+             MPI_Error_string(error_class, error_string, &length_of_error_string);
+             statusOFS<<error_string<<std::endl;
+             MPI_Error_string(error_code, error_string, &length_of_error_string);
+             statusOFS<<error_string<<std::endl;
+          }
+        }
+        gdb_lock();
+      }
+
+
+
+
+      //MPI_Testsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
       //if something has been received, accumulate and potentially forward it
       for(Int i = 0;i<recvCount;++i ){
         Int idx = recvIdx_[i];
@@ -1721,7 +1755,35 @@ public:
       int recvCount = -1;
       int reqCnt = 1;
 
-      MPI_Testsome(reqCnt,&this->myRequests_[0],&recvCount,&this->recvIdx_[0],&this->myStatuses_[0]);
+      assert(reqCnt == this->myRequests_.m());
+      int error_code;
+      MPI_Errhandler_set(this->comm_, MPI_ERRORS_RETURN);
+      error_code = MPI_Testsome(reqCnt,&this->myRequests_[0],&recvCount,&this->recvIdx_[0],&this->myStatuses_[0]);
+      if (error_code != MPI_SUCCESS) {
+         char error_string[BUFSIZ];
+         int length_of_error_string, error_class;
+      
+         MPI_Error_class(error_code, &error_class);
+         MPI_Error_string(error_class, error_string, &length_of_error_string);
+         statusOFS<<error_string<<std::endl;
+         MPI_Error_string(error_code, error_string, &length_of_error_string);
+         statusOFS<<error_string<<std::endl;
+
+        //now check the status
+        for(int i = 0; i<reqCnt;i++){
+          error_code = this->myStatuses_[i].MPI_ERROR;
+          if(error_code != MPI_SUCCESS){
+             MPI_Error_class(error_code, &error_class);
+             MPI_Error_string(error_class, error_string, &length_of_error_string);
+             statusOFS<<error_string<<std::endl;
+             MPI_Error_string(error_code, error_string, &length_of_error_string);
+             statusOFS<<error_string<<std::endl;
+          }
+        }
+        gdb_lock();
+      }
+
+//      MPI_Testsome(reqCnt,&this->myRequests_[0],&recvCount,&this->recvIdx_[0],&this->myStatuses_[0]);
       //MPI_Waitsome(reqCnt,&myRequests_[0],&recvCount,&recvIdx_[0],&myStatuses_[0]);
       //if something has been received, accumulate and potentially forward it
       for(Int i = 0;i<recvCount;++i ){

@@ -49,7 +49,7 @@ run_ksdft: run_ksdft.o ${PEXSI_LIB}
 run_inertia: run_inertia.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_inertia.o  $(LOADOPTS) )
 
-run_pselinv: run_pselinv.o ${PEXSI_LIB} 
+run_pselinv: run_pselinv.o ${PEXSI_LIB} ../include/pexsi/*.hpp 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv.o  $(LOADOPTS) )
 
 run_pselinv_unsym: run_pselinv_unsym.o ${PEXSI_LIB} 
