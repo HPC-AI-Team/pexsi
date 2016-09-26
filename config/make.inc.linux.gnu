@@ -50,6 +50,7 @@ CPP_LIB          = -lstdc++ -lmpi -lmpi_cxx
 GFORTRAN_LIB     = /usr/lib/gcc/x86_64-linux-gnu/4.8/libgfortran.a
 LAPACK_LIB       = ${LAPACK_DIR}/liblapack.a
 BLAS_LIB         = ${BLAS_DIR}/lib/libopenblas.a
+
 DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_5.1.0.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
