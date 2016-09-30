@@ -511,27 +511,37 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
 
 
   //read nzval
-  MPI_Offset myNzValOffset = (4 + ((mpirank==0)?0:1) )*sizeof(int) + (pspmat.size+1 + pspmat.nnz)*sizeof(Int) + (pspmat.colptrLocal[0]-1)*sizeof(double);
+//  MPI_Offset myNzValOffset = (4 + ((mpirank==0)?0:1) )*sizeof(int) + (pspmat.size+1 + pspmat.nnz)*sizeof(Int) + (pspmat.colptrLocal[0]-1)*sizeof(double);
+//
+//  lens[0] = (mpirank==0)?1:0;
+//  lens[1] = pspmat.nnzLocal;
+//
+//  MPI_Address(&np1, &disps[0]);
+//  MPI_Address(pspmat.nzvalLocal.Data(), &disps[1]);
+//
+//  types[0] = MPI_INT;
+//  types[1] = MPI_DOUBLE;
+//
+//  MPI_Type_create_struct(2, lens, disps, types, &type);
+//  MPI_Type_commit(&type);
+//
+//  err = MPI_File_read_at_all(fin, myNzValOffset, MPI_BOTTOM, 1, type,&status);
+//  MPI_Type_free(&type);
 
-  lens[0] = (mpirank==0)?1:0;
-  lens[1] = pspmat.nnzLocal;
+  if( mpirank == 0 ){
+    MPI_Offset myNzValOffset = (4 )*sizeof(int) + (pspmat.size+1 + pspmat.nnz)*sizeof(int) + (pspmat.colptrLocal[0]-1)*sizeof(double);
+    err = MPI_File_read_at(fin, myNzValOffset,(char*)&np1, 1, MPI_INT, &status);
+  }
 
-  MPI_Address(&np1, &disps[0]);
-  MPI_Address(pspmat.nzvalLocal.Data(), &disps[1]);
+  MPI_Offset myNzValOffset = (5 )*sizeof(int) + (pspmat.size+1 + pspmat.nnz)*sizeof(int) + (pspmat.colptrLocal[0]-1)*sizeof(double);
+  err = MPI_File_read_at_all(fin, myNzValOffset, pspmat.nzvalLocal.Data(), pspmat.nnzLocal, MPI_DOUBLE,&status);
 
-  types[0] = MPI_INT;
-  types[1] = MPI_DOUBLE;
 
-  MPI_Type_create_struct(2, lens, disps, types, &type);
-  MPI_Type_commit(&type);
-
-  err = MPI_File_read_at_all(fin, myNzValOffset, MPI_BOTTOM, 1, type,&status);
 
   if (err != MPI_SUCCESS) {
     ErrorHandling( "error reading nzval" );
   }
 
-  MPI_Type_free(&type);
 
 
   //convert to local references
@@ -797,6 +807,7 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
   MPI_Address(&np1, &disps[0]);
   MPI_Address(pspmat.rowindLocal.Data(), &disps[1]);
 
+//  MPI_Type_hindexed(2, lens, disps, MPI_INT, &type);
   MPI_Type_hindexed(2, lens, disps, MPI_INT, &type);
   MPI_Type_commit(&type);
 
@@ -809,27 +820,37 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
 
 
   //read nzval
-  MPI_Offset myNzValOffset = (4 + ((mpirank==0)?0:1) )*sizeof(int) + (pspmat.size+1 + pspmat.nnz)*sizeof(int) + (pspmat.colptrLocal[0]-1)*sizeof(Complex);
+//  MPI_Offset myNzValOffset = (4 + ((mpirank==0)?0:1) )*sizeof(int) + (pspmat.size+1 + pspmat.nnz)*sizeof(int) + (pspmat.colptrLocal[0]-1)*sizeof(Complex);
 
-  lens[0] = (mpirank==0)?1:0;
-  lens[1] = pspmat.nnzLocal;
+//  lens[0] = ((mpirank==0)?1:0)*sizeof(Int);
+//  lens[1] = pspmat.nnzLocal*sizeof(Complex);
+//
+//  MPI_Address(&np1, &disps[0]);
+//  MPI_Address(pspmat.nzvalLocal.Data(), &disps[1]);
+//
+//  types[0] = MPI_INT;
+//  types[1] = MPI_DOUBLE_COMPLEX;
+//  MPI_Type_create_struct(2, lens, disps, types, &type);
+//  MPI_Type_commit(&type);
+//
+//  err = MPI_File_read_at_all(fin, myNzValOffset, MPI_BOTTOM, 1, type,&status);
+//
+//  MPI_Type_free(&type);
 
-  MPI_Address(&np1, &disps[0]);
-  MPI_Address(pspmat.nzvalLocal.Data(), &disps[1]);
+  if( mpirank == 0 ){
+    MPI_Offset myNzValOffset = (4 )*sizeof(int) + (pspmat.size+1 + pspmat.nnz)*sizeof(int) + (pspmat.colptrLocal[0]-1)*sizeof(Complex);
+    err = MPI_File_read_at(fin, myNzValOffset,(char*)&np1, 1, MPI_INT, &status);
+  }
 
-  types[0] = MPI_INT;
-  types[1] = MPI_DOUBLE_COMPLEX;
+  MPI_Offset myNzValOffset = (5 )*sizeof(int) + (pspmat.size+1 + pspmat.nnz)*sizeof(int) + (pspmat.colptrLocal[0]-1)*sizeof(Complex);
+  err = MPI_File_read_at_all(fin, myNzValOffset, pspmat.nzvalLocal.Data(), pspmat.nnzLocal, MPI_DOUBLE_COMPLEX,&status);
 
-  MPI_Type_create_struct(2, lens, disps, types, &type);
-  MPI_Type_commit(&type);
 
-  err = MPI_File_read_at_all(fin, myNzValOffset, MPI_BOTTOM, 1, type,&status);
 
   if (err != MPI_SUCCESS) {
     ErrorHandling( "error reading nzval" );
   }
 
-  MPI_Type_free(&type);
 
 
   //convert to local references

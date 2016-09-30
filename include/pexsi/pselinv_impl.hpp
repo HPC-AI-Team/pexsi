@@ -435,12 +435,19 @@ namespace PEXSI{
       statusOFS << "mycol   = " << MYCOL(grid_) << std::endl; 
 #endif
 
+//TODO enable this
       //Get maxTag value and compute the max depth we can use
       //int * pmaxTag;
       int pmaxTag = 4000;
-//      int flag;
-//      MPI_Comm_get_attr(grid_->comm, MPI_TAG_UB, (void*)&pmaxTag, &flag);
-      //maxTag_ = *pmaxTag;
+
+    void *v = NULL;
+    int flag;
+    MPI_Comm_get_attr(grid_->comm, MPI_TAG_UB, &v, &flag);
+    if (flag) {
+        pmaxTag = *(int*)v;
+    }
+
+
       maxTag_ = pmaxTag;
       limIndex_ = (Int)maxTag_/(Int)SELINV_TAG_COUNT -1; 
 
@@ -1313,7 +1320,8 @@ namespace PEXSI{
 #endif
           if( (Int)(rank/limIndex_) != (Int)(maxRank/limIndex_)){
             split = true;
-            splitIdx = maxRank - maxRank%limIndex_ - rank; 
+            //splitIdx = maxRank - maxRank%limIndex_ - rank; 
+            splitIdx = limIndex_-(rank%limIndex_)-1;
           }
 
           Int splitPoint = std::min((Int)WSet[lidx].size()-1,splitIdx>0?std::min(limit-1,splitIdx):limit-1);
@@ -2310,7 +2318,10 @@ namespace PEXSI{
 #endif
             {
 
-              bool done = redLTree->Progress();
+              //TODO restore this
+              //bool done = redLTree->Progress();
+              redLTree->Wait();
+              bool done = true;
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
 #endif

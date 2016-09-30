@@ -160,11 +160,19 @@ int main(int argc, char **argv)
       SYMPACK::ReadMatrix<SCALAR,SCALAR>(Hfile, format, HMat);
 
       GetTime( timeTotalFactorizationSta );
+      GetTime( timeSta );
       SYMPACK::SupernodalMatrix<SCALAR>*  SMat = new SYMPACK::SupernodalMatrix<SCALAR>();
       optionsFact.commEnv = new SYMPACK::CommEnvironment(workcomm);
       SMat->Init(optionsFact);
       SMat->SymbolicFactorization(HMat);
+      GetTime( timeEnd );
+      if( mpirank == 0 )
+        cout << "Time for symbolic factorization is " << timeEnd - timeSta << " sec" << endl; 
+      GetTime( timeSta );
       SMat->DistributeMatrix(HMat);
+      GetTime( timeEnd );
+      if( mpirank == 0 )
+        cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
       GetTime( timeSta );
       SMat->Factorize();
       GetTime( timeEnd );
@@ -297,125 +305,74 @@ int main(int argc, char **argv)
         cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 
-#if 0
-    std::string Afile;
-    if( options.find("-A") != options.end() ){ 
-      Afile = options["-A"];
-    }
-    else{
-      throw std::logic_error("Afile must be provided.");
-    }
+#if 1
+        if( options.find("-A") != options.end() ){ 
+          std::string Afile;
+          if( options.find("-A") != options.end() ){ 
+            Afile = options["-A"];
+          }
+          else{
+            throw std::logic_error("Afile must be provided.");
+          }
 
 
 
 
 
-      DistSparseMatrix<SCALAR> AMat;
-      ParaReadDistSparseMatrix( Afile.c_str(), AMat, workcomm ); 
-      NumVec<SCALAR> diag;
+          DistSparseMatrix<SCALAR> AMat;
+          ParaReadDistSparseMatrix( Afile.c_str(), AMat, workcomm ); 
+          NumVec<SCALAR> diag;
 
 
-            // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-            DistSparseMatrix<SCALAR> Ainv;
-            SCALAR traceLocal;
+          // Convert to DistSparseMatrix in the 2nd format and get the diagonal
+          DistSparseMatrix<SCALAR> Ainv;
+          SCALAR traceLocal;
 
 
-            DistSparseMatrix<SCALAR> * Aptr;
-            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
-              Aptr = new DistSparseMatrix<SCALAR>();
-              //compute the transpose
-              CSCToCSR(AMat,*Aptr);
-            }
-            else{
-              Aptr = &AMat;
-            }
+          DistSparseMatrix<SCALAR> * Aptr;
+          if(luOpt.Symmetric==0 && luOpt.Transpose==0){
+            Aptr = new DistSparseMatrix<SCALAR>();
+            //compute the transpose
+            CSCToCSR(AMat,*Aptr);
+          }
+          else{
+            Aptr = &AMat;
+          }
 
-              GetTime( timeSta );
-              pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
-              GetTime( timeEnd );
+          GetTime( timeSta );
+          pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
+          GetTime( timeEnd );
 
-              traceLocal = ZERO<SCALAR>();
-              traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
-                  Aptr->nzvalLocal.Data(), 1 );
+          traceLocal = ZERO<SCALAR>();
+          traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
+              Aptr->nzvalLocal.Data(), 1 );
 
-            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
-              delete Aptr;
-            }
+          if(luOpt.Symmetric==0 && luOpt.Transpose==0){
+            delete Aptr;
+          }
 
 
-            if( mpirank == 0 )
-              cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
+          if( mpirank == 0 )
+            cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
 
-            SCALAR trace = ZERO<SCALAR>();
-            mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, workcomm );
+          SCALAR trace = ZERO<SCALAR>();
+          mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, workcomm );
 
-            if( mpirank == 0 ){
+          if( mpirank == 0 ){
 
-              cout << "A.size = "  << AMat.size << endl;
-              cout << std::endl << "Tr[Ainv * AMat] = " <<  trace << std::endl;
-              statusOFS << std::endl << "Tr[Ainv * AMat] = " << std::endl << trace << std::endl;
+            cout << "A.size = "  << AMat.size << endl;
+            cout << std::endl << "Tr[Ainv * AMat] = " <<  trace << std::endl;
+            statusOFS << std::endl << "Tr[Ainv * AMat] = " << std::endl << trace << std::endl;
 #ifdef _MYCOMPLEX_ 
-              cout << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
-              statusOFS << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
+            cout << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
+            statusOFS << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( Complex(AMat.size, 0.0) - trace ) << std::endl;
 #else
-              cout << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
-              statusOFS << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
+            cout << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
+            statusOFS << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( AMat.size - trace ) << std::endl;
 #endif
-            }
+          }
 
           if( true ){
-
-
-
-
-
-
-
-//      for( Int orow = 0; orow < AMat.size; orow++){
-//        //row index in the permuted order
-//        Int row         = superPtr->perm[ orow ];
-//        //col index in the permuted order
-//        Int col         = superPtr->perm[ superPtr->perm_r[ orow] ];
-//
-//        Int blockColIdx = BlockIdx( col, superPtr );
-//        Int blockRowIdx = BlockIdx( row, superPtr );
-//
-//        statusOFS<<"A("<<orow<<","<<orow<<") = Ap("<<row<<","<<col<<") in BLOCK("<<blockRowIdx<<","<<blockColIdx<<")"<<endl;
-//      }
-
-//      {
-//
-//        // Count the sizes from the A matrix first
-//        Int numColFirst = pMat->NumCol() / mpisize;
-//        Int firstCol = mpirank * numColFirst;
-//        Int numColLocal;
-//        if( mpirank == mpisize-1 )
-//          numColLocal = pMat->NumCol() - numColFirst * (mpisize-1);
-//        else
-//          numColLocal = numColFirst;
-//
-//        Int*     rowPtr = AMat.rowindLocal.Data();
-//        Int*     colPtr = AMat.colptrLocal.Data();
-//
-//        for( Int j = 0; j < numColLocal; j++ ){
-//
-//        Int ocol = firstCol + j;
-//        Int col         = superPtr->perm[ superPtr->perm_r[ ocol] ];
-//        Int blockColIdx = BlockIdx( col, superPtr );
-//        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-//          Int orow = rowPtr[i]-1;
-//          Int row         = superPtr->perm[ orow ];
-//          Int blockRowIdx = BlockIdx( row, superPtr );
-//            statusOFS<<"A("<<orow<<","<<ocol<<") = Ap("<<row<<","<<col<<") in BLOCK("<<blockRowIdx<<","<<blockColIdx<<")"<<endl;
-//          } // for (i)
-//        } // for (j)
-//      }
-
-
-
-
-
-
             NumVec<SCALAR> diag;
 
             GetTime( timeSta );
@@ -456,16 +413,16 @@ int main(int argc, char **argv)
 
 
             {
-            NumVec<SCALAR> diagUNP;
-            superPtr->perm = superPtr->perm_r;
-            superPtr->permInv = superPtr->permInv_r;
-            GetTime( timeSta );
-            pMat->GetDiagonal( diagUNP );
-            GetTime( timeEnd );
+              NumVec<SCALAR> diagUNP;
+              superPtr->perm = superPtr->perm_r;
+              superPtr->permInv = superPtr->permInv_r;
+              GetTime( timeSta );
+              pMat->GetDiagonal( diagUNP );
+              GetTime( timeEnd );
 
 
-            if( mpirank == 0 )
-              cout << "Time for getting the permuted diagonal is " << timeEnd  - timeSta << endl;
+              if( mpirank == 0 )
+                cout << "Time for getting the permuted diagonal is " << timeEnd  - timeSta << endl;
               statusOFS << std::endl << "Diagonal of inverse in permuted order: " << std::endl << diagUNP << std::endl;
 
             }
@@ -473,6 +430,7 @@ int main(int argc, char **argv)
 
 
           }
+        }
 #endif
 #endif
 

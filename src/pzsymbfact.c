@@ -18,11 +18,19 @@
 /// from SuperLU_DIST. For its use see SuperLUMatrix for more
 /// information.
 	void
+#if SLU_MAJOR_VERSION >= 5 || NOT defined(SLU_MAJOR_VERSION)
 pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
 					 ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
 					 LUstruct_t *LUstruct, SuperLUStat_t *stat, 
 					 int *numProcSymbFact, int *info, double *totalMemory,
 					 double *maxMemory)
+#else
+pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
+					 ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+					 LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+					 int *numProcSymbFact, int *info, double *totalMemory,
+					 double *maxMemory)
+#endif
 {
 	NRformat_loc *Astore;
 	SuperMatrix GA;      /* Global A in NC format */
@@ -62,7 +70,11 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 	float    GA_mem_use;    /* memory usage by global A */
 	float    dist_mem_use; /* memory usage during distribution */
 	//mem_usage_t num_mem_usage, symb_mem_usage;
+#if SLU_MAJOR_VERSION >= 5 || NOT defined(SLU_MAJOR_VERSION)
 	superlu_dist_mem_usage_t num_mem_usage, symb_mem_usage;
+#else
+	mem_usage_t num_mem_usage, symb_mem_usage;
+#endif
 #if ( PRNTlevel>= 2 )
 	double   dmin, dsum, dprod;
 #endif

@@ -249,6 +249,15 @@ typedef struct {
      * @brief  Whether to construct PSelInv communication pattern.
      */ 
     int           isConstructCommPattern;
+
+    /** 
+     * @brief  Solver used to do the factorization prior to the selected
+     * inversion.  
+     * - = 0   : SuperLU_DIST.
+     * - = 1   : symPACK (For symmetric matrices only).
+     */ 
+    int           solver;
+
     /** 
      * @brief  Ordering strategy for factorization and selected
      * inversion.  

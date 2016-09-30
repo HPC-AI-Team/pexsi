@@ -265,6 +265,7 @@ void PPEXSISetDefaultOptions(
   options->numElectronPEXSITolerance = 0.01;
   options->matrixType            = 0;
   options->isSymbolicFactorize   = 1;
+  options->solver                = 0;
   options->ordering              = 0;
   options->rowOrdering           = 0;
   options->npSymbFact            = 1;

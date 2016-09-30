@@ -211,11 +211,30 @@ namespace PEXSI{
 
 
 
-inline void gdb_lock(){
-  volatile int lock = 1;
-  statusOFS<<"LOCKED"<<std::endl;
-  while (lock == 1){ }
-}
+  inline void gdb_lock(){
+    static volatile int count=0;
+    static volatile int enabled=0;
+    count++;
+      pid_t pid = getpid();
+//      std::cout<<pid<<" is locked "<<count<<std::endl;
+      statusOFS<<pid<<" is locked "<<count<<std::endl;
+    volatile int lock = 1;
+    while (lock == 1 && enabled == 1){ }
+//      std::cout<<pid<<" is unlocked "<<count<<std::endl;
+      statusOFS<<pid<<" is unlocked "<<count<<std::endl;
+  }
+
+
+
+
+  inline void gdb_truelock(){
+      pid_t pid = getpid();
+      std::cout<<pid<<" is locked "<<std::endl;
+    volatile int lock = 1;
+    while (lock == 1){ }
+      std::cout<<pid<<" is unlocked "<<std::endl;
+  }
+
 
 
 
