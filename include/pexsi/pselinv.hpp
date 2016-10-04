@@ -101,13 +101,24 @@ typedef std::map<bitMask , std::vector<Int> > bitMaskSet;
 ///
 struct PSelInvOptions{
   /// @brief The maximum pipeline depth. 
-  ///
-  /// @todo
-  /// This option should not be here and should be moved into PMatrix.
   Int              maxPipelineDepth; 
 
   // Member functions to setup the default value
   PSelInvOptions(): maxPipelineDepth(-1) {}
+};
+
+
+/// @struct FactorizationOptions
+/// @brief A thin interface for passing parameters to set the Factorization
+/// options.  
+///
+struct FactorizationOptions{
+  std::string ColPerm;
+  std::string RowPerm;
+  Int Symmetric;
+
+  // Member functions to setup the default value
+  FactorizationOptions(): Symmetric(1) {}
 };
 
 
@@ -533,8 +544,8 @@ public:
   /// @brief Create is a factory method which returns a pointer either to a new PMatrix or to a new PMatrixUnsym
   /// depending on the pLuOpt parameter.
 
-  static PMatrix<T> * Create(const GridType * pGridType, const SuperNodeType * pSuper, const PSelInvOptions * pSelInvOpt , const SuperLUOptions * pLuOpt);
-  static PMatrix<T> * Create(const SuperLUOptions * pLuOpt);
+  static PMatrix<T> * Create(const GridType * pGridType, const SuperNodeType * pSuper, const PSelInvOptions * pSelInvOpt , const FactorizationOptions * pFactOpt);
+  static PMatrix<T> * Create(const FactorizationOptions * pFactOpt);
 
 public:
   // This is the tag used for mpi communication for selinv
@@ -567,7 +578,7 @@ protected:
   const SuperNodeType*  super_;
 
   const PSelInvOptions * options_;
-  const SuperLUOptions * optionsLU_;
+  const FactorizationOptions * optionsFact_;
 
   Int limIndex_;
   Int maxTag_;
@@ -665,7 +676,7 @@ public:
 
   PMatrix();
 
-  PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::SuperLUOptions * oLU  );
+  PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::FactorizationOptions * oFact  );
 
   void deallocate();
 
@@ -674,7 +685,7 @@ public:
   PMatrix( const PMatrix & C);
   PMatrix & operator = ( const PMatrix & C);
 
-  void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::SuperLUOptions * oLU  );
+  void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::FactorizationOptions * oFact  );
 
   Int NumCol() const { return super_ -> superIdx.m(); }
 

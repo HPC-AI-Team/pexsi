@@ -59,13 +59,13 @@ template<typename T> class PMatrix;
 /// @brief Converts the symPACK supernodal structure to PMatrix
 /// SuperNodeType structure.
 template<typename T> void symPACKMatrixToSuperNode( 
-    SYMPACK::SupernodalMatrix<T>& SMat,
+    symPACK::symPACKMatrix<T>& SMat,
     SuperNodeType& super );
 
 /// @brief Converts a matrix of symPACK type to PMatrix.
 template<typename T> 
   void symPACKMatrixToPMatrix( 
-      SYMPACK::SupernodalMatrix<T>& SMat,
+      symPACK::symPACKMatrix<T>& SMat,
       PMatrix<T>& PMat );
 
 template<typename T> void PMatrixLtoU( PMatrix<T>& PMat );

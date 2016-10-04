@@ -494,7 +494,9 @@ int main(int argc, char **argv)
           PSelInvOptions selInvOpt;
           selInvOpt.maxPipelineDepth = maxPipelineDepth;
 
-          PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &selInvOpt, &luOpt  );
+          FactorizationOptions factOpt;
+          factOpt.ColPerm = ColPerm;
+          PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &selInvOpt, &factOpt  );
           PMatrix<MYSCALAR> & PMloc = *PMlocPtr;
 
           luMat.LUstructToPMatrix( PMloc );

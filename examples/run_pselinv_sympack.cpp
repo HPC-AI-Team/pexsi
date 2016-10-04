@@ -13,7 +13,6 @@
 #include  "ppexsi.hpp"
 
 #include "sympack.hpp"
-#include "sympack/SupernodalMatrix.hpp"
 #include "pexsi/sympack_interf.hpp"
 
 //#define _MYCOMPLEX_
@@ -51,7 +50,7 @@ int main(int argc, char **argv)
   MPI_Comm_rank(world_comm, &mpirank);
 
 #if defined(SPROFILE) || defined(PMPI)
-  SYMPACK::symPACK_set_main_args(argc,argv);
+  symPACK::symPACK_set_main_args(argc,argv);
   //  SYMPACK_SPROFILE_INIT(argc, argv);
 #endif
 
@@ -68,8 +67,8 @@ int main(int argc, char **argv)
   try{
 
     //Temporarily required
-    //MPI_Comm_size(world_comm, &SYMPACK::np);
-    //MPI_Comm_rank(world_comm, &SYMPACK::iam);
+    //MPI_Comm_size(world_comm, &symPACK::np);
+    //MPI_Comm_rank(world_comm, &symPACK::iam);
 
     std::map<std::string,std::string> options;
     OptionsCreate(argc, argv, options);
@@ -155,9 +154,9 @@ int main(int argc, char **argv)
     //Initialize symPACK logfile
     std::stringstream suffix;
     suffix<<mpirank;
-    SYMPACK::logfileptr = new SYMPACK::LogFile("status",suffix.str().c_str());
-    SYMPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<endl;
-    SYMPACK::logfileptr->OFS()<<"**********************************"<<endl;
+    symPACK::logfileptr = new symPACK::LogFile("status",suffix.str().c_str());
+    symPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<endl;
+    symPACK::logfileptr->OFS()<<"**********************************"<<endl;
 
 
     mpisize = nprow*npcol;
@@ -165,44 +164,20 @@ int main(int argc, char **argv)
     MPI_Comm workcomm;
     MPI_Comm_split(world_comm,mpirank<mpisize,mpirank,&workcomm);
 
-    SYMPACK::symPACKOptions optionsFact;
-    optionsFact.relax.SetMaxSize(200);
-    optionsFact.factorization = SYMPACK::FANBOTH;
-    optionsFact.decomposition = SYMPACK::LDL;
-    optionsFact.ordering = SYMPACK::MMD;
-    optionsFact.scheduler = SYMPACK::DL;
-    optionsFact.mappingTypeStr = "ROW2D";
-    optionsFact.load_balance_str = "SUBCUBE-FO";
+    symPACK::symPACKOptions optionsFact;
+    optionsFact.decomposition = symPACK::LDL;
+    optionsFact.orderingStr = ColPerm;
     optionsFact.MPIcomm = workcomm;
 
-    if(ColPerm=="MMD"){
-      optionsFact.ordering = SYMPACK::MMD;
-    }
-    else if(ColPerm=="AMD"){
-      optionsFact.ordering = SYMPACK::AMD;
-    }
-    else if(ColPerm=="METIS"){
-      optionsFact.ordering = SYMPACK::METIS;
-    }
-    else if(ColPerm=="SCOTCH"){
-      optionsFact.ordering = SYMPACK::SCOTCH;
-    }
-    else if(ColPerm=="PARMETIS"){
-      optionsFact.ordering = SYMPACK::PARMETIS;
-    }
-    else if(ColPerm=="PTSCOTCH"){
-      optionsFact.ordering = SYMPACK::PTSCOTCH;
-    }
-
     //Initialize UPCXX for symPACK
-    upcxx::init(&argc, &argv);
+    //upcxx::init(&argc, &argv);
 
     if(mpirank<mpisize){
       Real timeSta, timeEnd;
       Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
       Real timeTotalSelInvSta, timeTotalSelInvEnd;
-      //MPI_Comm_size(workcomm,&SYMPACK::np);
-      //MPI_Comm_rank(workcomm,&SYMPACK::iam);
+      //MPI_Comm_size(workcomm,&symPACK::np);
+      //MPI_Comm_rank(workcomm,&symPACK::iam);
 
 #ifdef _MYCOMPLEX_
       SCALAR zshift = SCALAR(rshift, ishift);
@@ -210,18 +185,18 @@ int main(int argc, char **argv)
       SCALAR zshift = SCALAR(rshift);
 #endif
 
-      SYMPACK::DistSparseMatrix<SCALAR> AMat(workcomm);
-      SYMPACK::SupernodalMatrix<SCALAR>*  symPACKMat = NULL;
+      symPACK::DistSparseMatrix<SCALAR> AMat(workcomm);
+      symPACK::symPACKMatrix<SCALAR>*  symPACKMat = NULL;
       {
-        SYMPACK::DistSparseMatrix<ISCALAR> HMat(workcomm);
-        SYMPACK::ReadMatrix<ISCALAR,ISCALAR>(Hfile, format, HMat);
+        symPACK::DistSparseMatrix<ISCALAR> HMat(workcomm);
+        symPACK::ReadMatrix<ISCALAR,ISCALAR>(Hfile, format, HMat);
 
         //Build AMat
-        SYMPACK::DistSparseMatrix<ISCALAR> SMat(workcomm);
+        symPACK::DistSparseMatrix<ISCALAR> SMat(workcomm);
         if( options.find("-S") != options.end() ){ 
           std::string Sfile;
           Sfile = options["-S"];
-          SYMPACK::ReadMatrix<ISCALAR,ISCALAR>(Sfile, format, SMat);
+          symPACK::ReadMatrix<ISCALAR,ISCALAR>(Sfile, format, SMat);
         }
         else{
 
@@ -233,7 +208,7 @@ int main(int argc, char **argv)
 
 
 
-        const SYMPACK::DistSparseMatrixGraph & Hgraph = HMat.GetLocalGraph();
+        const symPACK::DistSparseMatrixGraph & Hgraph = HMat.GetLocalGraph();
         // Get the diagonal indices for H and save it n diagIdxLocal_
         std::vector<Int>  diagIdxLocal;
         { 
@@ -243,11 +218,11 @@ int main(int argc, char **argv)
 
           diagIdxLocal.clear();
           diagIdxLocal.reserve( HMat.size );
-          for( SYMPACK::Idx j = 0; j < numColLocal; j++ ){
-            SYMPACK::Idx jcol = firstCol + j + 1;
-            for( SYMPACK::Ptr i = Hgraph.colptr[j]-1; 
+          for( symPACK::Idx j = 0; j < numColLocal; j++ ){
+            symPACK::Idx jcol = firstCol + j + 1;
+            for( symPACK::Ptr i = Hgraph.colptr[j]-1; 
                 i < Hgraph.colptr[j+1]-1; i++ ){
-              SYMPACK::Idx irow = Hgraph.rowind[i];
+              symPACK::Idx irow = Hgraph.rowind[i];
               if( irow == jcol ){
                 diagIdxLocal.push_back( i );
               }
@@ -275,7 +250,7 @@ int main(int argc, char **argv)
         }
         else{
           // S is an identity matrix
-          for( Int i = 0; i < Hgraph.nnz; i++ ){
+          for( Int i = 0; i < Hgraph.LocalEdgeCount(); i++ ){
             AMat.nzvalLocal[i] = HMat.nzvalLocal[i];
           }
 
@@ -296,8 +271,8 @@ int main(int argc, char **argv)
 
         GetTime( timeTotalFactorizationSta );
         GetTime( timeSta );
-        symPACKMat = new SYMPACK::SupernodalMatrix<SCALAR>();
-        //      optionsFact.commEnv = new SYMPACK::CommEnvironment(workcomm);
+        symPACKMat = new symPACK::symPACKMatrix<SCALAR>();
+        //      optionsFact.commEnv = new symPACK::CommEnvironment(workcomm);
         symPACKMat->Init(optionsFact);
         symPACKMat->SymbolicFactorization(AMat);
         GetTime( timeEnd );
@@ -325,11 +300,9 @@ int main(int argc, char **argv)
       GridType *gPtr = new GridType( workcomm, nprow, npcol );
       SuperNodeType *superPtr = new SuperNodeType();
 
-      // deprecated options
-      SuperLUOptions luOpt;
-      luOpt.ColPerm = "METIS_AT_PLUS_A";
-      luOpt.numProcSymbFact = 1;
-      luOpt.Symmetric = 1;
+      FactorizationOptions factOpt;
+      factOpt.ColPerm = "METIS_AT_PLUS_A";
+      factOpt.Symmetric = 1;
 
       PSelInvOptions selInvOpt;
       selInvOpt.maxPipelineDepth = -1;
@@ -338,7 +311,7 @@ int main(int argc, char **argv)
       symPACKMatrixToSuperNode( *symPACKMat, *superPtr );
 
 
-      PMatrix<SCALAR> * pMat = PMatrix<SCALAR>::Create(gPtr,superPtr, &selInvOpt, &luOpt);
+      PMatrix<SCALAR> * pMat = PMatrix<SCALAR>::Create(gPtr,superPtr, &selInvOpt, &factOpt);
       symPACKMatrixToPMatrix( *symPACKMat, *pMat );
       GetTime( timeEnd );
 
@@ -455,7 +428,7 @@ int main(int argc, char **argv)
       delete superPtr;
       delete gPtr;
     }
-    delete SYMPACK::logfileptr;
+    delete symPACK::logfileptr;
     statusOFS.close();
 
   }

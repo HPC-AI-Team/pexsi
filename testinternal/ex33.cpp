@@ -13,7 +13,7 @@
 #include  "ppexsi.hpp"
 
 #include "sympack.hpp"
-#include "sympack/SupernodalMatrix.hpp"
+#include "sympack/symPACKMatrix.hpp"
 #include "pexsi/sympack_interf.hpp"
 
 using namespace PEXSI;
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
   MPI_Comm_rank(world_comm, &mpirank);
 
 #if defined(SPROFILE) || defined(PMPI)
-  SYMPACK::symPACK_set_main_args(argc,argv);
+  symPACK::symPACK_set_main_args(argc,argv);
 //  SYMPACK_SPROFILE_INIT(argc, argv);
 #endif
 
@@ -60,8 +60,8 @@ int main(int argc, char **argv)
   //try{
 
     //Temporarily required
-    MPI_Comm_size(world_comm, &SYMPACK::np);
-    MPI_Comm_rank(world_comm, &SYMPACK::iam);
+    MPI_Comm_size(world_comm, &symPACK::np);
+    MPI_Comm_rank(world_comm, &symPACK::iam);
 
     std::map<std::string,std::string> options;
     OptionsCreate(argc, argv, options);
@@ -106,9 +106,9 @@ int main(int argc, char **argv)
 
     std::stringstream suffix;
     suffix<<mpirank;
-    SYMPACK::logfileptr = new SYMPACK::LogFile("status",suffix.str().c_str());
-    SYMPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<endl;
-    SYMPACK::logfileptr->OFS()<<"**********************************"<<endl;
+    symPACK::logfileptr = new symPACK::LogFile("status",suffix.str().c_str());
+    symPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<endl;
+    symPACK::logfileptr->OFS()<<"**********************************"<<endl;
 
 
     mpisize = nprow*npcol;//mpisize;
@@ -116,17 +116,17 @@ int main(int argc, char **argv)
     MPI_Comm workcomm;
     MPI_Comm_split(world_comm,mpirank<mpisize,mpirank,&workcomm);
 
-    SYMPACK::symPACKOptions optionsFact;
+    symPACK::symPACKOptions optionsFact;
     optionsFact.relax.SetMaxSize(200);
 //    optionsFact.relax.SetMaxSize(1000);
 //    optionsFact.relax.SetNrelax0(60);
 //    optionsFact.relax.SetNrelax1(100);
 //    optionsFact.relax.SetNrelax2(300);
-    optionsFact.factorization = SYMPACK::FANBOTH;
-    optionsFact.decomposition = SYMPACK::LDL;
-    optionsFact.ordering = SYMPACK::METIS;
-    //optionsFact.ordering = SYMPACK::NATURAL;
-    optionsFact.scheduler = SYMPACK::DL;
+    optionsFact.factorization = symPACK::FANBOTH;
+    optionsFact.decomposition = symPACK::LDL;
+    optionsFact.ordering = symPACK::METIS;
+    //optionsFact.ordering = symPACK::NATURAL;
+    optionsFact.scheduler = symPACK::DL;
     optionsFact.mappingTypeStr = "ROW2D";
     optionsFact.load_balance_str = "SUBCUBE-FO";
     optionsFact.MPIcomm = workcomm;
@@ -150,19 +150,19 @@ int main(int argc, char **argv)
       Real timeSta, timeEnd;
       Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
       Real timeTotalSelInvSta, timeTotalSelInvEnd;
-      MPI_Comm_size(workcomm,&SYMPACK::np);
-      MPI_Comm_rank(workcomm,&SYMPACK::iam);
+      MPI_Comm_size(workcomm,&symPACK::np);
+      MPI_Comm_rank(workcomm,&symPACK::iam);
 
 
       
 
-      SYMPACK::DistSparseMatrix<SCALAR> HMat(workcomm);
-      SYMPACK::ReadMatrix<SCALAR,SCALAR>(Hfile, format, HMat);
+      symPACK::DistSparseMatrix<SCALAR> HMat(workcomm);
+      symPACK::ReadMatrix<SCALAR,SCALAR>(Hfile, format, HMat);
 
       GetTime( timeTotalFactorizationSta );
       GetTime( timeSta );
-      SYMPACK::SupernodalMatrix<SCALAR>*  SMat = new SYMPACK::SupernodalMatrix<SCALAR>();
-      optionsFact.commEnv = new SYMPACK::CommEnvironment(workcomm);
+      symPACK::symPACKMatrix<SCALAR>*  SMat = new symPACK::symPACKMatrix<SCALAR>();
+      optionsFact.commEnv = new symPACK::CommEnvironment(workcomm);
       SMat->Init(optionsFact);
       SMat->SymbolicFactorization(HMat);
       GetTime( timeEnd );
@@ -445,7 +445,7 @@ int main(int argc, char **argv)
       delete superPtr;
       delete gPtr;
     }
-    delete SYMPACK::logfileptr;
+    delete symPACK::logfileptr;
     statusOFS.close();
 
 //  }

@@ -53,40 +53,40 @@ int main(int argc, char **argv)
 
 
   //Temporarily required
-  MPI_Comm_size(world_comm, &SYMPACK::np);
-  MPI_Comm_rank(world_comm, &SYMPACK::iam);
+  MPI_Comm_size(world_comm, &symPACK::np);
+  MPI_Comm_rank(world_comm, &symPACK::iam);
 
   std::stringstream suffix;
   suffix<<mpirank;
-  SYMPACK::logfileptr = new SYMPACK::LogFile("status",suffix.str().c_str());
-  SYMPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<endl;
-  SYMPACK::logfileptr->OFS()<<"**********************************"<<endl;
+  symPACK::logfileptr = new symPACK::LogFile("status",suffix.str().c_str());
+  symPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<endl;
+  symPACK::logfileptr->OFS()<<"**********************************"<<endl;
 
 
 
 
-  SYMPACK::Modwrap2D * mapping = new SYMPACK::Modwrap2D(mpisize, mpisize, mpisize, 1);
-  //SYMPACK::Modwrap2D * mapping = new SYMPACK::Modwrap2D(mpisize, sqrt(mpisize), mpisize, 1);
-  SYMPACK::DistSparseMatrix<SCALAR > HMat(world_comm);
-  SYMPACK::ParaReadDistSparseMatrix( argv[1], HMat, world_comm ); 
+  symPACK::Modwrap2D * mapping = new symPACK::Modwrap2D(mpisize, mpisize, mpisize, 1);
+  //symPACK::Modwrap2D * mapping = new symPACK::Modwrap2D(mpisize, sqrt(mpisize), mpisize, 1);
+  symPACK::DistSparseMatrix<SCALAR > HMat(world_comm);
+  symPACK::ParaReadDistSparseMatrix( argv[1], HMat, world_comm ); 
 
 
   //Prepare for a solve
   Int n = HMat.size;
   Int nrhs = 5;
-  SYMPACK::DblNumMat RHS(n,nrhs);
-  SYMPACK::DblNumMat XTrue(n,nrhs);
-  SYMPACK::UniformRandom(XTrue);
-  SYMPACK::sp_dgemm_dist("N","N", n, XTrue.n(), n, 
-  SYMPACK::ONE<SCALAR>(), HMat, XTrue.Data(), XTrue.m(), 
-  SYMPACK::ZERO<SCALAR>(), RHS.Data(), RHS.m());
+  symPACK::DblNumMat RHS(n,nrhs);
+  symPACK::DblNumMat XTrue(n,nrhs);
+  symPACK::UniformRandom(XTrue);
+  symPACK::sp_dgemm_dist("N","N", n, XTrue.n(), n, 
+  symPACK::ONE<SCALAR>(), HMat, XTrue.Data(), XTrue.m(), 
+  symPACK::ZERO<SCALAR>(), RHS.Data(), RHS.m());
 
 
   //Create the supernodal matrix
-  SYMPACK::SupernodalMatrix<SCALAR> SMat(HMat,-1,*mapping,0,0,world_comm);
+  symPACK::symPACKMatrix<SCALAR> SMat(HMat,-1,*mapping,0,0,world_comm);
 
   //sort X the same way (permute rows)
-  SYMPACK::DblNumMat X(RHS.m(),RHS.n());
+  symPACK::DblNumMat X(RHS.m(),RHS.n());
   for(Int row = 1; row<= RHS.m(); ++row){
     for(Int col = 1; col<= RHS.n(); ++col){
       X(row-1,col-1) = RHS(SMat.perm_[row-1]-1,col-1);
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
   SMat.GetSolution(X,world_comm);
 
   //Sort back X
-  SYMPACK::DblNumMat X2(X.m(),X.n());
+  symPACK::DblNumMat X2(X.m(),X.n());
   for(Int row = 1; row<= X.m(); ++row){
     for(Int col = 1; col<= X.n(); ++col){
       X2(SMat.perm_[row-1]-1,col-1) = X(row-1,col-1);
@@ -110,15 +110,15 @@ int main(int argc, char **argv)
   }
 
   //Check the error
-  SYMPACK::blas::Axpy(X2.m()*X2.n(),-1.0,&XTrue(0,0),1,&X2(0,0),1);
-  double norm = SYMPACK::lapack::Lange('F',X2.m(),X2.n(),&X2(0,0),X2.m());
+  symPACK::blas::Axpy(X2.m()*X2.n(),-1.0,&XTrue(0,0),1,&X2(0,0),1);
+  double norm = symPACK::lapack::Lange('F',X2.m(),X2.n(),&X2(0,0),X2.m());
   if(mpirank==0){
     cout<<"Norm of residual after SPCHOL is "<<norm<<std::endl;
   }
 
   //sample loop to convert it to PMatrix
   //for(Int i = 0; i<SMat.SupernodeCnt();++i){
-  //  SYMPACK::SuperNode<SCALAR> curSnode = SMat.GetLocalSupernode(i);
+  //  symPACK::SuperNode<SCALAR> curSnode = SMat.GetLocalSupernode(i);
   //}
 
 
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
   }
 
   delete mapping;
-  delete SYMPACK::logfileptr;
+  delete symPACK::logfileptr;
   statusOFS.close();
 
 

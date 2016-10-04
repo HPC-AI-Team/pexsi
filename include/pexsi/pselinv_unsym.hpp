@@ -257,11 +257,11 @@ template<typename T>
 
     PMatrixUnsym():PMatrix<T>() {}
 
-    PMatrixUnsym( const GridType* g, const SuperNodeType* s, const PSelInvOptions * o, const SuperLUOptions * oLU  );
+    PMatrixUnsym( const GridType* g, const SuperNodeType* s, const PSelInvOptions * o, const FactorizationOptions * oFact  );
 
     //virtual ~PMatrixUnsym() { statusOFS<<"DESTRUCTOR UNSYM CALLED"<<std::endl;    }
 
-    void Setup( const GridType* g, const SuperNodeType* s, const PSelInvOptions * o, const SuperLUOptions * oLU  );
+    void Setup( const GridType* g, const SuperNodeType* s, const PSelInvOptions * o, const FactorizationOptions * oFact  );
 
     /// @brief NumBlockL returns the number of nonzero L blocks for the
     /// local block column jLocal.

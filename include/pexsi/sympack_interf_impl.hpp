@@ -69,11 +69,11 @@ such enhancements or derivative works thereof, in binary and source code form.
 namespace PEXSI{
 
 template<typename T> void symPACKMatrixToSuperNode( 
-    SYMPACK::SupernodalMatrix<T>& SMat,
+    symPACK::symPACKMatrix<T>& SMat,
     SuperNodeType& super ){
   Int n = SMat.Size();
 
-  SYMPACK::Ordering & Order = (SYMPACK::Ordering &)SMat.GetOrdering();
+  symPACK::Ordering & Order = (symPACK::Ordering &)SMat.GetOrdering();
   const std::vector<Int>& SInvp = Order.invp;
   super.permInv.Resize( SInvp.size() );
   const std::vector<Int>& SPerm = Order.perm;
@@ -115,7 +115,7 @@ template<typename T> void symPACKMatrixToSuperNode(
   }
 
   // etree
-  const SYMPACK::ETree& etree = SMat.GetETree();
+  const symPACK::ETree& etree = SMat.GetETree();
   super.etree.Resize(n);
   for( Int i = 0; i < etree.Size(); i++ ){
     super.etree[i] = etree.PostParent(i);
@@ -130,7 +130,7 @@ template<typename T> void symPACKMatrixToSuperNode(
 
 
 template<typename T> void symPACKMatrixToPMatrix( 
-    SYMPACK::SupernodalMatrix<T>& SMat,
+    symPACK::symPACKMatrix<T>& SMat,
     PMatrix<T>& PMat ){
   // This routine assumes that the g, supernode and options of PMatrix
   // has been set outside this routine.
@@ -138,7 +138,7 @@ template<typename T> void symPACKMatrixToPMatrix(
   Int mpirank, mpisize;
   const GridType *g = PMat.Grid();
 
-  // FIXME Check PMatrix and SupernodalMatrix has the same communicator
+  // FIXME Check PMatrix and symPACKMatrix has the same communicator
   MPI_Comm comm = g->comm;
   MPI_Comm colComm = g->colComm;
   MPI_Comm rowComm = g->rowComm;
@@ -207,21 +207,21 @@ template<typename T> void symPACKMatrixToPMatrix(
   //   way.  This may not be very fast.  A first improvement is to
   //   broadcast all local supernodes at once and then do local
   //   post-processing.
-  SYMPACK::Mapping * mapping = (SYMPACK::Mapping*)SMat.GetMapping();
+  symPACK::Mapping * mapping = (symPACK::Mapping*)SMat.GetMapping();
 
   Int numSuper = PMat.NumSuper();
-  SYMPACK::Icomm snodeIcomm;
+  symPACK::Icomm snodeIcomm;
   std::vector<char> buffer;
   for( Int iSuper = 0; iSuper < numSuper; iSuper++ ){
-    SYMPACK::SuperNode<T> * snode;
+    symPACK::SuperNode<T> * snode;
 
     Int iOwner = mapping->Map(iSuper,iSuper);
 
     if( mpirank == iOwner ){
       // Get the local supernode
       Int iSuperLocal = SMat.snodeLocalIndex(iSuper+1);
-      //SYMPACK::SuperNode<T>& snodetmp = SMat.GetLocalSupernode(iSuperLocal-1);
-      SYMPACK::SuperNode<T>* snodetmp = SMat.snodeLocal(iSuper+1); 
+      //symPACK::SuperNode<T>& snodetmp = SMat.GetLocalSupernode(iSuperLocal-1);
+      symPACK::SuperNode<T>* snodetmp = SMat.snodeLocal(iSuper+1); 
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << "iSuper = " << iSuper << ", iSuperLocal = " <<
         iSuperLocal << ", id = " << snodetmp->Id() << ", size = " << 
@@ -240,7 +240,7 @@ template<typename T> void symPACKMatrixToPMatrix(
       MPI_Bcast( &msgSize, 1, MPI_INT, mpirank, comm );
       MPI_Bcast( snodeIcomm.front(), msgSize, MPI_CHAR, mpirank, comm );
       // Copy the data from buffer to snode
-      //SYMPACK::Deserialize( snodeIcomm.front(), snode );
+      //symPACK::Deserialize( snodeIcomm.front(), snode );
 
       snode = SMat.CreateSuperNode(SMat.GetOptions().decomposition,snodeIcomm.front(),msgSize,-1);
       snode->InitIdxToBlk();
@@ -252,7 +252,7 @@ template<typename T> void symPACKMatrixToPMatrix(
       MPI_Bcast( &msgSize, 1, MPI_INT, rootRank, comm );
       buffer.resize(msgSize);
       MPI_Bcast( &buffer[0], msgSize, MPI_CHAR, rootRank, comm );
-      //SYMPACK::Deserialize( &buffer[0], snode );
+      //symPACK::Deserialize( &buffer[0], snode );
 
       snode = SMat.CreateSuperNode(SMat.GetOptions().decomposition,&buffer[0],msgSize,-1);
       snode->InitIdxToBlk();
@@ -272,7 +272,7 @@ template<typename T> void symPACKMatrixToPMatrix(
       // Count the number of blocks in the supernode belonging to this
       // processor
       for( Int blkidx = 0; blkidx < snode->NZBlockCnt(); blkidx++ ){
-        SYMPACK::NZBlockDesc desc = snode->GetNZBlockDesc( blkidx );
+        symPACK::NZBlockDesc desc = snode->GetNZBlockDesc( blkidx );
         Int nrows = snode->NRows(blkidx);
         Int firstRow = desc.GIndex - 1;
         Int lastRow = firstRow + nrows - 1;
@@ -302,7 +302,7 @@ template<typename T> void symPACKMatrixToPMatrix(
       std::vector<std::vector<T> > nzvalBlk( Lcol.size() );
 
       for( Int blkidx = 0; blkidx < snode->NZBlockCnt(); blkidx++ ){
-        SYMPACK::NZBlockDesc desc = snode->GetNZBlockDesc( blkidx );
+        symPACK::NZBlockDesc desc = snode->GetNZBlockDesc( blkidx );
         Int nrows = snode->NRows(blkidx);
         Int firstRow = desc.GIndex - 1;
         Int lastRow = firstRow + nrows - 1;
@@ -414,7 +414,7 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
   Int mpirank, mpisize;
   const GridType *g = PMat.Grid();
 
-  // FIXME Check PMatrix and SupernodalMatrix has the same communicator
+  // FIXME Check PMatrix and symPACKMatrix has the same communicator
   MPI_Comm comm = g->comm;
   MPI_Comm colComm = g->colComm;
   MPI_Comm rowComm = g->rowComm;

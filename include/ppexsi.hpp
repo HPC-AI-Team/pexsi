@@ -63,6 +63,11 @@ such enhancements or derivative works thereof, in binary and source code form.
 //#include "pexsi/ngchol_interf.hpp"
 //#include "pexsi/c_pexsi_interface.h"
 
+#ifdef WITH_SYMPACK
+#include <sympack.hpp>
+#include "pexsi/sympack_interf.hpp"
+#endif
+
 namespace PEXSI{
 
 /// @class PPEXSIData
@@ -129,7 +134,29 @@ private:
   SuperLUMatrix<Real>*       luRealMat_;
   SuperLUMatrix<Complex>*    luComplexMat_;
 
+#ifdef WITH_SYMPACK
+  symPACK::symPACKMatrix<Real>*      symPACKRealMat_;
+  symPACK::symPACKMatrix<Complex>*   symPACKComplexMat_;
+  symPACK::symPACKOptions             symPACKOpt_;
+
+  // Used for performing "CopyPattern"
+  symPACK::DistSparseMatrix<Real>     symmPatternMat_;
+
+  symPACK::DistSparseMatrix<Real>     symmHRealMat_;
+  symPACK::DistSparseMatrix<Real>     symmSRealMat_;
+  // Below specifically for the case when H and S are Hermitian
+  symPACK::DistSparseMatrix<Complex>  symmHComplexMat_;
+  symPACK::DistSparseMatrix<Complex>  symmSComplexMat_;
+
+  symPACK::DistSparseMatrix<Real>     symmShiftRealMat_;
+  symPACK::DistSparseMatrix<Complex>  symmShiftComplexMat_;
+
+  symPACK::DistSparseMatrix<Real>     symmShiftInvRealMat_;
+  symPACK::DistSparseMatrix<Complex>  symmShiftInvComplexMat_;
+#endif
+
   SuperLUOptions             luOpt_;
+  FactorizationOptions       factOpt_;
   PSelInvOptions             selinvOpt_;
 
   PMatrix<Real>*             PMRealMat_;
@@ -187,6 +214,7 @@ public:
       Real*         HnzvalLocal,                  
       Int           isSIdentity,                  
       Real*         SnzvalLocal,
+    Int               solver,
       Int           verbosity );
 
 
@@ -200,16 +228,19 @@ public:
       Complex*      HnzvalLocal,                  
       Int           isSIdentity,                  
       Complex*      SnzvalLocal,
+    Int               solver,
       Int           verbosity );
 
 
   /// @brief Symbolically factorize the loaded matrices for real
   /// arithmetic factorization and selected inversion.
   ///
-  /// The symbolic information is saved internally at luRealMat_ and
-  /// PMRealMat_.
+  /// The symbolic information is saved internally at luRealMat_ or sympackRealMat_
+  /// and PMRealMat_.
   ///
-  /// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+  /// @param[in] solver   Solver used: SuperLU_DIST or symPACK
+  ///
+  /// @param[in] ColPerm   Permutation method used by the solver
   ///
   /// @param[in] numProcSymbFact Number of processors used for parallel
   /// symbolic factorization and PARMETIS/PT-SCOTCH.
@@ -218,6 +249,7 @@ public:
   /// - = 1   : Basic output (default)
   /// - = 2   : Detailed output.
   void SymbolicFactorizeRealSymmetricMatrix(
+      Int                            solver,
       std::string                    ColPerm,
       Int                            numProcSymbFact,
       Int                            verbosity );
@@ -227,6 +259,8 @@ public:
   ///
   /// The symbolic information is saved internally at luRealMat_ and
   /// PMRealMat_.
+  ///
+  /// @param[in] solver   Solver used: SuperLU_DIST
   ///
   /// @param[in] ColPerm   Permutation method used for SuperLU_DIST
   /// @param[in] RowPerm   Row Permutation method used for SuperLU_DIST
@@ -240,6 +274,7 @@ public:
   /// - = 1   : Basic output (default)
   /// - = 2   : Detailed output.
   void SymbolicFactorizeRealUnsymmetricMatrix(
+      Int                            solver,
       std::string                    ColPerm,
       std::string                    RowPerm,
       Int                            numProcSymbFact,
@@ -251,10 +286,13 @@ public:
   /// @brief Symbolically factorize the loaded matrices for complex
   /// arithmetic factorization and selected inversion.
   ///
-  /// The symbolic information is saved internally at luComplexMat_ and
-  /// PMComplexMat_.
+
+  /// The symbolic information is saved internally at luComplexMat_ or sympackComplexMat_
+  /// and PMComplexMat_.
   ///
-  /// @param[in] ColPerm   Permutation method used for SuperLU_DIST
+  /// @param[in] solver   Solver used: SuperLU_DIST or symPACK
+  ///
+  /// @param[in] ColPerm   Permutation method used by the solver
   ///
   /// @param[in] numProcSymbFact Number of processors used for parallel
   /// symbolic factorization and PARMETIS/PT-SCOTCH.
@@ -263,6 +301,7 @@ public:
   /// - = 1   : Basic output (default)
   /// - = 2   : Detailed output.
   void SymbolicFactorizeComplexSymmetricMatrix(
+      Int                            solver,
       std::string                    ColPerm,
       Int                            numProcSymbFact,
       Int                            verbosity );
@@ -272,6 +311,8 @@ public:
   ///
   /// The symbolic information is saved internally at luComplexMat_ and
   /// PMComplexUnsymMat_.
+  ///
+  /// @param[in] solver   Solver used: SuperLU_DIST
   ///
   /// @param[in] ColPerm   Permutation method used for SuperLU_DIST
   /// @param[in] RowPerm   Row Permutation method used for SuperLU_DIST
@@ -285,6 +326,7 @@ public:
   /// - = 1   : Basic output (default)
   /// - = 2   : Detailed output.
   void SymbolicFactorizeComplexUnsymmetricMatrix(
+      Int                            solver,
       std::string                    ColPerm,
       std::string                    RowPerm,
       Int                            numProcSymbFact,
@@ -295,22 +337,26 @@ public:
 
 
   void SelInvRealSymmetricMatrix(
+    Int               solver,
       double*           AnzvalLocal,                  
       Int               verbosity,
       double*           AinvnzvalLocal );
 
   void SelInvRealUnsymmetricMatrix(
+    Int               solver,
       double*           AnzvalLocal,                  
       Int               verbosity,
       double*           AinvnzvalLocal );
 
 
   void SelInvComplexSymmetricMatrix(
+    Int               solver,
       double*           AnzvalLocal,                  
       Int               verbosity,
       double*           AinvnzvalLocal );
 
   void SelInvComplexUnsymmetricMatrix(
+    Int               solver,
       double*           AnzvalLocal,                  
       Int               verbosity,
       double*           AinvnzvalLocal );
@@ -348,6 +394,7 @@ public:
   void CalculateNegativeInertiaReal(
       const std::vector<Real>&       shiftVec, 
       std::vector<Real>&             inertiaVec,
+    Int               solver,
       Int                            verbosity );
 
   /// @brief Compute the negative inertia (the number of eigenvalues
@@ -381,6 +428,7 @@ public:
   void CalculateNegativeInertiaComplex(
       const std::vector<Real>&       shiftVec, 
       std::vector<Real>&             inertiaVec,
+    Int               solver,
       Int                            verbosity );
 
 
@@ -418,6 +466,7 @@ public:
       Real  mu,
       Real  numElectronExact, 
       Real  numElectronTolerance,
+    Int               solver,
       Int   verbosity,
       Real& numElectron,
       Real& numElectronDrvMu );
@@ -456,6 +505,7 @@ public:
       Real  mu,
       Real  numElectronExact, 
       Real  numElectronTolerance,
+    Int               solver,
       Int   verbosity,
       Real& numElectron,
       Real& numElectronDrvMu );
@@ -480,6 +530,7 @@ public:
       Real       numElectronPEXSITolerance,
       Int        matrixType,
       Int        isSymbolicFactorize,
+    Int               solver,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
@@ -532,6 +583,7 @@ public:
       Real  numElectronTolerance,
       Real  muMinPEXSI,
       Real  muMaxPEXSI,
+    Int               solver,
       Int   verbosity,
       Real& mu,
       Real& numElectron, 
@@ -554,6 +606,7 @@ public:
       Real       numElectronPEXSITolerance,
       Int        matrixType,
       Int        isSymbolicFactorize,
+    Int               solver,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,

@@ -151,6 +151,10 @@ int main(int argc, char **argv)
   PPEXSIOptions  options;
   PPEXSISetDefaultOptions( &options );
   options.npSymbFact = 1;
+  options.solver = 0;
+  #ifdef WITH_SYMPACK
+  options.solver = 1;
+  #endif
   options.ordering = 0;
   options.verbosity = 1;
 

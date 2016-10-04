@@ -139,7 +139,7 @@ namespace PEXSI{
       grid_ = NULL;
       super_ = NULL;
       options_ = NULL;
-      optionsLU_ = NULL;
+      optionsFact_ = NULL;
 
       ColBlockIdx_.clear();
       RowBlockIdx_.clear();
@@ -221,7 +221,7 @@ namespace PEXSI{
         grid_ = C.grid_;
         super_ = C.super_;
         options_ = C.options_;
-        optionsLU_ = C.optionsLU_;
+        optionsFact_ = C.optionsFact_;
 
 
         maxTag_ = C.maxTag_;
@@ -300,7 +300,7 @@ namespace PEXSI{
       grid_ = C.grid_;
       super_ = C.super_;
       options_ = C.options_;
-      optionsLU_ = C.optionsLU_;
+      optionsFact_ = C.optionsFact_;
 
 
       limIndex_ = C.limIndex_;
@@ -379,11 +379,11 @@ namespace PEXSI{
         const GridType* g, 
         const SuperNodeType* s, 
         const PEXSI::PSelInvOptions * o, 
-        const PEXSI::SuperLUOptions * oLU
+        const PEXSI::FactorizationOptions * oFact
         ):PMatrix()
     {
 
-      this->Setup( g, s, o, oLU );
+      this->Setup( g, s, o, oFact );
 
 
       return ;
@@ -404,14 +404,14 @@ namespace PEXSI{
         const GridType* g, 
         const SuperNodeType* s, 
         const PEXSI::PSelInvOptions * o, 
-        const PEXSI::SuperLUOptions * oLU 
+        const PEXSI::FactorizationOptions * oFact
         ) 
     {
 
       grid_          = g;
       super_         = s;
       options_       = o;
-      optionsLU_       = oLU;
+      optionsFact_       = oFact;
 
       //    if( grid_->numProcRow != grid_->numProcCol ){
       //ErrorHandling( "The current version of SelInv only works for square processor grids." ); }
@@ -1167,7 +1167,7 @@ namespace PEXSI{
     {
       Int nsupers = this->NumSuper();
 
-      if( optionsLU_->ColPerm != "PARMETIS" ) {
+      if( optionsFact_->ColPerm != "PARMETIS" ) {
         /* Use the etree computed from serial symb. fact., and turn it
            into supernodal tree.  */
         const SuperNodeType * superNode = this->SuperNode();
@@ -3484,7 +3484,7 @@ namespace PEXSI{
     void PMatrix<T>::SelInv	(  )
     {
 
-      if(optionsLU_->Symmetric == 0){
+      if(optionsFact_->Symmetric == 0){
         ErrorHandling( "The matrix is not symmetric, this routine can't handle it !" );
       }
       SelInv_P2p	(  );
@@ -4379,7 +4379,7 @@ statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
 
       const IntNumVec * pPermInv_r;
 
-      if(optionsLU_->RowPerm=="NOROWPERM"){
+      if(optionsFact_->RowPerm=="NOROWPERM"){
         pPermInv_r = &super_->permInv;
       }
       else{
@@ -5054,24 +5054,24 @@ statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
     } 		// -----  end of method PMatrix::GetNegativeInertia  ----- 
 
   template<typename T>
-    inline PMatrix<T> * PMatrix<T>::Create(const GridType * pGridType, const SuperNodeType * pSuper, const PSelInvOptions * pSelInvOpt , const SuperLUOptions * pLuOpt)
+    inline PMatrix<T> * PMatrix<T>::Create(const GridType * pGridType, const SuperNodeType * pSuper, const PSelInvOptions * pSelInvOpt , const FactorizationOptions * pFactOpt)
     { 
       PMatrix<T> * pMat = NULL;
-      if(pLuOpt->Symmetric == 0){
-        pMat = new PMatrixUnsym<T>( pGridType, pSuper, pSelInvOpt, pLuOpt  );
+      if(pFactOpt->Symmetric == 0){
+        pMat = new PMatrixUnsym<T>( pGridType, pSuper, pSelInvOpt, pFactOpt  );
       }
       else{
-        pMat = new PMatrix<T>( pGridType, pSuper, pSelInvOpt, pLuOpt  );
+        pMat = new PMatrix<T>( pGridType, pSuper, pSelInvOpt, pFactOpt  );
       }
 
       return pMat;
     } 		// -----  end of factory method PMatrix::Create  ----- 
 
   template<typename T>
-    inline PMatrix<T> * PMatrix<T>::Create(const SuperLUOptions * pLuOpt)
+    inline PMatrix<T> * PMatrix<T>::Create(const FactorizationOptions * pFactOpt)
     { 
       PMatrix<T> * pMat = NULL;
-      if(pLuOpt->Symmetric == 0){
+      if(pFactOpt->Symmetric == 0){
         pMat = new PMatrixUnsym<T>();
       }
       else{
@@ -5093,7 +5093,7 @@ statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
       const IntNumVec * pPerm_r;
       const IntNumVec * pPermInv_r;
 
-      if(optionsLU_->RowPerm=="NOROWPERM"){
+      if(optionsFact_->RowPerm=="NOROWPERM"){
         pPerm_r = &super_->perm;
         pPermInv_r = &super_->permInv;
       }

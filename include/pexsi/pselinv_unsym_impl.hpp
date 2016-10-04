@@ -59,11 +59,11 @@ template<typename T>
       const GridType* g, 
       const SuperNodeType* s, 
       const PSelInvOptions * o, 
-      const SuperLUOptions * oLU  
+      const FactorizationOptions * oFact
       )
   {
 
-    this->Setup( g, s, o, oLU );
+    this->Setup( g, s, o, oFact );
 
     return ;
   } 		// -----  end of method PMatrixUnsym::PMatrixUnsym  ----- 
@@ -74,10 +74,10 @@ template<typename T>
       const GridType* g, 
       const SuperNodeType* s, 
       const PSelInvOptions * o, 
-      const SuperLUOptions * oLU  
+      const FactorizationOptions * oFact  
       ) {
 
-    PMatrix<T>::Setup(g,s,o,oLU);
+    PMatrix<T>::Setup(g,s,o,oFact);
 
 
 

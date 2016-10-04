@@ -538,10 +538,13 @@ int main(int argc, char **argv)
       luOpt.ColPerm = ColPerm;
       luOpt.RowPerm = RowPerm;
       luOpt.Equil = Equil;
-
       luOpt.numProcSymbFact = numProcSymbFact;
-      luOpt.Symmetric = isSym;
-      luOpt.Transpose = transpose;
+
+      FactorizationOptions factOpt;
+      factOpt.ColPerm = ColPerm;
+      factOpt.RowPerm = RowPerm;
+      factOpt.Symmetric = isSym;
+      factOpt.Transpose = transpose;
 
 
       //Initialize SuperLU data structures
@@ -678,7 +681,7 @@ int main(int argc, char **argv)
           selInvOpt.maxPipelineDepth = maxPipelineDepth;
 
 
-          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &selInvOpt, &luOpt);
+          PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &selInvOpt, &factOpt);
 
           //            {
           //              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
@@ -739,7 +742,7 @@ int main(int argc, char **argv)
 
 
             DistSparseMatrix<MYSCALAR> * Aptr;
-            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
+            if(factOpt.Symmetric==0 && factOpt.Transpose==0){
               Aptr = new DistSparseMatrix<MYSCALAR>();
               //compute the transpose
               CSCToCSR(AMat,*Aptr);
@@ -756,7 +759,7 @@ int main(int argc, char **argv)
             traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
                 Aptr->nzvalLocal.Data(), 1 );
 
-            if(luOpt.Symmetric==0 && luOpt.Transpose==0){
+            if(factOpt.Symmetric==0 && factOpt.Transpose==0){
               delete Aptr;
             }
 

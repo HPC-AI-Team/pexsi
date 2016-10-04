@@ -336,6 +336,7 @@ void PPEXSILoadRealHSMatrix(
           HnzvalLocal,                  
           isSIdentity,                  
           SnzvalLocal,
+          options.solver,
           options.verbosity );
   }
   catch( std::exception& e )
@@ -384,6 +385,7 @@ void PPEXSILoadComplexHSMatrix(
           reinterpret_cast<Complex*>(HnzvalLocal), 
           isSIdentity,                  
           reinterpret_cast<Complex*>(SnzvalLocal),
+          options.solver,
           options.verbosity );
   }
   catch( std::exception& e )
@@ -413,22 +415,58 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
 
   try{
     std::string colPerm;
-    switch (options.ordering){
+    switch (options.solver){
       case 0:
-        colPerm = "PARMETIS";
+        {
+          //Handle SuperLU ordering options
+          switch (options.ordering){
+            case 0:
+              colPerm = "PARMETIS";
+              break;
+            case 1:
+              colPerm = "METIS_AT_PLUS_A";
+              break;
+            case 2:
+              colPerm = "MMD_AT_PLUS_A";
+              break;
+            default:
+              ErrorHandling("Unsupported ordering strategy.");
+              break;
+          }
+        }
         break;
+#ifdef WITH_SYMPACK
       case 1:
-        colPerm = "METIS_AT_PLUS_A";
+        {
+          //Handle symPACK ordering options
+          switch (options.ordering){
+            case 0:
+              colPerm = "PARMETIS";
+              break;
+            case 1:
+              colPerm = "METIS";
+              break;
+            case 2:
+              colPerm = "MMD";
+              break;
+            case 3:
+              colPerm = "AMD";
+              break;
+            default:
+              ErrorHandling("Unsupported ordering strategy.");
+              break;
+          }
+        }
         break;
-      case 2:
-        colPerm = "MMD_AT_PLUS_A";
-        break;
+#endif
       default:
-        ErrorHandling("Unsupported ordering strategy.");
+        ErrorHandling("Unsupported solver.");
+        break;
     }
 
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeRealSymmetricMatrix(
+          options.solver,
           colPerm,
           options.npSymbFact,
           options.verbosity );
@@ -488,6 +526,7 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
 
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeRealUnsymmetricMatrix(
+          options.solver,
           colPerm,
           rowPerm,
           options.npSymbFact,
@@ -520,22 +559,59 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
 
   try{
     std::string colPerm;
-    switch (options.ordering){
+    switch (options.solver){
       case 0:
-        colPerm = "PARMETIS";
+        {
+          //Handle SuperLU ordering options
+          switch (options.ordering){
+            case 0:
+              colPerm = "PARMETIS";
+              break;
+            case 1:
+              colPerm = "METIS_AT_PLUS_A";
+              break;
+            case 2:
+              colPerm = "MMD_AT_PLUS_A";
+              break;
+            default:
+              ErrorHandling("Unsupported ordering strategy.");
+              break;
+          }
+        }
         break;
+#ifdef WITH_SYMPACK
       case 1:
-        colPerm = "METIS_AT_PLUS_A";
+        {
+          //Handle symPACK ordering options
+          switch (options.ordering){
+            case 0:
+              colPerm = "PARMETIS";
+              break;
+            case 1:
+              colPerm = "METIS";
+              break;
+            case 2:
+              colPerm = "MMD";
+              break;
+            case 3:
+              colPerm = "AMD";
+              break;
+            default:
+              ErrorHandling("Unsupported ordering strategy.");
+              break;
+          }
+        }
         break;
-      case 2:
-        colPerm = "MMD_AT_PLUS_A";
-        break;
+#endif
       default:
-        ErrorHandling("Unsupported ordering strategy.");
+        ErrorHandling("Unsupported solver.");
+        break;
     }
+
 
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeComplexSymmetricMatrix(
+          options.solver,
           colPerm,
           options.npSymbFact,
           options.verbosity );
@@ -593,6 +669,7 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
 
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeComplexUnsymmetricMatrix(
+          options.solver,
           colPerm,
           rowPerm,
           options.npSymbFact,
@@ -640,6 +717,7 @@ void PPEXSIInertiaCountRealMatrix(
       CalculateNegativeInertiaReal(
           shiftVec,
           inertiaVec,
+          options.solver,
           options.verbosity );
 
     for( Int i = 0; i < numShift; i++ ){
@@ -685,6 +763,7 @@ void PPEXSIInertiaCountComplexMatrix(
       CalculateNegativeInertiaComplex(
           shiftVec,
           inertiaVec,
+          options.solver,
           options.verbosity );
 
     for( Int i = 0; i < numShift; i++ ){
@@ -727,6 +806,7 @@ void PPEXSICalculateFermiOperatorReal(
         mu,
         numElectronExact,
         options.numElectronPEXSITolerance,
+          options.solver,
         options.verbosity,
         *numElectronPEXSI,
         *numElectronDrvMuPEXSI );
@@ -765,6 +845,7 @@ void PPEXSICalculateFermiOperatorComplex(
         mu,
         numElectronExact,
         options.numElectronPEXSITolerance,
+          options.solver,
         options.verbosity,
         *numElectronPEXSI,
         *numElectronDrvMuPEXSI );
@@ -795,6 +876,7 @@ void PPEXSISelInvRealSymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvRealSymmetricMatrix(
+          options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -824,6 +906,7 @@ void PPEXSISelInvRealUnsymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvRealUnsymmetricMatrix(
+          options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -853,6 +936,7 @@ void PPEXSISelInvComplexSymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexSymmetricMatrix(
+          options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -882,6 +966,7 @@ void PPEXSISelInvComplexUnsymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexUnsymmetricMatrix(
+          options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -934,6 +1019,7 @@ void PPEXSIDFTDriver(
         options.numElectronPEXSITolerance,
         options.matrixType,
         options.isSymbolicFactorize,
+        options.solver,
         options.ordering,
         options.npSymbFact,
         options.verbosity,
@@ -987,6 +1073,7 @@ void PPEXSIDFTDriver2(
         options.numElectronPEXSITolerance,
         options.matrixType,
         options.isSymbolicFactorize,
+        options.solver,
         options.ordering,
         options.npSymbFact,
         options.verbosity,
