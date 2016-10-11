@@ -178,6 +178,7 @@ Transpose ( const NumMat<F>& A, NumMat<F>& B )
 
   for( Int i = 0; i < m; i++ ){
     for( Int j = 0; j < n; j++ ){
+//      Bdata[ j + n*i ] = F(std::conj(Adata[ i + j*m ]));
       Bdata[ j + n*i ] = Adata[ i + j*m ];
     }
   }

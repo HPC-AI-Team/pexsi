@@ -76,7 +76,12 @@ int main(int argc, char **argv)
 
   double tsymfact1, tsymfact2, tinvert1, tinvert2;
 
+  #ifdef WITH_SYMPACK
+  symPACK_Init(&argc, &argv);
+  #else
   MPI_Init( &argc, &argv );
+  #endif
+
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
@@ -247,7 +252,11 @@ int main(int argc, char **argv)
   free( AinvnzvalLocal );
 
   
+  #ifdef WITH_SYMPACK
+  symPACK_Finalize();
+  #else
   MPI_Finalize();
+  #endif
 
   return 0;
 }

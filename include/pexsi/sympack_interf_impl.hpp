@@ -398,7 +398,8 @@ template<typename T> void symPACKMatrixToPMatrix(
         LBlock<T>& LB = Lcol[0];
         for(Int row = 0; row<LB.nzval.m(); row++){
           for(Int col = row+1; col<LB.nzval.n(); col++){
-            LB.nzval(row,col) = LB.nzval(col,row) * LB.nzval(row,row);
+            //LB.nzval(row,col) = T(std::conj(LB.nzval(col,row))) * LB.nzval(row,row);
+            LB.nzval(row,col) = (LB.nzval(col,row)) * LB.nzval(row,row);
           }
         } 
         DiagBuf = LB.nzval;

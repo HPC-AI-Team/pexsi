@@ -130,13 +130,17 @@ PPEXSIData::PPEXSIData	(
   luComplexMat_ = new SuperLUMatrix<Complex>;
 
 #ifdef WITH_SYMPACK
-  if(symPACK::logfileptr==NULL){
-  //Initialize symPACK logfile
-  std::stringstream suffix;
-  suffix<<mpirank;
-  symPACK::logfileptr = new symPACK::LogFile("status",suffix.str().c_str());
-  symPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<std::endl;
-  symPACK::logfileptr->OFS()<<"**********************************"<<std::endl;
+  if( outputFileIndex >= 0 ){
+     symPACKOpt_.verbose=0;
+    
+    if(symPACK::logfileptr==NULL){
+      //Initialize symPACK logfile
+      std::stringstream suffix;
+      suffix<<mpirank;
+      symPACK::logfileptr = new symPACK::LogFile("status",suffix.str().c_str());
+      symPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<std::endl;
+      symPACK::logfileptr->OFS()<<"**********************************"<<std::endl;
+    }
   }
 
   symPACKRealMat_ = new symPACK::symPACKMatrix<Real>;
@@ -863,7 +867,7 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
 
           PEXSI::CopyPattern( symmPatternMat_, AMat );
 
-          AMat.nzvalLocal.assign(AMat.nzvalLocal.size(), D_ZERO );          // Symbolic factorization does not need value
+          //AMat.nzvalLocal.assign(AMat.nzvalLocal.size(), D_ZERO );          // Symbolic factorization does not need value
 
           GetTime( timeSta );
           symPACKMat.SymbolicFactorization(AMat);
@@ -1648,7 +1652,6 @@ PPEXSIData::SelInvRealSymmetricMatrix(
         break;
     }
 
-
     PMloc.PreSelInv();
 
     PMloc.SelInv();
@@ -1665,7 +1668,7 @@ PPEXSIData::SelInvRealSymmetricMatrix(
 
     GetTime( timePostProcessingSta );
 
-    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+    PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
     GetTime( timePostProcessingEnd );
 
@@ -1834,17 +1837,15 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
   // Only the processor group corresponding to the first pole participate
   if( MYROW( gridPole_ ) == 0 ){
 
+    Real timeTotalSelInvSta, timeTotalSelInvEnd;
+    PMatrix<Complex>&          PMloc     = *PMComplexMat_;
     DistSparseMatrix<Complex>& AMat      = shiftComplexMat_;
     DistSparseMatrix<Complex>& AinvMat   = shiftInvComplexMat_;
-    PMatrix<Complex>&          PMloc     = *PMComplexMat_;
-
     // Copy the pattern
     CopyPattern( PatternMat_, AMat );
-
     blas::Copy( 2*AMat.nnzLocal, AnzvalLocal, 1, 
         reinterpret_cast<double*>(AMat.nzvalLocal.Data()), 1 );
 
-    Real timeTotalSelInvSta, timeTotalSelInvEnd;
     switch (solver) {
       case 0:
         {
@@ -1897,7 +1898,6 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
         {
           symPACK::symPACKMatrix<Complex>& symPACKMat = *symPACKComplexMat_ ;
           symPACK::DistSparseMatrix<Complex> ltAMat;
-
           if( verbosity >= 2 ){
             statusOFS << "Before ToLowerTriangular." << std::endl;
           }

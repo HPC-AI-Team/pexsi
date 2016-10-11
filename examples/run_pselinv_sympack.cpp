@@ -15,7 +15,7 @@
 #include "sympack.hpp"
 #include "pexsi/sympack_interf.hpp"
 
-//#define _MYCOMPLEX_
+#define _MYCOMPLEX_
 
 typedef double ISCALAR;
 #ifdef _MYCOMPLEX_
@@ -63,6 +63,8 @@ int main(int argc, char **argv)
       Usage();
     }
   }
+    
+  symPACK_Init(&argc,&argv);
 
   try{
 
@@ -150,6 +152,12 @@ int main(int argc, char **argv)
     }
 
 
+#ifdef _MYCOMPLEX_
+    int isComplex = 0;
+    if( options.find("-Complex") != options.end() ){ 
+      isComplex = atoi(options["-Complex"].c_str());
+    }
+#endif
 
     //Initialize symPACK logfile
     std::stringstream suffix;
@@ -168,6 +176,8 @@ int main(int argc, char **argv)
     optionsFact.decomposition = symPACK::LDL;
     optionsFact.orderingStr = ColPerm;
     optionsFact.MPIcomm = workcomm;
+    optionsFact.verbose=0;
+    //optionsFact.relax.SetMaxSize(1);
 
     //Initialize UPCXX for symPACK
     //upcxx::init(&argc, &argv);
@@ -187,6 +197,78 @@ int main(int argc, char **argv)
 
       symPACK::DistSparseMatrix<SCALAR> AMat(workcomm);
       symPACK::symPACKMatrix<SCALAR>*  symPACKMat = NULL;
+#ifdef _MYCOMPLEX_
+      if(isComplex){
+        symPACK::DistSparseMatrix<Complex> HMat(workcomm);
+        symPACK::ReadMatrix<Complex,Complex>(Hfile, format, HMat);
+
+        //Build AMat
+        symPACK::DistSparseMatrix<Complex> SMat(workcomm);
+
+        const symPACK::DistSparseMatrixGraph & Hgraph = HMat.GetLocalGraph();
+        // Get the diagonal indices for H and save it n diagIdxLocal_
+        std::vector<Int>  diagIdxLocal;
+        { 
+
+          Int numColLocal      = Hgraph.LocalVertexCount();
+          Int firstCol         = Hgraph.LocalFirstVertex();
+
+          diagIdxLocal.clear();
+          diagIdxLocal.reserve( HMat.size );
+          for( symPACK::Idx j = 0; j < numColLocal; j++ ){
+            symPACK::Idx jcol = firstCol + j + 1;
+            for( symPACK::Ptr i = Hgraph.colptr[j]-1; 
+                i < Hgraph.colptr[j+1]-1; i++ ){
+              symPACK::Idx irow = Hgraph.rowind[i];
+              if( irow == jcol ){
+                diagIdxLocal.push_back( i );
+              }
+            }
+          } // for (j)
+        }
+
+        GetTime( timeSta );
+
+        AMat.size          = HMat.size;
+        AMat.nnz           = HMat.nnz;
+        AMat.SetLocalGraph(HMat.GetLocalGraph());
+        AMat.nzvalLocal.resize( HMat.nzvalLocal.size() );
+
+        SCALAR *ptr0 = AMat.nzvalLocal.data();
+        Complex *ptr1 = HMat.nzvalLocal.data();
+        Complex *ptr2 = SMat.nzvalLocal.data();
+
+
+        if( SMat.size != 0 ){
+          // S is not an identity matrix
+          for( Int i = 0; i < HMat.nzvalLocal.size(); i++ ){
+            AMat.nzvalLocal[i] = HMat.nzvalLocal[i] - zshift * SMat.nzvalLocal[i];
+          }
+        }
+        else{
+          // S is an identity matrix
+          for( Int i = 0; i < Hgraph.LocalEdgeCount(); i++ ){
+            AMat.nzvalLocal[i] = HMat.nzvalLocal[i];
+          }
+
+          for( Int i = 0; i < diagIdxLocal.size(); i++ ){
+            AMat.nzvalLocal[ diagIdxLocal[i] ] -= zshift;
+          }
+        } // if (SMat.size != 0 )
+
+        if( mpirank == 0 ){
+          cout << "nonzero in A (DistSparseMatrix format) = " << AMat.nnz << endl;
+        }
+
+
+        GetTime( timeEnd );
+        if( mpirank == 0 )
+          cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;
+
+
+      }
+      else
+#endif
       {
         symPACK::DistSparseMatrix<ISCALAR> HMat(workcomm);
         symPACK::ReadMatrix<ISCALAR,ISCALAR>(Hfile, format, HMat);
@@ -199,7 +281,6 @@ int main(int argc, char **argv)
           symPACK::ReadMatrix<ISCALAR,ISCALAR>(Sfile, format, SMat);
         }
         else{
-
           statusOFS << "-S option is not given. " 
             << "Treat the overlap matrix as an identity matrix." 
             << std::endl << std::endl;
@@ -267,41 +348,42 @@ int main(int argc, char **argv)
         GetTime( timeEnd );
         if( mpirank == 0 )
           cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;
-
-
-        GetTime( timeTotalFactorizationSta );
-        GetTime( timeSta );
-        symPACKMat = new symPACK::symPACKMatrix<SCALAR>();
-        //      optionsFact.commEnv = new symPACK::CommEnvironment(workcomm);
-        symPACKMat->Init(optionsFact);
-        symPACKMat->SymbolicFactorization(AMat);
-        GetTime( timeEnd );
-        if( mpirank == 0 )
-          cout << "Time for symbolic factorization is " << timeEnd - timeSta << " sec" << endl; 
-        GetTime( timeSta );
-        symPACKMat->DistributeMatrix(AMat);
-        GetTime( timeEnd );
-        if( mpirank == 0 )
-          cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
-        GetTime( timeSta );
-        symPACKMat->Factorize();
-        GetTime( timeEnd );
-
-        if( mpirank == 0 )
-          cout << "Time for factorization is " << timeEnd - timeSta << " sec" << endl; 
-
-        GetTime( timeTotalFactorizationEnd );
-        if( mpirank == 0 )
-          cout << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
-
       }
+
+      GetTime( timeTotalFactorizationSta );
+      GetTime( timeSta );
+      symPACKMat = new symPACK::symPACKMatrix<SCALAR>();
+      //      optionsFact.commEnv = new symPACK::CommEnvironment(workcomm);
+      symPACKMat->Init(optionsFact);
+      symPACKMat->SymbolicFactorization(AMat);
+      GetTime( timeEnd );
+      if( mpirank == 0 )
+        cout << "Time for symbolic factorization is " << timeEnd - timeSta << " sec" << endl; 
+      GetTime( timeSta );
+      symPACKMat->DistributeMatrix(AMat);
+      GetTime( timeEnd );
+      if( mpirank == 0 )
+        cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
+      GetTime( timeSta );
+      symPACKMat->Factorize();
+      GetTime( timeEnd );
+
+      if( mpirank == 0 )
+        cout << "Time for factorization is " << timeEnd - timeSta << " sec" << endl; 
+
+      GetTime( timeTotalFactorizationEnd );
+      if( mpirank == 0 )
+        cout << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
+
+      symPACKMat->DumpMatlab();
+
 
       GetTime( timeTotalSelInvSta );
       GridType *gPtr = new GridType( workcomm, nprow, npcol );
       SuperNodeType *superPtr = new SuperNodeType();
 
       FactorizationOptions factOpt;
-      factOpt.ColPerm = "METIS_AT_PLUS_A";
+      factOpt.ColPerm = ColPerm;//"METIS_AT_PLUS_A";
       factOpt.Symmetric = 1;
 
       PSelInvOptions selInvOpt;
@@ -440,8 +522,7 @@ int main(int argc, char **argv)
 
 
 
-  //This will also finalize MPI
-  upcxx::finalize();
+  symPACK_Finalize();
 
   return 0;
 }

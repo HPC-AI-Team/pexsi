@@ -76,7 +76,12 @@ int main(int argc, char **argv)
   int           i, j, irow, jcol;
   int           numColLocalFirst, firstCol;
 
+  #ifdef WITH_SYMPACK
+  symPACK_Init(&argc, &argv);
+  #else
   MPI_Init( &argc, &argv );
+  #endif
+
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
@@ -156,7 +161,7 @@ int main(int argc, char **argv)
   options.solver = 1;
   #endif
   options.ordering = 0;
-  options.verbosity = 1;
+  options.verbosity = 0;
 
   PPEXSIPlan   plan;
 
@@ -164,7 +169,7 @@ int main(int argc, char **argv)
       MPI_COMM_WORLD, 
       nprow,
       npcol,
-      mpirank, 
+      -1,//mpirank, 
       &info );
 
   // For complex matrices, this is just to load a pattern
@@ -240,7 +245,12 @@ int main(int argc, char **argv)
   free( AinvnzvalLocal );
 
   
+  #ifdef WITH_SYMPACK
+  symPACK_Finalize();
+  #else
   MPI_Finalize();
+  #endif
+
 
   return 0;
 }
