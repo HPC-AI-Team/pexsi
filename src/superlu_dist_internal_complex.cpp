@@ -53,13 +53,20 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include <numeric>
 #include <Cnames.h>
 extern "C"{ void
-#if SLU_MAJOR_VERSION >= 5 || NOT defined(SLU_MAJOT_VERSION)
-pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
+#ifdef SLU_MAJOR_VERSION
+#if SLU_MAJOR_VERSION < 5
+pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
 #else
-pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
+pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
+    ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+    LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
+    int *info, double *totalMemory, double *maxMemory );
+#endif
+#else
+pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
@@ -161,10 +168,14 @@ protected:
   /// 
   /// to make sure that symmetric permutation is used.
   ///
-#if SLU_MAJOR_VERSION >= 5 || NOT defined(SLU_MAJOT_VERSION)
-  superlu_dist_options_t   options;                  
-#else
+#ifdef SLU_MAJOR_VERSION
+#if SLU_MAJOR_VERSION < 5
   superlu_options_t   options;                  
+#else
+  superlu_dist_options_t   options;                  
+#endif
+#else
+  superlu_dist_options_t   options;                  
 #endif
 
   /// @brief Saves the permutation vectors.  Only perm_c (permutation of

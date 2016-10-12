@@ -3955,6 +3955,7 @@ PPEXSIData::DFTDriver (
           CalculateNegativeInertiaReal(
               shiftVec,
               inertiaVec,
+              solver,
               verbosity );
         }
 
@@ -4137,6 +4138,7 @@ PPEXSIData::DFTDriver (
             muPEXSI,
             numElectronExact,
             numElectronPEXSITolerance,
+            solver,
             verbosity,
             numElectronPEXSI,
             numElectronDrvMuPEXSI );
@@ -4430,6 +4432,7 @@ PPEXSIData::DFTDriver2 (
           CalculateNegativeInertiaReal(
               shiftVec,
               inertiaVec,
+              solver,
               verbosity );
         }
 
@@ -4635,6 +4638,7 @@ PPEXSIData::DFTDriver2 (
           numElectronPEXSITolerance,
           muMinPEXSI,
           muMaxPEXSI,
+          solver,
           verbosity,
           muPEXSI, 
           numElectronPEXSI, 

@@ -375,7 +375,7 @@ int main(int argc, char **argv)
       if( mpirank == 0 )
         cout << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
 
-      symPACKMat->DumpMatlab();
+//      symPACKMat->DumpMatlab();
 
 
       GetTime( timeTotalSelInvSta );
