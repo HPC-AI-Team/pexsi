@@ -15,7 +15,7 @@
 #include "sympack.hpp"
 #include "pexsi/sympack_interf.hpp"
 
-#define _MYCOMPLEX_
+//#define _MYCOMPLEX_
 
 typedef double ISCALAR;
 #ifdef _MYCOMPLEX_
@@ -42,6 +42,8 @@ int main(int argc, char **argv)
 
   MPI_Init(&argc,&argv);
 
+  symPACK_Init(&argc,&argv);
+
   //Create a communicator with npcol*nprow processors
   MPI_Comm world_comm;
   MPI_Comm_dup(MPI_COMM_WORLD, &world_comm);
@@ -64,7 +66,6 @@ int main(int argc, char **argv)
     }
   }
     
-  symPACK_Init(&argc,&argv);
 
   try{
 
@@ -523,6 +524,7 @@ int main(int argc, char **argv)
 
 
   symPACK_Finalize();
+//MPI_Finalize();
 
   return 0;
 }

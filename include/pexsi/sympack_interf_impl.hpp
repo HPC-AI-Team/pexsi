@@ -441,6 +441,7 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
     std::vector<std::list<LBlock<T> * > > blocks_to_receiver;
 
     std::vector<Int> receiver_proc;
+    //If I'm in the supernodal column
     if( mpicol == ( ksup % npcol ) ){
       Int jb = ksup / npcol;
       std::vector<LBlock<T> >& Lcol = PMat.L(jb);
@@ -460,6 +461,7 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
       //Insert the set into the vector to be able to send it
       receiver_proc.insert(receiver_proc.begin(),proc_set.begin(),proc_set.end());
 
+
       //Now do a gatherv on the root
       mpi::Gatherv(receiver_proc,all_proc_list,sizes,displs,root, colComm);
 
@@ -472,9 +474,9 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
       }
       mpi::Gatherv(blocks_cnt,all_blocks_cnt,root, colComm);
 
-
       //On the root, convert from a sender array to a receiver array
       if(mpirow == root){
+
         //sender_proc[i] contains the set of sender to processor column i
         std::vector<std::set<Int> > sender_procs(npcol);
         std::vector<Int> urow_sizes(npcol,0);      
@@ -505,6 +507,7 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
         for(Int pcol = 0; pcol < npcol; ++pcol){
           all_proc_list.insert(all_proc_list.end(),sender_procs[pcol].begin(),sender_procs[pcol].end());
         }
+
       }
     }
 
@@ -517,14 +520,10 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
           &localSize,sizeof(Int),MPI_BYTE, root, rowComm);
       sender_proc.resize(localSize / sizeof(Int));
       //Now do the scatterv; 
-      if(mpicol==root){
-        MPI_Scatterv(&all_proc_list[0],&sizes[0],&displs[0],MPI_BYTE,
-            &sender_proc[0],localSize,MPI_BYTE, root, rowComm);
-      }
-      else{
-        MPI_Scatterv(NULL,NULL,NULL,MPI_BYTE,
-            &sender_proc[0],localSize,MPI_BYTE, root, rowComm);
-      }
+      MPI_Scatterv(mpicol==root?&all_proc_list[0]:NULL,
+                    mpicol==root?&sizes[0]:NULL,
+                      mpicol==root?&displs[0]:NULL,MPI_BYTE,
+                        &sender_proc[0],localSize,MPI_BYTE, root, rowComm);
 
       Int urowSize = 0;
       MPI_Scatter(mpicol==root?&all_blocks_cnt[0]:NULL,sizeof(Int),MPI_BYTE,
@@ -539,12 +538,15 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
       //and Urows are resized
     }
 
+    
     //Communicate this supernode
     //If I'm a sender
     if( mpicol == ( ksup % npcol ) ){
       std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
       //for each target col
-      for(Int pcol = 0; pcol < npcol; pcol++){
+      for(Int tpcol = 0; tpcol < npcol; tpcol++){
+        //dont send to the root first because it can be a sender too !
+        Int pcol = (mpicol+1+tpcol) % npcol;
         Int pnum = (ksup % nprow)*npcol + pcol;
         if(pnum!=mpirank){
           //Serialize everything in the blocks_to_receiver list
@@ -565,12 +567,15 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
 #endif
               serialize(LB, sstm,mask);
             }
+
+
             mpi::Send(sstm, pnum, PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_SIZE),
                 PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_CONTENT), comm);
           }
         }
       }
     }
+
     //If I'm a receiver 
     if( mpirow == ( ksup % nprow ) ){
       std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
@@ -580,7 +585,6 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
       //for each target row
       Int idx = 0;
       for(Int i = 0; i < sender_proc.size(); ++i){
-
         Int prow = sender_proc[i];
         Int pnum = (prow)*npcol + (ksup % npcol);
         if(pnum != mpirank){
