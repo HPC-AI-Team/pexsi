@@ -859,6 +859,7 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
           optionsFact.decomposition = symPACK::LDL;
           optionsFact.orderingStr = ColPerm;
           optionsFact.MPIcomm = gridPole_->rowComm;
+          optionsFact.NpOrdering = numProcSymbFact;
 
           symPACK::symPACKMatrix<Real>& symPACKMat = *symPACKRealMat_ ;
           symPACKMat.Init(optionsFact);
@@ -1229,6 +1230,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
           optionsFact.decomposition = symPACK::LDL;
           optionsFact.orderingStr = ColPerm;
           optionsFact.MPIcomm = gridPole_->rowComm;
+          optionsFact.NpOrdering = numProcSymbFact;
 
           symPACK::symPACKMatrix<Complex>& symPACKMat = *symPACKComplexMat_ ;
           symPACKMat.Init(optionsFact);

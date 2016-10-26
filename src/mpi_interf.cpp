@@ -204,7 +204,7 @@ void
     Int sizeStm;
     MPI_Recv( &sizeStm, 1, MPI_INT, src, tagSize, comm, &statSize );
     sstr.resize( sizeStm );
-    MPI_Recv( (void*) &sstr[0], sizeStm, MPI_BYTE, src, tagContent, comm, &statContent );
+    MPI_Recv( (void*) &sstr[0], sizeStm, MPI_BYTE, statSize.MPI_SOURCE, tagContent, comm, &statContent );
     sstm.write( &sstr[0], sizeStm );
 
     return ;
@@ -216,9 +216,10 @@ void
   {
     std::vector<char> str;
     Int sizeStm;
-    MPI_Recv( &sizeStm, 1, MPI_INT, src, tagSize, comm, MPI_STATUS_IGNORE );
+    MPI_Status statSize;
+    MPI_Recv( &sizeStm, 1, MPI_INT, src, tagSize, comm, &statSize );
     str.resize( sizeStm );
-    MPI_Recv( (void*) &str[0], sizeStm, MPI_BYTE, src, tagContent, comm, MPI_STATUS_IGNORE );
+    MPI_Recv( (void*) &str[0], sizeStm, MPI_BYTE, statSize.MPI_SOURCE, tagContent, comm, MPI_STATUS_IGNORE );
     sstm.write( &str[0], sizeStm );
 
     return ;

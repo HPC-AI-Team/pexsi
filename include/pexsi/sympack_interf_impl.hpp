@@ -132,6 +132,7 @@ template<typename T> void symPACKMatrixToSuperNode(
 template<typename T> void symPACKMatrixToPMatrix( 
     symPACK::symPACKMatrix<T>& SMat,
     PMatrix<T>& PMat ){
+  TIMER_START(symPACKtoPMatrix);
   // This routine assumes that the g, supernode and options of PMatrix
   // has been set outside this routine.
 
@@ -210,6 +211,9 @@ template<typename T> void symPACKMatrixToPMatrix(
   symPACK::Mapping * mapping = (symPACK::Mapping*)SMat.GetMapping();
 
   Int numSuper = PMat.NumSuper();
+
+
+#if 1
   symPACK::Icomm snodeIcomm;
   std::vector<char> buffer;
   for( Int iSuper = 0; iSuper < numSuper; iSuper++ ){
@@ -348,7 +352,53 @@ template<typename T> void symPACKMatrixToPMatrix(
     delete snode;
     MPI_Barrier( comm );
   }
+#else
+  std::vector<symPACK::SuperNode<T> * > & localSnodes = SMat.GetLocalSupernodes();
+  std::vector<int> sizes(mpisize,0);
 
+  //first do the counting
+  for(Int supidx = 0; supidx < localSnodes.size(); supidx++){
+    symPACK::SuperNode<T> * curSnode = localSnodes[supidx];
+    Int ksup = curSnode->Id();
+    Int superSize = curSnode->Size();
+
+    std::vector<bool> isSent(mpisize,false);
+
+    //find where this supernode is supposed to go
+    Int destCol = ksup % npcol;
+    for( Int blkidx = 0; blkidx < snode->NZBlockCnt(); blkidx++ ){
+      symPACK::NZBlockDesc desc = snode->GetNZBlockDesc( blkidx );
+      Int nrows = snode->NRows(blkidx);
+      Int firstRow = desc.GIndex - 1;
+      Int lastRow = firstRow + nrows - 1;
+
+      for( Int i = firstRow; i <= lastRow; i++ ){
+        Int isup = superIdx[i];
+        Int destRow = isup % nprow;
+        Int pnum = destRow*npcol + destCol;
+
+        if(!isSent[pnum]){
+          //Supernode index and number of rows
+          sizes[pNum]+=sizeof(Int)+sizeof(Int);
+          isSent[pnum] = true;
+        }
+
+        //add one row + the index
+        sizes[pNum]+=sizeof(Int)+superSize*sizeof(T);
+      }
+    } // for ( blkidx )
+
+
+    //compute the displacement and total buffersize required
+    std::vector<int> displs(mpisize+1,0);
+    displs[0]=0;
+    std::partial_sum(sizes.begin(),sizes.end(),displs.begin()+1);
+
+    int total_send_size = displs.back();
+    symPACK::Icomm * IsendPtr = new symPACK::Icomm(total_send_size,MPI_REQUEST_NULL);
+
+
+#endif
 
   PMatrixLtoU( PMat );
 
@@ -406,10 +456,12 @@ template<typename T> void symPACKMatrixToPMatrix(
       }
     }
   }
+  TIMER_STOP(symPACKtoPMatrix);
 }  // -----  end of symPACKMatrixToPMatrix ----- 
 
 template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
 {
+  TIMER_START(PMatrixLtoU);
 
   //Send L to U
   Int mpirank, mpisize;
@@ -589,7 +641,7 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
         Int pnum = (prow)*npcol + (ksup % npcol);
         if(pnum != mpirank){
           std::stringstream sstm;
-          mpi::Recv(sstm,pnum,PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_SIZE),
+          mpi::Recv(sstm,MPI_ANY_SOURCE,PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_SIZE),
               PMat.IdxToTag(ksup,PMatrix<T>::SELINV_TAG_L_CONTENT), comm);
 
           //now deserialize and put everything in U
@@ -645,6 +697,7 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
     }
   }
 
+  TIMER_STOP(PMatrixLtoU);
 }  // -----  end of PMatrixLToU ----- 
 
 

@@ -11,6 +11,7 @@
 
 // Libraries from NGCHOL BEGIN
 #include  "ppexsi.hpp"
+#include "pexsi/timer.h"
 
 #include "sympack.hpp"
 #include "pexsi/sympack_interf.hpp"
@@ -51,6 +52,10 @@ int main(int argc, char **argv)
   MPI_Comm_size(world_comm, &mpisize);
   MPI_Comm_rank(world_comm, &mpirank);
 
+#if defined(PROFILE) || defined(PMPI)
+  TAU_PROFILE_INIT(argc, argv);
+#endif
+
 #if defined(SPROFILE) || defined(PMPI)
   symPACK::symPACK_set_main_args(argc,argv);
   //  SYMPACK_SPROFILE_INIT(argc, argv);
@@ -59,6 +64,10 @@ int main(int argc, char **argv)
   stringstream  ss;
   ss << "logTest" << mpirank;
   statusOFS.open( ss.str().c_str() );
+
+#if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
+      TAU_PROFILE_SET_CONTEXT(world_comm);
+#endif
 
   if(argc<3){
     if( mpirank == 0 ) {
@@ -99,6 +108,18 @@ int main(int argc, char **argv)
     if(nprow*npcol > mpisize){
       throw std::runtime_error("The number of used processors can't be larger than the total number of available processors." );
     } 
+
+    Int numProcSymbFact;
+    if( options.find("-npsymbfact") != options.end() ){ 
+      numProcSymbFact = atoi( options["-npsymbfact"].c_str() );
+    }
+    else{
+      statusOFS << "-npsymbfact option is not given. " 
+        << "Use default value (maximum number of procs)." 
+        << std::endl << std::endl;
+      numProcSymbFact = 0;
+    }
+
 
     std::string Hfile;
     if( options.find("-H") != options.end() ){ 
@@ -174,11 +195,16 @@ int main(int argc, char **argv)
     MPI_Comm_split(world_comm,mpirank<mpisize,mpirank,&workcomm);
 
     symPACK::symPACKOptions optionsFact;
+    optionsFact.NpOrdering = numProcSymbFact;
     optionsFact.decomposition = symPACK::LDL;
     optionsFact.orderingStr = ColPerm;
     optionsFact.MPIcomm = workcomm;
     optionsFact.verbose=0;
-    //optionsFact.relax.SetMaxSize(1);
+
+//    optionsFact.load_balance_str = "NNZ";
+//    optionsFact.maxIsend = 100;
+//    optionsFact.relax.SetMaxSize(300);
+
 
     //Initialize UPCXX for symPACK
     //upcxx::init(&argc, &argv);
@@ -384,7 +410,7 @@ int main(int argc, char **argv)
       SuperNodeType *superPtr = new SuperNodeType();
 
       FactorizationOptions factOpt;
-      factOpt.ColPerm = ColPerm;//"METIS_AT_PLUS_A";
+      factOpt.ColPerm = ColPerm;
       factOpt.Symmetric = 1;
 
       PSelInvOptions selInvOpt;
@@ -397,14 +423,14 @@ int main(int argc, char **argv)
       PMatrix<SCALAR> * pMat = PMatrix<SCALAR>::Create(gPtr,superPtr, &selInvOpt, &factOpt);
       symPACKMatrixToPMatrix( *symPACKMat, *pMat );
       GetTime( timeEnd );
+      
+      MPI_Barrier(workcomm);
 
       if( mpirank == 0 )
         cout << "Time for converting symPACK matrix to PMatrix is " << timeEnd  - timeSta << endl;
 
       delete symPACKMat;
-      //      delete optionsFact.commEnv;
 
-      MPI_Barrier(workcomm);
 
       // Preparation for the selected inversion
       GetTime( timeSta );
