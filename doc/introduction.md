@@ -143,6 +143,8 @@ massively parallel machines, and can regularly handle systems with
 
 - Quantumwise ATK
 
+    - User manual: http://docs.quantumwise.com/manuals/Types/PEXSISolver/PEXSISolver.html
+
 - Electronic Structure Infrastructure (ELSI) Project
 
     - http://www.elsi-interchange.org/webpage/
