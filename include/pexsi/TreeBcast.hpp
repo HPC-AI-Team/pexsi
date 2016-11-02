@@ -1000,10 +1000,11 @@ protected:
 
       //        srand(ranks[0]+rank_cnt);
       //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
-      Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
+//      Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
+      Int new_idx = (int)(this->rseed_)%(rank_cnt-1)+1;
       //statusOFS<<"NEW IDX: "<<new_idx<<endl;
 
-
+      assert(new_idx<rank_cnt && new_idx>=1);
 
       Int * new_start = &ranks[new_idx];
 
@@ -1019,6 +1020,7 @@ protected:
 
     Int prevRoot = ranks[0];
     while(idxStart<idxEnd){
+      assert(idxStart<rank_cnt && idxStart>=0);
       Int curRoot = ranks[idxStart];
       Int listSize = idxEnd - idxStart;
 
@@ -1032,6 +1034,8 @@ protected:
         Int halfList = floor(ceil(double(listSize) / 2.0));
         Int idxStartL = idxStart+1;
         Int idxStartH = idxStart+halfList;
+      assert(idxStartL<rank_cnt && idxStartL>=0);
+      assert(idxStartH<rank_cnt && idxStartH>=0);
 
         if(curRoot == myRank_){
           if ((idxEnd - idxStartH) > 0 && (idxStartH - idxStartL)>0){
@@ -1890,9 +1894,8 @@ protected:
 
       //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
       //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
-      Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
-      //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
-
+//      Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
+      Int new_idx = (int)(this->rseed_)%(rank_cnt-1)+1;
 
       Int * new_start = &ranks[new_idx];
       //        for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;

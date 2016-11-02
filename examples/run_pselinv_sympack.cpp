@@ -15,6 +15,7 @@
 
 #include "sympack.hpp"
 #include "pexsi/sympack_interf.hpp"
+#include <memory>
 
 //#define _MYCOMPLEX_
 
@@ -223,7 +224,7 @@ int main(int argc, char **argv)
 #endif
 
       symPACK::DistSparseMatrix<SCALAR> AMat(workcomm);
-      symPACK::symPACKMatrix<SCALAR>*  symPACKMat = NULL;
+      //symPACK::symPACKMatrix<SCALAR>*  symPACKMat = NULL;
 #ifdef _MYCOMPLEX_
       if(isComplex){
         symPACK::DistSparseMatrix<Complex> HMat(workcomm);
@@ -377,61 +378,60 @@ int main(int argc, char **argv)
           cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;
       }
 
-      GetTime( timeTotalFactorizationSta );
-      GetTime( timeSta );
-      symPACKMat = new symPACK::symPACKMatrix<SCALAR>();
-      //      optionsFact.commEnv = new symPACK::CommEnvironment(workcomm);
-      symPACKMat->Init(optionsFact);
-      symPACKMat->SymbolicFactorization(AMat);
-      GetTime( timeEnd );
-      if( mpirank == 0 )
-        cout << "Time for symbolic factorization is " << timeEnd - timeSta << " sec" << endl; 
-      GetTime( timeSta );
-      symPACKMat->DistributeMatrix(AMat);
-      GetTime( timeEnd );
-      if( mpirank == 0 )
-        cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
-      GetTime( timeSta );
-      symPACKMat->Factorize();
-      GetTime( timeEnd );
-
-      if( mpirank == 0 )
-        cout << "Time for factorization is " << timeEnd - timeSta << " sec" << endl; 
-
-      GetTime( timeTotalFactorizationEnd );
-      if( mpirank == 0 )
-        cout << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
-
-//      symPACKMat->DumpMatlab();
-
-
-      GetTime( timeTotalSelInvSta );
+      PMatrix<SCALAR> * pMat = NULL; 
       GridType *gPtr = new GridType( workcomm, nprow, npcol );
       SuperNodeType *superPtr = new SuperNodeType();
+      {
+        GetTime( timeTotalFactorizationSta );
+        GetTime( timeSta );
+        std::unique_ptr<symPACK::symPACKMatrix<SCALAR> > symPACKMat(new symPACK::symPACKMatrix<SCALAR>());
 
-      FactorizationOptions factOpt;
-      factOpt.ColPerm = ColPerm;
-      factOpt.Symmetric = 1;
+        symPACKMat->Init(optionsFact);
+        symPACKMat->SymbolicFactorization(AMat);
+        GetTime( timeEnd );
+        if( mpirank == 0 )
+          cout << "Time for symbolic factorization is " << timeEnd - timeSta << " sec" << endl; 
+        GetTime( timeSta );
+        symPACKMat->DistributeMatrix(AMat);
+        GetTime( timeEnd );
+        if( mpirank == 0 )
+          cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
+        GetTime( timeSta );
+        symPACKMat->Factorize();
+        GetTime( timeEnd );
 
-      PSelInvOptions selInvOpt;
-      selInvOpt.maxPipelineDepth = -1;
+        if( mpirank == 0 )
+          cout << "Time for factorization is " << timeEnd - timeSta << " sec" << endl; 
 
-      GetTime( timeSta );
-      symPACKMatrixToSuperNode( *symPACKMat, *superPtr );
+        GetTime( timeTotalFactorizationEnd );
+        if( mpirank == 0 )
+          cout << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
 
-
-      PMatrix<SCALAR> * pMat = PMatrix<SCALAR>::Create(gPtr,superPtr, &selInvOpt, &factOpt);
-      symPACKMatrixToPMatrix( *symPACKMat, *pMat );
-      GetTime( timeEnd );
-      
-      MPI_Barrier(workcomm);
-
-      if( mpirank == 0 )
-        cout << "Time for converting symPACK matrix to PMatrix is " << timeEnd  - timeSta << endl;
-
-      delete symPACKMat;
+        //      symPACKMat->DumpMatlab();
 
 
+        GetTime( timeTotalSelInvSta );
+
+        FactorizationOptions factOpt;
+        factOpt.ColPerm = ColPerm;
+        factOpt.Symmetric = 1;
+
+        PSelInvOptions selInvOpt;
+        selInvOpt.maxPipelineDepth = -1;
+
+        GetTime( timeSta );
+        symPACKMatrixToSuperNode( *symPACKMat, *superPtr );
+
+
+        pMat = PMatrix<SCALAR>::Create(gPtr,superPtr, &selInvOpt, &factOpt);
+        symPACKMatrixToPMatrix( *symPACKMat, *pMat );
+        GetTime( timeEnd );
+
+        if( mpirank == 0 )
+          cout << "Time for converting symPACK matrix to PMatrix is " << timeEnd  - timeSta << endl;
+
+      }
+ 
       // Preparation for the selected inversion
       GetTime( timeSta );
       pMat->ConstructCommunicationPattern();
@@ -530,14 +530,13 @@ int main(int argc, char **argv)
       }
 
 
-
       delete pMat;
 
 
       delete superPtr;
       delete gPtr;
     }
-    delete symPACK::logfileptr;
+//    delete symPACK::logfileptr;
     statusOFS.close();
 
   }

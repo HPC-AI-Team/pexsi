@@ -301,7 +301,7 @@ graphene nanoflakes, J. Chem. Phys. 141, 214704, 2014
 @page pageChangeLog Change Log
 
 - v0.10.0 (2016) **Beta version**
-    - **v0.10.0 contains major updates with new functionalities for unsymmetric matrices, integration with SuperLU_DIST v5.1.0 and with SymPack for factorization. Use with care.**
+    - **v0.10.0 contains major updates with new functionalities for unsymmetric matrices, integration with SuperLU_DIST v5.1.0 and with symPACK v0.1.0 for factorization. Use with care.**
 
     - Combine LoadRealSymmetricMatrix / LoadRealUnsymmetricMatrix into
       one single function LoadRealMatrix. Similar change for
@@ -321,7 +321,7 @@ graphene nanoflakes, J. Chem. Phys. 141, 214704, 2014
       matrices. This feature will facilitates the future integration
       with the Electronic Structure Infrastructure (ELSI) project.
 
-    - Experimental feature: integration with SymPack for LDLT
+    - Experimental feature: integration with symPACK for LDLT
       factorization.
 
     - Bug fix: Initialization variable pstat in interface with

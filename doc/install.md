@@ -105,11 +105,41 @@ INSTALL.TXT for more information.
 
     2.9) MeTiS compatibility library
 
-(Optional) Build SymPack
+(Optional) Build symPACK
 --------------------------
 
-**Mathias: please add instructions to build SymPack with PEXSI. You
-might also need to add something for the next page**
+
+symPACK is a sparse symmetric matrix direct linear solver which can
+be optionally used with PEXSI. 
+
+To use it, first, download symPACK as follows:
+
+git clone http://.........................................   /path/to/sympack
+
+Several environment variables can be optionnaly set before configuring the build:
+- METIS_DIR = Installation directory for METIS
+- PARMETIS_DIR = Installation directory for PARMETIS
+- SCOTCH_DIR = Installation directory for SCOTCH and PT-SCOTCH
+
+Then, create a build directory, enter that directory and type:
+
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/path/to/install/sympack ...OPTIONS... /path/to/sympack
+
+The ...OPTIONS... can be one of the following:
+-DENABLE_METIS=ON|OFF   to make METIS ordering available in symPACK (METIS_DIR must be set in the environment)
+-DENABLE_PARMETIS=ON|OFF   to make PARMETIS ordering available in symPACK (PARMETIS_DIR must be set in the environment, METIS_DIR is required as well)
+-DENABLE_SCOTCH=ON|OFF   to make SCOTCH / PT-SCOTCH orderings available in symPACK (SCOTCH_DIR must be set in the environment)
+
+Some platforms have preconfigured build files which can be used by adding the following option to the `cmake` command:
+-DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/config/edison.cmake     (To build on NERSC Edison for instance)
+
+
+The previous command will configure the build process, which can now start by typing:
+make
+make install
+
+( Additionally, a standalone driver for symPACK can be built by typing `make examples` )
+
 
 <!-- ************************************************************ -->
 @page pageBuild Build %PEXSI
@@ -142,6 +172,12 @@ Edit the compiler options, for instance
     FC           = ftn
     LOADER       = CC
 
+
+The `USE_SYMPACK` option can be set to use the symPACK solver in
+PEXSI. It is set to 0 by default. When set to 1, the `SYMPACK_DIR` variable
+must be pointing to symPACK's installation directory.
+
+
 @note 
 
 - Starting from %PEXSI v0.8.0, `-std=c++11` is required in
@@ -159,8 +195,9 @@ compiling flag `-DRELEASE`.  The `debug` mode introduces tracing of call
 stacks at all levels of functions, and may significantly slow down the
 code.  For production runs, use `release` mode.
 
-- The `USE_PROFILE` options is for internal test purpose. Usually
+- The `USE_PROFILE` option is for internal test purpose. Usually
 set this to 0.
+
 
 Build the %PEXSI library
 ------------------------

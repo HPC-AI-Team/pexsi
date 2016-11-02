@@ -3,6 +3,7 @@ COMPILE_MODE     = release
 USE_PROFILE      = 0
 PAR_ND_LIBRARY   = ptscotch
 SEQ_ND_LIBRARY   = scotch
+USE_SYMPACK      = 0
 
 # Different compiling and linking options.
 # Edison is a CRAY XC30 machine
@@ -83,11 +84,21 @@ ifeq (${USE_PROFILE}, 1)
 endif
 
 LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${MKL_LIB}
-
-
 COMPILE_DEF  += -DAdd_
-
 CPPFLAG = -std=c++11
+
+ifeq (${USE_SYMPACK}, 1)
+  #symPACK related definitions
+  SYMPACK_DIR = ${HOME}/sympack_install
+  include ${SYMPACK_DIR}/include/sympack.mak
+  INCLUDES += ${SYMPACK_INCLUDE} 
+  LIBS+= ${SYMPACK_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
+  COMPILE_DEF  += -DWITH_SYMPACK
+  CPPFLAG += -std=c++11
+endif
+
+
+
 
 CFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES} -std=c99
 FFLAGS       = ${COMPILE_FLAG} ${PROFILE_FLAG} ${INCLUDES}

@@ -14,9 +14,11 @@ all: driver_pselinv_real driver_pselinv_real_unsym \
 	driver_ksdft driver_ksdft_2 driver_fermi_complex
 
 
+ifeq (${USE_SYMPACK}, 1)
 run_pselinv_sympack: run_pselinv_sympack.o ${PEXSI_LIB} ../include/pexsi/sympack_interf_impl.hpp 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv_sympack.o  $(LOADOPTS) )
 
+endif
 
 # Below are interfaces open to all users
 driver_ksdft_2: driver_ksdft_2.o ${PEXSI_LIB}
