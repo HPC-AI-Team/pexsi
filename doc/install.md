@@ -108,9 +108,10 @@ INSTALL.TXT for more information.
 (Optional) Build symPACK
 --------------------------
 **symPACK** is a sparse symmetric matrix direct linear solver 
-which can be optionally used with **PEXSI**. 
+which can be optionally used with %PEXSI. 
+More information can be found at [http://www.sympack.org/](http://www.sympack.org/).
 
-To use it, first, download **symPACK** as follows:
+To use **symPACK**, first, download the package as follows:
 
 
 ```
@@ -203,7 +204,7 @@ Edit the compiler options, for instance
 
 
 The `USE_SYMPACK` option can be set to use the symPACK solver in
-PEXSI. It is set to 0 by default. When set to 1, the `SYMPACK_DIR` variable
+%PEXSI. It is set to 0 by default. When set to 1, the `SYMPACK_DIR` variable
 must be pointing to symPACK's installation directory.
 
 
