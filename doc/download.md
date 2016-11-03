@@ -5,7 +5,7 @@ Download       {#pageDownload}
 
 **Beta version (v0.10.0)**:
 
-- Code: <a href="https://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v0.9.2.tar.gz">pexsi_v0.9.2.tar.gz</a>
+- Code: <a href="https://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v0.10.0.tar.gz">pexsi_v0.10.0.tar.gz</a>
 
 - Read @ref pageImportantChange for the important interface changes in
   v0.10.0

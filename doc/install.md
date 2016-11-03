@@ -51,12 +51,12 @@ fine.
 Build SuperLU_DIST
 ------------------
 
-**SuperLU_DIST v5.1.0 starting from %PEXSI v0.10.0**
+**SuperLU_DIST v5.1.2 starting from %PEXSI v0.10.0**
 
 
-Download SuperLU_DIST (latest version 5.1.0) from
+Download SuperLU_DIST (latest version 5.1.2) from
 
-http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_5.1.0.tar.gz
+http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_5.1.2.tar.gz
 
 Follow the installation step to install SuperLU_DIST.
 
@@ -64,12 +64,12 @@ Follow the installation step to install SuperLU_DIST.
 to build SuperLU_DIST with -O2 option than the more aggresive
 optimization options provided by vendors.
 
-@attention In SuperLU_DIST v5.1.0, some functions conflict when both real
+@attention In SuperLU_DIST v5.1.2, some functions conflict when both real
 and complex arithmetic factorization is needed. This can be temporarily
 solved by adding  `-Wl,--allow-multiple-definition` in the linking
 option.
 
-@attention In SuperLU_DIST v5.1.0, there could be some excessive outputs.
+@attention In SuperLU_DIST v5.1.2, there could be some excessive outputs.
 This can be removed by going to the SRC/ directory of superlu, and
 comment out the line starting with `printf(".. dQuery_Space` in
 dmemory_dist.c. Do the same thing for the line starting with
