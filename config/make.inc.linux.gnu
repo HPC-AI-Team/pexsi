@@ -34,8 +34,8 @@ PEXSI_DIR     = $(HOME)/Projects/pexsi
 PEXSI_BUILD_DIR = $(PEXSI_DIR)/build
 
 # Required libraries directories
-DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_5.1.0
-METIS_DIR     = $(HOME)/Software/metis-5.1.0/build_release
+DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_5.1.2
+METIS_DIR     = $(HOME)/Software/metis-5.1.2/build_release
 PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.3/build_release
 PTSCOTCH_DIR  = $(HOME)/Software/scotch_6.0.0/build_release
 LAPACK_DIR    = $(HOME)/Software/lapack-3.5.0
@@ -52,7 +52,7 @@ GFORTRAN_LIB     = /usr/lib/gcc/x86_64-linux-gnu/4.8/libgfortran.a
 LAPACK_LIB       = ${LAPACK_DIR}/liblapack.a
 BLAS_LIB         = ${BLAS_DIR}/lib/libopenblas.a
 
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_5.1.0.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_5.1.2.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
 # Graph partitioning libraries

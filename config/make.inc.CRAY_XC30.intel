@@ -34,7 +34,7 @@ PEXSI_DIR     = /global/homes/l/linlin/project/pexsi_edison
 PEXSI_BUILD_DIR = $(PEXSI_DIR)/build
 
 # Required libraries directories
-DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_5.1.0_edison
+DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_5.1.2_edison
 PARMETIS_DIR  = /project/projectdirs/m1027/PEXSI/libpexsi_edison
 PTSCOTCH_DIR  = /project/projectdirs/m1027/PEXSI/libpexsi_edison
 
@@ -45,7 +45,7 @@ DSUPERLU_INCLUDE = -I${DSUPERLU_DIR}/SRC
 INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} 
 
 # Libraries
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_5.1.0.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_5.1.2.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 #MKL_LIB          = -Wl,--start-group  ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a -Wl,--end-group -lpthread -lm
 #MKL_LIB          = -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_intel_sequential.a -Wl,--end-group -lpthread -lm
