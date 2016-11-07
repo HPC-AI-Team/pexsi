@@ -300,8 +300,8 @@ graphene nanoflakes, J. Chem. Phys. 141, 214704, 2014
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
-- v0.10.0 (2016) **Beta version**
-    - **v0.10.0 contains major updates with new functionalities for unsymmetric matrices, integration with SuperLU_DIST v5.1.0 and with symPACK v0.1.0 for factorization. Use with care.**
+- v0.10.0 (11/6/2016) **Beta version**
+    - **v0.10.0 contains major updates with new functionalities for unsymmetric matrices, integration with SuperLU_DIST v5.1.2 and with symPACK v0.1.0 for factorization. Use with care.**
 
     - Combine LoadRealSymmetricMatrix / LoadRealUnsymmetricMatrix into
       one single function LoadRealMatrix. Similar change for
@@ -310,10 +310,12 @@ graphene nanoflakes, J. Chem. Phys. 141, 214704, 2014
 
     - Updated makefile (contributed by Patrick Seewald)
 
-    - Compatible with SuperLU_DIST_v5.1.0
+    - Compatible with SuperLU_DIST_v5.1.2
 
     - Replace the debugging with PushCallStack / PopCallStack debugging by
       Google's coredumper.
+
+    - A number of new example driver rouintes in examples/ and fortran/ 
 
     - Experimental feature: Add CalculateFermiOperatorComplex function.
       The implementation corresponds to CalculateFermiOperatorReal, but
