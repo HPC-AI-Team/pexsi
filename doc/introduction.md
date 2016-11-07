@@ -459,3 +459,6 @@ graphene nanoflakes, J. Chem. Phys. 141, 214704, 2014
   - For more info see f_interface.f90
 
 - Several more "expert user" interface routines added. See c_pexsi_interface.h for more details.
+
+- NOTE: PEXSI v0.10.0 only supports SuperLU_DIST v5.1.2 or higher version. 
+

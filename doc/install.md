@@ -114,12 +114,8 @@ More information can be found at [http://www.sympack.org/](http://www.sympack.or
 To use **symPACK**, first, download the package as follows:
 
 
-```
-#!
+    git clone git@bitbucket.org:berkeleylab/sympack.git  /path/to/sympack
 
-git clone git@bitbucket.org:berkeleylab/sympack.git  /path/to/sympack
-
-```
 
 Several environment variables can be optionally set before configuring the build:
 
@@ -131,13 +127,10 @@ Several environment variables can be optionally set before configuring the build
 
 Then, create a build directory, enter that directory and type:
 
-```
-#!
 
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/path/to/install/sympack
- ...OPTIONS... /path/to/sympack
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/path/to/install/sympack
+    ...OPTIONS... /path/to/sympack
 
-```
 
 The `...OPTIONS...` can be one of the following:
 
@@ -150,22 +143,18 @@ The `...OPTIONS...` can be one of the following:
 
 
 Some platforms have preconfigured toolchain files which can be used by adding the following option to the `cmake` command:
-```
-#!
 
--DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/toolchains/edison.cmake     
-(To build on NERSC Edison for instance)
+    -DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/toolchains/edison.cmake     
+    (To build on NERSC Edison for instance)
 
-```
 
 A sample toolchain file can be found in `/path/to/sympack/toolchains/build_config.cmake` and customized for the target platform.
 
 
 The `cmake` command will configure the build process, which can now start by typing:
-```
-make
-make install
-```
+
+    make
+    make install
 
 Additionally, a standalone driver for **symPACK** can be built by typing `make examples`
 
