@@ -276,7 +276,7 @@ PPEXSIData::LoadRealMatrix	(
             SRealMat_.comm = HRealMat_.comm; 
           }
           else{
-            CopyPattern( PatternMat_, SRealMat_ );
+            CopyPattern( HRealMat_, SRealMat_ );
             SRealMat_.comm = HRealMat_.comm; 
             SRealMat_.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
             serialize( SRealMat_.nzvalLocal, sstm, NO_MASK );
