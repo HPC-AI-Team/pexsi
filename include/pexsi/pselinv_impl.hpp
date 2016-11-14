@@ -1232,6 +1232,7 @@ namespace PEXSI{
       Int numSuper = this->NumSuper();
 
 
+
       if (options_->maxPipelineDepth!=1){
 
         Int maxDepth = options_->maxPipelineDepth;
@@ -1270,6 +1271,7 @@ namespace PEXSI{
         //Allocate memory
         WSet.resize(numLevel,std::vector<Int>());
         for(Int i=0; i<numLevel; i++ ){
+          WSet[i].clear();
           WSet[i].reserve(levelSize(i));
         }
 
@@ -1357,51 +1359,6 @@ namespace PEXSI{
               assert((orank+WSet[lidx].size()-1)%limIndex_==0);
             }
 #endif
-
-
-
-
-            //statusOFS<<"-----------------------"<<std::endl;
-            //for(auto it = WSet[lidx].begin();it !=WSet[lidx].end(); it++){statusOFS<<*it<<" ";}statusOFS<<std::endl;
-            //for(auto it = WSet[lidx+1].begin();it !=WSet[lidx+1].end(); it++){statusOFS<<*it<<" ";}statusOFS<<std::endl;
-            //statusOFS<<"-----------------------"<<std::endl;
-
-            ////            std::vector<std::vector<Int> >::iterator pos2 = workingRanks_.begin()+lidx+1;               
-            ////            workingRanks_.insert(pos2,std::vector<Int>());
-            ////            workingRanks_[lidx+1].insert(workingRanks_[lidx+1].begin(),workingRanks_[lidx].begin() + splitPoint+1 ,workingRanks_[lidx].end());
-            ////
-            ////            workingRanks_[lidx].erase(workingRanks_[lidx].begin()+splitPoint+1,workingRanks_[lidx].end());
-            ////
-            ////
-            ////statusOFS<<"-----------------------"<<std::endl;
-            ////statusOFS<<"            is NOW         "<<std::endl;
-            ////statusOFS<<workingRanks_[lidx].front()<<" -- "<<workingRanks_[lidx].back()<<std::endl;
-            ////statusOFS<<workingRanks_[lidx+1].front()<<" -- "<<workingRanks_[lidx+1].back()<<std::endl;
-            ////statusOFS<<"-----------------------"<<std::endl;
-
-            //         //THERE IS A SPECIAL CASE: list longer than limit AND splitidx in between: we have to check if we don't have to do multiple splits 
-            //            if(splitPoint<splitIdx){
-            //              Int newSplitIdx = splitIdx - splitPoint;
-            //
-            //              pos = WSet.begin()+lidx+2;               
-            //              WSet.insert(pos,std::vector<Int>());
-            //              WSet[lidx+2].insert(WSet[lidx+2].begin(),WSet[lidx+1].begin() + newSplitIdx+1 ,WSet[lidx+1].end());
-            //              WSet[lidx+1].erase(WSet[lidx+1].begin()+newSplitIdx+1,WSet[lidx+1].end());
-            //
-            //              pos2 = workingRanks_.begin()+lidx+2;               
-            //              workingRanks_.insert(pos2,std::vector<Int>());
-            //              workingRanks_[lidx+2].insert(workingRanks_[lidx+2].begin(),workingRanks_[lidx+1].begin() + newSplitIdx+1 ,workingRanks_[lidx+1].end());
-            //
-            //statusOFS<<"SECOND SPLITPOINT IS "<<newSplitIdx<<std::endl;
-            //statusOFS<<"-----------------------"<<std::endl;
-            //statusOFS<<workingRanks_[lidx+1].front()<<" -- "<<workingRanks_[lidx+1].back()<<std::endl;
-            //              workingRanks_[lidx+1].erase(workingRanks_[lidx+1].begin()+newSplitIdx+1,workingRanks_[lidx+1].end());
-            //statusOFS<<"            is NOW         "<<std::endl;
-            //statusOFS<<workingRanks_[lidx+1].front()<<" -- "<<workingRanks_[lidx+1].back()<<std::endl;
-            //statusOFS<<workingRanks_[lidx+2].front()<<" -- "<<workingRanks_[lidx+2].back()<<std::endl;
-            //statusOFS<<"-----------------------"<<std::endl;
-            //            }
-
           }
 
 
@@ -1851,7 +1808,6 @@ namespace PEXSI{
         //find local things to do
         for(Int supidx = 0;supidx<stepSuper;supidx++){
           SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
 
           if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
             gemmToDo++;

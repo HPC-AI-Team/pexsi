@@ -544,7 +544,7 @@ int main(int argc, char **argv)
       factOpt.ColPerm = ColPerm;
       factOpt.RowPerm = RowPerm;
       factOpt.Symmetric = isSym;
-      factOpt.Transpose = transpose;
+//      factOpt.Transpose = transpose;
 
 
       //Initialize SuperLU data structures
@@ -742,7 +742,7 @@ int main(int argc, char **argv)
 
 
             DistSparseMatrix<MYSCALAR> * Aptr;
-            if(factOpt.Symmetric==0 && factOpt.Transpose==0){
+            if(factOpt.Symmetric==0 && 0){//&& factOpt.Transpose==0){
               Aptr = new DistSparseMatrix<MYSCALAR>();
               //compute the transpose
               CSCToCSR(AMat,*Aptr);
@@ -759,7 +759,7 @@ int main(int argc, char **argv)
             traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
                 Aptr->nzvalLocal.Data(), 1 );
 
-            if(factOpt.Symmetric==0 && factOpt.Transpose==0){
+            if(factOpt.Symmetric==0 && 0){//factOpt.Transpose==0){
               delete Aptr;
             }
 

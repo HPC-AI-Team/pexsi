@@ -62,11 +62,29 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include	"pexsi/lapack.hpp"
 #include	"pexsi/pselinv.hpp"
 
+#include	"pexsi/TreeBcast_v2.hpp"
+#include	"pexsi/TreeReduce_v2.hpp"
+
+#include <memory>
 #include <set>
 
 
 
 namespace PEXSI{
+
+/// @brief MYCDROW returns cross diagonal processor row
+inline Int MYCDROW( const GridType* g )
+{ return MYCOL(g) % g->numProcRow; }
+
+/// @brief MYCDCOL returns cross diagonal processor column
+inline Int MYCDCOL( const GridType* g )
+{ return MYROW(g) % g->numProcCol; }
+
+/// @brief MYCDPROC returns the cross diagonal processor rank.
+inline Int MYCDPROC( const GridType* g )
+{ return PNUM(MYCDROW(g),MYCDCOL(g),g); }
+
+
 
 
 struct CDBuffers;
@@ -153,10 +171,28 @@ template<typename T>
 /// cross-diagonal blocks, i.e. from L(isup, ksup) to U(ksup, isup).
 /// This assumption can be relaxed later.
 
+
 template<typename T>
   class PMatrixUnsym: public PMatrix<T>{
 
   protected:
+
+  std::vector<std::unique_ptr<TreeBcast_v2<T> > > bcastLDataTree_; 
+  std::vector<std::unique_ptr<TreeBcast_v2<T> > > bcastLStructTree_; 
+
+  std::vector<std::unique_ptr<TreeBcast_v2<T> > > bcastUDataTree_; 
+  std::vector<std::unique_ptr<TreeBcast_v2<T> > > bcastUStructTree_; 
+
+  std::vector<std::unique_ptr<TreeReduce_v2<T> > > redLTree2_; 
+  std::vector<std::unique_ptr<TreeReduce_v2<T> > > redUTree2_; 
+  std::vector<std::unique_ptr<TreeReduce_v2<T> > > redDTree2_; 
+
+  std::vector<TreeReduce<T> *> redLTree_; 
+  std::vector<TreeReduce<T> *> redDTree_; 
+  std::vector<TreeReduce<T> *> redUTree_; 
+
+
+
     // *********************************************************************
     // Variables
     // *********************************************************************
@@ -193,12 +229,12 @@ template<typename T>
     };
 
 
-
-
     struct SuperNodeBufferTypeUnsym:public PMatrix<T>::SuperNodeBufferType {
       NumMat<T>    UUpdateBuf;
       std::vector<Int>  ColLocalPtr;
       std::vector<Int>  BlockIdxLocalU;
+
+      //TODO this will become unecessary
       std::vector<char> SstrLrowSend;
       std::vector<char> SstrUcolSend;
       std::vector<char> SstrLrowRecv;
@@ -207,10 +243,25 @@ template<typename T>
       Int               SizeSstrUcolSend;
       Int               SizeSstrLrowRecv;
       Int               SizeSstrUcolRecv;
+
+
+      Int isReadyL;
+      Int isReadyU;
+      bool updatesL;
+      bool updatesU;
+
+      SuperNodeBufferTypeUnsym():PMatrix<T>::SuperNodeBufferType(){
+       isReadyL = 0;
+       isReadyU = 0;
+       updatesL = false;
+       updatesU = false;
+      }
+
     };
 
     /// @brief SelInvIntra_P2p
     inline void SelInvIntra_P2p(Int lidx);
+    inline void SelInvIntra_New(Int lidx);
 
     /// @brief SelInv_lookup_indexes
     inline void SelInv_lookup_indexes(SuperNodeBufferTypeUnsym & snode,
@@ -292,6 +343,7 @@ template<typename T>
     /// pattern to be used later in the selected inversion stage.
     /// The supernodal elimination tree is used to add an additional level of parallelism between supernodes.
     void ConstructCommunicationPattern_P2p( );
+    void ConstructCommunicationPattern_New( );
 
 
     /// @brief PreSelInv prepares the structure in L_ and U_ so that
@@ -323,6 +375,7 @@ template<typename T>
     /// PreSelInv assumes that
     /// PEXSI::PMatrix::ConstructCommunicationPattern has been executed.
     virtual void PreSelInv( );
+    virtual void PreSelInv_New( );
 
     /// @brief SelInv is the main function for the selected inversion.
     ///

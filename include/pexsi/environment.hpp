@@ -213,7 +213,7 @@ namespace PEXSI{
 
   inline void gdb_lock(){
     static volatile int count=0;
-    static volatile int enabled=0;
+    static volatile int enabled=1;
     count++;
       pid_t pid = getpid();
 //      std::cout<<pid<<" is locked "<<count<<std::endl;
