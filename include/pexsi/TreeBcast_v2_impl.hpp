@@ -127,7 +127,7 @@ namespace PEXSI{
     }
   template< typename T> 
     inline Int TreeBcast_v2<T>::GetNumMsgToSend(){
-      return GetDestCount();
+      return this->GetDestCount();
     }
 
   template< typename T> 
@@ -204,48 +204,48 @@ namespace PEXSI{
     }
   template< typename T> 
     inline Int TreeBcast_v2<T>::GetDestCount(){
-      return myDests_.size();
+      return this->myDests_.size();
     }
   template< typename T> 
     inline Int TreeBcast_v2<T>::GetRoot(){
-      return myRoot_;
+      return this->myRoot_;
     }
 
   template< typename T> 
     inline bool TreeBcast_v2<T>::IsRoot(){
-      return myRoot_==myRank_;
+      return this->myRoot_==this->myRank_;
     }
 
   template< typename T> 
     inline Int TreeBcast_v2<T>::GetMsgSize(){
-      return msgSize_;
+      return this->msgSize_;
     }
 
   template< typename T> 
     inline void TreeBcast_v2<T>::forwardMessage( ){
-      if(isReady_){
+      if(this->isReady_){
 #if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
-        statusOFS<<myRank_<<" FORWARDING on tag "<<tag_<<std::endl;
+        statusOFS<<this->myRank_<<" FORWARDING on tag "<<this->tag_<<std::endl;
 #endif
-        if(sendRequests_.size()!=GetDestCount()){
-          sendRequests_.assign(GetDestCount(),MPI_REQUEST_NULL);
+        if(this->sendRequests_.size()!=this->GetDestCount()){
+          this->sendRequests_.assign(this->GetDestCount(),MPI_REQUEST_NULL);
         }
 
-        for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
-          Int iProc = myDests_[idxRecv];
+        for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
+          Int iProc = this->myDests_[idxRecv];
           // Use Isend to send to multiple targets
           MPI_Isend( this->recvDataPtrs_[0], this->msgSize_, this->type_, 
-              iProc, tag_,comm_, &sendRequests_[idxRecv] );
+              iProc, this->tag_,this->comm_, &this->sendRequests_[idxRecv] );
 
 #if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
-          statusOFS<<myRank_<<" FWD to "<<iProc<<" on tag "<<tag_<<std::endl;
+          statusOFS<<this->myRank_<<" FWD to "<<iProc<<" on tag "<<this->tag_<<std::endl;
 #endif
 #ifdef COMM_PROFILE_BCAST
-          PROFILE_COMM(myGRank_,commGlobRanks[comm_][iProc],tag_,msgSize_);
+          PROFILE_COMM(this->myGRank_,commGlobRanks[this->comm_][iProc],this->tag_,this->msgSize_);
 #endif
           this->sendPostedCount_++;
         } // for (iProc)
-        fwded_ = true;
+        this->fwded_ = true;
       }
     }
 
@@ -277,7 +277,7 @@ namespace PEXSI{
 
         //If data hasn't been forwarded yet, 
         //it is safe to clear recvTempBuffer_ now
-        if(!fwded_){
+        if(!this->fwded_){
           this->recvTempBuffer_.clear(); 
         }
       }
@@ -290,7 +290,7 @@ namespace PEXSI{
     inline bool TreeBcast_v2<T>::isMessageForwarded(){
       bool retVal=false;
 
-      if(!fwded_){
+      if(!this->fwded_){
         //If data has been received but not forwarded 
         if(IsDataReceived()){
           forwardMessage();
@@ -299,14 +299,14 @@ namespace PEXSI{
       }
       else{
         //If data has been forwared, check for completion of send requests
-        int destCount = myDests_.size();
+        int destCount = this->myDests_.size();
         int completed = 0;
         if(destCount>0){
           //test the send requests
           int flag = 0;
 
-          this->sendDoneIdx_.resize(GetDestCount());
-          MPI_Testsome(destCount,sendRequests_.data(),&completed,sendDoneIdx_.data(),MPI_STATUSES_IGNORE);
+          this->sendDoneIdx_.resize(this->GetDestCount());
+          MPI_Testsome(destCount,this->sendRequests_.data(),&completed,this->sendDoneIdx_.data(),MPI_STATUSES_IGNORE);
         }
         this->sendCount_ += completed;
         retVal = this->sendCount_ == this->sendPostedCount_;
@@ -321,7 +321,7 @@ namespace PEXSI{
   template< typename T> 
     inline bool TreeBcast_v2<T>::Progress(){
 
-      bool retVal = done_;
+      bool retVal = this->done_;
 
       if(!retVal){
         retVal = isMessageForwarded();
@@ -329,23 +329,23 @@ namespace PEXSI{
         if(retVal){
           //if the local buffer has been set by the user, but the temporary 
           //buffer was already in use, we can clear it now
-          if(recvTempBuffer_.size()>0){ 
-            if(this->recvDataPtrs_[0]!=(T*)recvTempBuffer_.data()){
-              recvTempBuffer_.clear();
+          if(this->recvTempBuffer_.size()>0){ 
+            if(this->recvDataPtrs_[0]!=(T*)this->recvTempBuffer_.data()){
+              this->recvTempBuffer_.clear();
             }
           }
 
           //free the unnecessary arrays
-          sendRequests_.clear();
+          this->sendRequests_.clear();
 #if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
-          statusOFS<<myRank_<<" EVERYTHING COMPLETED on tag "<<tag_<<std::endl;
+          statusOFS<<this->myRank_<<" EVERYTHING COMPLETED on tag "<<this->tag_<<std::endl;
 #endif
         }
 
 
       }
 
-      done_ = retVal;
+      this->done_ = retVal;
       return retVal;
 
     }
@@ -353,7 +353,7 @@ namespace PEXSI{
   //blocking wait
   template< typename T> 
     inline void TreeBcast_v2<T>::Wait(){
-      if(!done_){
+      if(!this->done_){
         while(!Progress());
       }
     }
@@ -367,13 +367,13 @@ namespace PEXSI{
     inline void TreeBcast_v2<T>::postRecv()
     {
 #if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
-      statusOFS<<myRank_<<" POSTING RECV on tag "<<tag_<<std::endl;
+      statusOFS<<this->myRank_<<" POSTING RECV on tag "<<this->tag_<<std::endl;
 #endif
-      if(this->recvCount_<1 && this->recvRequests_[0]==MPI_REQUEST_NULL && myRank_!=myRoot_){
+      if(this->recvCount_<1 && this->recvRequests_[0]==MPI_REQUEST_NULL && !this->IsRoot() ){
 
         if(this->recvDataPtrs_[0]==NULL){
-          recvTempBuffer_.resize(msgSize_);
-          this->recvDataPtrs_[0] = (T*)recvTempBuffer_.data();
+          this->recvTempBuffer_.resize(this->msgSize_);
+          this->recvDataPtrs_[0] = (T*)this->recvTempBuffer_.data();
         }
         MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_, 
             this->myRoot_, this->tag_,this->comm_, &this->recvRequests_[0] );
@@ -385,7 +385,7 @@ namespace PEXSI{
 
   template< typename T> 
     inline void TreeBcast_v2<T>::copyLocalBuffer(T* destBuffer){
-      std::copy((T*)this->recvDataPtrs_[0],(T*)this->recvDataPtrs_[0]+msgSize_,destBuffer);
+      std::copy((T*)this->recvDataPtrs_[0],(T*)this->recvDataPtrs_[0]+this->msgSize_,destBuffer);
     }
 
 
@@ -427,7 +427,7 @@ namespace PEXSI{
       Int idxStart = 0;
       Int idxEnd = rank_cnt;
       this->myRoot_ = ranks[0];
-      if(this->myRank_==this->myRoot_){
+      if(this->IsRoot() ){
         this->myDests_.insert(this->myDests_.end(),&ranks[1],&ranks[0]+rank_cnt);
       }
 #if (defined(BCAST_VERBOSE)) 
@@ -441,7 +441,7 @@ namespace PEXSI{
 
 
   template< typename T>
-    FTreeBcast2<T>::FTreeBcast2<T>(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeBcast_v2<T>(pComm,ranks,rank_cnt,msgSize){
+    FTreeBcast2<T>::FTreeBcast2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeBcast_v2<T>(pComm,ranks,rank_cnt,msgSize){
       //build the binary tree;
       buildTree(ranks,rank_cnt);
     }
@@ -531,7 +531,7 @@ namespace PEXSI{
       }
 
 #if (defined(BCAST_VERBOSE))
-      statusOFS<<"My root is "<<myRoot_<<std::endl;
+      statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
       statusOFS<<std::endl;
@@ -545,8 +545,8 @@ namespace PEXSI{
   template< typename T>
     ModBTreeBcast2<T>::ModBTreeBcast2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed):TreeBcast_v2<T>(pComm,ranks,rank_cnt,msgSize){
       //build the binary tree;
-      MPI_Comm_rank(comm_,&myRank_);
-      rseed_ = rseed;
+      MPI_Comm_rank(this->comm_,&this->myRank_);
+      this->rseed_ = rseed;
       buildTree(ranks,rank_cnt);
     }
 
@@ -564,7 +564,7 @@ namespace PEXSI{
 
       //sort the ranks with the modulo like operation
       if(rank_cnt>1){
-        Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        Int new_idx = (Int)this->rseed_ % (rank_cnt - 1) + 1; 
         Int * new_start = &ranks[new_idx];
         std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
       }
@@ -623,7 +623,7 @@ namespace PEXSI{
       }
 
 #if (defined(REDUCE_VERBOSE))
-      statusOFS<<"My root is "<<myRoot_<<std::endl;
+      statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
       statusOFS<<std::endl;
@@ -633,13 +633,19 @@ namespace PEXSI{
 
 
   template< typename T>
-    TreeBcast_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+   void TreeBcast_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
       doneIdx.clear();
       auto all_done = [](const std::vector<bool> & boolvec){
         return std::all_of(boolvec.begin(), boolvec.end(), [](bool v) { return v; });
       };
 
       while(doneIdx.empty() && !all_done(finishedFlags) ){
+
+        //for(auto it = finishedFlags.begin();it!=finishedFlags.end();it++){
+        //  statusOFS<<(*it?"1":"0")<<" ";
+        //}
+        //statusOFS<<std::endl;
+
         for(int i = 0; i<treeIdx.size(); i++){
           Int idx = treeIdx[i];
           auto & curTree = arrTrees[idx];
@@ -660,7 +666,7 @@ namespace PEXSI{
     }
 
   template< typename T>
-    TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+  void TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
       doneIdx.clear();
       for(int i = 0; i<treeIdx.size(); i++){
         Int idx = treeIdx[i];

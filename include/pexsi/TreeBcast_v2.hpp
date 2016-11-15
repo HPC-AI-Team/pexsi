@@ -108,13 +108,13 @@ namespace PEXSI{
         void Wait();
 
 
+        virtual void cleanupBuffers();
 
       protected:
         virtual void postRecv();
         virtual void forwardMessage();
         virtual void copyLocalBuffer(T* destBuffer);
         virtual bool isMessageForwarded();
-        virtual void cleanupBuffers();
         virtual bool IsDataReceived();
     };
 
@@ -123,6 +123,8 @@ namespace PEXSI{
     class FTreeBcast2: public TreeBcast_v2<T>{
       protected:
         virtual void buildTree(Int * ranks, Int rank_cnt);
+
+      public:
         FTreeBcast2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize);
         virtual FTreeBcast2<T> * clone() const;
     };
@@ -150,10 +152,10 @@ namespace PEXSI{
 
 
   template< typename T>
-  TreeBcast_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
+  void TreeBcast_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
 
   template< typename T>
-  TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
+  void TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
 
 }//namespace PEXSI
 

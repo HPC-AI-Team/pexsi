@@ -43,6 +43,9 @@ such enhancements or derivative works thereof, in binary and source code form.
 /// @file unit_tests.cpp
 /// @brief Test for the interface of SuperLU_DIST and SelInv.
 /// @date 2013-04-15
+
+#define FTREE_LIMIT 1
+
 #include  "ppexsi.hpp"
 #include "pexsi/timer.h"
 
@@ -54,81 +57,138 @@ such enhancements or derivative works thereof, in binary and source code form.
 #define MYSCALAR Real
 #endif
 
+#include <random>
 
 using namespace PEXSI;
 using namespace std;
 
 
 
-void check_broadcasts(MPI_Comm world_comm,
+bool check_broadcasts(MPI_Comm world_comm,
+      const std::vector<std::vector<Int > > & arrRanks, 
       const std::vector<std::unique_ptr<TreeBcast_v2<MYSCALAR> > > & bcastTrees, 
-            const NumMat<MYSCALAR> & sbuf, const NumMat<MYSCALAR> &rbuf){
+            const std::vector<NumMat<MYSCALAR> > & sbufs, const std::vector<NumMat<MYSCALAR> > &rbufs){
   //validate the output
   int mpisize = 0;
   int mpirank = 0;
       MPI_Comm_rank(world_comm, &mpirank );
       MPI_Comm_size(world_comm, &mpisize );
 
-  NumMat<MYSCALAR> checkBuf(sbuf.m(),sbuf.n());
-  SetValue(checkBuf,MYSCALAR(0.0));
 
+  bool all_valid = true;
+
+  NumMat<MYSCALAR> checkBuf;
   for(Int t = 0; t<bcastTrees.size(); t++){
-    Int root = t%2;
-    if(t == bcastTrees.size()-1){
-      root = 0;
+
+    auto & ranks = arrRanks[t];
+    auto & sbuf = sbufs[t];
+    auto & rbuf = rbufs[t];
+
+    Int root = ranks[0];
+
+
+    if(mpirank==root){
+      checkBuf.Resize(sbuf.m(),sbuf.n());
+      SetValue(checkBuf,MYSCALAR(0.0));
+    }
+    else{
+      checkBuf.Resize(rbuf.m(),rbuf.n());
+      SetValue(checkBuf,MYSCALAR(0.0));
     }
 
-    MPI_Bcast(mpirank==root?sbuf.Data():checkBuf.Data(),sbuf.ByteSize(),MPI_BYTE,root,world_comm);
 
+    for(auto p : ranks){
+      if(mpirank==root){
+        if(mpirank!=p){
+          MPI_Send(sbuf.Data(),sbuf.ByteSize(),MPI_BYTE,p,t,world_comm);
+        }
+      }
+      else if(mpirank == p){
+        MPI_Recv(checkBuf.Data(),checkBuf.ByteSize(),MPI_BYTE,root,t,world_comm,MPI_STATUS_IGNORE);
+      }
+    }
+
+    MPI_Barrier(world_comm);
+
+    bool valid = true;
     auto & bcastTree =  bcastTrees[t];
     if(bcastTree!=nullptr){
       if(!bcastTree->IsRoot()){
         for(Int i = 0; i<checkBuf.m(); i++){
           for(Int j = 0; j<checkBuf.n(); j++){
-            assert(checkBuf(i,j)==rbuf(i,j));
+            valid = valid && checkBuf(i,j)==rbuf(i,j);
           }
+        }
+        if(mpirank!=0){
+          MPI_Send(&valid,sizeof(valid),MPI_BYTE,0,t,world_comm);
         }
       }
     }
+    
+    if(mpirank==0){
+      for(int ip = 1; ip<ranks.size();ip++){
+        auto p = ranks[ip];
+        if(p!=mpirank){
+          bool tvalid = false;
+          MPI_Recv(&tvalid,sizeof(valid),MPI_BYTE,p,t,world_comm,MPI_STATUS_IGNORE);
+          valid = valid && tvalid;
+        }
+      }
+    }
+
+    if(!valid){
+      if(mpirank==0){
+        std::cout<<"Bcast Tree "<<t<<" failed"<<std::endl;
+      }
+      if(mpirank!=root){
+        statusOFS<<rbuf<<std::endl;
+        statusOFS<<checkBuf<<std::endl;
+      }
+    }
+    all_valid = all_valid && valid;
   }
-  statusOFS<<"Broadcast trees test passed"<<std::endl;
+
+  MPI_Barrier(world_comm);
+  return all_valid;
 }
 
 
-void check_reduces(MPI_Comm world_comm,
+bool check_reduces(MPI_Comm world_comm,
+      const std::vector<std::vector<Int > > & arrRanks, 
       const std::vector<std::unique_ptr<TreeBcast_v2<MYSCALAR> > > & redTrees, 
-      const NumMat<MYSCALAR> & sbuf, const NumMat<MYSCALAR> &rbuf){
+      const std::vector<NumMat<MYSCALAR> > & sbufs, const std::vector<NumMat<MYSCALAR> > &rbufs){
   //validate the output
   int mpisize = 0;
   int mpirank = 0;
   MPI_Comm_rank(world_comm, &mpirank );
   MPI_Comm_size(world_comm, &mpisize );
 
-  NumMat<MYSCALAR> checkBuf(sbuf.m(),sbuf.n());
-  NumMat<MYSCALAR> tmpBuf(sbuf.m(),sbuf.n());
-  SetValue(checkBuf,MYSCALAR(0.0));
+  NumMat<MYSCALAR> checkBuf;
+  NumMat<MYSCALAR> tmpBuf;
 
+  bool all_valid = true;
   for(Int t = 0; t<redTrees.size(); t++){
-    std::vector<Int> ranks;
-    if(t==redTrees.size()-1){
-      ranks.push_back(0);
-      for(Int i = 1; i<mpisize; i++){
-        ranks.push_back(i);
-      }
-    }
-    else{
-      ranks.push_back(t%2);
-      for(Int i = t%2+2; i<mpisize; i+=2){
-        ranks.push_back(i);
-      }
-    }
+    auto & ranks = arrRanks[t];
+    auto & sbuf = sbufs[t];
+    auto & rbuf = rbufs[t];
+
     Int root = ranks[0];
+
+
+    if(mpirank==root){
+      checkBuf.Resize(rbuf.m(),rbuf.n());
+      tmpBuf.Resize(rbuf.m(),rbuf.n());
+      SetValue(checkBuf,MYSCALAR(0.0));
+    }
+
 
     for(auto p : ranks){
       if(mpirank==root){
         if(mpirank!=p){
-          MPI_Recv(tmpBuf.Data(),tmpBuf.ByteSize(),MPI_BYTE,MPI_ANY_SOURCE,t,world_comm,MPI_STATUS_IGNORE);
+          MPI_Status stat;
+          MPI_Recv(tmpBuf.Data(),tmpBuf.ByteSize(),MPI_BYTE,MPI_ANY_SOURCE,t,world_comm,&stat);
           //axpy
+          statusOFS<<"Tree "<<t<<" Recv from P"<<stat.MPI_SOURCE<<": "<<tmpBuf<<std::endl;
           blas::Axpy(tmpBuf.Size(), ONE<MYSCALAR>(), tmpBuf.Data(), 1, checkBuf.Data(), 1 );
         }
 //        else{
@@ -136,23 +196,47 @@ void check_reduces(MPI_Comm world_comm,
 //        }
       }
       else if(mpirank == p){
-        MPI_Send(sbuf.Data(),sbuf.ByteSize(),MPI_BYTE,root,t,world_comm,MPI_STATUS_IGNORE);
+        statusOFS<<"Tree "<<t<<" Send to P"<<root<<": "<<sbuf<<std::endl;
+        MPI_Send(sbuf.Data(),sbuf.ByteSize(),MPI_BYTE,root,t,world_comm);
       }
     }
 
+    MPI_Barrier(world_comm);
+
+    bool valid = true;
     auto & redTree =  redTrees[t];
+
     if(redTree!=nullptr){
       if(redTree->IsRoot()){
         for(Int i = 0; i<checkBuf.m(); i++){
           for(Int j = 0; j<checkBuf.n(); j++){
-            assert(checkBuf(i,j)==rbuf(i,j));
+            valid = valid && checkBuf(i,j)==rbuf(i,j);
           }
+        }
+        if(mpirank!=0){
+          MPI_Send(&valid,sizeof(valid),MPI_BYTE,0,t,world_comm);
         }
       }
     }
+    else if(mpirank==0){
+       MPI_Recv(&valid,sizeof(valid),MPI_BYTE,root,t,world_comm,MPI_STATUS_IGNORE);
+    }
 
+    if(!valid){
+      if(mpirank==0){
+        std::cout<<"Reduce Tree "<<t<<" failed"<<". Root is P"<<root<< std::endl;
+      }
+      if(mpirank==root){
+        statusOFS<<rbuf<<std::endl;
+        statusOFS<<checkBuf<<std::endl;
+      }
+    }
+
+    all_valid = all_valid && valid;
   }
-  statusOFS<<"Reduce trees test passed"<<std::endl;
+
+  MPI_Barrier(world_comm);
+  return all_valid;
 }
 
 
@@ -178,7 +262,9 @@ int main(int argc, char **argv)
 
   try{
     MPI_Comm world_comm;
-
+    std::random_device rd;
+    std::mt19937 gen(rd());
+             
     // *********************************************************************
     // Input parameter
     // *********************************************************************
@@ -233,12 +319,16 @@ int main(int argc, char **argv)
 
       //TEST BROADCAST TREES
       {
-        Int numTrees =2;
+        Int numTrees =10;
         std::vector<std::unique_ptr<TreeBcast_v2<MYSCALAR> > >bcastTrees(numTrees);
+        std::vector<std::vector<Int> > arrRanks(numTrees);
+        std::vector<NumMat<MYSCALAR> > sbufs(numTrees);
+        std::vector<NumMat<MYSCALAR> > rbufs(numTrees);
+
 
         std::vector<int> treeIdx;
         for(Int t = 0; t<bcastTrees.size(); t++){
-          std::vector<Int> ranks;
+          auto & ranks = arrRanks[t];
           if(t==bcastTrees.size()-1){
             ranks.push_back(0);
             for(Int i = 1; i<mpisize; i++){
@@ -246,9 +336,22 @@ int main(int argc, char **argv)
             }
           }
           else{
-            ranks.push_back(t%2);
-            for(Int i = t%2+2; i<mpisize; i+=2){
-              ranks.push_back(i);
+            ranks.resize(mpisize);
+            
+            if(mpirank==0){
+              std::iota(ranks.begin(),ranks.end(),0);
+              std::random_shuffle ( ranks.begin(), ranks.end() );
+              std::uniform_int_distribution<> dis(1, ranks.size());
+              int count = dis(gen);
+              MPI_Bcast(&count,sizeof(count),MPI_BYTE,0,world_comm);
+              ranks.resize(count);
+              MPI_Bcast(ranks.data(),count*sizeof(Int),MPI_BYTE,0,world_comm);
+            }
+            else{
+              int count = 0;
+              MPI_Bcast(&count,sizeof(count),MPI_BYTE,0,world_comm);
+              ranks.resize(count);
+              MPI_Bcast(ranks.data(),count*sizeof(Int),MPI_BYTE,0,world_comm);
             }
           }
           statusOFS<<"Ranks: "<<ranks<<std::endl;
@@ -269,11 +372,14 @@ int main(int argc, char **argv)
           auto & bcastTree =  bcastTrees[t];
           if(bcastTree!=nullptr){
             if(bcastTree->IsRoot()){
+              auto & sbuf = sbufs[t];
+              sbuf.Resize(rbuf.m(),rbuf.n());
               SetValue(sbuf,MYSCALAR((double)t+1));
-              //statusOFS<<"sbuf: "<<sbuf<<std::endl;
               bcastTree->SetLocalBuffer(sbuf.Data());
             }
             else{
+              auto & rbuf = rbufs[t];
+              rbuf.Resize(sbuf.m(),sbuf.n());
               bcastTree->SetLocalBuffer(rbuf.Data());
             }
           }
@@ -310,7 +416,20 @@ int main(int argc, char **argv)
 
         statusOFS<<"Elapsed time: "<<elapsed<<std::endl;
 
-        check_broadcasts(world_comm,bcastTrees, sbuf, rbuf);
+        if(check_broadcasts(world_comm,arrRanks,bcastTrees, sbufs, rbufs)){
+          if(mpirank==0){
+            std::cout<<"Bcast trees test passed"<<std::endl;
+          }
+        }
+        else{
+          if(mpirank==0){
+            std::cout<<"Bcast trees test failed"<<std::endl;
+            return -1;
+          }
+        }
+
+
+
 
         //Reset the trees
         for(Int t = 0; t<bcastTrees.size(); t++){
@@ -324,10 +443,14 @@ int main(int argc, char **argv)
           auto & bcastTree =  bcastTrees[t];
           if(bcastTree!=nullptr){
             if(bcastTree->IsRoot()){
+              auto & sbuf = sbufs[t];
+              sbuf.Resize(rbuf.m(),rbuf.n());
               SetValue(sbuf,MYSCALAR((double)t+42));
               bcastTree->SetLocalBuffer(sbuf.Data());
             }
             else{
+              auto & rbuf = rbufs[t];
+              rbuf.Resize(sbuf.m(),sbuf.n());
               bcastTree->SetLocalBuffer(rbuf.Data());
             }
           }
@@ -351,17 +474,35 @@ int main(int argc, char **argv)
 
         statusOFS<<"Elapsed time: "<<elapsed<<std::endl;
 
-        check_broadcasts(world_comm,bcastTrees, sbuf, rbuf);
+        if(check_broadcasts(world_comm,arrRanks,bcastTrees, sbufs, rbufs)){
+          if(mpirank==0){
+            std::cout<<"Bcast trees test passed"<<std::endl;
+          }
+        }
+        else{
+          if(mpirank==0){
+            std::cout<<"Bcast trees test failed"<<std::endl;
+            return -1;
+          }
+        }
+
+
       }
 
       //TEST REDUCE TREES
       {
-        Int numTrees =2;
+        Int numTrees =10;
         std::vector<std::unique_ptr<TreeBcast_v2<MYSCALAR> > >redTrees(numTrees);
+        std::vector<std::vector<Int> > arrRanks(numTrees);
+        std::vector<NumMat<MYSCALAR> > rbufs(numTrees);
+        std::vector<NumMat<MYSCALAR> > sbufs(numTrees);
 
         std::vector<int> treeIdx;
         for(Int t = 0; t<redTrees.size(); t++){
-          std::vector<Int> ranks;
+          auto & ranks = arrRanks[t];
+
+          
+
 
           if(t==redTrees.size()-1){
             ranks.push_back(0);
@@ -370,12 +511,28 @@ int main(int argc, char **argv)
             }
           }
           else{
-            ranks.push_back(t%2);
-            for(Int i = t%2+2; i<mpisize; i+=2){
-              ranks.push_back(i);
+
+            ranks.resize(mpisize);
+            
+            if(mpirank==0){
+              std::iota(ranks.begin(),ranks.end(),0);
+              std::random_shuffle ( ranks.begin(), ranks.end() );
+              std::uniform_int_distribution<> dis(1, ranks.size());
+              int count = dis(gen);
+              MPI_Bcast(&count,sizeof(count),MPI_BYTE,0,world_comm);
+              ranks.resize(count);
+              MPI_Bcast(ranks.data(),count*sizeof(Int),MPI_BYTE,0,world_comm);
             }
+            else{
+              int count = 0;
+              MPI_Bcast(&count,sizeof(count),MPI_BYTE,0,world_comm);
+              ranks.resize(count);
+              MPI_Bcast(ranks.data(),count*sizeof(Int),MPI_BYTE,0,world_comm);
+            }
+            
+
           }
-          statusOFS<<"Ranks: "<<ranks<<std::endl;
+          statusOFS<<"Reduce "<<t<<" Ranks: "<<ranks<<std::endl;
           Int msgSize = sbuf.Size();
           Int seed = mpisize-1;
           std::sort(ranks.begin()+1,ranks.end());
@@ -389,32 +546,37 @@ int main(int argc, char **argv)
           treeIdx.push_back(t);
         }
 
+
         for(Int t = 0; t<redTrees.size(); t++){
           auto & redTree =  redTrees[t];
           if(redTree!=nullptr){
             if(!redTree->IsRoot()){
+              auto & sbuf = sbufs[t];
+              sbuf.Resize(rbuf.m(),rbuf.n());
               SetValue(sbuf,MYSCALAR((double)t+1));
-              //statusOFS<<"sbuf: "<<sbuf<<std::endl;
               redTree->SetLocalBuffer(sbuf.Data());
             }
             else{
+              auto & rbuf = rbufs[t];
+              rbuf.Resize(sbuf.m(),sbuf.n());
               SetValue(rbuf,MYSCALAR((double)0.0));
-//              SetValue(rbuf,MYSCALAR((double)t+1));
               redTree->SetLocalBuffer(rbuf.Data());
             }
           }
         }
 
-        double elapsed = -MPI_Wtime();
+        //sbufs_back = sbufs;
 
+        double elapsed = -MPI_Wtime();
 
         //Now test the tree
         for(Int t = 0; t<redTrees.size(); t++){
           auto & redTree =  redTrees[t];
           if(redTree!=nullptr){
-            if(!redTree->IsRoot()){
+            redTree->SetDataReady(true);
+            //if(!redTree->IsRoot()){
               redTree->SetDataReady(true);
-            }
+            //}
             redTree->Progress(); 
           }
         }
@@ -437,50 +599,17 @@ int main(int argc, char **argv)
 
         statusOFS<<"Elapsed time: "<<elapsed<<std::endl;
 
-
-////        //validate the output
-////
-////        NumMat<MYSCALAR> checkBuf(sbuf.m(),sbuf.n());
-////        NumMat<MYSCALAR> tmpBuf(sbuf.m(),sbuf.n());
-////        SetValue(checkBuf,MYSCALAR(0.0));
-////
-////        for(Int t = 0; t<redTrees.size(); t++){
-////          Int root = t%2;
-////
-////          
-////          std::vector<Int> ranks;
-////          for(Int i = t%2+2; i<mpisize; i+=2){
-////            ranks.push_back(i);
-////          }
-////
-////          for(auto p : ranks){
-////            if(mpirank==root){
-////              MPI_Recv(tmpBuf.Data(),tmpBuf.ByteSize(),MPI_BYTE,MPI_ANY_SOURCE,t,world_comm,MPI_STATUS_IGNORE);
-////              //axpy
-////              blas::Axpy(tmpBuf.Size(), ONE<MYSCALAR>(), tmpBuf.Data(), 1, checkBuf.Data(), 1 );
-////            }
-////            else{
-////              MPI_Send(sbuf.Data(),sbuf.ByteSize(),MPI_BYTE,root,t,world_comm,MPI_STATUS_IGNORE);
-////            }
-////          }
-////
-////          auto & redTree =  redTrees[t];
-////          if(redTree!=nullptr){
-////            if(redTree->IsRoot()){
-////              for(Int i = 0; i<checkBuf.m(); i++){
-////                for(Int j = 0; j<checkBuf.n(); j++){
-////                  assert(checkBuf(i,j)==rbuf(i,j));
-////                }
-////              }
-////            }
-////          }
-////        }
-////        statusOFS<<"Reduce trees test passed"<<std::endl;
-
-
-        check_reduces(world_comm,redTrees, sbuf, rbuf);
-
-
+        if(check_reduces(world_comm,arrRanks,redTrees, sbufs, rbufs)){
+          if(mpirank==0){
+            std::cout<<"Reduce trees test passed"<<std::endl;
+          }
+        }
+        else{
+          if(mpirank==0){
+            std::cout<<"Reduce trees test failed"<<std::endl;
+            return -1;
+          }
+        }
 
         //Reset the trees
         for(Int t = 0; t<redTrees.size(); t++){
@@ -494,14 +623,20 @@ int main(int argc, char **argv)
           auto & redTree =  redTrees[t];
           if(redTree!=nullptr){
             if(!redTree->IsRoot()){
+              auto & sbuf = sbufs[t];
+              sbuf.Resize(rbuf.m(),rbuf.n());
               SetValue(sbuf,MYSCALAR((double)t+42));
               redTree->SetLocalBuffer(sbuf.Data());
             }
             else{
+              auto & rbuf = rbufs[t];
+              rbuf.Resize(sbuf.m(),sbuf.n());
+              SetValue(rbuf,MYSCALAR((double)0.0));
               redTree->SetLocalBuffer(rbuf.Data());
             }
           }
         }
+
 
         //Disable overlap
         elapsed = -MPI_Wtime();
@@ -509,9 +644,9 @@ int main(int argc, char **argv)
         for(Int t = 0; t<redTrees.size(); t++){
           auto & redTree =  redTrees[t];
           if(redTree!=nullptr){
-            if(!redTree->IsRoot()){
+            //if(!redTree->IsRoot()){
               redTree->SetDataReady(true);
-            }
+            //}
             redTree->Wait();
             redTree->cleanupBuffers();
           }
@@ -520,11 +655,22 @@ int main(int argc, char **argv)
         elapsed += MPI_Wtime();
 
         statusOFS<<"Elapsed time: "<<elapsed<<std::endl;
-        statusOFS<<"rbuf: "<<rbuf<<std::endl;
+
+        if(check_reduces(world_comm,arrRanks,redTrees, sbufs, rbufs)){
+          if(mpirank==0){
+            std::cout<<"Reduce trees test passed"<<std::endl;
+          }
+        }
+        else{
+          if(mpirank==0){
+            std::cout<<"Reduce trees test failed"<<std::endl;
+            return -1;
+          }
+        }
       }
 
       if( mpirank == 0 )
-        cout << "nprow = " << nprow << ", npcol = " << npcol << endl;
+        cout << "All tests were successfull"<< endl;
 
       statusOFS.close();
     }

@@ -49,6 +49,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "pexsi/timer.h"
 #include "pexsi/superlu_dist_interf.hpp"
 #include <algorithm>
+#include <random>
 
 
 
@@ -4668,7 +4669,7 @@ template<typename T>
 
 
           Int msgSize = 0;
-          auto&  Lcol = this->L( LBj(ksup, grid_) );
+          auto&  Lcol = this->L( LBj(ksup, this->grid_) );
           //one integer holding the number of Lblocks
           msgSize+=sizeof(Int);
           for( auto && lb : Lcol ){
@@ -4843,7 +4844,7 @@ template<typename T>
           auto & inserted_proc = inserted_procs[ksup];
           
           Int msgSize = 0;
-          auto&  Lcol = this->L( LBj(ksup, grid_) );
+          auto&  Lcol = this->L( LBj(ksup, this->grid_) );
           //one integer holding the number of Lblocks
           msgSize+=sizeof(Int);
           for( auto && lb : Lcol ){
@@ -5009,7 +5010,7 @@ template<typename T>
 
           auto & inserted_proc = inserted_procs[ksup];
           Int msgSize = 0;
-          auto&  Urow = this->U( LBi(ksup, grid_) );
+          auto&  Urow = this->U( LBi(ksup, this->grid_) );
           //one integer holding the number of Lblocks
           msgSize+=sizeof(Int);
           for( auto && ub : Urow ){
@@ -5185,7 +5186,7 @@ template<typename T>
           
 
           Int msgSize = 0;
-          auto&  Urow = this->U( LBi(ksup, grid_) );
+          auto&  Urow = this->U( LBi(ksup, this->grid_) );
           //one integer holding the number of Lblocks
           msgSize+=sizeof(Int);
           for( auto && ub : Urow ){
@@ -5296,7 +5297,7 @@ template<typename T>
 
 
           Int pcol = PCOL(ksup,this->grid_);
-          Int proot = PNUM(ksup,this->grid_);
+          Int proot = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
 
           inserted_proc[proot]=true;
           rnkList.push_back(proot);
@@ -5447,7 +5448,7 @@ template<typename T>
 #endif
 
       for( Int ksup = 0; ksup < numSuper; ksup++ ){
-        if( MYPROC( this->grid_ ) == PNUM( ksup, this->grid_ ) ){
+        if( MYPROC( this->grid_ ) == PNUM( PROW(ksup,this->grid_),PCOL(ksup,this->grid_), this->grid_ ) ){
           IntNumVec ipiv( SuperSize( ksup, this->super_ ) );
           // Note that the pivoting vector ipiv should follow the FORTRAN
           // notation by adding the +1
@@ -6014,10 +6015,10 @@ template<typename T>
           if(redLTree->IsRoot()){
             //determine the number of rows in LUpdateBufReduced
             Int numRowLUpdateBuf;
-            auto&  Lcol = this->L( LBj( snode.Index, grid_ ) );
+            auto&  Lcol = this->L( LBj( snode.Index, this->grid_ ) );
 
             //skip the diagonal block if necessary
-            Int offset = MYROW( grid_ ) != PROW( snode.Index, grid_ )?0:1;
+            Int offset = MYROW( grid_ ) != PROW( snode.Index, this->grid_ )?0:1;
 
             snode.RowLocalPtr.resize( Lcol.size() - offset + 1 );
             snode.BlockIdxLocal.resize( Lcol.size() - offset );
@@ -6102,7 +6103,7 @@ template<typename T>
             //copy the buffer from the reduce tree
             redDTree->SetLocalBuffer(snode.DiagBuf.Data());
 
-            LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
+            LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) )[0];
             blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
           }
           redDTree->cleanupBuffers();
@@ -6127,7 +6128,7 @@ template<typename T>
             if(redUTree->IsRoot()){
               //determine the number of cols in UUpdateBufReduced
               Int numColUpdateBuf;
-              auto&  Urow = this->U( LBi( snode.Index, grid_ ) );
+              auto&  Urow = this->U( LBi( snode.Index, this->grid_ ) );
 
               snode.ColLocalPtr.resize( Urow.size() + 1 );
               snode.BlockIdxLocalU.resize( Urow.size() );
