@@ -4,7 +4,6 @@
 include ../make.inc
 
 SRCS_CPP  = run_pselinv.cpp run_pselinv_unsym.cpp \
-						unit_tests.cpp \
  						run_ksdft.cpp run_fermi.cpp run_fermi_complex.cpp
 SRCS_C    = driver_pselinv_real.c driver_pselinv_complex.c driver_pselinv_real_unsym.c \
 					 	driver_pselinv_complex_unsym.c driver_ksdft.c driver_ksdft_2.c \
@@ -62,9 +61,6 @@ run_pselinv: run_pselinv.o ${PEXSI_LIB} ../include/pexsi/*.hpp
 
 run_pselinv_unsym: run_pselinv_unsym.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv_unsym.o  $(LOADOPTS) )
-
-unit_tests: unit_tests.o ${PEXSI_LIB} 
-	($(LOADER) -o $@_${SUFFIX} unit_tests.o  $(LOADOPTS) )
 
 run_test_reduce: run_test_reduce.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_test_reduce.o  $(LOADOPTS) )

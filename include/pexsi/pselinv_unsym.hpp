@@ -72,6 +72,19 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 namespace PEXSI{
 
+/// @brief CDROW returns cross diagonal processor row
+inline Int CDROW(Int pnum, const GridType* g )
+{ return (pnum % g->numProcCol) % g->numProcRow; }
+
+/// @brief CDCOL returns cross diagonal processor column
+inline Int CDCOL(Int pnum, const GridType* g )
+{ return (pnum / g->numProcCol) % g->numProcCol; }
+
+/// @brief CDPNUM returns the cross diagonal processor rank.
+inline Int CDPNUM(Int pr, Int pc, const GridType* g )
+{ return PNUM(pc,pr,g); }
+
+
 /// @brief MYCDROW returns cross diagonal processor row
 inline Int MYCDROW( const GridType* g )
 { return MYCOL(g) % g->numProcRow; }

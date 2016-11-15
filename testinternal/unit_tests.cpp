@@ -239,85 +239,16 @@ bool check_reduces(MPI_Comm world_comm,
   return all_valid;
 }
 
+void test_async_collectives(MPI_Comm world_comm, int m, int n){
+  int mpisize = 0;
+  int mpirank = 0;
+  MPI_Comm_rank(world_comm, &mpirank );
+  MPI_Comm_size(world_comm, &mpisize );
 
-
-
-
-int main(int argc, char **argv) 
-{
-
-  if( argc < 3 ) {
-    return 0;
-  }
-
-
-  MPI_Init( &argc, &argv );
-  int mpirank, mpisize;
-  MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
-  MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
-
-  if(mpirank==mpisize-1){
-        //gdb_lock();
-    }
-
-  try{
-    MPI_Comm world_comm;
     std::random_device rd;
     std::mt19937 gen(rd());
-             
-    // *********************************************************************
-    // Input parameter
-    // *********************************************************************
-    std::map<std::string,std::string> options;
-    OptionsCreate(argc, argv, options);
 
-    // Default processor number
-    Int nprow = 1;
-    Int npcol = mpisize;
-
-    if( options.find("-r") != options.end() ){
-      if( options.find("-c") != options.end() ){
-        nprow= atoi(options["-r"].c_str());
-        npcol= atoi(options["-c"].c_str());
-        if(nprow*npcol > mpisize){
-          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
-        } 
-      }
-      else{
-        ErrorHandling( "When using -r option, -c also needs to be provided." );
-      }
-    }
-    else if( options.find("-c") != options.end() ){
-      if( options.find("-r") != options.end() ){
-        nprow= atoi(options["-r"].c_str());
-        npcol= atoi(options["-c"].c_str());
-        if(nprow*npcol > mpisize){
-          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
-        } 
-      }
-      else{
-        ErrorHandling( "When using -c option, -r also needs to be provided." );
-      }
-    }
-
-    //Create a communicator with npcol*nprow processors
-    MPI_Comm_split(MPI_COMM_WORLD, mpirank<nprow*npcol, mpirank, &world_comm);
-
-    if (mpirank<nprow*npcol){
-
-      MPI_Comm_rank(world_comm, &mpirank );
-      MPI_Comm_size(world_comm, &mpisize );
-
-      stringstream  ss;
-      ss << "logTest" << mpirank;
-      statusOFS.open( ss.str().c_str() );
-
-      NumMat<MYSCALAR> sbuf(2,5);
-      NumMat<MYSCALAR> rbuf(2,5);
-      SetValue(sbuf,MYSCALAR(0.0));
-      SetValue(rbuf,MYSCALAR(0.0));
-
-      //TEST BROADCAST TREES
+  //TEST BROADCAST TREES
       {
         Int numTrees =10;
         std::vector<std::unique_ptr<TreeBcast_v2<MYSCALAR> > >bcastTrees(numTrees);
@@ -355,7 +286,7 @@ int main(int argc, char **argv)
             }
           }
           statusOFS<<"Ranks: "<<ranks<<std::endl;
-          Int msgSize = sbuf.Size();
+          Int msgSize = m*n;
           Int seed = mpisize-1;
           std::sort(ranks.begin()+1,ranks.end());
 
@@ -373,13 +304,13 @@ int main(int argc, char **argv)
           if(bcastTree!=nullptr){
             if(bcastTree->IsRoot()){
               auto & sbuf = sbufs[t];
-              sbuf.Resize(rbuf.m(),rbuf.n());
+              sbuf.Resize(m,n);
               SetValue(sbuf,MYSCALAR((double)t+1));
               bcastTree->SetLocalBuffer(sbuf.Data());
             }
             else{
               auto & rbuf = rbufs[t];
-              rbuf.Resize(sbuf.m(),sbuf.n());
+              rbuf.Resize(m,n);
               bcastTree->SetLocalBuffer(rbuf.Data());
             }
           }
@@ -424,7 +355,7 @@ int main(int argc, char **argv)
         else{
           if(mpirank==0){
             std::cout<<"Bcast trees test failed"<<std::endl;
-            return -1;
+            exit(-1);
           }
         }
 
@@ -444,13 +375,13 @@ int main(int argc, char **argv)
           if(bcastTree!=nullptr){
             if(bcastTree->IsRoot()){
               auto & sbuf = sbufs[t];
-              sbuf.Resize(rbuf.m(),rbuf.n());
+              sbuf.Resize(m,n);
               SetValue(sbuf,MYSCALAR((double)t+42));
               bcastTree->SetLocalBuffer(sbuf.Data());
             }
             else{
               auto & rbuf = rbufs[t];
-              rbuf.Resize(sbuf.m(),sbuf.n());
+              rbuf.Resize(m,n);
               bcastTree->SetLocalBuffer(rbuf.Data());
             }
           }
@@ -482,7 +413,7 @@ int main(int argc, char **argv)
         else{
           if(mpirank==0){
             std::cout<<"Bcast trees test failed"<<std::endl;
-            return -1;
+            exit(-1);
           }
         }
 
@@ -533,7 +464,7 @@ int main(int argc, char **argv)
 
           }
           statusOFS<<"Reduce "<<t<<" Ranks: "<<ranks<<std::endl;
-          Int msgSize = sbuf.Size();
+          Int msgSize = m*n;
           Int seed = mpisize-1;
           std::sort(ranks.begin()+1,ranks.end());
 
@@ -552,13 +483,13 @@ int main(int argc, char **argv)
           if(redTree!=nullptr){
             if(!redTree->IsRoot()){
               auto & sbuf = sbufs[t];
-              sbuf.Resize(rbuf.m(),rbuf.n());
+              sbuf.Resize(m,n);
               SetValue(sbuf,MYSCALAR((double)t+1));
               redTree->SetLocalBuffer(sbuf.Data());
             }
             else{
               auto & rbuf = rbufs[t];
-              rbuf.Resize(sbuf.m(),sbuf.n());
+              rbuf.Resize(m,n);
               SetValue(rbuf,MYSCALAR((double)0.0));
               redTree->SetLocalBuffer(rbuf.Data());
             }
@@ -607,7 +538,7 @@ int main(int argc, char **argv)
         else{
           if(mpirank==0){
             std::cout<<"Reduce trees test failed"<<std::endl;
-            return -1;
+            exit(-1);
           }
         }
 
@@ -624,13 +555,13 @@ int main(int argc, char **argv)
           if(redTree!=nullptr){
             if(!redTree->IsRoot()){
               auto & sbuf = sbufs[t];
-              sbuf.Resize(rbuf.m(),rbuf.n());
+              sbuf.Resize(m,n);
               SetValue(sbuf,MYSCALAR((double)t+42));
               redTree->SetLocalBuffer(sbuf.Data());
             }
             else{
               auto & rbuf = rbufs[t];
-              rbuf.Resize(sbuf.m(),sbuf.n());
+              rbuf.Resize(m,n);
               SetValue(rbuf,MYSCALAR((double)0.0));
               redTree->SetLocalBuffer(rbuf.Data());
             }
@@ -664,10 +595,134 @@ int main(int argc, char **argv)
         else{
           if(mpirank==0){
             std::cout<<"Reduce trees test failed"<<std::endl;
-            return -1;
+            exit(-1);
           }
         }
       }
+
+
+}
+
+
+void test_grid(MPI_Comm world_comm, int nprow, int npcol){
+  int mpisize = 0;
+  int mpirank = 0;
+  MPI_Comm_rank(world_comm, &mpirank );
+  MPI_Comm_size(world_comm, &mpisize );
+  //create grid
+  GridType grid( world_comm, nprow, npcol );
+  //print processor ranks
+  for(int pr=0;pr<nprow;pr++){
+    for(int pc=0;pc<npcol;pc++){
+      statusOFS<<PNUM(pr,pc,&grid)<<" ";
+    }
+    statusOFS<<std::endl;
+  }
+
+  bool valid = true;
+  for(int pr=0;pr<nprow;pr++){
+    for(int pc=0;pc<npcol;pc++){
+      valid = valid && PNUM(pr,pc,&grid) == CDPNUM(pc,pr,&grid); 
+      valid = valid && CDPNUM(pr,pc,&grid) == PNUM(pc,pr,&grid); 
+    }
+  }
+
+  if(valid){
+    if(mpirank==0){
+      std::cout<<"Cross diagonal processor index test passed."<<std::endl;
+    }
+  }
+  else{
+
+    if(mpirank==0){
+      std::cout<<"Cross diagonal processor index test failed."<<std::endl;
+      exit(-1);
+    }
+  }
+}
+
+int main(int argc, char **argv) 
+{
+
+  if( argc < 3 ) {
+    return 0;
+  }
+
+
+  MPI_Init( &argc, &argv );
+  int mpirank, mpisize;
+  MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
+  MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
+
+  if(mpirank==mpisize-1){
+        //gdb_lock();
+    }
+
+  try{
+    MPI_Comm world_comm;
+             
+    // *********************************************************************
+    // Input parameter
+    // *********************************************************************
+    std::map<std::string,std::string> options;
+    OptionsCreate(argc, argv, options);
+
+    int m = 10;
+    int n = 10;
+
+
+    if( options.find("-m") != options.end() ){
+        m = atoi(options["-m"].c_str());
+    }
+
+    if( options.find("-n") != options.end() ){
+        n = atoi(options["-n"].c_str());
+    }
+
+    // Default processor number
+    Int nprow = 1;
+    Int npcol = mpisize;
+
+    if( options.find("-r") != options.end() ){
+      if( options.find("-c") != options.end() ){
+        nprow= atoi(options["-r"].c_str());
+        npcol= atoi(options["-c"].c_str());
+        if(nprow*npcol > mpisize){
+          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
+        } 
+      }
+      else{
+        ErrorHandling( "When using -r option, -c also needs to be provided." );
+      }
+    }
+    else if( options.find("-c") != options.end() ){
+      if( options.find("-r") != options.end() ){
+        nprow= atoi(options["-r"].c_str());
+        npcol= atoi(options["-c"].c_str());
+        if(nprow*npcol > mpisize){
+          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
+        } 
+      }
+      else{
+        ErrorHandling( "When using -c option, -r also needs to be provided." );
+      }
+    }
+
+    //Create a communicator with npcol*nprow processors
+    MPI_Comm_split(MPI_COMM_WORLD, mpirank<nprow*npcol, mpirank, &world_comm);
+
+    if (mpirank<nprow*npcol){
+
+      MPI_Comm_rank(world_comm, &mpirank );
+      MPI_Comm_size(world_comm, &mpisize );
+
+      stringstream  ss;
+      ss << "logTest" << mpirank;
+      statusOFS.open( ss.str().c_str() );
+
+      test_async_collectives(world_comm, m, n);
+
+      test_grid(world_comm, nprow, npcol);
 
       if( mpirank == 0 )
         cout << "All tests were successfull"<< endl;
