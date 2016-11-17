@@ -15,6 +15,11 @@ namespace PEXSI{
     TreeReduce_v2<T>::TreeReduce_v2(const TreeReduce_v2<T> & Tree){
       this->Copy(Tree);
     }
+
+  template<typename T>
+    TreeReduce_v2<T>::TreeReduce_v2():TreeBcast_v2<T>(){
+    }
+
   template<typename T>
     TreeReduce_v2<T>::~TreeReduce_v2(){
       this->cleanupBuffers();

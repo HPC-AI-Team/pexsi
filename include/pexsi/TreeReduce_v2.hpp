@@ -25,8 +25,10 @@ namespace PEXSI{
       public:
         static TreeReduce_v2<T> * Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize,double rseed);
 
+        TreeReduce_v2();
         TreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize);
         TreeReduce_v2(const TreeReduce_v2 & Tree);
+
         virtual ~TreeReduce_v2();
         virtual TreeReduce_v2 * clone() const = 0; 
         virtual void Copy(const TreeReduce_v2 & Tree);

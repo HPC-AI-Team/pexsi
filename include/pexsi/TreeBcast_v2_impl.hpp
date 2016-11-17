@@ -687,6 +687,35 @@ namespace PEXSI{
     }
 
 
+  template< typename T>
+   void TreeBcast_Waitall(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees){
+     std::list<int> doneIdx;
+     std::vector<bool> finishedFlags(treeIdx.size(),false);
+     
+      doneIdx.clear();
+      auto all_done = [](const std::vector<bool> & boolvec){
+        return std::all_of(boolvec.begin(), boolvec.end(), [](bool v) { return v; });
+      };
+
+     while(!all_done(finishedFlags) ){
+        for(int i = 0; i<treeIdx.size(); i++){
+          Int idx = treeIdx[i];
+          auto & curTree = arrTrees[idx];
+          if(curTree!=nullptr){
+            bool done = curTree->Progress();
+            if(done){
+              if(!finishedFlags[i]){
+                doneIdx.push_back(i);
+                finishedFlags[i] = true;
+              }
+            }
+          }
+          else{
+            finishedFlags[i] = true;
+          }
+        }
+      }
+    }
 
 } //namespace PEXSI
 

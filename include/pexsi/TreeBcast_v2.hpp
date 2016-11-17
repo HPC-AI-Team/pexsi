@@ -76,9 +76,9 @@ namespace PEXSI{
         static TreeBcast_v2<T> * Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize,double rseed);
         TreeBcast_v2();
         TreeBcast_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize);
+        TreeBcast_v2(const TreeBcast_v2 & Tree);
         virtual ~TreeBcast_v2();
         virtual TreeBcast_v2 * clone() const = 0; 
-        TreeBcast_v2(const TreeBcast_v2 & Tree);
         virtual void Copy(const TreeBcast_v2 & Tree);
         virtual void Reset();
 
@@ -156,6 +156,9 @@ namespace PEXSI{
 
   template< typename T>
   void TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
+
+  template< typename T>
+  void TreeBcast_Waitall(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees);
 
 }//namespace PEXSI
 

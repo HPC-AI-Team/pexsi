@@ -190,11 +190,14 @@ template<typename T>
 
   protected:
 
-  std::vector<std::unique_ptr<TreeBcast_v2<T> > > bcastLDataTree_; 
-  std::vector<std::unique_ptr<TreeBcast_v2<T> > > bcastLStructTree_; 
+      std::vector<std::vector<Int> > isSendToCD_;
+      std::vector<std::vector<Int> > isRecvFromCD_; 
 
-  std::vector<std::unique_ptr<TreeBcast_v2<T> > > bcastUDataTree_; 
-  std::vector<std::unique_ptr<TreeBcast_v2<T> > > bcastUStructTree_; 
+  std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastLDataTree_; 
+  std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastLStructTree_; 
+
+  std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastUDataTree_; 
+  std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastUStructTree_; 
 
   std::vector<std::unique_ptr<TreeReduce_v2<T> > > redLTree2_; 
   std::vector<std::unique_ptr<TreeReduce_v2<T> > > redUTree2_; 
