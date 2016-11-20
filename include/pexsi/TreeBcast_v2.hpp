@@ -95,6 +95,7 @@ namespace PEXSI{
         Int GetDestCount();
         Int GetRoot();
         bool IsRoot();
+        void SetMsgSize(Int msgSize){ this->msgSize_ = msgSize;}
         Int GetMsgSize();
         bool IsDone();
 

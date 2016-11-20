@@ -196,6 +196,7 @@ template<typename T>
   std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastLDataTree_; 
   std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastLStructTree_; 
 
+  std::vector<std::vector< std::unique_ptr<TreeBcast_v2<char> > > > bcastUDataTrees_; 
   std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastUDataTree_; 
   std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastUStructTree_; 
 
