@@ -725,6 +725,18 @@ int main(int argc, char **argv)
           if( mpirank == 0 )
             cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
+
+          if(1){
+            statusOFS.close();
+            stringstream  sslu;
+            sslu << "PreLUDump." << mpirank<<".m";
+            statusOFS.open( sslu.str().c_str() );
+            pMat->DumpLU();
+            statusOFS.close();
+            statusOFS.open( ss.str().c_str(),std::ofstream::out | std::ofstream::app );
+          }
+
+
           // Main subroutine for selected inversion
           GetTime( timeSta );
           pMat->SelInv();
@@ -737,8 +749,16 @@ int main(int argc, char **argv)
           if( mpirank == 0 )
             cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
-          if(0){
+          if(1){
+            statusOFS.close();
+            stringstream  sslu;
+            sslu << "LUDump." << mpirank<<".m";
+            statusOFS.open( sslu.str().c_str() );
             pMat->DumpLU();
+            statusOFS.close();
+            statusOFS.open( ss.str().c_str(),std::ofstream::out | std::ofstream::app );
+          }
+          if(0){
             DistSparseMatrix<MYSCALAR> Ainv;
             pMat->PMatrixToDistSparseMatrix(Ainv );
             //if( mpirank == 0 )
@@ -767,14 +787,20 @@ int main(int argc, char **argv)
 
 
             GetTime( timeEnd );
+
+#ifndef OLD_SELINV
             DistSparseMatrix<MYSCALAR> AinvT;
-
               CSCToCSR(Ainv,AinvT);
-
 
             traceLocal = ZERO<MYSCALAR>();
             traceLocal = blas::Dotu( Aptr->nnzLocal, AinvT.nzvalLocal.Data(), 1,
                 Aptr->nzvalLocal.Data(), 1 );
+
+#else
+            traceLocal = ZERO<MYSCALAR>();
+            traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
+                Aptr->nzvalLocal.Data(), 1 );
+#endif
 
             if(factOpt.Symmetric==0 && 0){//factOpt.Transpose==0){
               delete Aptr;
@@ -815,7 +841,11 @@ int main(int argc, char **argv)
 
               NumVec<MYSCALAR> diagDistSparse;
               GetTime( timeSta );
+#ifndef OLD_SELINV
               GetDiagonal( AinvT, diagDistSparse );
+#else
+              GetDiagonal( Ainv, diagDistSparse );
+#endif
               GetTime( timeEnd );
               if( mpirank == 0 )
                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;

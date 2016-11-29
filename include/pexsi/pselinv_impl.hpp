@@ -5061,11 +5061,11 @@ namespace PEXSI{
       const IntNumVec& perm_r    = *pPerm_r;
       const IntNumVec& permInv_r = *pPermInv_r;
 
-      statusOFS<<"Col perm is "<<perm<<std::endl;
-      statusOFS<<"Row perm is "<<perm_r<<std::endl;
-
-      statusOFS<<"Inv Col perm is "<<permInv<<std::endl;
-      statusOFS<<"Inv Row perm is "<<permInv_r<<std::endl;
+//      statusOFS<<"Col perm is "<<perm<<std::endl;
+//      statusOFS<<"Row perm is "<<perm_r<<std::endl;
+//
+//      statusOFS<<"Inv Col perm is "<<permInv<<std::endl;
+//      statusOFS<<"Inv Row perm is "<<permInv_r<<std::endl;
 
       statusOFS<<"LUExp = sparse([";
       for(Int j = 0;j<this->L_.size();++j){

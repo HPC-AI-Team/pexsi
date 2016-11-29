@@ -3178,13 +3178,14 @@ template<typename T>
       std::vector<std::vector<Int> > & superList = this->WorkingSet();
       Int numSteps = superList.size();
 
-      //for (Int lidx=0; lidx<numSteps ; lidx++){
-      //  Int stepSuper = superList[lidx].size(); 
-      //  this->SelInvIntra_P2p(lidx);
-      //}
-
+#ifdef OLD_SELINV
+      for (Int lidx=0; lidx<numSteps ; lidx++){
+        Int stepSuper = superList[lidx].size(); 
+        this->SelInvIntra_P2p(lidx);
+      }
+#else
       Int rank = 0;
-      for (Int lidx=1; lidx<numSteps ; lidx++){
+      for (Int lidx=0; lidx<numSteps ; lidx++){
         Int stepSuper = superList[lidx].size(); 
         this->SelInvIntra_New(lidx,rank);
         //find max snode.Index
@@ -3194,6 +3195,7 @@ template<typename T>
 
 
       }
+#endif
 
       TIMER_STOP(SelInv_P2p);
 
@@ -3440,8 +3442,11 @@ template<typename T>
   template<typename T>
     void PMatrixUnsym<T>::ConstructCommunicationPattern	(  )
     {
-      //ConstructCommunicationPattern_P2p();
+#ifdef OLD_SELINV
+      ConstructCommunicationPattern_P2p();
+#else
       ConstructCommunicationPattern_New();
+#endif
     } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern  ----- 
 
 
@@ -5598,31 +5603,31 @@ template<typename T>
 
 
 #ifdef REDUCE_D
-            if(snode.Index%2==1){
-              auto & redDTree = this->redDTree2_[snode.Index];
-              if(redDTree != nullptr){
-                TIMER_START(Update_Diagonal);
+            //if(snode.Index%2==1){
+            //  auto & redDTree = this->redDTree2_[snode.Index];
+            //  if(redDTree != nullptr){
+            //    TIMER_START(Update_Diagonal);
                 //compute diag update
                 ComputeDiagUpdate_New(snode,false);
 
-                //send the data
-                if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
-                  snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
-                  SetValue(snode.DiagBuf, ZERO<T>());
-                }
+            //    //send the data
+            //    if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
+            //      snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+            //      SetValue(snode.DiagBuf, ZERO<T>());
+            //    }
 
-                if(!redDTree->IsAllocated()){
-                  redDTree->AllocRecvBuffers();
-                }
+            //    if(!redDTree->IsAllocated()){
+            //      redDTree->AllocRecvBuffers();
+            //    }
 
-                //set the buffer and mark as active
-                redDTree->SetLocalBuffer(snode.DiagBuf.Data());
-                redDTree->SetDataReady(true);
-                redDTree->Progress();
+            //    //set the buffer and mark as active
+            //    redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+            //    redDTree->SetDataReady(true);
+            //    redDTree->Progress();
 
-                TIMER_STOP(Update_Diagonal);
-              }
-            }
+            //    TIMER_STOP(Update_Diagonal);
+            //  }
+            //}
 #endif
 
             //Overwrite U with LUpdateBuf
@@ -5690,31 +5695,31 @@ template<typename T>
 
 
 #ifdef REDUCE_D
-            if(snode.Index%2==0){
-              auto & redDTree = this->redDTree2_[snode.Index];
-              if(redDTree != nullptr){
-                TIMER_START(Update_Diagonal);
+            //if(snode.Index%2==0){
+            //  auto & redDTree = this->redDTree2_[snode.Index];
+            //  if(redDTree != nullptr){
+            //    TIMER_START(Update_Diagonal);
                 //compute diag update
                 ComputeDiagUpdate_New(snode,true);
 
-                //send the data
-                if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
-                  snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
-                  SetValue(snode.DiagBuf, ZERO<T>());
-                }
+            //    //send the data
+            //    if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
+            //      snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+            //      SetValue(snode.DiagBuf, ZERO<T>());
+            //    }
 
-                if(!redDTree->IsAllocated()){
-                  redDTree->AllocRecvBuffers();
-                }
+            //    if(!redDTree->IsAllocated()){
+            //      redDTree->AllocRecvBuffers();
+            //    }
 
-                //set the buffer and mark as active
-                redDTree->SetLocalBuffer(snode.DiagBuf.Data());
-                redDTree->SetDataReady(true);
-                redDTree->Progress();
+            //    //set the buffer and mark as active
+            //    redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+            //    redDTree->SetDataReady(true);
+            //    redDTree->Progress();
 
-                TIMER_STOP(Update_Diagonal);
-              }
-            }
+            //    TIMER_STOP(Update_Diagonal);
+            //  }
+            //}
 #endif
 
             //Overwrite L with UUpdateBuf
@@ -5809,7 +5814,6 @@ template<typename T>
             LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) )[0];
 
             //statusOFS<<"["<<snode.Index<<"] Diag before transpose:"<<std::endl<<LB.nzval<<std::endl;
-            //TODO check with Lin: Transpose ??
             Transpose(LB.nzval, LB.nzval);
 
             //statusOFS<<"["<<snode.Index<<"] Diag after transpose:"<<std::endl<<LB.nzval<<std::endl;
@@ -6172,7 +6176,6 @@ template<typename T>
     inline void PMatrixUnsym<T>::ComputeDiagUpdate_New(SuperNodeBufferTypeUnsym & snode,bool fromU)
     {
 
-      TIMER_START(ComputeDiagUpdate);
       //--------- Computing  Diagonal block, all processors in the column
       //--------- are participating to all pipelined supernodes
 
@@ -6186,120 +6189,131 @@ template<typename T>
 
       if(redDTree!=nullptr){
         if(snode.Index%2==0){
-            updateFromU = true;
+          updateFromU = true;
         }
         else{
-            updateFromL = true;
+          updateFromL = true;
         }
-
-        //if(redLTree!=nullptr){
-        //  if(redLTree->IsRoot()){
-        //    updateFromL = true;
-        //  }
-        //}
-        //if(redUTree!=nullptr){
-        //  if(redUTree->IsRoot() && !updateFromL){
-        //    updateFromU = true;
-        //  }
-        //}
       }
 
 #if ( _DEBUGlevel_ >= 2 )
       if(updateFromU){
-      statusOFS<<"["<<snode.Index<<"] Trying to update from "<<(fromU?"U":"L")<<" | "<<"FU"<<std::endl;
+        statusOFS<<"["<<snode.Index<<"] Trying to update from "<<(fromU?"U":"L")<<" | "<<"FU"<<std::endl;
       }
       else if(updateFromL){
-      statusOFS<<"["<<snode.Index<<"] Trying to update from "<<(fromU?"U":"L")<<" | "<<"FL"<<std::endl;
+        statusOFS<<"["<<snode.Index<<"] Trying to update from "<<(fromU?"U":"L")<<" | "<<"FL"<<std::endl;
       }
       else{
-      statusOFS<<"["<<snode.Index<<"] Trying to update from "<<(fromU?"U":"L")<<" | "<<"NONE"<<std::endl;
+        statusOFS<<"["<<snode.Index<<"] Trying to update from "<<(fromU?"U":"L")<<" | "<<"NONE"<<std::endl;
       }
 #endif
 
-      if(updateFromL && !fromU){
-        assert( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) );
+      if(redDTree != nullptr){
+        TIMER_START(Update_Diagonal);
+
+        TIMER_START(ComputeDiagUpdate);
+        if(updateFromL && !fromU){
+          assert( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) );
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<snode.Index<<"] "
-          << "Updating the diagonal block from L" << std::endl << std::endl;
+          statusOFS << std::endl << "["<<snode.Index<<"] "
+            << "Updating the diagonal block from L" << std::endl << std::endl;
 #endif
-        if(snode.DiagBuf.Size()==0){
-      snode.DiagBuf.Resize(SuperSize( snode.Index, this->super_ ),
-          SuperSize( snode.Index, this->super_ ));
-      SetValue(snode.DiagBuf, ZERO<T>());
-        }
-        Int offset = 0;
-        auto & Urow = this->U( LBi( snode.Index, this->grid_ ) );
+          if(snode.DiagBuf.Size()==0){
+            snode.DiagBuf.Resize(SuperSize( snode.Index, this->super_ ),
+                SuperSize( snode.Index, this->super_ ));
+            SetValue(snode.DiagBuf, ZERO<T>());
+          }
+          Int offset = 0;
+          auto & Urow = this->U( LBi( snode.Index, this->grid_ ) );
 
 #if ( _DEBUGlevel_ >= 2 )
-        for( Int jb = 0; jb < Urow.size(); jb++ ){
-          auto & UB = Urow[jb];
-          statusOFS<<"["<<snode.Index<<"] D: U: "<<UB.nzval<<std::endl;
-        }
-        statusOFS<<"["<<snode.Index<<"] D: L^T S-T: "<<snode.LUpdateBuf<<std::endl;
+          for( Int jb = 0; jb < Urow.size(); jb++ ){
+            auto & UB = Urow[jb];
+            statusOFS<<"["<<snode.Index<<"] D: U: "<<UB.nzval<<std::endl;
+          }
+          statusOFS<<"["<<snode.Index<<"] D: L^T S-T: "<<snode.LUpdateBuf<<std::endl;
 #endif
 
-        for( Int jb = 0; jb < Urow.size(); jb++ ){
-          auto & UB = Urow[jb];
+          for( Int jb = 0; jb < Urow.size(); jb++ ){
+            auto & UB = Urow[jb];
 
-          //Compute (L^T S-T) . U^T
-          blas::Gemm( 'N', 'T', snode.DiagBuf.m(), snode.DiagBuf.n(), 
-              UB.numCol, MINUS_ONE<T>(),
-              &snode.LUpdateBuf( 0, offset ), snode.LUpdateBuf.m(),
-              UB.nzval.Data(), UB.nzval.m(), 
-              ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
-          //advance in LUpdateBuf
-          offset+= UB.numCol;
-        }
+            //Compute (L^T S-T) . U^T
+            blas::Gemm( 'N', 'T', snode.DiagBuf.m(), snode.DiagBuf.n(), 
+                UB.numCol, MINUS_ONE<T>(),
+                &snode.LUpdateBuf( 0, offset ), snode.LUpdateBuf.m(),
+                UB.nzval.Data(), UB.nzval.m(), 
+                ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
+            //advance in LUpdateBuf
+            offset+= UB.numCol;
+          }
 #if ( _DEBUGlevel_ >= 2 )
-        statusOFS<<"["<<snode.Index<<"] D: DiagBuf: "<<snode.DiagBuf<<std::endl;
+          statusOFS<<"["<<snode.Index<<"] D: DiagBuf: "<<snode.DiagBuf<<std::endl;
 #endif
-      }
-      else if(updateFromU && fromU){
-        assert(MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) );
+        }
+        else if(updateFromU && fromU){
+          assert(MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) );
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<snode.Index<<"] "
-          << "Updating the diagonal block from U" << std::endl << std::endl;
+          statusOFS << std::endl << "["<<snode.Index<<"] "
+            << "Updating the diagonal block from U" << std::endl << std::endl;
 #endif
-            if(snode.DiagBuf.Size()==0){
-      snode.DiagBuf.Resize(SuperSize( snode.Index, this->super_ ),
-          SuperSize( snode.Index, this->super_ ));
-      SetValue(snode.DiagBuf, ZERO<T>());
-            }
-        Int offset = 0;
-        auto & Lcol = this->L( LBj( snode.Index, this->grid_ ) );
-        // Do I own the diagonal block ?
-        Int startIb = (MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ))?1:0;
+          if(snode.DiagBuf.Size()==0){
+            snode.DiagBuf.Resize(SuperSize( snode.Index, this->super_ ),
+                SuperSize( snode.Index, this->super_ ));
+            SetValue(snode.DiagBuf, ZERO<T>());
+          }
+          Int offset = 0;
+          auto & Lcol = this->L( LBj( snode.Index, this->grid_ ) );
+          // Do I own the diagonal block ?
+          Int startIb = (MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ))?1:0;
 
 #if ( _DEBUGlevel_ >= 2 )
-        statusOFS<<"["<<snode.Index<<"] D: S-T U^T: "<<snode.UUpdateBuf<<std::endl;
-        for( Int ib = startIb; ib < Lcol.size(); ib++ ){
-          auto & LB = Lcol[ib];
-          statusOFS<<"["<<snode.Index<<"] D: L: "<<LB.nzval<<std::endl;
-        }
+          statusOFS<<"["<<snode.Index<<"] D: S-T U^T: "<<snode.UUpdateBuf<<std::endl;
+          for( Int ib = startIb; ib < Lcol.size(); ib++ ){
+            auto & LB = Lcol[ib];
+            statusOFS<<"["<<snode.Index<<"] D: L: "<<LB.nzval<<std::endl;
+          }
 #endif
 
-        for( Int ib = startIb; ib < Lcol.size(); ib++ ){
-          auto & LB = Lcol[ib];
+          for( Int ib = startIb; ib < Lcol.size(); ib++ ){
+            auto & LB = Lcol[ib];
 
-          //Compute L^T . ( S-T U^T )
-          blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), 
-              LB.numRow, MINUS_ONE<T>(),
-              LB.nzval.Data(), LB.nzval.m(), 
-              &snode.UUpdateBuf( offset, 0 ),
-              snode.UUpdateBuf.m(),
-              ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
-          //advance in UUpdateBuf
-          offset+= LB.numRow;
+            //Compute L^T . ( S-T U^T )
+            blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), 
+                LB.numRow, MINUS_ONE<T>(),
+                LB.nzval.Data(), LB.nzval.m(), 
+                &snode.UUpdateBuf( offset, 0 ),
+                snode.UUpdateBuf.m(),
+                ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
+            //advance in UUpdateBuf
+            offset+= LB.numRow;
 
-        }
+          }
 #if ( _DEBUGlevel_ >= 2 )
-        statusOFS<<"["<<snode.Index<<"] D: DiagBuf: "<<snode.DiagBuf<<std::endl;
+          statusOFS<<"["<<snode.Index<<"] D: DiagBuf: "<<snode.DiagBuf<<std::endl;
 #endif
 
+        }
+        TIMER_STOP(ComputeDiagUpdate);
+
+        //send the data
+        if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
+          snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+          SetValue(snode.DiagBuf, ZERO<T>());
+        }
+
+        if(!redDTree->IsAllocated()){
+          redDTree->AllocRecvBuffers();
+        }
+
+        //set the buffer and mark as active
+        redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+        redDTree->SetDataReady(true);
+        redDTree->Progress();
+
+
+        TIMER_STOP(Update_Diagonal);
       }
-
-      TIMER_STOP(ComputeDiagUpdate);
     } // End of method PMatrixUnsym<T>::ComputeDiagUpdate_New 
 
   template<typename T>
