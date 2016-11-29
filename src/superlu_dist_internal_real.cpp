@@ -418,7 +418,6 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
   Int nnzLocal = -1;
 #if 0
   if(options.Transpose == 1  || options.Symmetric == 1 ){
-#endif
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
 
@@ -432,9 +431,9 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
         colindLocal );
     std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
         nzvalLocal );
-#if 0
   }
   else{
+#endif
     DistSparseMatrix<Real> sparseB;
     CSCToCSR(sparseA,sparseB);
 
@@ -451,6 +450,7 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
         colindLocal );
     std::copy( sparseB.nzvalLocal.Data(), sparseB.nzvalLocal.Data() + sparseB.nzvalLocal.m(),
         (double*)nzvalLocal );
+#if 0
   }
 #endif
 

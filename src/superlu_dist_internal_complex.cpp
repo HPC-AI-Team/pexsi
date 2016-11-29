@@ -433,7 +433,6 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
   Int nnzLocal = -1;
 #if 0
   if(options.Transpose == 1 || options.Symmetric == 1 ){
-#endif
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
 
@@ -448,9 +447,9 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
     std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
         (Complex*)nzvalLocal );
 
-#if 0
   }
   else{
+#endif
     DistSparseMatrix<Complex> sparseB;
     CSCToCSR(sparseA,sparseB);
 
@@ -467,6 +466,7 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
         colindLocal );
     std::copy( sparseB.nzvalLocal.Data(), sparseB.nzvalLocal.Data() + sparseB.nzvalLocal.m(),
         (Complex*)nzvalLocal );
+#if 0
   }
 #endif
 

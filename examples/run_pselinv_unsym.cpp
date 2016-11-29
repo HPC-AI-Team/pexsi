@@ -772,6 +772,12 @@ int main(int argc, char **argv)
 
 
             DistSparseMatrix<MYSCALAR> * Aptr;
+#ifndef OLD_SELINV
+//            Aptr = new DistSparseMatrix<MYSCALAR>();
+            //compute the transpose
+//            CSCToCSR(AMat,*Aptr);
+            Aptr = &AMat;
+#else
             if(factOpt.Symmetric==0 && 0){//&& factOpt.Transpose==0){
               Aptr = new DistSparseMatrix<MYSCALAR>();
               //compute the transpose
@@ -780,21 +786,19 @@ int main(int argc, char **argv)
             else{
               Aptr = &AMat;
             }
-
+#endif
             GetTime( timeSta );
             pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
-
-
-
             GetTime( timeEnd );
 
 #ifndef OLD_SELINV
-            DistSparseMatrix<MYSCALAR> AinvT;
-              CSCToCSR(Ainv,AinvT);
-
+            //DistSparseMatrix<MYSCALAR> AinvT;
+            //  CSCToCSR(Ainv,AinvT);
             traceLocal = ZERO<MYSCALAR>();
-            traceLocal = blas::Dotu( Aptr->nnzLocal, AinvT.nzvalLocal.Data(), 1,
+            traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
                 Aptr->nzvalLocal.Data(), 1 );
+//            traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
+//                Aptr->nzvalLocal.Data(), 1 );
 
 #else
             traceLocal = ZERO<MYSCALAR>();
@@ -802,9 +806,11 @@ int main(int argc, char **argv)
                 Aptr->nzvalLocal.Data(), 1 );
 #endif
 
+#ifdef OLD_SELINV
             if(factOpt.Symmetric==0 && 0){//factOpt.Transpose==0){
               delete Aptr;
             }
+#endif
 
 
             if( mpirank == 0 )
@@ -842,7 +848,7 @@ int main(int argc, char **argv)
               NumVec<MYSCALAR> diagDistSparse;
               GetTime( timeSta );
 #ifndef OLD_SELINV
-              GetDiagonal( AinvT, diagDistSparse );
+              GetDiagonal( Ainv, diagDistSparse );
 #else
               GetDiagonal( Ainv, diagDistSparse );
 #endif
