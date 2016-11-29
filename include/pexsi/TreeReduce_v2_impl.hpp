@@ -1,11 +1,15 @@
 #ifndef _PEXSI_REDUCE_TREE_IMPL_V2_HPP_
 #define _PEXSI_REDUCE_TREE_IMPL_V2_HPP_
+
+#define _SELINV_TAG_COUNT_ 17
+
 namespace PEXSI{
   template<typename T>
     TreeReduce_v2<T>::TreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeBcast_v2<T>(pComm,ranks,rank_cnt,msgSize){
       this->sendDataPtrs_.assign(1,NULL);
       this->sendRequests_.assign(1,MPI_REQUEST_NULL);
       this->isAllocated_=false;
+      this->isBufferSet_=false;
     }
 
 
@@ -32,6 +36,7 @@ namespace PEXSI{
       this->sendDataPtrs_.assign(1,NULL);
       this->sendRequests_.assign(1,MPI_REQUEST_NULL);
       this->isAllocated_= Tree.isAllocated_;
+      this->isBufferSet_= Tree.isBufferSet_;
 
       this->cleanupBuffers();
     }
@@ -43,8 +48,23 @@ namespace PEXSI{
       if(this->GetDestCount()>this->recvPostedCount_){
         for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
           Int iProc = this->myDests_[idxRecv];
-          MPI_Irecv( (char*)this->recvDataPtrs_[idxRecv], this->msgSize_, this->type_, 
+          int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[idxRecv], this->msgSize_, this->type_, 
               iProc, this->tag_,this->comm_, &this->recvRequests_[idxRecv] );
+#ifdef CHECK_MPI_ERROR
+          if(error_code!=MPI_SUCCESS){
+            char error_string[BUFSIZ];
+            int length_of_error_string, error_class;
+
+            MPI_Error_class(error_code, &error_class);
+            MPI_Error_string(error_class, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            MPI_Error_string(error_code, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            gdb_lock();
+          }
+#endif
+
+
           this->recvPostedCount_++;
         } // for (iProc)
       }
@@ -56,7 +76,39 @@ namespace PEXSI{
   template<typename T>
     inline void TreeReduce_v2<T>::reduce( Int idxRecv, Int idReq){
       //add thing to my data
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+      {
+        statusOFS<<"[tag="<<this->tag_<<"] "<<"Contribution received:"<<std::endl;
+        for(Int i = 0; i<this->msgSize_;i++){
+          statusOFS<<this->recvDataPtrs_[idxRecv][i]<<" ";
+          if(i%10==0){statusOFS<<std::endl;}
+        }
+        statusOFS<<std::endl;
+      }
+#endif
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+      {
+        statusOFS<<"[tag="<<this->tag_<<"] "<<"Reduced before:"<<std::endl;
+        for(Int i = 0; i<this->msgSize_;i++){
+          statusOFS<<this->sendDataPtrs_[0][i]<<" ";
+          if(i%10==0){statusOFS<<std::endl;}
+        }
+        statusOFS<<std::endl;
+      }
+#endif
+
       blas::Axpy(this->msgSize_, ONE<T>(), this->recvDataPtrs_[idxRecv], 1, this->sendDataPtrs_[0], 1 );
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+      {
+        statusOFS<<"[tag="<<this->tag_<<"] "<<"Reduced after:"<<std::endl;
+        for(Int i = 0; i<this->msgSize_;i++){
+          statusOFS<<this->sendDataPtrs_[0][i]<<" ";
+          if(i%10==0){statusOFS<<std::endl;}
+        }
+        statusOFS<<std::endl;
+      }
+#endif
+
     }
 
   template<typename T>
@@ -72,8 +124,23 @@ namespace PEXSI{
 
           int msgsz = this->sendDataPtrs_[0]==NULL?0:this->msgSize_;
 
-          MPI_Isend((char*)this->sendDataPtrs_[0], msgsz, this->type_, 
+          int error_code = MPI_Isend((char*)this->sendDataPtrs_[0], msgsz, this->type_, 
               iProc, this->tag_,this->comm_, &this->sendRequests_[0] );
+#ifdef CHECK_MPI_ERROR
+          if(error_code!=MPI_SUCCESS){
+            char error_string[BUFSIZ];
+            int length_of_error_string, error_class;
+
+            MPI_Error_class(error_code, &error_class);
+            MPI_Error_string(error_class, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            MPI_Error_string(error_code, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            gdb_lock();
+          }
+#endif
+
+
           this->sendPostedCount_++;
 #ifdef COMM_PROFILE
           PROFILE_COMM(this->myGRank_,this->myGRoot_,this->tag_,msgsz);
@@ -100,7 +167,35 @@ namespace PEXSI{
           int reqCnt = this->recvRequests_.size();//this->recvPostedCount_-this->recvCount_;//GetDestCount();
 //          assert(reqCnt <= this->recvRequests_.size());
 
-          MPI_Testsome(reqCnt,&this->recvRequests_[0],&recvCount,&this->recvDoneIdx_[0],&this->recvStatuses_[0]);
+          int error_code = MPI_Testsome(reqCnt,&this->recvRequests_[0],&recvCount,&this->recvDoneIdx_[0],&this->recvStatuses_[0]);
+
+#ifdef CHECK_MPI_ERROR
+          if(error_code!=MPI_SUCCESS){
+            char error_string[BUFSIZ];
+            int length_of_error_string, error_class;
+
+            MPI_Error_class(error_code, &error_class);
+            MPI_Error_string(error_class, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            MPI_Error_string(error_code, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+
+            //now check the status
+            for(int i = 0; i<this->recvStatuses_.size();i++){
+              error_code = this->recvStatuses_[i].MPI_ERROR;
+              if(error_code != MPI_SUCCESS){
+                MPI_Error_class(error_code, &error_class);
+                MPI_Error_string(error_class, error_string, &length_of_error_string);
+                statusOFS<<error_string<<std::endl;
+                MPI_Error_string(error_code, error_string, &length_of_error_string);
+                statusOFS<<error_string<<std::endl;
+              }
+            }
+            gdb_lock();
+          }
+#endif
+
+
           //if something has been received, accumulate and potentially forward it
           for(Int i = 0;i<recvCount;++i ){
             Int idx = this->recvDoneIdx_[i];
@@ -154,6 +249,7 @@ namespace PEXSI{
   template< typename T> 
     inline bool TreeReduce_v2<T>::Progress(){
 
+
       bool retVal = false;
       if(this->done_){
         retVal = true;
@@ -167,9 +263,10 @@ namespace PEXSI{
         if(this->isAllocated_){
           if(this->myRank_==this->myRoot_ && this->isAllocated_){
             this->isReady_=true;
+            this->isBufferSet_=true;
           }
 
-          if(this->isReady_){
+          if(this->isReady_ && this->isBufferSet_){
             if(this->IsDataReceived()){
 
               //free the unnecessary arrays
@@ -213,16 +310,88 @@ namespace PEXSI{
           Int nelem = this->msgSize_;
           std::fill(this->sendDataPtrs_[0],this->sendDataPtrs_[0]+nelem,ZERO<T>());
         }
-        blas::Axpy(this->msgSize_, ONE<T>(), locBuffer, 1, this->sendDataPtrs_[0], 1 );
+        if(!this->isBufferSet_){
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+      {
+        statusOFS<<"[tag="<<this->tag_<<"] "<<"Buffer before:"<<std::endl;
+        for(Int i = 0; i<this->msgSize_;i++){
+          statusOFS<<this->sendDataPtrs_[0][i]<<" ";
+          if(i%10==0){statusOFS<<std::endl;}
+        }
+        statusOFS<<std::endl;
+      }
+#endif
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+      {
+        statusOFS<<"[tag="<<this->tag_<<"] "<<"External buffer:"<<std::endl;
+        for(Int i = 0; i<this->msgSize_;i++){
+          statusOFS<<locBuffer[i]<<" ";
+          if(i%10==0){statusOFS<<std::endl;}
+        }
+        statusOFS<<std::endl;
+      }
+#endif
+
+
+          blas::Axpy(this->msgSize_, ONE<T>(), locBuffer, 1, this->sendDataPtrs_[0], 1 );
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+      {
+        statusOFS<<"[tag="<<this->tag_<<"] "<<"Buffer after:"<<std::endl;
+        for(Int i = 0; i<this->msgSize_;i++){
+          statusOFS<<this->sendDataPtrs_[0][i]<<" ";
+          if(i%10==0){statusOFS<<std::endl;}
+        }
+        statusOFS<<std::endl;
+      }
+#endif
+
+
+        }
+
+        this->isBufferSet_= true;
       }
       else{
 
         if(this->sendDataPtrs_[0]!=NULL && this->sendDataPtrs_[0]!=locBuffer){
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+      {
+        statusOFS<<"[tag="<<this->tag_<<"] "<<"ROOT Buffer before:"<<std::endl;
+        for(Int i = 0; i<this->msgSize_;i++){
+          statusOFS<<this->sendDataPtrs_[0][i]<<" ";
+          if(i%10==0){statusOFS<<std::endl;}
+        }
+        statusOFS<<std::endl;
+      }
+#endif
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+      {
+        statusOFS<<"[tag="<<this->tag_<<"] "<<"ROOT External buffer:"<<std::endl;
+        for(Int i = 0; i<this->msgSize_;i++){
+          statusOFS<<locBuffer[i]<<" ";
+          if(i%10==0){statusOFS<<std::endl;}
+        }
+        statusOFS<<std::endl;
+      }
+#endif
+
+
           blas::Axpy(this->msgSize_, ONE<T>(), this->sendDataPtrs_[0], 1, locBuffer, 1 );
           this->sendTempBuffer_.clear(); 
+          this->sendDataPtrs_[0] = locBuffer;
+#if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
+      {
+        statusOFS<<"[tag="<<this->tag_<<"] "<<"ROOT Buffer after:"<<std::endl;
+        for(Int i = 0; i<this->msgSize_;i++){
+          statusOFS<<this->sendDataPtrs_[0][i]<<" ";
+          if(i%10==0){statusOFS<<std::endl;}
+        }
+        statusOFS<<std::endl;
+      }
+#endif
+
+
         }
 
-        this->sendDataPtrs_[0] = locBuffer;
       }
     }
 
@@ -248,6 +417,7 @@ namespace PEXSI{
     inline void TreeReduce_v2<T>::Reset(){
       TreeBcast_v2<T>::Reset();
       this->isAllocated_=false;
+      this->isBufferSet_=false;
     }
 
   template< typename T> 
@@ -270,7 +440,37 @@ namespace PEXSI{
           int flag = 0;
 
           this->sendDoneIdx_.resize(destCount);
+
+
+#ifndef CHECK_MPI_ERROR
           MPI_Testsome(destCount,this->sendRequests_.data(),&completed,this->sendDoneIdx_.data(),MPI_STATUSES_IGNORE);
+#else
+          this->sendStatuses_.resize(destCount);
+          int error_code = MPI_Testsome(destCount,this->sendRequests_.data(),&completed,this->sendDoneIdx_.data(),this->sendStatuses_.data());
+          if(error_code!=MPI_SUCCESS){
+            char error_string[BUFSIZ];
+            int length_of_error_string, error_class;
+
+            MPI_Error_class(error_code, &error_class);
+            MPI_Error_string(error_class, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            MPI_Error_string(error_code, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+
+            //now check the status
+            for(int i = 0; i<this->sendStatuses_.size();i++){
+              error_code = this->sendStatuses_[i].MPI_ERROR;
+              if(error_code != MPI_SUCCESS){
+                MPI_Error_class(error_code, &error_class);
+                MPI_Error_string(error_class, error_string, &length_of_error_string);
+                statusOFS<<error_string<<std::endl;
+                MPI_Error_string(error_code, error_string, &length_of_error_string);
+                statusOFS<<error_string<<std::endl;
+              }
+            }
+            gdb_lock();
+          }
+#endif
         }
         this->sendCount_ += completed;
         retVal = this->sendCount_ == this->sendPostedCount_;
@@ -301,13 +501,13 @@ namespace PEXSI{
 
       if(nprocs<=FTREE_LIMIT){
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-        statusOFS<<"FLAT TREE USED"<<endl;
+        statusOFS<<"FLAT TREE USED"<<std::endl;
 #endif
         return new FTreeReduce_v2<T>(pComm,ranks,rank_cnt,msgSize);
       }
       else{
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-        statusOFS<<"BINARY TREE USED"<<endl;
+        statusOFS<<"BINARY TREE USED"<<std::endl;
 #endif
         return new ModBTreeReduce_v2<T>(pComm,ranks,rank_cnt,msgSize, rseed);
       }
@@ -350,8 +550,23 @@ template< typename T>
   inline void FTreeReduce_v2<T>::postRecv()
   {
     if(this->isAllocated_ && this->GetDestCount()>this->recvPostedCount_){
-      MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_, 
+      int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_, 
           MPI_ANY_SOURCE, this->tag_,this->comm_, &this->recvRequests_[0] );
+#ifdef CHECK_MPI_ERROR
+          if(error_code!=MPI_SUCCESS){
+            char error_string[BUFSIZ];
+            int length_of_error_string, error_class;
+
+            MPI_Error_class(error_code, &error_class);
+            MPI_Error_string(error_class, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            MPI_Error_string(error_code, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            gdb_lock();
+          }
+#endif
+
+
       this->recvPostedCount_++;
     }
   }
@@ -387,10 +602,11 @@ template< typename T>
 
             if(this->isAllocated_){
               if(this->myRank_==this->myRoot_ && this->isAllocated_){
+                this->isBufferSet_=true;
                 this->isReady_=true;
               }
 
-              if(this->isReady_){
+              if(this->isReady_ && this->isBufferSet_){
                 if(this->IsDataReceived()){
 
 
@@ -648,6 +864,98 @@ template< typename T>
 #endif
   }
 
+
+
+  template< typename T>
+   void TreeReduce_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+      doneIdx.clear();
+      auto all_done = [](const std::vector<bool> & boolvec){
+        return std::all_of(boolvec.begin(), boolvec.end(), [](bool v) { return v; });
+      };
+
+      while(doneIdx.empty() && !all_done(finishedFlags) ){
+        for(int i = 0; i<treeIdx.size(); i++){
+          Int idx = treeIdx[i];
+          auto & curTree = arrTrees[idx];
+          if(curTree!=nullptr){
+            bool done = curTree->Progress();
+            if(done){
+              if(!finishedFlags[i]){
+                doneIdx.push_back(i);
+                finishedFlags[i] = true;
+              }
+            }
+          }
+          else{
+            finishedFlags[i] = true;
+          }
+        }
+      }
+    }
+
+  template< typename T>
+  void TreeReduce_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+      doneIdx.clear();
+      for(int i = 0; i<treeIdx.size(); i++){
+        Int idx = treeIdx[i];
+        auto & curTree = arrTrees[idx];
+        if(curTree!=nullptr){
+          bool done = curTree->Progress();
+          if(done){
+            if(!finishedFlags[i]){
+              doneIdx.push_back(i);
+              finishedFlags[i] = true;
+            }
+          }
+        }
+        else{
+          finishedFlags[i] = true;
+        }
+      }
+    }
+
+
+  template< typename T>
+   void TreeReduce_Waitall(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees){
+     std::list<int> doneIdx;
+     std::vector<bool> finishedFlags(treeIdx.size(),false);
+     
+      doneIdx.clear();
+      auto all_done = [](const std::vector<bool> & boolvec){
+        return std::all_of(boolvec.begin(), boolvec.end(), [](bool v) { return v; });
+      };
+
+     while(!all_done(finishedFlags) ){
+        for(int i = 0; i<treeIdx.size(); i++){
+          Int idx = treeIdx[i];
+          auto & curTree = arrTrees[idx];
+          if(curTree!=nullptr){
+            bool done = curTree->Progress();
+            if(done){
+              if(!finishedFlags[i]){
+                doneIdx.push_back(i);
+                finishedFlags[i] = true;
+              }
+            }
+          }
+          else{
+            finishedFlags[i] = true;
+          }
+        }
+      }
+    }
+
+  template< typename T>
+  void TreeReduce_ProgressAll(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees){
+
+        for(int i = 0; i<treeIdx.size(); i++){
+          Int idx = treeIdx[i];
+          auto & curTree = arrTrees[idx];
+          if(curTree!=nullptr){
+            bool done = curTree->Progress();
+          }
+        }
+  }
 
 
 

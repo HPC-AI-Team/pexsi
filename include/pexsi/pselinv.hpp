@@ -974,7 +974,7 @@ public:
   /// @param[in]  A Input sparse matrix to provide the sparsity pattern.
   ///
   /// @param[out] B Output sparse matrix.
-  void PMatrixToDistSparseMatrix( 
+  virtual void PMatrixToDistSparseMatrix( 
       const DistSparseMatrix<T>& A,
       DistSparseMatrix<T>& B );
 

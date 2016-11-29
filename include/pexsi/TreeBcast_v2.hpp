@@ -98,6 +98,7 @@ namespace PEXSI{
         void SetMsgSize(Int msgSize){ this->msgSize_ = msgSize;}
         Int GetMsgSize();
         bool IsDone();
+        bool IsReady(){ return this->isReady_;}
 
 
         virtual void SetLocalBuffer(T * locBuffer);

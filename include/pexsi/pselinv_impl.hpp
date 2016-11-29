@@ -39,7 +39,7 @@ Enhancements, then you hereby grant the following license: a non-exclusive,
 royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
- */
+*/
 /// @file pselinv_impl.hpp
 /// @brief Implementation of the parallel SelInv.
 /// @date 2013-08-05
@@ -202,7 +202,7 @@ namespace PEXSI{
         }
       }
 
-//dump comm_profile info
+      //dump comm_profile info
 #if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
       if(commOFS.is_open()){
         commOFS.close();
@@ -372,7 +372,7 @@ namespace PEXSI{
 
   template<typename T>
     PMatrix<T>::PMatrix ( ){
-  }
+    }
 
   template<typename T>
     PMatrix<T>::PMatrix ( 
@@ -435,17 +435,17 @@ namespace PEXSI{
       statusOFS << "mycol   = " << MYCOL(grid_) << std::endl; 
 #endif
 
-//TODO enable this
+      //TODO enable this
       //Get maxTag value and compute the max depth we can use
       //int * pmaxTag;
       int pmaxTag = 4000;
 
-    void *v = NULL;
-    int flag;
-    MPI_Comm_get_attr(grid_->comm, MPI_TAG_UB, &v, &flag);
-    if (flag) {
+      void *v = NULL;
+      int flag;
+      MPI_Comm_get_attr(grid_->comm, MPI_TAG_UB, &v, &flag);
+      if (flag) {
         pmaxTag = *(int*)v;
-    }
+      }
 
 
       maxTag_ = pmaxTag;
@@ -2216,16 +2216,16 @@ namespace PEXSI{
             TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
             if(redLTree != NULL){
               assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
-                TIMER_START(Reduce_Sinv_LT_Isend);
-                //send the data
-                redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-                redLTree->SetDataReady(true);
+              TIMER_START(Reduce_Sinv_LT_Isend);
+              //send the data
+              redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+              redLTree->SetDataReady(true);
 
-                bool done = redLTree->Progress();
+              bool done = redLTree->Progress();
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+              statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
 #endif
-                TIMER_STOP(Reduce_Sinv_LT_Isend);
+              TIMER_STOP(Reduce_Sinv_LT_Isend);
             }
 
             gemmProcessed++;
@@ -2288,7 +2288,7 @@ namespace PEXSI{
                 statusOFS<<"["<<snode.Index<<"] "<<" DONE reduce L"<<std::endl;
 #endif
 
-//if(redLTree->GetTag() == 2344 && MYPROC(grid_)==0){gdb_lock();}
+                //if(redLTree->GetTag() == 2344 && MYPROC(grid_)==0){gdb_lock();}
                 if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
                   //determine the number of rows in LUpdateBufReduced
                   Int numRowLUpdateBuf;
@@ -3189,7 +3189,7 @@ namespace PEXSI{
               TreeReduce<T> * & redDTree = redToAboveTree_[ksup];
 
 
-            if(redDTree!=NULL){delete redDTree; redDTree=NULL;}
+              if(redDTree!=NULL){delete redDTree; redDTree=NULL;}
               redDTree = TreeReduce<T>::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedSTD[ksup]);
 #ifdef COMM_PROFILE
               redDTree->SetGlobalComm(grid_->comm);
@@ -3462,26 +3462,26 @@ namespace PEXSI{
 #endif
 
       //reset the trees
-        for(int i = 0 ; i< fwdToBelowTree_.size();++i){
-          if(fwdToBelowTree_[i]!=NULL){
-            fwdToBelowTree_[i]->Reset();
-          }
+      for(int i = 0 ; i< fwdToBelowTree_.size();++i){
+        if(fwdToBelowTree_[i]!=NULL){
+          fwdToBelowTree_[i]->Reset();
         }
-        for(int i = 0 ; i< fwdToRightTree_.size();++i){
-          if(fwdToRightTree_[i]!=NULL){
-            fwdToRightTree_[i]->Reset();
-          }
+      }
+      for(int i = 0 ; i< fwdToRightTree_.size();++i){
+        if(fwdToRightTree_[i]!=NULL){
+          fwdToRightTree_[i]->Reset();
         }
-        for(int i = 0 ; i< redToLeftTree_.size();++i){
-          if(redToLeftTree_[i]!=NULL){
-            redToLeftTree_[i]->Reset();
-          }
+      }
+      for(int i = 0 ; i< redToLeftTree_.size();++i){
+        if(redToLeftTree_[i]!=NULL){
+          redToLeftTree_[i]->Reset();
         }
-        for(int i = 0 ; i< redToAboveTree_.size();++i){
-          if(redToAboveTree_[i]!=NULL){
-            redToAboveTree_[i]->Reset();
-          }
+      }
+      for(int i = 0 ; i< redToAboveTree_.size();++i){
+        if(redToAboveTree_[i]!=NULL){
+          redToAboveTree_[i]->Reset();
         }
+      }
 
 
 
@@ -3495,7 +3495,7 @@ namespace PEXSI{
       TIMER_START(SelInv_P2p);
 
 
-statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
+      statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
 
       Int numSuper = this->NumSuper(); 
 
@@ -5039,10 +5039,10 @@ statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
 
 
 
-   template<typename T>
+  template<typename T>
     inline void PMatrix<T>::DumpLU()
     {
-//#if ( _DEBUGlevel_ >= 1 )
+      //#if ( _DEBUGlevel_ >= 1 )
       const IntNumVec& perm    = super_->perm;
       const IntNumVec& permInv = super_->permInv;
 
@@ -5061,22 +5061,105 @@ statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
       const IntNumVec& perm_r    = *pPerm_r;
       const IntNumVec& permInv_r = *pPermInv_r;
 
-statusOFS<<"Col perm is "<<perm<<std::endl;
-statusOFS<<"Row perm is "<<perm_r<<std::endl;
+      statusOFS<<"Col perm is "<<perm<<std::endl;
+      statusOFS<<"Row perm is "<<perm_r<<std::endl;
 
-statusOFS<<"Inv Col perm is "<<permInv<<std::endl;
-statusOFS<<"Inv Row perm is "<<permInv_r<<std::endl;
+      statusOFS<<"Inv Col perm is "<<permInv<<std::endl;
+      statusOFS<<"Inv Row perm is "<<permInv_r<<std::endl;
+
+      statusOFS<<"LUExp = sparse([";
+      for(Int j = 0;j<this->L_.size();++j){
+        std::vector<LBlock<T> >&  Lcol = this->L( j );
+        if(Lcol.size()>0){
+          Int blockColIdx = GBj( j, this->grid_ );
+          Int fc = FirstBlockCol( blockColIdx, this->super_ );
+
+          for( Int ib = 0; ib < Lcol.size(); ib++ ){
+            for(Int ir = 0; ir< Lcol[ib].rows.m(); ++ir){
+              Int row = Lcol[ib].rows[ir];
+              for(Int col = fc; col<fc+Lcol[ib].numCol;col++){
+                Int ocol = permInv_r[permInv[col]];
+                Int orow = permInv[row];
+                Int jloc = col - FirstBlockCol( blockColIdx, this->super_ );
+                Int iloc = ir;
+                statusOFS<<row+1<<" ";
+              }
+            }
+          }
+        }
+      }
+
+      for(Int i = 0;i<this->U_.size();++i){
+        std::vector<UBlock<T> >&  Urow = this->U( i );
+        if(Urow.size()>0){
+          Int blockRowIdx = GBi( i, this->grid_ );
+          Int fr = FirstBlockRow( blockRowIdx, this->super_ );
+          for( Int jb = 0; jb < Urow.size(); jb++ ){
+            for(Int row = fr; row<fr+Urow[jb].numRow;row++){
+              for(Int ic = 0; ic< Urow[jb].cols.m(); ++ic){
+                Int col = Urow[jb].cols[ic];
+                Int ocol = permInv_r[permInv[col]];
+                Int orow = permInv[row];
+                Int iloc = row - FirstBlockRow( blockRowIdx, this->super_ );
+                Int jloc = ic;
+                statusOFS<<row+1<<" ";
+              }
+            }
+          }
+        }
+      } 
+      statusOFS<<"],";//<<std::endl;
+
+      statusOFS<<"[";
+      for(Int j = 0;j<this->L_.size();++j){
+        std::vector<LBlock<T> >&  Lcol = this->L( j );
+        if(Lcol.size()>0){
+          Int blockColIdx = GBj( j, this->grid_ );
+          Int fc = FirstBlockCol( blockColIdx, this->super_ );
+
+          for( Int ib = 0; ib < Lcol.size(); ib++ ){
+            for(Int ir = 0; ir< Lcol[ib].rows.m(); ++ir){
+              Int row = Lcol[ib].rows[ir];
+              for(Int col = fc; col<fc+Lcol[ib].numCol;col++){
+                Int ocol = permInv_r[permInv[col]];
+                Int orow = permInv[row];
+                Int jloc = col - FirstBlockCol( blockColIdx, this->super_ );
+                Int iloc = ir;
+                statusOFS<<col+1<<" ";
+              }
+            }
+          }
+        }
+      }
+
+      for(Int i = 0;i<this->U_.size();++i){
+        std::vector<UBlock<T> >&  Urow = this->U( i );
+        if(Urow.size()>0){
+          Int blockRowIdx = GBi( i, this->grid_ );
+          Int fr = FirstBlockRow( blockRowIdx, this->super_ );
+          for( Int jb = 0; jb < Urow.size(); jb++ ){
+            for(Int row = fr; row<fr+Urow[jb].numRow;row++){
+              for(Int ic = 0; ic< Urow[jb].cols.m(); ++ic){
+                Int col = Urow[jb].cols[ic];
+                Int ocol = permInv_r[permInv[col]];
+                Int orow = permInv[row];
+                Int iloc = row - FirstBlockRow( blockRowIdx, this->super_ );
+                Int jloc = ic;
+                statusOFS<<col+1<<" ";
+              }
+            }
+          }
+        }
+      } 
+      statusOFS<<"],";//<<std::endl;
 
 
-
-
-statusOFS<<"Content of L"<<std::endl;
-//dump L
-      for(Int j = 0;j<this->L_.size()-1;++j){
-          std::vector<LBlock<T> >&  Lcol = this->L( j );
-        Int blockColIdx = GBj( j, this->grid_ );
-        Int fc = FirstBlockCol( blockColIdx, this->super_ );
-
+      statusOFS<<"[";
+      for(Int j = 0;j<this->L_.size();++j){
+        std::vector<LBlock<T> >&  Lcol = this->L( j );
+        if(Lcol.size()>0){
+          Int blockColIdx = GBj( j, this->grid_ );
+          Int fc = FirstBlockCol( blockColIdx, this->super_ );
 
           for( Int ib = 0; ib < Lcol.size(); ib++ ){
             for(Int ir = 0; ir< Lcol[ib].rows.m(); ++ir){
@@ -5087,19 +5170,22 @@ statusOFS<<"Content of L"<<std::endl;
                 Int jloc = col - FirstBlockCol( blockColIdx, this->super_ );
                 Int iloc = ir;
                 T val = Lcol[ib].nzval( iloc, jloc );
-                statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<") = "<<val<< std::endl;
+                //                statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<") = "<<val<< std::endl;
+                statusOFS<<ToMatlabScalar(val)<<" ";
               }
             }
           }
+        }
       }
 
-statusOFS<<"Content of U"<<std::endl;
+      //statusOFS<<"Content of U"<<std::endl;
 
-//dump U
-      for(Int i = 0;i<this->U_.size()-1;++i){
-          std::vector<UBlock<T> >&  Urow = this->U( i );
-        Int blockRowIdx = GBi( i, this->grid_ );
-        Int fr = FirstBlockRow( blockRowIdx, this->super_ );
+      //dump U
+      for(Int i = 0;i<this->U_.size();++i){
+        std::vector<UBlock<T> >&  Urow = this->U( i );
+        if(Urow.size()>0){
+          Int blockRowIdx = GBi( i, this->grid_ );
+          Int fr = FirstBlockRow( blockRowIdx, this->super_ );
           for( Int jb = 0; jb < Urow.size(); jb++ ){
             for(Int row = fr; row<fr+Urow[jb].numRow;row++){
               for(Int ic = 0; ic< Urow[jb].cols.m(); ++ic){
@@ -5109,24 +5195,27 @@ statusOFS<<"Content of U"<<std::endl;
                 Int iloc = row - FirstBlockRow( blockRowIdx, this->super_ );
                 Int jloc = ic;
                 T val = Urow[jb].nzval( iloc, jloc );
-                statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<") = "<<val<< std::endl;
-                
+                //statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<") = "<<val<< std::endl;
+                statusOFS<<ToMatlabScalar(val)<<" ";
+
               }
             }
 
           }
+        }
       }
-//#endif
+      statusOFS<<"]);"<<std::endl;
+      //#endif
 
     }
 
 
-   template<typename T>
+  template<typename T>
     inline void PMatrix<T>::CopyLU( const PMatrix<T> & C){
-        ColBlockIdx_ = C.ColBlockIdx_;
-        RowBlockIdx_ = C.RowBlockIdx_;
-        L_ = C.L_;
-        U_ = C.U_;
+      ColBlockIdx_ = C.ColBlockIdx_;
+      RowBlockIdx_ = C.RowBlockIdx_;
+      L_ = C.L_;
+      U_ = C.U_;
     }
 
 

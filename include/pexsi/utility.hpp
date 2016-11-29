@@ -1659,6 +1659,14 @@ void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Complex>
 
 void ReadDistSparseMatrixFormatted( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm );
 
+template<typename T>
+std::string ToMatlabScalar( T val);
+
+template<typename T>
+std::string ToMatlabScalar( std::complex<T> val);
+
+template<typename T>
+WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & pspmat, MPI_Comm comm);
 
 template <class F1, class F2> 
 void

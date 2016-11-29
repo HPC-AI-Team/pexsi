@@ -666,6 +666,10 @@ int main(int argc, char **argv)
           GetTime( timeSta );
           pLuMat->SymbolicToSuperNode( *pSuper );
 
+          statusOFS<<"superIdx: "<<pSuper->superIdx<<std::endl;
+          statusOFS<<"superPtr: "<<pSuper->superPtr<<std::endl;
+
+
           GetTime( timeTotalSelInvSta );
 
 
@@ -733,7 +737,13 @@ int main(int argc, char **argv)
           if( mpirank == 0 )
             cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
-
+          if(0){
+            pMat->DumpLU();
+            DistSparseMatrix<MYSCALAR> Ainv;
+            pMat->PMatrixToDistSparseMatrix(Ainv );
+            //if( mpirank == 0 )
+            WriteDistSparseMatrixMatlab("AinvDump",Ainv,world_comm);
+          }
 
           if(doToDist){
             // Convert to DistSparseMatrix in the 2nd format and get the diagonal
@@ -753,10 +763,17 @@ int main(int argc, char **argv)
 
             GetTime( timeSta );
             pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
+
+
+
             GetTime( timeEnd );
+            DistSparseMatrix<MYSCALAR> AinvT;
+
+              CSCToCSR(Ainv,AinvT);
+
 
             traceLocal = ZERO<MYSCALAR>();
-            traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
+            traceLocal = blas::Dotu( Aptr->nnzLocal, AinvT.nzvalLocal.Data(), 1,
                 Aptr->nzvalLocal.Data(), 1 );
 
             if(factOpt.Symmetric==0 && 0){//factOpt.Transpose==0){
@@ -798,7 +815,7 @@ int main(int argc, char **argv)
 
               NumVec<MYSCALAR> diagDistSparse;
               GetTime( timeSta );
-              GetDiagonal( Ainv, diagDistSparse );
+              GetDiagonal( AinvT, diagDistSparse );
               GetTime( timeEnd );
               if( mpirank == 0 )
                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;

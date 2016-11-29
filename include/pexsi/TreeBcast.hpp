@@ -2153,13 +2153,13 @@ inline TreeReduce<T> * TreeReduce<T>::Create(const MPI_Comm & pComm, Int * ranks
 
   if(nprocs<=FTREE_LIMIT){
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-    statusOFS<<"FLAT TREE USED"<<endl;
+    statusOFS<<"FLAT TREE USED"<<std::endl;
 #endif
     return new FTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
   }
   else{
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-    statusOFS<<"BINARY TREE USED"<<endl;
+    statusOFS<<"BINARY TREE USED"<<std::endl;
 #endif
     return new ModBTreeReduce<T>(pComm,ranks,rank_cnt,msgSize, rseed);
     //return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);

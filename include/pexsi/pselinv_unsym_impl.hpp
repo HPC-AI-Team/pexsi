@@ -242,7 +242,6 @@ template<typename T>
 
       Int SinvColsSta = FirstBlockCol( jsup, this->super_ );
 
-
       for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
         LBlock<T>& LB = LcolRecv[ib];
         Int isup = LB.blockIdx;
@@ -3179,14 +3178,21 @@ template<typename T>
       std::vector<std::vector<Int> > & superList = this->WorkingSet();
       Int numSteps = superList.size();
 
-      for (Int lidx=0; lidx<numSteps ; lidx++){
-        Int stepSuper = superList[lidx].size(); 
-        this->SelInvIntra_P2p(lidx);
-      }
+      //for (Int lidx=0; lidx<numSteps ; lidx++){
+      //  Int stepSuper = superList[lidx].size(); 
+      //  this->SelInvIntra_P2p(lidx);
+      //}
 
-      for (Int lidx=0; lidx<numSteps ; lidx++){
+      Int rank = 0;
+      for (Int lidx=1; lidx<numSteps ; lidx++){
         Int stepSuper = superList[lidx].size(); 
-        this->SelInvIntra_New(lidx);
+        this->SelInvIntra_New(lidx,rank);
+        //find max snode.Index
+        if(lidx>0 && (rank-1)%this->limIndex_==0){
+          MPI_Barrier(this->grid_->comm);
+        }
+
+
       }
 
       TIMER_STOP(SelInv_P2p);
@@ -3209,6 +3215,9 @@ template<typename T>
   template<typename T> 
     void PMatrixUnsym<T>::PreSelInv	(  )
     {
+#if 1
+      this->PreSelInv_New();
+#else
 
       Int numSuper = this->NumSuper(); 
 
@@ -3424,13 +3433,14 @@ template<typename T>
 
 
       return ;
+#endif
     } 		// -----  end of method PMatrixUnsym::PreSelInv  ----- 
 
 
   template<typename T>
     void PMatrixUnsym<T>::ConstructCommunicationPattern	(  )
     {
-      ConstructCommunicationPattern_P2p();
+      //ConstructCommunicationPattern_P2p();
       ConstructCommunicationPattern_New();
     } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern  ----- 
 
@@ -4421,11 +4431,8 @@ template<typename T>
       TIMER_STOP(GetEtree);
 
 
-      this->bcastLStructTree_.resize(numSuper);
       this->bcastLDataTree_.resize(numSuper);
-      this->bcastUStructTree_.resize(numSuper);
       this->bcastUDataTree_.resize(numSuper);
-      this->bcastUDataTrees_.resize(numSuper);
       this->redLTree2_.resize(numSuper);
       this->redUTree2_.resize(numSuper);
       this->redDTree2_.resize(numSuper);
@@ -4602,8 +4609,11 @@ template<typename T>
       }
 
 
+#if ( _DEBUGlevel_ >= 2 )
       statusOFS<<"structRows"<<std::endl;
-      for(auto&& list: structRows){
+      for(Int ksup = 0; ksup < numSuper; ksup++){
+        auto& list = structRows[ksup];
+        statusOFS<<"["<<ksup<<"] : ";
         for(int prow:list){
           statusOFS<<prow<<" ";
         }
@@ -4611,13 +4621,15 @@ template<typename T>
       }
 
       statusOFS<<"structCols"<<std::endl;
-      for(auto&& list: structCols){
+      for(Int ksup = 0; ksup < numSuper; ksup++){
+        auto& list = structCols[ksup];
+        statusOFS<<"["<<ksup<<"] : ";
         for(int pcol:list){
           statusOFS<<pcol<<" ";
         }
         if(list.size()>0){statusOFS<<std::endl;}
       }
-
+#endif
 
 
 
@@ -4652,8 +4664,10 @@ template<typename T>
       sendSizes.assign(this->grid_->mpisize,0);
       for(Int ksup=0;ksup<structCols.size();ksup++){
         auto& list = structCols[ksup];
-        if(MYPROC(this->grid_)==PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_)){
-          if(list.size()>0){
+        if(MYCOL(this->grid_)==PCOL(ksup,this->grid_)){
+          auto&  Lcol = this->L( LBj(ksup, this->grid_) );
+          Int LSize = Lcol.size() - (MYROW(this->grid_)==PROW(ksup,this->grid_)?1:0);
+          if(list.size()>0 && LSize>0){
             auto & rnkList = rnkLists[ksup];
             rnkList.clear();
             auto & inserted_proc = inserted_procs[ksup];
@@ -4673,13 +4687,10 @@ template<typename T>
               }
             }
 
-            for(Int pcol=0;pcol<this->grid_->numProcCol;pcol++){
-              Int pdest = PNUM(prow,pcol,this->grid_);
-              if(inserted_proc[pdest]){
-                sendSizes[pdest]+=5; //add one for supernode index, one for processor count
-                //one for msgSize, one for msgSizeR, one for random seed
-                sendSizes[pdest]+=rnkList.size();
-              }
+            for(auto pdest: rnkList){
+              sendSizes[pdest]+=5; //add one for supernode index, one for processor count
+              //one for msgSize, one for msgSizeR, one for random seed
+              sendSizes[pdest]+=rnkList.size();
             }
           }
         }
@@ -4693,12 +4704,12 @@ template<typename T>
 
       for(Int ksup=0;ksup<structCols.size();ksup++){
         auto& list = structCols[ksup];
-        if(MYPROC(this->grid_)==PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_)){
-          if(list.size()>0){
+        if(MYCOL(this->grid_)==PCOL(ksup,this->grid_)){
+          auto&  Lcol = this->L( LBj(ksup, this->grid_) );
+          Int LSize = Lcol.size() - (MYROW(this->grid_)==PROW(ksup,this->grid_)?1:0);
+          if(list.size()>0 && LSize>0){
             assert(MYCOL(this->grid_)==PCOL(ksup,this->grid_));
             auto & inserted_proc = inserted_procs[ksup];
-
-
 
             Int msgSize = 0;
             Int numRowL = 0;
@@ -4720,19 +4731,15 @@ template<typename T>
 
             auto & rnkList = rnkLists[ksup];
 
-            Int prow = MYROW(this->grid_);
-            for(Int pcol=0;pcol<this->grid_->numProcCol;pcol++){
-              Int pdest = PNUM(prow,pcol,this->grid_);
-              if(inserted_proc[pdest]){
-                Int & pos = sendDispls[pdest];
-                sendBuf[pos++]=ksup;
-                sendBuf[pos++]=seed;
-                sendBuf[pos++]=msgSize;
-                sendBuf[pos++]=numRowL;
-                sendBuf[pos++]=rnkList.size();
-                for(auto pnum: rnkList){
-                  sendBuf[pos++]=pnum;
-                }
+            for(auto pdest: rnkList){
+              Int & pos = sendDispls[pdest];
+              sendBuf[pos++]=ksup;
+              sendBuf[pos++]=seed;
+              sendBuf[pos++]=msgSize;
+              sendBuf[pos++]=numRowL;
+              sendBuf[pos++]=rnkList.size();
+              for(auto pnum: rnkList){
+                sendBuf[pos++]=pnum;
               }
             }
           }
@@ -4756,8 +4763,6 @@ template<typename T>
       MPI_Alltoallv(sendBuf.data(),sendSizes.data(),sendDispls.data(),type,recvBuf.data(),recvSizes.data(),recvDispls.data(),type,this->grid_->comm);
 
       //Now we can parse the results
-
-
       //unpack the recv buffer
       {
         Int ksup = -1;
@@ -4779,13 +4784,14 @@ template<typename T>
           std::sort(ranks.begin()+1,ranks.end());
 
           double rseed = (double)seed / (double)this->grid_->mpisize;
-          auto & bcastLTree = this->bcastLStructTree_[ksup];
+          auto & bcastLTree = this->bcastLDataTree_[ksup];
           bcastLTree.reset(TreeBcast_v2<char>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSize,rseed));
 #ifdef COMM_PROFILE_BCAST
           bcastLTree->SetGlobalComm(this->grid_->comm);
 #endif
 
           arrNumRowL[ksup] = numRowL;
+
           double rseed2 = (double)seed / (double)this->grid_->mpisize;
           auto & redUTree = this->redUTree2_[ksup];
 
@@ -4796,6 +4802,7 @@ template<typename T>
 
 
 
+#if ( _DEBUGlevel_ >= 2 )
           statusOFS<<"LData & Struct ["<<ksup<<"]"<<" P"
                   <<ranks[0]
                   <<" -|-> {";
@@ -4803,6 +4810,7 @@ template<typename T>
                   statusOFS<<pdest<<" ";
                 }
                 statusOFS<<"}"<<std::endl;
+#endif
 
         }
       }
@@ -4813,8 +4821,10 @@ template<typename T>
       sendSizes.assign(this->grid_->mpisize,0);
       for(Int ksup=0;ksup<structRows.size();ksup++){
         auto& list = structRows[ksup];
-        if(MYPROC(this->grid_)==PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_)){
-          if(list.size()>0){
+        if(MYROW(this->grid_)==PROW(ksup,this->grid_)){
+          auto&  Urow = this->U( LBi(ksup, this->grid_) );
+          Int USize = Urow.size();
+          if(list.size()>0 && USize>0){
             auto & rnkList = rnkLists[ksup];
             rnkList.clear();
             auto & inserted_proc = inserted_procs[ksup];
@@ -4834,13 +4844,11 @@ template<typename T>
               }
             }
 
-            for(Int prow=0;prow<this->grid_->numProcRow;prow++){
-              Int pdest = PNUM(prow,pcol,this->grid_);
-              if(inserted_proc[pdest]){
+
+            for(auto pdest: rnkList){
                 sendSizes[pdest]+=5; //add one for supernode index, one for processor count
                 //one for msgSize, one for msgSizeR, one for random seed
                 sendSizes[pdest]+=rnkList.size();
-              }
             }
           }
         }
@@ -4854,12 +4862,12 @@ template<typename T>
 
       for(Int ksup=0;ksup<structRows.size();ksup++){
         auto& list = structRows[ksup];
-        if(MYPROC(this->grid_)==PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_)){
-          if(list.size()>0){
+        if(MYROW(this->grid_)==PROW(ksup,this->grid_)){
+          auto&  Urow = this->U( LBi(ksup, this->grid_) );
+          Int USize = Urow.size();
+          if(list.size()>0 && USize>0){
             assert(MYROW(this->grid_)==PROW(ksup,this->grid_));
             auto & inserted_proc = inserted_procs[ksup];
-
-
 
             Int msgSize = 0;
             Int numColU = 0;
@@ -4881,19 +4889,15 @@ template<typename T>
 
             auto & rnkList = rnkLists[ksup];
 
-            Int pcol = MYCOL(this->grid_);
-            for(Int prow=0;prow<this->grid_->numProcRow;prow++){
-              Int pdest = PNUM(prow,pcol,this->grid_);
-              if(inserted_proc[pdest]){
-                Int & pos = sendDispls[pdest];
-                sendBuf[pos++]=ksup;
-                sendBuf[pos++]=seed;
-                sendBuf[pos++]=msgSize;
-                sendBuf[pos++]=numColU;
-                sendBuf[pos++]=rnkList.size();
-                for(auto pnum: rnkList){
-                  sendBuf[pos++]=pnum;
-                }
+            for(auto pdest: rnkList){
+              Int & pos = sendDispls[pdest];
+              sendBuf[pos++]=ksup;
+              sendBuf[pos++]=seed;
+              sendBuf[pos++]=msgSize;
+              sendBuf[pos++]=numColU;
+              sendBuf[pos++]=rnkList.size();
+              for(auto pnum: rnkList){
+                sendBuf[pos++]=pnum;
               }
             }
           }
@@ -4938,7 +4942,7 @@ template<typename T>
           std::sort(ranks.begin()+1,ranks.end());
 
           double rseed = (double)seed / (double)this->grid_->mpisize;
-          auto & bcastUTree = this->bcastUStructTree_[ksup];
+          auto & bcastUTree = this->bcastUDataTree_[ksup];
           bcastUTree.reset(TreeBcast_v2<char>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSize,rseed));
 #ifdef COMM_PROFILE_BCAST
           bcastUTree->SetGlobalComm(this->grid_->comm);
@@ -4954,8 +4958,7 @@ template<typename T>
           redLTree->SetGlobalComm(this->grid_->comm);
 #endif
 
-
-
+#if ( _DEBUGlevel_ >= 2 )
           statusOFS<<"UData & Struct ["<<ksup<<"]"<<" P"
                   <<ranks[0]
                   <<" -|-> {";
@@ -4963,19 +4966,20 @@ template<typename T>
                   statusOFS<<pdest<<" ";
                 }
                 statusOFS<<"}"<<std::endl;
-
+#endif
         }
       }
 
       /******************************************************/
 
 
-
+#if ( _DEBUGlevel_ >= 2 )
+      statusOFS<<arrNumRowL<<std::endl;
+      statusOFS<<arrNumColU<<std::endl;
+#endif
 
       /****Create the reduction trees of diagonal blocks*****/
       for(Int ksup=0;ksup<numSuper;ksup++){
-          auto & bcastUTree = this->bcastUStructTree_[ksup];
-          auto & bcastLTree = this->bcastLStructTree_[ksup];
           auto & redLTree = this->redLTree2_[ksup];
           auto & redUTree = this->redUTree2_[ksup];
 
@@ -4983,13 +4987,13 @@ template<typename T>
           Int numColU = arrNumColU[ksup];
 
           if(redLTree != nullptr){
-            assert(numRowL>0 && numColU>0);
-            redLTree->SetMsgSize(numRowL*numColU);
+            assert(numColU>0);
+            redLTree->SetMsgSize( SuperSize(ksup, this->super_) * numColU);
           }
 
           if(redUTree != nullptr){
-            assert(numRowL>0 && numColU>0);
-            redUTree->SetMsgSize(numRowL*numColU);
+            assert(numRowL>0);
+            redUTree->SetMsgSize(numRowL*SuperSize(ksup, this->super_));
           }
       }
 
@@ -4997,15 +5001,21 @@ template<typename T>
       //reset seed
       gen.seed(1);
 
+      //update message size for redLTree and redUTree
       //that's for reduce D
+      //TODO to improve LB, D is updated using U or using L
       for(Int ksup=0;ksup<numSuper;ksup++){
         //Seed
         Int seed = disRank(gen);
 
+        ranks.clear();
+        
+        Int proot = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
         if(ksup%2==0){
           if(MYCOL(this->grid_)==PCOL(ksup,this->grid_)){
             auto & list = structRows[ksup];
-            if(list.size()>0){
+            auto & redUTree = this->redUTree2_[ksup];
+            if(list.size()>0 && (redUTree!=nullptr || MYPROC(this->grid_)==proot)  ){
               auto & inserted_proc = inserted_procs[ksup];
               inserted_proc.assign(this->grid_->mpisize,false);
               auto & rnkList = rnkLists[ksup];
@@ -5013,7 +5023,6 @@ template<typename T>
 
 
               Int pcol = PCOL(ksup,this->grid_);
-              Int proot = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
 
               inserted_proc[proot]=true;
               rnkList.push_back(proot);
@@ -5026,7 +5035,6 @@ template<typename T>
                 }
               }
 
-              ranks.clear();
               ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
               rnkList.clear();
 
@@ -5037,7 +5045,8 @@ template<typename T>
         else{
           if(MYROW(this->grid_)==PROW(ksup,this->grid_)){
             auto & list = structCols[ksup];
-            if(list.size()>0){
+            auto & redLTree = this->redLTree2_[ksup];
+            if(list.size()>0 && (redLTree!=nullptr || MYPROC(this->grid_)==proot)){
               auto & inserted_proc = inserted_procs[ksup];
               inserted_proc.assign(this->grid_->mpisize,false);
               auto & rnkList = rnkLists[ksup];
@@ -5045,7 +5054,6 @@ template<typename T>
 
 
               Int prow = PROW(ksup,this->grid_);
-              Int proot = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
 
               inserted_proc[proot]=true;
               rnkList.push_back(proot);
@@ -5058,14 +5066,12 @@ template<typename T>
                 }
               }
 
-              ranks.clear();
               ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
               rnkList.clear();
 
               std::sort(ranks.begin()+1,ranks.end());
             }
           }
-
         }
 
         if(ranks.size()>0){ 
@@ -5079,957 +5085,17 @@ template<typename T>
           redDTree->SetGlobalComm(this->grid_->comm);
 #endif
 
-          statusOFS<<"redL ["<<ksup<<"]"<<" P"
+#if ( _DEBUGlevel_ >= 2 )
+          statusOFS<<"redD ["<<ksup<<"]"<<" P"
             <<ranks[0]
             <<" -|-> {";
           for(auto&& pdest: ranks){
             statusOFS<<pdest<<" ";
           }
           statusOFS<<"}"<<std::endl;
-        }
-      }
-
-      /******************************************************/
-
-
-
-
-
-
-
-      //update message size for redLTree and redUTree
-
-#if 0
-      /********************* L Data *************************/
-
-      sendSizes.assign(this->grid_->mpisize,0);
-      for(Int ksup=0;ksup<structRows.size();ksup++){
-        auto& list = structRows[ksup];
-        if(list.size()>0){
-          auto & inserted_proc = inserted_procs[ksup];
-          inserted_proc.assign(this->grid_->mpisize,false);
-          auto & rnkList = rnkLists[ksup];
-          rnkList.clear();
-
-          
-          //TODO THERE ARE SEVERAL
-          //find cross diag processor
-          Int pcol = -1;
-          for(auto bnum: list){
-            if(PROW(bnum,this->grid_)==MYROW(this->grid_)){
-              pcol = PCOL(bnum,this->grid_);
-              break;
-            }
-          }
-          if(pcol==-1){
-            continue;
-          }
-
-          Int proot=MYPROC(this->grid_);
-          inserted_proc[proot]=true;
-          rnkList.push_back(proot);
-          for(auto bnum: list){
-            Int prow = PROW(bnum,this->grid_);
-            Int pdest = PNUM(prow,pcol,this->grid_);
-            if(!inserted_proc[pdest]){
-              inserted_proc[pdest]=true;
-              rnkList.push_back(pdest);
-            }
-          }
-
-          for(Int prow=0;prow<this->grid_->numProcRow;prow++){
-            Int pdest = PNUM(prow,pcol,this->grid_);
-            if(inserted_proc[pdest]){
-              sendSizes[pdest]+=4; //add one for supernode index, one for processor count
-                                   //one for msgSize, one for random seed
-              sendSizes[pdest]+=rnkList.size();
-            }
-          }
-        }
-      }
-
-      sendDispls[0]=0;
-      std::partial_sum(sendSizes.begin(),sendSizes.end(),sendDispls.begin()+1);
-
-      //now pack
-      sendBuf.resize(sendDispls.back());
-
-      for(Int ksup=0;ksup<structRows.size();ksup++){
-        auto& list = structRows[ksup];
-        if(list.size()>0){
-          assert(MYCOL(this->grid_)==PCOL(ksup,this->grid_));
-
-          //find cross diag processor
-          Int pcol = -1;
-          for(auto bnum: list){
-            if(PROW(bnum,this->grid_)==MYROW(this->grid_)){
-              pcol = PCOL(bnum,this->grid_);
-              break;
-            }
-          }
-          if(pcol==-1){
-            continue;
-          }
-
-
-
-
-          auto & inserted_proc = inserted_procs[ksup];
-          
-          Int msgSize = 0;
-          auto&  Lcol = this->L( LBj(ksup, this->grid_) );
-          //one integer holding the number of Lblocks
-          msgSize+=sizeof(Int);
-          for( auto && lb : Lcol ){
-            if( lb.blockIdx > ksup ){
-              //three indices + one IntNumVec + one NumMat<T>
-              msgSize+= 3*sizeof(Int);
-              msgSize+= sizeof(Int)+ lb.rows.ByteSize();
-              msgSize+= 2*sizeof(Int)+lb.nzval.ByteSize();
-            }
-          }
-
-          //this is between [0 , P-1]
-          Int seed = disRank(gen);
-
-          auto & rnkList = rnkLists[ksup];
-
-          for(Int prow=0;prow<this->grid_->numProcRow;prow++){
-            Int pdest = PNUM(prow,pcol,this->grid_);
-            if(inserted_proc[pdest]){
-              Int & pos = sendDispls[pdest];
-
-              sendBuf[pos++]=ksup;
-              sendBuf[pos++]=seed;
-              sendBuf[pos++]=msgSize;
-              sendBuf[pos++]=rnkList.size();
-              for(auto pnum: rnkList){
-                sendBuf[pos++]=pnum;
-              }
-            }
-          }
-        }
-      }
-
-      //recompute the displacement
-      sendDispls[0]=0;
-      std::partial_sum(sendSizes.begin(),sendSizes.end(),sendDispls.begin()+1);
-
-      //exchange the sizes
-      MPI_Alltoall(&sendSizes[0],1,MPI_INT,&recvSizes[0],1,MPI_INT,this->grid_->comm);
-
-
-      //compute the displacement
-      recvDispls[0]=0;
-      std::partial_sum(recvSizes.begin(),recvSizes.end(),recvDispls.begin()+1);
-
-      recvBuf.resize(recvDispls.back());
-
-      MPI_Alltoallv(sendBuf.data(),sendSizes.data(),sendDispls.data(),type,recvBuf.data(),recvSizes.data(),recvDispls.data(),type,this->grid_->comm);
-
-      //Now we can parse the results
-
-
-      //unpack the recv buffer
-      {
-        Int ksup = -1;
-        Int seed = -1;
-        Int msgSize = -1;
-        Int rnkCount = -1;
-        auto itRecv = recvBuf.begin();
-        while(itRecv!=recvBuf.end()){
-          ksup = *itRecv++;
-          seed = *itRecv++;
-          msgSize = *itRecv++;
-          rnkCount = *itRecv++;
-          ranks.clear();
-          ranks.insert(ranks.end(),itRecv,itRecv+rnkCount);
-          itRecv+=rnkCount;
-
-          std::sort(ranks.begin()+1,ranks.end());
-
-          double rseed = (double)seed / (double)this->grid_->mpisize;
-          auto & bcastLTree = bcastLDataTree_[ksup];
-          bcastLTree.reset(TreeBcast_v2<char>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSize,rseed));
-#ifdef COMM_PROFILE_BCAST
-          bcastLTree->SetGlobalComm(this->grid_->comm);
-#endif
-          statusOFS<<"LData ["<<ksup<<"]"<<" P"
-                  <<ranks[0]
-                  <<" -|-> {";
-                for(auto&& pdest: ranks){
-                  statusOFS<<pdest<<" ";
-                }
-                statusOFS<<"}"<<std::endl;
-
-        }
-      }
-
-      /******************************************************/
-
-      /********************* U Struct *************************/
-      sendSizes.assign(this->grid_->mpisize,0);
-      for(Int ksup=0;ksup<structCols.size();ksup++){
-        auto& list = structCols[ksup];
-        if(list.size()>0){
-          auto & inserted_proc = inserted_procs[ksup];
-          inserted_proc.assign(this->grid_->mpisize,false);
-          auto & rnkList = rnkLists[ksup];
-          rnkList.clear();
-
-          //find processor
-          Int pcol = -1;
-          for(auto bnum: list){
-            if(PCOL(bnum,this->grid_)==MYCOL(this->grid_)){
-              pcol = PCOL(bnum,this->grid_);
-              break;
-            }
-          }
-          if(pcol==-1){
-            continue;
-          }
-
-
-
-          Int proot=MYPROC(this->grid_);
-          inserted_proc[proot]=true;
-          rnkList.push_back(proot);
-          for(auto bnum: list){
-            Int prow = PROW(bnum,this->grid_);
-            Int pdest = PNUM(prow,pcol,this->grid_);
-            if(!inserted_proc[pdest]){
-              inserted_proc[pdest]=true;
-              rnkList.push_back(pdest);
-            }
-          }
-
-          for(Int prow=0;prow<this->grid_->numProcRow;prow++){
-            Int pdest = PNUM(prow,pcol,this->grid_);
-            if(inserted_proc[pdest]){
-              sendSizes[pdest]+=5; //add one for supernode index, one for processor count
-                                   //one for msgSize, one for msgSizeR, one for random seed
-              sendSizes[pdest]+=rnkList.size();
-            }
-          }
-        }
-      }
-
-      sendDispls[0]=0;
-      std::partial_sum(sendSizes.begin(),sendSizes.end(),sendDispls.begin()+1);
-
-      //now pack
-      sendBuf.resize(sendDispls.back());
-
-      for(Int ksup=0;ksup<structCols.size();ksup++){
-        auto& list = structCols[ksup];
-        if(list.size()>0){
-          assert(MYROW(this->grid_)==PROW(ksup,this->grid_));
-
-
-          //find processor
-          Int pcol = -1;
-          for(auto bnum: list){
-            if(PCOL(bnum,this->grid_)==MYCOL(this->grid_)){
-              pcol = PCOL(bnum,this->grid_);
-              break;
-            }
-          }
-          if(pcol==-1){
-            continue;
-          }
-
-
-
-          auto & inserted_proc = inserted_procs[ksup];
-          Int msgSize = 0;
-          Int msgSizeR = 0;
-          auto&  Urow = this->U( LBi(ksup, this->grid_) );
-          //one integer holding the number of Lblocks
-          msgSize+=sizeof(Int);
-          for( auto && ub : Urow ){
-            if( ub.blockIdx >= ksup ){
-              //three indices + one IntNumVec + one NumMat<T>
-              msgSize+= 3*sizeof(Int);
-              msgSize+= sizeof(Int)+ ub.cols.ByteSize();
-              msgSizeR+= ub.nzval.Size();
-            }
-          }
-
-          //this is between [0 , P-1]
-          Int seed = disRank(gen);
-
-          auto & rnkList = rnkLists[ksup];
-
-          for(Int prow=0;prow<this->grid_->numProcRow;prow++){
-            Int pdest = PNUM(prow,pcol,this->grid_);
-            if(inserted_proc[pdest]){
-              Int & pos = sendDispls[pdest];
-
-              sendBuf[pos++]=ksup;
-              sendBuf[pos++]=seed;
-              sendBuf[pos++]=msgSize;
-              sendBuf[pos++]=msgSizeR;
-              sendBuf[pos++]=rnkList.size();
-              for(auto pnum: rnkList){
-                sendBuf[pos++]=pnum;
-              }
-            }
-          }
-        }
-      }
-
-      //recompute the displacement
-      sendDispls[0]=0;
-      std::partial_sum(sendSizes.begin(),sendSizes.end(),sendDispls.begin()+1);
-
-      //exchange the sizes
-      MPI_Alltoall(&sendSizes[0],1,MPI_INT,&recvSizes[0],1,MPI_INT,this->grid_->comm);
-
-
-      //compute the displacement
-      recvDispls[0]=0;
-      std::partial_sum(recvSizes.begin(),recvSizes.end(),recvDispls.begin()+1);
-
-      recvBuf.resize(recvDispls.back());
-
-      MPI_Alltoallv(sendBuf.data(),sendSizes.data(),sendDispls.data(),type,recvBuf.data(),recvSizes.data(),recvDispls.data(),type,this->grid_->comm);
-
-      //Now we can parse the results
-
-
-      //unpack the recv buffer
-      {
-        Int ksup = -1;
-        Int seed = -1;
-        Int msgSize = -1;
-        Int msgSizeR = -1;
-        Int rnkCount = -1;
-        auto itRecv = recvBuf.begin();
-        while(itRecv!=recvBuf.end()){
-          ksup = *itRecv++;
-          seed = *itRecv++;
-          msgSize = *itRecv++;
-          msgSizeR = *itRecv++;
-          rnkCount = *itRecv++;
-          ranks.clear();
-          ranks.insert(ranks.end(),itRecv,itRecv+rnkCount);
-          itRecv+=rnkCount;
-
-          std::sort(ranks.begin()+1,ranks.end());
-
-          double rseed = (double)seed / (double)this->grid_->mpisize;
-          auto & bcastUTree = this->bcastUStructTree_[ksup];
-          bcastUTree.reset(TreeBcast_v2<char>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSize,rseed));
-#ifdef COMM_PROFILE_BCAST
-          bcastUTree->SetGlobalComm(this->grid_->comm);
-#endif
-
-          double rseed2 = (double)seed / (double)this->grid_->mpisize;
-          auto & redUTree = this->redUTree2_[ksup];
-          redUTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSizeR,rseed2));
-#ifdef COMM_PROFILE_BCAST
-          redUTree->SetGlobalComm(this->grid_->comm);
-#endif
-
-
-          statusOFS<<"UStruct ["<<ksup<<"]"<<" P"
-                  <<ranks[0]
-                  <<" -|-> {";
-                for(auto&& pdest: ranks){
-                  statusOFS<<pdest<<" ";
-                }
-                statusOFS<<"}"<<std::endl;
-
-        }
-      }
-
-      /******************************************************/
-
-      /********************* U Data *************************/
-      sendSizes.assign(this->grid_->mpisize,0);
-      for(Int ksup=0;ksup<structCols.size();ksup++){
-        auto& list = structRows[ksup];
-        auto&  Urow = this->U( LBi(ksup, this->grid_) );
-        if(list.size()>0 && Urow.size()>0){
-          auto & inserted_proc = inserted_procs[ksup];
-          inserted_proc.assign(this->grid_->mpisize,false);
-
-          Int pcol = MYCOL(this->grid_);
-
-          //std::set<Int> cdprocs;
-          //for(auto&& ub: Urow){
-          //  Int prow = PROW(ub.blockIdx,this->grid_);
-          //  cdprocs.insert(prow);
-          //}
-          //statusOFS<<"["<<ksup<<"] CD: { ";for(auto p: cdprocs){statusOFS<<p<<" ";};statusOFS<<"}"<<std::endl;
-
-          //find cross diag processor
-          //Int prow = -1;
-          //for(auto bnum: list){
-          //  if(PCOL(bnum,this->grid_)==MYCOL(this->grid_)){
-          //    prow = PROW(bnum,this->grid_);
-          //    break;
-          //  }
-          //}
-          //if(prow==-1){
-          //  continue;
-          //}
-#if 1
-          {
-            auto & rnkList = rnkLists[ksup];
-            rnkList.clear();
-            Int proot=MYPROC(this->grid_);
-            inserted_proc[proot]=true;
-            rnkList.push_back(proot);
-            for(auto prow: cdprocs){
-              //for(auto&& ub: Urow){
-              //  Int bnum = ub.blockIdx;
-              for(auto bnum: list){
-                Int pcol = PCOL(bnum,this->grid_);
-                Int pdest = PNUM(prow,pcol,this->grid_);
-                if(!inserted_proc[pdest]){
-                  inserted_proc[pdest]=true;
-                  rnkList.push_back(pdest);
-                }
-              }
-            }
-
-            for(auto pdest: rnkList){
-                  sendSizes[pdest]+=4; //add one for supernode index, one for processor count
-                  //one for msgSize, one for random seed
-                  sendSizes[pdest]+=rnkList.size();
-            }
-              //for(Int pcol=0;pcol<this->grid_->numProcCol;pcol++){
-              //  Int pdest = PNUM(prow,pcol,this->grid_);
-              //  if(inserted_proc[pdest]){
-              //    sendSizes[pdest]+=4; //add one for supernode index, one for processor count
-              //    //one for msgSize, one for random seed
-              //    sendSizes[pdest]+=rnkList.size();
-              //  }
-              //}
-          }
-#else
-          rnkLists2[ksup].resize(cdprocs.size());
-          inserted_procs2[ksup].resize(cdprocs.size());
-          Int idx = 0;
-          for(auto prow: cdprocs){
-            auto & rnkList = rnkLists2[ksup][idx];
-            auto & inserted_proc = inserted_procs2[ksup][idx];
-            idx++;
-            inserted_proc.assign(this->grid_->mpisize,false);
-
-            Int proot=MYPROC(this->grid_);
-            inserted_proc[proot]=true;
-            rnkList.push_back(proot);
-            for(auto bnum: list){
-              Int pcol = PCOL(bnum,this->grid_);
-              Int pdest = PNUM(prow,pcol,this->grid_);
-              if(!inserted_proc[pdest]){
-                inserted_proc[pdest]=true;
-                rnkList.push_back(pdest);
-              }
-            }
-
-            for(Int pcol=0;pcol<this->grid_->numProcCol;pcol++){
-              Int pdest = PNUM(prow,pcol,this->grid_);
-              if(inserted_proc[pdest]){
-                sendSizes[pdest]+=4; //add one for supernode index, one for processor count
-                //one for msgSize, one for random seed
-                sendSizes[pdest]+=rnkList.size();
-              }
-            }
-          }
 #endif
         }
       }
-
-
-      sendDispls[0]=0;
-      std::partial_sum(sendSizes.begin(),sendSizes.end(),sendDispls.begin()+1);
-
-      //now pack
-      sendBuf.resize(sendDispls.back());
-
-      for(Int ksup=0;ksup<structCols.size();ksup++){
-        auto& list = structCols[ksup];
-        auto&  Urow = this->U( LBi(ksup, this->grid_) );
-        if(list.size()>0 && Urow.size()>0){
-          assert(MYROW(this->grid_)==PROW(ksup,this->grid_));
-
-          //auto & inserted_proc = inserted_procs[ksup];
-
-          //find cross diag processor
-//          Int prow = -1;
-//          for(auto bnum: list){
-//            if(PCOL(bnum,this->grid_)==MYCOL(this->grid_)){
-//              prow = PROW(bnum,this->grid_);
-//              break;
-//            }
-//          }
-//          if(prow==-1){
-//            continue;
-//          }
-
-          std::set<Int> cdprocs;
-          auto&  Urow = this->U( LBi(ksup, this->grid_) );
-          for(auto&& ub: Urow){
-            Int prow = PROW(ub.blockIdx,this->grid_);
-            cdprocs.insert(prow);
-          }
-          //for(auto bnum: list){
-          //  Int prow = PROW(bnum,this->grid_);
-          //  cdprocs.insert(prow);
-          //}
-          //statusOFS<<"["<<ksup<<"] CD: { ";for(auto p: cdprocs){statusOFS<<p<<" ";};statusOFS<<"}"<<std::endl;
-          
-
-          Int msgSize = 0;
-          //one integer holding the number of Lblocks
-          msgSize+=sizeof(Int);
-          for( auto && ub : Urow ){
-              //three indices + one IntNumVec + one NumMat<T>
-              msgSize+= 3*sizeof(Int);
-              msgSize+= sizeof(Int)+ ub.cols.ByteSize();
-              msgSize+= 2*sizeof(Int)+ub.nzval.ByteSize();
-          }
-
-            statusOFS<<"PATTERN ["<<ksup<<"]"<<"P"<<MYPROC(this->grid_)<<" -> ";
-            statusOFS<<"{"; for(auto && ub: Urow){ statusOFS<<ub.blockIdx<<" "; } statusOFS<<"}";
-            statusOFS<<" vs ";
-            statusOFS<<"{"; for(auto && ub: list){ statusOFS<<ub<<" "; } statusOFS<<"}";
-            statusOFS<<", msgSize="<<msgSize<<std::endl;
-
-          //this is between [0 , P-1]
-          Int seed = disRank(gen);
-
-#if 1
-          {
-            //auto & inserted_proc = inserted_procs[ksup];
-            auto & rnkList = rnkLists[ksup];
-            for(auto pdest: rnkList){
-                  Int & pos = sendDispls[pdest];
-                  sendBuf[pos++]=ksup;
-                  sendBuf[pos++]=seed;
-                  sendBuf[pos++]=msgSize;
-                  sendBuf[pos++]=rnkList.size();
-                  for(auto pnum: rnkList){
-                    sendBuf[pos++]=pnum;
-                  }
-            }
-//            for(auto prow: cdprocs){
-//              for(Int pcol=0;pcol<this->grid_->numProcCol;pcol++){
-//                Int pdest = PNUM(prow,pcol,this->grid_);
-//                if(inserted_proc[pdest]){
-//                  Int & pos = sendDispls[pdest];
-//                  sendBuf[pos++]=ksup;
-//                  sendBuf[pos++]=seed;
-//                  sendBuf[pos++]=msgSize;
-//                  sendBuf[pos++]=rnkList.size();
-//                  for(auto pnum: rnkList){
-//                    sendBuf[pos++]=pnum;
-//                  }
-//                  inserted_proc[pdest]=false;
-//                }
-//              }
-//            }
-          }
-#else
-          //auto & rnkList = rnkLists[ksup];
-          Int idx = 0;
-          for(auto prow: cdprocs){
-            auto & rnkList = rnkLists2[ksup][idx];
-            auto & inserted_proc = inserted_procs2[ksup][idx];
-            idx++;
-            for(Int pcol=0;pcol<this->grid_->numProcCol;pcol++){
-              Int pdest = PNUM(prow,pcol,this->grid_);
-              if(inserted_proc[pdest]){
-                Int & pos = sendDispls[pdest];
-                sendBuf[pos++]=ksup;
-                sendBuf[pos++]=seed;
-                sendBuf[pos++]=msgSize;
-                sendBuf[pos++]=rnkList.size();
-                for(auto pnum: rnkList){
-                  sendBuf[pos++]=pnum;
-                }
-              }
-            }
-          }
-#endif
-        }
-      }
-      assert(sendDispls[this->grid_->mpisize-1]<=sendBuf.size());
-
-
-      //recompute the displacement
-      sendDispls[0]=0;
-      std::partial_sum(sendSizes.begin(),sendSizes.end(),sendDispls.begin()+1);
-
-      //exchange the sizes
-      MPI_Alltoall(&sendSizes[0],1,MPI_INT,&recvSizes[0],1,MPI_INT,this->grid_->comm);
-
-      //compute the displacement
-      recvDispls[0]=0;
-      std::partial_sum(recvSizes.begin(),recvSizes.end(),recvDispls.begin()+1);
-
-
-      recvBuf.resize(recvDispls.back());
-
-
-      MPI_Alltoallv(sendBuf.data(),sendSizes.data(),sendDispls.data(),type,recvBuf.data(),recvSizes.data(),recvDispls.data(),type,this->grid_->comm);
-
-      //Now we can parse the results
-
-      //unpack the recv buffer
-      {
-        Int ksup = -1;
-        Int seed = -1;
-        Int msgSize = -1;
-        Int rnkCount = -1;
-        auto itRecv = recvBuf.begin();
-        while(itRecv!=recvBuf.end()){
-          ksup = *itRecv++;
-          seed = *itRecv++;
-          msgSize = *itRecv++;
-          rnkCount = *itRecv++;
-          ranks.clear();
-          ranks.insert(ranks.end(),itRecv,itRecv+rnkCount);
-          itRecv+=rnkCount;
-
-          std::sort(ranks.begin()+1,ranks.end());
-
-          double rseed = (double)seed / (double)this->grid_->mpisize;
-          //auto & bcastUTree = bcastUDataTree_[ksup];
-
-statusOFS<<"ALIVE1"<<std::endl;
-          bcastUDataTrees_[ksup].push_back(
-              std::unique_ptr<TreeBcast_v2<char> >(
-                TreeBcast_v2<char>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSize,rseed)));
-statusOFS<<"ALIVE3"<<std::endl;
-          auto & bcastUTree = bcastUDataTrees_[ksup].back();
-          //bcastUTree.reset(TreeBcast_v2<char>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSize,rseed));
-#ifdef COMM_PROFILE_BCAST
-          bcastUTree->SetGlobalComm(this->grid_->comm);
-#endif
-
-          statusOFS<<"UData ["<<ksup<<"]"<<" P"
-                  <<ranks[0]
-                  <<" -|("<<bcastUTree->GetMsgSize()<<")-> {";
-                for(auto&& pdest: ranks){
-                  statusOFS<<pdest<<" ";
-                }
-                statusOFS<<"}"<<std::endl;
-        }
-      }
-
-      /******************************************************/
-
-
-      /****Create the reduction trees of diagonal blocks*****/
-
-
-      //reset seed
-      gen.seed(1);
-
-      //that's for reduce D
-      for(Int ksup=0;ksup<structRows.size();ksup++){
-        auto& list = structRows[ksup];
-
-        //Seed
-        Int seed = disRank(gen);
-
-        if(list.size()>0){
-          auto & inserted_proc = inserted_procs[ksup];
-          inserted_proc.assign(this->grid_->mpisize,false);
-          auto & rnkList = rnkLists[ksup];
-          rnkList.clear();
-
-
-          Int pcol = PCOL(ksup,this->grid_);
-          Int proot = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
-
-          inserted_proc[proot]=true;
-          rnkList.push_back(proot);
-          for(auto bnum: list){
-            Int prow = PROW(bnum,this->grid_);
-            Int pdest = PNUM(prow,pcol,this->grid_);
-            if(!inserted_proc[pdest]){
-              inserted_proc[pdest]=true;
-              rnkList.push_back(pdest);
-            }
-          }
-
-          ranks.clear();
-          ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
-          rnkList.clear();
-
-          std::sort(ranks.begin()+1,ranks.end());
-
-          //Create redDTree
-          Int msgSize = SuperSize(ksup, this->super_)*SuperSize(ksup, this->super_);
-
-          double rseed = (double)seed / (double)this->grid_->mpisize;
-          auto & redDTree = this->redDTree2_[ksup];
-          redDTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSize,rseed));
-#ifdef COMM_PROFILE_BCAST
-          redDTree->SetGlobalComm(this->grid_->comm);
-#endif
-
-
-
-          statusOFS<<"redL ["<<ksup<<"]"<<" P"
-                  <<ranks[0]
-                  <<" -|-> {";
-                for(auto&& pdest: ranks){
-                  statusOFS<<pdest<<" ";
-                }
-                statusOFS<<"}"<<std::endl;
-
-        }
-      }
-
-      /******************************************************/
-
-      /*************** Determine the U to L transfers *******/
-      //std::vector<bool> exchangeU(numSuper*numSuper,false);
-      //
-      //[proc][ksup][bnums]
-      std::vector< std::vector<std::list<Int> > >exchangeU(this->grid_->numProcCol);//mpisize);
-
-      for(Int ksup=0;ksup<structCols.size();ksup++){
-        auto& list = structCols[ksup];
-        auto& listRows = structRows[ksup];
-        //if I own the diagonal processor, I have both information
-        if(MYPROC(this->grid_)==PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_)){
-          if(list.size()>0 && listRows.size()>0){
-            //supInserted.assign(this->grid_->mpisize,false);
-           
-            Int prow = PROW(ksup,this->grid_);
-            //bool found = false;
-            auto rowit = listRows.begin();
-            for(auto bnum : list){
-              //advance rowit
-              rowit = std::lower_bound(rowit,listRows.end(),bnum); 
-              if(rowit!=listRows.end()){
-                //Int psrc = PNUM(prow,PCOL(bnum,this->grid_),this->grid_);
-                //Int pdest = PNUM(PROW(bnum,this->grid_),prow,this->grid_);
-                Int psrc = PCOL(bnum,this->grid_);
-                if(psrc!=MYCOL(this->grid_)){
-                  exchangeU[psrc].resize(numSuper);
-                  exchangeU[psrc][ksup].push_back(bnum);
-                }
-
-                //exchangeU[pdest].resize(numSuper);
-                //exchangeU[pdest][ksup].push_back(bnum);
-              }
-            }
-          }
-        }
-      }
-      
-
-      sendSizes.assign(this->grid_->numProcCol,0);
-      sendDispls.assign(this->grid_->numProcCol+1,0);
-      recvSizes.assign(this->grid_->numProcCol,0);
-      recvDispls.assign(this->grid_->numProcCol+1,0);
-
-      //now do the counting
-      std::vector<std::list<Int> > perProcSizes(this->grid_->mpisize);
-      for(Int p=0;p<exchangeU.size();p++){
-        auto & listSup = exchangeU[p];
-        for(Int ksup = 0; ksup<listSup.size(); ksup++){
-          auto & list = listSup[ksup];
-          Int prow = PROW(ksup,this->grid_);
-          if(!list.empty()){
-            statusOFS<<"["<<ksup<<"] P"<<p<<" sends U of : { ";for(auto bnum: list){statusOFS<<bnum<<" ";}statusOFS<<"}"<<std::endl;
-            //one for ksup one for list size 
-            sendSizes[p]+=2;
-            //plus list.size() bnums
-            sendSizes[p]+=list.size();
-          }
-        }
-      } 
-     
-      sendDispls[0]=0;
-      std::partial_sum(sendSizes.begin(),sendSizes.end(),sendDispls.begin()+1);
-      sendBuf.resize(sendDispls.back());
-
-      //now pack
-      for(Int p=0;p<exchangeU.size();p++){
-        auto & listSup = exchangeU[p];
-        auto & pos = sendDispls[p];
-        for(Int ksup = 0; ksup<listSup.size(); ksup++){
-          auto & list = listSup[ksup];
-          if(!list.empty()){
-            //one for ksup one for list size 
-            sendBuf[pos++]=ksup;
-            sendBuf[pos++]=list.size();
-            for(auto bnum: list){
-              sendBuf[pos++]=bnum;
-            }
-          }
-        }
-      }
-      
-      //recompute the displacement
-      sendDispls[0]=0;
-      std::partial_sum(sendSizes.begin(),sendSizes.end(),sendDispls.begin()+1);
-
-      //exchange the sizes
-      MPI_Alltoall(&sendSizes[0],1,MPI_INT,&recvSizes[0],1,MPI_INT,this->grid_->rowComm);
-
-
-      //compute the displacement
-      recvDispls[0]=0;
-      std::partial_sum(recvSizes.begin(),recvSizes.end(),recvDispls.begin()+1);
-
-      recvBuf.resize(recvDispls.back());
-
-
-      MPI_Alltoallv(sendBuf.data(),sendSizes.data(),sendDispls.data(),type,recvBuf.data(),recvSizes.data(),recvDispls.data(),type,this->grid_->rowComm);
-
-
-      //0 or size sent
-      this->isSendToCD_.resize(numSuper);
-      //unpack the recv buffer
-      {
-        Int ksup = -1;
-        Int listSize = -1;
-        auto itRecv = recvBuf.begin();
-        while(itRecv!=recvBuf.end()){
-          ksup = *itRecv++;
-          listSize = *itRecv++;
-          ranks.clear();
-          ranks.insert(ranks.end(),itRecv,itRecv+listSize);
-          itRecv+=listSize;
-
-
-            statusOFS<<"["<<ksup<<"] P"<<MYCOL(this->grid_)<<" ACTUALLY sends U of : { ";for(auto bnum: ranks){statusOFS<<bnum<<" ";}statusOFS<<"}"<<std::endl;
-
-
-            if(MYROW(this->grid_)==PROW(ksup,this->grid_)){
-              //I'm a sender
-              isSendToCD_[ksup].resize(this->grid_->numProcRow,0);
-
-              auto&  Urow = this->U( LBi(ksup, this->grid_) );
-              //{
-              //  auto itub = Urow.begin(); 
-              //  //I may have to send to multiple processors
-
-              //  statusOFS<<"PATTERN ["<<ksup<<"] P"<<MYPROC(this->grid_)<<" -> { ";
-              //  for(auto bnum: ranks){
-              //    while(itub->blockIdx!=bnum){itub++;};
-              //    auto & UB = *itub;
-              //    statusOFS<<UB.blockIdx<<" ";
-              //  }
-              //  statusOFS<<"}"<<std::endl;
-              //}
-
-              auto itub = Urow.begin(); 
-              for(auto bnum: ranks){
-                while(itub->blockIdx!=bnum){itub++;};
-                assert(itub!=Urow.end());
-
-                //Int pdest = PNUM(PROW(bnum,this->grid_),PCOL(ksup,this->grid_),this->grid_)
-                Int pdest = PROW(bnum,this->grid_);
-                if(isSendToCD_[ksup][pdest]==0){
-                  //one Int for the number of block
-                  isSendToCD_[ksup][pdest]+=sizeof(Int);
-                }
-                //add the size of that bnum
-                //ub is
-                auto & ub = *itub;
-                isSendToCD_[ksup][pdest]+= 3*sizeof(Int);
-                isSendToCD_[ksup][pdest]+= sizeof(Int)+ ub.cols.ByteSize();
-                isSendToCD_[ksup][pdest]+= 2*sizeof(Int)+ub.nzval.ByteSize();
-              }
-            }
-        }
-      }
-
-
-      sendSizes.assign(this->grid_->mpisize,0);
-      sendDispls.assign(this->grid_->mpisize+1,0);
-      recvSizes.assign(this->grid_->mpisize,0);
-      recvDispls.assign(this->grid_->mpisize+1,0);
-
-      for(Int ksup=0;ksup<isSendToCD_.size();ksup++){
-        auto & list = isSendToCD_[ksup];
-        for(Int prow = 0; prow<list.size(); prow++){
-          if(list[prow]>0){
-            Int pdest = PNUM(prow,PCOL(ksup,this->grid_),this->grid_);
-            sendSizes[pdest] = 3; //ksup, psrc, size
-          }
-        }
-      }
-
-      sendDispls[0]=0;
-      std::partial_sum(sendSizes.begin(),sendSizes.end(),sendDispls.begin()+1);
-      sendBuf.resize(sendDispls.back());
-
-      //now pack
-      sendSizes.assign(this->grid_->mpisize,0);
-      for(Int ksup=0;ksup<isSendToCD_.size();ksup++){
-        auto & list = isSendToCD_[ksup];
-        for(Int prow = 0; prow<list.size(); prow++){
-          if(list[prow]>0){
-            Int pdest = PNUM(prow,PCOL(ksup,this->grid_),this->grid_);
-            sendBuf[sendDispls[pdest]++] = ksup;
-            sendBuf[sendDispls[pdest]++] = MYCOL(this->grid_);
-            sendBuf[sendDispls[pdest]++] = list[prow];
-          }
-        }
-      }
-
-      sendDispls[0]=0;
-      std::partial_sum(sendSizes.begin(),sendSizes.end(),sendDispls.begin()+1);
-
-      //exchange the sizes
-      MPI_Alltoall(&sendSizes[0],1,MPI_INT,&recvSizes[0],1,MPI_INT,this->grid_->comm);
-
-
-      //compute the displacement
-      recvDispls[0]=0;
-      std::partial_sum(recvSizes.begin(),recvSizes.end(),recvDispls.begin()+1);
-
-      recvBuf.resize(recvDispls.back());
-
-
-      MPI_Alltoallv(sendBuf.data(),sendSizes.data(),sendDispls.data(),type,recvBuf.data(),recvSizes.data(),recvDispls.data(),type,this->grid_->comm);
-
-      //Now we can parse the results
-      //unpack the recv buffer
-
-      //0 or size received
-      this->isRecvFromCD_.resize(numSuper);
-      {
-        Int ksup = -1;
-        Int pcol = -1;
-        Int size = -1;
-        auto itRecv = recvBuf.begin();
-        while(itRecv!=recvBuf.end()){
-          ksup = *itRecv++;
-          pcol = *itRecv++;
-          size = *itRecv++;
-          isRecvFromCD_[ksup].resize(this->grid_->numProcCol,0);
-          isRecvFromCD_[ksup][pcol]=size;
-        }
-      } 
-    for(Int ksup = 0; ksup<isSendToCD_.size(); ksup++){
-       statusOFS<<"S ["<<ksup<<"] : { ";
-        for(auto && size:isSendToCD_[ksup]){
-       statusOFS<<size<<" ";
-        }
-       statusOFS<<"}"<<std::endl;
-     }
-     for(Int ksup = 0; ksup<isRecvFromCD_.size(); ksup++){
-       statusOFS<<"R ["<<ksup<<"] : { ";
-        for(auto && size:isRecvFromCD_[ksup]){
-       statusOFS<<size<<" ";
-        }
-       statusOFS<<"}"<<std::endl;
-     } 
-
-#endif
 
       /******************************************************/
 
@@ -6088,7 +5154,7 @@ statusOFS<<"ALIVE3"<<std::endl;
           // Triangular solve
           for( Int ib = 0; ib < Lcol.size(); ib++ ){
             LBlock<T> & LB = Lcol[ib];
-            if( LB.blockIdx > ksup  && (1 || (LB.numCol>0 && LB.numRow>0))){
+            if( LB.blockIdx > ksup  ){
               blas::Trsm( 'R', 'L', 'N', 'U', LB.numRow, LB.numCol,
                   ONE<T>(), nzvalLDiag.Data(), LB.numCol, 
                   LB.nzval.Data(), LB.numRow );
@@ -6105,7 +5171,6 @@ statusOFS<<"ALIVE3"<<std::endl;
         if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
           // Broadcast the diagonal L block
           NumMat<T> nzvalUDiag;
-          std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, this->grid_ ) );
           if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) ){
             std::vector<LBlock<T> >& Lcol = this->L( LBj( ksup, this->grid_ ) );
             nzvalUDiag = Lcol[0].nzval;
@@ -6122,9 +5187,10 @@ statusOFS<<"ALIVE3"<<std::endl;
               MPI_BYTE, PCOL( ksup, this->grid_ ), this->grid_->rowComm );
 
           // Triangular solve
+          std::vector<UBlock<T> >& Urow = this->U( LBi( ksup, this->grid_ ) );
           for( Int jb = 0; jb < Urow.size(); jb++ ){
             UBlock<T> & UB = Urow[jb];
-            if( UB.blockIdx > ksup && (1||(UB.numCol>0 && UB.numRow>0))){
+            if( UB.blockIdx > ksup ){
               blas::Trsm( 'L', 'U', 'N', 'N', UB.numRow, UB.numCol, 
                   ONE<T>(), nzvalUDiag.Data(), UB.numRow,
                   UB.nzval.Data(), UB.numRow );
@@ -6148,6 +5214,7 @@ statusOFS<<"ALIVE3"<<std::endl;
           LBlock<T> & LB = (this->L( LBj( ksup, this->grid_ ) ))[0];
           lapack::Getri( SuperSize( ksup, this->super_ ), LB.nzval.Data(), 
               SuperSize( ksup, this->super_ ), ipiv.Data() );
+
         } // if I need to invert the diagonal block
       } // for (ksup)
 
@@ -6159,7 +5226,7 @@ statusOFS<<"ALIVE3"<<std::endl;
 
 
   template<typename T>
-    inline void PMatrixUnsym<T>::SelInvIntra_New(Int lidx)
+    inline void PMatrixUnsym<T>::SelInvIntra_New(Int lidx, Int & rank)
     {
       Int numSuper = this->NumSuper(); 
       std::vector<std::vector<Int> > & superList = this->WorkingSet();
@@ -6171,19 +5238,15 @@ statusOFS<<"ALIVE3"<<std::endl;
       //allocate the buffers for this supernode
       std::vector<SuperNodeBufferTypeUnsym> arrSuperNodes(stepSuper);
       for (Int supidx=0; supidx<stepSuper; supidx++){ 
-        arrSuperNodes[supidx].Index = superList[lidx][supidx];  
-
         SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-        auto & bcastLStructTree = bcastLStructTree_[snode.Index];
+        snode.Index = superList[lidx][supidx];  
+        snode.Rank = rank++;
+
         auto & bcastLDataTree = bcastLDataTree_[snode.Index];
-        auto & bcastUStructTree = bcastUStructTree_[snode.Index];
         auto & bcastUDataTree = bcastUDataTree_[snode.Index];
 
-        if(bcastLStructTree!=nullptr && bcastLDataTree!=nullptr){
-          snode.updatesL = true;
-        }
-        if(bcastUStructTree!=nullptr && bcastUDataTree!=nullptr){
-          snode.updatesU = true;
+        if(bcastLDataTree!=nullptr && bcastUDataTree!=nullptr){
+          snode.updatesLU = true;
         }
       }
 
@@ -6195,258 +5258,31 @@ statusOFS<<"ALIVE3"<<std::endl;
       statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
 #endif
 
-#if 0
-#if 0
-      Int numSendUtoCD = 0;
-      Int numRecvUfromCD = 0;
 
-      for (auto && snode : arrSuperNodes){
-        if(MYROW(this->grid_)==PROW(snode.Index,this->grid_)){
-          auto & list = this->isSendToCD_[snode.Index];
-          if(list.size()>0){
-            for(Int prow=0;prow<list.size();prow++){
-              Int size = list[prow];
-              if(size>0){
-                numSendUtoCD++;
-              }
-            }
-          }
-        }
-        if(MYCOL(this->grid_)==PCOL(snode.Index,this->grid_)){
-          auto & list = this->isRecvFromCD_[snode.Index];
-          if(list.size()>0){
-            for(Int pcol=0;pcol<list.size();pcol++){
-              Int size = list[pcol];
-              if(size>0){
-                numRecvUfromCD++;
-              }
-            }
-          }
-        }
-      }
+#define BCAST_LDATA
+#define BCAST_UDATA
+#define REDUCE_L
+#define REDUCE_U
+#define REDUCE_D
+//#define BLOCK_BCAST_LDATA
+//#define BLOCK_BCAST_UDATA
+//#define BLOCK_REDUCE_L
+//#define BLOCK_REDUCE_U
+//#define BLOCK_REDUCE_D
 
-      std::vector<MPI_Request> sendUtoCD(numSendUtoCD,MPI_REQUEST_NULL);
-      std::vector<MPI_Request> recvUfromCD(numRecvUfromCD,MPI_REQUEST_NULL);
-#endif
-      std::vector<std::vector<MPI_Request> >  sendUtoCDReq(stepSuper);
-      std::vector<std::vector<MPI_Request> > recvUfromCDReq(stepSuper);
-      std::vector<std::vector<std::vector<char> > >   sendUtoCDBuf(stepSuper);
-      std::vector<std::vector<std::vector<char> > > recvUfromCDBuf(stepSuper);
-      std::vector<std::vector<std::vector<UBlock<T> > > > recvUfromCDBlocks(stepSuper);
-      Int recvUfromCDCount = 0;
-
-      for (Int supidx = 0; supidx<arrSuperNodes.size();supidx++){
-        auto & snode = arrSuperNodes[supidx];
-        if(MYROW(this->grid_)==PROW(snode.Index,this->grid_)){
-          auto & list = this->isSendToCD_[snode.Index];
-          Int sendCount = std::count_if(list.begin(),list.end(),[](const Int & a){return a>0;});
-          sendUtoCDReq[supidx].reserve(sendCount);
-          sendUtoCDBuf[supidx].reserve(sendCount);
-        }
-        if(MYCOL(this->grid_)==PCOL(snode.Index,this->grid_)){
-          auto & list = this->isRecvFromCD_[snode.Index];
-          Int recvCount = std::count_if(list.begin(),list.end(),[](const Int & a){return a>0;});
-          recvUfromCDReq[supidx].reserve(recvCount);
-          recvUfromCDBuf[supidx].reserve(recvCount);
-          recvUfromCDBlocks[supidx].reserve(recvCount);
-          recvUfromCDCount+=recvCount;
-        }
-      }
-
-      for (Int supidx = 0; supidx<arrSuperNodes.size();supidx++){
-        auto & snode = arrSuperNodes[supidx];
-        if(MYROW(this->grid_)==PROW(snode.Index,this->grid_)){
-          auto & list = this->isSendToCD_[snode.Index];
-          if(list.size()>0){
-            for(Int prow=0;prow<list.size();prow++){
-              Int size = list[prow];
-              if(size>0){
-                Int pdest=PNUM(prow,PCOL(snode.Index,this->grid_),this->grid_);
-                //pack
-
-                TIMER_START(Serialize_UtoCD);
-                std::stringstream sstm;
-                std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
-                auto&  Urow = this->U( LBi( snode.Index, this->grid_ ) );
-
-                //statusOFS<<"SELINV ["<<snode.Index<<"] P"<<MYPROC(this->grid_)<<" -> { ";
-                Int count = 0;
-                for(auto && UB: Urow){
-                  Int cprow = PROW(UB.blockIdx,this->grid_);
-                  if(prow==cprow){
-                    //statusOFS<<UB.blockIdx<<" ";
-                    serialize( UB, sstm, mask );
-                    count++;
-                  }
-                }
-                //statusOFS<<"}"<<std::endl;
-
-                Int sizeSstm = Size(sstm);
-                assert(Size( sstm) +sizeof(Int) == size);
-                sendUtoCDBuf[supidx].push_back(std::vector<char>());
-                auto & buf = sendUtoCDBuf[supidx].back();
-                buf.resize( size );
-                *((Int*)buf.data())=count;
-                sstm.read( buf.data()+sizeof(Int), sizeSstm);
-                TIMER_STOP(Serialize_UtoCD);
-
-                //send data
-                sendUtoCDReq[supidx].push_back(MPI_REQUEST_NULL);
-                statusOFS<<"["<<snode.Index<<"] "<<"P"<<MYPROC(this->grid_)<<" sends U to P"<<pdest<<std::endl;
-                MPI_Isend( (void*)buf.data(), size, MPI_BYTE, pdest,
-                    IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT_CD,this->limIndex_),
-                    this->grid_->comm, &sendUtoCDReq[supidx].back() );
-              }
-            }
-          }
-        }
-
-        if(MYCOL(this->grid_)==PCOL(snode.Index,this->grid_)){
-          auto & list = this->isRecvFromCD_[snode.Index];
-          if(list.size()>0){
-            for(Int pcol=0;pcol<list.size();pcol++){
-              Int size = list[pcol];
-              if(size>0){
-                Int psrc=PNUM(PROW(snode.Index,this->grid_),pcol,this->grid_);
-                //recv data
-
-                recvUfromCDReq[supidx].push_back(MPI_REQUEST_NULL);
-                recvUfromCDBuf[supidx].push_back(std::vector<char>());
-                recvUfromCDBlocks[supidx].push_back(std::vector<UBlock<T> >() );
-                auto & buf = recvUfromCDBuf[supidx].back();
-                buf.resize(size);
-                MPI_Irecv( (void*)buf.data(), size, MPI_BYTE, psrc,
-                    IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT_CD,this->limIndex_),
-                    this->grid_->comm, &recvUfromCDReq[supidx].back() );
-                
-
-                statusOFS<<"["<<snode.Index<<"] "<<"P"<<MYPROC(this->grid_)<<" recv U from P"<<psrc<<std::endl;
-              }
-            }
-          }
-        }
-      }
-
-      //TODO this has to move elsewhere
-      {
-        std::vector<int> reqIdx;
-        while(recvUfromCDCount > 0){
-          for (Int supidx = 0; supidx<arrSuperNodes.size();supidx++){
-            auto & snode = arrSuperNodes[supidx];
-            auto & arrReq = recvUfromCDReq[supidx];
-            int recvCount = 0;
-            reqIdx.resize(arrReq.size());
-            MPI_Testsome(arrReq.size(),arrReq.data(),&recvCount,reqIdx.data(),MPI_STATUSES_IGNORE);
-            for(int idx = 0; idx<recvCount; idx++){
-              if(reqIdx[idx]!=MPI_UNDEFINED){
-                //unpack
-                std::stringstream sstm;
-
-                auto & buf = recvUfromCDBuf[supidx][reqIdx[idx]];
-                auto & blocks = recvUfromCDBlocks[supidx][reqIdx[idx]];
-
-                sstm.write( buf.data(), buf.size() );
-
-
-                // Unpack U data.  
-                Int numUBlock;
-                std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
-                deserialize( numUBlock, sstm, NO_MASK );
-                blocks.resize(numUBlock);
-                for( Int jb = 0; jb < numUBlock; jb++ ){
-                  deserialize( blocks[jb], sstm, mask );
-                }
-                recvUfromCDCount--;
-              }
-            }
-          }
-        }
-      }
-#endif
-
-//#define BCAST_USTRUCT
-//#define BCAST_UDATA
-//#define BCAST_LSTRUCT
-//#define BCAST_LDATA
-
-      //Wait to receive all the sizes for L
       TIMER_START(WaitContentLU);
-      // Receivers (Content)
       for (Int supidx=0; supidx<stepSuper ; supidx++){
         SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 #ifdef BCAST_LDATA
         TIMER_START(Alloc_Buffer_Recv_LrowL);
-        if( MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
-          auto & bcastLData = bcastLDataTree_[snode.Index];
-          if(bcastLData != nullptr){
-            bcastLData->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_LROW_CONTENT,this->limIndex_));
-            bool done = bcastLData->Progress();
-          }
-        } // if I need to receive from up
-        TIMER_STOP(Alloc_Buffer_Recv_LrowL);
-#endif
-
-#ifdef BCAST_LSTRUCT
-        TIMER_START(Alloc_Buffer_Recv_LcolL);
-        if( MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
-          auto & bcastLStruct = bcastLStructTree_[snode.Index];
-          if(bcastLStruct != nullptr){
-            bcastLStruct->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,this->limIndex_));
-            bool done = bcastLStruct->Progress();
-          }
-        } // if I need to receive from left
-        TIMER_STOP(Alloc_Buffer_Recv_LcolL);
-#endif
-
-#ifdef BCAST_USTRUCT
-        TIMER_START(Alloc_Buffer_Recv_UrowL);
-        if( MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
-          auto & bcastUStruct = bcastUStructTree_[snode.Index];
-          if(bcastUStruct != nullptr){
-            bcastUStruct->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,this->limIndex_));
-            bool done = bcastUStruct->Progress();
-          }
-        } // if I need to receive from up
-        TIMER_STOP(Alloc_Buffer_Recv_UrowL);
-#endif
-
-#ifdef BCAST_UDATA
-        TIMER_START(Alloc_Buffer_Recv_UcolL);
-        if( MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
-          auto & bcastUData = bcastUDataTree_[snode.Index];
-          if(bcastUData != nullptr){
-            bcastUData->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_UCOL_CONTENT,this->limIndex_));
-            bool done = bcastUData->Progress();
-          }
-        } // if I need to receive from left
-        TIMER_STOP(Alloc_Buffer_Recv_UcolL);
-#endif
-      }
-
-
-      // Senders
-      for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl <<  "["<<snode.Index<<"] "
-          << "Communication for the Lrow part." << std::endl << std::endl; 
-#endif
-
-
-#ifdef BCAST_LDATA
-        // Communication for the Lrow part.
-        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
-          auto & bcastLData = bcastLDataTree_[snode.Index];
-          if(bcastLData != nullptr){
+        auto & bcastLData = bcastLDataTree_[snode.Index];
+        if(bcastLData != nullptr){
+          if(bcastLData->IsRoot()){
             // Pack the data in Lrow
             TIMER_START(Serialize_LrowL);
             std::stringstream sstm;
             std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-            //std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
-            //std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
-
-            std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, this->grid_) );
-
+            auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
             // All blocks are to be sent down.
             Int startIdx = ( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) )?1:0;
             serialize( (Int)Lcol.size() - startIdx, sstm, NO_MASK );
@@ -6459,138 +5295,51 @@ statusOFS<<"ALIVE3"<<std::endl;
             snode.SizeSstrLrowSend = snode.SstrLrowSend.size();
             TIMER_STOP(Serialize_LrowL);
 
-
             assert(bcastLData->GetMsgSize()==snode.SizeSstrLrowSend);
-            bcastLData->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_LROW_CONTENT,this->limIndex_));
             bcastLData->SetLocalBuffer(&snode.SstrLrowSend[0]);
             bcastLData->SetDataReady(true);
-            bool done = bcastLData->Progress();
           }
-        } // if I am the sender
+
+          bcastLData->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,this->limIndex_));
+          bool done = bcastLData->Progress();
+        }
+        TIMER_STOP(Alloc_Buffer_Recv_LrowL);
 #endif
 
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<snode.Index<<"] "<< "Communication for the L part." << std::endl << std::endl; 
-#endif
-#ifdef BCAST_LSTRUCT
-        // Communication for the L (Lcol) part.
-        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
-          auto & bcastLStruct = bcastLStructTree_[snode.Index];
-          if(bcastLStruct != nullptr){
-            TIMER_START(Serialize_LcolL);
-            // Pack the data in L 
-            std::stringstream sstm;
-            std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-            mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
-
-            std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, this->grid_) );
-            // All blocks except for the diagonal block are to be sent right
-
-
-            Int startIdx = ( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) )?1:0;
-            serialize( (Int)Lcol.size() - startIdx, sstm, NO_MASK );
-            for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
-              assert( Lcol[ib].blockIdx > snode.Index );
-
-#if ( _DEBUGlevel_ >= 2 )
-              //                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Serializing Block index " << Lcol[ib].blockIdx << std::endl;
-#endif
-              serialize( Lcol[ib], sstm, mask );
-            }
-            snode.SstrLcolSend.resize( Size( sstm ) );
-            sstm.read( &snode.SstrLcolSend[0], snode.SstrLcolSend.size() );
-            snode.SizeSstrLcolSend = snode.SstrLcolSend.size();
-            TIMER_STOP(Serialize_LcolL);
-
-            assert(bcastLStruct->GetMsgSize()==snode.SizeSstrLcolSend);
-            bcastLStruct->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,this->limIndex_));
-            bcastLStruct->SetLocalBuffer(&snode.SstrLcolSend[0]);
-            bcastLStruct->SetDataReady(true);
-            bool done = bcastLStruct->Progress();
-          }
-        } // if I am the sender
-#endif
-
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl <<  "["<<snode.Index<<"] "
-          << "Communication for the U part." << std::endl << std::endl; 
-#endif
-#ifdef BCAST_USTRUCT
-        // Communication for the U (Urow) part.
-        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
-          auto & bcastUStruct = bcastUStructTree_[snode.Index];
-          if(bcastUStruct != nullptr){
-            TIMER_START(Serialize_UrowU);
-            // Pack the data in U 
-            std::stringstream sstm;
-            std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
-            mask[UBlockMask::NZVAL] = 0; // nzval is excluded 
-
-            std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
-            // All blocks except for the diagonal block are to be sent right
-
-            serialize( (Int)Urow.size(), sstm, NO_MASK );
-            for( Int jb = 0; jb < Urow.size(); jb++ ){
-              assert( Urow[jb].blockIdx > snode.Index );
-              serialize( Urow[jb], sstm, mask );
-            }
-            snode.SstrUrowSend.resize( Size( sstm ) );
-            sstm.read( &snode.SstrUrowSend[0], snode.SstrUrowSend.size() );
-            snode.SizeSstrUrowSend = snode.SstrUrowSend.size();
-            TIMER_STOP(Serialize_UrowU);
-
-            assert(bcastUStruct->GetMsgSize()==snode.SizeSstrUrowSend);
-            bcastUStruct->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,this->limIndex_));
-            bcastUStruct->SetLocalBuffer(&snode.SstrUrowSend[0]);
-            bcastUStruct->SetDataReady(true);
-            bool done = bcastUStruct->Progress();
-          }
-        } // if I am the sender
-#endif
-
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << "["<<snode.Index<<"] "
-          << "Communication for the Ucol part." << std::endl 
-          << std::endl; 
-#endif
 #ifdef BCAST_UDATA
-        // Communication for the Ucol part.
-        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
+        TIMER_START(Alloc_Buffer_Recv_UcolL);
           auto & bcastUData = bcastUDataTree_[snode.Index];
           if(bcastUData != nullptr){
-            // Pack the data in Ucol
-            TIMER_START(Serialize_UcolU);
-            std::stringstream sstm;
-            std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
-            std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
+            if(bcastUData->IsRoot()){
+              // Pack the data in Ucol
+              TIMER_START(Serialize_UcolU);
+              std::stringstream sstm;
+              std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+              std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
 
+              // All blocks are to be sent down.
+              serialize( (Int)Urow.size(), sstm, NO_MASK );
+              for( Int jb = 0; jb < Urow.size(); jb++ ){
+                UBlock<T> & UB = Urow[jb];
+                assert( UB.blockIdx > snode.Index );
+                serialize( UB, sstm, mask );
+              }
+              snode.SstrUcolSend.resize( Size( sstm ) );
+              sstm.read( &snode.SstrUcolSend[0], snode.SstrUcolSend.size() );
+              snode.SizeSstrUcolSend = snode.SstrUcolSend.size();
+              TIMER_STOP(Serialize_UcolU);
 
-            statusOFS<<"["<<snode.Index<<"]"<<"P"<<MYPROC(this->grid_)<<" -> {";
-            for(auto && ub: Urow){ statusOFS<<ub.blockIdx<<" "; }
-            statusOFS<<"}"<<std::endl;
-
-            // All blocks are to be sent down.
-            serialize( (Int)Urow.size(), sstm, NO_MASK );
-            for( Int jb = 0; jb < Urow.size(); jb++ ){
-              UBlock<T> & UB = Urow[jb];
-              assert( UB.blockIdx > snode.Index );
-              serialize( UB, sstm, mask );
+              //if(bcastUData->GetMsgSize()!=snode.SizeSstrUcolSend){statusOFS<<"["<<snode.Index<<"] ASSERTION FAILED FOR UDATA: "<<bcastUData->GetMsgSize()<<" vs "<<snode.SizeSstrUcolSend<<std::endl;}
+              assert(bcastUData->GetMsgSize()==snode.SizeSstrUcolSend);
+              bcastUData->SetLocalBuffer(&snode.SstrUcolSend[0]);
+              bcastUData->SetDataReady(true);
             }
-            snode.SstrUcolSend.resize( Size( sstm ) );
-            sstm.read( &snode.SstrUcolSend[0], snode.SstrUcolSend.size() );
-            snode.SizeSstrUcolSend = snode.SstrUcolSend.size();
-            TIMER_STOP(Serialize_UcolU);
-
-            if(bcastUData->GetMsgSize()!=snode.SizeSstrUcolSend){statusOFS<<"["<<snode.Index<<"] ASSERTION FAILED FOR UDATA: "<<bcastUData->GetMsgSize()<<" vs "<<snode.SizeSstrUcolSend<<std::endl;}
-            assert(bcastUData->GetMsgSize()==snode.SizeSstrUcolSend);
-            bcastUData->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_UCOL_CONTENT,this->limIndex_));
-            bcastUData->SetLocalBuffer(&snode.SstrUcolSend[0]);
-            bcastUData->SetDataReady(true);
+            bcastUData->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,this->limIndex_));
             bool done = bcastUData->Progress();
           }
-        } // if I am the sender
+        TIMER_STOP(Alloc_Buffer_Recv_UcolL);
 #endif
-      } //Senders
+      }
       TIMER_STOP(WaitContentLU);
 
 
@@ -6604,46 +5353,63 @@ statusOFS<<"ALIVE3"<<std::endl;
         std::vector<bool> bcastUDataDone(stepSuper,false); 
 
         //TODO dummy wait
-#ifdef BCAST_LDATA
+#ifdef BLOCK_BCAST_LDATA
         TreeBcast_Waitall( superList[lidx], bcastLDataTree_);
 #endif
-#ifdef BCAST_LSTRUCT
-        TreeBcast_Waitall( superList[lidx], bcastLStructTree_);
-#endif
-#ifdef BCAST_UDATA
+#ifdef BLOCK_BCAST_UDATA
         TreeBcast_Waitall( superList[lidx], bcastUDataTree_);
 #endif
-#ifdef BCAST_USTRUCT
-        TreeBcast_Waitall( superList[lidx], bcastUStructTree_);
-#endif
-#if 0
+
+
       for (auto && snode : arrSuperNodes){
-        auto & redLTree = redLTree2_[snode.Index];
+#ifdef REDUCE_L
+        auto & redLTree = this->redLTree2_[snode.Index];
         if(redLTree != nullptr){
           redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,this->limIndex_));
           //Initialize the tree
           redLTree->AllocRecvBuffers();
           //Post All Recv requests;
-          redLTree->Progress();//PostFirstRecv();
+          redLTree->Progress();
         }
+#endif
 
-        auto & redUTree = redUTree2_[snode.Index];
+#ifdef REDUCE_U
+        auto & redUTree = this->redUTree2_[snode.Index];
         if(redUTree != nullptr){
           redUTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_U_REDUCE,this->limIndex_));
           //Initialize the tree
           redUTree->AllocRecvBuffers();
           //Post All Recv requests;
-          redUTree->Progress();//PostFirstRecv();
+          redUTree->Progress();
         }
+#endif
+
+#ifdef REDUCE_D
+        auto & redDTree = this->redDTree2_[snode.Index];
+        if(redDTree != nullptr){
+          redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,this->limIndex_));
+
+          //Initialize the tree
+          redDTree->AllocRecvBuffers();
+
+#if 0
+          if(redDTree->IsRoot()){
+            //copy the buffer from the reduce tree
+            if( snode.DiagBuf.Size()==0 ){
+              snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+              SetValue(snode.DiagBuf, ZERO<T>());
+            }
+            redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+          }
+#endif
+
+          //Post All Recv requests;
+          redDTree->Progress();
+        }
+#endif
+
+
       }
-
-
-
-
-
-
-
-
 
       TIMER_START(Compute_Sinv_LU);
       {
@@ -6654,59 +5420,13 @@ statusOFS<<"ALIVE3"<<std::endl;
         std::list<SuperNodeBufferTypeUnsym *> readySnode;
         //find local things to do
         for (auto && snode : arrSuperNodes){
-          auto & bcastLStructTree = bcastLStructTree_[snode.Index];
           auto & bcastLDataTree = bcastLDataTree_[snode.Index];
-          auto & bcastUStructTree = bcastUStructTree_[snode.Index];
           auto & bcastUDataTree = bcastUDataTree_[snode.Index];
 
-          //If I am updating L
-          if(snode.updatesL){
-            gemmToDo++;
-
-            if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
-              snode.isReadyL+=2;
-
-              //If I am NOT updating U
-              if(!updateL){
-                readySnode.push_back(&snode);
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"Locally processing L of ["<<snode.Index<<"]"<<std::endl;
-#endif
-
-              }
-            }
+          //If I am updating L&U
+          if(snode.updatesLU){
+            gemmToDo+=2;
           }
-          else if(bcastLStructTree!=nullptr && bcastLDataTree==nullptr){
-            abort();
-            //TODO may launch a 0 reduction of L
-          }
-
-          //If I am updating U
-          if(snode.updatesU){
-            gemmToDo++;
-            if(  MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
-              snode.isReadyU+=2;
-
-              //If I am NOT updating L
-              if(!snode.updatesL){
-                readySnode.push_back(&snode);
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"Locally processing U of ["<<snode.Index<<"]"<<std::endl;
-#endif
-              }
-              else if (snode.isReadyL == 2){
-                readySnode.push_back(&snode);
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"Locally processing L & U of ["<<snode.Index<<"]"<<std::endl;
-#endif
-              }
-            }
-          }
-          else if(bcastUStructTree!=nullptr && bcastUDataTree==nullptr){
-            abort();
-            //TODO may launch a 0 reduction of U
-          }
-
         }
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -6719,19 +5439,11 @@ statusOFS<<"ALIVE3"<<std::endl;
           do{
             //TODO this ensure that one of the Tree is IsDone(). Ideally, we should react at IsDataReceived() 
             TreeBcast_Testsome( superList[lidx], bcastLDataTree_, bcastLDataIdx, bcastLDataDone);
-            TreeBcast_Testsome( superList[lidx], bcastLStructTree_, bcastLStructIdx, bcastLStructDone);
             TreeBcast_Testsome( superList[lidx], bcastUDataTree_, bcastUDataIdx, bcastUDataDone);
-            TreeBcast_Testsome( superList[lidx], bcastUStructTree_, bcastUStructIdx, bcastUStructDone);
 
             std::set<Int> updatedSnode;
 
               for(auto supidx : bcastLDataIdx){ 
-                SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-                snode.isReadyL++;
-                updatedSnode.insert(supidx);
-              }
-
-              for(auto supidx : bcastLStructIdx){ 
                 SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
                 snode.isReadyL++;
                 updatedSnode.insert(supidx);
@@ -6743,32 +5455,13 @@ statusOFS<<"ALIVE3"<<std::endl;
                 updatedSnode.insert(supidx);
               }
 
-              for(auto supidx : bcastUStructIdx){ 
-                SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-                snode.isReadyU++;
-                updatedSnode.insert(supidx);
-              }
-
               for(auto supidx : updatedSnode){
                 SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
                 //if we received LData, LStruct, UData, UStruct, the supernode is ready
-                if(snode.updatesL && snode.updatesU){
-                  if(snode.isReadyL==2 && snode.isReadyU==2){
+                if(snode.updatesLU){
+                  if(snode.isReadyL==1 && snode.isReadyU==1){
                     readySnode.push_back(&snode);
                   }
-                }
-                else if (snode.updatesL){
-                  if(snode.isReadyL==2){
-                    readySnode.push_back(&snode);
-                  }
-                }
-                else if (snode.updatesU){
-                  if(snode.isReadyU==2){
-                    readySnode.push_back(&snode);
-                  }
-                }
-                else{
-                  abort();
                 }
               }
 
@@ -6781,25 +5474,23 @@ statusOFS<<"ALIVE3"<<std::endl;
             SuperNodeBufferTypeUnsym & snode = *readySnode.back();
             readySnode.pop_back();
 
-            std::vector<LBlock<T> > LcolRecv;
-            std::vector<LBlock<T> > LrowRecv;
-            std::vector<UBlock<T> > UcolRecv;
-            std::vector<UBlock<T> > UrowRecv;
+            std::vector<LBlock<T> > LRecv;
+            std::vector<UBlock<T> > URecv;
             //The correct data will directly be unpacked in there (L,U, or L&U)
-            UnpackData_New(snode, LcolRecv, LrowRecv, UcolRecv, UrowRecv);
+            UnpackData_New(snode, LRecv, URecv);
 
-            SelInv_lookup_indexes_New(snode, LcolRecv, LrowRecv, 
-                UcolRecv, UrowRecv,AinvBuf,LBuf, UBuf);
+            SelInv_lookup_indexes_New(snode, LRecv,
+                URecv,AinvBuf,LBuf, UBuf);
 
-            if (snode.updatesL){
+            if (snode.updatesLU){
               TIMER_START(Compute_Sinv_L_Resize);
-              snode.LUpdateBuf.Resize( AinvBuf.m(), 
-                  SuperSize( snode.Index, this->super_ ) );
+              snode.LUpdateBuf.Resize(SuperSize( snode.Index, this->super_ ),AinvBuf.n());
               TIMER_STOP(Compute_Sinv_L_Resize);
               TIMER_START(Compute_Sinv_LT_GEMM);
-              blas::Gemm('N', 'T', AinvBuf.m(), LBuf.m(), AinvBuf.n(),
-                  MINUS_ONE<T>(), AinvBuf.Data(), AinvBuf.m(), 
-                  LBuf.Data(), LBuf.m(), ZERO<T>(), 
+              assert(AinvBuf.m()==LBuf.m());
+              blas::Gemm('T', 'N', LBuf.n(), AinvBuf.n(), LBuf.m(),
+                  MINUS_ONE<T>(), LBuf.Data(),LBuf.m(), 
+                  AinvBuf.Data(), AinvBuf.m(), ZERO<T>(), 
                   snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() );
               TIMER_STOP(Compute_Sinv_LT_GEMM);
               gemmProcessed++;
@@ -6808,24 +5499,27 @@ statusOFS<<"ALIVE3"<<std::endl;
               statusOFS << snode.LUpdateBuf << std::endl;
 #endif
 
+#ifdef REDUCE_L
               //Now participate to the reduction of L
               auto & redLTree = this->redLTree2_[snode.Index];
               assert(redLTree!=nullptr);
-              assert(snode.LUpdateBuf.ByteSize()>0);
+              assert(snode.LUpdateBuf.Size() == redLTree->GetMsgSize());
               redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
               redLTree->SetDataReady(true);
               redLTree->Progress();
+#endif
+          auto & bcastLDataTree = bcastLDataTree_[snode.Index];
+              bcastLDataTree->cleanupBuffers();
             }
 
-            if (snode.updatesU){
+            if (snode.updatesLU){
               TIMER_START(Compute_Sinv_U_Resize);
-              snode.UUpdateBuf.Resize( SuperSize( snode.Index, this->super_ ),
-                  AinvBuf.n() );
+              snode.UUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, this->super_ ) );
               TIMER_STOP(Compute_Sinv_U_Resize);
               TIMER_START(Compute_Sinv_U_GEMM);
-              blas::Gemm('N', 'N', UBuf.m(), AinvBuf.n(), AinvBuf.m(),
-                  MINUS_ONE<T>(), UBuf.Data(), UBuf.m(),
-                  AinvBuf.Data(), AinvBuf.m(), ZERO<T>(),
+              blas::Gemm('N', 'T', AinvBuf.m(),UBuf.m(), AinvBuf.n(), 
+                  MINUS_ONE<T>(), AinvBuf.Data(), AinvBuf.m(),
+                  UBuf.Data(), UBuf.m(), ZERO<T>(),
                   snode.UUpdateBuf.Data(), snode.UUpdateBuf.m() );
               TIMER_STOP(Compute_Sinv_U_GEMM);
               gemmProcessed++;
@@ -6835,13 +5529,18 @@ statusOFS<<"ALIVE3"<<std::endl;
 #endif
 
 
+#ifdef REDUCE_U
               //Now participate to the reduction of U
               auto & redUTree = this->redUTree2_[snode.Index];
               assert(redUTree!=nullptr);
-              assert(snode.UUpdateBuf.ByteSize()>0);
+              assert(snode.UUpdateBuf.Size()==redUTree->GetMsgSize());
               redUTree->SetLocalBuffer(snode.UUpdateBuf.Data());
               redUTree->SetDataReady(true);
               redUTree->Progress();
+#endif
+
+          auto & bcastUDataTree = bcastUDataTree_[snode.Index];
+              bcastUDataTree->cleanupBuffers();
             }
           
             
@@ -6853,18 +5552,13 @@ statusOFS<<"ALIVE3"<<std::endl;
 
           }
 
-          //advance all reductions of L and U
-          for (auto && snode : arrSuperNodes){
-              auto & redLTree = this->redLTree2_[snode.Index];
-              if(redLTree!=nullptr){
-                redLTree->Progress();
-              }
-              auto & redUTree = this->redUTree2_[snode.Index];
-              if(redUTree!=nullptr){
-                redUTree->Progress();
-              }
-          }
-
+          //Progress the reduction trees
+#ifdef REDUCE_L
+          TreeReduce_ProgressAll(superList[lidx],this->redLTree2_);
+#endif
+#ifdef REDUCE_U
+          TreeReduce_ProgressAll(superList[lidx],this->redUTree2_);
+#endif
         }
 
       }
@@ -6875,20 +5569,10 @@ statusOFS<<"ALIVE3"<<std::endl;
       //(in a future version when we wil compute as soon as IsDataReceived() and not IsDone())
 
 
-      //Send 0 blocks to cross diagonal if necessary
-      for (auto && snode : arrSuperNodes){
-        //if I may own a block of U
-        if(MYROW(this->grid_)==PROW(snode.Index,this->grid_)){
-          auto & redUTree = this->redUTree2_[snode.Index];
-          //if I do not own a block of U, I need to send a dummy message
-          if(redUTree==nullptr){
-            //TODO SEND
-          }
-        }
-      }
-
-
-
+#ifdef REDUCE_L
+#ifdef BLOCK_REDUCE_L
+      TreeReduce_Waitall( superList[lidx], this->redLTree2_);
+#endif
 
       TIMER_START(Reduce_Sinv_L);
       std::list<int> redLIdx; 
@@ -6896,275 +5580,268 @@ statusOFS<<"ALIVE3"<<std::endl;
       bool all_doneL = std::all_of(redLdone.begin(), redLdone.end(), [](bool v) { return v; });
           
       while(!all_doneL){
-        TreeBcast_Testsome( superList[lidx], this->redLTree2_, redLIdx, redLDone);
+        TreeReduce_Testsome( superList[lidx], this->redLTree2_, redLIdx, redLdone);
 
         for(auto supidx : redLIdx){ 
-          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
+          auto & snode = arrSuperNodes[supidx];
           auto & redLTree = this->redLTree2_[snode.Index];
           if(redLTree->IsRoot()){
-            //determine the number of rows in LUpdateBufReduced
-            Int numRowLUpdateBuf;
-            auto&  Lcol = this->L( LBj( snode.Index, this->grid_ ) );
-
-            //skip the diagonal block if necessary
-            Int offset = MYROW( grid_ ) != PROW( snode.Index, this->grid_ )?0:1;
-
-            snode.RowLocalPtr.resize( Lcol.size() - offset + 1 );
-            snode.BlockIdxLocal.resize( Lcol.size() - offset );
-            snode.RowLocalPtr[0] = 0;
-            for( Int ib = offset; ib < Lcol.size(); ib++ ){
-              snode.RowLocalPtr[ib-offset+1] = snode.RowLocalPtr[ib-offset] + Lcol[ib].numRow;
-              snode.BlockIdxLocal[ib-offset] = Lcol[ib].blockIdx;
-            }
-            numRowLUpdateBuf = *snode.RowLocalPtr.rbegin();
-
-            if( numRowLUpdateBuf > 0 ){
-              if( snode.LUpdateBuf.ByteSize() == 0 ){
-                snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
-                SetValue(snode.LUpdateBuf, ZERO<T>());
-              }
+            if( snode.LUpdateBuf.ByteSize() == 0 ){
+              Int m = SuperSize( snode.Index, this->super_);
+              Int n = redLTree->GetMsgSize() / m;
+              snode.LUpdateBuf.Resize(m,n); 
+              SetValue(snode.LUpdateBuf, ZERO<T>());
             }
 
             //copy the buffer from the reduce tree
             redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+
+
+#ifdef REDUCE_D
+            if(snode.Index%2==1){
+              auto & redDTree = this->redDTree2_[snode.Index];
+              if(redDTree != nullptr){
+                TIMER_START(Update_Diagonal);
+                //compute diag update
+                ComputeDiagUpdate_New(snode,false);
+
+                //send the data
+                if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
+                  snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+                  SetValue(snode.DiagBuf, ZERO<T>());
+                }
+
+                if(!redDTree->IsAllocated()){
+                  redDTree->AllocRecvBuffers();
+                }
+
+                //set the buffer and mark as active
+                redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+                redDTree->SetDataReady(true);
+                redDTree->Progress();
+
+                TIMER_STOP(Update_Diagonal);
+              }
+            }
+#endif
+
+            //Overwrite U with LUpdateBuf
+            TIMER_START(Update_L);
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "["<<snode.Index<<"] "
+              << "Finish updating the L part by filling LUpdateBufReduced"
+              << " back to U" << std::endl << std::endl; 
+#endif
+
+            auto & Urow = this->U(LBi(snode.Index,this->grid_));
+            Int offset = 0;
+            for( Int jb = 0; jb < Urow.size(); jb++ ){
+              auto & UB = Urow[jb];
+              lapack::Lacpy( 'A', UB.numRow, UB.numCol, 
+                  &snode.LUpdateBuf(0, offset),
+                  snode.LUpdateBuf.m(), UB.nzval.Data(), UB.numRow );
+              offset += UB.numCol;
+            }
+            TIMER_STOP(Update_L);
+
           }
           redLTree->cleanupBuffers();
         }
+
+        //Progress U and D reduction trees
+#ifdef REDUCE_U
+        TreeReduce_ProgressAll(superList[lidx],this->redUTree2_);
+#endif
+#ifdef REDUCE_D
+        TreeReduce_ProgressAll(superList[lidx],this->redDTree2_);
+#endif
+
+        //Check if we are done with the reductions of L
         all_doneL = std::all_of(redLdone.begin(), redLdone.end(), [](bool v) { return v; });
       }
       TIMER_STOP(Reduce_Sinv_L);
+#endif
 
-
-
-      TIMER_START(Update_Diagonal);
-      //Next step is to receive U from cross diagonal processors
-      while(){
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-
-          //Get the reduction tree
-          auto & redDTree = this->redDTree2_[snode.Index];
-          if(redDTree!=nullptr){
-            MPI_Test()
-
-            if(flag==1){
-              ComputeDiagUpdate_New(snode);
-              //send the data
-              if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
-                  snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
-                  SetValue(snode.DiagBuf, ZERO<T>());
-              }
-
-              if(!redDTree->IsAllocated()){
-                redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,this->limIndex_));
-                redDTree->AllocRecvBuffers();
-              }
-              redDTree->SetLocalBuffer(snode.DiagBuf.Data());
-              redDTree->SetDataReady(true);
-              redDTree->Progress();
-
-            }
-          }
-        }
-
-        //advance other reductions
-        for(auto&& snode : arrSuperNodes){
-          //Get the reduction tree
-          auto & redDTree = this->redDTree2_[snode.Index];
-          if(redDTree!=nullptr){
-              redDTree->Progress();
-          }
-        }
-      }
-      TIMER_STOP(Update_Diagonal);
-
-
-      TIMER_START(Reduce_Diagonal);
-      std::list<int> redDIdx; 
-      std::vector<bool> redDdone(stepSuper,false);
-      bool all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
-      while(!all_doneD){
-        TreeBcast_Testsome( superList[lidx], this->redDTree2_, redDIdx, redDDone);
-        for(auto supidx : redDIdx){ 
-          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-          auto & redDTree = this->redDTree2_[snode.Index];
-          if(redDTree->IsRoot()){
-            //copy the buffer from the reduce tree
-            redDTree->SetLocalBuffer(snode.DiagBuf.Data());
-
-            LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) )[0];
-            blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-          }
-          redDTree->cleanupBuffers();
-        }
-        all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
-      }
-      TIMER_STOP(Reduce_Diagonal);
-
-
-
+#ifdef REDUCE_U
+#ifdef BLOCK_REDUCE_U
+      TreeReduce_Waitall( superList[lidx], this->redUTree2_);
+#endif
       //Reduce U Sinv  to the processors in PROW(ksup,this->grid_)
       TIMER_START(Reduce_Sinv_U);
       std::list<int> redUIdx; 
       std::vector<bool> redUdone(stepSuper,false);
       bool all_doneU = std::all_of(redUdone.begin(), redUdone.end(), [](bool v) { return v; });
       while(!all_doneU){
-           TreeBcast_Testsome( superList[lidx], this->redUTree2_, redUIdx, redUDone);
+        TreeReduce_Testsome( superList[lidx], this->redUTree2_, redUIdx, redUdone);
 
-          for(auto supidx : redUIdx){ 
-            SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-            auto & redUTree = this->redUTree2_[snode.Index];
-            if(redUTree->IsRoot()){
-              //determine the number of cols in UUpdateBufReduced
-              Int numColUpdateBuf;
-              auto&  Urow = this->U( LBi( snode.Index, this->grid_ ) );
+        for(auto supidx : redUIdx){ 
+          SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
+          auto & redUTree = this->redUTree2_[snode.Index];
+          if(redUTree->IsRoot()){
 
-              snode.ColLocalPtr.resize( Urow.size() + 1 );
-              snode.BlockIdxLocalU.resize( Urow.size() );
-              snode.ColLocalPtr[0] = 0;
-              for( Int jb = 0; jb < Urow.size(); jb++ ){
-                snode.ColLocalPtr[jb+1] = snode.ColLocalPtr[jb] + Urow[jb].numCol;
-                snode.BlockIdxLocalU[jb] = Urow[jb].blockIdx;
-              }
-              numColUUpdateBuf = *snode.ColLocalPtr.rbegin();
-
-              if( numColUUpdateBuf > 0 ){
-                if( snode.UUpdateBuf.ByteSize() == 0 ){
-                  snode.UUpdateBuf.Resize( SuperSize( snode.Index, super_ ) , numColUUpdateBuf );
-                  SetValue(snode.UUpdateBuf, ZERO<T>());
-                }
-              }
-
-              //copy the buffer from the reduce tree
-              redUTree->SetLocalBuffer(snode.UUpdateBuf.Data());
+            if( snode.UUpdateBuf.ByteSize() == 0 ){
+              Int n = SuperSize( snode.Index, this->super_);
+              Int m = redUTree->GetMsgSize() / n;
+              snode.UUpdateBuf.Resize(m,n); 
+              SetValue(snode.UUpdateBuf, ZERO<T>());
             }
-            redUTree->cleanupBuffers();
+            //copy the buffer from the reduce tree
+            redUTree->SetLocalBuffer(snode.UUpdateBuf.Data());
+
+
+#ifdef REDUCE_D
+            if(snode.Index%2==0){
+              auto & redDTree = this->redDTree2_[snode.Index];
+              if(redDTree != nullptr){
+                TIMER_START(Update_Diagonal);
+                //compute diag update
+                ComputeDiagUpdate_New(snode,true);
+
+                //send the data
+                if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
+                  snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+                  SetValue(snode.DiagBuf, ZERO<T>());
+                }
+
+                if(!redDTree->IsAllocated()){
+                  redDTree->AllocRecvBuffers();
+                }
+
+                //set the buffer and mark as active
+                redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+                redDTree->SetDataReady(true);
+                redDTree->Progress();
+
+                TIMER_STOP(Update_Diagonal);
+              }
+            }
+#endif
+
+            //Overwrite L with UUpdateBuf
+            TIMER_START(Update_U);
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "["<<snode.Index<<"] "
+              << "Finish updating the U part by filling UUpdateBufReduced"
+              << " back to L" << std::endl << std::endl; 
+#endif
+
+            Int offset = 0;
+            auto & Lcol = this->L(LBj(snode.Index,this->grid_));
+            Int startIdx = MYPROC(this->grid_)==PNUM(PROW(snode.Index,this->grid_),PCOL(snode.Index,this->grid_),this->grid_)?1:0;
+            for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
+              LBlock<T> & LB = Lcol[ib];
+              //Indices follow L order... look at Lrow
+              lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
+                  &snode.UUpdateBuf( offset , 0 ),
+                  snode.UUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
+              offset += LB.numRow;
+            }
+
+            TIMER_STOP(Update_U);
+
+
           }
-          all_doneU = std::all_of(redUdone.begin(), redUdone.end(), [](bool v) { return v; });
+          redUTree->cleanupBuffers();
+        }
+
+#ifdef REDUCE_D
+        //Progress the reductions of D
+        TreeReduce_ProgressAll(superList[lidx],this->redDTree2_);
+#endif
+
+        //Check if we are done with the reduction of U
+        all_doneU = std::all_of(redUdone.begin(), redUdone.end(), [](bool v) { return v; });
       }
       TIMER_STOP(Reduce_Sinv_U);
+#endif
       //--------------------- End of reduce of UUpdateBuf-------------------------
 
-
-
-
-
-
-
-      //Deallocate Lrow and Ucol
-      for (Int supidx=0; supidx<stepSuper; supidx++){ 
-        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ )){ 
-          std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
-          Lrow.clear();
-        }
-        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ )){ 
-          std::vector<UBlock<T> >&  Ucol = this->Ucol( LBj(snode.Index, this->grid_) );
-          Ucol.clear();
-        }
+#ifdef REDUCE_D
+      
+      for(auto && snode: arrSuperNodes){
+          auto & redDTree = this->redDTree2_[snode.Index];
+          if(redDTree!=nullptr){
+            if(!redDTree->IsRoot()){
+              assert(redDTree->IsReady());
+            }
+          }
       }
 
-
-      TIMER_START(Update_L);
-
-      for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<snode.Index<<"] "
-          << "Finish updating the L part by filling LUpdateBufReduced"
-          << " back to L" << std::endl << std::endl; 
-#endif
-
-        if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) 
-            && snode.LUpdateBuf.m() > 0 ){
-          std::vector<LBlock<T> >& Lcol = this->L(LBj(snode.Index,this->grid_));
-          //Need to skip the diagonal block if present
-          Int startBlock = 
-            (MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ))?1:0;
-          for( Int ib = startBlock; ib < Lcol.size(); ib++ ){
-            LBlock<T> & LB = Lcol[ib];
-            if(1|| (LB.numRow>0 && LB.numCol>0)){
-              lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
-                  &snode.LUpdateBuf(snode.RowLocalPtr[ib-startBlock], 0),
-                  snode.LUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
-            }
+#ifdef BLOCK_REDUCE_D
+      TreeReduce_Waitall( superList[lidx], this->redDTree2_);
+      for(auto && snode : arrSuperNodes){
+        auto & redDTree = this->redDTree2_[snode.Index];
+        if(redDTree!=nullptr){
+          Int destCnt = redDTree->GetDestCount();
+          Int * dests = redDTree->GetDests();
+          statusOFS<<"["<<snode.Index<<"] redD: ";
+          for(Int i = 0;i<destCnt;i++){
+            statusOFS<<dests[i]<<" ";
           }
-        } // Finish updating L	
-      } // for (snode.Index) : Main loop
+          statusOFS<<std::endl;
 
-
-      TIMER_STOP(Update_L);
-
-
-
-
-      TIMER_START(Update_U);
-
-      for (Int supidx=0; supidx<stepSuper; supidx++){
-        SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << "["<<snode.Index<<"] "
-          << "Finish updating the U part by filling UUpdateBufReduced"
-          << " back to U" << std::endl << std::endl; 
-#endif
-
-        if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) 
-            && snode.UUpdateBuf.m() > 0 ){
-          std::vector<UBlock<T> >& Urow = this->U(LBi(snode.Index,this->grid_));
-
-          for( Int jb = 0; jb < Urow.size(); jb++ ){
-            UBlock<T> & UB = Urow[jb];
-            if(1|| (UB.numRow>0 && UB.numCol>0)){
-#if ( _DEBUGlevel_ >= 1 )
-              statusOFS << "["<<snode.Index<<"] "<<"Putting colptr "
-                << snode.ColLocalPtr[jb] << " of UUpdateBuf "
-                << snode.ColLocalPtr << " "
-                << "in UB "<<UB.blockIdx<<std::endl;
-#endif
-              //Indices follow L order... look at Lrow
-              lapack::Lacpy( 'A', UB.numRow, UB.numCol, 
-                  &snode.UUpdateBuf( 0, snode.ColLocalPtr[jb] ),
-                  snode.UUpdateBuf.m(), UB.nzval.Data(), UB.numRow );
-#if ( _DEBUGlevel_ >= 2 )
-              statusOFS<< "["<<snode.Index<<"] "<<"UB: "<<UB.nzval<<std::endl;
-#endif
-            }
+          if(redDTree->IsRoot()){
+            statusOFS<<"["<<snode.Index<<"] I AM ROOT";
           }
-        } // Finish updating U
-      } // for (snode.Index) : Main loop
+        }
+      }
+#endif
 
+      //Reduce D
+      TIMER_START(Reduce_Diagonal);
+      std::list<int> redDIdx; 
+      std::vector<bool> redDdone(stepSuper,false);
+      bool all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
+      while(!all_doneD){
+        TreeReduce_Testsome( superList[lidx], this->redDTree2_, redDIdx, redDdone);
 
-      TIMER_STOP(Update_U);
+        for(auto supidx : redDIdx){ 
+          auto & snode = arrSuperNodes[supidx];
+          auto & redDTree = this->redDTree2_[snode.Index];
+          if(redDTree->IsRoot()){
+            //copy the buffer from the reduce tree
+            if( snode.DiagBuf.Size()==0 ){
+              snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+              SetValue(snode.DiagBuf, ZERO<T>());
+            }
+            redDTree->SetLocalBuffer(snode.DiagBuf.Data());
 
+            LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) )[0];
 
+            //statusOFS<<"["<<snode.Index<<"] Diag before transpose:"<<std::endl<<LB.nzval<<std::endl;
+            //TODO check with Lin: Transpose ??
+            Transpose(LB.nzval, LB.nzval);
 
+            //statusOFS<<"["<<snode.Index<<"] Diag after transpose:"<<std::endl<<LB.nzval<<std::endl;
 
+            //statusOFS<<"["<<snode.Index<<"] Diag update:"<<std::endl<<snode.DiagBuf<<std::endl;
+            blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
+            //statusOFS<<"["<<snode.Index<<"] Diag after update:"<<std::endl<<LB.nzval<<std::endl;
+          }
+          redDTree->cleanupBuffers();
+        }
 
-
+        //Check if we are done with the reduction of D
+        all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
+      }
+      TIMER_STOP(Reduce_Diagonal);
+      //--------------------- End of reduce of D -------------------------
+#endif
 
       TIMER_START(Barrier);
-      mpi::Waitall(arrMpireqsRecvLContentFromAny);
-      mpi::Waitall(arrMpireqsRecvUContentFromAny);
-      //Sync for reduce L
-      //      mpi::Waitall( arrMpireqsSendToLeft );
-      //Sync for reduce D
-      mpi::Waitall(arrMpireqsSendToAbove);
+        TreeBcast_Waitall( superList[lidx],  this->bcastLDataTree_);
+        TreeBcast_Waitall( superList[lidx],  this->bcastUDataTree_);
+#ifdef REDUCE_L
+        TreeReduce_Waitall( superList[lidx], this->redLTree2_);
+#endif
+#ifdef REDUCE_U
+        TreeReduce_Waitall( superList[lidx], this->redUTree2_);
+#endif
+#ifdef REDUCE_D
+        TreeReduce_Waitall( superList[lidx], this->redDTree2_);
+#endif
 
-      for (Int supidx=0; supidx<stepSuper; supidx++){
-        Int ksup = superList[lidx][supidx];
-        std::vector<MPI_Request> & mpireqsSendLToRight = arrMpireqsSendLToRight[supidx];
-        std::vector<MPI_Request> & mpireqsSendLToBelow = arrMpireqsSendLToBelow[supidx];
-        std::vector<MPI_Request> & mpireqsSendUToRight = arrMpireqsSendUToRight[supidx];
-        std::vector<MPI_Request> & mpireqsSendUToBelow = arrMpireqsSendUToBelow[supidx];
-
-        mpi::Waitall( mpireqsSendLToRight );
-        mpi::Waitall( mpireqsSendLToBelow );
-        mpi::Waitall( mpireqsSendUToRight );
-        mpi::Waitall( mpireqsSendUToBelow );
-
-      }
+//        MPI_Barrier(this->grid_->comm);
       TIMER_STOP(Barrier);
 
 
@@ -7177,8 +5854,758 @@ statusOFS<<"ALIVE3"<<std::endl;
         MPI_Barrier(this->grid_->comm);
       }
 #endif
-#endif
     } // PMatrixUnsym<T>::SelInvIntra_New
+
+  template<typename T>
+    inline void PMatrixUnsym<T>::UnpackData_New(
+        SuperNodeBufferTypeUnsym & snode, 
+        std::vector<LBlock<T> > & LRecv, 
+        std::vector<UBlock<T> > & URecv 
+        )
+    {
+
+      TIMER_START(Unpack_data);
+
+
+
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
+#endif
+
+
+      if(snode.updatesLU){
+        {
+          std::stringstream sstm;
+          auto & bcastLDataTree = this->bcastLDataTree_[snode.Index]; 
+          sstm.write( bcastLDataTree->GetLocalBuffer(), bcastLDataTree->GetMsgSize() );
+          std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+          Int numLBlock;
+          deserialize( numLBlock, sstm, NO_MASK );
+          LRecv.resize( numLBlock );
+          for( Int ib = 0; ib < numLBlock; ib++ ){
+            deserialize( LRecv[ib], sstm, mask );
+          }
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS<< "["<<snode.Index<<"] "<<"L RECV "<<std::endl;
+          for(Int ib=0;ib<LRecv.size();++ib){statusOFS<<LRecv[ib].blockIdx<<" ";}
+          statusOFS<<std::endl;
+#endif
+        }
+
+        //clear and unpack U
+        {
+          std::stringstream sstm;
+          auto & bcastUDataTree = this->bcastUDataTree_[snode.Index]; 
+          sstm.write( bcastUDataTree->GetLocalBuffer(), bcastUDataTree->GetMsgSize() );
+          std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+          Int numUBlock;
+          deserialize( numUBlock, sstm, NO_MASK );
+          URecv.resize( numUBlock );
+          for( Int jb = 0; jb < numUBlock; jb++ ){
+            deserialize( URecv[jb], sstm, mask );
+          }
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS<< "["<<snode.Index<<"] "<<"U RECV "<<std::endl;
+          for(Int ib=0;ib<URecv.size();++ib){statusOFS<<URecv[ib].blockIdx<<" ";}
+          statusOFS<<std::endl;
+#endif
+        }
+      }
+
+      TIMER_STOP(Unpack_data);
+
+    } // End of method PMatrixUnsym<T>::UnpackData_New
+
+template<typename T>
+  inline  void PMatrixUnsym<T>::SelInv_lookup_indexes_New(
+      SuperNodeBufferTypeUnsym & snode, 
+      std::vector<LBlock<T> > & LRecv, 
+      std::vector<UBlock<T> > & URecv,
+      NumMat<T> & AinvBuf,
+      NumMat<T> & LBuf,
+      NumMat<T> & UBuf )
+  {
+    TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
+
+    TIMER_START(Build_colptr_rowptr);
+
+    TIMER_START(Sort_LrowRecv_UcolRecv);
+    //LrowRecv should be sorted by blockIdx, same for UcolRecv
+    std::sort(LRecv.begin(),LRecv.end(),LBlockComparator<T>);
+    std::sort(URecv.begin(),URecv.end(),UBlockComparator<T>);
+    TIMER_STOP(Sort_LrowRecv_UcolRecv);
+
+    // rowPtrL[ib] gives the row index in snode.LUpdateBuf for the first
+    // nonzero row in LRecv[ib]. The total number of rows in
+    // snode.LUpdateBuf is given by rowPtr[end]-1
+    std::vector<Int> rowPtrL(LRecv.size() + 1);
+    rowPtrL[0] = 0;
+    for( Int ib = 0; ib < LRecv.size(); ib++ ){
+      LBlock<T> & LB = LRecv[ib];
+      rowPtrL[ib+1] = rowPtrL[ib] + LB.numRow;
+    }
+
+    // colPtrL[jb] gives the column index in LBuf for the first
+    // nonzero column in URecv[jb]. The total number of rows in
+    // LBuf is given by colPtr[end]-1
+    std::vector<Int> colPtrU(URecv.size() + 1,-1);
+    colPtrU[0] = 0;
+    for( Int jb = 0; jb < URecv.size(); jb++ ){
+      UBlock<T> & UB = URecv[jb];
+      colPtrU[jb+1] = colPtrU[jb] + UB.numCol;
+    }
+
+#if ( _DEBUGlevel_ >= 1 )
+    statusOFS<<rowPtrL<<std::endl;
+    //statusOFS<<colPtrL<<std::endl;
+    statusOFS<<colPtrU<<std::endl;
+#endif
+
+
+    Int numRowAinvBuf = rowPtrL.back();
+    Int numColAinvBuf = colPtrU.back();
+    TIMER_STOP(Build_colptr_rowptr);
+
+    TIMER_START(Allocate_lookup);
+    // Allocate for the computational storage
+    AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
+    LBuf.Resize( numRowAinvBuf, SuperSize( snode.Index, this->super_ ) );
+    UBuf.Resize( SuperSize( snode.Index, this->super_ ), numColAinvBuf );
+    TIMER_STOP(Allocate_lookup);
+
+
+
+    TIMER_START(Fill_LBuf);
+    // Fill LBuf first. Make the transpose later in the Gemm phase.
+    for( Int ib = 0; ib < LRecv.size(); ib++ ){
+      LBlock<T>& LB = LRecv[ib];
+      if( LB.numCol != SuperSize(snode.Index, this->super_) ){
+        ErrorHandling( 
+            "The size of LB is not right. Something is seriously wrong." );
+      }
+      lapack::Lacpy( 'A', LB.numRow, LB.numCol, LB.nzval.Data(),
+          LB.numRow, &LBuf( rowPtrL[ib], 0 ), LBuf.m() );
+    }
+    TIMER_STOP(Fill_LBuf);
+
+    TIMER_START(Fill_UBuf);
+    // Fill UBuf first. 
+    SetValue(UBuf, ZERO<T>());
+    for( Int jb = 0; jb < URecv.size(); jb++ ){
+      UBlock<T>& UB = URecv[jb];
+
+        if( UB.numRow != SuperSize(snode.Index, this->super_) ){
+          ErrorHandling( 
+              "The size of UB is not right. Something is seriously wrong." );
+        }
+        lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
+            UB.numRow, &UBuf( 0, colPtrU[jb] ), UBuf.m() );
+    }
+    TIMER_STOP(Fill_UBuf);
+
+    // Calculate the relative indices for (isup, jsup)
+    // Fill AinvBuf with the information in L or U block.
+    TIMER_START(JB_Loop);
+    for( Int jb = 0; jb < URecv.size(); jb++ ){
+
+
+      auto & UB = URecv[jb];
+      Int jsup = UB.blockIdx;
+
+      Int SinvColsSta = FirstBlockCol( jsup, this->super_ );
+
+      for( Int ib = 0; ib < LRecv.size(); ib++ ){
+        LBlock<T>& LB = LRecv[ib];
+        Int isup = LB.blockIdx;
+        Int SinvRowsSta = FirstBlockCol( isup, this->super_ );
+        T* nzvalAinv = &AinvBuf( rowPtrL[ib], colPtrU[jb] );
+        Int     ldAinv    = numRowAinvBuf;
+
+        // Pin down the corresponding block in the part of Sinv.
+        if( isup >= jsup ){
+          // Column relative indicies
+          std::vector<Int> relCols( UB.numCol );
+          for( Int j = 0; j < UB.numCol; j++ ){
+            relCols[j] = UB.cols[j] - SinvColsSta;
+          }
+
+          std::vector<LBlock<T> >& LSinv = this->L( LBj(jsup, this->grid_ ));
+          bool isBlockFound = false;
+          TIMER_START(PARSING_ROW_BLOCKIDX);
+          for( Int ibSinv = 0; ibSinv < LSinv.size(); ibSinv++ ){
+            // Found the (isup, jsup) block in Sinv
+            if( LSinv[ibSinv].blockIdx == isup ){
+              LBlock<T>& SinvB = LSinv[ibSinv];
+
+              // Row relative indices
+              std::vector<Int> relRows( LB.numRow );
+              Int* rowsLBPtr    = LB.rows.Data();
+              Int* rowsSinvBPtr = SinvB.rows.Data();
+
+              TIMER_START(STDFIND_ROW);
+              Int * pos =&rowsSinvBPtr[0];
+              Int * last =&rowsSinvBPtr[SinvB.numRow];
+              for( Int i = 0; i < LB.numRow; i++ ){
+                pos = std::upper_bound(pos, last, rowsLBPtr[i])-1;
+                if(pos != last){
+                  relRows[i] =  (Int)(pos - rowsSinvBPtr);
+                }
+                else{
+                  std::ostringstream msg;
+                  msg << "Row " << rowsLBPtr[i] <<
+                    " in LB cannot find the corresponding row in SinvB" 
+                    << std::endl
+                    << "LB.rows    = " << LB.rows << std::endl
+                    << "SinvB.rows = " << SinvB.rows << std::endl;
+                  ErrorHandling( msg.str().c_str() );
+                }
+              }
+              TIMER_STOP(STDFIND_ROW);
+
+              TIMER_START(Copy_Sinv_to_Ainv);
+              // Transfer the values from Sinv to AinvBlock
+              T* nzvalSinv = SinvB.nzval.Data();
+              Int     ldSinv    = SinvB.numRow;
+              for( Int j = 0; j < UB.numCol; j++ ){
+                for( Int i = 0; i < LB.numRow; i++ ){
+                  nzvalAinv[i + j*ldAinv] =
+                    nzvalSinv[relRows[i]+relCols[j]*ldSinv];
+                }
+              }
+              TIMER_STOP(Copy_Sinv_to_Ainv);
+
+              isBlockFound = true;
+              break;
+            }
+          } // for (ibSinv )
+          TIMER_STOP(PARSING_ROW_BLOCKIDX);
+          if( isBlockFound == false ){
+            std::ostringstream msg;
+            msg << "["<<snode.Index<<"] "<<"Block(" << isup << ", " << jsup
+              << ") did not find a matching block in Sinv." << std::endl;
+            //#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<msg.str();
+            //#endif
+            //            ErrorHandling( msg.str().c_str() );
+          }
+        } // if (isup, jsup) is in L
+        else{
+          // Row relative indices
+          std::vector<Int> relRows( LB.numRow );
+          for( Int i = 0; i < LB.numRow; i++ ){
+            relRows[i] = LB.rows[i] - SinvRowsSta;
+          }
+
+          std::vector<UBlock<T> >& USinv = 
+            this->U( LBi( isup, this->grid_ ) );
+          bool isBlockFound = false;
+          TIMER_START(PARSING_COL_BLOCKIDX);
+          for( Int jbSinv = 0; jbSinv < USinv.size(); jbSinv++ ){
+            // Found the (isup, jsup) block in Sinv
+            if( USinv[jbSinv].blockIdx == jsup ){
+              UBlock<T>& SinvB = USinv[jbSinv];
+
+              // Column relative indices
+              std::vector<Int> relCols( UB.numCol );
+              Int* colsUBPtr    = UB.cols.Data();
+              Int* colsSinvBPtr = SinvB.cols.Data();
+
+              TIMER_START(STDFIND_COL);
+              Int * pos =&colsSinvBPtr[0];
+              Int * last =&colsSinvBPtr[SinvB.numCol];
+              for( Int j = 0; j < UB.numCol; j++ ){
+                //colsUB is sorted
+                pos = std::upper_bound(pos, last, colsUBPtr[j])-1;
+                if(pos !=last){
+                  relCols[j] = (Int)(pos - colsSinvBPtr);
+                }
+                else{
+                  std::ostringstream msg;
+                  msg << "Col " << colsUBPtr[j] <<
+                    " in UB cannot find the corresponding row in SinvB"
+                    << std::endl
+                    << "UB.cols    = " << UB.cols << std::endl
+                    << "UinvB.cols = " << SinvB.cols << std::endl;
+                  ErrorHandling( msg.str().c_str() );
+                }
+              }
+              TIMER_STOP(STDFIND_COL);
+
+              TIMER_START(Copy_Sinv_to_Ainv);
+              // Transfer the values from Sinv to AinvBlock
+              T* nzvalSinv = SinvB.nzval.Data();
+              Int     ldSinv    = SinvB.numRow;
+              for( Int j = 0; j < UB.numCol; j++ ){
+                for( Int i = 0; i < LB.numRow; i++ ){
+                  nzvalAinv[i + j*ldAinv] =
+                    nzvalSinv[relRows[i]+relCols[j]*ldSinv];
+                }
+              }
+              TIMER_STOP(Copy_Sinv_to_Ainv);
+
+              isBlockFound = true;
+              break;
+            }
+          } // for (jbSinv)
+          TIMER_STOP(PARSING_COL_BLOCKIDX);
+          if( isBlockFound == false ){
+            std::ostringstream msg;
+            msg << "["<<snode.Index<<"] "<< "Block(" << isup << ", " << jsup
+              << ") did not find a matching block in Sinv." << std::endl;
+            statusOFS<<msg.str();
+            ErrorHandling( msg.str().c_str() );
+          }
+        } // if (isup, jsup) is in U
+
+      } // for( ib )
+    } // for ( jb )
+    TIMER_STOP(JB_Loop);
+
+    TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
+  } // End of method PMatrixUnsym::Selinv_lookup_indexes_New
+
+
+  template<typename T>
+    inline void PMatrixUnsym<T>::ComputeDiagUpdate_New(SuperNodeBufferTypeUnsym & snode,bool fromU)
+    {
+
+      TIMER_START(ComputeDiagUpdate);
+      //--------- Computing  Diagonal block, all processors in the column
+      //--------- are participating to all pipelined supernodes
+
+
+      auto & redLTree = this->redLTree2_[snode.Index];
+      auto & redUTree = this->redUTree2_[snode.Index];
+      auto & redDTree = this->redDTree2_[snode.Index];
+
+      bool updateFromL = false;
+      bool updateFromU = false;
+
+      if(redDTree!=nullptr){
+        if(snode.Index%2==0){
+            updateFromU = true;
+        }
+        else{
+            updateFromL = true;
+        }
+
+        //if(redLTree!=nullptr){
+        //  if(redLTree->IsRoot()){
+        //    updateFromL = true;
+        //  }
+        //}
+        //if(redUTree!=nullptr){
+        //  if(redUTree->IsRoot() && !updateFromL){
+        //    updateFromU = true;
+        //  }
+        //}
+      }
+
+#if ( _DEBUGlevel_ >= 2 )
+      if(updateFromU){
+      statusOFS<<"["<<snode.Index<<"] Trying to update from "<<(fromU?"U":"L")<<" | "<<"FU"<<std::endl;
+      }
+      else if(updateFromL){
+      statusOFS<<"["<<snode.Index<<"] Trying to update from "<<(fromU?"U":"L")<<" | "<<"FL"<<std::endl;
+      }
+      else{
+      statusOFS<<"["<<snode.Index<<"] Trying to update from "<<(fromU?"U":"L")<<" | "<<"NONE"<<std::endl;
+      }
+#endif
+
+      if(updateFromL && !fromU){
+        assert( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) );
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "["<<snode.Index<<"] "
+          << "Updating the diagonal block from L" << std::endl << std::endl;
+#endif
+        if(snode.DiagBuf.Size()==0){
+      snode.DiagBuf.Resize(SuperSize( snode.Index, this->super_ ),
+          SuperSize( snode.Index, this->super_ ));
+      SetValue(snode.DiagBuf, ZERO<T>());
+        }
+        Int offset = 0;
+        auto & Urow = this->U( LBi( snode.Index, this->grid_ ) );
+
+#if ( _DEBUGlevel_ >= 2 )
+        for( Int jb = 0; jb < Urow.size(); jb++ ){
+          auto & UB = Urow[jb];
+          statusOFS<<"["<<snode.Index<<"] D: U: "<<UB.nzval<<std::endl;
+        }
+        statusOFS<<"["<<snode.Index<<"] D: L^T S-T: "<<snode.LUpdateBuf<<std::endl;
+#endif
+
+        for( Int jb = 0; jb < Urow.size(); jb++ ){
+          auto & UB = Urow[jb];
+
+          //Compute (L^T S-T) . U^T
+          blas::Gemm( 'N', 'T', snode.DiagBuf.m(), snode.DiagBuf.n(), 
+              UB.numCol, MINUS_ONE<T>(),
+              &snode.LUpdateBuf( 0, offset ), snode.LUpdateBuf.m(),
+              UB.nzval.Data(), UB.nzval.m(), 
+              ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
+          //advance in LUpdateBuf
+          offset+= UB.numCol;
+        }
+#if ( _DEBUGlevel_ >= 2 )
+        statusOFS<<"["<<snode.Index<<"] D: DiagBuf: "<<snode.DiagBuf<<std::endl;
+#endif
+      }
+      else if(updateFromU && fromU){
+        assert(MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) );
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "["<<snode.Index<<"] "
+          << "Updating the diagonal block from U" << std::endl << std::endl;
+#endif
+            if(snode.DiagBuf.Size()==0){
+      snode.DiagBuf.Resize(SuperSize( snode.Index, this->super_ ),
+          SuperSize( snode.Index, this->super_ ));
+      SetValue(snode.DiagBuf, ZERO<T>());
+            }
+        Int offset = 0;
+        auto & Lcol = this->L( LBj( snode.Index, this->grid_ ) );
+        // Do I own the diagonal block ?
+        Int startIb = (MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ))?1:0;
+
+#if ( _DEBUGlevel_ >= 2 )
+        statusOFS<<"["<<snode.Index<<"] D: S-T U^T: "<<snode.UUpdateBuf<<std::endl;
+        for( Int ib = startIb; ib < Lcol.size(); ib++ ){
+          auto & LB = Lcol[ib];
+          statusOFS<<"["<<snode.Index<<"] D: L: "<<LB.nzval<<std::endl;
+        }
+#endif
+
+        for( Int ib = startIb; ib < Lcol.size(); ib++ ){
+          auto & LB = Lcol[ib];
+
+          //Compute L^T . ( S-T U^T )
+          blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), 
+              LB.numRow, MINUS_ONE<T>(),
+              LB.nzval.Data(), LB.nzval.m(), 
+              &snode.UUpdateBuf( offset, 0 ),
+              snode.UUpdateBuf.m(),
+              ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
+          //advance in UUpdateBuf
+          offset+= LB.numRow;
+
+        }
+#if ( _DEBUGlevel_ >= 2 )
+        statusOFS<<"["<<snode.Index<<"] D: DiagBuf: "<<snode.DiagBuf<<std::endl;
+#endif
+
+      }
+
+      TIMER_STOP(ComputeDiagUpdate);
+    } // End of method PMatrixUnsym<T>::ComputeDiagUpdate_New 
+
+  template<typename T>
+    void PMatrixUnsym<T>::PMatrixToDistSparseMatrix ( const DistSparseMatrix<T>& A, DistSparseMatrix<T>& B )
+    {
+      //TODO THIS HAS TO BE DONE
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
+#endif
+      Int mpirank = grid_->mpirank;
+      Int mpisize = grid_->mpisize;
+
+      std::vector<Int>     rowSend( mpisize );
+      std::vector<Int>     colSend( mpisize );
+      std::vector<T>  valSend( mpisize );
+      std::vector<Int>     sizeSend( mpisize, 0 );
+      std::vector<Int>     displsSend( mpisize, 0 );
+
+      std::vector<Int>     rowRecv( mpisize );
+      std::vector<Int>     colRecv( mpisize );
+      std::vector<T>  valRecv( mpisize );
+      std::vector<Int>     sizeRecv( mpisize, 0 );
+      std::vector<Int>     displsRecv( mpisize, 0 );
+
+      Int numSuper = this->NumSuper();
+      const IntNumVec& perm    = this->super_->perm;
+      const IntNumVec& permInv = this->super_->permInv;
+
+      const IntNumVec * pPerm_r;
+      const IntNumVec * pPermInv_r;
+
+      pPerm_r = &this->super_->perm_r;
+      pPermInv_r = &this->super_->permInv_r;
+
+      const IntNumVec& perm_r    = *pPerm_r;
+      const IntNumVec& permInv_r = *pPermInv_r;
+
+
+      // Count the sizes from the A matrix first
+      Int numColFirst = this->NumCol() / mpisize;
+      Int firstCol = mpirank * numColFirst;
+      Int numColLocal;
+      if( mpirank == mpisize-1 )
+        numColLocal = this->NumCol() - numColFirst * (mpisize-1);
+      else
+        numColLocal = numColFirst;
+
+
+
+
+
+      Int*     rowPtr = A.rowindLocal.Data();
+      Int*     colPtr = A.colptrLocal.Data();
+
+      for( Int j = 0; j < numColLocal; j++ ){
+        Int ocol = firstCol + j;
+        Int col         = perm[ perm_r[ ocol] ];
+        Int blockColIdx = BlockIdx( col, this->super_ );
+        Int procCol     = PCOL( blockColIdx, this->grid_ );
+        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+          Int orow = rowPtr[i]-1;
+          Int row         = perm[ orow ];
+          Int blockRowIdx = BlockIdx( row, this->super_ );
+          Int procRow     = PROW( blockRowIdx, this->grid_ );
+          Int dest = PNUM( procRow, procCol, this->grid_ );
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<")"<< std::endl;
+          statusOFS << "BlockIdx = " << blockRowIdx << ", " <<blockColIdx << std::endl;
+          statusOFS << procRow << ", " << procCol << ", " 
+            << dest << std::endl;
+#endif
+          sizeSend[dest]++;
+        } // for (i)
+      } // for (j)
+
+      // All-to-all exchange of size information
+      MPI_Alltoall( 
+          &sizeSend[0], 1, MPI_INT,
+          &sizeRecv[0], 1, MPI_INT, this->grid_->comm );
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << std::endl << "sizeSend: " << sizeSend << std::endl;
+      statusOFS << std::endl << "sizeRecv: " << sizeRecv << std::endl;
+#endif
+
+
+
+      // Reserve the space
+      for( Int ip = 0; ip < mpisize; ip++ ){
+        if( ip == 0 ){
+          displsSend[ip] = 0;
+        }
+        else{
+          displsSend[ip] = displsSend[ip-1] + sizeSend[ip-1];
+        }
+
+        if( ip == 0 ){
+          displsRecv[ip] = 0;
+        }
+        else{
+          displsRecv[ip] = displsRecv[ip-1] + sizeRecv[ip-1];
+        }
+      }
+
+      Int sizeSendTotal = displsSend[mpisize-1] + sizeSend[mpisize-1];
+      Int sizeRecvTotal = displsRecv[mpisize-1] + sizeRecv[mpisize-1];
+
+      rowSend.resize( sizeSendTotal );
+      colSend.resize( sizeSendTotal );
+      valSend.resize( sizeSendTotal );
+
+      rowRecv.resize( sizeRecvTotal );
+      colRecv.resize( sizeRecvTotal );
+      valRecv.resize( sizeRecvTotal );
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << "displsSend = " << displsSend << std::endl;
+      statusOFS << "displsRecv = " << displsRecv << std::endl;
+#endif
+
+      // Put (row, col) to the sending buffer
+      std::vector<Int>   cntSize( mpisize, 0 );
+
+      rowPtr = A.rowindLocal.Data();
+      colPtr = A.colptrLocal.Data();
+
+      for( Int j = 0; j < numColLocal; j++ ){
+
+        Int ocol = firstCol + j;
+        Int col         = perm[ perm_r[ ocol] ];
+        Int blockColIdx = BlockIdx( col, this->super_ );
+        Int procCol     = PCOL( blockColIdx, this->grid_ );
+        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+          Int orow = rowPtr[i]-1;
+          Int row         = perm[ orow ];
+          Int blockRowIdx = BlockIdx( row, this->super_ );
+          Int procRow     = PROW( blockRowIdx, this->grid_ );
+          Int dest = PNUM( procRow, procCol, this->grid_ );
+          rowSend[displsSend[dest] + cntSize[dest]] = row;
+          colSend[displsSend[dest] + cntSize[dest]] = col;
+          cntSize[dest]++;
+        } // for (i)
+      } // for (j)
+
+
+      // Check sizes match
+      for( Int ip = 0; ip < mpisize; ip++ ){
+        if( cntSize[ip] != sizeSend[ip] ){
+          ErrorHandling( "Sizes of the sending information do not match." );
+        }
+      }
+
+      // Alltoallv to exchange information
+      mpi::Alltoallv( 
+          &rowSend[0], &sizeSend[0], &displsSend[0],
+          &rowRecv[0], &sizeRecv[0], &displsRecv[0],
+          this->grid_->comm );
+      mpi::Alltoallv( 
+          &colSend[0], &sizeSend[0], &displsSend[0],
+          &colRecv[0], &sizeRecv[0], &displsRecv[0],
+          this->grid_->comm );
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << "Alltoallv communication of nonzero indices finished." << std::endl;
+#endif
+
+
+#if ( _DEBUGlevel_ >= 1 )
+      for( Int ip = 0; ip < mpisize; ip++ ){
+        statusOFS << "rowSend[" << ip << "] = " << rowSend[ip] << std::endl;
+        statusOFS << "rowRecv[" << ip << "] = " << rowRecv[ip] << std::endl;
+        statusOFS << "colSend[" << ip << "] = " << colSend[ip] << std::endl;
+        statusOFS << "colRecv[" << ip << "] = " << colRecv[ip] << std::endl;
+      }
+
+
+      //DumpLU();
+
+
+
+#endif
+
+      // For each (row, col), fill the nonzero values to valRecv locally.
+      for( Int g = 0; g < sizeRecvTotal; g++ ){
+        Int row = rowRecv[g];
+        Int col = colRecv[g];
+
+        Int blockRowIdx = BlockIdx( row, this->super_ );
+        Int blockColIdx = BlockIdx( col, this->super_ );
+
+        // Search for the nzval
+        bool isFound = false;
+
+        if( blockColIdx <= blockRowIdx ){
+          // Data on the L side
+
+          std::vector<LBlock<T> >&  Lcol = this->L( LBj( blockColIdx, this->grid_ ) );
+
+          for( Int ib = 0; ib < Lcol.size(); ib++ ){
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "blockRowIdx = " << blockRowIdx << ", Lcol[ib].blockIdx = " << Lcol[ib].blockIdx << ", blockColIdx = " << blockColIdx << std::endl;
+#endif
+            if( Lcol[ib].blockIdx == blockRowIdx ){
+              IntNumVec& rows = Lcol[ib].rows;
+              for( int iloc = 0; iloc < Lcol[ib].numRow; iloc++ ){
+                if( rows[iloc] == row ){
+                  Int jloc = col - FirstBlockCol( blockColIdx, this->super_ );
+                  valRecv[g] = Lcol[ib].nzval( iloc, jloc );
+                  isFound = true;
+                  break;
+                } // found the corresponding row
+              }
+            }
+            if( isFound == true ) break;  
+          } // for (ib)
+        } 
+        else{
+          // Data on the U side
+
+          std::vector<UBlock<T> >&  Urow = this->U( LBi( blockRowIdx, this->grid_ ) );
+
+          for( Int jb = 0; jb < Urow.size(); jb++ ){
+            if( Urow[jb].blockIdx == blockColIdx ){
+              IntNumVec& cols = Urow[jb].cols;
+              for( int jloc = 0; jloc < Urow[jb].numCol; jloc++ ){
+                if( cols[jloc] == col ){
+                  Int iloc = row - FirstBlockRow( blockRowIdx, this->super_ );
+                  valRecv[g] = Urow[jb].nzval( iloc, jloc );
+                  isFound = true;
+                  break;
+                } // found the corresponding col
+              }
+            }
+            if( isFound == true ) break;  
+          } // for (jb)
+        } // if( blockColIdx <= blockRowIdx ) 
+
+        // Did not find the corresponding row, set the value to zero.
+        if( isFound == false ){
+          statusOFS << "In the permutated order, (" << row << ", " << col <<
+            ") is not found in PMatrix." << std::endl;
+          valRecv[g] = ZERO<T>();
+        }
+
+      } // for (g)
+
+
+      // Feed back valRecv to valSend through Alltoallv. NOTE: for the
+      // values, the roles of "send" and "recv" are swapped.
+      mpi::Alltoallv( 
+          &valRecv[0], &sizeRecv[0], &displsRecv[0],
+          &valSend[0], &sizeSend[0], &displsSend[0],
+          this->grid_->comm );
+
+#if ( _DEBUGlevel_ >= 1 )
+      statusOFS << "Alltoallv communication of nonzero values finished." << std::endl;
+#endif
+
+      // Put the nonzero values from valSend to the matrix B.
+      B.size = A.size;
+      B.nnz  = A.nnz;
+      B.nnzLocal = A.nnzLocal;
+      B.colptrLocal = A.colptrLocal;
+      B.rowindLocal = A.rowindLocal;
+      B.nzvalLocal.Resize( B.nnzLocal );
+      SetValue( B.nzvalLocal, ZERO<T>() );
+      // Make sure that the communicator of A and B are the same.
+      // FIXME Find a better way to compare the communicators
+      //			if( grid_->comm != A.comm ){
+      //ErrorHandling( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
+      //			}
+      B.comm = this->grid_->comm;
+
+      for( Int i = 0; i < mpisize; i++ )
+        cntSize[i] = 0;
+
+      rowPtr = B.rowindLocal.Data();
+      colPtr = B.colptrLocal.Data();
+      T* valPtr = B.nzvalLocal.Data();
+
+      for( Int j = 0; j < numColLocal; j++ ){
+        Int ocol = firstCol + j;
+        Int col         = perm[ perm_r[ ocol] ];
+        Int blockColIdx = BlockIdx( col, this->super_ );
+        Int procCol     = PCOL( blockColIdx, this->grid_ );
+        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+          Int orow = rowPtr[i]-1;
+          Int row         = perm[ orow ];
+          Int blockRowIdx = BlockIdx( row, this->super_ );
+          Int procRow     = PROW( blockRowIdx, this->grid_ );
+          Int dest = PNUM( procRow, procCol, this->grid_ );
+          valPtr[i] = valSend[displsSend[dest] + cntSize[dest]];
+          cntSize[dest]++;
+        } // for (i)
+      } // for (j)
+
+      // Check sizes match
+      for( Int ip = 0; ip < mpisize; ip++ ){
+        if( cntSize[ip] != sizeSend[ip] ){
+          ErrorHandling( "Sizes of the sending information do not match." );
+        }
+      }
+
+      return ;
+    }     // -----  end of method PMatrix::PMatrixToDistSparseMatrix  ----- 
 
 
 

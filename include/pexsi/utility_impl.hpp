@@ -1492,6 +1492,92 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
 
 
 
+  template<typename T>
+  inline std::string ToMatlabScalar( std::complex<T> val){
+    std::stringstream s;
+    s.precision(std::numeric_limits< std::complex<T> >::max_digits10);
+    s.precision(15);
+    s<<"complex("<<std::scientific<<std::real(val)<<","<<std::imag(val)<<")";
+    return s.str();
+  }
+
+  template<typename T>
+  inline std::string ToMatlabScalar( T val){
+    std::stringstream s;
+    s.precision(std::numeric_limits< T >::max_digits10);
+    s<<std::scientific<<val;
+    return s.str();
+  }
+
+
+
+template<typename T>
+WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & pspmat, MPI_Comm comm){
+
+  MPI_Barrier( comm );
+  Int mpirank=0;  MPI_Comm_rank(comm, &mpirank);
+  Int mpisize=0;  MPI_Comm_size(comm, &mpisize);
+  std::string fname (filename);
+  std::stringstream sstm;
+  sstm<<fname<<"."<<mpirank<<".m";
+  std::ofstream ofile(sstm.str());
+
+    if( !ofile.good() ){
+      ErrorHandling( "File cannot be opened!" );
+    }
+
+    Int baseval = 1;
+
+    Int numColFirst = pspmat.size / mpisize;
+    Int firstCol    = mpirank * numColFirst;
+    Int numColLocal = pspmat.colptrLocal.m() - baseval;
+
+    Int firstLocCol = firstCol;
+    Int LocalVertexCount = numColLocal;
+
+    //I
+    ofile<<"AinvExp = sparse([";
+    for(Int locCol = 0 ; locCol< LocalVertexCount; locCol++){
+      Int col = locCol + firstLocCol;
+      Int colbeg = pspmat.colptrLocal[locCol]-baseval; //now 0 based
+      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based 
+
+      for(Int pos = colbeg; pos<colend; pos++){
+        Int row = pspmat.rowindLocal[pos];
+        ofile<<row<<" ";
+      }
+    }
+    ofile<<"],";//<<std::endl;
+
+    //J
+    ofile<<"[";
+    for(Int locCol = 0 ; locCol< LocalVertexCount; locCol++){
+      Int col = locCol + firstLocCol;
+      Int colbeg = pspmat.colptrLocal[locCol]-baseval; //now 0 based
+      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based 
+
+      for(Int pos = colbeg; pos<colend; pos++){
+        ofile<<col+1<<" ";
+      }
+    }
+    ofile<<"],";//<<std::endl;
+
+    //V
+    ofile<<"[";
+    ofile.precision(std::numeric_limits< T >::max_digits10);
+    for(Int locCol = 0 ; locCol< LocalVertexCount; locCol++){
+      Int col = locCol + firstLocCol;
+      Int colbeg = pspmat.colptrLocal[locCol]-baseval; //now 0 based
+      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based 
+
+      for(Int pos = colbeg; pos<colend; pos++){
+        T val = pspmat.nzvalLocal[pos];
+        ofile<<std::scientific<<ToMatlabScalar(val)<<" ";
+      }
+    }
+    ofile<<"]);"<<std::endl;
+
+}
 
 }
 #endif //_PEXSI_UTILITY_IMPL_HPP_

@@ -1,5 +1,8 @@
 #ifndef _PEXSI_TREE_IMPL_V2_HPP_
 #define _PEXSI_TREE_IMPL_V2_HPP_
+
+#define CHECK_MPI_ERROR
+
 namespace PEXSI{
 #ifdef COMM_PROFILE_BCAST
   template< typename T> 
@@ -60,6 +63,10 @@ namespace PEXSI{
       recvPostedCount_ = 0;
       sendPostedCount_ = 0;
       mainRoot_=ranks[0];
+#ifdef CHECK_MPI_ERROR
+          MPI_Errhandler_set(this->comm_, MPI_ERRORS_RETURN);
+          MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+#endif
     }
 
 
@@ -234,8 +241,21 @@ namespace PEXSI{
         for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
           Int iProc = this->myDests_[idxRecv];
           // Use Isend to send to multiple targets
-          MPI_Isend( this->recvDataPtrs_[0], this->msgSize_, this->type_, 
+          int error_code = MPI_Isend( this->recvDataPtrs_[0], this->msgSize_, this->type_, 
               iProc, this->tag_,this->comm_, &this->sendRequests_[idxRecv] );
+#ifdef CHECK_MPI_ERROR
+          if(error_code!=MPI_SUCCESS){
+            char error_string[BUFSIZ];
+            int length_of_error_string, error_class;
+
+            MPI_Error_class(error_code, &error_class);
+            MPI_Error_string(error_class, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            MPI_Error_string(error_code, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            gdb_lock();
+          }
+#endif
 
 #if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
           statusOFS<<this->myRank_<<" FWD to "<<iProc<<" on tag "<<this->tag_<<std::endl;
@@ -306,13 +326,40 @@ namespace PEXSI{
           int flag = 0;
 
           this->sendDoneIdx_.resize(this->GetDestCount());
+#ifndef CHECK_MPI_ERROR
           MPI_Testsome(destCount,this->sendRequests_.data(),&completed,this->sendDoneIdx_.data(),MPI_STATUSES_IGNORE);
+#else
+          this->sendStatuses_.resize(destCount);
+          int error_code = MPI_Testsome(destCount,this->sendRequests_.data(),&completed,this->sendDoneIdx_.data(),this->sendStatuses_.data());
+          if(error_code!=MPI_SUCCESS){
+            char error_string[BUFSIZ];
+            int length_of_error_string, error_class;
+
+            MPI_Error_class(error_code, &error_class);
+            MPI_Error_string(error_class, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            MPI_Error_string(error_code, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+
+            //now check the status
+            for(int i = 0; i<this->sendStatuses_.size();i++){
+              error_code = this->sendStatuses_[i].MPI_ERROR;
+              if(error_code != MPI_SUCCESS){
+                MPI_Error_class(error_code, &error_class);
+                MPI_Error_string(error_class, error_string, &length_of_error_string);
+                statusOFS<<error_string<<std::endl;
+                MPI_Error_string(error_code, error_string, &length_of_error_string);
+                statusOFS<<error_string<<std::endl;
+              }
+            }
+            gdb_lock();
+          }
+#endif
+
         }
         this->sendCount_ += completed;
         retVal = this->sendCount_ == this->sendPostedCount_;
 
-        //MPI_Testall(destCount,sendRequests_.data(),&flag,MPI_STATUSES_IGNORE);
-        //retVal = flag==1;
       }
       return retVal;
     }
@@ -375,8 +422,23 @@ namespace PEXSI{
           this->recvTempBuffer_.resize(this->msgSize_);
           this->recvDataPtrs_[0] = (T*)this->recvTempBuffer_.data();
         }
-        MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_, 
+        int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_, 
             this->myRoot_, this->tag_,this->comm_, &this->recvRequests_[0] );
+#ifdef CHECK_MPI_ERROR
+          if(error_code!=MPI_SUCCESS){
+            char error_string[BUFSIZ];
+            int length_of_error_string, error_class;
+
+            MPI_Error_class(error_code, &error_class);
+            MPI_Error_string(error_class, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            MPI_Error_string(error_code, error_string, &length_of_error_string);
+            statusOFS<<error_string<<std::endl;
+            gdb_lock();
+          }
+#endif
+
+
         this->recvPostedCount_=1;
       }
     }
@@ -406,7 +468,7 @@ namespace PEXSI{
 
       if(nprocs<=FTREE_LIMIT){
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-        statusOFS<<"FLAT TREE USED"<<endl;
+        statusOFS<<"FLAT TREE USED"<<std::endl;
 #endif
 
         return new FTreeBcast2<T>(pComm,ranks,rank_cnt,msgSize);
@@ -414,7 +476,7 @@ namespace PEXSI{
       }
       else{
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-        statusOFS<<"BINARY TREE USED"<<endl;
+        statusOFS<<"BINARY TREE USED"<<std::endl;
 #endif
         return new ModBTreeBcast2<T>(pComm,ranks,rank_cnt,msgSize, rseed);
       }

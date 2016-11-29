@@ -264,21 +264,19 @@ template<typename T>
 
       Int isReadyL;
       Int isReadyU;
-      bool updatesL;
-      bool updatesU;
+      bool updatesLU;
 
       SuperNodeBufferTypeUnsym():PMatrix<T>::SuperNodeBufferType(){
        isReadyL = 0;
        isReadyU = 0;
-       updatesL = false;
-       updatesU = false;
+       updatesLU = false;
       }
 
     };
 
     /// @brief SelInvIntra_P2p
     inline void SelInvIntra_P2p(Int lidx);
-    inline void SelInvIntra_New(Int lidx);
+    inline void SelInvIntra_New(Int lidx, Int & rank);
 
     /// @brief SelInv_lookup_indexes
     inline void SelInv_lookup_indexes(SuperNodeBufferTypeUnsym & snode,
@@ -286,6 +284,12 @@ template<typename T>
         std::vector<LBlock<T> > & LrowRecv,
         std::vector<UBlock<T> > & UcolRecv,
         std::vector<UBlock<T> > & UrowRecv,
+        NumMat<T> & AinvBuf,
+        NumMat<T> & LBuf,
+        NumMat<T> & UBuf);
+    inline void SelInv_lookup_indexes_New(SuperNodeBufferTypeUnsym & snode,
+        std::vector<LBlock<T> > & LRecv,
+        std::vector<UBlock<T> > & URecv,
         NumMat<T> & AinvBuf,
         NumMat<T> & LBuf,
         NumMat<T> & UBuf);
@@ -297,9 +301,15 @@ template<typename T>
         std::vector<UBlock<T> > & UcolRecv,
         std::vector<UBlock<T> > & UrowRecv
         );
+    inline void UnpackData_New( SuperNodeBufferTypeUnsym & snode,
+        std::vector<LBlock<T> > & LRecv,
+        std::vector<UBlock<T> > & URecv
+        );
+
 
     /// @brief ComputeDiagUpdate
     inline void ComputeDiagUpdate(SuperNodeBufferTypeUnsym & snode);
+    inline void ComputeDiagUpdate_New(SuperNodeBufferTypeUnsym & snode,bool fromU);
 
     /// @brief SendRecvCD_UpdateU
     inline void SendRecvCD(
@@ -515,6 +525,9 @@ template<typename T>
     /// @brief Point-to-point version of the selected inversion.
     void SelInv_P2p( );
 
+    virtual void PMatrixToDistSparseMatrix( 
+      const DistSparseMatrix<T>& A,
+      DistSparseMatrix<T>& B );
   };
 
 

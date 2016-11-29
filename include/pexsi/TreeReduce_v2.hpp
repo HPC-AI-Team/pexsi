@@ -21,6 +21,7 @@ namespace PEXSI{
     class TreeReduce_v2: public TreeBcast_v2<T>{
       protected:
         bool isAllocated_;
+        bool isBufferSet_;
 
       public:
         static TreeReduce_v2<T> * Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize,double rseed);
@@ -136,12 +137,20 @@ public:
 
 
 
+  template< typename T>
+  void TreeReduce_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
+
+  template< typename T>
+  void TreeReduce_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
+
+  template< typename T>
+  void TreeReduce_Waitall(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees);
 
 
+  template< typename T>
+  void TreeReduce_ProgressAll(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees);
 
-
-
-
+  
 
 
 }//namespace PEXSI
