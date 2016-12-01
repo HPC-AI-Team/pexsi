@@ -73,6 +73,7 @@ int main(int argc, char **argv)
 
   char*         HfileR;
   char*         HfileI;
+  char*         Hfile;
   char*         Sfile;
   int           isFormatted;
 
@@ -93,16 +94,31 @@ int main(int argc, char **argv)
     // Input parameter
     // *********************************************************************
 
-    numElectronExact    = 12.0;
-    nprow               = 1;
-    npcol               = 1;
-    HfileR              = "lap2dc_real.matrix";
-    HfileI              = "lap2dc_imag.matrix";
-    Sfile               = "";
-    isFormatted         = 1;
-    isSIdentity         = 1;
-    colPerm             = "PARMETIS";
-    rowPerm             = "NOROWPERM";
+    if(0){
+      numElectronExact    = 12.0;
+      nprow               = 1;
+      npcol               = 1;
+      HfileR              = "lap2dc_real.matrix";
+      HfileI              = "lap2dc_imag.matrix";
+      Sfile               = "";
+      isFormatted         = 1;
+      isSIdentity         = 1;
+      colPerm             = "PARMETIS";
+      rowPerm             = "NOROWPERM";
+    }
+    if(1){
+      // Si64k matrix from SIESTA
+      numElectronExact    = 256.0;
+      nprow               = 1;
+      npcol               = 1;
+      Hfile               = "/home/lin/ResearchBIN/pexsi/siesta-k/Si64k/Hk.00002.matrix";
+      Sfile               = "/home/lin/ResearchBIN/pexsi/siesta-k/Si64k/Sk.00002.matrix";
+      isFormatted         = 1;
+      isSIdentity         = 0;
+      colPerm             = "PARMETIS";
+      rowPerm             = "NOROWPERM";
+    }
+
 
     /* Split the processors to read matrix */
     if( mpirank < nprow * npcol )
@@ -112,28 +128,14 @@ int main(int argc, char **argv)
 
     MPI_Comm_split( MPI_COMM_WORLD, isProcRead, mpirank, &readComm );
 
-    DistSparseMatrix<Real>    ReadMat;
     DistSparseMatrix<Complex> HMat;
     DistSparseMatrix<Complex> SMat;
 
     if( isProcRead == 1 ){
       printf("Proc %5d is reading file...\n", mpirank );
       /* Read the matrix head for allocating memory */
-      ReadDistSparseMatrixFormatted( HfileR, 
-          ReadMat, readComm ); 
-
-      CopyPattern( ReadMat, HMat );
-
-      for( Int g = 0; g < ReadMat.nnzLocal; g++ ){
-        HMat.nzvalLocal[g] = ReadMat.nzvalLocal[g];
-      }
-
-      ReadDistSparseMatrixFormatted( HfileI, 
-          ReadMat, readComm ); 
-
-      for( Int g = 0; g < ReadMat.nnzLocal; g++ ){
-        HMat.nzvalLocal[g] += Complex(0.0, ReadMat.nzvalLocal[g]);
-      }
+      ReadDistSparseMatrixFormatted( Hfile, 
+          HMat, readComm ); 
 
       numColLocal = HMat.colptrLocal.m() - 1;
 
@@ -145,27 +147,20 @@ int main(int argc, char **argv)
         printf("numColLocal = %d\n", numColLocal );
       }
 
-      // S is assumed to be an identity matrix here
 
-      //      if( isSIdentity == 0 ){
-      //        if( isFormatted == 1 ){
-      //          ReadDistSparseMatrixFormatted( Sfile, SMat, readComm ); 
-      //        }
-      //        else{
-      //        // FIXME This may not work
-      ////          ReadDistSparseMatrix( Sfile, SMat, readComm ); 
-      //        }
-      //      }
+      if( isSIdentity == 0 ){
+          ReadDistSparseMatrixFormatted( Sfile, SMat, readComm ); 
+      }
 
       if( mpirank == 0 ){ 
         printf("Finish reading the matrix.\n");
       }
 
-      //      if( mpirank == 0 ){ 
-      //        for( Int g = 0; g < ReadMat.nnzLocal; g++ ){
-      //          std::cout << HMat.nzvalLocal[g] << "  ";
-      //        }
-      //      }
+//      if( mpirank == 0 ){ 
+//        for( Int g = 0; g < HMat.nnzLocal; g++ ){
+//          std::cout << HMat.nzvalLocal[g] << "  ";
+//        }
+//      }
     } // Read the matrix
 
 
@@ -192,20 +187,39 @@ int main(int argc, char **argv)
     /* Step 1. Initialize PEXSI */
 
     PPEXSISetDefaultOptions( &options );
-    options.muMin0 = 0.0;
-    options.muMax0 = 0.5;
-    options.mu0    = +0.270;
-    options.npSymbFact = 1;
-    options.ordering = 0;
-    options.isInertiaCount = 1;
-    options.maxPEXSIIter   = 1;
-    options.verbosity = 1;
-    options.deltaE   = 20.0;
-    options.numPole  = 40;
-    options.temperature  = 0.0019; // 300K
-    options.muPEXSISafeGuard  = 0.2; 
-    options.numElectronPEXSITolerance = 0.001;
-    options.isSymbolicFactorize = 1;
+    if(0){
+      options.muMin0 = 0.0;
+      options.muMax0 = 0.5;
+      options.mu0    = +0.270;
+      options.npSymbFact = 1;
+      options.ordering = 0;
+      options.isInertiaCount = 1;
+      options.maxPEXSIIter   = 1;
+      options.verbosity = 1;
+      options.deltaE   = 20.0;
+      options.numPole  = 40;
+      options.temperature  = 0.0019; // 300K
+      options.muPEXSISafeGuard  = 0.2; 
+      options.numElectronPEXSITolerance = 0.001;
+      options.isSymbolicFactorize = 1;
+    }
+
+    if(1){
+      options.muMin0 = -1.0;
+      options.muMax0 =  1.0;
+      options.mu0    = +0.300;
+      options.npSymbFact = 1;
+      options.ordering = 0;
+      options.isInertiaCount = 1;
+      options.maxPEXSIIter   = 1;
+      options.verbosity = 1;
+      options.deltaE   = 10.0;
+      options.numPole  = 80;
+      options.temperature  = 0.0019; // 300K
+      options.muPEXSISafeGuard  = 0.2; 
+      options.numElectronPEXSITolerance = 0.001;
+      options.isSymbolicFactorize = 1;
+    }
 
 
     pexsi.LoadComplexMatrix(
@@ -218,6 +232,7 @@ int main(int argc, char **argv)
         HMat.nzvalLocal.Data(),
         isSIdentity,
         SMat.nzvalLocal.Data(),
+        0,
         options.verbosity );
 
     if( mpirank == 0 ){
@@ -228,12 +243,14 @@ int main(int argc, char **argv)
 
       // No permutation
       pexsi.SymbolicFactorizeComplexSymmetricMatrix( 
+          0,
           colPerm, 
           options.npSymbFact,
           options.verbosity );
 
       // Can have permutation
       pexsi.SymbolicFactorizeComplexUnsymmetricMatrix( 
+          0,
           colPerm, 
           rowPerm,
           options.npSymbFact,
@@ -253,6 +270,7 @@ int main(int argc, char **argv)
     pexsi.CalculateNegativeInertiaComplex(
         shiftVec,
         inertiaVec,
+        0,
         options.verbosity );
 
     if( mpirank == 0 ){
@@ -271,6 +289,7 @@ int main(int argc, char **argv)
         options.mu0,
         numElectronExact, 
         options.numElectronPEXSITolerance,
+        0,
         options.verbosity,
         numElectron,
         numElectronDrvMu );
