@@ -300,7 +300,11 @@ graphene nanoflakes, J. Chem. Phys. 141, 214704, 2014
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
-- v0.10.0 (11/6/2016) **Beta version**
+- v0.10.1 (11/8/2016)
+    - Bug fix:  matrix pattern for nonzero overlap matrices and missing
+      option in fortran interface (contributed by Victor Yu)
+
+- v0.10.0 (11/6/2016) 
     - **v0.10.0 contains major updates with new functionalities for unsymmetric matrices, integration with SuperLU_DIST v5.1.2 and with symPACK v0.1.0 for factorization. Use with care.**
 
     - Combine LoadRealSymmetricMatrix / LoadRealUnsymmetricMatrix into

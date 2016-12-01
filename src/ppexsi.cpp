@@ -276,7 +276,7 @@ PPEXSIData::LoadRealMatrix	(
             SRealMat_.comm = HRealMat_.comm; 
           }
           else{
-            CopyPattern( PatternMat_, SRealMat_ );
+            CopyPattern( HRealMat_, SRealMat_ );
             SRealMat_.comm = HRealMat_.comm; 
             SRealMat_.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
             serialize( SRealMat_.nzvalLocal, sstm, NO_MASK );
@@ -3640,13 +3640,18 @@ void PPEXSIData::CalculateFermiOperatorComplex(
 
   }
 
+  // LL: 11/30/2016 Be careful about all the Dotu below. There might be
+  // some happy coincidence, depending on whether the matrix is transposed!
+  // Rule of thumb: always test the matrix for some nontrivial complex
+  // Hermitian H and S matrices
+
   // Compute the number of electrons
   // The number of electrons is computed by Tr[DM*S]
   {
     Complex numElecLocal = Z_ZERO;
     if( SMat.size != 0 ){
       // S is not an identity matrix
-      numElecLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+      numElecLocal = blas::Dotu( SMat.nnzLocal, SMat.nzvalLocal.Data(),
           1, rhoMat.nzvalLocal.Data(), 1 );
     }
     else{
@@ -3672,7 +3677,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     Complex numElecDrvLocal = Z_ZERO;
     if( SMat.size != 0 ){
       // S is not an identity matrix
-      numElecDrvLocal = blas::Dot( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+      numElecDrvLocal = blas::Dotu( SMat.nnzLocal, SMat.nzvalLocal.Data(),
           1, rhoDrvMuMat.nzvalLocal.Data(), 1 );
     }
     else{
@@ -3699,7 +3704,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     // Energy computed from Tr[H*DM]
     {
       Real local = 0.0;
-      local = (blas::Dotc( HComplexMat_.nnzLocal, 
+      local = (blas::Dotu( HComplexMat_.nnzLocal, 
           HComplexMat_.nzvalLocal.Data(),
           1, rhoComplexMat_.nzvalLocal.Data(), 1 )).real();
       mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
@@ -3711,7 +3716,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     {
       Real local = 0.0;
       if( SRealMat_.size != 0 ){
-        local = (blas::Dotc( SComplexMat_.nnzLocal, 
+        local = (blas::Dotu( SComplexMat_.nnzLocal, 
             SComplexMat_.nzvalLocal.Data(),
             1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
       }
@@ -3732,7 +3737,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     {
       Real local = 0.0;
       if( SComplexMat_.size != 0 ){
-        local = (blas::Dotc( SComplexMat_.nnzLocal, 
+        local = (blas::Dotu( SComplexMat_.nnzLocal, 
             SComplexMat_.nzvalLocal.Data(),
             1, freeEnergyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
       }
