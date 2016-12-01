@@ -77,6 +77,7 @@ int main(int argc, char **argv)
   double tsymfact1, tsymfact2, tinvert1, tinvert2;
 
   #ifdef WITH_SYMPACK
+  MPI_Init( &argc, &argv );
   symPACK_Init(&argc, &argv);
   #else
   MPI_Init( &argc, &argv );

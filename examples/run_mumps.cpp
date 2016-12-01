@@ -144,31 +144,6 @@ int main(int argc, char **argv)
     nprow = mpisize;
     npcol=1;
 
-    //    if( options.find("-r") != options.end() ){
-    //      if( options.find("-c") != options.end() ){
-    //        nprow= atoi(options["-r"].c_str());
-    //        npcol= atoi(options["-c"].c_str());
-    //        if(nprow*npcol > mpisize){
-    //          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
-    //        } 
-    //      }
-    //      else{
-    //        ErrorHandling( "When using -r option, -c also needs to be provided." );
-    //      }
-    //    }
-    //    else if( options.find("-c") != options.end() ){
-    //      if( options.find("-r") != options.end() ){
-    //        nprow= atoi(options["-r"].c_str());
-    //        npcol= atoi(options["-c"].c_str());
-    //        if(nprow*npcol > mpisize){
-    //          ErrorHandling("The number of used processors cannot be higher than the total number of available processors." );
-    //        } 
-    //      }
-    //      else{
-    //        ErrorHandling( "When using -c option, -r also needs to be provided." );
-    //      }
-    //    }
-
     //Create a communicator with npcol*nprow processors
     MPI_Comm_split(MPI_COMM_WORLD, mpirank<nprow*npcol, mpirank, &world_comm);
 

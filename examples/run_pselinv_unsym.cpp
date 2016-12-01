@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-//#define _MYCOMPLEX_
+#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -544,7 +544,7 @@ int main(int argc, char **argv)
       factOpt.ColPerm = ColPerm;
       factOpt.RowPerm = RowPerm;
       factOpt.Symmetric = isSym;
-//      factOpt.Transpose = transpose;
+      //      factOpt.Transpose = transpose;
 
 
       //Initialize SuperLU data structures
@@ -666,9 +666,10 @@ int main(int argc, char **argv)
           GetTime( timeSta );
           pLuMat->SymbolicToSuperNode( *pSuper );
 
-          statusOFS<<"superIdx: "<<pSuper->superIdx<<std::endl;
-          statusOFS<<"superPtr: "<<pSuper->superPtr<<std::endl;
-
+          if(0){
+            statusOFS<<"superIdx: "<<pSuper->superIdx<<std::endl;
+            statusOFS<<"superPtr: "<<pSuper->superPtr<<std::endl;
+          }
 
           GetTime( timeTotalSelInvSta );
 
@@ -726,7 +727,7 @@ int main(int argc, char **argv)
             cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
 
-          if(1){
+          if(0){
             statusOFS.close();
             stringstream  sslu;
             sslu << "PreLUDump." << mpirank<<".m";
@@ -773,12 +774,9 @@ int main(int argc, char **argv)
 
             DistSparseMatrix<MYSCALAR> * Aptr;
 #ifndef OLD_SELINV
-//            Aptr = new DistSparseMatrix<MYSCALAR>();
-            //compute the transpose
-//            CSCToCSR(AMat,*Aptr);
             Aptr = &AMat;
 #else
-            if(factOpt.Symmetric==0 && 0){//&& factOpt.Transpose==0){
+            if(factOpt.Symmetric==0 && 0){
               Aptr = new DistSparseMatrix<MYSCALAR>();
               //compute the transpose
               CSCToCSR(AMat,*Aptr);
@@ -792,14 +790,9 @@ int main(int argc, char **argv)
             GetTime( timeEnd );
 
 #ifndef OLD_SELINV
-            //DistSparseMatrix<MYSCALAR> AinvT;
-            //  CSCToCSR(Ainv,AinvT);
             traceLocal = ZERO<MYSCALAR>();
             traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
                 Aptr->nzvalLocal.Data(), 1 );
-//            traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
-//                Aptr->nzvalLocal.Data(), 1 );
-
 #else
             traceLocal = ZERO<MYSCALAR>();
             traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
@@ -878,60 +871,60 @@ int main(int argc, char **argv)
             }
 
 
-          }
-          else if( doDiag ){
-            NumVec<MYSCALAR> diag;
-
-            GetTime( timeSta );
-            pMat->GetDiagonal( diag );
-            GetTime( timeEnd );
-
-
-            if( mpirank == 0 )
-              cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
-
-            if( mpirank == 0 ){
-              statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
-              ofstream ofs("diag");
-              if( !ofs.good() ) 
-                ErrorHandling("file cannot be opened.");
-              serialize( diag, ofs, NO_MASK );
-              ofs.close();
             }
+            else if( doDiag ){
+              NumVec<MYSCALAR> diag;
+
+              GetTime( timeSta );
+              pMat->GetDiagonal( diag );
+              GetTime( timeEnd );
+
+
+              if( mpirank == 0 )
+                cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+
+              if( mpirank == 0 ){
+                statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
+                ofstream ofs("diag");
+                if( !ofs.good() ) 
+                  ErrorHandling("file cannot be opened.");
+                serialize( diag, ofs, NO_MASK );
+                ofs.close();
+              }
+            }
+
+
+            delete pMat;
+            delete pGrid;
+
+            }
+
+
           }
 
+          delete pSuper;
+          delete pLuMat;
+          delete pLuGrid;
 
-          delete pMat;
-          delete pGrid;
-
-        }
-
-
-      }
-
-      delete pSuper;
-      delete pLuMat;
-      delete pLuGrid;
-
-      statusOFS.close();
+          statusOFS.close();
 #ifdef GEMM_PROFILE
-      statOFS.close();
+          statOFS.close();
 #endif
 
 #ifdef COMM_PROFILE
-      commOFS.close();
+          commOFS.close();
 #endif
 
 
+        }
+      }
+      catch( std::exception& e )
+      {
+        std::cerr << "Processor " << mpirank << " caught exception with message: "
+          << e.what() << std::endl;
+      }
+
+      MPI_Finalize();
+
+      return 0;
     }
-  }
-  catch( std::exception& e )
-  {
-    std::cerr << "Processor " << mpirank << " caught exception with message: "
-      << e.what() << std::endl;
-  }
-
-  MPI_Finalize();
-
-  return 0;
-}

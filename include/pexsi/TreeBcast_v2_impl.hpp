@@ -276,12 +276,22 @@ namespace PEXSI{
       this->recvDoneIdx_.clear();
       this->recvDataPtrs_.clear();
       this->recvTempBuffer_.clear();
-
       this->sendRequests_.clear();
       this->sendStatuses_.clear();
       this->sendDoneIdx_.clear();
       this->sendDataPtrs_.clear();
       this->sendTempBuffer_.clear();
+
+      this->recvRequests_.shrink_to_fit();
+      this->recvStatuses_.shrink_to_fit();
+      this->recvDoneIdx_.shrink_to_fit();
+      this->recvDataPtrs_.shrink_to_fit();
+      this->recvTempBuffer_.shrink_to_fit();
+      this->sendRequests_.shrink_to_fit();
+      this->sendStatuses_.shrink_to_fit();
+      this->sendDoneIdx_.shrink_to_fit();
+      this->sendDataPtrs_.shrink_to_fit();
+      this->sendTempBuffer_.shrink_to_fit();
     }
 
 

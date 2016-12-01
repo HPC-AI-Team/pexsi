@@ -1512,7 +1512,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
 
 
 template<typename T>
-WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & pspmat, MPI_Comm comm){
+void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & pspmat, MPI_Comm comm){
 
   MPI_Barrier( comm );
   Int mpirank=0;  MPI_Comm_rank(comm, &mpirank);
