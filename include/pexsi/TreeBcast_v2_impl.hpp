@@ -139,7 +139,7 @@ namespace PEXSI{
 
   template< typename T> 
     inline Int TreeBcast_v2<T>::GetNumMsgToRecv(){
-      return myRank_==myRoot_?0:1;
+      return 1;//always one even for root//myRank_==myRoot_?0:1;
     }
 
   template< typename T> 

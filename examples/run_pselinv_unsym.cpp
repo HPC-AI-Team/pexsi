@@ -709,6 +709,15 @@ int main(int argc, char **argv)
           if( mpirank == 0 )
             cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
 
+          if(0){
+            statusOFS.close();
+            stringstream  sslu;
+            sslu << "LUfactDump_" << mpirank<<".m";
+            statusOFS.open( sslu.str().c_str() );
+            pMat->DumpLU();
+            statusOFS.close();
+            statusOFS.open( ss.str().c_str(),std::ofstream::out | std::ofstream::app );
+          }
 
           // Preparation for the selected inversion
           GetTime( timeSta );
@@ -730,7 +739,7 @@ int main(int argc, char **argv)
           if(0){
             statusOFS.close();
             stringstream  sslu;
-            sslu << "PreLUDump." << mpirank<<".m";
+            sslu << "PreLUDump_" << mpirank<<".m";
             statusOFS.open( sslu.str().c_str() );
             pMat->DumpLU();
             statusOFS.close();
@@ -750,10 +759,10 @@ int main(int argc, char **argv)
           if( mpirank == 0 )
             cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
-          if(1){
+          if(0){
             statusOFS.close();
             stringstream  sslu;
-            sslu << "LUDump." << mpirank<<".m";
+            sslu << "LUDump_" << mpirank<<".m";
             statusOFS.open( sslu.str().c_str() );
             pMat->DumpLU();
             statusOFS.close();
@@ -762,8 +771,14 @@ int main(int argc, char **argv)
           if(0){
             DistSparseMatrix<MYSCALAR> Ainv;
             pMat->PMatrixToDistSparseMatrix(Ainv );
+            //pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
             //if( mpirank == 0 )
             WriteDistSparseMatrixMatlab("AinvDump",Ainv,world_comm);
+
+            WriteDistSparseMatrixMatlab("ADump",AMat,world_comm);
+
+            pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
+            WriteDistSparseMatrixMatlab("AinvDump2",Ainv,world_comm);
           }
 
           if(doToDist){
@@ -791,8 +806,8 @@ int main(int argc, char **argv)
 
 #ifndef OLD_SELINV
             traceLocal = ZERO<MYSCALAR>();
-            traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
-                Aptr->nzvalLocal.Data(), 1 );
+            traceLocal = blas::Dotu( Aptr->nnzLocal, Aptr->nzvalLocal.Data(), 1,
+                Ainv.nzvalLocal.Data(), 1 );
 #else
             traceLocal = ZERO<MYSCALAR>();
             traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,

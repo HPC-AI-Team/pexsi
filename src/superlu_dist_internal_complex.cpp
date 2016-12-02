@@ -432,6 +432,21 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
   Int numRowLocal = -1;
   Int nnzLocal = -1;
 #if 0
+    numRowLocal = sparseA.colptrLocal.m() - 1;
+    nnzLocal = sparseA.nnzLocal;
+
+    colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal); 
+    nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(sparseA.nnzLocal);
+    rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
+
+    std::copy( sparseA.colptrLocal.Data(), sparseA.colptrLocal.Data() + sparseA.colptrLocal.m(),
+        rowptrLocal );
+    std::copy( sparseA.rowindLocal.Data(), sparseA.rowindLocal.Data() + sparseA.rowindLocal.m(),
+        colindLocal );
+    std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
+        (Complex*)nzvalLocal );
+#else
+#if 0
   if(options.Transpose == 1 || options.Symmetric == 1 ){
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
@@ -468,6 +483,7 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
         (Complex*)nzvalLocal );
 #if 0
   }
+#endif
 #endif
 
   // Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
@@ -840,6 +856,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
         cnt += numRow;
         LIndices[iblk] = blockIdx;
       }
+
       //      statusOFS<<"Unsorted blockidx for L are: "<<LIndices<<std::endl;
       //sort the array
       IntNumVec sortedIndices(Lcol.size());
@@ -1027,6 +1044,15 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 #endif 
 
       } // for (jblk)
+
+
+#if ( _DEBUGlevel_ >= 2 )
+      statusOFS<<"Real Sorted blockidx for U are: ";
+      for( Int iblk = 0; iblk < Urow.size(); iblk++ ){
+        statusOFS<<Urow[iblk].blockIdx<<" ";
+      }
+      statusOFS<<std::endl;
+#endif
 
 
 

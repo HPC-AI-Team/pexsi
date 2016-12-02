@@ -1165,6 +1165,11 @@ namespace PEXSI{
   template<typename T>
     void PMatrix<T>::GetEtree(std::vector<Int> & etree_supno )
     {
+
+#ifndef _RELEASE_
+      double begin =  MPI_Wtime( );
+#endif
+
       Int nsupers = this->NumSuper();
 
       if( optionsFact_->ColPerm != "PARMETIS" ) {
@@ -1238,7 +1243,7 @@ namespace PEXSI{
         Int maxDepth = options_->maxPipelineDepth;
         maxDepth=maxDepth==-1?std::numeric_limits<Int>::max():maxDepth;
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS<<"MaxDepth is "<<maxDepth<<endl;
+        statusOFS<<"MaxDepth is "<<maxDepth<<std::endl;
 #endif
 
         //find roots in the supernode etree (it must be postordered)

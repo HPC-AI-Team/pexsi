@@ -3195,6 +3195,35 @@ namespace PEXSI{
 
 
         }
+
+      //reset the trees
+      for(int i = 0 ; i< this->bcastLDataTree_.size();++i){
+        if(this->bcastLDataTree_[i]!=nullptr){
+          this->bcastLDataTree_[i]->Reset();
+        }
+      }
+      for(int i = 0 ; i< this->bcastUDataTree_.size();++i){
+        if(this->bcastUDataTree_[i]!=nullptr){
+          this->bcastUDataTree_[i]->Reset();
+        }
+      }
+      for(int i = 0 ; i< this->redLTree2_.size();++i){
+        if(this->redLTree2_[i]!=nullptr){
+          this->redLTree2_[i]->Reset();
+        }
+      }
+      for(int i = 0 ; i< this->redUTree2_.size();++i){
+        if(this->redUTree2_[i]!=nullptr){
+          this->redUTree2_[i]->Reset();
+        }
+      }
+
+      for(int i = 0 ; i< this->redDTree2_.size();++i){
+        if(this->redDTree2_[i]!=nullptr){
+          this->redDTree2_[i]->Reset();
+        }
+      }
+
 #endif
 
         TIMER_STOP(SelInv_P2p);
@@ -3564,8 +3593,8 @@ namespace PEXSI{
             //auto last = std::unique(LcolRecv.begin(),LcolRecv.end(),LBlockComparator<T>);
             //LcolRecv.resize(last - LcolRecv.begin());
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Lcol1: ";for(auto it = Lcol.begin();it != Lcol.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<endl;  
-            statusOFS<<"["<<ksup<<"] "<<"LcolRecv1: ";for(auto it = LcolRecv.begin();it != LcolRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Lcol1: ";for(auto it = Lcol.begin();it != Lcol.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
+            statusOFS<<"["<<ksup<<"] "<<"LcolRecv1: ";for(auto it = LcolRecv.begin();it != LcolRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
 #endif
           } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
         }
@@ -3622,8 +3651,8 @@ namespace PEXSI{
             //          UrowRecv.resize(last - UrowRecv.begin());
 
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Urow1: ";for(auto it = Urow.begin();it != Urow.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<endl;  
-            statusOFS<<"["<<ksup<<"] "<<"UrowRecv1: ";for(auto it = UrowRecv.begin();it != UrowRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Urow1: ";for(auto it = Urow.begin();it != Urow.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
+            statusOFS<<"["<<ksup<<"] "<<"UrowRecv1: ";for(auto it = UrowRecv.begin();it != UrowRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
 #endif
 
           } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
@@ -3739,9 +3768,9 @@ namespace PEXSI{
             }
 
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Lcol: ";for(auto it = pLcolRecv->begin();it != pLcolRecv->end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<endl;  
-            statusOFS<<"["<<ksup<<"] "<<"Urow: ";for(auto it = UrowRecv.begin();it != UrowRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<endl;  
-            statusOFS<<"["<<ksup<<"] "<<"Union: ";for(auto it = Union.begin();it != Union.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Lcol: ";for(auto it = pLcolRecv->begin();it != pLcolRecv->end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Urow: ";for(auto it = UrowRecv.begin();it != UrowRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Union: ";for(auto it = Union.begin();it != Union.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
 #endif
 
             //replace LcolSend by the union
@@ -3805,7 +3834,7 @@ namespace PEXSI{
             }
 
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Union: ";for(auto it = UnionSend.begin();it != UnionSend.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Union: ";for(auto it = UnionSend.begin();it != UnionSend.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
 #endif
 
             if( this->grid_ -> mpisize != 1 ){
@@ -3908,7 +3937,7 @@ namespace PEXSI{
 #endif
             std::sort(Urow.begin(),Urow.end(),UBlockComparator<T>);
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Urow extended: ";for(auto it = Urow.begin();it != Urow.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Urow extended: ";for(auto it = Urow.begin();it != Urow.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
 #endif
             TIMER_STOP(Extending_Urow);
           } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
@@ -4002,7 +4031,7 @@ namespace PEXSI{
 #endif
             std::sort(Lcol.begin(),Lcol.end(),LBlockComparator<T>);
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Lcol extended: ";for(auto it = Lcol.begin();it != Lcol.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Lcol extended: ";for(auto it = Lcol.begin();it != Lcol.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
 #endif
             TIMER_STOP(Extending_Lcol);
           } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
@@ -4040,7 +4069,7 @@ namespace PEXSI{
 
 
 #if ( _DEBUGlevel_ >= 1  )
-                  statusOFS<<"["<<ksup<<"] "<<"Urow["<<jsup<<"]: "; for(auto it = Urow.begin(); it != Urow.end(); ++it){ statusOFS<<it->blockIdx<<" "; } statusOFS<<endl;
+                  statusOFS<<"["<<ksup<<"] "<<"Urow["<<jsup<<"]: "; for(auto it = Urow.begin(); it != Urow.end(); ++it){ statusOFS<<it->blockIdx<<" "; } statusOFS<<std::endl;
 #endif
 
                   Int & nextIdx = nextNZRowBlockCol[ LBi(jsup, this->grid_) ]; 
@@ -4089,7 +4118,7 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1  )
               statusOFS<<"["<<ksup<<"] "<<"NEW Union: ";
               for(auto it = Union.begin(); it != Union.end(); ++it){ statusOFS<<it->blockIdx<<" "; }
-              statusOFS<<endl;
+              statusOFS<<std::endl;
 #endif
 
             } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
@@ -4114,7 +4143,7 @@ namespace PEXSI{
 
 
 #if ( _DEBUGlevel_ >= 1  )
-                statusOFS<<"["<<ksup<<"] "<<"Lcol["<<jsup<<"]: "; for(auto it = Lcol.begin(); it != Lcol.end(); ++it){ statusOFS<<it->blockIdx<<" "; } statusOFS<<endl;
+                statusOFS<<"["<<ksup<<"] "<<"Lcol["<<jsup<<"]: "; for(auto it = Lcol.begin(); it != Lcol.end(); ++it){ statusOFS<<it->blockIdx<<" "; } statusOFS<<std::endl;
 #endif
 
                 Int & nextIdx = nextNZColBlockRow[ LBj(jsup, this->grid_) ]; 
@@ -4169,7 +4198,7 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1  )
             statusOFS<<"["<<ksup<<"] "<<"NEW Union: ";
             for(auto it = Union.begin(); it != Union.end(); ++it){ statusOFS<<it->blockIdx<<" "; }
-            statusOFS<<endl;
+            statusOFS<<std::endl;
 #endif
 
           } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
@@ -4441,7 +4470,6 @@ namespace PEXSI{
         this->redLTree2_.resize(numSuper);
         this->redUTree2_.resize(numSuper);
         this->redDTree2_.resize(numSuper);
-
         //Loop through each supernode and share its structure among all processors in supernode's column
 
         std::vector< std::list<Int > > structRows(numSuper);
@@ -5020,7 +5048,7 @@ namespace PEXSI{
             if(MYCOL(this->grid_)==PCOL(ksup,this->grid_)){
               auto & list = structRows[ksup];
               auto & redUTree = this->redUTree2_[ksup];
-              if(list.size()>0 && (redUTree!=nullptr || MYPROC(this->grid_)==proot)  ){
+              if( (list.size()>0 && redUTree!=nullptr) || MYPROC(this->grid_)==proot  ){
                 auto & inserted_proc = inserted_procs[ksup];
                 inserted_proc.assign(this->grid_->mpisize,false);
                 auto & rnkList = rnkLists[ksup];
@@ -5051,7 +5079,7 @@ namespace PEXSI{
             if(MYROW(this->grid_)==PROW(ksup,this->grid_)){
               auto & list = structCols[ksup];
               auto & redLTree = this->redLTree2_[ksup];
-              if(list.size()>0 && (redLTree!=nullptr || MYPROC(this->grid_)==proot)){
+              if( (list.size()>0 && redLTree!=nullptr) || MYPROC(this->grid_)==proot){
                 auto & inserted_proc = inserted_procs[ksup];
                 inserted_proc.assign(this->grid_->mpisize,false);
                 auto & rnkList = rnkLists[ksup];
@@ -5372,7 +5400,7 @@ namespace PEXSI{
           if(redLTree != nullptr){
             redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,this->limIndex_));
             //Initialize the tree
-            redLTree->AllocRecvBuffers();
+//            redLTree->AllocRecvBuffers();
             //Post All Recv requests;
             redLTree->Progress();
           }
@@ -5383,7 +5411,7 @@ namespace PEXSI{
           if(redUTree != nullptr){
             redUTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_U_REDUCE,this->limIndex_));
             //Initialize the tree
-            redUTree->AllocRecvBuffers();
+//            redUTree->AllocRecvBuffers();
             //Post All Recv requests;
             redUTree->Progress();
           }
@@ -5395,7 +5423,7 @@ namespace PEXSI{
             redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,this->limIndex_));
 
             //Initialize the tree
-            redDTree->AllocRecvBuffers();
+//            redDTree->AllocRecvBuffers();
 
 #if 0
             if(redDTree->IsRoot()){
@@ -5486,6 +5514,12 @@ namespace PEXSI{
 
               SelInv_lookup_indexes_New(snode, LRecv,
                   URecv,AinvBuf,LBuf, UBuf);
+
+#if ( _DEBUGlevel_ >= 2 )
+              statusOFS << "["<<snode.Index<<"] "<<"LBuf = "<<LBuf<<std::endl;
+              statusOFS << "["<<snode.Index<<"] "<<"UBuf = "<<UBuf<<std::endl;
+              statusOFS << "["<<snode.Index<<"] "<<"AinvBuf = "<<AinvBuf<<std::endl;
+#endif
 
               if (snode.updatesLU){
                 TIMER_START(Compute_Sinv_L_Resize);
@@ -5689,10 +5723,20 @@ namespace PEXSI{
               Int startIdx = MYPROC(this->grid_)==PNUM(PROW(snode.Index,this->grid_),PCOL(snode.Index,this->grid_),this->grid_)?1:0;
               for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
                 LBlock<T> & LB = Lcol[ib];
+
+                assert(offset<snode.UUpdateBuf.m());
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS << "["<<snode.Index<<"] LB "<<ib<<" rows "<<LB.rows<<std::endl;
+              statusOFS << "["<<snode.Index<<"] LB "<<ib<<" before "<<LB.nzval<<std::endl;
+#endif
                 //Indices follow L order... look at Lrow
                 lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
                     &snode.UUpdateBuf( offset , 0 ),
                     snode.UUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
+
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS << "["<<snode.Index<<"] LB "<<ib<<" after "<<LB.nzval<<std::endl;
+#endif
                 offset += LB.numRow;
               }
 
@@ -5717,16 +5761,6 @@ namespace PEXSI{
 
 #ifdef REDUCE_D
 
-#if 0
-        for(auto && snode: arrSuperNodes){
-          auto & redDTree = this->redDTree2_[snode.Index];
-          if(redDTree!=nullptr){
-            if(!redDTree->IsRoot()){
-              assert(redDTree->IsReady());
-            }
-          }
-        }
-#endif
 #ifdef BLOCK_REDUCE_D
         TreeReduce_Waitall( superList[lidx], this->redDTree2_);
         for(auto && snode : arrSuperNodes){
@@ -5766,16 +5800,12 @@ namespace PEXSI{
               }
               redDTree->SetLocalBuffer(snode.DiagBuf.Data());
 
-              LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) )[0];
-
-              //statusOFS<<"["<<snode.Index<<"] Diag before transpose:"<<std::endl<<LB.nzval<<std::endl;
+              LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) ).front();
               Transpose(LB.nzval, LB.nzval);
-
-              //statusOFS<<"["<<snode.Index<<"] Diag after transpose:"<<std::endl<<LB.nzval<<std::endl;
-
-              //statusOFS<<"["<<snode.Index<<"] Diag update:"<<std::endl<<snode.DiagBuf<<std::endl;
               blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-              //statusOFS<<"["<<snode.Index<<"] Diag after update:"<<std::endl<<LB.nzval<<std::endl;
+#if ( _DEBUGlevel_ >= 2 )
+              statusOFS<<"["<<snode.Index<<"] Diag after update:"<<std::endl<<LB.nzval<<std::endl;
+#endif
             }
             redDTree->cleanupBuffers();
           }
@@ -6256,7 +6286,7 @@ namespace PEXSI{
           }
 
           if(!redDTree->IsAllocated()){
-            redDTree->AllocRecvBuffers();
+//            redDTree->AllocRecvBuffers();
           }
 
           //set the buffer and mark as active
@@ -6314,10 +6344,6 @@ namespace PEXSI{
           numColLocal = this->NumCol() - numColFirst * (mpisize-1);
         else
           numColLocal = numColFirst;
-
-
-
-
 
         Int*     rowPtr = A.rowindLocal.Data();
         Int*     colPtr = A.colptrLocal.Data();

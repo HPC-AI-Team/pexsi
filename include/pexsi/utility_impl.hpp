@@ -1519,7 +1519,7 @@ void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & ps
   Int mpisize=0;  MPI_Comm_size(comm, &mpisize);
   std::string fname (filename);
   std::stringstream sstm;
-  sstm<<fname<<"."<<mpirank<<".m";
+  sstm<<fname<<"_"<<mpirank<<".m";
   std::ofstream ofile(sstm.str());
 
     if( !ofile.good() ){

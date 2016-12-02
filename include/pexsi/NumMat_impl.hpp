@@ -194,6 +194,35 @@ Transpose ( const NumMat<F>& A, NumMat<F>& B )
 }		// -----  end of function Transpose  ----- 
 
 template <class F> inline void
+ConjTranspose ( const NumMat<F>& A, NumMat<F>& B )
+{
+  NumMat<F> tmp;
+  F* Adata = A.Data();
+  if(&A==&B){
+    //inplace transpose
+    tmp = A;
+    Adata = tmp.Data();
+  }
+
+  if( A.m() != B.n() || A.n() != B.m() ){
+    B.Resize( A.n(), A.m() );
+  }
+
+  F* Bdata = B.Data();
+  Int m = A.m(), n = A.n();
+
+  for( Int i = 0; i < m; i++ ){
+    for( Int j = 0; j < n; j++ ){
+      //      Bdata[ j + n*i ] = F(std::conj(Adata[ i + j*m ]));
+      Bdata[ j + n*i ] = std::conj(Adata[ i + j*m ]);
+    }
+  }
+
+  return ;
+}		// -----  end of function ConjTranspose  ----- 
+
+
+template <class F> inline void
 Symmetrize( NumMat<F>& A )
 {
   if( A.m() != A.n() ){
