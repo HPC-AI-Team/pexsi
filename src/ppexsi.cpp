@@ -61,7 +61,7 @@ PPEXSIData::PPEXSIData	(
     Int        numProcCol, 
     Int        outputFileIndex ){
 
-  Int mpirank, mpisize;
+  int mpirank, mpisize;
   MPI_Comm_rank( comm, &mpirank );
   MPI_Comm_size( comm, &mpisize );
 

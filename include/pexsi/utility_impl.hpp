@@ -109,8 +109,8 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   std::ifstream fin;
 
@@ -274,8 +274,8 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<R
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   Int err = 0;
 
@@ -406,8 +406,8 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   MPI_Datatype type;
   int lens[3];
@@ -561,8 +561,8 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   std::ifstream fin;
 
@@ -714,8 +714,8 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   MPI_Datatype type;
   int lens[3];
@@ -870,8 +870,8 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<C
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   Int err = 0;
 
@@ -1004,8 +1004,8 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   std::ifstream fin;
 
@@ -1169,7 +1169,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 
 template<typename T> inline void GetDiagonal ( const DistSparseMatrix<T>& A, NumVec<T>& diag )
 {
-  Int mpirank, mpisize;
+  int mpirank, mpisize;
   MPI_Comm_rank( A.comm, &mpirank );
   MPI_Comm_size( A.comm, &mpisize );
 
@@ -1219,10 +1219,10 @@ template<typename T> inline void GetDiagonal ( const DistSparseMatrix<T>& A, Num
 template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatrix<T> & sparseB ){
 
 
-  Int mpirank;
+  int mpirank;
   MPI_Comm_rank(sparseA.comm,&mpirank);
 
-  Int mpisize;
+  int mpisize;
   MPI_Comm_size(sparseA.comm,&mpisize);
 
   Int numRowLocalFirst = sparseA.size / mpisize;
@@ -1515,8 +1515,8 @@ template<typename T>
 void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & pspmat, MPI_Comm comm){
 
   MPI_Barrier( comm );
-  Int mpirank=0;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize=0;  MPI_Comm_size(comm, &mpisize);
+  int mpirank=0;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize=0;  MPI_Comm_size(comm, &mpisize);
   std::string fname (filename);
   std::stringstream sstm;
   sstm<<fname<<"_"<<mpirank<<".m";

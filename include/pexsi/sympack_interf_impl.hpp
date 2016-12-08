@@ -136,7 +136,7 @@ template<typename T> void symPACKMatrixToPMatrix(
   // This routine assumes that the g, supernode and options of PMatrix
   // has been set outside this routine.
 
-  Int mpirank, mpisize;
+  int mpirank, mpisize;
   const GridType *g = PMat.Grid();
 
   // FIXME Check PMatrix and symPACKMatrix has the same communicator
@@ -464,7 +464,7 @@ template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
   TIMER_START(PMatrixLtoU);
 
   //Send L to U
-  Int mpirank, mpisize;
+  int mpirank, mpisize;
   const GridType *g = PMat.Grid();
 
   // FIXME Check PMatrix and symPACKMatrix has the same communicator

@@ -77,7 +77,7 @@ template<typename T>
       Int root,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -128,7 +128,7 @@ template<typename T>
       Int root,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -186,7 +186,7 @@ template <typename T>
       std::vector<T>& allVec,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -222,7 +222,7 @@ template <typename T>
       Int root, 
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 

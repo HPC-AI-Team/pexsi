@@ -406,8 +406,8 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
   }
   gridinfo_t* grid = ptrData->grid;
 
-  Int mpirank = grid->iam;
-  Int mpisize = grid->nprow * grid->npcol;
+  int mpirank = grid->iam;
+  int mpisize = grid->nprow * grid->npcol;
 
   int_t *colindLocal, *rowptrLocal;
   double *nzvalLocal;
@@ -416,8 +416,7 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
   Int firstRow = mpirank * numRowLocalFirst;
   Int numRowLocal = -1;
   Int nnzLocal = -1;
-#if 0
-  if(options.Transpose == 1  || options.Symmetric == 1 ){
+  if(options.Symmetric == 1 ){
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
 
@@ -433,7 +432,6 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
         nzvalLocal );
   }
   else{
-#endif
     DistSparseMatrix<Real> sparseB;
     CSCToCSR(sparseA,sparseB);
 
@@ -450,9 +448,7 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
         colindLocal );
     std::copy( sparseB.nzvalLocal.Data(), sparseB.nzvalLocal.Data() + sparseB.nzvalLocal.m(),
         (double*)nzvalLocal );
-#if 0
   }
-#endif
 
 
   // Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices

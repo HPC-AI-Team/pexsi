@@ -68,8 +68,8 @@ void ReadDistSparseMatrixFormattedHeadInterface (
     int*     numColLocal,
     MPI_Comm comm )
 {
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   std::ifstream fin;
   if( mpirank == 0 ){
     fin.open(filename);
@@ -158,8 +158,8 @@ void ReadDistSparseMatrixHeadInterface (
     int*     numColLocal,
     MPI_Comm comm )
 {
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   std::ifstream fin;
   if( mpirank == 0 ){
     fin.open(filename);
@@ -283,7 +283,7 @@ PPEXSIPlan PPEXSIPlanInitialize(
     int           outputFileIndex, 
     int*          info ){
 
-  Int mpirank, mpisize;
+  int mpirank, mpisize;
   MPI_Comm_rank( comm, &mpirank );
   MPI_Comm_size( comm, &mpisize );
 

@@ -72,7 +72,7 @@ void
       Int root,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -113,7 +113,7 @@ void
       Int root,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -155,7 +155,7 @@ void
       std::vector<Int>& allVec,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -368,7 +368,7 @@ void
       Complex *bufRecv, Int *sizeRecv, 
       Int *displsRecv, MPI_Comm comm )
   {
-    Int mpisize; 
+    int mpisize; 
     MPI_Comm_size( comm, &mpisize );
     std::vector<Int> dblSizeSend( mpisize );
     std::vector<Int> dblDisplsSend( mpisize ); 

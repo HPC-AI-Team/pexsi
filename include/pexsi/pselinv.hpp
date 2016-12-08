@@ -142,8 +142,8 @@ struct GridType{
   MPI_Comm    comm;
   MPI_Comm    rowComm;
   MPI_Comm    colComm;
-  Int         mpirank;
-  Int         mpisize; 
+  int         mpirank;
+  int         mpisize; 
   Int         numProcRow;
   Int         numProcCol;
 

@@ -3192,8 +3192,6 @@ namespace PEXSI{
           if(lidx>0 && (rank-1)%this->limIndex_==0){
             MPI_Barrier(this->grid_->comm);
           }
-
-
         }
 
       //reset the trees
@@ -5400,7 +5398,7 @@ namespace PEXSI{
           if(redLTree != nullptr){
             redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,this->limIndex_));
             //Initialize the tree
-//            redLTree->AllocRecvBuffers();
+            redLTree->AllocRecvBuffers();
             //Post All Recv requests;
             redLTree->Progress();
           }
@@ -5411,7 +5409,7 @@ namespace PEXSI{
           if(redUTree != nullptr){
             redUTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_U_REDUCE,this->limIndex_));
             //Initialize the tree
-//            redUTree->AllocRecvBuffers();
+            redUTree->AllocRecvBuffers();
             //Post All Recv requests;
             redUTree->Progress();
           }
@@ -5423,7 +5421,7 @@ namespace PEXSI{
             redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,this->limIndex_));
 
             //Initialize the tree
-//            redDTree->AllocRecvBuffers();
+            redDTree->AllocRecvBuffers();
 
 #if 0
             if(redDTree->IsRoot()){
@@ -5592,14 +5590,18 @@ namespace PEXSI{
             }
 
             //Progress the reduction trees
-        TIMER_START(Progress_all_reductions);
+//        TIMER_START(Progress_all_reductions);
 #ifdef REDUCE_L
-            TreeReduce_ProgressAll(superList[lidx],this->redLTree2_);
+//        TIMER_START(Progress_all_reductions_L);
+//            TreeReduce_ProgressAll(superList[lidx],this->redLTree2_);
+//        TIMER_STOP(Progress_all_reductions_L);
 #endif
 #ifdef REDUCE_U
-            TreeReduce_ProgressAll(superList[lidx],this->redUTree2_);
+//        TIMER_START(Progress_all_reductions_U);
+//            TreeReduce_ProgressAll(superList[lidx],this->redUTree2_);
+//        TIMER_STOP(Progress_all_reductions_U);
 #endif
-        TIMER_STOP(Progress_all_reductions);
+//        TIMER_STOP(Progress_all_reductions);
           }
 
         }
@@ -5666,12 +5668,18 @@ namespace PEXSI{
           }
 
           //Progress U and D reduction trees
+//        TIMER_START(Progress_all_reductions);
 #ifdef REDUCE_U
-          TreeReduce_ProgressAll(superList[lidx],this->redUTree2_);
+//        TIMER_START(Progress_all_reductions_U);
+//          TreeReduce_ProgressAll(superList[lidx],this->redUTree2_);
+//        TIMER_STOP(Progress_all_reductions_U);
 #endif
 #ifdef REDUCE_D
-          TreeReduce_ProgressAll(superList[lidx],this->redDTree2_);
+//        TIMER_START(Progress_all_reductions_D);
+//          TreeReduce_ProgressAll(superList[lidx],this->redDTree2_);
+//        TIMER_STOP(Progress_all_reductions_D);
 #endif
+//        TIMER_STOP(Progress_all_reductions);
 
           //Check if we are done with the reductions of L
           all_doneL = std::all_of(redLdone.begin(), redLdone.end(), [](bool v) { return v; });
@@ -5749,7 +5757,11 @@ namespace PEXSI{
 
 #ifdef REDUCE_D
           //Progress the reductions of D
-          TreeReduce_ProgressAll(superList[lidx],this->redDTree2_);
+//        TIMER_START(Progress_all_reductions);
+//        TIMER_START(Progress_all_reductions_D);
+//          TreeReduce_ProgressAll(superList[lidx],this->redDTree2_);
+//        TIMER_STOP(Progress_all_reductions_D);
+//        TIMER_STOP(Progress_all_reductions);
 #endif
 
           //Check if we are done with the reduction of U
@@ -5803,7 +5815,7 @@ namespace PEXSI{
               LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) ).front();
               Transpose(LB.nzval, LB.nzval);
               blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-#if ( _DEBUGlevel_ >= 2 )
+#if ( _DEBUGlevel_ >= 0 )
               statusOFS<<"["<<snode.Index<<"] Diag after update:"<<std::endl<<LB.nzval<<std::endl;
 #endif
             }
@@ -6286,7 +6298,7 @@ namespace PEXSI{
           }
 
           if(!redDTree->IsAllocated()){
-//            redDTree->AllocRecvBuffers();
+            redDTree->AllocRecvBuffers();
           }
 
           //set the buffer and mark as active
@@ -6307,8 +6319,8 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
 #endif
-        Int mpirank = this->grid_->mpirank;
-        Int mpisize = this->grid_->mpisize;
+        int mpirank = this->grid_->mpirank;
+        int mpisize = this->grid_->mpisize;
 
         std::vector<Int>     rowSend( mpisize );
         std::vector<Int>     colSend( mpisize );
