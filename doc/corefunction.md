@@ -706,6 +706,9 @@ Example
   luOpt.ColPerm = "MMD_AT_PLUS_A";
   luOpt.Symmetric = 1;
 
+  FactorizationOptions factOpt;
+  factOpt.Symmetric = 1;
+
   SuperLUMatrix<Complex> luMat( g );
 
   // Matrix conversion
@@ -726,7 +729,7 @@ Example
   SuperNodeType super;
   luMat.SymbolicToSuperNode( super );
 
-  PMatrix<Complex> * PMloc = PMatrix<Complex>::Create(&gPM, &super, &selinvOpt, &luOpt);
+  PMatrix<Complex> * PMloc = PMatrix<Complex>::Create(&gPM, &super, &selinvOpt, &factOpt);
 
   // Conversion to PMatrix
   luMat.LUstructToPMatrix( *PMloc );

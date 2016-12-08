@@ -514,134 +514,119 @@ inline Int deserialize(T& val, std::istream& is, const std::vector<Int>& mask)
   return 0;
 }
 
-template <typename T>
-inline Int combine(T& val, T& ext)
+
+
+//bool
+inline Int serialize(const bool& val, std::ostream& os, const std::vector<Int>& mask)
+{
+  os.write((char*)&val, sizeof(bool));
+  return 0;
+}
+
+inline Int deserialize(bool& val, std::istream& is, const std::vector<Int>& mask)
+{
+  is.read((char*)&val, sizeof(bool));
+  return 0;
+}
+
+//char
+inline Int serialize(const char& val, std::ostream& os, const std::vector<Int>& mask)
+{
+  os.write((char*)&val, sizeof(char));
+  return 0;
+}
+
+inline Int deserialize(char& val, std::istream& is, const std::vector<Int>& mask)
+{
+  is.read((char*)&val, sizeof(char));
+  return 0;
+}
+
+inline Int combine(char& val, char& ext)
+{
+  ErrorHandling( "Combine operation not implemented." );
+}
+
+//-------------------
+//Int
+inline Int serialize(const Int& val, std::ostream& os, const std::vector<Int>& mask)
+{
+  os.write((char*)&val, sizeof(Int));
+  return 0;
+}
+
+inline Int deserialize(Int& val, std::istream& is, const std::vector<Int>& mask)
+{
+  is.read((char*)&val, sizeof(Int));
+  return 0;
+}
+
+inline Int combine(Int& val, Int& ext)
 {
   val += ext;
   return 0;
 }
 
-template <>
-inline Int combine(char& val, char& ext)
+//-------------------
+//LongInt
+inline Int serialize(const LongInt& val, std::ostream& os, const std::vector<Int>& mask)
 {
-  ErrorHandling( "Combine operation not implemented." );
+  os.write((char*)&val, sizeof(LongInt));
+  return 0;
+}
+
+inline Int deserialize(LongInt& val, std::istream& is, const std::vector<Int>& mask)
+{
+  is.read((char*)&val, sizeof(LongInt));
+  return 0;
+}
+
+inline Int combine(LongInt& val, LongInt& ext)
+{
+  val += ext;
   return 0;
 }
 
 
+//-------------------
+//Real
+inline Int serialize(const Real& val, std::ostream& os, const std::vector<Int>& mask)
+{
+  os.write((char*)&val, sizeof(Real));
+  return 0;
+}
 
+inline Int deserialize(Real& val, std::istream& is, const std::vector<Int>& mask)
+{
+  is.read((char*)&val, sizeof(Real));
+  return 0;
+}
 
-//bool
-//inline Int serialize(const bool& val, std::ostream& os, const std::vector<Int>& mask)
-//{
-//  os.write((char*)&val, sizeof(bool));
-//  return 0;
-//}
-//
-//inline Int deserialize(bool& val, std::istream& is, const std::vector<Int>& mask)
-//{
-//  is.read((char*)&val, sizeof(bool));
-//  return 0;
-//}
-//
-////char
-//inline Int serialize(const char& val, std::ostream& os, const std::vector<Int>& mask)
-//{
-//  os.write((char*)&val, sizeof(char));
-//  return 0;
-//}
-//
-//inline Int deserialize(char& val, std::istream& is, const std::vector<Int>& mask)
-//{
-//  is.read((char*)&val, sizeof(char));
-//  return 0;
-//}
-//
-//inline Int combine(char& val, char& ext)
-//{
-//  ErrorHandling( "Combine operation not implemented." );
-//}
-//
-////-------------------
-////Int
-//inline Int serialize(const Int& val, std::ostream& os, const std::vector<Int>& mask)
-//{
-//  os.write((char*)&val, sizeof(Int));
-//  return 0;
-//}
-//
-//inline Int deserialize(Int& val, std::istream& is, const std::vector<Int>& mask)
-//{
-//  is.read((char*)&val, sizeof(Int));
-//  return 0;
-//}
-//
-//inline Int combine(Int& val, Int& ext)
-//{
-//  val += ext;
-//  return 0;
-//}
-//
-////-------------------
-////LongInt
-//inline Int serialize(const LongInt& val, std::ostream& os, const std::vector<Int>& mask)
-//{
-//  os.write((char*)&val, sizeof(LongInt));
-//  return 0;
-//}
-//
-//inline Int deserialize(LongInt& val, std::istream& is, const std::vector<Int>& mask)
-//{
-//  is.read((char*)&val, sizeof(LongInt));
-//  return 0;
-//}
-//
-//inline Int combine(LongInt& val, LongInt& ext)
-//{
-//  val += ext;
-//  return 0;
-//}
-//
-//
-////-------------------
-////Real
-//inline Int serialize(const Real& val, std::ostream& os, const std::vector<Int>& mask)
-//{
-//  os.write((char*)&val, sizeof(Real));
-//  return 0;
-//}
-//
-//inline Int deserialize(Real& val, std::istream& is, const std::vector<Int>& mask)
-//{
-//  is.read((char*)&val, sizeof(Real));
-//  return 0;
-//}
-//
-//inline Int combine(Real& val, Real& ext)
-//{
-//  val += ext;
-//  return 0;
-//}
-//
-////-------------------
-////Complex
-//inline Int serialize(const Complex& val, std::ostream& os, const std::vector<Int>& mask)
-//{
-//  os.write((char*)&val, sizeof(Complex));
-//  return 0;
-//}
-//
-//inline Int deserialize(Complex& val, std::istream& is, const std::vector<Int>& mask)
-//{
-//  is.read((char*)&val, sizeof(Complex));
-//  return 0;
-//}
-//
-//inline Int combine(Complex& val, Complex& ext)
-//{
-//  val += ext;
-//  return 0;
-//}
+inline Int combine(Real& val, Real& ext)
+{
+  val += ext;
+  return 0;
+}
+
+//-------------------
+//Complex
+inline Int serialize(const Complex& val, std::ostream& os, const std::vector<Int>& mask)
+{
+  os.write((char*)&val, sizeof(Complex));
+  return 0;
+}
+
+inline Int deserialize(Complex& val, std::istream& is, const std::vector<Int>& mask)
+{
+  is.read((char*)&val, sizeof(Complex));
+  return 0;
+}
+
+inline Int combine(Complex& val, Complex& ext)
+{
+  val += ext;
+  return 0;
+}
 
 //-------------------
 //Index2  TODO
@@ -1782,7 +1767,7 @@ DistSparseMatMultGlobalVec(
 
   MPI_Comm  comm = AMat.comm;
 
-  int mpirank, mpisize;
+  Int mpirank, mpisize;
   MPI_Comm_rank( comm, &mpirank );
   MPI_Comm_size( comm, &mpisize );
 

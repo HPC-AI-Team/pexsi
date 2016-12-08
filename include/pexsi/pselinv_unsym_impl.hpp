@@ -5397,8 +5397,6 @@ namespace PEXSI{
           auto & redLTree = this->redLTree2_[snode.Index];
           if(redLTree != nullptr){
             redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,this->limIndex_));
-            //Initialize the tree
-            redLTree->AllocRecvBuffers();
             //Post All Recv requests;
             redLTree->Progress();
           }
@@ -5408,8 +5406,6 @@ namespace PEXSI{
           auto & redUTree = this->redUTree2_[snode.Index];
           if(redUTree != nullptr){
             redUTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_U_REDUCE,this->limIndex_));
-            //Initialize the tree
-            redUTree->AllocRecvBuffers();
             //Post All Recv requests;
             redUTree->Progress();
           }
@@ -5420,8 +5416,6 @@ namespace PEXSI{
           if(redDTree != nullptr){
             redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,this->limIndex_));
 
-            //Initialize the tree
-            redDTree->AllocRecvBuffers();
 
 #if 0
             if(redDTree->IsRoot()){
@@ -6297,9 +6291,6 @@ namespace PEXSI{
             SetValue(snode.DiagBuf, ZERO<T>());
           }
 
-          if(!redDTree->IsAllocated()){
-            redDTree->AllocRecvBuffers();
-          }
 
           //set the buffer and mark as active
           redDTree->SetLocalBuffer(snode.DiagBuf.Data());

@@ -539,6 +539,7 @@ int main(int argc, char **argv)
       luOpt.RowPerm = RowPerm;
       luOpt.Equil = Equil;
       luOpt.numProcSymbFact = numProcSymbFact;
+      luOpt.Symmetric = isSym;
 
       FactorizationOptions factOpt;
       factOpt.ColPerm = ColPerm;

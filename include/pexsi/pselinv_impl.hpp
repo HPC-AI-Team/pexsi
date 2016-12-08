@@ -82,7 +82,7 @@ namespace PEXSI{
 namespace PEXSI{
   inline GridType::GridType	( MPI_Comm Bcomm, int nprow, int npcol )
   {
-    int info;
+    Int info;
     MPI_Initialized( &info );
     if( !info ){
       ErrorHandling( "MPI has not been initialized." );
@@ -1237,139 +1237,7 @@ namespace PEXSI{
       Int numSuper = this->NumSuper();
 
 
-#if 1
-      if (options_->maxPipelineDepth==-2){
 
-        Int maxDepth = options_->maxPipelineDepth;
-        maxDepth=maxDepth==-1?std::numeric_limits<Int>::max():maxDepth;
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS<<"MaxDepth is "<<maxDepth<<std::endl;
-#endif
-
-        //find roots in the supernode etree (it must be postordered)
-        //initialize the parent we are looking at 
-        //Int rootParent = snodeEtree[numSuper-2];
-        Int rootParent = numSuper;
-
-        //compute the level of each supernode and the total number of levels
-        //IntNumVec level(numSuper);
-        //level(rootParent)=0;
-        IntNumVec level(numSuper+1);
-        level(rootParent)=-1;
-        Int numLevel = 0; 
-        //for(Int i=rootParent-1; i>=0; i-- ){ 
-        //  level[i] = level[snodeEtree[i]]+1;
-        //  numLevel = std::max(numLevel, level[i]);
-        //}
-        //numLevel++;
-
-        //move  some of the nodes between levels
-
-        std::vector<Int> lastChild(numSuper+1,-1);
-        for(Int i=rootParent-1; i>=0; i-- ){
-          Int parent = snodeEtree[i];
-          Int & lastSibling = lastChild[parent];
-          if(lastSibling!=-1){
-            level[i] = level[lastSibling]+1;
-          }
-          else{
-            level[i] = level[parent]+1;
-          } 
-          lastSibling = i;
-          numLevel = std::max(numLevel, level[i]);
-        }  
-        numLevel++;
-
-
-
-
-        //Compute the number of supernodes at each level
-        IntNumVec levelSize(numLevel);
-        SetValue(levelSize,I_ZERO);
-        //for(Int i=rootParent-1; i>=0; i-- ){ levelSize(level(i))++; } 
-        for(Int i=rootParent-1; i>=0; i-- ){ 
-          if(level[i]>=0){ 
-            levelSize[level[i]]++; 
-          }
-        }
-
-        //Allocate memory
-        WSet.resize(numLevel,std::vector<Int>());
-        for(Int i=0; i<numLevel; i++ ){
-          WSet[i].clear();
-          WSet[i].reserve(levelSize(i));
-        }
-
-        //Fill the worklist based on the level of each supernode
-        for(Int i=rootParent-1; i>=0; i-- ){
-          WSet[level[i]].push_back(i);  
-        }
-
-
-        //Constrain the size of each list to be min(MPI_MAX_COMM,options_->maxPipelineDepth)
-        Int limit = maxDepth; //(options_->maxPipelineDepth>0)?std::min(MPI_MAX_COMM,options_->maxPipelineDepth):MPI_MAX_COMM;
-        Int rank = 0;
-        for (Int lidx=0; lidx<WSet.size() ; lidx++){
-
-
-          //Assign a rank in the order they are processed ?
-
-          bool split = false;
-          Int splitIdx = 0;
-
-          Int orank = rank;
-          Int maxRank = rank + WSet[lidx].size()-1;
-          //          Int maxRank = WSet[lidx].back();
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS<< (Int)(rank/limIndex_) << "  vs2  "<<(Int)(maxRank/limIndex_)<<std::endl;
-#endif
-          if( (Int)(rank/limIndex_) != (Int)(maxRank/limIndex_)){
-            split = true;
-            //splitIdx = maxRank - maxRank%limIndex_ - rank; 
-            splitIdx = limIndex_-(rank%limIndex_)-1;
-          }
-
-          Int splitPoint = std::min((Int)WSet[lidx].size()-1,splitIdx>0?std::min(limit-1,splitIdx):limit-1);
-#if ( _DEBUGlevel_ >= 1 )
-          if(split){ 
-            statusOFS<<"TEST SPLIT at "<<splitIdx<<" "<<std::endl;
-          }
-#endif
-          split = split || (WSet[lidx].size()>limit);
-
-          rank += splitPoint+1;
-
-          if( split && splitPoint>0)
-          {
-            statusOFS<<"SPLITPOINT is "<<splitPoint<<" "<<std::endl;
-#if ( _DEBUGlevel_ >= 1 )
-            if(splitPoint != limit-1){
-              statusOFS<<"-----------------------"<<std::endl;
-              statusOFS<<lidx<<": "<<orank<<" -- "<<maxRank<<std::endl;
-              statusOFS<<"            is NOW         "<<std::endl;
-              statusOFS<<lidx<<": "<<orank<<" -- "<<rank-1<<std::endl;
-              statusOFS<<lidx+1<<": "<<rank<<" -- "<<maxRank<<std::endl;
-              statusOFS<<"-----------------------"<<std::endl;
-            }
-#endif
-            std::vector<std::vector<Int> >::iterator pos = WSet.begin()+lidx+1;               
-            WSet.insert(pos,std::vector<Int>());
-            WSet[lidx+1].insert(WSet[lidx+1].begin(),WSet[lidx].begin() + splitPoint+1 ,WSet[lidx].end());
-            WSet[lidx].erase(WSet[lidx].begin()+splitPoint+1,WSet[lidx].end());
-
-#if ( _DEBUGlevel_ >= 1 )
-            if(splitPoint != limit-1){
-              assert((orank+WSet[lidx].size()-1)%limIndex_==0);
-            }
-#endif
-          }
-
-
-        }
-
-      }
-      else
-#endif
       if (options_->maxPipelineDepth!=1){
 
         Int maxDepth = options_->maxPipelineDepth;
@@ -1533,7 +1401,7 @@ namespace PEXSI{
 
       }
       else{
-        for( Int ksup = numSuper - 1; ksup >= 0; ksup-- ){
+        for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
           WSet.push_back(std::vector<Int>());
           WSet.back().push_back(ksup);
         }
@@ -1544,7 +1412,7 @@ namespace PEXSI{
 
 
       TIMER_STOP(Compute_WorkSet);
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
       for (Int lidx=0; lidx<WSet.size() ; lidx++){
         statusOFS << std::endl << "L"<< lidx << " is: {";
         for (Int supidx=0; supidx<WSet[lidx].size() ; supidx++){
