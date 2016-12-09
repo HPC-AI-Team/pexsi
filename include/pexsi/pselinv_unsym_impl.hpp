@@ -5153,7 +5153,9 @@ namespace PEXSI{
     template<typename T> 
       void PMatrixUnsym<T>::PreSelInv_New	(  )
       {
+#ifdef _PRINT_STATS_
         this->localFlops_ = 0.0;
+#endif
         Int numSuper = this->NumSuper(); 
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -5189,7 +5191,9 @@ namespace PEXSI{
                 blas::Trsm( 'R', 'L', 'N', 'U', LB.numRow, LB.numCol,
                     ONE<T>(), nzvalLDiag.Data(), LB.numCol, 
                     LB.nzval.Data(), LB.numRow );
+#ifdef _PRINT_STATS_
                 this->localFlops_+=flops::Trsm<T>('R',LB.numRow, LB.numCol);
+#endif
               }
             }
           } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
@@ -5226,7 +5230,9 @@ namespace PEXSI{
                 blas::Trsm( 'L', 'U', 'N', 'N', UB.numRow, UB.numCol, 
                     ONE<T>(), nzvalUDiag.Data(), UB.numRow,
                     UB.nzval.Data(), UB.numRow );
+#ifdef _PRINT_STATS_
                 this->localFlops_+=flops::Trsm<T>('L',UB.numRow, UB.numCol);
+#endif
               }
             }
           } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
@@ -5247,7 +5253,9 @@ namespace PEXSI{
             LBlock<T> & LB = (this->L( LBj( ksup, this->grid_ ) ))[0];
             lapack::Getri( SuperSize( ksup, this->super_ ), LB.nzval.Data(), 
                 SuperSize( ksup, this->super_ ), ipiv.Data() );
+#ifdef _PRINT_STATS_
             this->localFlops_+=flops::Getri<T>(SuperSize( ksup, this->super_ ));
+#endif
 
           } // if I need to invert the diagonal block
         } // for (ksup)
@@ -5534,7 +5542,9 @@ namespace PEXSI{
                     snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() );
                 TIMER_STOP(Compute_Sinv_LT_GEMM);
                 gemmProcessed++;
+#ifdef _PRINT_STATS_
                 this->localFlops_+=flops::Gemm<T>(LBuf.n(), AinvBuf.n(), LBuf.m());
+#endif
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << "["<<snode.Index<<"] " << "snode.LUpdateBuf: ";
                 statusOFS << snode.LUpdateBuf << std::endl;
@@ -5546,7 +5556,9 @@ namespace PEXSI{
                 assert(redLTree!=nullptr);
                 assert(snode.LUpdateBuf.Size() == redLTree->GetMsgSize());
                 redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+#ifdef _PRINT_STATS_
                 this->localFlops_+=flops::Axpy<T>(snode.LUpdateBuf.Size());
+#endif
                 redLTree->SetDataReady(true);
                 redLTree->Progress();
 #endif
@@ -5565,7 +5577,9 @@ namespace PEXSI{
                     snode.UUpdateBuf.Data(), snode.UUpdateBuf.m() );
                 TIMER_STOP(Compute_Sinv_U_GEMM);
                 gemmProcessed++;
+#ifdef _PRINT_STATS_
                 this->localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
+#endif
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << "["<<snode.Index<<"] " << "snode.UUpdateBuf: ";
                 statusOFS << snode.UUpdateBuf << std::endl;
@@ -5578,7 +5592,9 @@ namespace PEXSI{
                 assert(redUTree!=nullptr);
                 assert(snode.UUpdateBuf.Size()==redUTree->GetMsgSize());
                 redUTree->SetLocalBuffer(snode.UUpdateBuf.Data());
+#ifdef _PRINT_STATS_
                 this->localFlops_+=flops::Axpy<T>(snode.UUpdateBuf.Size());
+#endif
                 redUTree->SetDataReady(true);
                 redUTree->Progress();
 #endif
@@ -5823,7 +5839,9 @@ namespace PEXSI{
               LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) ).front();
               Transpose(LB.nzval, LB.nzval);
               blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
+#ifdef _PRINT_STATS_
               this->localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
+#endif
 
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS<<"["<<snode.Index<<"] Diag after update:"<<std::endl<<LB.nzval<<std::endl;
@@ -6249,7 +6267,9 @@ namespace PEXSI{
                   &snode.LUpdateBuf( 0, offset ), snode.LUpdateBuf.m(),
                   UB.nzval.Data(), UB.nzval.m(), 
                   ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
+#ifdef _PRINT_STATS_
                 this->localFlops_+=flops::Gemm<T>(snode.DiagBuf.m(), snode.DiagBuf.n(), UB.numCol);
+#endif
               //advance in LUpdateBuf
               offset+= UB.numCol;
             }
@@ -6291,7 +6311,9 @@ namespace PEXSI{
                   &snode.UUpdateBuf( offset, 0 ),
                   snode.UUpdateBuf.m(),
                   ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
+#ifdef _PRINT_STATS_
                 this->localFlops_+=flops::Gemm<T>(snode.DiagBuf.m(), snode.DiagBuf.n(), LB.numRow);
+#endif
               //advance in UUpdateBuf
               offset+= LB.numRow;
 
@@ -6315,7 +6337,9 @@ namespace PEXSI{
 
           //set the buffer and mark as active
           redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+#ifdef _PRINT_STATS_
           this->localFlops_+=flops::Axpy<T>(snode.DiagBuf.Size());
+#endif
 
           redDTree->SetDataReady(true);
           redDTree->Progress();

@@ -760,10 +760,11 @@ int main(int argc, char **argv)
           if( mpirank == 0 )
             cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
+#ifdef _PRINT_STATS_
           double flops = pMat->GetTotalFlops();
           if( mpirank == 0 )
             cout << "Total FLOPs for selected inversion is " << flops << endl;
-
+#endif
 
           if(0){
             statusOFS.close();
