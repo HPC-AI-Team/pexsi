@@ -416,7 +416,7 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
   Int firstRow = mpirank * numRowLocalFirst;
   Int numRowLocal = -1;
   Int nnzLocal = -1;
-  if(options.Symmetric == 1 ){
+  if(options.Transpose == 1 || options.Symmetric == 1 ){
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
 

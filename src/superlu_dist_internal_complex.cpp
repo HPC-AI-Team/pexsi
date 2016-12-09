@@ -446,7 +446,6 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
     std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
         (Complex*)nzvalLocal );
 #else
-#if 0
   if(options.Transpose == 1 || options.Symmetric == 1 ){
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
@@ -464,7 +463,7 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
 
   }
   else{
-#endif
+    statusOFS<<"CONVERTING TO CSR"<<std::endl;
     DistSparseMatrix<Complex> sparseB;
     CSCToCSR(sparseA,sparseB);
 
@@ -481,9 +480,7 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
         colindLocal );
     std::copy( sparseB.nzvalLocal.Data(), sparseB.nzvalLocal.Data() + sparseB.nzvalLocal.m(),
         (Complex*)nzvalLocal );
-#if 0
   }
-#endif
 #endif
 
   // Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
