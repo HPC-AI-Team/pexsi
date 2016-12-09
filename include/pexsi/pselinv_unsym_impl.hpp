@@ -5809,7 +5809,7 @@ namespace PEXSI{
               LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) ).front();
               Transpose(LB.nzval, LB.nzval);
               blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-#if ( _DEBUGlevel_ >= 0 )
+#if ( _DEBUGlevel_ >= 1 )
               statusOFS<<"["<<snode.Index<<"] Diag after update:"<<std::endl<<LB.nzval<<std::endl;
 #endif
             }
