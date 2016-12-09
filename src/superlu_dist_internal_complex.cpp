@@ -256,6 +256,10 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
   options.lookahead_etree   = YES;
   options.SymPattern        = YES;
 
+//#ifdef _PRINT_STATS_
+//  options.PrintStat         = YES;
+//#endif
+
   if(opt.Symmetric == 1){
     options.RowPerm         = NOROWPERM;
     options.Equil             = NO; 
@@ -612,15 +616,18 @@ ComplexSuperLUData::NumericalFactorize	(  )
       anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info); 
 
 #ifdef _PRINT_STATS_
-  statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;
-  statusOFS<<"Number of tiny pivots: "<<ptrData->stat.TinyPivots<<std::endl;
-  statusOFS<<"Number of look aheads: "<<ptrData->stat.num_look_aheads<<std::endl;
-  statusOFS<<"Number of FLOPS during factorization: "<<ptrData->stat.ops[FACT]<<std::endl;
-  statusOFS<<"****************************************************"<<std::endl;
+  statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;  
+  statusOFS<<"Number of tiny pivots: "<<ptrData->stat.TinyPivots<<std::endl;  
+  statusOFS<<"Number of look aheads: "<<ptrData->stat.num_look_aheads<<std::endl;  
+  
+  float flopcnt = 0;
+  MPI_Allreduce(&ptrData->stat.ops[FACT], &flopcnt, 1, MPI_FLOAT, MPI_SUM, ptrData->grid->comm);
+  statusOFS<<"Number of FLOPS for factorization: "<<flopcnt<<std::endl;  
+  if(!ptrData->grid->iam){
+    std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
+  }
+  statusOFS<<"****************************************************"<<std::endl;  
 #endif
-
-
-
 
   PStatFree(&ptrData->stat);
   if( ptrData->info != 0 ){

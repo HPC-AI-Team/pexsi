@@ -112,25 +112,7 @@ RealGridData & RealGridData::operator = (const RealGridData & g)
 }
 
 void RealGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
-#ifdef SWAP_ROWS_COLS
-  int * usermap = new int[nprow*npcol];
-  for(int mpirank = 0;mpirank<nprow*npcol;mpirank++){
-    int myrow = mpirank % npcol;
-    int mycol = mpirank / npcol;
-    usermap[myrow*npcol+mycol] = mpirank;
-  }
-  superlu_gridmap(
-      comm, nprow, npcol,
-      usermap, /* usermap(i,j) holds the process
-                  number to be placed in {i,j} of
-                  the process grid.  */
-      npcol, &info_->grid);
-  delete [] usermap;
-#else
   superlu_gridinit(comm, nprow, npcol, &info_->grid);
-#endif
-
-
 }
 
 void RealGridData::GridExit(  ){
@@ -245,6 +227,9 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
   // Necessary to invoke static scheduling of SuperLU
   options.lookahead_etree   = YES;
   options.SymPattern        = YES;
+//#ifdef _PRINT_STATS_
+//  options.PrintStat         = YES;
+//#endif
 
   if(opt.Symmetric == 1){
     options.RowPerm         = NOROWPERM;
@@ -580,7 +565,13 @@ RealSuperLUData::NumericalFactorize	(  )
   statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;  
   statusOFS<<"Number of tiny pivots: "<<ptrData->stat.TinyPivots<<std::endl;  
   statusOFS<<"Number of look aheads: "<<ptrData->stat.num_look_aheads<<std::endl;  
-  statusOFS<<"Number of FLOPS during factorization: "<<ptrData->stat.ops[FACT]<<std::endl;  
+  
+  float flopcnt = 0;
+  MPI_Allreduce(&ptrData->stat.ops[FACT], &flopcnt, 1, MPI_FLOAT, MPI_SUM, ptrData->grid->comm);
+  statusOFS<<"Number of FLOPS for factorization: "<<flopcnt<<std::endl;  
+  if(!ptrData->grid->iam){
+    std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
+  }
   statusOFS<<"****************************************************"<<std::endl;  
 #endif
 

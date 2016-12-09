@@ -306,6 +306,16 @@ void
 
 
 
+void
+  Allreduce ( LongInt* sendbuf, LongInt* recvbuf, int count, MPI_Op op, MPI_Comm comm )
+  {
+    MPI_Allreduce( sendbuf,  recvbuf, count, MPI_LONG_INT, 
+        op, comm );
+
+    return ;
+  }		// -----  end of function Allreduce  ----- 
+
+
 
 
 void

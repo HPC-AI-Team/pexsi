@@ -612,6 +612,10 @@ protected:
 
 
 
+  double localFlops_;
+  double GetTotalFlops();
+
+
   struct SuperNodeBufferType{
     NumMat<T>    LUpdateBuf;
     NumMat<T>    DiagBuf;

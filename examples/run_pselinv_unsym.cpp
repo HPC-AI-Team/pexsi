@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-#define _MYCOMPLEX_
+//#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -759,6 +759,11 @@ int main(int argc, char **argv)
           GetTime( timeTotalSelInvEnd );
           if( mpirank == 0 )
             cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+
+          double flops = pMat->GetTotalFlops();
+          if( mpirank == 0 )
+            cout << "Total FLOPs for selected inversion is " << flops << endl;
+
 
           if(0){
             statusOFS.close();

@@ -298,6 +298,9 @@ void
 #endif
 
 void
+  Allreduce ( LongInt* sendbuf, LongInt* recvbuf, int count, MPI_Op op, MPI_Comm comm );
+
+void
   Allreduce ( Int* sendbuf, Int* recvbuf, Int count, MPI_Op op, MPI_Comm comm );
 
 void

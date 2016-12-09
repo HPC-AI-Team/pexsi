@@ -5223,6 +5223,12 @@ namespace PEXSI{
       U_ = C.U_;
     }
 
+  template<typename T>
+  inline double PMatrix<T>::GetTotalFlops(){
+    double total = 0.0;
+    MPI_Allreduce( &this->localFlops_,&total, 1,MPI_DOUBLE, MPI_SUM, this->grid_->comm );
+    return total;
+  }
 
 } // namespace PEXSI
 

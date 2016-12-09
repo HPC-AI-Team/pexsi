@@ -51,7 +51,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include <algorithm>
 #include <random>
 
-
+#include "pexsi/flops.hpp"
 
 
 namespace PEXSI{
@@ -5153,7 +5153,7 @@ namespace PEXSI{
     template<typename T> 
       void PMatrixUnsym<T>::PreSelInv_New	(  )
       {
-
+        this->localFlops_ = 0.0;
         Int numSuper = this->NumSuper(); 
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -5189,6 +5189,7 @@ namespace PEXSI{
                 blas::Trsm( 'R', 'L', 'N', 'U', LB.numRow, LB.numCol,
                     ONE<T>(), nzvalLDiag.Data(), LB.numCol, 
                     LB.nzval.Data(), LB.numRow );
+                this->localFlops_+=flops::Trsm<T>('R',LB.numRow, LB.numCol);
               }
             }
           } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
@@ -5225,6 +5226,7 @@ namespace PEXSI{
                 blas::Trsm( 'L', 'U', 'N', 'N', UB.numRow, UB.numCol, 
                     ONE<T>(), nzvalUDiag.Data(), UB.numRow,
                     UB.nzval.Data(), UB.numRow );
+                this->localFlops_+=flops::Trsm<T>('L',UB.numRow, UB.numCol);
               }
             }
           } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
@@ -5245,6 +5247,7 @@ namespace PEXSI{
             LBlock<T> & LB = (this->L( LBj( ksup, this->grid_ ) ))[0];
             lapack::Getri( SuperSize( ksup, this->super_ ), LB.nzval.Data(), 
                 SuperSize( ksup, this->super_ ), ipiv.Data() );
+            this->localFlops_+=flops::Getri<T>(SuperSize( ksup, this->super_ ));
 
           } // if I need to invert the diagonal block
         } // for (ksup)
@@ -5397,6 +5400,8 @@ namespace PEXSI{
           auto & redLTree = this->redLTree2_[snode.Index];
           if(redLTree != nullptr){
             redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,this->limIndex_));
+            //Initialize the tree
+//            redLTree->AllocRecvBuffers();
             //Post All Recv requests;
             redLTree->Progress();
           }
@@ -5406,6 +5411,8 @@ namespace PEXSI{
           auto & redUTree = this->redUTree2_[snode.Index];
           if(redUTree != nullptr){
             redUTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_U_REDUCE,this->limIndex_));
+            //Initialize the tree
+//            redUTree->AllocRecvBuffers();
             //Post All Recv requests;
             redUTree->Progress();
           }
@@ -5416,6 +5423,8 @@ namespace PEXSI{
           if(redDTree != nullptr){
             redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,this->limIndex_));
 
+            //Initialize the tree
+//            redDTree->AllocRecvBuffers();
 
 #if 0
             if(redDTree->IsRoot()){
@@ -5525,6 +5534,7 @@ namespace PEXSI{
                     snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() );
                 TIMER_STOP(Compute_Sinv_LT_GEMM);
                 gemmProcessed++;
+                this->localFlops_+=flops::Gemm<T>(LBuf.n(), AinvBuf.n(), LBuf.m());
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << "["<<snode.Index<<"] " << "snode.LUpdateBuf: ";
                 statusOFS << snode.LUpdateBuf << std::endl;
@@ -5536,6 +5546,7 @@ namespace PEXSI{
                 assert(redLTree!=nullptr);
                 assert(snode.LUpdateBuf.Size() == redLTree->GetMsgSize());
                 redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+                this->localFlops_+=flops::Axpy<T>(snode.LUpdateBuf.Size());
                 redLTree->SetDataReady(true);
                 redLTree->Progress();
 #endif
@@ -5554,6 +5565,7 @@ namespace PEXSI{
                     snode.UUpdateBuf.Data(), snode.UUpdateBuf.m() );
                 TIMER_STOP(Compute_Sinv_U_GEMM);
                 gemmProcessed++;
+                this->localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << "["<<snode.Index<<"] " << "snode.UUpdateBuf: ";
                 statusOFS << snode.UUpdateBuf << std::endl;
@@ -5566,6 +5578,7 @@ namespace PEXSI{
                 assert(redUTree!=nullptr);
                 assert(snode.UUpdateBuf.Size()==redUTree->GetMsgSize());
                 redUTree->SetLocalBuffer(snode.UUpdateBuf.Data());
+                this->localFlops_+=flops::Axpy<T>(snode.UUpdateBuf.Size());
                 redUTree->SetDataReady(true);
                 redUTree->Progress();
 #endif
@@ -5805,10 +5818,13 @@ namespace PEXSI{
                 SetValue(snode.DiagBuf, ZERO<T>());
               }
               redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+              //TODO cost of reduce
 
               LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) ).front();
               Transpose(LB.nzval, LB.nzval);
               blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
+              this->localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
+
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS<<"["<<snode.Index<<"] Diag after update:"<<std::endl<<LB.nzval<<std::endl;
 #endif
@@ -6233,6 +6249,7 @@ namespace PEXSI{
                   &snode.LUpdateBuf( 0, offset ), snode.LUpdateBuf.m(),
                   UB.nzval.Data(), UB.nzval.m(), 
                   ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
+                this->localFlops_+=flops::Gemm<T>(snode.DiagBuf.m(), snode.DiagBuf.n(), UB.numCol);
               //advance in LUpdateBuf
               offset+= UB.numCol;
             }
@@ -6274,6 +6291,7 @@ namespace PEXSI{
                   &snode.UUpdateBuf( offset, 0 ),
                   snode.UUpdateBuf.m(),
                   ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
+                this->localFlops_+=flops::Gemm<T>(snode.DiagBuf.m(), snode.DiagBuf.n(), LB.numRow);
               //advance in UUpdateBuf
               offset+= LB.numRow;
 
@@ -6291,9 +6309,14 @@ namespace PEXSI{
             SetValue(snode.DiagBuf, ZERO<T>());
           }
 
+          if(!redDTree->IsAllocated()){
+            redDTree->AllocRecvBuffers();
+          }
 
           //set the buffer and mark as active
           redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+          this->localFlops_+=flops::Axpy<T>(snode.DiagBuf.Size());
+
           redDTree->SetDataReady(true);
           redDTree->Progress();
 
