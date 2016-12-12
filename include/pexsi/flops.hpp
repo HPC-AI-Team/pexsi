@@ -76,7 +76,6 @@ namespace flops{
   template<typename T>
   double Gemm(int m_, int n_, int k_){
     if (is_complex<T>()){
-      statusOFS<<"IS COMPLEX"<<std::endl;
       return (6. * FMULS_GEMM((double)(m_), (double)(n_), (double)(k_)) + 2.0 * FADDS_GEMM((double)(m_), (double)(n_), (double)(k_)) );
     }
     else{
@@ -88,7 +87,6 @@ namespace flops{
   template<typename T>
   double Getri(int n_){
     if (is_complex<T>()){
-      statusOFS<<"IS COMPLEX"<<std::endl;
       return (6. * FMULS_GETRI((double)(n_)) + 2.0 * FADDS_GETRI((double)(n_)) );
     }
     else{
@@ -99,7 +97,6 @@ namespace flops{
   template<typename T>
   double Axpy(int n_){
     if (is_complex<T>()){
-      statusOFS<<"IS COMPLEX"<<std::endl;
       return (6. * FMULS_AXPY((double)(n_)) + 2.0 * FADDS_AXPY((double)(n_)) );
     }
     else{
@@ -110,7 +107,6 @@ namespace flops{
   template<typename T>
   double Trsm(char side_, int m_, int n_){
     if (is_complex<T>()){
-      statusOFS<<"IS COMPLEX"<<std::endl;
       return (6. * FMULS_TRSM(side_, (double)(m_), (double)(n_)) + 2.0 * FADDS_TRSM(side_, (double)(m_), (double)(n_)) );
     }
     else{

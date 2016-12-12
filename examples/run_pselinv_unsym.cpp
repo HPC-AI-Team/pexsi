@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-//#define _MYCOMPLEX_
+#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -576,6 +576,7 @@ int main(int argc, char **argv)
 
         if( mpirank == 0 )
           cout << "Time for performing the symbolic factorization is " << timeEnd - timeSta << endl;
+
       }
 
       // *********************************************************************
@@ -667,9 +668,11 @@ int main(int argc, char **argv)
           GetTime( timeSta );
           pLuMat->SymbolicToSuperNode( *pSuper );
 
-          if(0){
+          if(1){
             statusOFS<<"superIdx: "<<pSuper->superIdx<<std::endl;
             statusOFS<<"superPtr: "<<pSuper->superPtr<<std::endl;
+            statusOFS<<"colperm: "<<pSuper->perm<<std::endl;
+            statusOFS<<"rowperm: "<<pSuper->perm_r<<std::endl;
           }
 
           GetTime( timeTotalSelInvSta );
@@ -737,7 +740,7 @@ int main(int argc, char **argv)
             cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
 
-          if(0){
+          if(1){
             statusOFS.close();
             stringstream  sslu;
             sslu << "PreLUDump_" << mpirank<<".m";
@@ -766,7 +769,7 @@ int main(int argc, char **argv)
             cout << "Total FLOPs for selected inversion is " << flops << endl;
 #endif
 
-          if(0){
+          if(1){
             statusOFS.close();
             stringstream  sslu;
             sslu << "LUDump_" << mpirank<<".m";
@@ -775,17 +778,18 @@ int main(int argc, char **argv)
             statusOFS.close();
             statusOFS.open( ss.str().c_str(),std::ofstream::out | std::ofstream::app );
           }
+
           if(0){
             DistSparseMatrix<MYSCALAR> Ainv;
             pMat->PMatrixToDistSparseMatrix(Ainv );
             //pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
             //if( mpirank == 0 )
+            //WriteDistSparseMatrixMatlab("AinvDump",Ainv,world_comm);
+
+            //WriteDistSparseMatrixMatlab("ADump",AMat,world_comm);
+
+            //pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
             WriteDistSparseMatrixMatlab("AinvDump",Ainv,world_comm);
-
-            WriteDistSparseMatrixMatlab("ADump",AMat,world_comm);
-
-            pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
-            WriteDistSparseMatrixMatlab("AinvDump2",Ainv,world_comm);
           }
 
           if(doToDist){

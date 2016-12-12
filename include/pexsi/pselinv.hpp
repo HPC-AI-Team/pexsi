@@ -613,7 +613,6 @@ protected:
 
 
   double localFlops_;
-  double GetTotalFlops();
 
 
   struct SuperNodeBufferType{
@@ -674,6 +673,7 @@ protected:
   inline void SendRecvCD_UpdateU(std::vector<SuperNodeBufferType > & arrSuperNodes, Int stepSuper);
 
 public:
+  double GetTotalFlops();
   // *********************************************************************
   // Public member functions 
   // *********************************************************************

@@ -3188,6 +3188,12 @@ namespace PEXSI{
         for (Int lidx=0; lidx<numSteps ; lidx++){
           Int stepSuper = superList[lidx].size(); 
           this->SelInvIntra_New(lidx,rank);
+
+
+//#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"OUT "<<lidx<<"/"<<numSteps<<" "<<this->limIndex_<<std::endl;
+//#endif
+
           //find max snode.Index
           if(lidx>0 && (rank-1)%this->limIndex_==0){
             MPI_Barrier(this->grid_->comm);
@@ -4648,7 +4654,7 @@ namespace PEXSI{
           for(int prow:list){
             statusOFS<<prow<<" ";
           }
-          if(list.size()>0){statusOFS<<std::endl;}
+          statusOFS<<std::endl;
         }
 
         statusOFS<<"structCols"<<std::endl;
@@ -4658,7 +4664,7 @@ namespace PEXSI{
           for(int pcol:list){
             statusOFS<<pcol<<" ";
           }
-          if(list.size()>0){statusOFS<<std::endl;}
+          statusOFS<<std::endl;
         }
 #endif
 
@@ -5626,6 +5632,8 @@ namespace PEXSI{
 #endif
 //        TIMER_STOP(Progress_all_reductions);
           }
+          
+
 
         }
         TIMER_STOP(Compute_Sinv_LU);
@@ -5643,6 +5651,23 @@ namespace PEXSI{
         TIMER_START(Reduce_Sinv_L);
         std::list<int> redLIdx; 
         std::vector<bool> redLdone(stepSuper,false);
+
+
+        for(auto && snode : arrSuperNodes){
+          auto & redLTree = this->redLTree2_[snode.Index];
+          if(redLTree!=nullptr){
+            if(redLTree->IsRoot()){
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<"["<<snode.Index<<"] I AM ROOT of L"<<std::endl;
+#endif
+            redLTree->AllocRecvBuffers();
+              redLTree->SetDataReady(true);
+              redLTree->Progress();
+            }
+          }
+        }
+
+
         bool all_doneL = std::all_of(redLdone.begin(), redLdone.end(), [](bool v) { return v; });
 
         while(!all_doneL){
@@ -5651,6 +5676,10 @@ namespace PEXSI{
           for(auto supidx : redLIdx){ 
             auto & snode = arrSuperNodes[supidx];
             auto & redLTree = this->redLTree2_[snode.Index];
+
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS << std::endl << "["<<snode.Index<<"] REDUCE L is done"<<std::endl;
+#endif
             if(redLTree->IsRoot()){
               if( snode.LUpdateBuf.ByteSize() == 0 ){
                 Int m = SuperSize( snode.Index, this->super_);
@@ -5708,6 +5737,9 @@ namespace PEXSI{
           all_doneL = std::all_of(redLdone.begin(), redLdone.end(), [](bool v) { return v; });
         }
         TIMER_STOP(Reduce_Sinv_L);
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"All reductions of L are done"<<std::endl;
+#endif
 #endif
 
 #ifdef REDUCE_U
@@ -5718,6 +5750,26 @@ namespace PEXSI{
         TIMER_START(Reduce_Sinv_U);
         std::list<int> redUIdx; 
         std::vector<bool> redUdone(stepSuper,false);
+
+
+        for(auto && snode : arrSuperNodes){
+          auto & redUTree = this->redUTree2_[snode.Index];
+          if(redUTree!=nullptr){
+            if(redUTree->IsRoot()){
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<"["<<snode.Index<<"] I AM ROOT of U"<<std::endl;
+#endif
+            redUTree->AllocRecvBuffers();
+              redUTree->SetDataReady(true);
+              redUTree->Progress();
+            }
+          }
+        }
+
+
+
+
+
         bool all_doneU = std::all_of(redUdone.begin(), redUdone.end(), [](bool v) { return v; });
         while(!all_doneU){
           TreeReduce_Testsome( superList[lidx], this->redUTree2_, redUIdx, redUdone);
@@ -5725,6 +5777,9 @@ namespace PEXSI{
           for(auto supidx : redUIdx){ 
             SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
             auto & redUTree = this->redUTree2_[snode.Index];
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS << std::endl << "["<<snode.Index<<"] REDUCE U is done"<<std::endl;
+#endif
             if(redUTree->IsRoot()){
 
               if( snode.UUpdateBuf.ByteSize() == 0 ){
@@ -5791,10 +5846,42 @@ namespace PEXSI{
           all_doneU = std::all_of(redUdone.begin(), redUdone.end(), [](bool v) { return v; });
         }
         TIMER_STOP(Reduce_Sinv_U);
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"All reductions of U are done"<<std::endl;
+#endif
 #endif
         //--------------------- End of reduce of UUpdateBuf-------------------------
 
 #ifdef REDUCE_D
+
+        for(auto && snode : arrSuperNodes){
+          auto & redDTree = this->redDTree2_[snode.Index];
+          if(redDTree!=nullptr){
+            if(redDTree->IsRoot()){
+#if ( _DEBUGlevel_ >= 1 )
+            Int destCnt = redDTree->GetDestCount();
+            Int * dests = redDTree->GetDests();
+            statusOFS<<"["<<snode.Index<<"] redD: ";
+            for(Int i = 0;i<destCnt;i++){
+              statusOFS<<dests[i]<<" ";
+            }
+            statusOFS<<std::endl;
+
+
+              statusOFS<<"["<<snode.Index<<"] I AM ROOT of D"<<std::endl;
+#endif
+
+          if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
+            snode.DiagBuf.Resize( SuperSize( snode.Index, this->super_ ), SuperSize( snode.Index, this->super_ ));
+            SetValue(snode.DiagBuf, ZERO<T>());
+          }
+            redDTree->AllocRecvBuffers();
+              redDTree->SetDataReady(true);
+              redDTree->Progress();
+            }
+          }
+        }
 
 #ifdef BLOCK_REDUCE_D
         TreeReduce_Waitall( superList[lidx], this->redDTree2_);
@@ -5827,6 +5914,9 @@ namespace PEXSI{
           for(auto supidx : redDIdx){ 
             auto & snode = arrSuperNodes[supidx];
             auto & redDTree = this->redDTree2_[snode.Index];
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS << std::endl << "["<<snode.Index<<"] REDUCE D is done"<<std::endl;
+#endif
             if(redDTree->IsRoot()){
               //copy the buffer from the reduce tree
               if( snode.DiagBuf.Size()==0 ){
@@ -5855,6 +5945,11 @@ namespace PEXSI{
         }
         TIMER_STOP(Reduce_Diagonal);
         //--------------------- End of reduce of D -------------------------
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"All reductions of D are done"<<std::endl;
+#endif
+
 #endif
 
         TIMER_START(Barrier);
@@ -6400,12 +6495,12 @@ namespace PEXSI{
 
         for( Int j = 0; j < numColLocal; j++ ){
           Int ocol = firstCol + j;
-          Int col         = perm[ perm_r[ ocol] ];
+          Int col         = perm[ ocol ];
           Int blockColIdx = BlockIdx( col, this->super_ );
           Int procCol     = PCOL( blockColIdx, this->grid_ );
           for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
             Int orow = rowPtr[i]-1;
-            Int row         = perm[ orow ];
+            Int row         = perm[ perm_r[ orow ] ];
             Int blockRowIdx = BlockIdx( row, this->super_ );
             Int procRow     = PROW( blockRowIdx, this->grid_ );
             Int dest = PNUM( procRow, procCol, this->grid_ );
@@ -6473,12 +6568,12 @@ namespace PEXSI{
         for( Int j = 0; j < numColLocal; j++ ){
 
           Int ocol = firstCol + j;
-          Int col         = perm[ perm_r[ ocol] ];
+          Int col         = perm[  ocol ];
           Int blockColIdx = BlockIdx( col, this->super_ );
           Int procCol     = PCOL( blockColIdx, this->grid_ );
           for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
             Int orow = rowPtr[i]-1;
-            Int row         = perm[ orow ];
+            Int row         = perm[ perm_r [orow] ];
             Int blockRowIdx = BlockIdx( row, this->super_ );
             Int procRow     = PROW( blockRowIdx, this->grid_ );
             Int dest = PNUM( procRow, procCol, this->grid_ );
@@ -6626,12 +6721,12 @@ namespace PEXSI{
 
         for( Int j = 0; j < numColLocal; j++ ){
           Int ocol = firstCol + j;
-          Int col         = perm[ perm_r[ ocol] ];
+          Int col         = perm[  ocol ];
           Int blockColIdx = BlockIdx( col, this->super_ );
           Int procCol     = PCOL( blockColIdx, this->grid_ );
           for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
             Int orow = rowPtr[i]-1;
-            Int row         = perm[ orow ];
+            Int row         = perm[ perm_r[orow] ];
             Int blockRowIdx = BlockIdx( row, this->super_ );
             Int procRow     = PROW( blockRowIdx, this->grid_ );
             Int dest = PNUM( procRow, procCol, this->grid_ );
