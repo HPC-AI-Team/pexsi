@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-#define _MYCOMPLEX_
+//#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -529,12 +529,12 @@ int main(int argc, char **argv)
       luOpt.Equil = Equil;
       luOpt.numProcSymbFact = numProcSymbFact;
       luOpt.Symmetric = isSym;
+      luOpt.Transpose = transpose;
 
       FactorizationOptions factOpt;
       factOpt.ColPerm = ColPerm;
       factOpt.RowPerm = RowPerm;
       factOpt.Symmetric = isSym;
-      //      factOpt.Transpose = transpose;
 
 
       //Initialize SuperLU data structures
@@ -619,10 +619,6 @@ int main(int argc, char **argv)
         if( checkAccuracy ) {
           SuperLUMatrix<MYSCALAR> A1( *pLuGrid, luOpt );
           SuperLUMatrix<MYSCALAR> GA( *pLuGrid, luOpt );
-
-
-          //DistSparseMatrix<MYSCALAR> AT;
-          //CSCToCSR(AMat,AT);
 
           A1.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
           A1.ConvertNRlocToNC( GA );
@@ -758,7 +754,7 @@ int main(int argc, char **argv)
             cout << "Total FLOPs for selected inversion is " << flops << endl;
 #endif
 
-          if(0){
+          if(1){
             statusOFS.close();
             stringstream  sslu;
             sslu << "LUDump_" << mpirank<<".m";

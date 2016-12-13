@@ -6603,6 +6603,10 @@ namespace PEXSI{
         const IntNumVec& perm_r    = *pPerm_r;
         const IntNumVec& permInv_r = *pPermInv_r;
 
+        auto permCol = [perm,perm_r](int col) { return perm[col]; };
+        auto permRow = [perm,perm_r](int row) { return perm[perm_r[row]]; };
+        //auto permCol = [perm,perm_r](int col) { return perm[col]; };
+        //auto permRow = [perm,perm_r](int row) { return perm_r[perm[row]]; };
 
         // Count the sizes from the A matrix first
         Int numColFirst = this->NumCol() / mpisize;
@@ -6618,12 +6622,12 @@ namespace PEXSI{
 
         for( Int j = 0; j < numColLocal; j++ ){
           Int ocol = firstCol + j;
-          Int col         = perm[ ocol ];
+          Int col         = permCol( ocol );
           Int blockColIdx = BlockIdx( col, this->super_ );
           Int procCol     = PCOL( blockColIdx, this->grid_ );
           for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
             Int orow = rowPtr[i]-1;
-            Int row         = perm[ perm_r[ orow ] ];
+            Int row         = permRow( orow );
             Int blockRowIdx = BlockIdx( row, this->super_ );
             Int procRow     = PROW( blockRowIdx, this->grid_ );
             Int dest = PNUM( procRow, procCol, this->grid_ );
@@ -6691,12 +6695,12 @@ namespace PEXSI{
         for( Int j = 0; j < numColLocal; j++ ){
 
           Int ocol = firstCol + j;
-          Int col         = perm[  ocol ];
+          Int col         = permCol(ocol);
           Int blockColIdx = BlockIdx( col, this->super_ );
           Int procCol     = PCOL( blockColIdx, this->grid_ );
           for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
             Int orow = rowPtr[i]-1;
-            Int row         = perm[ perm_r [orow] ];
+            Int row         = permRow(orow);
             Int blockRowIdx = BlockIdx( row, this->super_ );
             Int procRow     = PROW( blockRowIdx, this->grid_ );
             Int dest = PNUM( procRow, procCol, this->grid_ );
@@ -6844,12 +6848,12 @@ namespace PEXSI{
 
         for( Int j = 0; j < numColLocal; j++ ){
           Int ocol = firstCol + j;
-          Int col         = perm[  ocol ];
+          Int col         = permCol(  ocol );
           Int blockColIdx = BlockIdx( col, this->super_ );
           Int procCol     = PCOL( blockColIdx, this->grid_ );
           for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
             Int orow = rowPtr[i]-1;
-            Int row         = perm[ perm_r[orow] ];
+            Int row         = permRow(orow);
             Int blockRowIdx = BlockIdx( row, this->super_ );
             Int procRow     = PROW( blockRowIdx, this->grid_ );
             Int dest = PNUM( procRow, procCol, this->grid_ );
