@@ -3187,6 +3187,8 @@ namespace PEXSI{
         Int rank = 0;
         for (Int lidx=0; lidx<numSteps ; lidx++){
           Int stepSuper = superList[lidx].size(); 
+
+//if(lidx==0){gdb_lock();}
           this->SelInvIntra_New(lidx,rank);
 
 
@@ -4847,6 +4849,14 @@ namespace PEXSI{
               statusOFS<<pdest<<" ";
             }
             statusOFS<<"}"<<std::endl;
+
+            statusOFS<<"redU ["<<ksup<<"]"<<" P"
+              <<ranks[0]
+              <<" <-|- {";
+            for(auto&& pdest: ranks){
+              statusOFS<<pdest<<" ";
+            }
+            statusOFS<<"}"<<std::endl;
 #endif
 
           }
@@ -5003,6 +5013,15 @@ namespace PEXSI{
               statusOFS<<pdest<<" ";
             }
             statusOFS<<"}"<<std::endl;
+
+            statusOFS<<"redL ["<<ksup<<"]"<<" P"
+              <<ranks[0]
+              <<" <-|- {";
+            for(auto&& pdest: ranks){
+              statusOFS<<pdest<<" ";
+            }
+            statusOFS<<"}"<<std::endl;
+
 #endif
           }
         }
@@ -5041,96 +5060,112 @@ namespace PEXSI{
         //update message size for redLTree and redUTree
         //that's for reduce D
         //TODO to improve LB, D is updated using U or using L
+        std::vector<Int> inter;
         for(Int ksup=0;ksup<numSuper;ksup++){
           //Seed
           Int seed = disRank(gen);
 
           ranks.clear();
 
+//                if(ksup==175){gdb_lock();}
+
           Int proot = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
-          if(ksup%2==0){
-            if(MYCOL(this->grid_)==PCOL(ksup,this->grid_)){
-              auto & list = structRows[ksup];
-              auto & redUTree = this->redUTree2_[ksup];
-              if( (list.size()>0 && redUTree!=nullptr) || MYPROC(this->grid_)==proot  ){
-                auto & inserted_proc = inserted_procs[ksup];
-                inserted_proc.assign(this->grid_->mpisize,false);
-                auto & rnkList = rnkLists[ksup];
-                rnkList.clear();
+          if(MYCOL(this->grid_)==PCOL(ksup,this->grid_) || MYROW(this->grid_)==PROW(ksup,this->grid_)){
+            auto & listU = structCols[ksup];
+            auto & listL = structRows[ksup];
+            //inter.resize(std::min(listU.size(),listL.size()));
+            //auto it = std::set_intersection(listL.begin(),listL.end(),listU.begin(),listU.end(),inter.begin());
+            //inter.resize(it-inter.begin());
+            if(ksup%2==0){
+              if(MYCOL(this->grid_)==PCOL(ksup,this->grid_)){
+                auto & redUTree = this->redUTree2_[ksup];
+                if( listU.size() > 0  && (redUTree!=nullptr  || MYPROC(this->grid_)==proot)  ){
+                  auto & inserted_proc = inserted_procs[ksup];
+                  inserted_proc.assign(this->grid_->mpisize,false);
+                  auto & rnkList = rnkLists[ksup];
+                  rnkList.clear();
 
 
-                Int pcol = PCOL(ksup,this->grid_);
-
-                inserted_proc[proot]=true;
-                rnkList.push_back(proot);
-                for(auto bnum: list){
-                  Int prow = PROW(bnum,this->grid_);
-                  Int pdest = PNUM(prow,pcol,this->grid_);
-                  if(!inserted_proc[pdest]){
-                    inserted_proc[pdest]=true;
-                    rnkList.push_back(pdest);
+                  if( listU.size() > 0  && (redUTree!=nullptr  || MYPROC(this->grid_)==proot)  ){
+                    inserted_proc[proot]=true;
+                    rnkList.push_back(proot);
                   }
+
+                  Int pcol = PCOL(ksup,this->grid_);
+                  for(auto bnum: listL){
+                    Int prow = PROW(bnum,this->grid_);
+                    Int pdest = PNUM(prow,pcol,this->grid_);
+                    if(!inserted_proc[pdest]){
+                      inserted_proc[pdest]=true;
+                      rnkList.push_back(pdest);
+                    }
+                  }
+
+                  ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
+                  rnkList.clear();
+
+                  std::sort(ranks.begin()+1,ranks.end());
                 }
-
-                ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
-                rnkList.clear();
-
-                std::sort(ranks.begin()+1,ranks.end());
               }
             }
-          }
-          else{
-            if(MYROW(this->grid_)==PROW(ksup,this->grid_)){
-              auto & list = structCols[ksup];
-              auto & redLTree = this->redLTree2_[ksup];
-              if( (list.size()>0 && redLTree!=nullptr) || MYPROC(this->grid_)==proot){
-                auto & inserted_proc = inserted_procs[ksup];
-                inserted_proc.assign(this->grid_->mpisize,false);
-                auto & rnkList = rnkLists[ksup];
-                rnkList.clear();
+            else{
+              if(MYROW(this->grid_)==PROW(ksup,this->grid_)){
+                auto & redLTree = this->redLTree2_[ksup];
+                
+
+                if( listL.size()>0 && ( redLTree!=nullptr || MYPROC(this->grid_)==proot)  ){
+                  auto & inserted_proc = inserted_procs[ksup];
+                  inserted_proc.assign(this->grid_->mpisize,false);
+                  auto & rnkList = rnkLists[ksup];
+                  rnkList.clear();
 
 
-                Int prow = PROW(ksup,this->grid_);
 
-                inserted_proc[proot]=true;
-                rnkList.push_back(proot);
-                for(auto bnum: list){
-                  Int pcol = PCOL(bnum,this->grid_);
-                  Int pdest = PNUM(prow,pcol,this->grid_);
-                  if(!inserted_proc[pdest]){
-                    inserted_proc[pdest]=true;
-                    rnkList.push_back(pdest);
+                  //if( (inter.size() > 0 && redLTree!=nullptr) || MYPROC(this->grid_)==proot){
+                  if( listL.size()>0 && ( redLTree!=nullptr || MYPROC(this->grid_)==proot)  ){
+                    inserted_proc[proot]=true;
+                    rnkList.push_back(proot);
                   }
+
+                  Int prow = PROW(ksup,this->grid_);
+                  for(auto bnum: listU){
+                    Int pcol = PCOL(bnum,this->grid_);
+                    Int pdest = PNUM(prow,pcol,this->grid_);
+                    if(!inserted_proc[pdest]){
+                      inserted_proc[pdest]=true;
+                      rnkList.push_back(pdest);
+                    }
+                  }
+
+                  ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
+                  rnkList.clear();
+
+                  std::sort(ranks.begin()+1,ranks.end());
                 }
-
-                ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
-                rnkList.clear();
-
-                std::sort(ranks.begin()+1,ranks.end());
               }
             }
-          }
 
-          if(ranks.size()>0){ 
-            //Create redDTree
-            Int msgSize = SuperSize(ksup, this->super_)*SuperSize(ksup, this->super_);
+            if(ranks.size()>0){ 
+              //Create redDTree
+              Int msgSize = SuperSize(ksup, this->super_)*SuperSize(ksup, this->super_);
 
-            double rseed = (double)seed / (double)this->grid_->mpisize;
-            auto & redDTree = this->redDTree2_[ksup];
-            redDTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSize,rseed));
+              double rseed = (double)seed / (double)this->grid_->mpisize;
+              auto & redDTree = this->redDTree2_[ksup];
+              redDTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSize,rseed));
 #ifdef COMM_PROFILE_BCAST
-            redDTree->SetGlobalComm(this->grid_->comm);
+              redDTree->SetGlobalComm(this->grid_->comm);
 #endif
 
 #if ( _DEBUGlevel_ >= 2 )
-            statusOFS<<"redD ["<<ksup<<"]"<<" P"
-              <<ranks[0]
-              <<" -|-> {";
-            for(auto&& pdest: ranks){
-              statusOFS<<pdest<<" ";
-            }
-            statusOFS<<"}"<<std::endl;
+              statusOFS<<"redD ["<<ksup<<"]"<<" P"
+                <<ranks[0]
+                <<" <-|- {";
+              for(auto&& pdest: ranks){
+                statusOFS<<pdest<<" ";
+              }
+              statusOFS<<"}"<<std::endl;
 #endif
+            }
           }
         }
 

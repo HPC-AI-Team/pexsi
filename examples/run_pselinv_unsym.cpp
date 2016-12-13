@@ -373,17 +373,6 @@ int main(int argc, char **argv)
           } // for (j)
         }
 
-        // DEBUG
-        if(0)
-        { 
-          Int numColLocal      = HMat.colptrLocal.m() - 1;
-
-          for( Int j = 0; j < numColLocal; j++ ){
-            statusOFS  << "H("<<j<<","<<j<<")="<<
-              HMat.nzvalLocal(diagIdxLocal[j])<<std::endl;
-          } // for (j)
-        }
-
 
 
         GetTime( timeSta );
@@ -740,7 +729,7 @@ int main(int argc, char **argv)
             cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
 
-          if(1){
+          if(0){
             statusOFS.close();
             stringstream  sslu;
             sslu << "PreLUDump_" << mpirank<<".m";

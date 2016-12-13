@@ -377,7 +377,6 @@ namespace PEXSI{
   //async wait and forward
   template< typename T> 
     inline bool TreeBcast_v2<T>::Progress(){
-
       bool retVal = this->done_;
 
       if(!retVal){

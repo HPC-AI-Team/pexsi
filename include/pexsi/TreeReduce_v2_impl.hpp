@@ -159,13 +159,17 @@ namespace PEXSI{
       bool retVal = false;
       if(this->isReady_){
         if(this->recvCount_== this->GetDestCount()){
+//          if(this->tag_==12){gdb_lock();}
+//          if(this->tag_==9){gdb_lock();}
           retVal = true;
         }
         else if(this->recvCount_<this->recvPostedCount_){
+//          if(this->tag_==12){gdb_lock();}
+//          if(this->tag_==9){gdb_lock();}
           //mpi_test_some on recvRequests_
           int recvCount = -1;
           int reqCnt = this->recvRequests_.size();//this->recvPostedCount_-this->recvCount_;//GetDestCount();
-//          assert(reqCnt <= this->recvRequests_.size());
+          //          assert(reqCnt <= this->recvRequests_.size());
 
           int error_code = MPI_Testsome(reqCnt,&this->recvRequests_[0],&recvCount,&this->recvDoneIdx_[0],&this->recvStatuses_[0]);
 
@@ -239,6 +243,8 @@ namespace PEXSI{
           }
         }
         else if(this->recvPostedCount_<this->GetDestCount()){
+//          if(this->tag_==12){gdb_lock();}
+//          if(this->tag_==9){gdb_lock();}
           this->postRecv();
           retVal = false;
         }
@@ -256,9 +262,7 @@ namespace PEXSI{
       }
       else{
         //Do we need this ?
-        if(!this->isAllocated_){
-          AllocRecvBuffers();
-        }
+        AllocRecvBuffers();
 
         if(this->isAllocated_){
           if(this->myRank_==this->myRoot_ && this->isAllocated_){
@@ -292,8 +296,8 @@ namespace PEXSI{
 
   template< typename T> 
     inline T * TreeReduce_v2<T>::GetLocalBuffer(){ 
-    return this->sendDataPtrs_[0];
-  }
+      return this->sendDataPtrs_[0];
+    }
 
   template< typename T> 
     inline void TreeReduce_v2<T>::SetLocalBuffer(T * locBuffer){
@@ -312,37 +316,37 @@ namespace PEXSI{
         }
         if(!this->isBufferSet_){
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-      {
-        statusOFS<<"[tag="<<this->tag_<<"] "<<"Buffer before:"<<std::endl;
-        for(Int i = 0; i<this->msgSize_;i++){
-          statusOFS<<this->sendDataPtrs_[0][i]<<" ";
-          if(i%10==0){statusOFS<<std::endl;}
-        }
-        statusOFS<<std::endl;
-      }
+          {
+            statusOFS<<"[tag="<<this->tag_<<"] "<<"Buffer before:"<<std::endl;
+            for(Int i = 0; i<this->msgSize_;i++){
+              statusOFS<<this->sendDataPtrs_[0][i]<<" ";
+              if(i%10==0){statusOFS<<std::endl;}
+            }
+            statusOFS<<std::endl;
+          }
 #endif
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-      {
-        statusOFS<<"[tag="<<this->tag_<<"] "<<"External buffer:"<<std::endl;
-        for(Int i = 0; i<this->msgSize_;i++){
-          statusOFS<<locBuffer[i]<<" ";
-          if(i%10==0){statusOFS<<std::endl;}
-        }
-        statusOFS<<std::endl;
-      }
+          {
+            statusOFS<<"[tag="<<this->tag_<<"] "<<"External buffer:"<<std::endl;
+            for(Int i = 0; i<this->msgSize_;i++){
+              statusOFS<<locBuffer[i]<<" ";
+              if(i%10==0){statusOFS<<std::endl;}
+            }
+            statusOFS<<std::endl;
+          }
 #endif
 
 
           blas::Axpy(this->msgSize_, ONE<T>(), locBuffer, 1, this->sendDataPtrs_[0], 1 );
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-      {
-        statusOFS<<"[tag="<<this->tag_<<"] "<<"Buffer after:"<<std::endl;
-        for(Int i = 0; i<this->msgSize_;i++){
-          statusOFS<<this->sendDataPtrs_[0][i]<<" ";
-          if(i%10==0){statusOFS<<std::endl;}
-        }
-        statusOFS<<std::endl;
-      }
+          {
+            statusOFS<<"[tag="<<this->tag_<<"] "<<"Buffer after:"<<std::endl;
+            for(Int i = 0; i<this->msgSize_;i++){
+              statusOFS<<this->sendDataPtrs_[0][i]<<" ";
+              if(i%10==0){statusOFS<<std::endl;}
+            }
+            statusOFS<<std::endl;
+          }
 #endif
 
 
@@ -354,24 +358,24 @@ namespace PEXSI{
 
         if(this->sendDataPtrs_[0]!=NULL && this->sendDataPtrs_[0]!=locBuffer){
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-      {
-        statusOFS<<"[tag="<<this->tag_<<"] "<<"ROOT Buffer before:"<<std::endl;
-        for(Int i = 0; i<this->msgSize_;i++){
-          statusOFS<<this->sendDataPtrs_[0][i]<<" ";
-          if(i%10==0){statusOFS<<std::endl;}
-        }
-        statusOFS<<std::endl;
-      }
+          {
+            statusOFS<<"[tag="<<this->tag_<<"] "<<"ROOT Buffer before:"<<std::endl;
+            for(Int i = 0; i<this->msgSize_;i++){
+              statusOFS<<this->sendDataPtrs_[0][i]<<" ";
+              if(i%10==0){statusOFS<<std::endl;}
+            }
+            statusOFS<<std::endl;
+          }
 #endif
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-      {
-        statusOFS<<"[tag="<<this->tag_<<"] "<<"ROOT External buffer:"<<std::endl;
-        for(Int i = 0; i<this->msgSize_;i++){
-          statusOFS<<locBuffer[i]<<" ";
-          if(i%10==0){statusOFS<<std::endl;}
-        }
-        statusOFS<<std::endl;
-      }
+          {
+            statusOFS<<"[tag="<<this->tag_<<"] "<<"ROOT External buffer:"<<std::endl;
+            for(Int i = 0; i<this->msgSize_;i++){
+              statusOFS<<locBuffer[i]<<" ";
+              if(i%10==0){statusOFS<<std::endl;}
+            }
+            statusOFS<<std::endl;
+          }
 #endif
 
 
@@ -379,14 +383,14 @@ namespace PEXSI{
           this->sendTempBuffer_.clear(); 
           this->sendDataPtrs_[0] = locBuffer;
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-      {
-        statusOFS<<"[tag="<<this->tag_<<"] "<<"ROOT Buffer after:"<<std::endl;
-        for(Int i = 0; i<this->msgSize_;i++){
-          statusOFS<<this->sendDataPtrs_[0][i]<<" ";
-          if(i%10==0){statusOFS<<std::endl;}
-        }
-        statusOFS<<std::endl;
-      }
+          {
+            statusOFS<<"[tag="<<this->tag_<<"] "<<"ROOT Buffer after:"<<std::endl;
+            for(Int i = 0; i<this->msgSize_;i++){
+              statusOFS<<this->sendDataPtrs_[0][i]<<" ";
+              if(i%10==0){statusOFS<<std::endl;}
+            }
+            statusOFS<<std::endl;
+          }
 #endif
 
 
@@ -397,20 +401,22 @@ namespace PEXSI{
 
   template< typename T> 
     inline void TreeReduce_v2<T>::AllocRecvBuffers(){
-      this->recvDataPtrs_.assign(this->GetDestCount(),NULL);
-      this->recvTempBuffer_.resize(this->GetDestCount()*this->msgSize_);
+      if(!this->isAllocated_){
+        this->recvDataPtrs_.assign(this->GetDestCount(),NULL);
+        this->recvTempBuffer_.resize(this->GetDestCount()*this->msgSize_);
 
-      for( Int idxRecv = 0; idxRecv < this->GetDestCount(); ++idxRecv ){
-        this->recvDataPtrs_[idxRecv] = (T*)&(this->recvTempBuffer_[idxRecv*this->msgSize_]);
+        for( Int idxRecv = 0; idxRecv < this->GetDestCount(); ++idxRecv ){
+          this->recvDataPtrs_[idxRecv] = (T*)&(this->recvTempBuffer_[idxRecv*this->msgSize_]);
+        }
+
+        this->recvRequests_.assign(this->GetDestCount(),MPI_REQUEST_NULL);
+        this->recvStatuses_.resize(this->GetDestCount());
+        this->recvDoneIdx_.resize(this->GetDestCount());
+
+        this->sendRequests_.assign(1,MPI_REQUEST_NULL);
+
+        this->isAllocated_ = true;
       }
-
-      this->recvRequests_.assign(this->GetDestCount(),MPI_REQUEST_NULL);
-      this->recvStatuses_.resize(this->GetDestCount());
-      this->recvDoneIdx_.resize(this->GetDestCount());
-
-      this->sendRequests_.assign(1,MPI_REQUEST_NULL);
-
-      this->isAllocated_ = true;
     }
 
   template< typename T> 
@@ -423,6 +429,8 @@ namespace PEXSI{
   template< typename T> 
     inline bool TreeReduce_v2<T>::isMessageForwarded(){
       bool retVal=false;
+//      if(this->tag_==12){gdb_lock();}
+//      if(this->tag_==9){gdb_lock();}
 
       if(!this->fwded_){
         //If data has been received but not forwarded 
@@ -441,6 +449,7 @@ namespace PEXSI{
 
           this->sendDoneIdx_.resize(destCount);
 
+//          if(this->tag_==12){gdb_lock();}
 
 #ifndef CHECK_MPI_ERROR
           MPI_Testsome(destCount,this->sendRequests_.data(),&completed,this->sendDoneIdx_.data(),MPI_STATUSES_IGNORE);
@@ -513,361 +522,361 @@ namespace PEXSI{
       }
     }
 
-template< typename T>
-  FTreeReduce_v2<T>::FTreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce_v2<T>(pComm, ranks, rank_cnt, msgSize){
-    buildTree(ranks,rank_cnt);
-  }
-
-template< typename T>
-  inline FTreeReduce_v2<T> * FTreeReduce_v2<T>::clone() const{
-    FTreeReduce_v2<T> * out = new FTreeReduce_v2<T>(*this);
-    return out;
-  }
-
-
-
-template< typename T>
-  inline void FTreeReduce_v2<T>::buildTree(Int * ranks, Int rank_cnt){
-
-    Int idxStart = 0;
-    Int idxEnd = rank_cnt;
-
-    this->myRoot_ = ranks[0];
-
-    if(this->myRank_==this->myRoot_){
-      this->myDests_.insert(this->myDests_.end(),&ranks[1],&ranks[0]+rank_cnt);
+  template< typename T>
+    FTreeReduce_v2<T>::FTreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce_v2<T>(pComm, ranks, rank_cnt, msgSize){
+      buildTree(ranks,rank_cnt);
     }
 
-#if (defined(REDUCE_VERBOSE))
-    statusOFS<<"My root is "<<this->myRoot_<<std::endl;
-    statusOFS<<"My dests are ";
-    for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
-    statusOFS<<std::endl;
-#endif
-  }
-
-template< typename T>
-  inline void FTreeReduce_v2<T>::postRecv()
-  {
-    if(this->isAllocated_ && this->GetDestCount()>this->recvPostedCount_){
-      int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_, 
-          MPI_ANY_SOURCE, this->tag_,this->comm_, &this->recvRequests_[0] );
-#ifdef CHECK_MPI_ERROR
-          if(error_code!=MPI_SUCCESS){
-            char error_string[BUFSIZ];
-            int length_of_error_string, error_class;
-
-            MPI_Error_class(error_code, &error_class);
-            MPI_Error_string(error_class, error_string, &length_of_error_string);
-            statusOFS<<error_string<<std::endl;
-            MPI_Error_string(error_code, error_string, &length_of_error_string);
-            statusOFS<<error_string<<std::endl;
-            gdb_lock();
-          }
-#endif
-
-
-      this->recvPostedCount_++;
+  template< typename T>
+    inline FTreeReduce_v2<T> * FTreeReduce_v2<T>::clone() const{
+      FTreeReduce_v2<T> * out = new FTreeReduce_v2<T>(*this);
+      return out;
     }
-  }
-
-template< typename T>
-  inline void FTreeReduce_v2<T>::AllocRecvBuffers(){
-    this->recvDataPtrs_.assign(1,NULL);
-    this->recvTempBuffer_.resize(this->msgSize_);
-
-    this->recvDataPtrs_[0] = (T*)&(this->recvTempBuffer_[0]);
-
-    this->recvRequests_.assign(1,MPI_REQUEST_NULL);
-    this->recvStatuses_.resize(1);
-    this->recvDoneIdx_.resize(1);
-    this->sendRequests_.assign(1,MPI_REQUEST_NULL);
-
-    this->isAllocated_ = true;
-  }
-
-
-template< typename T>
-  inline bool FTreeReduce_v2<T>::Progress(){
-
-          bool retVal = false;
-          if(this->done_){
-            retVal = true;
-          }
-          else{
-
-            if(!this->isAllocated_){
-              this->AllocRecvBuffers();
-            }
-
-            if(this->isAllocated_){
-              if(this->myRank_==this->myRoot_ && this->isAllocated_){
-                this->isBufferSet_=true;
-                this->isReady_=true;
-              }
-
-              if(this->isReady_ && this->isBufferSet_){
-                if(this->IsDataReceived()){
-
-
-                  //free the unnecessary arrays
-                  this->recvTempBuffer_.clear();
-                  this->recvRequests_.clear();
-                  this->recvStatuses_.clear();
-                  this->recvDoneIdx_.clear();
-
-                  if(this->isMessageForwarded()){
-                    retVal = true;
-                  }
-                }
-                //else if(this->recvPostedCount_<this->GetDestCount()){
-                //  //TODO check this
-                //  if(this->recvPostedCount_==this->recvCount_){
-                //    this->postRecv();
-                //  }
-                //}
-              }
-            }
-          }
-
-          if(retVal){
-            this->done_ = retVal;
-            //TODO do some smart cleanup
-          }
-          return retVal;
-  }
-
-
-template< typename T>
-  BTreeReduce_v2<T>::BTreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce_v2<T>(pComm, ranks, rank_cnt, msgSize){
-    buildTree(ranks,rank_cnt);
-  }
-
-template< typename T>
-  inline BTreeReduce_v2<T> * BTreeReduce_v2<T>::clone() const{
-    BTreeReduce_v2<T> * out = new BTreeReduce_v2<T>(*this);
-    return out;
-  }
-
-template< typename T>
-  inline void BTreeReduce_v2<T>::buildTree(Int * ranks, Int rank_cnt){
-    Int idxStart = 0;
-    Int idxEnd = rank_cnt;
-
-
-
-    Int prevRoot = ranks[0];
-    while(idxStart<idxEnd){
-      Int curRoot = ranks[idxStart];
-      Int listSize = idxEnd - idxStart;
-
-      if(listSize == 1){
-        if(curRoot == this->myRank_){
-          this->myRoot_ = prevRoot;
-          break;
-        }
-      }
-      else{
-        Int halfList = floor(ceil(double(listSize) / 2.0));
-        Int idxStartL = idxStart+1;
-        Int idxStartH = idxStart+halfList;
-
-        if(curRoot == this->myRank_){
-          if ((idxEnd - idxStartH) > 0 && (idxStartH - idxStartL)>0){
-            Int childL = ranks[idxStartL];
-            Int childR = ranks[idxStartH];
-
-            this->myDests_.push_back(childL);
-            this->myDests_.push_back(childR);
-          }
-          else if ((idxEnd - idxStartH) > 0){
-            Int childR = ranks[idxStartH];
-            this->myDests_.push_back(childR);
-          }
-          else{
-            Int childL = ranks[idxStartL];
-            this->myDests_.push_back(childL);
-          }
-          this->myRoot_ = prevRoot;
-          break;
-        } 
-
-        if( this->myRank_ < ranks[idxStartH]){
-          idxStart = idxStartL;
-          idxEnd = idxStartH;
-        }
-        else{
-          idxStart = idxStartH;
-        }
-        prevRoot = curRoot;
-      }
-
-    }
-
-#if (defined(REDUCE_VERBOSE))
-    statusOFS<<"My root is "<<this->myRoot_<<std::endl;
-    statusOFS<<"My dests are ";
-    for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
-    statusOFS<<std::endl;
-#endif
-  }
-
-
-template< typename T>
-  ModBTreeReduce_v2<T>::ModBTreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed):TreeReduce_v2<T>(pComm, ranks, rank_cnt, msgSize){
-    this->rseed_ = rseed;
-    buildTree(ranks,rank_cnt);
-  }
-
-template< typename T>
-  inline void ModBTreeReduce_v2<T>::Copy(const ModBTreeReduce_v2<T> & Tree){
-    ((TreeReduce_v2<T>*)this)->Copy(*((const TreeReduce_v2<T>*)&Tree));
-    this->rseed_ = Tree.rseed_;
-  }
-
-template< typename T>
-  inline ModBTreeReduce_v2<T> * ModBTreeReduce_v2<T>::clone() const{
-    ModBTreeReduce_v2<T> * out = new ModBTreeReduce_v2<T>(*this);
-    return out;
-  }
-
-template< typename T>
-inline void ModBTreeReduce_v2<T>::buildTree(Int * ranks, Int rank_cnt){
-
-    Int idxStart = 0;
-    Int idxEnd = rank_cnt;
-
-    //sort the ranks with the modulo like operation
-    if(rank_cnt>1){
-      //generate a random position in [1 .. rand_cnt]
-      //Int new_idx = (int)((rand()+1.0) * (double)rank_cnt / ((double)RAND_MAX+1.0));
-      //srand(ranks[0]+rank_cnt);
-      //Int new_idx = rseed_%(rank_cnt-1)+1;
-
-      //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
-      //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
-//      Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
-      Int new_idx = (int)(this->rseed_)%(rank_cnt-1)+1;
-
-      Int * new_start = &ranks[new_idx];
-      //        for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
-
-      //        Int * new_start = std::lower_bound(&ranks[1],&ranks[0]+rank_cnt,ranks[0]);
-      //just swap the two chunks   r[0] | r[1] --- r[new_start-1] | r[new_start] --- r[end]
-      // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1] 
-      std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
-      //        for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
-    }
-
-    Int prevRoot = ranks[0];
-    while(idxStart<idxEnd){
-      Int curRoot = ranks[idxStart];
-      Int listSize = idxEnd - idxStart;
-
-      if(listSize == 1){
-        if(curRoot == this->myRank_){
-          this->myRoot_ = prevRoot;
-          break;
-        }
-      }
-      else{
-        Int halfList = floor(ceil(double(listSize) / 2.0));
-        Int idxStartL = idxStart+1;
-        Int idxStartH = idxStart+halfList;
-
-        if(curRoot == this->myRank_){
-          if ((idxEnd - idxStartH) > 0 && (idxStartH - idxStartL)>0){
-            Int childL = ranks[idxStartL];
-            Int childR = ranks[idxStartH];
-
-            this->myDests_.push_back(childL);
-            this->myDests_.push_back(childR);
-          }
-          else if ((idxEnd - idxStartH) > 0){
-            Int childR = ranks[idxStartH];
-            this->myDests_.push_back(childR);
-          }
-          else{
-            Int childL = ranks[idxStartL];
-            this->myDests_.push_back(childL);
-          }
-          this->myRoot_ = prevRoot;
-          break;
-        } 
-
-        //not true anymore ?
-        //first half to 
-        TIMER_START(FIND_RANK);
-        Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], this->myRank_);
-        TIMER_STOP(FIND_RANK);
-        if( pos != &ranks[idxStartH]){
-          idxStart = idxStartL;
-          idxEnd = idxStartH;
-        }
-        else{
-          idxStart = idxStartH;
-        }
-        prevRoot = curRoot;
-      }
-
-    }
-
-#if (defined(REDUCE_VERBOSE)) 
-    statusOFS<<"My root is "<<this->myRoot_<<std::endl;
-    statusOFS<<"My dests are ";
-    for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
-    statusOFS<<std::endl;
-#endif
-  }
-
-template< typename T>
-  PalmTreeReduce_v2<T>::PalmTreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce_v2<T>(pComm,ranks,rank_cnt,msgSize){
-    //build the binary tree;
-    buildTree(ranks,rank_cnt);
-  }
-
-template< typename T>
-  inline PalmTreeReduce_v2<T> * PalmTreeReduce_v2<T>::clone() const{
-    PalmTreeReduce_v2<T> * out = new PalmTreeReduce_v2<T>(*this);
-    return out;
-  }
-
-
-template< typename T>
-  inline void PalmTreeReduce_v2<T>::buildTree(Int * ranks, Int rank_cnt){
-    Int numLevel = floor(log2(rank_cnt));
-    Int numRoots = 0;
-    for(Int level=0;level<numLevel;++level){
-      numRoots = std::min( rank_cnt, numRoots + (Int)pow(2,level));
-      Int numNextRoots = std::min(rank_cnt,numRoots + (Int)pow(2,(level+1)));
-      Int numReceivers = numNextRoots - numRoots;
-      for(Int ip = 0; ip<numRoots;++ip){
-        Int p = ranks[ip];
-        for(Int ir = ip; ir<numReceivers;ir+=numRoots){
-          Int r = ranks[numRoots+ir];
-          if(r==this->myRank_){
-            this->myRoot_ = p;
-          }
-
-          if(p==this->myRank_){
-            this->myDests_.push_back(r);
-          }
-        }
-      }
-    }
-
-#if (defined(BCAST_VERBOSE))
-    statusOFS<<"My root is "<<this->myRoot_<<std::endl;
-    statusOFS<<"My dests are ";
-    for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
-    statusOFS<<std::endl;
-#endif
-  }
 
 
 
   template< typename T>
-   void TreeReduce_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+    inline void FTreeReduce_v2<T>::buildTree(Int * ranks, Int rank_cnt){
+
+      Int idxStart = 0;
+      Int idxEnd = rank_cnt;
+
+      this->myRoot_ = ranks[0];
+
+      if(this->myRank_==this->myRoot_){
+        this->myDests_.insert(this->myDests_.end(),&ranks[1],&ranks[0]+rank_cnt);
+      }
+
+#if (defined(REDUCE_VERBOSE))
+      statusOFS<<"My root is "<<this->myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
+
+  template< typename T>
+    inline void FTreeReduce_v2<T>::postRecv()
+    {
+      if(this->isAllocated_ && this->GetDestCount()>this->recvPostedCount_){
+        int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_, 
+            MPI_ANY_SOURCE, this->tag_,this->comm_, &this->recvRequests_[0] );
+#ifdef CHECK_MPI_ERROR
+        if(error_code!=MPI_SUCCESS){
+          char error_string[BUFSIZ];
+          int length_of_error_string, error_class;
+
+          MPI_Error_class(error_code, &error_class);
+          MPI_Error_string(error_class, error_string, &length_of_error_string);
+          statusOFS<<error_string<<std::endl;
+          MPI_Error_string(error_code, error_string, &length_of_error_string);
+          statusOFS<<error_string<<std::endl;
+          gdb_lock();
+        }
+#endif
+
+
+        this->recvPostedCount_++;
+      }
+    }
+
+  template< typename T>
+    inline void FTreeReduce_v2<T>::AllocRecvBuffers(){
+      if(!this->isAllocated_){
+        this->recvDataPtrs_.assign(1,NULL);
+        this->recvTempBuffer_.resize(this->msgSize_);
+
+        this->recvDataPtrs_[0] = (T*)&(this->recvTempBuffer_[0]);
+
+        this->recvRequests_.assign(1,MPI_REQUEST_NULL);
+        this->recvStatuses_.resize(1);
+        this->recvDoneIdx_.resize(1);
+        this->sendRequests_.assign(1,MPI_REQUEST_NULL);
+
+        this->isAllocated_ = true;
+      }
+    }
+
+
+  template< typename T>
+    inline bool FTreeReduce_v2<T>::Progress(){
+
+      bool retVal = false;
+      if(this->done_){
+        retVal = true;
+      }
+      else{
+
+        this->AllocRecvBuffers();
+
+        if(this->isAllocated_){
+          if(this->myRank_==this->myRoot_ && this->isAllocated_){
+            this->isBufferSet_=true;
+            this->isReady_=true;
+          }
+
+          if(this->isReady_ && this->isBufferSet_){
+            if(this->IsDataReceived()){
+
+
+              //free the unnecessary arrays
+              this->recvTempBuffer_.clear();
+              this->recvRequests_.clear();
+              this->recvStatuses_.clear();
+              this->recvDoneIdx_.clear();
+
+              if(this->isMessageForwarded()){
+                retVal = true;
+              }
+            }
+            //else if(this->recvPostedCount_<this->GetDestCount()){
+            //  //TODO check this
+            //  if(this->recvPostedCount_==this->recvCount_){
+            //    this->postRecv();
+            //  }
+            //}
+          }
+        }
+      }
+
+      if(retVal){
+        this->done_ = retVal;
+        //TODO do some smart cleanup
+      }
+      return retVal;
+    }
+
+
+  template< typename T>
+    BTreeReduce_v2<T>::BTreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce_v2<T>(pComm, ranks, rank_cnt, msgSize){
+      buildTree(ranks,rank_cnt);
+    }
+
+  template< typename T>
+    inline BTreeReduce_v2<T> * BTreeReduce_v2<T>::clone() const{
+      BTreeReduce_v2<T> * out = new BTreeReduce_v2<T>(*this);
+      return out;
+    }
+
+  template< typename T>
+    inline void BTreeReduce_v2<T>::buildTree(Int * ranks, Int rank_cnt){
+      Int idxStart = 0;
+      Int idxEnd = rank_cnt;
+
+
+
+      Int prevRoot = ranks[0];
+      while(idxStart<idxEnd){
+        Int curRoot = ranks[idxStart];
+        Int listSize = idxEnd - idxStart;
+
+        if(listSize == 1){
+          if(curRoot == this->myRank_){
+            this->myRoot_ = prevRoot;
+            break;
+          }
+        }
+        else{
+          Int halfList = floor(ceil(double(listSize) / 2.0));
+          Int idxStartL = idxStart+1;
+          Int idxStartH = idxStart+halfList;
+
+          if(curRoot == this->myRank_){
+            if ((idxEnd - idxStartH) > 0 && (idxStartH - idxStartL)>0){
+              Int childL = ranks[idxStartL];
+              Int childR = ranks[idxStartH];
+
+              this->myDests_.push_back(childL);
+              this->myDests_.push_back(childR);
+            }
+            else if ((idxEnd - idxStartH) > 0){
+              Int childR = ranks[idxStartH];
+              this->myDests_.push_back(childR);
+            }
+            else{
+              Int childL = ranks[idxStartL];
+              this->myDests_.push_back(childL);
+            }
+            this->myRoot_ = prevRoot;
+            break;
+          } 
+
+          if( this->myRank_ < ranks[idxStartH]){
+            idxStart = idxStartL;
+            idxEnd = idxStartH;
+          }
+          else{
+            idxStart = idxStartH;
+          }
+          prevRoot = curRoot;
+        }
+
+      }
+
+#if (defined(REDUCE_VERBOSE))
+      statusOFS<<"My root is "<<this->myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
+
+
+  template< typename T>
+    ModBTreeReduce_v2<T>::ModBTreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed):TreeReduce_v2<T>(pComm, ranks, rank_cnt, msgSize){
+      this->rseed_ = rseed;
+      buildTree(ranks,rank_cnt);
+    }
+
+  template< typename T>
+    inline void ModBTreeReduce_v2<T>::Copy(const ModBTreeReduce_v2<T> & Tree){
+      ((TreeReduce_v2<T>*)this)->Copy(*((const TreeReduce_v2<T>*)&Tree));
+      this->rseed_ = Tree.rseed_;
+    }
+
+  template< typename T>
+    inline ModBTreeReduce_v2<T> * ModBTreeReduce_v2<T>::clone() const{
+      ModBTreeReduce_v2<T> * out = new ModBTreeReduce_v2<T>(*this);
+      return out;
+    }
+
+  template< typename T>
+    inline void ModBTreeReduce_v2<T>::buildTree(Int * ranks, Int rank_cnt){
+
+      Int idxStart = 0;
+      Int idxEnd = rank_cnt;
+
+      //sort the ranks with the modulo like operation
+      if(rank_cnt>1){
+        //generate a random position in [1 .. rand_cnt]
+        //Int new_idx = (int)((rand()+1.0) * (double)rank_cnt / ((double)RAND_MAX+1.0));
+        //srand(ranks[0]+rank_cnt);
+        //Int new_idx = rseed_%(rank_cnt-1)+1;
+
+        //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
+        //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        //      Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
+        Int new_idx = (int)(this->rseed_)%(rank_cnt-1)+1;
+
+        Int * new_start = &ranks[new_idx];
+        //        for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
+
+        //        Int * new_start = std::lower_bound(&ranks[1],&ranks[0]+rank_cnt,ranks[0]);
+        //just swap the two chunks   r[0] | r[1] --- r[new_start-1] | r[new_start] --- r[end]
+        // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1] 
+        std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
+        //        for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
+      }
+
+      Int prevRoot = ranks[0];
+      while(idxStart<idxEnd){
+        Int curRoot = ranks[idxStart];
+        Int listSize = idxEnd - idxStart;
+
+        if(listSize == 1){
+          if(curRoot == this->myRank_){
+            this->myRoot_ = prevRoot;
+            break;
+          }
+        }
+        else{
+          Int halfList = floor(ceil(double(listSize) / 2.0));
+          Int idxStartL = idxStart+1;
+          Int idxStartH = idxStart+halfList;
+
+          if(curRoot == this->myRank_){
+            if ((idxEnd - idxStartH) > 0 && (idxStartH - idxStartL)>0){
+              Int childL = ranks[idxStartL];
+              Int childR = ranks[idxStartH];
+
+              this->myDests_.push_back(childL);
+              this->myDests_.push_back(childR);
+            }
+            else if ((idxEnd - idxStartH) > 0){
+              Int childR = ranks[idxStartH];
+              this->myDests_.push_back(childR);
+            }
+            else{
+              Int childL = ranks[idxStartL];
+              this->myDests_.push_back(childL);
+            }
+            this->myRoot_ = prevRoot;
+            break;
+          } 
+
+          //not true anymore ?
+          //first half to 
+          TIMER_START(FIND_RANK);
+          Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], this->myRank_);
+          TIMER_STOP(FIND_RANK);
+          if( pos != &ranks[idxStartH]){
+            idxStart = idxStartL;
+            idxEnd = idxStartH;
+          }
+          else{
+            idxStart = idxStartH;
+          }
+          prevRoot = curRoot;
+        }
+
+      }
+
+#if (defined(REDUCE_VERBOSE)) 
+      statusOFS<<"My root is "<<this->myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
+
+  template< typename T>
+    PalmTreeReduce_v2<T>::PalmTreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize):TreeReduce_v2<T>(pComm,ranks,rank_cnt,msgSize){
+      //build the binary tree;
+      buildTree(ranks,rank_cnt);
+    }
+
+  template< typename T>
+    inline PalmTreeReduce_v2<T> * PalmTreeReduce_v2<T>::clone() const{
+      PalmTreeReduce_v2<T> * out = new PalmTreeReduce_v2<T>(*this);
+      return out;
+    }
+
+
+  template< typename T>
+    inline void PalmTreeReduce_v2<T>::buildTree(Int * ranks, Int rank_cnt){
+      Int numLevel = floor(log2(rank_cnt));
+      Int numRoots = 0;
+      for(Int level=0;level<numLevel;++level){
+        numRoots = std::min( rank_cnt, numRoots + (Int)pow(2,level));
+        Int numNextRoots = std::min(rank_cnt,numRoots + (Int)pow(2,(level+1)));
+        Int numReceivers = numNextRoots - numRoots;
+        for(Int ip = 0; ip<numRoots;++ip){
+          Int p = ranks[ip];
+          for(Int ir = ip; ir<numReceivers;ir+=numRoots){
+            Int r = ranks[numRoots+ir];
+            if(r==this->myRank_){
+              this->myRoot_ = p;
+            }
+
+            if(p==this->myRank_){
+              this->myDests_.push_back(r);
+            }
+          }
+        }
+      }
+
+#if (defined(BCAST_VERBOSE))
+      statusOFS<<"My root is "<<this->myRoot_<<std::endl;
+      statusOFS<<"My dests are ";
+      for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
+      statusOFS<<std::endl;
+#endif
+    }
+
+
+
+  template< typename T>
+    void TreeReduce_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
       doneIdx.clear();
       auto all_done = [](const std::vector<bool> & boolvec){
         return std::all_of(boolvec.begin(), boolvec.end(), [](bool v) { return v; });
@@ -894,7 +903,7 @@ template< typename T>
     }
 
   template< typename T>
-  void TreeReduce_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+    void TreeReduce_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
       doneIdx.clear();
       for(int i = 0; i<treeIdx.size(); i++){
         Int idx = treeIdx[i];
@@ -916,16 +925,16 @@ template< typename T>
 
 
   template< typename T>
-   void TreeReduce_Waitall(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees){
-     std::list<int> doneIdx;
-     std::vector<bool> finishedFlags(treeIdx.size(),false);
-     
+    void TreeReduce_Waitall(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees){
+      std::list<int> doneIdx;
+      std::vector<bool> finishedFlags(treeIdx.size(),false);
+
       doneIdx.clear();
       auto all_done = [](const std::vector<bool> & boolvec){
         return std::all_of(boolvec.begin(), boolvec.end(), [](bool v) { return v; });
       };
 
-     while(!all_done(finishedFlags) ){
+      while(!all_done(finishedFlags) ){
         for(int i = 0; i<treeIdx.size(); i++){
           Int idx = treeIdx[i];
           auto & curTree = arrTrees[idx];
@@ -946,16 +955,16 @@ template< typename T>
     }
 
   template< typename T>
-  void TreeReduce_ProgressAll(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees){
+    void TreeReduce_ProgressAll(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees){
 
-        for(int i = 0; i<treeIdx.size(); i++){
-          Int idx = treeIdx[i];
-          auto & curTree = arrTrees[idx];
-          if(curTree!=nullptr){
-            bool done = curTree->Progress();
-          }
+      for(int i = 0; i<treeIdx.size(); i++){
+        Int idx = treeIdx[i];
+        auto & curTree = arrTrees[idx];
+        if(curTree!=nullptr){
+          bool done = curTree->Progress();
         }
-  }
+      }
+    }
 
 
 
