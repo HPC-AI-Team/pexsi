@@ -1401,7 +1401,7 @@ namespace PEXSI{
 
       }
       else{
-        for( Int ksup = numSuper - 2; ksup >= 0; ksup-- ){
+        for( Int ksup = numSuper - 1; ksup >= 0; ksup-- ){
           WSet.push_back(std::vector<Int>());
           WSet.back().push_back(ksup);
         }

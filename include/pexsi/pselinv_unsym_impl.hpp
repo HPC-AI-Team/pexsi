@@ -5070,6 +5070,92 @@ namespace PEXSI{
 //                if(ksup==175){gdb_lock();}
 
           Int proot = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
+#if 0
+          if(ksup%2==0){
+            if(MYCOL(this->grid_)==PCOL(ksup,this->grid_)){
+              auto & list = structRows[ksup];
+              auto & redUTree = this->redUTree2_[ksup];
+              if( (list.size()>0 && redUTree!=nullptr) || MYPROC(this->grid_)==proot  ){
+                auto & inserted_proc = inserted_procs[ksup];
+                inserted_proc.assign(this->grid_->mpisize,false);
+                auto & rnkList = rnkLists[ksup];
+                rnkList.clear();
+
+
+                Int pcol = PCOL(ksup,this->grid_);
+
+                inserted_proc[proot]=true;
+                rnkList.push_back(proot);
+                for(auto bnum: list){
+                  Int prow = PROW(bnum,this->grid_);
+                  Int pdest = PNUM(prow,pcol,this->grid_);
+                  if(!inserted_proc[pdest]){
+                    inserted_proc[pdest]=true;
+                    rnkList.push_back(pdest);
+                  }
+                }
+
+                ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
+                rnkList.clear();
+
+                std::sort(ranks.begin()+1,ranks.end());
+              }
+            }
+          }
+          else{
+            if(MYROW(this->grid_)==PROW(ksup,this->grid_)){
+              auto & list = structCols[ksup];
+              auto & redLTree = this->redLTree2_[ksup];
+              if( (list.size()>0 && redLTree!=nullptr) || MYPROC(this->grid_)==proot){
+                auto & inserted_proc = inserted_procs[ksup];
+                inserted_proc.assign(this->grid_->mpisize,false);
+                auto & rnkList = rnkLists[ksup];
+                rnkList.clear();
+
+
+                Int prow = PROW(ksup,this->grid_);
+
+                inserted_proc[proot]=true;
+                rnkList.push_back(proot);
+                for(auto bnum: list){
+                  Int pcol = PCOL(bnum,this->grid_);
+                  Int pdest = PNUM(prow,pcol,this->grid_);
+                  if(!inserted_proc[pdest]){
+                    inserted_proc[pdest]=true;
+                    rnkList.push_back(pdest);
+                  }
+                }
+
+                ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
+                rnkList.clear();
+
+                std::sort(ranks.begin()+1,ranks.end());
+              }
+            }
+          }
+
+          if(ranks.size()>0){ 
+            //Create redDTree
+            Int msgSize = SuperSize(ksup, this->super_)*SuperSize(ksup, this->super_);
+
+            double rseed = (double)seed / (double)this->grid_->mpisize;
+            auto & redDTree = this->redDTree2_[ksup];
+            redDTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,ranks.data(),ranks.size(),msgSize,rseed));
+#ifdef COMM_PROFILE_BCAST
+            redDTree->SetGlobalComm(this->grid_->comm);
+#endif
+
+#if ( _DEBUGlevel_ >= 2 )
+            statusOFS<<"redD ["<<ksup<<"]"<<" P"
+              <<ranks[0]
+              <<" -|-> {";
+            for(auto&& pdest: ranks){
+              statusOFS<<pdest<<" ";
+            }
+            statusOFS<<"}"<<std::endl;
+#endif
+          }
+#else
           if(MYCOL(this->grid_)==PCOL(ksup,this->grid_) || MYROW(this->grid_)==PROW(ksup,this->grid_)){
             auto & listU = structCols[ksup];
             auto & listL = structRows[ksup];
@@ -5079,26 +5165,28 @@ namespace PEXSI{
             if(ksup%2==0){
               if(MYCOL(this->grid_)==PCOL(ksup,this->grid_)){
                 auto & redUTree = this->redUTree2_[ksup];
-                if( listU.size() > 0  && (redUTree!=nullptr  || MYPROC(this->grid_)==proot)  ){
+                if( redUTree!=nullptr  || MYPROC(this->grid_)==proot){
                   auto & inserted_proc = inserted_procs[ksup];
                   inserted_proc.assign(this->grid_->mpisize,false);
                   auto & rnkList = rnkLists[ksup];
                   rnkList.clear();
 
-
-                  if( listU.size() > 0  && (redUTree!=nullptr  || MYPROC(this->grid_)==proot)  ){
+                  if(listU.size()>0){
                     inserted_proc[proot]=true;
                     rnkList.push_back(proot);
-                  }
-
-                  Int pcol = PCOL(ksup,this->grid_);
-                  for(auto bnum: listL){
-                    Int prow = PROW(bnum,this->grid_);
-                    Int pdest = PNUM(prow,pcol,this->grid_);
-                    if(!inserted_proc[pdest]){
-                      inserted_proc[pdest]=true;
-                      rnkList.push_back(pdest);
+                    Int pcol = PCOL(ksup,this->grid_);
+                    for(auto bnum: listL){
+                      Int prow = PROW(bnum,this->grid_);
+                      Int pdest = PNUM(prow,pcol,this->grid_);
+                      if(!inserted_proc[pdest]){
+                        inserted_proc[pdest]=true;
+                        rnkList.push_back(pdest);
+                      }
                     }
+                  }
+                  else if (MYPROC(this->grid_)==proot){
+                    inserted_proc[proot]=true;
+                    rnkList.push_back(proot);
                   }
 
                   ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
@@ -5112,29 +5200,28 @@ namespace PEXSI{
               if(MYROW(this->grid_)==PROW(ksup,this->grid_)){
                 auto & redLTree = this->redLTree2_[ksup];
                 
-
-                if( listL.size()>0 && ( redLTree!=nullptr || MYPROC(this->grid_)==proot)  ){
+                if(redLTree!=nullptr || MYPROC(this->grid_)==proot){
                   auto & inserted_proc = inserted_procs[ksup];
                   inserted_proc.assign(this->grid_->mpisize,false);
                   auto & rnkList = rnkLists[ksup];
                   rnkList.clear();
 
-
-
-                  //if( (inter.size() > 0 && redLTree!=nullptr) || MYPROC(this->grid_)==proot){
-                  if( listL.size()>0 && ( redLTree!=nullptr || MYPROC(this->grid_)==proot)  ){
+                  if( listL.size()>0){ 
                     inserted_proc[proot]=true;
                     rnkList.push_back(proot);
-                  }
-
-                  Int prow = PROW(ksup,this->grid_);
-                  for(auto bnum: listU){
-                    Int pcol = PCOL(bnum,this->grid_);
-                    Int pdest = PNUM(prow,pcol,this->grid_);
-                    if(!inserted_proc[pdest]){
-                      inserted_proc[pdest]=true;
-                      rnkList.push_back(pdest);
+                    Int prow = PROW(ksup,this->grid_);
+                    for(auto bnum: listU){
+                      Int pcol = PCOL(bnum,this->grid_);
+                      Int pdest = PNUM(prow,pcol,this->grid_);
+                      if(!inserted_proc[pdest]){
+                        inserted_proc[pdest]=true;
+                        rnkList.push_back(pdest);
+                      }
                     }
+                  }
+                  else if (MYPROC(this->grid_)==proot){
+                    inserted_proc[proot]=true;
+                    rnkList.push_back(proot);
                   }
 
                   ranks.insert(ranks.end(),rnkList.begin(),rnkList.end());
@@ -5167,6 +5254,7 @@ namespace PEXSI{
 #endif
             }
           }
+#endif
         }
 
         /******************************************************/

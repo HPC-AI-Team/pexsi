@@ -758,7 +758,7 @@ int main(int argc, char **argv)
             cout << "Total FLOPs for selected inversion is " << flops << endl;
 #endif
 
-          if(1){
+          if(0){
             statusOFS.close();
             stringstream  sslu;
             sslu << "LUDump_" << mpirank<<".m";
@@ -770,14 +770,14 @@ int main(int argc, char **argv)
 
           if(0){
             DistSparseMatrix<MYSCALAR> Ainv;
-            pMat->PMatrixToDistSparseMatrix(Ainv );
+            //pMat->PMatrixToDistSparseMatrix(Ainv );
             //pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
             //if( mpirank == 0 )
             //WriteDistSparseMatrixMatlab("AinvDump",Ainv,world_comm);
 
             //WriteDistSparseMatrixMatlab("ADump",AMat,world_comm);
 
-            //pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
+            pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
             WriteDistSparseMatrixMatlab("AinvDump",Ainv,world_comm);
           }
 
