@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-//#define _MYCOMPLEX_
+#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -624,7 +624,7 @@ int main(int argc, char **argv)
           A1.ConvertNRlocToNC( GA );
 
           int n = A1.n();
-          int nrhs = 5;
+          int nrhs = 1;
           NumMat<MYSCALAR> xTrueGlobal(n, nrhs), bGlobal(n, nrhs);
           NumMat<MYSCALAR> xTrueLocal, bLocal;
           DblNumVec berr;
@@ -634,8 +634,12 @@ int main(int argc, char **argv)
 
           A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
           A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
+
+          statusOFS<<xTrueGlobal<<std::endl;
+
           if(mpirank==0){std::cout<<"Starting solve"<<std::endl;}
           pLuMat->SolveDistMultiVector( bLocal, berr );
+          statusOFS<<bLocal<<std::endl;
           pLuMat->CheckErrorDistMultiVector( bLocal, xTrueLocal );
         }
 
@@ -664,27 +668,12 @@ int main(int argc, char **argv)
 
 
           //Initialize PEXSI/PSelInv data structures
-          //PMatrix<MYSCALAR> * pMat;
-          //GridType * pGrid;
-          //PEXSICreator<MYSCALAR>::CreatePMatrix(world_comm, nprow, npcol, luOpt, pSuper, pMat, pGrid);
-
           GridType * pGrid = new GridType(world_comm,nprow,npcol);
-
 
           PSelInvOptions selInvOpt;
           selInvOpt.maxPipelineDepth = maxPipelineDepth;
 
-
           PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &selInvOpt, &factOpt);
-
-          //            {
-          //              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
-          //              *pLuMat2 = *pLuMat;
-          //              //PMatrix<MYSCALAR> Mat = PMatrix<MYSCALAR>(pGrid,pSuper, &luOpt);
-          //              //Mat = *pMat2; //should call the copy constructor and the destructor
-          //              MPI_Barrier(world_comm);
-          //              exit(0);
-          //            }
 
           pLuMat->LUstructToPMatrix( *pMat );
           GetTime( timeEnd );
@@ -754,7 +743,7 @@ int main(int argc, char **argv)
             cout << "Total FLOPs for selected inversion is " << flops << endl;
 #endif
 
-          if(1){
+          if(0){
             statusOFS.close();
             stringstream  sslu;
             sslu << "LUDump_" << mpirank<<".m";
