@@ -635,11 +635,8 @@ int main(int argc, char **argv)
           A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
           A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
 
-          statusOFS<<xTrueGlobal<<std::endl;
-
           if(mpirank==0){std::cout<<"Starting solve"<<std::endl;}
           pLuMat->SolveDistMultiVector( bLocal, berr );
-          statusOFS<<bLocal<<std::endl;
           pLuMat->CheckErrorDistMultiVector( bLocal, xTrueLocal );
         }
 
