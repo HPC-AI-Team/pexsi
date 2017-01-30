@@ -3192,9 +3192,9 @@ namespace PEXSI{
           this->SelInvIntra_New(lidx,rank);
 
 
-//#if ( _DEBUGlevel_ >= 1 )
+#if ( _DEBUGlevel_ >= 1 )
         statusOFS<<"OUT "<<lidx<<"/"<<numSteps<<" "<<this->limIndex_<<std::endl;
-//#endif
+#endif
 
           //find max snode.Index
           if(lidx>0 && (rank-1)%this->limIndex_==0){
