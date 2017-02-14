@@ -589,6 +589,22 @@ public:
       Real& numElectron, 
       bool& isPEXSIConverged );
 
+  void CalculateFermiOperatorReal3(
+      Int   numPole, 
+      Real  temperature,
+      Real  gap,
+      Real  deltaE,
+      Real  numElectronExact, 
+      Real  numElectronTolerance,
+      Real  muMinPEXSI,
+      Real  muMaxPEXSI,
+    Int               solver,
+      Int   verbosity,
+      Real& mu,
+      Real& numElectron, 
+      bool& isPEXSIConverged );
+
+ 
   /// @brief Updated main driver for DFT. This reuses the pole
   /// expansion and only performs one PEXSI iteration per SCF step.
   void DFTDriver2(
@@ -607,6 +623,33 @@ public:
       Int        matrixType,
       Int        isSymbolicFactorize,
     Int               solver,
+      Int        ordering,
+      Int        numProcSymbFact,
+      Int        verbosity,
+      Real&      muPEXSI,                   
+      Real&      numElectronPEXSI,         
+      Real&      muMinInertia,              
+      Real&      muMaxInertia,             
+      Int&       numTotalInertiaIter );
+
+  /// @brief Updated main driver for DFT. This reuses the pole
+  /// expansion and only performs one PEXSI iteration per SCF step.
+  void DFTDriver3(
+      Real       numElectronExact,
+      Real       temperature,
+      Real       gap,
+      Real       deltaE,
+      Int        numPole, 
+      Int        isInertiaCount,
+      Real       muMin0,
+      Real       muMax0,
+      Real       mu0,
+      Real       muInertiaTolerance,
+      Real       muInertiaExpansion,
+      Real       numElectronPEXSITolerance,
+      Int        matrixType,
+      Int        isSymbolicFactorize,
+      Int        solver,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
