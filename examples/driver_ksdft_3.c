@@ -2,7 +2,7 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Authors: Lin Lin
+   Authors: Weile Jia and Lin Lin 
 
    This file is part of PEXSI. All rights reserved.
 
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
   double        totalEnergyH;
   double        totalEnergyS;
   double        totalFreeEnergy;
-  
+
   char*         Hfile;
   char*         Sfile;
   int           isFormatted;
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
           &numColLocal,
           readComm );
     }
-    
+
     if( mpirank == 0 ){
       printf("On processor 0...\n");
       printf("nrows       = %d\n", nrows );
@@ -250,7 +250,7 @@ int main(int argc, char **argv)
             readComm );
       }
     }
-    
+
     if( mpirank == 0 ){ 
       printf("Finish reading the matrix.\n");
     }
@@ -314,44 +314,44 @@ int main(int argc, char **argv)
 
   while (1) {
 
-  PPEXSIDFTDriver3(
-      plan,
-      options,
-      numElectronExact,
-      &muPEXSI,                   
-      &numElectronPEXSI,         
-      &muMinInertia,              
-      &muMaxInertia,             
-      &numTotalInertiaIter,   
-      &info );
-
-  if( info != 0 ){
-    if( mpirank == 0 ){
-      printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
-    }
-    MPI_Finalize();
-    return info;
-  }
-
-
-  if( isProcRead == 1 ){
-    PPEXSIRetrieveRealDFTMatrix(
+    PPEXSIDFTDriver3(
         plan,
-        DMnzvalLocal,
-        EDMnzvalLocal,
-        FDMnzvalLocal,
-        &totalEnergyH,
-        &totalEnergyS,
-        &totalFreeEnergy,
+        options,
+        numElectronExact,
+        &muPEXSI,                   
+        &numElectronPEXSI,         
+        &muMinInertia,              
+        &muMaxInertia,             
+        &numTotalInertiaIter,   
         &info );
 
-    if( mpirank == 0 ){
-      printf("Output from the main program\n");
-      printf("Total energy (H*DM)         = %15.5f\n", totalEnergyH);
-      printf("Total energy (S*EDM)        = %15.5f\n", totalEnergyS);
-      printf("Total free energy           = %15.5f\n", totalFreeEnergy);
+    if( info != 0 ){
+      if( mpirank == 0 ){
+        printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
+      }
+      MPI_Finalize();
+      return info;
     }
-  }
+
+
+    if( isProcRead == 1 ){
+      PPEXSIRetrieveRealDFTMatrix(
+          plan,
+          DMnzvalLocal,
+          EDMnzvalLocal,
+          FDMnzvalLocal,
+          &totalEnergyH,
+          &totalEnergyS,
+          &totalFreeEnergy,
+          &info );
+
+      if( mpirank == 0 ){
+        printf("Output from the main program\n");
+        printf("Total energy (H*DM)         = %15.5f\n", totalEnergyH);
+        printf("Total energy (S*EDM)        = %15.5f\n", totalEnergyS);
+        printf("Total free energy           = %15.5f\n", totalFreeEnergy);
+      }
+    }
 
   }
   /* Step 3. Solve the problem once again without symbolic factorization */
@@ -428,7 +428,7 @@ int main(int argc, char **argv)
   PPEXSIPlanFinalize( 
       plan,
       &info );
-  
+
   if( mpirank == 0 ){ 
     printf("\nAll calculation is finished. Exit the program.\n");
   }
@@ -445,7 +445,7 @@ int main(int argc, char **argv)
     free( localDOSnzvalLocal );
   }
 
-  
+
   MPI_Comm_free( &readComm );
   MPI_Finalize();
 

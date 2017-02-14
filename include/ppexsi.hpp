@@ -596,13 +596,10 @@ public:
       Real  deltaE,
       Real  numElectronExact, 
       Real  numElectronTolerance,
-      Real  muMinPEXSI,
-      Real  muMaxPEXSI,
-    Int               solver,
+      Int   solver,
       Int   verbosity,
       Real& mu,
-      Real& numElectron, 
-      bool& isPEXSIConverged );
+      Real& numElectron );
 
  
   /// @brief Updated main driver for DFT. This reuses the pole
