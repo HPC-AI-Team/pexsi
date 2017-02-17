@@ -54,7 +54,7 @@
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  "c_pexsi_interface.h"
-#include  <omp.h>
+//#include  <omp.h>
 
 int main(int argc, char **argv) 
 {
@@ -174,7 +174,8 @@ int main(int argc, char **argv)
       &info );
 
   if (mpirank == 0)
-    tsymfact1 = omp_get_wtime();
+    //tsymfact1 = omp_get_wtime();
+    tsymfact1 = MPI_Wtime();
   
 
    PPEXSISymbolicFactorizeRealSymmetricMatrix( 
@@ -183,10 +184,12 @@ int main(int argc, char **argv)
       &info );
    
    if (mpirank == 0)
-    tsymfact2 = omp_get_wtime();
+    //tsymfact2 = omp_get_wtime();
+    tsymfact2 = MPI_Wtime();
     
    if (mpirank == 0)
-    tinvert1 = omp_get_wtime();
+    //tinvert1 = omp_get_wtime();
+    tinvert1 = MPI_Wtime();
 
   PPEXSISelInvRealSymmetricMatrix (
       plan,
@@ -196,7 +199,8 @@ int main(int argc, char **argv)
       &info );
 
     if (mpirank == 0)
-        tinvert2 = omp_get_wtime();
+        //tinvert2 = omp_get_wtime();
+        tinvert2 = MPI_Wtime();
 
 
 

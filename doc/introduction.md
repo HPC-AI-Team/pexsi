@@ -300,8 +300,12 @@ graphene nanoflakes, J. Chem. Phys. 141, 214704, 2014
 <!-- ************************************************************ -->
 @page pageChangeLog Change Log
 
+- v0.10.2 (02/17/2017)
+    - Bug fix: Remove unecessary OpenMP dependence (thanks to Nick
+      Papior)
+
 - v0.10.1 (11/8/2016)
-    - Bug fix:  matrix pattern for nonzero overlap matrices and missing
+    - Bug fix: matrix pattern for nonzero overlap matrices and missing
       option in fortran interface (contributed by Victor Yu)
 
 - v0.10.0 (11/6/2016) 

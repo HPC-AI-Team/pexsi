@@ -6519,6 +6519,10 @@ void PPEXSIData::CalculateFermiOperatorReal3(
   if( isEnergyDensityMatrix )
     SetValue( frcMat.nzvalLocal, 0.0 );
 
+  // FIXME
+
+  // Directly read off the poles from a table.
+
   // Refine the pole expansion  
   // numPoleInput is the number of poles to be given to other parts of
   // the pole expansion, which is larger than or equal to numPole.

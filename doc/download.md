@@ -3,9 +3,9 @@ Download       {#pageDownload}
 
 %PEXSI is Moving **steadily** towards v1.0.0...
 
-**Beta version (v0.10.1)**:
+**Beta version (v0.10.2)**:
 
-- Code: <a href="https://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v0.10.1.tar.gz">pexsi_v0.10.1.tar.gz</a>
+- Code: <a href="https://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v0.10.2.tar.gz">pexsi_v0.10.2.tar.gz</a>
 
 - Read @ref pageImportantChange for the important interface changes since v0.10.0
 
