@@ -142,8 +142,8 @@ struct GridType{
   MPI_Comm    comm;
   MPI_Comm    rowComm;
   MPI_Comm    colComm;
-  int         mpirank;
-  int         mpisize; 
+  Int         mpirank;
+  Int         mpisize; 
   Int         numProcRow;
   Int         numProcCol;
 
@@ -601,19 +601,17 @@ protected:
   BolNumMat                       isRecvFromCrossDiagonal_;
 
 
-#ifdef NEW_BCAST
-  std::vector<TreeBcast2<T> *> fwdToBelowTree2_; 
-  std::vector<TreeBcast2<T> *> fwdToRightTree2_; 
-#endif
   std::vector<TreeBcast *> fwdToBelowTree_; 
   std::vector<TreeBcast *> fwdToRightTree_; 
   std::vector<TreeReduce<T> *> redToLeftTree_; 
   std::vector<TreeReduce<T> *> redToAboveTree_; 
 
+#ifdef _OPENMP_TILE_
+  bool * deps;
+#endif
 
 
   double localFlops_;
-
 
   struct SuperNodeBufferType{
     NumMat<T>    LUpdateBuf;
@@ -655,7 +653,11 @@ protected:
 
 
   /// @brief SelInvIntra_P2p
-  inline void SelInvIntra_P2p(Int lidx,Int & rank);
+  inline void SelInvIntra_P2p(Int lidx,Int & rank
+#ifdef _OPENMP_TILE_
+        ,const Int * snodeEtree
+#endif
+      );
 
   /// @brief SelInv_lookup_indexes
   inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
@@ -673,10 +675,11 @@ protected:
   inline void SendRecvCD_UpdateU(std::vector<SuperNodeBufferType > & arrSuperNodes, Int stepSuper);
 
 public:
-  double GetTotalFlops();
   // *********************************************************************
   // Public member functions 
   // *********************************************************************
+
+  double GetTotalFlops();
 
   PMatrix();
 
@@ -978,7 +981,7 @@ public:
   /// @param[in]  A Input sparse matrix to provide the sparsity pattern.
   ///
   /// @param[out] B Output sparse matrix.
-  virtual void PMatrixToDistSparseMatrix( 
+  void PMatrixToDistSparseMatrix( 
       const DistSparseMatrix<T>& A,
       DistSparseMatrix<T>& B );
 
