@@ -6603,10 +6603,10 @@ namespace PEXSI{
         const IntNumVec& perm_r    = *pPerm_r;
         const IntNumVec& permInv_r = *pPermInv_r;
 
+        //auto permRow = [perm,perm_r](int col) { return perm[col]; };
+        //auto permCol = [perm,perm_r](int row) { return perm[perm_r[row]]; };
         auto permCol = [perm,perm_r](int col) { return perm[col]; };
         auto permRow = [perm,perm_r](int row) { return perm[perm_r[row]]; };
-        //auto permCol = [perm,perm_r](int col) { return perm[col]; };
-        //auto permRow = [perm,perm_r](int row) { return perm_r[perm[row]]; };
 
         // Count the sizes from the A matrix first
         Int numColFirst = this->NumCol() / mpisize;

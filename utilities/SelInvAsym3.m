@@ -31,9 +31,9 @@ function [Ainv,APreSelinv,Afactor] = SelInvAsym3( A, chkerr, b )
   tic;
   p = 1:size(A,1);
   q = 1:size(A,2);
-  [L,U] = LU_factor(A);
+  %[L,U] = LU_factor(A);
   % MATLAB's LU factorization for A
-  %[L,U,p,q] = lu(A,'vector');
+  [L,U,p,q] = lu(A,'vector');
 
   timeNumFac = toc;
   fprintf('Time for numerical factorization = %15.2e\n', timeNumFac);
