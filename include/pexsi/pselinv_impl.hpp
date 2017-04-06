@@ -1615,9 +1615,10 @@ namespace PEXSI{
               MINUS_ONE<T>(), &snode.LUpdateBuf( snode.RowLocalPtr[ib-startIb], 0 ), snode.LUpdateBuf.m(),
               LB.nzval.Data(), LB.nzval.m(), ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
 #ifdef _PRINT_STATS_
-          this->localFlops_+=flops::Gemm<T>(snode.DiagBuf.m(), snode.DiagBuf.n(), LB.numRow);
+                this->localFlops_+=flops::Gemm<T>(snode.DiagBuf.m(), snode.DiagBuf.n(), LB.numRow);
 #endif
         } 
+
 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updated the diagonal block" << std::endl << std::endl; 
@@ -1949,7 +1950,7 @@ namespace PEXSI{
 //        {
 #pragma omp taskgroup
       {
-         auto depSuperList = this->WorkingSet().data();
+         //auto depSuperList = this->WorkingSet().data();
 #endif
 
 #if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
@@ -2012,6 +2013,7 @@ namespace PEXSI{
 
           //allocate the buffers for this supernode
           std::vector<SuperNodeBufferType> arrSuperNodes(stepSuper);
+
           Int pos = 0;
           for (Int supidx=0; supidx<superList[lidx].size(); supidx++){ 
             Int snodeIdx = superList[lidx][supidx]; 
@@ -2209,7 +2211,9 @@ namespace PEXSI{
           }
 #endif
 
+#ifndef _OPENMP_TILE_
           vector<char> redLdone(stepSuper,0);
+#endif
           for (Int supidx=0; supidx<stepSuper; supidx++){
             SuperNodeBufferType & snode = arrSuperNodes[supidx];
             TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
@@ -2819,7 +2823,6 @@ namespace PEXSI{
                   } // if readySupidx > 0 
 
 
-
                 }
               }//end omp single
 
@@ -2860,6 +2863,7 @@ namespace PEXSI{
 
                   //TODO omp tasks are created in here. needs to be renamed
                   //TODO there is a taskgroup and a taskwait in there too
+
                   SelInv_lookup_indexes(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
 
 
@@ -2873,6 +2877,7 @@ namespace PEXSI{
                   this->localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
 #endif
 
+#pragma omp taskwait
 
 //#pragma omp task firstprivate(supidx) shared(arrSuperNodes,reduceSupidx) depend(inout:tdeps[snodeIdx*numSuper+rowIdx])
                   {
@@ -2912,7 +2917,7 @@ namespace PEXSI{
           TIMER_START(Reduce_Sinv_LT);
           //blocking wait for the reduction
 #ifdef _OPENMP_TILE_
-            #pragma omp taskgroup
+            //#pragma omp taskgroup
             {
             for (Int supidx=0; supidx<stepSuper; supidx++){
                 SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -3049,7 +3054,7 @@ namespace PEXSI{
           TIMER_START(Update_Diagonal);
 
 #ifdef _OPENMP_TILE_
-#pragma omp taskgroup
+//#pragma omp taskgroup
           {
 #endif
           for (Int supidx=0; supidx<stepSuper; supidx++){
@@ -3077,7 +3082,6 @@ namespace PEXSI{
                   SetValue(snode.DiagBuf, ZERO<T>());
                 }
               }
-
 
               redDTree->SetLocalBuffer(snode.DiagBuf.Data());
 #ifdef _PRINT_STATS_
@@ -3129,7 +3133,7 @@ namespace PEXSI{
 //#endif
 
 #ifdef _OPENMP_TILE_
-            #pragma omp taskgroup
+            //#pragma omp taskgroup
             {
               for (Int supidx=0; supidx<stepSuper; supidx++){
                 SuperNodeBufferType & snode = arrSuperNodes[supidx];
@@ -3150,7 +3154,7 @@ namespace PEXSI{
                         LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
                         // Symmetrize LB
                         blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-#ifdef _PRINT_STAT  S_
+#ifdef _PRINT_STATS_
                         this->localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
 #endif
                         Symmetrize( LB.nzval );
@@ -3217,7 +3221,6 @@ namespace PEXSI{
 //#pragma omp taskwait
 //#endif
 
-          //TODO multithread this
 #ifdef _OPENMP_TILE_
           {
 #pragma omp taskgroup
@@ -3516,6 +3519,10 @@ namespace PEXSI{
 #endif
 
 #ifdef _OPENMP_TILE_
+
+      //cleanup arrSuperNodes
+
+
 //#pragma omp taskwait
       } // end omp taskgroup
 
@@ -4454,13 +4461,13 @@ namespace PEXSI{
       std::vector<std::vector<Int> > & superList = this->WorkingSet();
       Int numSteps = superList.size();
 
+Int lidx=0;
+        Int rank = 0;
 
 #ifdef _OPENMP_TILE_
       std::vector<Int> snodeEtree(this->NumSuper());
       GetEtree(snodeEtree);
 
-Int lidx=0;
-        Int rank = 0;
 #pragma omp parallel
       {
 #endif
@@ -4479,7 +4486,7 @@ Int lidx=0;
 //          #pragma omp single nowait
           {
 
-#pragma omp task depend(in:lidx)//depend(inout:rank)
+#pragma omp task //depend(in:lidx)//depend(inout:rank)
             {
               Int lrank = 0;
               for (Int plidx=0; plidx<=lidx ; plidx++){ lrank+=superList[plidx].size();}
@@ -4488,7 +4495,7 @@ Int lidx=0;
 #pragma omp taskwait
           } //end single nowait
 #else
-              SelInvIntra_P2p(lidx,&rank);
+              SelInvIntra_P2p(lidx,rank);
 #endif
 
 #ifndef _OPENMP_TILE_
