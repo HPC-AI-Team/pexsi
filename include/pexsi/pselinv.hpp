@@ -606,10 +606,6 @@ protected:
   std::vector<TreeReduce<T> *> redToLeftTree_; 
   std::vector<TreeReduce<T> *> redToAboveTree_; 
 
-#ifdef _OPENMP_TILE_
-  bool * deps;
-#endif
-
 
   double localFlops_;
 
@@ -1005,6 +1001,15 @@ public:
 
   void CopyLU( const PMatrix & C);
   inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
+
+#ifdef _OPENMP_TILE_
+  bool * deps;
+
+  std::vector<std::vector<SuperNodeBufferType> > arrArrSuperNodes;
+#endif
+
+
+
 };
 
 template<typename T>  class PMatrixUnsym;
