@@ -787,6 +787,365 @@ namespace PEXSI{
 
     }
 
+
+  ///////////// Utility functions ///////////////////
+  template<typename T>
+    inline  void PMatrix<T>::SelInv_lookup_indexes_seq(
+        SuperNodeBufferType & snode, 
+        std::vector<LBlock<T> > & LcolRecv, 
+        std::vector<UBlock<T> > & UrowRecv, 
+        NumMat<T> & AinvBuf,
+        NumMat<T> & UBuf )
+    {
+      TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
+
+      TIMER_START(Build_colptr_rowptr);
+      // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
+      // nonzero row in LcolRecv[ib]. The total number of rows in
+      // snode.LUpdateBuf is given by rowPtr[end]-1
+      std::vector<Int> rowPtr(LcolRecv.size() + 1);
+      // colPtr[jb] gives the column index in UBuf for the first
+      // nonzero column in UrowRecv[jb]. The total number of rows in
+      // UBuf is given by colPtr[end]-1
+      std::vector<Int> colPtr(UrowRecv.size() + 1);
+
+      rowPtr[0] = 0;
+      for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+        rowPtr[ib+1] = rowPtr[ib] + LcolRecv[ib].numRow;
+      }
+      colPtr[0] = 0;
+      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+        colPtr[jb+1] = colPtr[jb] + UrowRecv[jb].numCol;
+      }
+
+      Int numRowAinvBuf = *rowPtr.rbegin();
+      Int numColAinvBuf = *colPtr.rbegin();
+      TIMER_STOP(Build_colptr_rowptr);
+
+      TIMER_START(Allocate_lookup);
+      // Allocate for the computational storage
+      AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
+      UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
+      //    TIMER_START(SetValue_lookup);
+      //    SetValue( AinvBuf, ZERO<T>() );
+      //SetValue( snode.LUpdateBuf, ZERO<T>() );
+      //    SetValue( UBuf, ZERO<T>() );
+      //    TIMER_STOP(SetValue_lookup);
+      TIMER_STOP(Allocate_lookup);
+
+      TIMER_START(Fill_UBuf);
+      // Fill UBuf first.  Make the transpose later in the Gemm phase.
+      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+        UBlock<T>& UB = UrowRecv[jb];
+        if( UB.numRow != SuperSize(snode.Index, super_) ){
+          ErrorHandling( "The size of UB is not right.  Something is seriously wrong." );
+        }
+        lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
+            UB.numRow, UBuf.VecData( colPtr[jb] ), SuperSize( snode.Index, super_ ) );	
+      }
+      TIMER_STOP(Fill_UBuf);
+
+      // Calculate the relative indices for (isup, jsup)
+      // Fill AinvBuf with the information in L or U block.
+      TIMER_START(JB_Loop);
+
+#ifdef STDFIND
+      //    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+      //
+      //      UBlock& UB = UrowRecv[jb];
+      //      Int jsup = UB.blockIdx;
+      //      Int SinvColsSta = FirstBlockCol( jsup, super_ );
+      //
+      //      // Column relative indicies
+      //      std::vector<Int> relCols( UB.numCol );
+      //      for( Int j = 0; j < UB.numCol; j++ ){
+      //        relCols[j] = UB.cols[j] - SinvColsSta;
+      //      }
+      //
+      //
+      //
+      //
+      //      for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+      //        LBlock& LB = LcolRecv[ib];
+      //        Int isup = LB.blockIdx;
+      //        Int SinvRowsSta = FirstBlockCol( isup, super_ );
+      //        Scalar* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
+      //        Int     ldAinv    = numRowAinvBuf;
+      //
+      //        // Pin down the corresponding block in the part of Sinv.
+      //        if( isup >= jsup ){
+      //          std::vector<LBlock>&  LcolSinv = this->L( LBj(jsup, grid_ ) );
+      //          bool isBlockFound = false;
+      //          TIMER_START(PARSING_ROW_BLOCKIDX);
+      //          for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+      //            // Found the (isup, jsup) block in Sinv
+      //            if( LcolSinv[ibSinv].blockIdx == isup ){
+      //              LBlock& SinvB = LcolSinv[ibSinv];
+      //
+      //              // Row relative indices
+      //              std::vector<Int> relRows( LB.numRow );
+      //              Int* rowsLBPtr    = LB.rows.Data();
+      //              Int* rowsSinvBPtr = SinvB.rows.Data();
+      //
+      //              TIMER_START(STDFIND_ROW);
+      //              Int * pos =&rowsSinvBPtr[0];
+      //              Int * last =&rowsSinvBPtr[SinvB.numRow];
+      //              for( Int i = 0; i < LB.numRow; i++ ){
+      //                //                pos = std::find(pos, &rowsSinvBPtr[SinvB.numRow-1], rowsLBPtr[i]);
+      //                pos = std::find(rowsSinvBPtr, last, rowsLBPtr[i]);
+      //                if(pos != last){
+      //                  relRows[i] = (Int)(pos - rowsSinvBPtr);
+      //                }
+      //                else{
+      //                  std::ostringstream msg;
+      //                  msg << "Row " << rowsLBPtr[i] << 
+      //                    " in LB cannot find the corresponding row in SinvB" << std::endl
+      //                    << "LB.rows    = " << LB.rows << std::endl
+      //                    << "SinvB.rows = " << SinvB.rows << std::endl;
+      //                  ErrorHandling( msg.str().c_str() );
+      //                }
+      //              }
+      //              TIMER_STOP(STDFIND_ROW);
+      //
+      //              TIMER_START(Copy_Sinv_to_Ainv);
+      //              // Transfer the values from Sinv to AinvBlock
+      //              Scalar* nzvalSinv = SinvB.nzval.Data();
+      //              Int     ldSinv    = SinvB.numRow;
+      //              for( Int j = 0; j < UB.numCol; j++ ){
+      //                for( Int i = 0; i < LB.numRow; i++ ){
+      //                  nzvalAinv[i+j*ldAinv] =
+      //                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+      //                }
+      //              }
+      //              TIMER_STOP(Copy_Sinv_to_Ainv);
+      //
+      //              isBlockFound = true;
+      //              break;
+      //            }	
+      //          } // for (ibSinv )
+      //          TIMER_STOP(PARSING_ROW_BLOCKIDX);
+      //          if( isBlockFound == false ){
+      //            std::ostringstream msg;
+      //            msg << "Block(" << isup << ", " << jsup 
+      //              << ") did not find a matching block in Sinv." << std::endl;
+      //            ErrorHandling( msg.str().c_str() );
+      //          }
+      //        } // if (isup, jsup) is in L
+      //        else{
+      //          // Row relative indices
+      //          std::vector<Int> relRows( LB.numRow );
+      //          Int SinvRowsSta = FirstBlockCol( isup, super_ );
+      //          for( Int i = 0; i < LB.numRow; i++ ){
+      //            relRows[i] = LB.rows[i] - SinvRowsSta;
+      //          }
+      //          std::vector<UBlock>&   UrowSinv = this->U( LBi( isup, grid_ ) );
+      //          bool isBlockFound = false;
+      //          TIMER_START(PARSING_COL_BLOCKIDX);
+      //          for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
+      //            // Found the (isup, jsup) block in Sinv
+      //            if( UrowSinv[jbSinv].blockIdx == jsup ){
+      //              UBlock& SinvB = UrowSinv[jbSinv];
+      //
+      //
+      //
+      //              // Column relative indices
+      //              std::vector<Int> relCols( UB.numCol );
+      //              Int* colsUBPtr    = UB.cols.Data();
+      //              Int* colsSinvBPtr = SinvB.cols.Data();
+      //              TIMER_START(STDFIND_COL);
+      //              Int * pos =&colsSinvBPtr[0];
+      //              Int * last =&colsSinvBPtr[SinvB.numCol];
+      //              for( Int j = 0; j < UB.numCol; j++ ){
+      //                //colsUB is sorted
+      //                pos = std::find(colsSinvBPtr, last, colsUBPtr[j]);
+      //                if(pos !=last){
+      //                  relCols[j] = (Int)(pos - colsSinvBPtr);
+      //                }
+      //                else{
+      //                  std::ostringstream msg;
+      //                  msg << "Col " << colsUBPtr[j] << 
+      //                    " in UB cannot find the corresponding row in SinvB" << std::endl
+      //                    << "UB.cols    = " << UB.cols << std::endl
+      //                    << "UinvB.cols = " << SinvB.cols << std::endl;
+      //                  ErrorHandling( msg.str().c_str() );
+      //                }
+      //              }
+      //              TIMER_STOP(STDFIND_COL);
+      //
+      //
+      //              TIMER_START(Copy_Sinv_to_Ainv);
+      //              // Transfer the values from Sinv to AinvBlock
+      //              Scalar* nzvalSinv = SinvB.nzval.Data();
+      //              Int     ldSinv    = SinvB.numRow;
+      //              for( Int j = 0; j < UB.numCol; j++ ){
+      //                for( Int i = 0; i < LB.numRow; i++ ){
+      //                  nzvalAinv[i+j*ldAinv] =
+      //                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+      //                }
+      //              }
+      //              TIMER_STOP(Copy_Sinv_to_Ainv);
+      //
+      //              isBlockFound = true;
+      //              break;
+      //            }
+      //          } // for (jbSinv)
+      //          TIMER_STOP(PARSING_COL_BLOCKIDX);
+      //          if( isBlockFound == false ){
+      //            std::ostringstream msg;
+      //            msg << "Block(" << isup << ", " << jsup 
+      //              << ") did not find a matching block in Sinv." << std::endl;
+      //            ErrorHandling( msg.str().c_str() );
+      //          }
+      //        } // if (isup, jsup) is in U
+      //
+      //      } // for( ib )
+      //    } // for ( jb )
+#else
+      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+        for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+          LBlock<T>& LB = LcolRecv[ib];
+          UBlock<T>& UB = UrowRecv[jb];
+          Int isup = LB.blockIdx;
+          Int jsup = UB.blockIdx;
+          T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
+          Int     ldAinv    = AinvBuf.m();
+
+          // Pin down the corresponding block in the part of Sinv.
+          if( isup >= jsup ){
+            std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
+            bool isBlockFound = false;
+            TIMER_START(PARSING_ROW_BLOCKIDX);
+            for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+              // Found the (isup, jsup) block in Sinv
+              if( LcolSinv[ibSinv].blockIdx == isup ){
+                LBlock<T> & SinvB = LcolSinv[ibSinv];
+
+                // Row relative indices
+                std::vector<Int> relRows( LB.numRow );
+                Int* rowsLBPtr    = LB.rows.Data();
+                Int* rowsSinvBPtr = SinvB.rows.Data();
+                for( Int i = 0; i < LB.numRow; i++ ){
+                  bool isRowFound = false;
+                  for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
+                    if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
+                      isRowFound = true;
+                      relRows[i] = i1;
+                      break;
+                    }
+                  }
+                  if( isRowFound == false ){
+                    std::ostringstream msg;
+                    msg << "Row " << rowsLBPtr[i] << 
+                      " in LB cannot find the corresponding row in SinvB" << std::endl
+                      << "LB.rows    = " << LB.rows << std::endl
+                      << "SinvB.rows = " << SinvB.rows << std::endl;
+                    ErrorHandling( msg.str().c_str() );
+                  }
+                }
+
+                // Column relative indicies
+                std::vector<Int> relCols( UB.numCol );
+                Int SinvColsSta = FirstBlockCol( jsup, super_ );
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  relCols[j] = UB.cols[j] - SinvColsSta;
+                }
+
+                // Transfer the values from Sinv to AinvBlock
+                T* nzvalSinv = SinvB.nzval.Data();
+                Int     ldSinv    = SinvB.numRow;
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  for( Int i = 0; i < LB.numRow; i++ ){
+                    nzvalAinv[i+j*ldAinv] =
+                      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                  }
+                }
+
+                isBlockFound = true;
+                break;
+              }	
+            } // for (ibSinv )
+            TIMER_STOP(PARSING_ROW_BLOCKIDX);
+            if( isBlockFound == false ){
+              std::ostringstream msg;
+              msg << "Block(" << isup << ", " << jsup 
+                << ") did not find a matching block in Sinv." << std::endl;
+              ErrorHandling( msg.str().c_str() );
+            }
+          } // if (isup, jsup) is in L
+          else{
+            std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
+            bool isBlockFound = false;
+            TIMER_START(PARSING_COL_BLOCKIDX);
+            for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
+              // Found the (isup, jsup) block in Sinv
+              if( UrowSinv[jbSinv].blockIdx == jsup ){
+                UBlock<T> & SinvB = UrowSinv[jbSinv];
+
+                // Row relative indices
+                std::vector<Int> relRows( LB.numRow );
+                Int SinvRowsSta = FirstBlockCol( isup, super_ );
+                for( Int i = 0; i < LB.numRow; i++ ){
+                  relRows[i] = LB.rows[i] - SinvRowsSta;
+                }
+
+                // Column relative indices
+                std::vector<Int> relCols( UB.numCol );
+                Int* colsUBPtr    = UB.cols.Data();
+                Int* colsSinvBPtr = SinvB.cols.Data();
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  bool isColFound = false;
+                  for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
+                    if( colsUBPtr[j] == colsSinvBPtr[j1] ){
+                      isColFound = true;
+                      relCols[j] = j1;
+                      break;
+                    }
+                  }
+                  if( isColFound == false ){
+                    std::ostringstream msg;
+                    msg << "Col " << colsUBPtr[j] << 
+                      " in UB cannot find the corresponding row in SinvB" << std::endl
+                      << "UB.cols    = " << UB.cols << std::endl
+                      << "UinvB.cols = " << SinvB.cols << std::endl;
+                    ErrorHandling( msg.str().c_str() );
+                  }
+                }
+
+
+                // Transfer the values from Sinv to AinvBlock
+                T* nzvalSinv = SinvB.nzval.Data();
+                Int     ldSinv    = SinvB.numRow;
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  for( Int i = 0; i < LB.numRow; i++ ){
+                    nzvalAinv[i+j*ldAinv] =
+                      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                  }
+                }
+
+                isBlockFound = true;
+                break;
+              }
+            } // for (jbSinv)
+            TIMER_STOP(PARSING_COL_BLOCKIDX);
+            if( isBlockFound == false ){
+              std::ostringstream msg;
+              msg << "Block(" << isup << ", " << jsup 
+                << ") did not find a matching block in Sinv." << std::endl;
+              ErrorHandling( msg.str().c_str() );
+            }
+          } // if (isup, jsup) is in U
+
+        } // for( ib )
+      } // for ( jb )
+
+
+#endif
+      TIMER_STOP(JB_Loop);
+
+
+      TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
+    }
+
 #else
   ///////////// Utility functions ///////////////////
   template<typename T>
@@ -4826,16 +5185,6 @@ Int lidx=0;
                               //Post All Recv requests;
                               redLTree->PostFirstRecv();
                             }
-                            //if(redLTree != NULL){
-                            //      TIMER_START(Reduce_Sinv_LT_Isend);
-                            //      //send the data to NULL to ensure 0 byte send
-                            //      redLTree->SetLocalBuffer(NULL);
-                            //      redLTree->SetDataReady(true);
-
-                            //      bool done = redLTree->Progress();
-
-                            //      TIMER_STOP(Reduce_Sinv_LT_Isend);
-                            // }
 
 #pragma omp task firstprivate(pmpointer,supidx,parentIdx,snodeIdx,lidx) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1) + snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
                             {
@@ -4865,7 +5214,18 @@ Int lidx=0;
 
                               //TODO omp tasks are created in here. needs to be renamed
                               //TODO there is a taskgroup and a taskwait in there too
+
+
+
+#if 1
                               SelInv_lookup_indexes(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
+#else
+                              SelInv_lookup_indexes_seq(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
+                              snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
+                              blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
+                                          AinvBuf.Data(), AinvBuf.m(), UBuf.Data(), UBuf.m(), ZERO<T>(),
+                                                            snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
+#endif
 
 #ifdef _PRINT_STATS_  
                               pmpointer->localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
@@ -5241,7 +5601,7 @@ Int lidx=0;
           if(lidx>0 && (rank-1)%limIndex_==0){
             MPI_Barrier(grid_->comm);
           }
-
+        }
 
           MPI_Barrier(grid_->comm);
 #endif
