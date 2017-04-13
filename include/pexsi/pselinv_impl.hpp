@@ -5123,6 +5123,9 @@ Int lidx=0;
 #pragma omp taskgroup
           {
           #pragma omp single nowait
+            {
+            auto pmpointer = this;
+            bool * tdeps = pmpointer->deps;
             for (lidx=0; lidx<numSteps ; lidx++){
                     Int lrank = 0;
                     for (Int plidx=0; plidx<=lidx ; plidx++){ lrank+=superList[plidx].size();}
@@ -5130,12 +5133,10 @@ Int lidx=0;
                     SelInvIntra_P2p(lidx,lrank ,snodeEtree.data());
 #else
                     {
-                      auto pmpointer = this;
-                      auto tdeps = this->deps;
                       int is_master=0;
                       MPI_Is_thread_main(&is_master);
-                      Int numSuper = this->NumSuper(); 
-                      std::vector<std::vector<Int> > & superList = this->WorkingSet();
+                      Int numSuper = pmpointer->NumSuper(); 
+                      std::vector<std::vector<Int> > & superList = pmpointer->WorkingSet();
                       Int numSteps = superList.size();
                       Int stepSuper = superList[lidx].size(); 
 
@@ -5454,65 +5455,90 @@ Int lidx=0;
 
                               // Send LUpdateBufReduced to the cross diagonal blocks. 
                               // NOTE: This assumes square processor grid
-                              if( MYROW( pmpointer->grid_ ) == PROW( snode.Index, pmpointer->grid_ ) && pmpointer->isRecvFromCrossDiagonal_(pmpointer->grid_->numProcRow, snode.Index ) ){
-                                std::vector<UBlock<T> >&  Urow = pmpointer->U( LBi( snode.Index, grid_ ) );
-                                std::vector<bool> isBlockFound(Urow.size(),false);
+                                if( MYROW( pmpointer->grid_ ) == PROW( snode.Index, pmpointer->grid_ ) && pmpointer->isRecvFromCrossDiagonal_(pmpointer->grid_->numProcRow, snode.Index ) ){
+                                  std::vector<UBlock<T> >&  Urow = pmpointer->U( LBi( snode.Index, pmpointer->grid_ ) );
+                                  UBlock<T> * UrowP = Urow.data();
+                                  size_t UrowS = Urow.size();
+                                  std::vector<char> isBlockFound(Urow.size(),false);
 
-                                Int recvIdx=0;
-                                for(Int srcRow = 0; srcRow<pmpointer->grid_->numProcRow; srcRow++){
-                                  if(pmpointer->isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
-                                    Int src = PNUM(srcRow,PCOL(snode.Index,pmpointer->grid_),pmpointer->grid_);
-                                    TIMER_START(Recv_L_CrossDiag);
+                                  Int recvIdx=0;
+                                  for(Int srcRow = 0; srcRow<pmpointer->grid_->numProcRow; srcRow++){
+                                    if(pmpointer->isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
+                                      Int src = PNUM(srcRow,PCOL(snode.Index,pmpointer->grid_),pmpointer->grid_);
 
-                                    std::vector<Int> rowLocalPtrRecv;
-                                    std::vector<Int> blockIdxLocalRecv;
-                                    NumMat<T> UUpdateBuf;
+#pragma omp task firstprivate(srcRow,src,recvIdx,snodeIdx,pmpointer,UrowP,UrowS) shared(arrSuperNodes)
+                                      {                                      
+                                        SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
+                                        //TIMER_START(Recv_L_CrossDiag);
+                                        std::vector<Int> rowLocalPtrRecv;
+                                        std::vector<Int> blockIdxLocalRecv;
+                                        NumMat<T> UUpdateBuf;
 
-                                    if( MYPROC( pmpointer->grid_ ) != src ){
-                                      std::stringstream sstm;
-                                      Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
-                                      std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvIdx];
-                                      sstm.write( &sstrLcolRecv[0], sstrSize );
+                                        if( MYPROC( pmpointer->grid_ ) != src ){
+                                          std::stringstream sstm;
+                                          Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
+                                          std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvIdx];
+                                          sstm.write( &sstrLcolRecv[0], sstrSize );
 
-                                      deserialize( rowLocalPtrRecv, sstm, NO_MASK );
-                                      deserialize( blockIdxLocalRecv, sstm, NO_MASK );
-                                      deserialize( UUpdateBuf, sstm, NO_MASK );	
+                                          deserialize( rowLocalPtrRecv, sstm, NO_MASK );
+                                          deserialize( blockIdxLocalRecv, sstm, NO_MASK );
+                                          deserialize( UUpdateBuf, sstm, NO_MASK );	
+                                        } // sender is not the same as receiver
+                                        else{
+                                          //TODO do we need to make copies here ?
+                                          rowLocalPtrRecv   = snode.RowLocalPtr;
+                                          blockIdxLocalRecv = snode.BlockIdxLocal;
+                                          UUpdateBuf = snode.LUpdateBuf;
+                                        } // sender is the same as receiver
+                                        //TIMER_STOP(Recv_L_CrossDiag);
+                                        
+                                        auto rowLocalPtr = rowLocalPtrRecv.data();
+                                        auto blockIdxLocal = blockIdxLocalRecv.data();
+                                        auto UUpdateBufP = UUpdateBuf.Data();
+                                        auto UUBm = UUpdateBuf.m();
 
-                                      recvIdx++;
+                                        // Update U
+                                        for( Int ib = 0; ib < blockIdxLocalRecv.size(); ib++ ){
+#pragma omp task firstprivate(ib,UUBm,UUpdateBufP,blockIdxLocal,rowLocalPtr,snodeIdx,pmpointer,UrowP,UrowS) shared(isBlockFound,arrSuperNodes)
+                                          {
+                                            SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
+                                            for( Int jb = 0; jb < UrowS; jb++ ){
+                                              UBlock<T>& UB = UrowP[jb];
+                                              if( UB.blockIdx == blockIdxLocal[ib] ){
+                                                NumMat<T> Ltmp ( UB.numCol, UB.numRow );
+                                                lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
+                                                    &UUpdateBufP[rowLocalPtr[ib] ],
+                                                    UUBm, Ltmp.Data(), Ltmp.m() );
+                                                isBlockFound[jb] = true;
 
-                                    } // sender is not the same as receiver
-                                    else{
-                                      rowLocalPtrRecv   = snode.RowLocalPtr;
-                                      blockIdxLocalRecv = snode.BlockIdxLocal;
-                                      UUpdateBuf = snode.LUpdateBuf;
-                                    } // sender is the same as receiver
-                                    TIMER_STOP(Recv_L_CrossDiag);
-
-                                    // Update U
-                                    for( Int ib = 0; ib < blockIdxLocalRecv.size(); ib++ ){
-                                      for( Int jb = 0; jb < Urow.size(); jb++ ){
-                                        UBlock<T>& UB = Urow[jb];
-                                        if( UB.blockIdx == blockIdxLocalRecv[ib] ){
-                                          NumMat<T> Ltmp ( UB.numCol, UB.numRow );
-                                          lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
-                                              &UUpdateBuf( rowLocalPtrRecv[ib], 0 ),
-                                              UUpdateBuf.m(), Ltmp.Data(), Ltmp.m() );
-                                          isBlockFound[jb] = true;
-                                          Transpose( Ltmp, UB.nzval );
-                                          break;
+                                                Transpose( Ltmp, UB.nzval );
+                                                break;
+                                              }
+                                            }
+                                          }//end omp task
                                         }
+#pragma omp taskwait
+                                      }//end omp task
+
+                                      if( MYPROC( pmpointer->grid_ ) != src ){
+                                        recvIdx++;
                                       }
                                     }
-                                  }
-                                }
 
-                                for( Int jb = 0; jb < Urow.size(); jb++ ){
-                                  UBlock<T>& UB = Urow[jb];
-                                  if( !isBlockFound[jb] ){
-                                    ErrorHandling( "UBlock cannot find its update. Something is seriously wrong." );
                                   }
-                                }
-                              } // receiver
+
+#pragma omp taskwait
+
+//#pragma omp task firstprivate(UrowS,UrowP) shared(isBlockFound) //depend(inout:UrowP[0])
+                                  for( Int jb = 0; jb < UrowS; jb++ ){
+                                    UBlock<T>& UB = UrowP[jb];
+                                    if( !isBlockFound[jb] ){
+                                      ErrorHandling( "UBlock cannot find its update. Something is seriously wrong." );
+                                    }
+                                  }
+#pragma omp taskwait
+
+                                } // receiver
 
                               mpi::Waitall(arrMpiReqsSizeSendCD);
                               mpi::Waitall(arrMpiReqsSendCD);
@@ -5576,6 +5602,7 @@ Int lidx=0;
 
 #endif
             }//end for
+          }//end omp single
           }// end omp taskgroup
         }
 #else
