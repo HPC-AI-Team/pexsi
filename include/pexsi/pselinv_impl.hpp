@@ -579,19 +579,77 @@ namespace PEXSI{
                 // Transfer the values from Sinv to AinvBlock
                 T* nzvalSinv = SinvB.nzval.Data();
                 Int     ldSinv    = SinvB.numRow;
-//#pragma omp taskloop collapse(2)
-//                auto dummy = SinvB.nzval
-#pragma omp critical
-{
-statusOFS<<relCols<<std::endl;
-statusOFS<<relRows<<std::endl;
-}
-                for( Int j = 0; j < UB.numCol; j++ ){
-                  for( Int i = 0; i < LB.numRow; i++ ){
-                    nzvalAinv[i+j*ldAinv] =
-                      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+
+
+                std::list<std::pair<Int,Int> > blockCols;
+                if(UB.numCol>0){
+                  //find blocks
+                  Int fc = relCols[0];
+                  Int ncols = 1;
+                  for( Int j = 1; j < UB.numCol; j++ ){
+                    if(relCols[j]==relCols[j-1]+1){ 
+                      ncols++;
+                    }
+                    else{
+                      blockCols.push_back(std::make_pair(fc,ncols));
+                      fc = relCols[j];
+                      ncols = 1;
+                    }
                   }
+                  blockCols.push_back(std::make_pair(fc,ncols));
                 }
+
+
+                std::list<std::pair<Int,Int> > blockRows;
+                if(LB.numRow>0){
+                  //find blocks
+                  Int fr = relRows[0];
+                  Int nrows = 1;
+                  for( Int j = 1; j < LB.numRow; j++ ){
+                    if(relRows[j]==relRows[j-1]+1){ 
+                      nrows++;
+                    }
+                    else{
+                      blockRows.push_back(std::make_pair(fr,nrows));
+                      fr = relRows[j];
+                      nrows = 1;
+                    }
+                  }
+                  blockRows.push_back(std::make_pair(fr,nrows));
+                }
+
+
+//#pragma omp critical
+//{
+////  statusOFS<<relCols<<std::endl;
+//  for(auto && p: blockCols){statusOFS<<"["<<p.first<<" - "<<p.second<<"] ";}statusOFS<<std::endl;
+////  statusOFS<<relRows<<std::endl;
+//  for(auto && p: blockRows){statusOFS<<"["<<p.first<<" - "<<p.second<<"] ";}statusOFS<<std::endl;
+//}
+
+Int j = 0;
+for(auto && blockC: blockCols){
+  auto fc = blockC.first;
+  auto nc = blockC.second;
+  Int i = 0;
+  for(auto && blockR: blockRows){
+    auto fr = blockR.first;
+    auto nr = blockR.second;
+#pragma omp task firstprivate(fr,fc,nr,nc,ldAinv,ldSinv,i,j,nzvalSinv,nzvalAinv)
+    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+
+    i+=nr;
+  }
+  j+=nc;
+}
+#pragma omp taskwait
+
+//                for( Int j = 0; j < UB.numCol; j++ ){
+//                  for( Int i = 0; i < LB.numRow; i++ ){
+//                    nzvalAinv[i+j*ldAinv] =
+//                      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+//                  }
+//                }
 }
 
                 isBlockFound = true;
@@ -661,12 +719,82 @@ statusOFS<<relRows<<std::endl;
                 // Transfer the values from Sinv to AinvBlock
                 T* nzvalSinv = SinvB.nzval.Data();
                 Int     ldSinv    = SinvB.numRow;
-                for( Int j = 0; j < UB.numCol; j++ ){
-                  for( Int i = 0; i < LB.numRow; i++ ){
-                    nzvalAinv[i+j*ldAinv] =
-                      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                //for( Int j = 0; j < UB.numCol; j++ ){
+                //  for( Int i = 0; i < LB.numRow; i++ ){
+                //    nzvalAinv[i+j*ldAinv] =
+                //      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                //  }
+                //}
+
+
+
+                std::list<std::pair<Int,Int> > blockCols;
+                if(UB.numCol>0){
+                  //find blocks
+                  Int fc = relCols[0];
+                  Int ncols = 1;
+                  for( Int j = 1; j < UB.numCol; j++ ){
+                    if(relCols[j]==relCols[j-1]+1){ 
+                      ncols++;
+                    }
+                    else{
+                      blockCols.push_back(std::make_pair(fc,ncols));
+                      fc = relCols[j];
+                      ncols = 1;
+                    }
                   }
+                  blockCols.push_back(std::make_pair(fc,ncols));
                 }
+
+
+                std::list<std::pair<Int,Int> > blockRows;
+                if(LB.numRow>0){
+                  //find blocks
+                  Int fr = relRows[0];
+                  Int nrows = 1;
+                  for( Int j = 1; j < LB.numRow; j++ ){
+                    if(relRows[j]==relRows[j-1]+1){ 
+                      nrows++;
+                    }
+                    else{
+                      blockRows.push_back(std::make_pair(fr,nrows));
+                      fr = relRows[j];
+                      nrows = 1;
+                    }
+                  }
+                  blockRows.push_back(std::make_pair(fr,nrows));
+                }
+
+
+//#pragma omp critical
+//{
+////  statusOFS<<relCols<<std::endl;
+//  for(auto && p: blockCols){statusOFS<<"["<<p.first<<" - "<<p.second<<"] ";}statusOFS<<std::endl;
+////  statusOFS<<relRows<<std::endl;
+//  for(auto && p: blockRows){statusOFS<<"["<<p.first<<" - "<<p.second<<"] ";}statusOFS<<std::endl;
+//}
+
+Int j = 0;
+for(auto && blockC: blockCols){
+  auto fc = blockC.first;
+  auto nc = blockC.second;
+  Int i = 0;
+  for(auto && blockR: blockRows){
+    auto fr = blockR.first;
+    auto nr = blockR.second;
+#pragma omp task firstprivate(fr,fc,nr,nc,ldAinv,ldSinv,i,j,nzvalSinv,nzvalAinv)
+    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+
+    i+=nr;
+  }
+  j+=nc;
+}
+#pragma omp taskwait
+
+
+
+
+
 }
 
                 isBlockFound = true;
