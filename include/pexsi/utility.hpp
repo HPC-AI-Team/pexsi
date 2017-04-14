@@ -1879,7 +1879,6 @@ MonotoneRootFinding (
 
 
 
-
 } // namespace PEXSI
 
 #include "pexsi/utility_impl.hpp"
