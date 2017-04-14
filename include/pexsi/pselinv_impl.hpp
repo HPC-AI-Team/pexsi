@@ -519,7 +519,8 @@ namespace PEXSI{
       size_t ldUBuf = UBuf.m(); 
       size_t nUBuf = UBuf.n(); 
 
-//#pragma omp taskloop firstprivate(snodeP,LcolRecvP,UrowRecvP,AinvBufP,UBufP,LcolRecvS,UrowRecvS)
+#pragma omp taskgroup
+{
       for( Int jb = 0; jb < UrowRecvS && 1; jb++ ){
         for( Int ib = 0; ib < LcolRecvS; ib++ ){
 #pragma omp task firstprivate(ib,jb,snodeP,LcolRecvP,UrowRecvP,AinvBufP,UBufP,LcolRecvS,UrowRecvS) 
@@ -657,13 +658,13 @@ Int offsetL = i+rowPtr[ib];
 #pragma omp task firstprivate(fr,fc,nr,nc,ldAinv,ldSinv,i,j,nzvalSinv,nzvalAinv) /*depend(inout:nzvalAinvGDep[offsetA])*/ depend(inout:nzvalLUpdDep[offsetL])
 {
 //  lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-if(nr>0 && nc > 0 && ldUBuf>0){
+if(nr>0 && nc > 0 && ldUBuf>0 ){
 #pragma omp taskgroup
   {
-    blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
+    blas::Gemm('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
         &nzvalSinv[fr+fc*ldSinv], ldSinv, 
         &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
-        &nzvalLUpd[i+rowPtr[ib]], ldLUBuf , 0);
+        &nzvalLUpd[i+rowPtr[ib]], ldLUBuf);
   }
 }
 
@@ -678,7 +679,7 @@ if(nr>0 && nc > 0 && ldUBuf>0){
   }
   j+=nc;
 }
-#pragma omp taskwait
+//#pragma omp taskwait
 
 //                for( Int j = 0; j < UB.numCol; j++ ){
 //                  for( Int i = 0; i < LB.numRow; i++ ){
@@ -692,7 +693,7 @@ if(nr>0 && nc > 0 && ldUBuf>0){
                 break;
               }	
             } // for (ibSinv )
-#pragma omp taskwait
+//#pragma omp taskwait
             TIMER_STOP(PARSING_ROW_BLOCKIDX);
             if( isBlockFound == false ){
               std::ostringstream msg;
@@ -832,18 +833,19 @@ Int offsetL = i+rowPtr[ib];
 ////        &nzvalLUpd[i+rowPtr[ib]], ldAinv , 0);
 ////  }
 //}
+
 #pragma omp task firstprivate(fr,fc,nr,nc,ldAinv,ldSinv,i,j,nzvalSinv,nzvalAinv) /*depend(inout:nzvalAinvGDep[offsetA])*/ depend(inout:nzvalLUpdDep[offsetL])
 {
-  lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-//if(nr>0 && nc > 0 && ldUBuf>0){
-//#pragma omp taskgroup
-//  {
-//    blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
-//        &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-//        &nzvalUBuf[(j+colPtr[j])*ldUBuf], ldUBuf, ONE<T>(),
-//        &nzvalLUpd[i+rowPtr[ib]], ldAinv , 0);
-//  }
-//}
+//  lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+if(nr>0 && nc > 0 && ldUBuf>0 ){
+#pragma omp taskgroup
+  {
+    blas::Gemm('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
+        &nzvalSinv[fr+fc*ldSinv], ldSinv, 
+        &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
+        &nzvalLUpd[i+rowPtr[ib]], ldLUBuf );
+  }
+}
 
 }
 
@@ -851,7 +853,7 @@ Int offsetL = i+rowPtr[ib];
   }
   j+=nc;
 }
-#pragma omp taskwait
+//#pragma omp taskwait
 
 
 
@@ -863,7 +865,7 @@ Int offsetL = i+rowPtr[ib];
                 break;
               }
             } // for (jbSinv)
-#pragma omp taskwait
+//#pragma omp taskwait
             TIMER_STOP(PARSING_COL_BLOCKIDX);
             if( isBlockFound == false ){
               std::ostringstream msg;
@@ -876,7 +878,8 @@ Int offsetL = i+rowPtr[ib];
         } // for( ib )
       } // for ( jb )
 
-#pragma omp taskwait
+}//end omp taskgroup
+//#pragma omp taskwait
 
 
 if(AinvBuf.m()>0 && UBuf.m()>0 && snode.LUpdateBuf.m()>0){
