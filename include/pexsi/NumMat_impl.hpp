@@ -183,7 +183,7 @@ Transpose ( const NumMat<F>& A, NumMat<F>& B )
   F* Bdata = B.Data();
   Int m = A.m(), n = A.n();
 
-#pragma omp taskloop collapse(2)
+//#pragma omp taskloop collapse(2)
   for( Int i = 0; i < m; i++ ){
     for( Int j = 0; j < n; j++ ){
       //      Bdata[ j + n*i ] = F(std::conj(Adata[ i + j*m ]));

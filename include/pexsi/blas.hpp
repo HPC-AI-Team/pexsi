@@ -562,7 +562,7 @@ template<typename T>
 #include <omp.h>
 #endif
 
-template<typename scalar> inline void gemm_omp_task(char transa, char transb, int m, int n, int k, scalar alpha, scalar* a, int lda, scalar* b, int ldb, scalar beta, scalar* c, int ldc, int depth) {
+template<typename scalar> inline void gemm_omp_task(const char transa, const char transb, const int m, const int n, const int k, const scalar alpha, const scalar* a, const int lda, const scalar* b, const int ldb, const scalar beta, scalar* c, const int ldc, int depth = 0) {
 
 #ifdef _OMP_ENABLED_
    int num_threads = omp_get_num_threads();
@@ -571,7 +571,7 @@ template<typename scalar> inline void gemm_omp_task(char transa, char transb, in
    int num_threads = 1;
    int task_recursion_cutoff_level = 0;
 #endif
-int gemmOMPThreshold = 64;//64;
+int gemmOMPThreshold = 64*64*64;//64;
 
 
 

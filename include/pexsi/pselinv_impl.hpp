@@ -448,30 +448,31 @@ namespace PEXSI{
       // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
       // nonzero row in LcolRecv[ib]. The total number of rows in
       // snode.LUpdateBuf is given by rowPtr[end]-1
-      std::vector<Int> rowPtr(LcolRecv.size() + 1);
+      std::vector<Int> rowPtrC(LcolRecv.size() + 1);
       // colPtr[jb] gives the column index in UBuf for the first
       // nonzero column in UrowRecv[jb]. The total number of rows in
       // UBuf is given by colPtr[end]-1
-      std::vector<Int> colPtr(UrowRecv.size() + 1);
+      std::vector<Int> colPtrC(UrowRecv.size() + 1);
 
-      rowPtr[0] = 0;
+      rowPtrC[0] = 0;
       for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
-        rowPtr[ib+1] = rowPtr[ib] + LcolRecv[ib].numRow;
+        rowPtrC[ib+1] = rowPtrC[ib] + LcolRecv[ib].numRow;
       }
-      colPtr[0] = 0;
+      colPtrC[0] = 0;
       for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-        colPtr[jb+1] = colPtr[jb] + UrowRecv[jb].numCol;
+        colPtrC[jb+1] = colPtrC[jb] + UrowRecv[jb].numCol;
       }
 
-      Int numRowAinvBuf = *rowPtr.rbegin();
-      Int numColAinvBuf = *colPtr.rbegin();
+      Int numRowAinvBuf = *rowPtrC.rbegin();
+      Int numColAinvBuf = *colPtrC.rbegin();
       //TIMER_STOP(Build_colptr_rowptr);
 
       //TIMER_START(Allocate_lookup);
       // Allocate for the computational storage
-      AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
+      //AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
       UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
-      snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
+      snode.LUpdateBuf.Resize( numRowAinvBuf, SuperSize( snode.Index, super_ ) );
+      SetValue( snode.LUpdateBuf, ZERO<T>() );
       //std::cout << " allocation done " << std::endl;
       //    //TIMER_START(SetValue_lookup);
       //    SetValue( AinvBuf, ZERO<T>() );
@@ -488,7 +489,7 @@ namespace PEXSI{
           ErrorHandling( "The size of UB is not right.  Something is seriously wrong." );
         }
         lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
-            UB.numRow, UBuf.VecData( colPtr[jb] ), SuperSize( snode.Index, super_ ) );	
+            UB.numRow, UBuf.VecData( colPtrC[jb] ), SuperSize( snode.Index, super_ ) );	
       }
       //TIMER_STOP(Fill_UBuf);
 
@@ -506,388 +507,397 @@ namespace PEXSI{
       UBlock<T> * UrowRecvP = UrowRecv.data();
       size_t LcolRecvS = LcolRecv.size();
       size_t UrowRecvS = UrowRecv.size();
-      NumMat<T> * AinvBufP = &AinvBuf;
       NumMat<T> * UBufP = &UBuf;
 
       T * nzvalLUpd =  snode.LUpdateBuf.Data();
       T * nzvalUBuf =  UBuf.Data();
-      T * nzvalAinvG = AinvBuf.Data();
       char * nzvalLUpdDep =  (char*)snode.LUpdateBuf.Data();
-      char * nzvalUBufDep =  (char*)UBuf.Data();
-      char * nzvalAinvGDep = (char*)AinvBuf.Data();
+//      char * nzvalUBufDep =  (char*)UBuf.Data();
+//      char * nzvalAinvGDep = (char*)AinvBuf.Data();
       size_t ldLUBuf = snode.LUpdateBuf.m(); 
       size_t ldUBuf = UBuf.m(); 
-      size_t nUBuf = UBuf.n(); 
+
+      Int * rowPtr = rowPtrC.data();
+      Int * colPtr = colPtrC.data();
 
 #pragma omp taskgroup
-{
-      for( Int jb = 0; jb < UrowRecvS && 1; jb++ ){
-        for( Int ib = 0; ib < LcolRecvS; ib++ ){
-#pragma omp task firstprivate(ib,jb,snodeP,LcolRecvP,UrowRecvP,AinvBufP,UBufP,LcolRecvS,UrowRecvS) 
-{
-          SuperNodeBufferType & snode = *snodeP;
-          auto & AinvBuf = *AinvBufP;
-          auto & UBuf = *UBufP;
+      {
+        for( Int jb = 0; jb < UrowRecvS && 1; jb++ ){
+//#pragma omp taskloop firstprivate(jb,snodeP,LcolRecvP,UrowRecvP,UBufP,LcolRecvS,UrowRecvS) firstprivate(nzvalLUpdDep,nzvalUBuf,nzvalLUpd,ldLUBuf,ldUBuf,colPtr,rowPtr) default(shared)
+          for( Int ib = 0; ib < LcolRecvS; ib++ ){
+            {
+              SuperNodeBufferType & snode = *snodeP;
+              auto & UBuf = *UBufP;
 
-          LBlock<T>& LB = LcolRecvP[ib];
-          UBlock<T>& UB = UrowRecvP[jb];
-          Int isup = LB.blockIdx;
-          Int jsup = UB.blockIdx;
-          T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
-          Int     ldAinv    = AinvBuf.m();
+              LBlock<T>& LB = LcolRecvP[ib];
+              UBlock<T>& UB = UrowRecvP[jb];
+              Int isup = LB.blockIdx;
+              Int jsup = UB.blockIdx;
 
-          // Pin down the corresponding block in the part of Sinv.
-          if( isup >= jsup ){
-            std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-            bool isBlockFound = false;
-            TIMER_START(PARSING_ROW_BLOCKIDX);
-            for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
-              // Found the (isup, jsup) block in Sinv
-              if( LcolSinv[ibSinv].blockIdx == isup ){
-
-
-#pragma omp task firstprivate(ib,jb,ibSinv,isup,jsup,snodeP,LcolRecvP,UrowRecvP,AinvBufP,UBufP,LcolRecvS,UrowRecvS)
-{
+              // Pin down the corresponding block in the part of Sinv.
+              if( isup >= jsup ){
                 std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-                SuperNodeBufferType & snode = *snodeP;
-                auto & AinvBuf = *AinvBufP;
-                auto & UBuf = *UBufP;
-
-                LBlock<T>& LB = LcolRecvP[ib];
-                UBlock<T>& UB = UrowRecvP[jb];
-
-                LBlock<T> & SinvB = LcolSinv[ibSinv];
-
-                // Row relative indices
-                std::vector<Int> relRows( LB.numRow );
-                Int* rowsLBPtr    = LB.rows.Data();
-                Int* rowsSinvBPtr = SinvB.rows.Data();
-                for( Int i = 0; i < LB.numRow; i++ ){
-                  bool isRowFound = false;
-                  for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
-                    if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
-                      isRowFound = true;
-                      relRows[i] = i1;
-                      break;
-                    }
-                  }
-                  if( isRowFound == false ){
-                    std::ostringstream msg;
-                    msg << "Row " << rowsLBPtr[i] << 
-                      " in LB cannot find the corresponding row in SinvB" << std::endl
-                      << "LB.rows    = " << LB.rows << std::endl
-                      << "SinvB.rows = " << SinvB.rows << std::endl;
-                    ErrorHandling( msg.str().c_str() );
-                  }
-                }
-
-                // Column relative indicies
-                std::vector<Int> relCols( UB.numCol );
-                Int SinvColsSta = FirstBlockCol( jsup, super_ );
-                for( Int j = 0; j < UB.numCol; j++ ){
-                  relCols[j] = UB.cols[j] - SinvColsSta;
-                }
-
-                // Transfer the values from Sinv to AinvBlock
-                T* nzvalSinv = SinvB.nzval.Data();
-                Int     ldSinv    = SinvB.numRow;
+                bool isBlockFound = false;
+                TIMER_START(PARSING_ROW_BLOCKIDX);
+                for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+                  // Found the (isup, jsup) block in Sinv
+                  if( LcolSinv[ibSinv].blockIdx == isup ){
 
 
-                std::list<std::pair<Int,Int> > blockCols;
-                if(UB.numCol>0){
-                  //find blocks
-                  Int fc = relCols[0];
-                  Int ncols = 1;
-                  for( Int j = 1; j < UB.numCol; j++ ){
-                    if(relCols[j]==relCols[j-1]+1){ 
-                      ncols++;
-                    }
-                    else{
-                      blockCols.push_back(std::make_pair(fc,ncols));
-                      fc = relCols[j];
-                      ncols = 1;
-                    }
-                  }
-                  blockCols.push_back(std::make_pair(fc,ncols));
-                }
+//#pragma omp task firstprivate(ib,jb,ibSinv,isup,jsup,snodeP,LcolRecvP,UrowRecvP,UBufP,LcolRecvS,UrowRecvS) firstprivate(nzvalLUpdDep,nzvalUBuf,nzvalLUpd,ldLUBuf,ldUBuf,colPtr,rowPtr)
+                    {
+                      std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
+                      SuperNodeBufferType & snode = *snodeP;
+                      auto & UBuf = *UBufP;
+
+                      LBlock<T> * pLB = &LcolRecvP[ib];
+                      UBlock<T> * pUB = &UrowRecvP[jb];
+
+                      LBlock<T> * pSinvB = &LcolSinv[ibSinv];
+
+                      // Row relative indices
+                      Int* rowsLBPtr    = pLB->rows.Data();
+                      Int* rowsSinvBPtr = pSinvB->rows.Data();
+                      Int lastRowIdxSinv = 0;
+                      Int SinvBnumRow = pSinvB->numRow;
 
 
-                std::list<std::pair<Int,Int> > blockRows;
-                if(LB.numRow>0){
-                  //find blocks
-                  Int fr = relRows[0];
-                  Int nrows = 1;
-                  for( Int j = 1; j < LB.numRow; j++ ){
-                    if(relRows[j]==relRows[j-1]+1){ 
-                      nrows++;
-                    }
-                    else{
-                      blockRows.push_back(std::make_pair(fr,nrows));
-                      fr = relRows[j];
-                      nrows = 1;
-                    }
-                  }
-                  blockRows.push_back(std::make_pair(fr,nrows));
-                }
+                      // Column relative indicies
+                      Int SinvColsSta = FirstBlockCol( jsup, super_ );
+                      Int * colsUBPtr = pUB->cols.Data();
+
+                      //find contiguous blocks in pUB and pLB
+                      std::vector<Int > blockRows;
+                      blockRows.reserve(3*pLB->numRow);
+                      if(pLB->numRow>0){
+                        //find blocks
+                        Int ifr = 0;
+                        Int fr = rowsLBPtr[0];
+                        Int nrows = 1;
+                        for( Int i = 1; i < pLB->numRow; i++ ){
+                          if(rowsLBPtr[i]==rowsLBPtr[i-1]+1){ 
+                            nrows++;
+                          }
+                          else{
+                            blockRows.push_back(fr);
+                            blockRows.push_back(nrows);
+                            blockRows.push_back(ifr);
+                            fr = rowsLBPtr[i];
+                            nrows = 1;
+                            ifr = i;
+                          }
+                        }
+                        blockRows.push_back(fr);
+                        blockRows.push_back(nrows);
+                        blockRows.push_back(ifr);
+                      }
 
 
-//#pragma omp critical
-//{
-////  statusOFS<<relCols<<std::endl;
-//  for(auto && p: blockCols){statusOFS<<"["<<p.first<<" - "<<p.second<<"] ";}statusOFS<<std::endl;
-////  statusOFS<<relRows<<std::endl;
-//  for(auto && p: blockRows){statusOFS<<"["<<p.first<<" - "<<p.second<<"] ";}statusOFS<<std::endl;
-//}
+                      std::vector<Int > blockCols;
+                      blockCols.reserve(2*pUB->numCol);
+                      if(pUB->numCol>0){
+                        //find blocks
+                        Int fc = colsUBPtr[0]- SinvColsSta;
+                        Int ncols = 1;
+                        for( Int j = 1; j < pUB->numCol; j++ ){
+                          if(colsUBPtr[j]==colsUBPtr[j-1]+1){ 
+                            ncols++;
+                          }
+                          else{
+                            blockCols.push_back(fc);
+                            blockCols.push_back(ncols);
+                            fc = colsUBPtr[j]- SinvColsSta;
+                            ncols = 1;
+                          }
+                        }
+                        blockCols.push_back(fc);
+                        blockCols.push_back(ncols);
+                      }
 
-Int j = 0;
-for(auto && blockC: blockCols){
-  auto fc = blockC.first;
-  auto nc = blockC.second;
-  Int i = 0;
-  for(auto && blockR: blockRows){
-    auto fr = blockR.first;
-    auto nr = blockR.second;
-//#pragma omp task firstprivate(fr,fc,nr,nc,ldAinv,ldSinv,i,j,nzvalSinv,nzvalAinv)
-//    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+//#pragma omp taskloop shared(blockRows) shared(rowsLBPtr) firstprivate(lastRowIdxSinv,SinvBnumRow,rowsSinvBPtr) firstprivate(pSinvB,pLB) default(none)
+                      for(Int ii = 0; ii<blockRows.size();ii+=3){
+#pragma omp task shared(blockRows) firstprivate(rowsLBPtr,ii,lastRowIdxSinv,SinvBnumRow,pSinvB,pLB,rowsSinvBPtr)
+                        {
+                        auto fr = blockRows[ii];
+                        auto nr = blockRows[ii+1];
+                        Int ifr = blockRows[ii+2];
+
+                        bool isRowFound = false;
+                        for( lastRowIdxSinv; lastRowIdxSinv < SinvBnumRow; lastRowIdxSinv++ ){
+                          if( fr == rowsSinvBPtr[lastRowIdxSinv] ){
+                            isRowFound = true;
+                            blockRows[ii] = lastRowIdxSinv;
+                            break;
+                          }
+                        }
+                        if( isRowFound == false ){
+                          std::ostringstream msg;
+                          msg << "Row " << rowsLBPtr[ifr] << "("<<fr<<")"
+                            " in pLB cannot find the corresponding row in pSinvB" << std::endl
+                            << "pLB->rows    = " << pLB->rows << std::endl
+                            << "UinvB.rows = " << pSinvB->rows << std::endl;
+                          ErrorHandling( msg.str().c_str() );
+                        }
+                        }
+                      }
 
 
 
-
-Int offsetA = i+rowPtr[ib]+(j+colPtr[jb])*ldAinv;
-Int offsetL = i+rowPtr[ib];
-#pragma omp task firstprivate(fr,fc,nr,nc,ldAinv,ldSinv,i,j,nzvalSinv,nzvalAinv) /*depend(inout:nzvalAinvGDep[offsetA])*/ depend(inout:nzvalLUpdDep[offsetL])
-{
-//  lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-if(nr>0 && nc > 0 && ldUBuf>0 ){
-#pragma omp taskgroup
-  {
-    blas::Gemm('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
-        &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-        &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
-        &nzvalLUpd[i+rowPtr[ib]], ldLUBuf);
-  }
-}
-
-}
+#pragma omp taskwait
 
 
 
 
+                      // Transfer the values from Sinv to AinvBlock
+                      T* nzvalSinv = pSinvB->nzval.Data();
+                      Int     ldSinv    = pSinvB->numRow;
 
 
-    i+=nr;
-  }
-  j+=nc;
-}
+
+                      Int j = 0;
+                      for(Int jj = 0; jj<blockCols.size();jj+=2){
+                        auto fc = blockCols[jj];
+                        auto nc = blockCols[jj+1];
+                        Int i = 0;
+                        for(Int ii = 0; ii<blockRows.size();ii+=3){
+                          auto fr = blockRows[ii];
+                          auto nr = blockRows[ii+1];
+                          Int ifr = blockRows[ii+2];
+                          assert(i==ifr);
+
+                          //    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+                          Int offsetL = i+rowPtr[ib];
+                          if(nr>0 && nc > 0 && ldUBuf>0 ){
+//                            if(nr > 64 && nc > 64){
+//#pragma omp task firstprivate(fr,fc,nr,nc,ldUBuf,ldSinv,ldLUBuf,i,j,nzvalSinv,nzvalLUpd,nzvalUBuf) depend(inout:nzvalLUpdDep[offsetL]) firstprivate(rowPtr,colPtr,ib,jb) default(none)
+//                              {
+//                                blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
+//                                    &nzvalSinv[fr+fc*ldSinv], ldSinv, 
+//                                    &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
+//                                    &nzvalLUpd[i+rowPtr[ib]], ldLUBuf);
+//                              }
+//                            }
+//                            else
+                            {
+                              blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
+                                  &nzvalSinv[fr+fc*ldSinv], ldSinv, 
+                                  &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
+                                  &nzvalLUpd[i+rowPtr[ib]], ldLUBuf);
+                            }
+                          }
+
+
+                          i+=nr;
+                        }
+                        j+=nc;
+                      }
 //#pragma omp taskwait
 
-//                for( Int j = 0; j < UB.numCol; j++ ){
-//                  for( Int i = 0; i < LB.numRow; i++ ){
-//                    nzvalAinv[i+j*ldAinv] =
-//                      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
-//                  }
-//                }
-}
+                    }
 
-                isBlockFound = true;
-                break;
-              }	
-            } // for (ibSinv )
-//#pragma omp taskwait
-            TIMER_STOP(PARSING_ROW_BLOCKIDX);
-            if( isBlockFound == false ){
-              std::ostringstream msg;
-              msg << "Block(" << isup << ", " << jsup 
-                << ") did not find a matching block in Sinv." << std::endl;
-              ErrorHandling( msg.str().c_str() );
-            }
-          } // if (isup, jsup) is in L
-          else{ //if(isup<jsup)
-            std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
-            bool isBlockFound = false;
-            TIMER_START(PARSING_COL_BLOCKIDX);
-            for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
-              // Found the (isup, jsup) block in Sinv
-              if( UrowSinv[jbSinv].blockIdx == jsup ){
-#pragma omp task firstprivate(ib,jb,jbSinv,isup,jsup,snodeP,LcolRecvP,UrowRecvP,AinvBufP,UBufP,LcolRecvS,UrowRecvS) //shared(nzvalLUpd,nzvalUBuf,nzvalAinvG,colPtr,rowPtr)
-{
+                    isBlockFound = true;
+                    break;
+                  }	
+                } // for (ibSinv )
+
+                TIMER_STOP(PARSING_ROW_BLOCKIDX);
+                if( isBlockFound == false ){
+                  std::ostringstream msg;
+                  msg << "Block(" << isup << ", " << jsup 
+                    << ") did not find a matching block in Sinv." << std::endl;
+                  ErrorHandling( msg.str().c_str() );
+                }
+              } // if (isup, jsup) is in L
+              else{ //if(isup<jsup)
                 std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
-                SuperNodeBufferType & snode = *snodeP;
-                auto & AinvBuf = *AinvBufP;
-                auto & UBuf = *UBufP;
+                bool isBlockFound = false;
+                TIMER_START(PARSING_COL_BLOCKIDX);
+                for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
+                  // Found the (isup, jsup) block in Sinv
+                  if( UrowSinv[jbSinv].blockIdx == jsup ){
+//#pragma omp task firstprivate(ib,jb,jbSinv,isup,jsup,snodeP,LcolRecvP,UrowRecvP,UBufP,LcolRecvS,UrowRecvS) firstprivate(nzvalLUpdDep,nzvalUBuf,nzvalLUpd,ldLUBuf,ldUBuf,colPtr,rowPtr) 
+                    {
+                      std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
+                      SuperNodeBufferType & snode = *snodeP;
+                      auto & UBuf = *UBufP;
 
-                LBlock<T>& LB = LcolRecvP[ib];
-                UBlock<T>& UB = UrowRecvP[jb];
+                      LBlock<T> * pLB = &LcolRecvP[ib];
+                      UBlock<T> * pUB = &UrowRecvP[jb];
+                      UBlock<T> * pSinvB = &UrowSinv[jbSinv];
 
-
-                UBlock<T> & SinvB = UrowSinv[jbSinv];
-
-                // Row relative indices
-                std::vector<Int> relRows( LB.numRow );
-                Int SinvRowsSta = FirstBlockCol( isup, super_ );
-                for( Int i = 0; i < LB.numRow; i++ ){
-                  relRows[i] = LB.rows[i] - SinvRowsSta;
-                }
-
-                // Column relative indices
-                std::vector<Int> relCols( UB.numCol );
-                Int* colsUBPtr    = UB.cols.Data();
-                Int* colsSinvBPtr = SinvB.cols.Data();
-                for( Int j = 0; j < UB.numCol; j++ ){
-                  bool isColFound = false;
-                  for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
-                    if( colsUBPtr[j] == colsSinvBPtr[j1] ){
-                      isColFound = true;
-                      relCols[j] = j1;
-                      break;
-                    }
-                  }
-                  if( isColFound == false ){
-                    std::ostringstream msg;
-                    msg << "Col " << colsUBPtr[j] << 
-                      " in UB cannot find the corresponding row in SinvB" << std::endl
-                      << "UB.cols    = " << UB.cols << std::endl
-                      << "UinvB.cols = " << SinvB.cols << std::endl;
-                    ErrorHandling( msg.str().c_str() );
-                  }
-                }
-
-
-                // Transfer the values from Sinv to AinvBlock
-                T* nzvalSinv = SinvB.nzval.Data();
-                Int     ldSinv    = SinvB.numRow;
-                //for( Int j = 0; j < UB.numCol; j++ ){
-                //  for( Int i = 0; i < LB.numRow; i++ ){
-                //    nzvalAinv[i+j*ldAinv] =
-                //      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
-                //  }
-                //}
+                      // Row relative indices
+                      std::vector<Int> relRows( pLB->numRow );
+                      Int SinvRowsSta = FirstBlockCol( isup, super_ );
+                      Int * rowsLBPtr = pLB->rows.Data();
 
 
 
-                std::list<std::pair<Int,Int> > blockCols;
-                if(UB.numCol>0){
-                  //find blocks
-                  Int fc = relCols[0];
-                  Int ncols = 1;
-                  for( Int j = 1; j < UB.numCol; j++ ){
-                    if(relCols[j]==relCols[j-1]+1){ 
-                      ncols++;
-                    }
-                    else{
-                      blockCols.push_back(std::make_pair(fc,ncols));
-                      fc = relCols[j];
-                      ncols = 1;
-                    }
-                  }
-                  blockCols.push_back(std::make_pair(fc,ncols));
-                }
+                      // Column relative indicies
+                      std::vector<Int> relCols( pUB->numCol );
+                      Int SinvColsSta = FirstBlockCol( jsup, super_ );
+                      Int * colsUBPtr = pUB->cols.Data();
+                      Int * colsSinvBPtr = pSinvB->cols.Data();
+                      Int lastColIdxSinv = 0;
+                      Int SinvBnumCol = pSinvB->numCol;
 
 
-                std::list<std::pair<Int,Int> > blockRows;
-                if(LB.numRow>0){
-                  //find blocks
-                  Int fr = relRows[0];
-                  Int nrows = 1;
-                  for( Int j = 1; j < LB.numRow; j++ ){
-                    if(relRows[j]==relRows[j-1]+1){ 
-                      nrows++;
-                    }
-                    else{
-                      blockRows.push_back(std::make_pair(fr,nrows));
-                      fr = relRows[j];
-                      nrows = 1;
-                    }
-                  }
-                  blockRows.push_back(std::make_pair(fr,nrows));
-                }
+                      //find contiguous blocks in pUB and pLB
+                      std::vector<Int > blockCols;
+                      blockCols.reserve(3*pUB->numCol);
+                      if(pUB->numCol>0){
+                        //find blocks
+                        Int jfc = 0;
+                        Int fc = colsUBPtr[0];
+                        Int ncols = 1;
+                        for( Int j = 1; j < pUB->numCol; j++ ){
+                          if(colsUBPtr[j]==colsUBPtr[j-1]+1){ 
+                            ncols++;
+                          }
+                          else{
+                            blockCols.push_back(fc);
+                            blockCols.push_back(ncols);
+                            blockCols.push_back(jfc);
+                            fc = colsUBPtr[j];
+                            ncols = 1;
+                            jfc = j;
+                          }
+                        }
+                        blockCols.push_back(fc);
+                        blockCols.push_back(ncols);
+                        blockCols.push_back(jfc);
+                      }
 
 
-//#pragma omp critical
-//{
-////  statusOFS<<relCols<<std::endl;
-//  for(auto && p: blockCols){statusOFS<<"["<<p.first<<" - "<<p.second<<"] ";}statusOFS<<std::endl;
-////  statusOFS<<relRows<<std::endl;
-//  for(auto && p: blockRows){statusOFS<<"["<<p.first<<" - "<<p.second<<"] ";}statusOFS<<std::endl;
-//}
+                      std::vector<Int > blockRows;
+                      blockRows.reserve(2*pLB->numRow);
+                      if(pLB->numRow>0){
+                        //find blocks
+                        Int fr = rowsLBPtr[0]- SinvRowsSta;
+                        Int nrows = 1;
+                        for( Int j = 1; j < pLB->numRow; j++ ){
+                          if(rowsLBPtr[j]==rowsLBPtr[j-1]+1){ 
+                            nrows++;
+                          }
+                          else{
+                            blockRows.push_back(fr);
+                            blockRows.push_back(nrows);
+                            fr = rowsLBPtr[j]- SinvRowsSta;
+                            nrows = 1;
+                          }
+                        }
+                        blockRows.push_back(fr);
+                        blockRows.push_back(nrows);
+                      }
 
-Int j = 0;
-for(auto && blockC: blockCols){
-  auto fc = blockC.first;
-  auto nc = blockC.second;
-  Int i = 0;
-  for(auto && blockR: blockRows){
-    auto fr = blockR.first;
-    auto nr = blockR.second;
-//#pragma omp task firstprivate(fr,fc,nr,nc,ldAinv,ldSinv,i,j,nzvalSinv,nzvalAinv)
-Int offsetA = i+rowPtr[ib]+(j+colPtr[jb])*ldAinv;
-Int offsetL = i+rowPtr[ib];
-//#pragma omp task firstprivate(fr,fc,nr,nc,ldAinv,ldSinv,i,j,nzvalSinv,nzvalAinv) depend(inout:nzvalAinvGDep[offsetA]) depend(inout:nzvalLUpdDep[offsetL])
-//{
-//  lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-////#pragma omp taskgroup
-////  {
-////    blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
-////        &nzvalAinvG[i+rowPtr[ib] + (colPtr[jb] +j)*ldAinv], ldAinv, 
-////        &nzvalUBuf[(j+colPtr[j])*ldUBuf], ldUBuf, ONE<T>(),
-////        &nzvalLUpd[i+rowPtr[ib]], ldAinv , 0);
-////  }
-//}
+                      for(Int jj = 0; jj<blockCols.size();jj+=3){
+#pragma omp task shared(blockCols) firstprivate(colsUBPtr,jj,lastColIdxSinv,SinvBnumCol,pSinvB,pUB,colsSinvBPtr)
+                        {
+                        auto fc = blockCols[jj];
+                        auto nc = blockCols[jj+1];
+                        Int jfc = blockCols[jj+2];
 
-#pragma omp task firstprivate(fr,fc,nr,nc,ldAinv,ldSinv,i,j,nzvalSinv,nzvalAinv) /*depend(inout:nzvalAinvGDep[offsetA])*/ depend(inout:nzvalLUpdDep[offsetL])
-{
-//  lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-if(nr>0 && nc > 0 && ldUBuf>0 ){
-#pragma omp taskgroup
-  {
-    blas::Gemm('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
-        &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-        &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
-        &nzvalLUpd[i+rowPtr[ib]], ldLUBuf );
-  }
-}
+                        bool isColFound = false;
+                        for( lastColIdxSinv; lastColIdxSinv < SinvBnumCol; lastColIdxSinv++ ){
+                          if( fc == colsSinvBPtr[lastColIdxSinv] ){
+                            isColFound = true;
+                            blockCols[jj] = lastColIdxSinv;
+                            break;
+                          }
+                        }
+                        if( isColFound == false ){
+                          std::ostringstream msg;
+                          msg << "Col " << colsUBPtr[jfc] << "("<<fc<<")"
+                            " in pUB cannot find the corresponding row in pSinvB" << std::endl
+                            << "pUB->cols    = " << pUB->cols << std::endl
+                            << "UinvB.cols = " << pSinvB->cols << std::endl;
+                          ErrorHandling( msg.str().c_str() );
+                        }
+                        }
+                      }
+#pragma omp taskwait
 
-}
 
-    i+=nr;
-  }
-  j+=nc;
-}
+                      // Transfer the values from Sinv to AinvBlock
+                      T* nzvalSinv = pSinvB->nzval.Data();
+                      Int     ldSinv    = pSinvB->numRow;
+
+                      Int j = 0;
+
+                      for(Int jj = 0; jj<blockCols.size();jj+=3){
+                        auto fc = blockCols[jj];
+                        auto nc = blockCols[jj+1];
+                        Int jfc = blockCols[jj+2];
+                        assert(j==jfc);
+                        Int i = 0;
+                        for(Int ii = 0; ii<blockRows.size();ii+=2){
+                          auto fr = blockRows[ii];
+                          auto nr = blockRows[ii+1];
+                          Int offsetL = i+rowPtr[ib];
+                          //lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+                          if(nr>0 && nc > 0 && ldUBuf>0 ){
+//                            if(nr > 64 && nc > 64){
+////#pragma omp task firstprivate(fr,fc,nr,nc,ldSinv,i,j,nzvalSinv,nzvalLUpd,nzvalUBuf) depend(inout:nzvalLUpdDep[offsetL]) firstprivate(ldUBuf,ldLUBuf,rowPtr,colPtr,ib,jb) default(none)
+//                              {
+//                                blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
+//                                    &nzvalSinv[fr+fc*ldSinv], ldSinv, 
+//                                    &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
+//                                    &nzvalLUpd[i+rowPtr[ib]], ldLUBuf );
+//                              }
+//                            }
+//                            else
+                            {
+                              blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
+                                  &nzvalSinv[fr+fc*ldSinv], ldSinv, 
+                                  &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
+                                  &nzvalLUpd[i+rowPtr[ib]], ldLUBuf );
+                            }
+
+                          }
+
+                          i+=nr;
+                        }
+                        j+=nc;
+                      }
 //#pragma omp taskwait
 
 
 
 
 
-}
+                    }
 
-                isBlockFound = true;
-                break;
-              }
-            } // for (jbSinv)
-//#pragma omp taskwait
-            TIMER_STOP(PARSING_COL_BLOCKIDX);
-            if( isBlockFound == false ){
-              std::ostringstream msg;
-              msg << "Block(" << isup << ", " << jsup 
-                << ") did not find a matching block in Sinv." << std::endl;
-              ErrorHandling( msg.str().c_str() );
+                    isBlockFound = true;
+                    break;
+                  }
+                } // for (jbSinv)
+                TIMER_STOP(PARSING_COL_BLOCKIDX);
+                if( isBlockFound == false ){
+                  std::ostringstream msg;
+                  msg << "Block(" << isup << ", " << jsup 
+                    << ") did not find a matching block in Sinv." << std::endl;
+                  ErrorHandling( msg.str().c_str() );
+                }
+              } // if (isup, jsup) is in U
             }
-          } // if (isup, jsup) is in U
-}
-        } // for( ib )
-      } // for ( jb )
+          } // for( ib )
 
-}//end omp taskgroup
+        } // for ( jb )
+
+      }//end omp taskgroup
 //#pragma omp taskwait
 
 
-if(AinvBuf.m()>0 && UBuf.m()>0 && snode.LUpdateBuf.m()>0){
+//if(AinvBuf.m()>0 && UBuf.m()>0 && snode.LUpdateBuf.m()>0){
+//
+//statusOFS<<"["<<snode.Index<<"] Before "<<snode.LUpdateBuf<<std::endl;
+//
+//
 //     blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
 //         AinvBuf.Data(), AinvBuf.m(), 
 //         UBuf.Data(), UBuf.m(), ZERO<T>(),
 //         snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
-
+//
+//statusOFS<<"["<<snode.Index<<"] After "<<snode.LUpdateBuf<<std::endl;
 //#pragma omp taskgroup
 //{
 //    blas::gemm_omp_task('N','T',AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
@@ -895,9 +905,7 @@ if(AinvBuf.m()>0 && UBuf.m()>0 && snode.LUpdateBuf.m()>0){
 //         UBuf.Data(), UBuf.m(), ZERO<T>(),
 //         snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() , 0);
 //}
-
-
-}
+//}
 
 
 
@@ -979,7 +987,7 @@ if(AinvBuf.m()>0 && UBuf.m()>0 && snode.LUpdateBuf.m()>0){
                           UBlock<T>& UB = UrowRecv[jb];
                           Int isup = LB.blockIdx;
                           Int jsup = UB.blockIdx;
-                          T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
+                          //T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
                           Int  ldAinv  = AinvBuf.m();
 
                           // Pin down the corresponding block in the part of Sinv.
