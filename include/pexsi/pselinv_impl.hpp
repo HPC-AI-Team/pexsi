@@ -522,9 +522,9 @@ namespace PEXSI{
 
 #pragma omp taskgroup
       {
-        for( Int jb = 0; jb < UrowRecvS && 1; jb++ ){
-//#pragma omp taskloop firstprivate(jb,snodeP,LcolRecvP,UrowRecvP,UBufP,LcolRecvS,UrowRecvS) firstprivate(nzvalLUpdDep,nzvalUBuf,nzvalLUpd,ldLUBuf,ldUBuf,colPtr,rowPtr) default(shared)
+        for( Int jb = 0; jb < UrowRecvS; jb++ ){
           for( Int ib = 0; ib < LcolRecvS; ib++ ){
+#pragma omp task firstprivate(ib,jb,snodeP,LcolRecvP,UrowRecvP,UBufP,LcolRecvS,UrowRecvS) firstprivate(nzvalLUpdDep,nzvalUBuf,nzvalLUpd,ldLUBuf,ldUBuf,colPtr,rowPtr) default(shared)
             {
               SuperNodeBufferType & snode = *snodeP;
               auto & UBuf = *UBufP;
@@ -542,9 +542,6 @@ namespace PEXSI{
                 for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
                   // Found the (isup, jsup) block in Sinv
                   if( LcolSinv[ibSinv].blockIdx == isup ){
-
-
-//#pragma omp task firstprivate(ib,jb,ibSinv,isup,jsup,snodeP,LcolRecvP,UrowRecvP,UBufP,LcolRecvS,UrowRecvS) firstprivate(nzvalLUpdDep,nzvalUBuf,nzvalLUpd,ldLUBuf,ldUBuf,colPtr,rowPtr)
                     {
                       std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
                       SuperNodeBufferType & snode = *snodeP;
@@ -569,7 +566,12 @@ namespace PEXSI{
                       //find contiguous blocks in pUB and pLB
                       std::vector<Int > blockRows;
                       blockRows.reserve(3*pLB->numRow);
-#pragma omp task shared(blockRows) firstprivate(pLB,rowsLBPtr) depend(inout:blockRows)
+                      std::vector<Int > blockCols;
+                      blockCols.reserve(2*pUB->numCol);
+                      Int blockColsSize = 0;
+                      Int blockRowsSize=0;
+
+#pragma omp task shared(blockRowsSize,blockRows) firstprivate(pLB,rowsLBPtr) depend(inout:blockRows) depend(inout:blockRowsSize)
                       if(pLB->numRow>0){
                         //find blocks
                         Int ifr = 0;
@@ -591,12 +593,41 @@ namespace PEXSI{
                         blockRows.push_back(fr);
                         blockRows.push_back(nrows);
                         blockRows.push_back(ifr);
+
+
+                        for(Int ii = 0; ii<blockRows.size();ii+=3){
+#pragma omp task firstprivate(rowsLBPtr,ii,lastRowIdxSinv,SinvBnumRow,pSinvB,pLB,rowsSinvBPtr) shared(blockRowsSize,blockRows)
+                          {
+                            auto fr = blockRows[ii];
+                            auto nr = blockRows[ii+1];
+                            Int ifr = blockRows[ii+2];
+
+                            bool isRowFound = false;
+                            for( lastRowIdxSinv; lastRowIdxSinv < SinvBnumRow; lastRowIdxSinv++ ){
+                              if( fr == rowsSinvBPtr[lastRowIdxSinv] ){
+                                isRowFound = true;
+                                blockRows[ii] = lastRowIdxSinv;
+                                break;
+                              }
+                            }
+                            if( isRowFound == false ){
+                              std::ostringstream msg;
+                              msg << "Row " << rowsLBPtr[ifr] << "("<<fr<<")"
+                                " in pLB cannot find the corresponding row in pSinvB" << std::endl
+                                << "pLB->rows    = " << pLB->rows << std::endl
+                                << "UinvB.rows = " << pSinvB->rows << std::endl;
+                              ErrorHandling( msg.str().c_str() );
+                            }
+                          }
+                        }
+#pragma omp taskwait
                       }
 
+                      //#pragma omp taskwait
 
-                      std::vector<Int > blockCols;
-                      blockCols.reserve(2*pUB->numCol);
-#pragma omp task shared(blockCols) firstprivate(pUB,colsUBPtr)
+
+
+#pragma omp task shared(blockColsSize,blockCols) firstprivate(pUB,colsUBPtr) depend(inout:blockCols) depend(inout:blockColsSize) 
                       if(pUB->numCol>0){
                         //find blocks
                         Int fc = colsUBPtr[0]- SinvColsSta;
@@ -615,40 +646,6 @@ namespace PEXSI{
                         blockCols.push_back(fc);
                         blockCols.push_back(ncols);
                       }
-#pragma omp taskwait
-
-
-#pragma omp task shared(blockRows) firstprivate(rowsLBPtr,lastRowIdxSinv,SinvBnumRow,pSinvB,pLB,rowsSinvBPtr) depend(inout:blockRows)
-{
-                      for(Int ii = 0; ii<blockRows.size();ii+=3){
-#pragma omp task shared(blockRows) firstprivate(rowsLBPtr,ii,lastRowIdxSinv,SinvBnumRow,pSinvB,pLB,rowsSinvBPtr)
-                        {
-                        auto fr = blockRows[ii];
-                        auto nr = blockRows[ii+1];
-                        Int ifr = blockRows[ii+2];
-
-                        bool isRowFound = false;
-                        for( lastRowIdxSinv; lastRowIdxSinv < SinvBnumRow; lastRowIdxSinv++ ){
-                          if( fr == rowsSinvBPtr[lastRowIdxSinv] ){
-                            isRowFound = true;
-                            blockRows[ii] = lastRowIdxSinv;
-                            break;
-                          }
-                        }
-                        if( isRowFound == false ){
-                          std::ostringstream msg;
-                          msg << "Row " << rowsLBPtr[ifr] << "("<<fr<<")"
-                            " in pLB cannot find the corresponding row in pSinvB" << std::endl
-                            << "pLB->rows    = " << pLB->rows << std::endl
-                            << "UinvB.rows = " << pSinvB->rows << std::endl;
-                          ErrorHandling( msg.str().c_str() );
-                        }
-                        }
-                      }
-#pragma omp taskwait
-}
-
-#pragma omp taskwait
 
 
 
@@ -658,44 +655,48 @@ namespace PEXSI{
                       Int     ldSinv    = pSinvB->numRow;
 
 
+#pragma omp task shared(nzvalLUpd,blockRowsSize,blockRows,blockColsSize,blockCols) depend(inout:blockCols) depend(inout:blockRows) depend(inout:blockColsSize) depend(inout:blockRowsSize) //depend(inout:nzvalLUpd[rowPtr[ib]])
+                      {
+                        Int j = 0;
+                        for(Int jj = 0; jj<blockCols.size();jj+=2){
+                          auto fc = blockCols[jj];
+                          auto nc = blockCols[jj+1];
+                          Int offsetJ = j+colPtr[jb];
+                          Int i = 0;
+                          for(Int ii = 0; ii<blockRows.size();ii+=3){
+                            auto fr = blockRows[ii];
+                            auto nr = blockRows[ii+1];
+                            Int ifr = blockRows[ii+2];
+                            assert(i==ifr);
 
-                      Int j = 0;
-                      for(Int jj = 0; jj<blockCols.size();jj+=2){
-                        auto fc = blockCols[jj];
-                        auto nc = blockCols[jj+1];
-                        Int i = 0;
-                        for(Int ii = 0; ii<blockRows.size();ii+=3){
-                          auto fr = blockRows[ii];
-                          auto nr = blockRows[ii+1];
-                          Int ifr = blockRows[ii+2];
-                          assert(i==ifr);
-
-                          //    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-                          Int offsetL = i+rowPtr[ib];
-                          if(nr>0 && nc > 0 && ldUBuf>0 ){
-//#pragma omp task firstprivate(fr,fc,nr,nc,ldUBuf,ldSinv,ldLUBuf,i,j,nzvalSinv,nzvalLUpd,nzvalUBuf) /*depend(inout:nzvalLUpdDep[offsetL])*/ firstprivate(rowPtr,colPtr,ib,jb) default(none)
-                            {
-                              blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
-                                  &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-                                  &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
-                                  &nzvalLUpd[i+rowPtr[ib]], ldLUBuf);
+                            //    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+                            Int offsetI = i+rowPtr[ib];
+                            if(nr>0 && nc > 0 && ldUBuf>0 ){
+#pragma omp task shared(nzvalLUpd,nzvalSinv,nzvalUBuf) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldUBuf,ldLUBuf,offsetI,offsetJ) //depend(inout:nzvalLUpd[offsetI]) 
+                              {
+                                blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
+                                    &nzvalSinv[fr+fc*ldSinv], ldSinv, 
+                                    &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
+                                    &nzvalLUpd[i+rowPtr[ib]], ldLUBuf);
+                              }
                             }
+
+
+                            i+=nr;
                           }
-
-
-                          i+=nr;
+                          #pragma omp taskwait
+                          j+=nc;
                         }
-                        j+=nc;
+//#pragma omp taskwait
                       }
-#pragma omp taskwait
 
+#pragma omp taskwait
                     }
 
                     isBlockFound = true;
                     break;
                   }	
                 } // for (ibSinv )
-//#pragma omp taskwait
 
                 TIMER_STOP(PARSING_ROW_BLOCKIDX);
                 if( isBlockFound == false ){
@@ -712,7 +713,6 @@ namespace PEXSI{
                 for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
                   // Found the (isup, jsup) block in Sinv
                   if( UrowSinv[jbSinv].blockIdx == jsup ){
-//#pragma omp task firstprivate(ib,jb,jbSinv,isup,jsup,snodeP,LcolRecvP,UrowRecvP,UBufP,LcolRecvS,UrowRecvS) firstprivate(nzvalLUpdDep,nzvalUBuf,nzvalLUpd,ldLUBuf,ldUBuf,colPtr,rowPtr) 
                     {
                       std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
                       SuperNodeBufferType & snode = *snodeP;
@@ -746,7 +746,7 @@ namespace PEXSI{
                       Int blockRowsSize = 0;
 
 
-#pragma omp task shared(blockColsSize,blockCols) firstprivate(pUB,colsUBPtr) depend(out:blockCols[0])
+#pragma omp task shared(blockColsSize,blockCols) firstprivate(pUB,colsUBPtr) depend(inout:blockCols) depend(inout:blockColsSize) 
                       if(pUB->numCol>0){
                         //find blocks
                         Int jfc = 0;
@@ -769,58 +769,12 @@ namespace PEXSI{
                         blockCols[blockColsSize++] = ncols;
                         blockCols[blockColsSize++] = jfc;
 
-#pragma omp critical
+                        //#pragma omp taskwait
+                        //
+                        //#pragma omp task firstprivate(colsUBPtr,lastColIdxSinv,SinvBnumCol,pSinvB,pUB,colsSinvBPtr) depend(inout:blockCols)
+                        //                      {
                         for(Int jj = 0; jj<blockColsSize;jj+=3){
-                            auto fc = blockCols[jj];
-                            auto nc = blockCols[jj+1];
-                            Int jfc = blockCols[jj+2];
-statusOFS<<fc<<" - "<<nc<<" - "<<jfc<<std::endl;
-                        }
-
-
-
-                      }
-#pragma omp taskwait
-
-
-
-#pragma omp critical
-                        for(Int jj = 0; jj<blockColsSize;jj+=3){
-                            auto fc = blockCols[jj];
-                            auto nc = blockCols[jj+1];
-                            Int jfc = blockCols[jj+2];
-statusOFS<<"C: "<<fc<<" - "<<nc<<" - "<<jfc<<std::endl;
-                        }
-
-
-
-
-
-#pragma omp task shared(blockRowsSize,blockRows) firstprivate(pLB,rowsLBPtr) depend(out:blockRows[0])
-                      if(pLB->numRow>0){
-                        //find blocks
-                        Int fr = rowsLBPtr[0]- SinvRowsSta;
-                        Int nrows = 1;
-                        for( Int j = 1; j < pLB->numRow; j++ ){
-                          if(rowsLBPtr[j]==rowsLBPtr[j-1]+1){ 
-                            nrows++;
-                          }
-                          else{
-                            blockRows[blockRowsSize++] = fr;
-                            blockRows[blockRowsSize++] = nrows;
-                            fr = rowsLBPtr[j]- SinvRowsSta;
-                            nrows = 1;
-                          }
-                        }
-                        blockRows[blockRowsSize++] = fr;
-                        blockRows[blockRowsSize++] = nrows;
-                      }
-//#pragma omp taskwait
-
-#pragma omp task shared(blockColsSize,blockCols) firstprivate(colsUBPtr,lastColIdxSinv,SinvBnumCol,pSinvB,pUB,colsSinvBPtr) depend(inout:blockCols[0])
-                      {
-                        for(Int jj = 0; jj<blockColsSize;jj+=3){
-#pragma omp task shared(blockColsSize,blockCols) firstprivate(colsUBPtr,jj,lastColIdxSinv,SinvBnumCol,pSinvB,pUB,colsSinvBPtr)
+#pragma omp task firstprivate(colsUBPtr,jj,lastColIdxSinv,SinvBnumCol,pSinvB,pUB,colsSinvBPtr) shared(blockColsSize,blockCols)
                           {
                             auto fc = blockCols[jj];
                             auto nc = blockCols[jj+1];
@@ -845,14 +799,27 @@ statusOFS<<"C: "<<fc<<" - "<<nc<<" - "<<jfc<<std::endl;
                           }
                         }
 #pragma omp taskwait
+                      }
+                      //#pragma omp taskwait
 
-#pragma omp critical
-                        for(Int jj = 0; jj<blockColsSize;jj+=3){
-                            auto fc = blockCols[jj];
-                            auto nc = blockCols[jj+1];
-                            Int jfc = blockCols[jj+2];
-statusOFS<<fc<<" - "<<nc<<" - "<<jfc<<std::endl;
+#pragma omp task shared(blockRowsSize,blockRows) firstprivate(pLB,rowsLBPtr) depend(inout:blockRows) depend(inout:blockRowsSize)
+                      if(pLB->numRow>0){
+                        //find blocks
+                        Int fr = rowsLBPtr[0]- SinvRowsSta;
+                        Int nrows = 1;
+                        for( Int j = 1; j < pLB->numRow; j++ ){
+                          if(rowsLBPtr[j]==rowsLBPtr[j-1]+1){ 
+                            nrows++;
+                          }
+                          else{
+                            blockRows[blockRowsSize++] = fr;
+                            blockRows[blockRowsSize++] = nrows;
+                            fr = rowsLBPtr[j]- SinvRowsSta;
+                            nrows = 1;
+                          }
                         }
+                        blockRows[blockRowsSize++] = fr;
+                        blockRows[blockRowsSize++] = nrows;
                       }
 
 
@@ -860,66 +827,46 @@ statusOFS<<fc<<" - "<<nc<<" - "<<jfc<<std::endl;
                       T* nzvalSinv = pSinvB->nzval.Data();
                       Int     ldSinv    = pSinvB->numRow;
 
-#pragma omp taskwait
-
-
-
-
-
-#pragma omp task shared(blockCols,blockRows,blockColsSize,blockRowsSize) depend(in:blockCols[0]) depend(in:blockRows[0])
-{
-
-#pragma omp critical
+#pragma omp task shared(nzvalLUpd,blockRowsSize,blockRows,blockColsSize,blockCols) depend(inout:blockCols) depend(inout:blockRows) depend(inout:blockColsSize) depend(inout:blockRowsSize) //depend(inout:nzvalLUpd[rowPtr[ib]])
+                      {
+                        Int j = 0;
                         for(Int jj = 0; jj<blockColsSize;jj+=3){
-                            auto fc = blockCols[jj];
-                            auto nc = blockCols[jj+1];
-                            Int jfc = blockCols[jj+2];
-statusOFS<<"B: "<<fc<<" - "<<nc<<" - "<<jfc<<std::endl;
-                        }
+                          auto fc = blockCols[jj];
+                          auto nc = blockCols[jj+1];
+                          Int jfc = blockCols[jj+2];
+                          Int offsetJ = j+colPtr[jb];
 
-                      Int j = 0;
-                      for(Int jj = 0; jj<blockColsSize;jj+=3){
-                        auto fc = blockCols[jj];
-                        auto nc = blockCols[jj+1];
-                        Int jfc = blockCols[jj+2];
-                        assert(j==jfc);
-                        Int i = 0;
-                        for(Int ii = 0; ii<blockRowsSize;ii+=2){
-                          auto fr = blockRows[ii];
-                          auto nr = blockRows[ii+1];
-                          Int offsetL = i+rowPtr[ib];
-                          //lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-                          if(nr>0 && nc > 0 && ldUBuf>0 ){
-#pragma omp task firstprivate(fr,fc,nr,nc,ldSinv,i,j,nzvalSinv,nzvalLUpd,nzvalUBuf) /*depend(inout:nzvalLUpdDep[offsetL])*/ firstprivate(ldUBuf,ldLUBuf,rowPtr,colPtr,ib,jb) default(none)
-                            {
-                              blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
-                                  &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-                                  &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
-                                  &nzvalLUpd[i+rowPtr[ib]], ldLUBuf );
+                          Int i = 0;
+                          for(Int ii = 0; ii<blockRowsSize;ii+=2){
+                            auto fr = blockRows[ii];
+                            auto nr = blockRows[ii+1];
+                            Int offsetI = i+rowPtr[ib];
+                            //lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+                            if(nr>0 && nc > 0 && ldUBuf>0 ){
+#pragma omp task shared(nzvalLUpd,nzvalSinv,nzvalUBuf) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldUBuf,ldLUBuf,offsetI,offsetJ) //depend(inout:nzvalLUpd[offsetI]) 
+                              {
+                                blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
+                                    &nzvalSinv[fr+fc*ldSinv], ldSinv, 
+                                    &nzvalUBuf[(offsetJ)*ldUBuf], ldUBuf, ONE<T>(),
+                                    &nzvalLUpd[offsetI], ldLUBuf );
+                              }
                             }
 
+                            i+=nr;
                           }
-
-                          i+=nr;
+                          #pragma omp taskwait
+                          j+=nc;
                         }
-                        j+=nc;
+//#pragma omp taskwait
+
+                        delete [] blockCols;
+                        delete [] blockRows;
                       }
-//#pragma omp taskwait
-}
-
-//#pragma omp taskwait
-
-
-#pragma omp task shared(blockCols,blockRows) depend(in:blockCols[0]) depend(in:blockRows[0])
-{
-  delete [] blockCols;
-  delete [] blockRows;
-}
 
 
 #pragma omp taskwait
 
-                    }
+                      }
 
                     isBlockFound = true;
                     break;
@@ -935,6 +882,7 @@ statusOFS<<"B: "<<fc<<" - "<<nc<<" - "<<jfc<<std::endl;
               } // if (isup, jsup) is in U
             }
           } // for( ib )
+#pragma omp taskwait
 
         } // for ( jb )
 
