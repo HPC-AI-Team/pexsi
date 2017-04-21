@@ -117,9 +117,10 @@ int main(int argc, char **argv)
   numElectronExact    = 12.0;
   nprow               = 1;
   npcol               = 1;
-  Hfile               = "lap2dr.matrix";
+  //Hfile               = "lap2dr.matrix";
+  Hfile               = "H.csc";
   Sfile               = "";
-  isFormatted         = 1;
+  isFormatted         = 0;
   isSIdentity         = 1;
 #else
 #if 1

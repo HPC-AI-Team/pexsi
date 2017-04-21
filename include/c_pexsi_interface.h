@@ -1110,11 +1110,12 @@ void PPEXSIDFTDriver3(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
     double            numElectronExact,
-		double*           muPEXSI,
-		double*           numElectronPEXSI,
+    int               method,
+    double*           muPEXSI,
+    double*           numElectronPEXSI,
     double*           muMinInertia,
-		double*           muMaxInertia,
-		int*              numTotalInertiaIter,
+    double*           muMaxInertia,
+    int*              numTotalInertiaIter,
     int*              info );
 
 
@@ -1142,6 +1143,31 @@ void PPEXSIRetrieveRealDFTMatrix(
     double*     totalEnergyS,
     double*     totalFreeEnergy,
     int*              info );
+/**
+ * @brief Retrieve the output matrices after running PPEXSIDFTDriver for real input matrices.
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out]  DMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero value
+ * of density matrix in CSC format.
+ * @param[out] EDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of energy density matrix in CSC format.
+ * @param[out] FDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of free energy density matrix in CSC format.
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ */
+void PPEXSIRetrieveRealDFTMatrix2(
+    PPEXSIPlan  plan,
+    double*     DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    double*     FDMnzvalLocal,
+    double*     totalEnergyH,
+    double*     totalEnergyS,
+    double*     totalFreeEnergy,
+    int*              info );
+
 
 
 /**

@@ -114,7 +114,7 @@ int main(int argc, char **argv)
   /* Below is the data used for the toy matrix */
 
 #if 1
-  numElectronExact    = 12.0;
+  numElectronExact    = 11.0;
   nprow               = 1;
   npcol               = 1;
   Hfile               = "H.csc";
@@ -123,6 +123,8 @@ int main(int argc, char **argv)
   //Hfile               = "lap2dr.matrix";
   //isFormatted         = 1;
   isSIdentity         = 1;
+  int npoints         = 1;
+
 #else
 #if 1
   numElectronExact    = 7000.0;
@@ -149,13 +151,13 @@ int main(int argc, char **argv)
 #endif
 #endif
 
-  /* Split the processors to read matrix */
+  /* Split the processors to read matrix ,note in the multi-point parallelization. only the first point processors will do the reading */
   if( mpirank < nprow * npcol )
     isProcRead = 1;
   else
     isProcRead = 0;
 
-  MPI_Comm_split( MPI_COMM_WORLD, isProcRead, mpirank, &readComm );
+  MPI_Comm_split( MPI_COMM_WORLD, isProcRead, mpirank, &readComm ); // only the first nprow*npcol processors will read in the H matrix. 
 
   if( isProcRead == 1 ){
     printf("Proc %5d is reading file...\n", mpirank );
@@ -270,15 +272,35 @@ int main(int argc, char **argv)
   options.maxPEXSIIter   = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  options.numPole  = 40;
-  options.temperature  = 0.0019; // 300K
+  options.numPole  = 10;
+  options.temperature  = 0.00095; // 300K
   options.muInertiaTolerance = 0.0120;
   options.muPEXSISafeGuard  = 0.2; 
-  options.numElectronPEXSITolerance = 0.001;
+  options.numElectronPEXSITolerance = 0.000001;
   options.isSymbolicFactorize = 1;
+  int method = 2;
+
+  if( mpisize > nprow * npcol * options.numPole){
+      int npoints   = mpisize / ( nprow * npcol* options.numPole);
+        if (mpisize % (nprow*npcol*options.numPole)) {
+          if( mpirank == 0){
+           printf(" ------------------   ERROR  -------------------- "); 
+           printf(" nprocessor %d can not be distributed nprow : %d npcol: %d numPole: %d \n", mpisize, nprow, npcol, options.numPole ); 
+           printf(" ------------------   ERROR  -------------------- "); 
+          }
+        int ierr;
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Abort(MPI_COMM_WORLD, ierr);
+        }
+  }
+
+
 
   /* Set the outputFileIndex to be the pole index */
   /* The first processor for each pole outputs information */
+  /* with multi-points calculations, seems this will still 
+   * work, only that the outputFileIndex will be the index 
+   * of points* numPole + pole index */
 
   if( mpirank % (nprow * npcol) == 0 ){
     outputFileIndex = mpirank / (nprow * npcol);
@@ -311,13 +333,13 @@ int main(int argc, char **argv)
   /* Step 2. PEXSI Solve */
   muMinInertia = -10.0;
   muMaxInertia =  10.0;
-
-  while (1) {
-
+  int iter = 0;
+  while (iter < 15) {
     PPEXSIDFTDriver3(
         plan,
         options,
         numElectronExact,
+	method,
         &muPEXSI,                   
         &numElectronPEXSI,         
         &muMinInertia,              
@@ -335,7 +357,7 @@ int main(int argc, char **argv)
 
 
     if( isProcRead == 1 ){
-      PPEXSIRetrieveRealDFTMatrix(
+      PPEXSIRetrieveRealDFTMatrix2(
           plan,
           DMnzvalLocal,
           EDMnzvalLocal,
@@ -352,7 +374,7 @@ int main(int argc, char **argv)
         printf("Total free energy           = %15.5f\n", totalFreeEnergy);
       }
     }
-
+    iter++;
   }
   /* Step 3. Solve the problem once again without symbolic factorization */
   {

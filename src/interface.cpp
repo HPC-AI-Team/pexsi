@@ -1099,6 +1099,7 @@ void PPEXSIDFTDriver3(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
     double            numElectronExact,
+    int               method,
     /* Output parameters */
     double*           muPEXSI,                   
     double*           numElectronPEXSI,         
@@ -1134,7 +1135,8 @@ void PPEXSIDFTDriver3(
         *numElectronPEXSI,
         *muMinInertia,
         *muMaxInertia,
-        *numTotalInertiaIter );
+        *numTotalInertiaIter,
+         method	);
   }
   catch( std::exception& e )
   {
@@ -1146,6 +1148,48 @@ void PPEXSIDFTDriver3(
   return;
 }   // -----  end of function PPEXSIDFTDriver3  ----- 
 
+
+extern "C"
+void PPEXSIRetrieveRealDFTMatrix2(
+    PPEXSIPlan        plan,
+    double*      DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    double*     FDMnzvalLocal,
+    double*     totalEnergyH,
+    double*     totalEnergyS,
+    double*     totalFreeEnergy,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
+
+    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
+        DMnzvalLocal, 1 );
+#if 0
+    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
+        EDMnzvalLocal, 1 );
+
+    blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
+        FDMnzvalLocal, 1 );
+#endif
+    *totalEnergyH = ptrData->TotalEnergyH();
+
+    *totalEnergyS = ptrData->TotalEnergyS();
+
+    *totalFreeEnergy = ptrData->TotalFreeEnergy();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveRealDFTMatrix2  ----- 
 
 
 extern "C"
