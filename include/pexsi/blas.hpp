@@ -556,55 +556,59 @@ template<typename T>
 
 
 
-
-
-#ifdef _OMP_ENABLED_
-#include <omp.h>
-#endif
-
-template<typename scalar> inline void gemm_omp_task(const char transa, const char transb, const int m, const int n, const int k, const scalar alpha, const scalar* a, const int lda, const scalar* b, const int ldb, const scalar beta, scalar* c, const int ldc, int depth = 0) {
-
-#ifdef _OMP_ENABLED_
-   int num_threads = omp_get_num_threads();
-   int task_recursion_cutoff_level = (omp_get_num_threads() == 1) ? 0 : std::log2(omp_get_num_threads()) + 3;
-#else
-   int num_threads = 1;
-   int task_recursion_cutoff_level = 0;
-#endif
-int gemmOMPThreshold = 64*64*64;//64;
-
-
-
-
-   if (depth>=task_recursion_cutoff_level || double(m)*n*k <= gemmOMPThreshold)
-     blas::Gemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
-   else {
-     bool opA = transa=='T'||transa=='t'||transa=='C'||transa=='c';
-     bool opB = transb=='T'||transb=='t'||transb=='C'||transb=='c';
-     if (n >= std::max(m,k)) {
-#pragma omp task final(depth >= task_recursion_cutoff_level-1) 
-gemm_omp_task(transa, transb, m, n/2, k, alpha, a, lda, b, ldb, beta, c, ldc, depth+1);                                                            // C0 = alpha * A*B0 + beta * C0
-#pragma omp task final(depth >= task_recursion_cutoff_level-1) 
-gemm_omp_task(transa, transb, m, n-n/2, k, alpha, a, lda, opB ? b+n/2 : b+(n/2)*ldb, ldb, beta, c+(n/2)*ldc, ldc, depth+1);                        // C1 = alpha * A*B1 + beta * C1
-#pragma omp taskwait
-     } else if (m >= k) {
-#pragma omp task final(depth >= task_recursion_cutoff_level-1) 
-gemm_omp_task(transa, transb, m/2, n, k, alpha, a, lda, b, ldb, beta, c, ldc, depth+1);                                                            // C0 = alpha * A0*B + beta * C0
-#pragma omp task final(depth >= task_recursion_cutoff_level-1) 
-gemm_omp_task(transa, transb, m-m/2, n, k, alpha, opA ? a+(m/2)*lda : a+m/2, lda, b, ldb, beta, c+m/2, ldc, depth+1);                              // C1 = alpha * A1*B + beta * C1
-#pragma omp taskwait
-     } else {
-gemm_omp_task(transa, transb, m, n, k/2, alpha, a, lda, b, ldb, beta, c, ldc, depth);                                                         // C  = alpha * A0*B0 + beta * C
-gemm_omp_task(transa, transb, m, n, k-k/2, alpha, opA ? a+k/2 : a+(k/2)*lda, lda, opB ? b+(k/2)*ldb : b+k/2, ldb, scalar(1.), c, ldc, depth); // C += alpha * A1*B1
-     }
-   }
- }
-
-
-
-
+template<typename scalar> 
+  void gemm_omp_task (const char transa, const char transb, 
+      const int m, const int n, const int k, 
+      const scalar alpha, const scalar* a, const int lda, 
+      const scalar* b, const int ldb, const scalar beta, 
+       scalar* c, const int ldc, int depth = 0) ;
 
 } // namespace blas
 } // namespace PEXSI 
+
+
+//implementation
+namespace PEXSI{
+  namespace blas{
+    template<typename scalar> inline void gemm_omp_task(const char transa, const char transb, const int m, const int n, const int k, const scalar alpha, const scalar* a, const int lda, const scalar* b, const int ldb, const scalar beta, scalar* c, const int ldc, int depth) {
+
+#ifdef _OMP_ENABLED_
+      int num_threads = omp_get_num_threads();
+      int task_recursion_cutoff_level = (omp_get_num_threads() == 1) ? 0 : std::log2(omp_get_num_threads()) + 3;
+#else
+      int num_threads = 1;
+      int task_recursion_cutoff_level = 0;
+#endif
+      int gemmOMPThreshold = 64*64*64;//64;
+
+
+
+
+      if (depth>=task_recursion_cutoff_level || double(m)*n*k <= gemmOMPThreshold)
+        blas::Gemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
+      else {
+        bool opA = transa=='T'||transa=='t'||transa=='C'||transa=='c';
+        bool opB = transb=='T'||transb=='t'||transb=='C'||transb=='c';
+        if (n >= std::max(m,k)) {
+#pragma omp task final(depth >= task_recursion_cutoff_level-1) 
+          gemm_omp_task(transa, transb, m, n/2, k, alpha, a, lda, b, ldb, beta, c, ldc, depth+1);                                                            // C0 = alpha * A*B0 + beta * C0
+#pragma omp task final(depth >= task_recursion_cutoff_level-1) 
+          gemm_omp_task(transa, transb, m, n-n/2, k, alpha, a, lda, opB ? b+n/2 : b+(n/2)*ldb, ldb, beta, c+(n/2)*ldc, ldc, depth+1);                        // C1 = alpha * A*B1 + beta * C1
+#pragma omp taskwait
+        } else if (m >= k) {
+#pragma omp task final(depth >= task_recursion_cutoff_level-1) 
+          gemm_omp_task(transa, transb, m/2, n, k, alpha, a, lda, b, ldb, beta, c, ldc, depth+1);                                                            // C0 = alpha * A0*B + beta * C0
+#pragma omp task final(depth >= task_recursion_cutoff_level-1) 
+          gemm_omp_task(transa, transb, m-m/2, n, k, alpha, opA ? a+(m/2)*lda : a+m/2, lda, b, ldb, beta, c+m/2, ldc, depth+1);                              // C1 = alpha * A1*B + beta * C1
+#pragma omp taskwait
+        } else {
+          gemm_omp_task(transa, transb, m, n, k/2, alpha, a, lda, b, ldb, beta, c, ldc, depth);                                                         // C  = alpha * A0*B0 + beta * C
+          gemm_omp_task(transa, transb, m, n, k-k/2, alpha, opA ? a+k/2 : a+(k/2)*lda, lda, opB ? b+(k/2)*ldb : b+k/2, ldb, scalar(1.), c, ldc, depth); // C += alpha * A1*B1
+        }
+      }
+    }
+
+  }
+}
 
 #endif //_PEXSI_BLAS_HPP_

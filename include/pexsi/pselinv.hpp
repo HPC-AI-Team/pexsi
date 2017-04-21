@@ -611,6 +611,7 @@ protected:
 
   struct SuperNodeBufferType{
     NumMat<T>    LUpdateBuf;
+
     NumMat<T>    DiagBuf;
     std::vector<Int>  RowLocalPtr;
     std::vector<Int>  BlockIdxLocal;
@@ -637,13 +638,9 @@ protected:
       isReady(0){}
 
     SuperNodeBufferType(Int &pIndex) :
-      SizeSstrLcolSend(0),
-      SizeSstrUrowSend(0),
-      SizeSstrLcolRecv(0),
-      SizeSstrUrowRecv(0),
-      Index(pIndex),
-      Rank(0), 
-      isReady(0) {}
+      SuperNodeBufferType(){
+        Index = pIndex;
+      }
 
   };
 

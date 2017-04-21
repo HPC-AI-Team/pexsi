@@ -79,6 +79,10 @@ such enhancements or derivative works thereof, in binary and source code form.
 // MPI
 #include <mpi.h>
 
+#ifdef _OMP_ENABLED_
+#include <omp.h>
+#endif
+
 // Google coredumper for debugging
 #ifdef COREDUMPER
 #define _COREDUMPER_
