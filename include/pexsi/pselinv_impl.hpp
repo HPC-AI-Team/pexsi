@@ -446,11 +446,15 @@ namespace PEXSI{
 
       std::vector<Int> rowPtrC,colPtrC;
 
+
+//return;
+
+#ifdef _OPENMP_BLOCKS_
       size_t LcolRecvS = LcolRecv.size();
       size_t UrowRecvS = UrowRecv.size();
       LBlock<T> * LcolRecvP = LcolRecv.data(); 
       UBlock<T> * UrowRecvP = UrowRecv.data();
-#ifdef _OPENMP_TILE_
+
       if (LcolRecvP==nullptr){
         Int startIdx = ( MYROW( grid_ ) == PROW( snode.Index, grid_ ) )?1:0;
         LcolRecvS = this->L( LBj( snode.Index, grid_ ) ).size() - startIdx;
@@ -461,7 +465,7 @@ namespace PEXSI{
         UrowRecvS = this->U( LBi( snode.Index, grid_ ) ).size();
         UrowRecvP = this->U( LBi( snode.Index, grid_ ) ).data();
       }
-#endif
+
       //TIMER_START(Build_colptr_rowptr);
       // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
       // nonzero row in LcolRecv[ib]. The total number of rows in
@@ -519,11 +523,6 @@ namespace PEXSI{
       // Calculate the relative indices for (isup, jsup)
       // Fill AinvBuf with the information in L or U block.
       //TIMER_START(JB_Loop);
-
-
-//return;
-
-#if 1
 
       SuperNodeBufferType * snodeP = &snode;
       NumMat<T> * UBufP = &UBuf;
@@ -945,7 +944,67 @@ delete [] blockRows;
 
 
 #else
+      size_t LcolRecvS = LcolRecv.size();
+      size_t UrowRecvS = UrowRecv.size();
+      LBlock<T> * LcolRecvP = LcolRecv.data(); 
+      UBlock<T> * UrowRecvP = UrowRecv.data();
+      //TIMER_START(Build_colptr_rowptr);
+      // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
+      // nonzero row in LcolRecv[ib]. The total number of rows in
+      // snode.LUpdateBuf is given by rowPtr[end]-1
+      rowPtrC.resize(LcolRecvS + 1);
+      // colPtr[jb] gives the column index in UBuf for the first
+      // nonzero column in UrowRecv[jb]. The total number of rows in
+      // UBuf is given by colPtr[end]-1
+      colPtrC.resize(UrowRecvS + 1);
 
+      Int * rowPtr = rowPtrC.data();
+      Int * colPtr = colPtrC.data();
+
+      rowPtr[0] = 0;
+      for( Int ib = 0; ib < LcolRecvS; ib++ ){
+        rowPtrC[ib+1] = rowPtrC[ib] + LcolRecvP[ib].numRow;
+      }
+      colPtrC[0] = 0;
+      for( Int jb = 0; jb < UrowRecvS; jb++ ){
+        colPtrC[jb+1] = colPtrC[jb] + UrowRecvP[jb].numCol;
+      }
+
+      Int numRowAinvBuf = rowPtr[LcolRecvS];
+      Int numColAinvBuf = colPtr[UrowRecvS];
+
+
+      //TIMER_STOP(Build_colptr_rowptr);
+
+      //TIMER_START(Allocate_lookup);
+      // Allocate for the computational storage
+      AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
+      UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
+      snode.LUpdateBuf.Resize( numRowAinvBuf, SuperSize( snode.Index, super_ ) );
+      SetValue( snode.LUpdateBuf, ZERO<T>() );
+      //std::cout << " allocation done " << std::endl;
+      //    //TIMER_START(SetValue_lookup);
+      //    SetValue( AinvBuf, ZERO<T>() );
+      //SetValue( snode.LUpdateBuf, ZERO<T>() );
+      //    SetValue( UBuf, ZERO<T>() );
+      //    //TIMER_STOP(SetValue_lookup);
+      //TIMER_STOP(Allocate_lookup);
+
+      //TIMER_START(Fill_UBuf);
+      // Fill UBuf first.  Make the transpose later in the Gemm phase.
+      for( Int jb = 0; jb < UrowRecvS; jb++ ){
+        UBlock<T>& UB = UrowRecvP[jb];
+        if( UB.numRow != SuperSize(snode.Index, super_) ){
+          ErrorHandling( "The size of UB is not right.  Something is seriously wrong." );
+        }
+        lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
+            UB.numRow, UBuf.VecData( colPtrC[jb] ), SuperSize( snode.Index, super_ ) );	
+      }
+      //TIMER_STOP(Fill_UBuf);
+
+      // Calculate the relative indices for (isup, jsup)
+      // Fill AinvBuf with the information in L or U block.
+      //TIMER_START(JB_Loop);
       Real factor = 3.0;
       Int max_blocks = factor * omp_get_num_threads();
       Int minimal_block_size = 16;
@@ -1022,7 +1081,7 @@ delete [] blockRows;
                           UBlock<T>& UB = UrowRecvP[jb];
                           Int isup = LB.blockIdx;
                           Int jsup = UB.blockIdx;
-                          //T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
+                          T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
                           Int  ldAinv  = AinvBuf.m();
 
                           // Pin down the corresponding block in the part of Sinv.
@@ -5498,7 +5557,6 @@ Int lidx=0;
           #pragma omp single nowait
             {
           //  auto pmpointer = this;
-          #define pmpointer this
             bool * tdeps = deps;
             for (lidx=0; lidx<numSteps ; lidx++){
                     Int lrank = 0;
