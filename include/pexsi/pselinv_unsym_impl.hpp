@@ -3171,6 +3171,9 @@ template<typename T>
       TIMER_START(SelInv_P2p);
 
 
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"OUT "<<lidx<<"/"<<numSteps<<" "<<this->limIndex_<<std::endl;
+#endif
 
       Int numSuper = this->NumSuper(); 
 

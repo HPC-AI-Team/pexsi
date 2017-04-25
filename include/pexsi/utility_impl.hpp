@@ -1520,7 +1520,7 @@ void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & ps
   std::string fname (filename);
   std::stringstream sstm;
   sstm<<fname<<"_"<<mpirank<<".m";
-  std::ofstream ofile(sstm.str());
+  std::ofstream ofile(sstm.str().c_str());
 
     if( !ofile.good() ){
       ErrorHandling( "File cannot be opened!" );

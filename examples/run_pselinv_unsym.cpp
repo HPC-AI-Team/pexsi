@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-#define _MYCOMPLEX_
+//#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -750,7 +750,7 @@ int main(int argc, char **argv)
             statusOFS.open( ss.str().c_str(),std::ofstream::out | std::ofstream::app );
           }
 
-          if(0){
+          if(1){
             DistSparseMatrix<MYSCALAR> Ainv;
             //pMat->PMatrixToDistSparseMatrix(Ainv );
             //pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
