@@ -272,8 +272,8 @@ int main(int argc, char **argv)
   options.maxPEXSIIter   = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  options.numPole  = 10;
-  options.temperature  = 0.00095; // 300K
+  options.numPole  = 20;
+  options.temperature  = 0.0095; // 3000K
   options.muInertiaTolerance = 0.0120;
   options.muPEXSISafeGuard  = 0.2; 
   options.numElectronPEXSITolerance = 0.000001;
@@ -339,7 +339,7 @@ int main(int argc, char **argv)
         plan,
         options,
         numElectronExact,
-	method,
+        method,
         &muPEXSI,                   
         &numElectronPEXSI,         
         &muMinInertia,              

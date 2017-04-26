@@ -7,7 +7,7 @@
 % Lastest revision: 09/09/2016
 
 % The unit of energy is hartree!
-Npole    = 80;
+Npole    = 120;
 T        = 300;
 Gap      = 0.0;
 DeltaE   = 2.0;

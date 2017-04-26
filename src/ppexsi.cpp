@@ -4881,11 +4881,12 @@ PPEXSIData::DFTDriver3 (
       Real hsShift = ( muMax - muMin ) / (numShift - 1);
 
       Int matrix_size = HRealMat_.size;  // CHECK CHECK
+      Int numSpin = 2.0;  // LL: numSpin hard coded
       for(Int l = 0; l < numShift; l ++)
       {
         NeLower[l] = 0.0;
         inertiaVec[l] = 0.0;
-        NeUpper[l] = matrix_size;
+        NeUpper[l] = matrix_size * numSpin; 
         shiftVec[l] = muMin + l * hsShift;
       }
 
@@ -4897,12 +4898,9 @@ PPEXSIData::DFTDriver3 (
             verbosity );
       }
 
-      // Inertia is multiplied by 2.0 to reflect the doubly occupied
-      // orbitals.  
-      //
       // FIXME In the future numSpin should be introduced.
       for( Int l = 0; l < numShift; l++ ){
-        inertiaVec[l] *= 2.0;
+        inertiaVec[l] *= numSpin;
       }
 
       Int Idx = (Int) std::ceil( sigma / hsShift ) ;
@@ -4924,21 +4922,42 @@ PPEXSIData::DFTDriver3 (
       }
 
       if( verbosity >= 1 ){
+        
+        statusOFS << std::endl;
+
+
+        for(Int l = 0; l < numShift; l++)
+        {
+          statusOFS << std::setiosflags(std::ios::left) 
+            << "Shift " << std::setw(4) << l 
+            << " = "
+            << std::setw(LENGTH_VAR_DATA) << shiftVec[l]
+            << std::setw(LENGTH_VAR_NAME) << "Inertia    = "
+            << std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
+            << std::setw(LENGTH_VAR_NAME) << "NeLower  = "
+            << std::setw(LENGTH_VAR_DATA) << NeLower[l]
+            << std::setw(LENGTH_VAR_NAME) << "NeUpper  = "
+            << std::setw(LENGTH_VAR_DATA) << NeUpper[l]
+            << std::endl;
+        }
+
+        statusOFS << std::endl;
         statusOFS << "idxMin = " << idxMin << ", inertiaVec = " << inertiaVec[idxMin] << std::endl;
         statusOFS << "idxMax = " << idxMax << ", inertiaVec = " << inertiaVec[idxMax] << std::endl;
       }
 
-      if ( ( ( idxMin == 0 ) && (idxMax == numShift-1 ) ) || ( NeLower[idxMin] == 0 && NeUpper[idxMax] == matrix_size) ) {
-          if( verbosity >= 1 ){
-            statusOFS << std::endl << std::endl
-              << "The solution is not in the provided interval." << std::endl
-              << "(muMin, muMax) = ( " << shiftVec[idxMin] << " , " << shiftVec[idxMax] << " ) " << std::endl
-              << "(Ne(muMin), Ne(muMax)) = ( " << NeLower[idxMin] << " , " << NeUpper[idxMax] 
-              << " ) " << std::endl
-              << "NeExact = " << numElectronExact << std::endl
-              << "Leave the inertia counting "<< std::endl << std::endl;
-          }
- 
+      if ( ( ( idxMin == 0 ) && (idxMax == numShift-1 ) ) || 
+          ( NeLower[idxMin] == 0 && NeUpper[idxMax] == matrix_size) ) {
+        if( verbosity >= 1 ){
+          statusOFS << std::endl << std::endl
+            << "Inertia counting cannot provide more detailed information." << std::endl
+            << "(muMin, muMax) = ( " << shiftVec[idxMin] << " , " << shiftVec[idxMax] << " ) " << std::endl
+            << "(Ne(muMin), Ne(muMax)) = ( " << NeLower[idxMin] << " , " << NeUpper[idxMax] 
+            << " ) " << std::endl
+            << "NeExact = " << numElectronExact << std::endl
+            << "Leave the inertia counting "<< std::endl << std::endl;
+        }
+
         break;
       }
 
@@ -7119,6 +7138,7 @@ void PPEXSIData::CalculateFermiOperatorReal3(
   bool isFreeEnergyDensityMatrix = true;
   bool isEnergyDensityMatrix     = true;
   bool isDerivativeTMatrix       = false;
+  Real numSpin = 2.0;  // FIXME: numSpin to be an input parameter
 
   // Copy the pattern
   CopyPattern( PatternMat_, AMat );
@@ -7178,11 +7198,11 @@ void PPEXSIData::CalculateFermiOperatorReal3(
       xGrid[i]  = x0 + i * h;
       if( xGrid[i] - mu >= 0 ){
         ez = std::exp(- (xGrid[i] - mu) / temperature );
-        fdGrid[i] = 2.0 * ez / (1.0 + ez);
+        fdGrid[i] = numSpin * ez / (1.0 + ez);
       }
       else{
         ez = std::exp((xGrid[i] - mu) / temperature );
-        fdGrid[i] = 2.0 / (1.0 + ez);
+        fdGrid[i] = numSpin / (1.0 + ez);
       }
     }
 
@@ -7530,9 +7550,9 @@ void PPEXSIData::CalculateFermiOperatorReal3(
         // But done more cache-efficiently with blas.
         Real* AinvMatRealPtr = (Real*)AinvMat.nzvalLocal.Data();
         Real* AinvMatImagPtr = AinvMatRealPtr + 1;
-        blas::Axpy( rhoMat.nnzLocal, 2.0*zweightRho_[l].real(), AinvMatImagPtr, 2, 
+        blas::Axpy( rhoMat.nnzLocal, numSpin*zweightRho_[l].real(), AinvMatImagPtr, 2, 
             rhoMat.nzvalLocal.Data(), 1 );
-        blas::Axpy( rhoMat.nnzLocal, 2.0*zweightRho_[l].imag(), AinvMatRealPtr, 2,
+        blas::Axpy( rhoMat.nnzLocal, numSpin*zweightRho_[l].imag(), AinvMatRealPtr, 2,
             rhoMat.nzvalLocal.Data(), 1 );
 
 
