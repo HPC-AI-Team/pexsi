@@ -4853,7 +4853,7 @@ PPEXSIData::DFTDriver3 (
   }
 
 
-  if(muMax - muMin > 2*sigma){ // do the Inertia Counting 
+  if(muMax - muMin > muInertiaTolerance){ // do the Inertia Counting 
     // Inertia counting loop
     numTotalInertiaIter = 0;
     // Hard coded
@@ -4872,7 +4872,7 @@ PPEXSIData::DFTDriver3 (
       // independent groups to minimize the cost
       // However, the minimum number of shifts is 10 to accelerate
       // convergence.
-      Int numShift = std::max( gridPole_->numProcRow, 40 );
+      Int numShift = std::max( gridPole_->numProcRow, 10 );
       std::vector<Real>  shiftVec( numShift );
       std::vector<Real>  inertiaVec( numShift );   // Zero temperature
 
@@ -4931,7 +4931,11 @@ PPEXSIData::DFTDriver3 (
           statusOFS << std::setiosflags(std::ios::left) 
             << "Shift " << std::setw(4) << l 
             << " = "
-            << std::setw(LENGTH_VAR_DATA) << shiftVec[l]
+            << std::setiosflags(std::ios::scientific)
+            << std::setiosflags(std::ios::showpos)
+            << std::setw(LENGTH_DBL_DATA) << shiftVec[l]
+            << std::resetiosflags(std::ios::scientific)
+            << std::resetiosflags(std::ios::showpos)
             << std::setw(LENGTH_VAR_NAME) << "Inertia    = "
             << std::setw(LENGTH_VAR_DATA) << inertiaVec[l]
             << std::setw(LENGTH_VAR_NAME) << "NeLower  = "
@@ -4946,11 +4950,15 @@ PPEXSIData::DFTDriver3 (
         statusOFS << "idxMax = " << idxMax << ", inertiaVec = " << inertiaVec[idxMax] << std::endl;
       }
 
+      muMin = shiftVec[idxMin];
+      muMax = shiftVec[idxMax];
+
       if ( ( ( idxMin == 0 ) && (idxMax == numShift-1 ) ) || 
-          ( NeLower[idxMin] == 0 && NeUpper[idxMax] == matrix_size) ) {
+          ( NeLower[idxMin] == 0 && NeUpper[idxMax] == matrix_size) ||
+          muMax - muMin < muInertiaTolerance ) {
         if( verbosity >= 1 ){
           statusOFS << std::endl << std::endl
-            << "Inertia counting cannot provide more detailed information." << std::endl
+            << "Inertia counting has converged." << std::endl
             << "(muMin, muMax) = ( " << shiftVec[idxMin] << " , " << shiftVec[idxMax] << " ) " << std::endl
             << "(Ne(muMin), Ne(muMax)) = ( " << NeLower[idxMin] << " , " << NeUpper[idxMax] 
             << " ) " << std::endl
@@ -4961,8 +4969,6 @@ PPEXSIData::DFTDriver3 (
         break;
       }
 
-      muMin = shiftVec[idxMin];
-      muMax = shiftVec[idxMax];
       numTotalInertiaIter++;
 
       if( verbosity >= 1 ){
@@ -5024,7 +5030,7 @@ PPEXSIData::DFTDriver3 (
              gap,
              deltaE,
              numElectronExact,
-             numElectronPEXSITolerance,
+             numElectronPEXSITolerance,  // Not used
              solver,
              verbosity,
              muPEXSI, 
@@ -5039,9 +5045,10 @@ PPEXSIData::DFTDriver3 (
     
     if( verbosity >= 1 ) {
        for(int i = 0; i < numShift; i++)
-          statusOFS << " MuPEXSI from Point :" << i << " is  " << shiftVec[i]<< " calculatedNumberOfElectron " << NeVec[i] << std::endl;
+          statusOFS << " MuPEXSI from Point :" << i << " is  " << shiftVec[i]<< " numElectron " << NeVec[i] << std::endl;
     }
 
+    // muMin, muMax are the results from the inertia counting or input
     Int l, idxMin, idxMax;
     idxMin = -1;
     idxMax = numShift;
@@ -5061,68 +5068,69 @@ PPEXSIData::DFTDriver3 (
 
     Real mu;
     if(numShift == 1) {
-     mu = shiftVec[0];
+      mu = shiftVec[0];
     }
     else
     {
-        if(idxMin == -1) { 
-           idxMin = 0; 
-           if(idxMax <= idxMin)
-             idxMax = 1;
-        }   
-        if(idxMax == numShift) { 
-           idxMax = numShift -1;
-           if(idxMin >= idxMax)
-             idxMin = numShift - 2; 
-        }
+      if(idxMin == -1) { 
+        idxMin = 0; 
+        if(idxMax <= idxMin)
+          idxMax = 1;
+      }   
+      if(idxMax == numShift) { 
+        idxMax = numShift -1;
+        if(idxMin >= idxMax)
+          idxMin = numShift - 2; 
+      }
 
-        numElectronPEXSI = (NeVec[idxMin] + NeVec[idxMax])/2.0;
-        mu = shiftVec[idxMin] + (numElectronExact - NeVec[idxMin])/ 
-             ( NeVec[idxMax] -NeVec[idxMin] ) * (shiftVec[idxMax] - shiftVec[idxMin]);
+      // Linear interpolation. numElectron = numElectronExact in the linear sense
+      numElectronPEXSI = numElectronExact;
+      mu = shiftVec[idxMin] + (numElectronExact - NeVec[idxMin])/ 
+        ( NeVec[idxMax] -NeVec[idxMin] ) * (shiftVec[idxMax] - shiftVec[idxMin]);
 
-        if( verbosity >= 1 ) {
-          statusOFS << " idxMin = " << idxMin << " idxMax = " << idxMax <<std::endl;
-          Print( statusOFS, "idxMin                      = ", idxMin );
-          Print( statusOFS, "NeVec[min]                  = ", NeVec[idxMin] );
-          Print( statusOFS, "idxMax                      = ", idxMax );
-          Print( statusOFS, "NeVec[max]                  = ", NeVec[idxMax] );
-          Print( statusOFS, "Final mu                    = ", mu );
-        }
+      if( verbosity >= 1 ) {
+        statusOFS << " idxMin = " << idxMin << " idxMax = " << idxMax <<std::endl;
+        Print( statusOFS, "idxMin                      = ", idxMin );
+        Print( statusOFS, "NeVec[min]                  = ", NeVec[idxMin] );
+        Print( statusOFS, "idxMax                      = ", idxMax );
+        Print( statusOFS, "NeVec[max]                  = ", NeVec[idxMax] );
+        Print( statusOFS, "Final mu                    = ", mu );
+      }
 
 
-        // linear combine density matrix.
-        Real facMin = (NeVec[idxMax]-numElectronExact) / (NeVec[idxMax] - NeVec[idxMin]);
-        Real facMax = (numElectronExact-NeVec[idxMin]) / (NeVec[idxMax] - NeVec[idxMin]);
-        
-        DistSparseMatrix<Real> rhoMatMin ;
-        CopyPattern( rhoRealMat_, rhoMatMin );
-        rhoMatMin.nzvalLocal = rhoRealMat_.nzvalLocal;
-        MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
+      // linear combine density matrix.
+      Real facMin = (NeVec[idxMax]-numElectronExact) / (NeVec[idxMax] - NeVec[idxMin]);
+      Real facMax = (numElectronExact-NeVec[idxMin]) / (NeVec[idxMax] - NeVec[idxMin]);
 
-        DistSparseMatrix<Real> rhoMatMax ;
-        CopyPattern( rhoRealMat_, rhoMatMax );
-        rhoMatMax.nzvalLocal = rhoRealMat_.nzvalLocal;
-        MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
+      DistSparseMatrix<Real> rhoMatMin ;
+      CopyPattern( rhoRealMat_, rhoMatMin );
+      rhoMatMin.nzvalLocal = rhoRealMat_.nzvalLocal;
+      MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
 
-        SetValue( rhoRealMat_.nzvalLocal, 0.0 );
-        blas::Axpy( rhoRealMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1, 
-                    rhoRealMat_.nzvalLocal.Data(), 1 );
+      DistSparseMatrix<Real> rhoMatMax ;
+      CopyPattern( rhoRealMat_, rhoMatMax );
+      rhoMatMax.nzvalLocal = rhoRealMat_.nzvalLocal;
+      MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
 
-        blas::Axpy( rhoRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1, 
-                    rhoRealMat_.nzvalLocal.Data(), 1 );
-        {
-          Real local = 0.0;
-          local = blas::Dot( HRealMat_.nnzLocal, 
-                             HRealMat_.nzvalLocal.Data(),
-                             1, rhoRealMat_.nzvalLocal.Data(), 1 );
+      SetValue( rhoRealMat_.nzvalLocal, 0.0 );
+      blas::Axpy( rhoRealMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1, 
+          rhoRealMat_.nzvalLocal.Data(), 1 );
 
-          mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
-                          gridPole_->rowComm ); 
-        }
+      blas::Axpy( rhoRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1, 
+          rhoRealMat_.nzvalLocal.Data(), 1 );
+      {
+        Real local = 0.0;
+        local = blas::Dot( HRealMat_.nnzLocal, 
+            HRealMat_.nzvalLocal.Data(),
+            1, rhoRealMat_.nzvalLocal.Data(), 1 );
+
+        mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
+            gridPole_->rowComm ); 
+      }
     }
     muPEXSI = mu;
 
-    if(0) {
+#if 0
     Real muPEXSI = 0.5 * ( muMax + muMin);
     CalculateFermiOperatorReal3(
         pointColComm,
@@ -5138,10 +5146,10 @@ PPEXSIData::DFTDriver3 (
         numElectronPEXSI,
         method);
 
-      if( verbosity >= 1 ) {
-        statusOFS << " Final muPEXSI "<< muPEXSI << " numElectronPEXSI " << numElectronPEXSI << std::endl;
-      }
+    if( verbosity >= 1 ) {
+      statusOFS << " Final muPEXSI "<< muPEXSI << " numElectronPEXSI " << numElectronPEXSI << std::endl;
     }
+#endif
 
     MPI_Comm_free(&pointColComm);
     MPI_Comm_free(&pointRowComm);
@@ -5150,8 +5158,6 @@ PPEXSIData::DFTDriver3 (
     delete []NeVec_temp;
   }
 
-  muMin0 = muMin;
-  muMax0 = muMax;
   muMinInertia = muMin;
   muMaxInertia = muMax;
 
@@ -5169,6 +5175,8 @@ PPEXSIData::DFTDriver3 (
   if( 1 ){
     statusOFS << "Final result " << std::endl;
     Print( statusOFS, "mu                          = ", muPEXSI );
+    Print( statusOFS, "muMin                       = ", muMin );
+    Print( statusOFS, "muMax                       = ", muMax );
     Print( statusOFS, "Computed number of electron = ", numElectronPEXSI );
     Print( statusOFS, "Exact number of electron    = ", numElectronExact );
     Print( statusOFS, "Total energy (H*DM)         = ", totalEnergyH_ );

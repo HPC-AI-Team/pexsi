@@ -264,34 +264,32 @@ int main(int argc, char **argv)
 
   PPEXSISetDefaultOptions( &options );
   options.muMin0 = -10.0;
-  options.muMax0 = 10.5;
+  options.muMax0 = 10.0;
   options.mu0    = 0.0;
   options.npSymbFact = 1;
   options.ordering = 0;
   options.isInertiaCount = 1;
-  options.maxPEXSIIter   = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
   options.numPole  = 20;
   options.temperature  = 0.0095; // 3000K
-  options.muInertiaTolerance = 0.0120;
-  options.muPEXSISafeGuard  = 0.2; 
-  options.numElectronPEXSITolerance = 0.000001;
+  options.numElectronPEXSITolerance = 0.001;
+  options.muInertiaTolerance = 0.05;
   options.isSymbolicFactorize = 1;
   int method = 2;
 
   if( mpisize > nprow * npcol * options.numPole){
-      int npoints   = mpisize / ( nprow * npcol* options.numPole);
-        if (mpisize % (nprow*npcol*options.numPole)) {
-          if( mpirank == 0){
-           printf(" ------------------   ERROR  -------------------- "); 
-           printf(" nprocessor %d can not be distributed nprow : %d npcol: %d numPole: %d \n", mpisize, nprow, npcol, options.numPole ); 
-           printf(" ------------------   ERROR  -------------------- "); 
-          }
-        int ierr;
-        MPI_Barrier(MPI_COMM_WORLD);
-        MPI_Abort(MPI_COMM_WORLD, ierr);
-        }
+    int npoints   = mpisize / ( nprow * npcol* options.numPole);
+    if (mpisize % (nprow*npcol*options.numPole)) {
+      if( mpirank == 0){
+        printf(" ------------------   ERROR  -------------------- "); 
+        printf(" nprocessor %d can not be distributed nprow : %d npcol: %d numPole: %d \n", mpisize, nprow, npcol, options.numPole ); 
+        printf(" ------------------   ERROR  -------------------- "); 
+      }
+      int ierr;
+      MPI_Barrier(MPI_COMM_WORLD);
+      MPI_Abort(MPI_COMM_WORLD, ierr);
+    }
   }
 
 
@@ -335,6 +333,10 @@ int main(int argc, char **argv)
   muMaxInertia =  10.0;
   int iter = 0;
   while (iter < 15) {
+    if( iter > 0 ){
+      options.isSymbolicFactorize = 0;
+    }
+
     PPEXSIDFTDriver3(
         plan,
         options,
@@ -376,74 +378,74 @@ int main(int argc, char **argv)
     }
     iter++;
   }
-  /* Step 3. Solve the problem once again without symbolic factorization */
-  {
-    if( mpirank == 0 ){
-      printf("To test the correctness of the program, solve the problem \n");
-      printf("again without symbolic factorization or inertia counting.\n");
-    }
-
-    PPEXSILoadRealHSMatrix( 
-        plan, 
-        options,
-        nrows,
-        nnz,
-        nnzLocal,
-        numColLocal,
-        colptrLocal,
-        rowindLocal,
-        HnzvalLocal,
-        isSIdentity,
-        SnzvalLocal,
-        &info );
-
-    // No symbolic factorization
-    options.muMin0 = muMinInertia;
-    options.muMax0 = muMaxInertia;
-    options.isInertiaCount = 0;
-    options.isSymbolicFactorize = 0;
-    // Reuse previous mu to start
-    options.mu0 = muPEXSI;
-
-    PPEXSIDFTDriver2(
-        plan,
-        options,
-        numElectronExact,
-        &muPEXSI,                   
-        &numElectronPEXSI,         
-        &muMinInertia,              
-        &muMaxInertia,             
-        &numTotalInertiaIter,   
-        &info );
-
-
-    if( info != 0 ){
-      if( mpirank == 0 ){
-        printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
-      }
-      MPI_Finalize();
-      return info;
-    }
-
-    if( isProcRead == 1 ){
-      PPEXSIRetrieveRealDFTMatrix(
-          plan,
-          DMnzvalLocal,
-          EDMnzvalLocal,
-          FDMnzvalLocal,
-          &totalEnergyH,
-          &totalEnergyS,
-          &totalFreeEnergy,
-          &info );
-
-      if( mpirank == 0 ){
-        printf("Output from the main program\n");
-        printf("Total energy (H*DM)         = %15.5f\n", totalEnergyH);
-        printf("Total energy (S*EDM)        = %15.5f\n", totalEnergyS);
-        printf("Total free energy           = %15.5f\n", totalFreeEnergy);
-      }
-    }
-  }
+//  /* Step 3. Solve the problem once again without symbolic factorization */
+//  {
+//    if( mpirank == 0 ){
+//      printf("To test the correctness of the program, solve the problem \n");
+//      printf("again without symbolic factorization or inertia counting.\n");
+//    }
+//
+//    PPEXSILoadRealHSMatrix( 
+//        plan, 
+//        options,
+//        nrows,
+//        nnz,
+//        nnzLocal,
+//        numColLocal,
+//        colptrLocal,
+//        rowindLocal,
+//        HnzvalLocal,
+//        isSIdentity,
+//        SnzvalLocal,
+//        &info );
+//
+//    // No symbolic factorization
+//    options.muMin0 = muMinInertia;
+//    options.muMax0 = muMaxInertia;
+//    options.isInertiaCount = 0;
+//    options.isSymbolicFactorize = 0;
+//    // Reuse previous mu to start
+//    options.mu0 = muPEXSI;
+//
+//    PPEXSIDFTDriver2(
+//        plan,
+//        options,
+//        numElectronExact,
+//        &muPEXSI,                   
+//        &numElectronPEXSI,         
+//        &muMinInertia,              
+//        &muMaxInertia,             
+//        &numTotalInertiaIter,   
+//        &info );
+//
+//
+//    if( info != 0 ){
+//      if( mpirank == 0 ){
+//        printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
+//      }
+//      MPI_Finalize();
+//      return info;
+//    }
+//
+//    if( isProcRead == 1 ){
+//      PPEXSIRetrieveRealDFTMatrix(
+//          plan,
+//          DMnzvalLocal,
+//          EDMnzvalLocal,
+//          FDMnzvalLocal,
+//          &totalEnergyH,
+//          &totalEnergyS,
+//          &totalFreeEnergy,
+//          &info );
+//
+//      if( mpirank == 0 ){
+//        printf("Output from the main program\n");
+//        printf("Total energy (H*DM)         = %15.5f\n", totalEnergyH);
+//        printf("Total energy (S*EDM)        = %15.5f\n", totalEnergyS);
+//        printf("Total free energy           = %15.5f\n", totalFreeEnergy);
+//      }
+//    }
+//  }
 
   /* Step 4. Clean up */
 
