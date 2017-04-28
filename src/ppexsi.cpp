@@ -5069,6 +5069,13 @@ PPEXSIData::DFTDriver3 (
     Real mu;
     if(numShift == 1) {
       mu = shiftVec[0];
+      // Scale the density matrix. numElectron = numElectronExact in the linear sense
+      Real fac = numElectronExact / numElectronPEXSI;
+      blas::Scal( rhoRealMat_.nnzLocal, fac, rhoRealMat_.nzvalLocal.Data(), 1 );
+
+      numElectronPEXSI = numElectronExact;
+
+      totalEnergyH_ *= fac;
     }
     else
     {
