@@ -1,13 +1,13 @@
 #include "pexsi/environment.hpp" 
 #include "pexsi/getPole.hpp" 
 
-        poleClass::poleClass(){ 
+   poleClass::poleClass(){ 
 
         { 
             int np = 10;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (5.735025814063466e-01 , 2.258360838997484e+00), 
              std::complex<double> (1.897332673899798e+00 , 2.795029781497129e+00), 
              std::complex<double> (3.861693114806520e+00 , 3.861693114806518e+00), 
@@ -19,7 +19,8 @@
              std::complex<double> (-7.304791087223569e+00 , -4.958665878106504e+00), 
              std::complex<double> (-1.240655180553460e+01 , -3.150599038010320e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.598771646351262e-02 , -2.760312690369876e-01), 
              std::complex<double> (-6.095199998844095e-02 , -7.528479327939300e-02), 
              std::complex<double> (-1.851171675589948e-02 , 5.090700814889104e-03), 
@@ -31,6 +32,7 @@
              std::complex<double> (-1.444171623546957e+00 , -1.532425938701444e-01), 
              std::complex<double> (-1.386677165703267e+00 , 1.584933865960321e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -42,7 +44,7 @@
             int np = 10;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (9.219255665302288e-01 , 2.404692761861993e+00), 
              std::complex<double> (3.402538450929402e+00 , 4.058656333665585e+00), 
              std::complex<double> (8.248962420007057e+00 , 8.485198796181148e+00), 
@@ -54,7 +56,8 @@
              std::complex<double> (-4.543447322368784e+01 , -3.808958665926264e+01), 
              std::complex<double> (-1.138461057458871e+02 , -4.364700439143316e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-3.696752033853665e-02 , -3.472531975947295e-01), 
              std::complex<double> (-4.483360376130828e-02 , 1.140517772638178e-02), 
              std::complex<double> (1.002533192200364e-04 , -7.897363650527865e-04), 
@@ -66,6 +69,7 @@
              std::complex<double> (-1.323598121363917e+01 , -7.569625653850546e+00), 
              std::complex<double> (-2.791486508285060e+01 , 1.428293976067779e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -77,7 +81,7 @@
             int np = 10;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.184368009117092e+00 , 2.517439140418102e+00), 
              std::complex<double> (4.899790273026853e+00 , 5.379716079191559e+00), 
              std::complex<double> (1.418753608438598e+01 , 1.435750620066915e+01), 
@@ -89,7 +93,8 @@
              std::complex<double> (-3.191882869438076e+02 , -2.907134206730129e+02), 
              std::complex<double> (-1.021769628398501e+03 , -4.807072556922726e+02), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-9.669302196162827e-02 , -3.448052368064253e-01), 
              std::complex<double> (-1.148667352818860e-03 , 1.750079552270942e-02), 
              std::complex<double> (2.397816694328581e-06 , -3.835666185801717e-06), 
@@ -101,6 +106,7 @@
              std::complex<double> (-1.121271584599478e+02 , -8.442574795438129e+01), 
              std::complex<double> (-3.555476006039760e+02 , 9.138342135916773e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -112,7 +118,7 @@
             int np = 10;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-9.356247992526716e+03 , -4.962839764473728e+03), 
              std::complex<double> (-2.470862194130800e+03 , -2.332133066109612e+03), 
              std::complex<double> (-7.394446752981080e+02 , -7.354376132831746e+02), 
@@ -124,7 +130,8 @@
              std::complex<double> (1.389973934641447e+00 , 2.620463575863355e+00), 
              std::complex<double> (6.346681231542257e+00 , 6.724219531511266e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-3.959970878601982e+03 , 4.281954150156751e+02), 
              std::complex<double> (-9.783157217750031e+02 , -8.219686657598681e+02), 
              std::complex<double> (-2.795911335253800e+02 , -2.750652251228440e+02), 
@@ -136,6 +143,7 @@
              std::complex<double> (-1.379672850017623e-01 , -3.217425616077230e-01), 
              std::complex<double> (5.782918731185932e-03 , 1.892258962355565e-03), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -147,7 +155,7 @@
             int np = 10;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.782810411427323e+00 , 2.848370614453784e+00), 
              std::complex<double> (9.941529435685997e+00 , 1.018669758404396e+01), 
              std::complex<double> (-1.782810411427323e+00 , -2.848370614453784e+00), 
@@ -159,7 +167,8 @@
              std::complex<double> (-1.579566120474009e+04 , -1.541549943222297e+04), 
              std::complex<double> (-7.924827223544786e+04 , -4.960191771132647e+04), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-1.929211606932727e-01 , -2.483420366641584e-01), 
              std::complex<double> (-3.204223905962309e-04 , -3.609896364661219e-06), 
              std::complex<double> (-1.525093543235937e+00 , -1.082155858502388e+00), 
@@ -171,6 +180,7 @@
              std::complex<double> (-7.560989176228732e+03 , -7.027693621998259e+03), 
              std::complex<double> (-4.347572059635372e+04 , -4.667711497040142e+03), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -182,7 +192,7 @@
             int np = 10;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.212633647825216e+00 , 3.135370769123812e+00), 
              std::complex<double> (1.541839147944617e+01 , 1.557759923410886e+01), 
              std::complex<double> (-2.212633647825216e+00 , -3.135370769123812e+00), 
@@ -194,7 +204,8 @@
              std::complex<double> (-1.018727178982477e+05 , -1.008315480469169e+05), 
              std::complex<double> (-6.688753749249799e+05 , -4.720258845701197e+05), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-2.143751250569005e-01 , -1.535393947292657e-01), 
              std::complex<double> (-1.513448770496892e-06 , -1.949370817719976e-06), 
              std::complex<double> (-1.968029521848561e+00 , -1.391094698584985e+00), 
@@ -206,6 +217,7 @@
              std::complex<double> (-5.755508763138473e+04 , -5.580812876780529e+04), 
              std::complex<double> (-4.409507648590282e+05 , -1.233807491050386e+05), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -217,7 +229,7 @@
             int np = 20;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.841495925536128e-01 , 2.208862936138592e+00), 
              std::complex<double> (8.734379938738970e-01 , 2.341237331574950e+00), 
              std::complex<double> (1.528610638639632e+00 , 2.609135023489038e+00), 
@@ -239,7 +251,8 @@
              std::complex<double> (-1.118273809020597e+01 , -4.171908670598619e+00), 
              std::complex<double> (-1.328277064214437e+01 , -1.708704421717731e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (5.103234716952593e-02 , -1.605552914438318e-01), 
              std::complex<double> (-6.322798475376833e-03 , -1.112910765126283e-01), 
              std::complex<double> (-2.905969194630225e-02 , -5.895737863123538e-02), 
@@ -261,6 +274,7 @@
              std::complex<double> (-8.407676498276238e-01 , 5.070453379332427e-01), 
              std::complex<double> (-3.989799948517055e-01 , 1.026855240569260e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -272,7 +286,7 @@
             int np = 20;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (4.517065923266886e-01 , 2.266586217490303e+00), 
              std::complex<double> (1.429938034735842e+00 , 2.641108249630438e+00), 
              std::complex<double> (2.645212621941568e+00 , 3.451673894055563e+00), 
@@ -294,7 +308,8 @@
              std::complex<double> (-9.194045784449875e+01 , -4.977802694049889e+01), 
              std::complex<double> (-1.332442174827556e+02 , -2.655415927350670e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.671761087328150e-02 , -2.419917931690975e-01), 
              std::complex<double> (-4.831440634520322e-02 , -1.052114464633586e-01), 
              std::complex<double> (-4.042011859450374e-02 , -1.333879277680653e-02), 
@@ -316,6 +331,7 @@
              std::complex<double> (-1.339795073646331e+01 , 1.112775253251354e+00), 
              std::complex<double> (-9.718995834876539e+00 , 1.451773545820036e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -327,7 +343,7 @@
             int np = 20;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (5.733908623796131e-01 , 2.294245768071419e+00), 
              std::complex<double> (1.872981889233398e+00 , 2.905648283222007e+00), 
              std::complex<double> (3.671732343731551e+00 , 4.291376454391889e+00), 
@@ -349,7 +365,8 @@
              std::complex<double> (-7.638214757466243e+02 , -4.923595876836509e+02), 
              std::complex<double> (-1.288825276632888e+03 , -3.221104936139653e+02), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.272023539518928e-02 , -2.847213174467204e-01), 
              std::complex<double> (-6.688598612631311e-02 , -7.624743133790855e-02), 
              std::complex<double> (-2.107693646151739e-02 , 1.058800340146889e-02), 
@@ -371,6 +388,7 @@
              std::complex<double> (-1.461278298983291e+02 , -2.162233184238407e+01), 
              std::complex<double> (-1.447641313346797e+02 , 1.602330266435008e+02), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -382,7 +400,7 @@
             int np = 20;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (7.115319101155055e-01 , 2.332612201546095e+00), 
              std::complex<double> (2.426589423342719e+00 , 3.289853649276396e+00), 
              std::complex<double> (5.137454713750183e+00 , 5.597162359394519e+00), 
@@ -404,7 +422,8 @@
              std::complex<double> (-6.184601072079322e+03 , -4.561749290094939e+03), 
              std::complex<double> (-1.232163559902056e+04 , -3.758548852529564e+03), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (8.714745389805309e-03 , -3.198086399023556e-01), 
              std::complex<double> (-7.064655956366572e-02 , -3.614932944465360e-02), 
              std::complex<double> (1.294955576111281e-03 , 8.813938368502680e-03), 
@@ -426,6 +445,7 @@
              std::complex<double> (-1.455350020589387e+03 , -5.078668851150388e+02), 
              std::complex<double> (-2.004921751063688e+03 , 1.629886905558609e+03), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -437,7 +457,7 @@
             int np = 20;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (8.344718101682281e-01 , 2.373003455645754e+00), 
              std::complex<double> (2.974420143512458e+00 , 3.712408566559353e+00), 
              std::complex<double> (6.793233952801800e+00 , 7.147225284355848e+00), 
@@ -459,7 +479,8 @@
              std::complex<double> (-5.153916146716774e+04 , -4.129370927231340e+04), 
              std::complex<double> (-1.178194175902159e+05 , -4.143145364390986e+04), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-1.722389034636630e-02 , -3.394926822758805e-01), 
              std::complex<double> (-5.917551529872238e-02 , -4.496096627340362e-03), 
              std::complex<double> (2.570040235466220e-03 , -2.661148816821425e-04), 
@@ -481,6 +502,7 @@
              std::complex<double> (-1.386807841693019e+04 , -6.795763969615707e+03), 
              std::complex<double> (-2.480103518875093e+04 , 1.542347337926690e+04), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -492,7 +514,7 @@
             int np = 20;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.007531748129292e+00 , 2.439246281946333e+00), 
              std::complex<double> (3.851618019188618e+00 , 4.446320227525768e+00), 
              std::complex<double> (9.864913661563085e+00 , 1.011193966215180e+01), 
@@ -514,7 +536,8 @@
              std::complex<double> (-4.036595288620677e+05 , -3.496694424659839e+05), 
              std::complex<double> (-1.100225596233388e+06 , -4.544486657652218e+05), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-5.681709776116640e-02 , -3.505227370463684e-01), 
              std::complex<double> (-2.877217539430987e-02 , 2.017311192895438e-02), 
              std::complex<double> (-2.045541556751318e-04 , -1.760187787151484e-05), 
@@ -536,6 +559,7 @@
              std::complex<double> (-1.256772864129423e+05 , -8.068985706237836e+04), 
              std::complex<double> (-3.071780476924281e+05 , 1.283109399536789e+05), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -547,7 +571,7 @@
             int np = 30;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.891137623699831e-01 , 2.199716379353577e+00), 
              std::complex<double> (5.735025814063466e-01 , 2.258360838997484e+00), 
              std::complex<double> (9.767463713072155e-01 , 2.376363311565312e+00), 
@@ -579,7 +603,8 @@
              std::complex<double> (-1.240655180553460e+01 , -3.150599038010320e+00), 
              std::complex<double> (-1.345924457642756e+01 , -1.157116619395263e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.239816980432902e-02 , -1.110063769456511e-01), 
              std::complex<double> (1.199590548783754e-02 , -9.201042301232919e-02), 
              std::complex<double> (-8.254012599148833e-03 , -6.806994238151486e-02), 
@@ -611,6 +636,7 @@
              std::complex<double> (-4.622257219010891e-01 , 5.283112886534405e-01), 
              std::complex<double> (-1.822211669360347e-01 , 7.180658719395056e-01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -622,7 +648,7 @@
             int np = 30;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (3.000033461854879e-01 , 2.241315578805701e+00), 
              std::complex<double> (9.219255665302288e-01 , 2.404692761861993e+00), 
              std::complex<double> (1.611216862250958e+00 , 2.743299922016247e+00), 
@@ -654,7 +680,8 @@
              std::complex<double> (-1.138461057458873e+02 , -4.364700439143338e+01), 
              std::complex<double> (-1.376323135591881e+02 , -1.842228510855601e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (5.080354453818887e-02 , -1.739311092367921e-01), 
              std::complex<double> (-1.232250677951221e-02 , -1.157510658649098e-01), 
              std::complex<double> (-3.459374075229030e-02 , -5.671252801734694e-02), 
@@ -686,6 +713,7 @@
              std::complex<double> (-9.304955027616932e+00 , 4.760979920225942e+00), 
              std::complex<double> (-4.625138192642946e+00 , 1.096860747305449e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -697,7 +725,7 @@
             int np = 30;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.355436019139284e+03 , -2.285224853742357e+02), 
              std::complex<double> (-1.021769628398503e+03 , -4.807072556922722e+02), 
              std::complex<double> (-6.908839744808619e+02 , -4.778522047369315e+02), 
@@ -729,7 +757,8 @@
              std::complex<double> (1.418753608438598e+01 , 1.435750620066915e+01), 
              std::complex<double> (2.000358181521780e+01 , 2.011850278965008e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-7.155469761280351e+01 , 1.306453348081142e+02), 
              std::complex<double> (-1.185158668679920e+02 , 3.046114045305637e+01), 
              std::complex<double> (-8.832487456762415e+01 , -2.203603482756265e+01), 
@@ -761,6 +790,7 @@
              std::complex<double> (7.992722314428607e-07 , -1.278555395267239e-06), 
              std::complex<double> (5.579513316548606e-09 , -2.956136477771285e-09), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -772,7 +802,7 @@
             int np = 30;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (4.808798443788085e-01 , 2.272894075759088e+00), 
              std::complex<double> (1.532775896349555e+00 , 2.698926394873467e+00), 
              std::complex<double> (2.871976271709301e+00 , 3.630846679399197e+00), 
@@ -804,7 +834,8 @@
              std::complex<double> (-8.801405453967513e+03 , -4.998499462404970e+03), 
              std::complex<double> (-1.322979335189886e+04 , -2.799048594510738e+03), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.410183442619350e-02 , -2.532911643045287e-01), 
              std::complex<double> (-5.396175095907532e-02 , -9.943347411086745e-02), 
              std::complex<double> (-3.725931096469998e-02 , -5.706899585298219e-03), 
@@ -836,6 +867,7 @@
              std::complex<double> (-1.383896653934121e+03 , 2.948625894086354e+01), 
              std::complex<double> (-1.082759519916442e+03 , 1.499187296061777e+03), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -847,7 +879,7 @@
             int np = 30;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.298012792104967e+05 , -3.116589625163158e+04), 
              std::complex<double> (-7.924827223544786e+04 , -4.960191771132647e+04), 
              std::complex<double> (-4.482403615820252e+04 , -3.769499419365068e+04), 
@@ -879,7 +911,8 @@
              std::complex<double> (9.941529435685997e+00 , 1.018669758404396e+01), 
              std::complex<double> (1.634892926824527e+01 , 1.649915985330988e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-1.351681923644445e+04 , 1.582380476782161e+04), 
              std::complex<double> (-1.449190686545124e+04 , -1.555903832346714e+03), 
              std::complex<double> (-7.892340639006706e+03 , -4.591049159754435e+03), 
@@ -911,6 +944,7 @@
              std::complex<double> (-1.068074635320769e-04 , -1.203298788220424e-06), 
              std::complex<double> (-2.874545756633608e-07 , 2.981584599465856e-09), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -922,7 +956,7 @@
             int np = 30;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (6.599010044360166e-01 , 2.317384632720461e+00), 
              std::complex<double> (2.212633647825216e+00 , 3.135370769123812e+00), 
              std::complex<double> (4.546377618942056e+00 , 5.060074273504349e+00), 
@@ -954,7 +988,8 @@
              std::complex<double> (-6.688753749249799e+05 , -4.720258845701197e+05), 
              std::complex<double> (-1.253979242004132e+06 , -3.570845122537337e+05), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.848827710896310e-02 , -3.083419796194896e-01), 
              std::complex<double> (-7.145837501896683e-02 , -5.117979824308860e-02), 
              std::complex<double> (-4.900486083433561e-03 , 1.247318476562896e-02), 
@@ -986,6 +1021,7 @@
              std::complex<double> (-1.469835882863427e+05 , -4.112691636834620e+04), 
              std::complex<double> (-1.797481090066826e+05 , 1.636461013173675e+05), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -997,7 +1033,7 @@
             int np = 40;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.417516100858694e-01 , 2.196516570468493e+00), 
              std::complex<double> (4.278457056104908e-01 , 2.229465440435143e+00), 
              std::complex<double> (7.217994198821468e-01 , 2.295598359018710e+00), 
@@ -1039,7 +1075,8 @@
              std::complex<double> (-1.290262980361757e+01 , -2.476079984214628e+00), 
              std::complex<double> (-1.352215978190297e+01 , -8.726489691422259e-01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.504638230210518e-02 , -8.456763506351631e-02), 
              std::complex<double> (1.676486918849374e-02 , -7.502368011713352e-02), 
              std::complex<double> (2.338557597603085e-03 , -6.246763419055160e-02), 
@@ -1081,6 +1118,7 @@
              std::complex<double> (-2.818472858287379e-01 , 4.610429746162936e-01), 
              std::complex<double> (-1.034911702755943e-01 , 5.476288192120813e-01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -1092,7 +1130,7 @@
             int np = 40;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.247051952401725e-01 , 2.232493237272513e+00), 
              std::complex<double> (6.833241423084284e-01 , 2.323792446106953e+00), 
              std::complex<double> (1.169950927003540e+00 , 2.510108256597616e+00), 
@@ -1134,7 +1172,8 @@
              std::complex<double> (-1.243715084931796e+02 , -3.657213642771112e+01), 
              std::complex<double> (-1.392411699899747e+02 , -1.401492007487251e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.604599430842028e-02 , -1.345653050079428e-01), 
              std::complex<double> (4.733911358555620e-03 , -1.045644710559239e-01), 
              std::complex<double> (-1.868865314926323e-02 , -6.914798363299937e-02), 
@@ -1176,6 +1215,7 @@
              std::complex<double> (-6.303862047135905e+00 , 5.452763237979935e+00), 
              std::complex<double> (-2.666231792216790e+00 , 8.593552107547723e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -1187,7 +1227,7 @@
             int np = 40;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.380502976928041e+03 , -1.752929507900769e+02), 
              std::complex<double> (-1.161467739743247e+03 , -4.242962351887101e+02), 
              std::complex<double> (-8.863410485053548e+02 , -4.996883981717596e+02), 
@@ -1229,7 +1269,8 @@
              std::complex<double> (1.614211904208050e+01 , 1.629001244629045e+01), 
              std::complex<double> (2.087882576661274e+01 , 2.098752305579291e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-4.183649172366550e+01 , 1.050792704382306e+02), 
              std::complex<double> (-8.721318309593269e+01 , 4.994122803421722e+01), 
              std::complex<double> (-8.265766198824349e+01 , 2.542851052951221e+00), 
@@ -1271,6 +1312,7 @@
              std::complex<double> (-1.784010379689762e-07 , -3.584117059556656e-08), 
              std::complex<double> (4.388839603883910e-10 , -2.012138156257856e-09), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -1282,7 +1324,7 @@
             int np = 40;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (3.513967548888316e-01 , 2.249062414794250e+00), 
              std::complex<double> (1.089361169496664e+00 , 2.474168484784654e+00), 
              std::complex<double> (1.936358519777624e+00 , 2.946911221035930e+00), 
@@ -1324,7 +1366,8 @@
              std::complex<double> (-1.063573875096237e+04 , -4.682850369916442e+03), 
              std::complex<double> (-1.363559035551022e+04 , -2.130444299991752e+03), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (5.131991258029135e-02 , -1.988146551381288e-01), 
              std::complex<double> (-2.519323430544420e-02 , -1.165929182271678e-01), 
              std::complex<double> (-4.100581436741055e-02 , -4.294620292247499e-02), 
@@ -1366,6 +1409,7 @@
              std::complex<double> (-1.103862846575407e+03 , 3.738346861208732e+02), 
              std::complex<double> (-6.206073055935987e+02 , 1.237136982454575e+03), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -1377,7 +1421,7 @@
             int np = 40;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (4.236874150985871e-01 , 2.261484739022330e+00), 
              std::complex<double> (1.332711372847132e+00 , 2.590544691803601e+00), 
              std::complex<double> (2.435653041021486e+00 , 3.296544846147678e+00), 
@@ -1419,7 +1463,8 @@
              std::complex<double> (-9.589249988981654e+04 , -4.933210593795894e+04), 
              std::complex<double> (-1.342066434875044e+05 , -2.514351075935848e+04), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.868553406335742e-02 , -2.307022378968565e-01), 
              std::complex<double> (-4.240395935617308e-02 , -1.098723261416232e-01), 
              std::complex<double> (-4.233462627016228e-02 , -2.132305456193991e-02), 
@@ -1461,6 +1506,7 @@
              std::complex<double> (-1.287831028994922e+04 , 1.885408545774085e+03), 
              std::complex<double> (-8.692526686209811e+03 , 1.400109065838551e+04), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -1472,7 +1518,7 @@
             int np = 40;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.324423794647387e+06 , -2.778943173516811e+05), 
              std::complex<double> (-8.857088017215953e+05 , -4.997077118117369e+05), 
              std::complex<double> (-5.379020224447551e+05 , -4.236211908658502e+05), 
@@ -1514,7 +1560,8 @@
              std::complex<double> (1.145682677027411e+01 , 1.167020487432991e+01), 
              std::complex<double> (1.763496073921768e+01 , 1.777432536772771e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-1.066842556487189e+05 , 1.492891534541683e+05), 
              std::complex<double> (-1.378282571011091e+05 , 4.105766671444406e+03), 
              std::complex<double> (-8.436640993411018e+04 , -3.874339808039478e+04), 
@@ -1556,6 +1603,7 @@
              std::complex<double> (-2.377260425711240e-06 , 2.333310786142600e-05), 
              std::complex<double> (-2.100617480766600e-08 , 7.146187702367231e-08), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -1567,7 +1615,7 @@
             int np = 50;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.133703054618792e-01 , 2.195035778087808e+00), 
              std::complex<double> (3.414354583069990e-01 , 2.216111444312648e+00), 
              std::complex<double> (5.735025814063466e-01 , 2.258360838997484e+00), 
@@ -1619,7 +1667,8 @@
              std::complex<double> (-1.314635405300177e+01 , -2.025453833863905e+00), 
              std::complex<double> (-1.355148661526941e+01 , -6.999139569260415e-01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (2.961847367567371e-02 , -6.823725407134994e-02), 
              std::complex<double> (1.752725532102024e-02 , -6.262527700195072e-02), 
              std::complex<double> (7.197543292702524e-03 , -5.520625380739751e-02), 
@@ -1671,6 +1720,7 @@
              std::complex<double> (-1.874755566184580e-01 , 3.954857476687109e-01), 
              std::complex<double> (-6.653134166625671e-02 , 4.415065270502890e-01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -1682,7 +1732,7 @@
             int np = 50;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.796541295825249e-01 , 2.228413678178855e+00), 
              std::complex<double> (5.436684126139355e-01 , 2.286667897193813e+00), 
              std::complex<double> (9.219255665302288e-01 , 2.404692761861993e+00), 
@@ -1734,7 +1784,8 @@
              std::complex<double> (-1.299724876292864e+02 , -3.090170466800826e+01), 
              std::complex<double> (-1.399993611338230e+02 , -1.128671198390845e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.076887641406114e-02 , -1.094528781137635e-01), 
              std::complex<double> (1.229613571356190e-02 , -9.174542664698629e-02), 
              std::complex<double> (-7.393504067707328e-03 , -6.945063951894589e-02), 
@@ -1786,6 +1837,7 @@
              std::complex<double> (-4.426866522181935e+00 , 5.255581415997574e+00), 
              std::complex<double> (-1.726056550082089e+00 , 7.015077001794727e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -1797,7 +1849,7 @@
             int np = 50;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.392439924427647e+03 , -1.417221363967496e+02), 
              std::complex<double> (-1.240763033359282e+03 , -3.687036024102222e+02), 
              std::complex<double> (-1.021769628398501e+03 , -4.807072556922726e+02), 
@@ -1849,7 +1901,8 @@
              std::complex<double> (1.743924012769253e+01 , 1.757481184532335e+01), 
              std::complex<double> (2.142205118418490e+01 , 2.152704670126774e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-2.726636700038966e+01 , 8.682357956291592e+01), 
              std::complex<double> (-6.413869111602858e+01 , 5.449150263585295e+01), 
              std::complex<double> (-7.110952012079521e+01 , 1.827668427183355e+01), 
@@ -1901,6 +1954,7 @@
              std::complex<double> (-2.002064567123287e-08 , 3.800389709539244e-08), 
              std::complex<double> (-3.131742415385147e-10 , -9.304799152250146e-10), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -1912,7 +1966,7 @@
             int np = 50;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.845134132473768e-01 , 2.239587005003295e+00), 
              std::complex<double> (8.722082717546744e-01 , 2.386534990617662e+00), 
              std::complex<double> (1.517132110146170e+00 , 2.690072784386516e+00), 
@@ -1964,7 +2018,8 @@
              std::complex<double> (-1.161272625622255e+04 , -4.244109530393471e+03), 
              std::complex<double> (-1.380476136148152e+04 , -1.753733954181926e+03), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (5.021526557788189e-02 , -1.661682270448931e-01), 
              std::complex<double> (-8.563204749237142e-03 , -1.144935899289823e-01), 
              std::complex<double> (-3.189550785201041e-02 , -6.021928783126515e-02), 
@@ -2016,6 +2071,7 @@
              std::complex<double> (-8.726658955659848e+02 , 4.992222280656429e+02), 
              std::complex<double> (-4.187521670069627e+02 , 1.051212900579045e+03), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -2027,7 +2083,7 @@
             int np = 50;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (3.360366353479373e-01 , 2.246713782285198e+00), 
              std::complex<double> (1.038867341757046e+00 , 2.452355510885931e+00), 
              std::complex<double> (1.836785583654801e+00 , 2.882461356899797e+00), 
@@ -2079,7 +2135,8 @@
              std::complex<double> (-1.086138998596480e+05 , -4.601104241345434e+04), 
              std::complex<double> (-1.367709199829852e+05 , -2.045656199153189e+04), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (5.138195364933436e-02 , -1.915766499443587e-01), 
              std::complex<double> (-2.134696108576393e-02 , -1.168841633978796e-01), 
              std::complex<double> (-3.955409759994836e-02 , -4.733378009678753e-02), 
@@ -2131,6 +2188,7 @@
              std::complex<double> (-1.055610060529234e+04 , 4.078448794736943e+03), 
              std::complex<double> (-5.715895013354698e+03 , 1.197303668767842e+04), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -2142,7 +2200,7 @@
             int np = 50;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.354642547095930e+06 , -2.299749236441393e+05), 
              std::complex<double> (-1.017819625970495e+06 , -4.817093590213073e+05), 
              std::complex<double> (-6.859914542760970e+05 , -4.766135069012506e+05), 
@@ -2194,7 +2252,8 @@
              std::complex<double> (1.444815943019978e+01 , 1.461793805677213e+01), 
              std::complex<double> (2.041630959180083e+01 , 2.053680839852079e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-7.248207525384697e+04 , 1.312719572834811e+05), 
              std::complex<double> (-1.192310865205693e+05 , 2.976925585539365e+04), 
              std::complex<double> (-8.830798300247919e+04 , -2.262840010647413e+04), 
@@ -2246,6 +2305,7 @@
              std::complex<double> (3.507230587334518e-07 , -1.138685023589562e-06), 
              std::complex<double> (2.654143271200313e-09 , -3.377788977009339e-09), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -2257,7 +2317,7 @@
             int np = 60;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (9.446123273645193e-02 , 2.194231466660817e+00), 
              std::complex<double> (2.841495925536128e-01 , 2.208862936138592e+00), 
              std::complex<double> (4.761469912957646e-01 , 2.238173613613541e+00), 
@@ -2319,7 +2379,8 @@
              std::complex<double> (-1.328277064214437e+01 , -1.708704421717728e+00), 
              std::complex<double> (-1.356747236715070e+01 , -5.840770148416239e-01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (2.556741472824438e-02 , -5.717172593971405e-02), 
              std::complex<double> (1.701078238984198e-02 , -5.351843048127727e-02), 
              std::complex<double> (9.372267296622869e-03 , -4.872782204746415e-02), 
@@ -2381,6 +2442,7 @@
              std::complex<double> (-1.329933316172349e-01 , 3.422850801897535e-01), 
              std::complex<double> (-4.631495174648438e-02 , 3.694720536060412e-01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -2392,7 +2454,7 @@
             int np = 60;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.496619826558128e-01 , 2.226198661919609e+00), 
              std::complex<double> (4.517065923266886e-01 , 2.266586217490303e+00), 
              std::complex<double> (7.619631957538453e-01 , 2.348091004034882e+00), 
@@ -2454,7 +2516,8 @@
              std::complex<double> (-1.332442174827556e+02 , -2.655415927350670e+01), 
              std::complex<double> (-1.404148823820433e+02 , -9.439754884031480e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.619402173000091e-02 , -9.214721205349696e-02), 
              std::complex<double> (1.557253695776050e-02 , -8.066393105636584e-02), 
              std::complex<double> (-2.983479295989716e-04 , -6.581235970296620e-02), 
@@ -2516,6 +2579,7 @@
              std::complex<double> (-3.239665278292180e+00 , 4.839245152733454e+00), 
              std::complex<double> (-1.206171099527117e+00 , 5.910359299042206e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -2527,7 +2591,7 @@
             int np = 60;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.939260788557894e-01 , 2.229887211140953e+00), 
              std::complex<double> (5.876898284796196e-01 , 2.297861116671029e+00), 
              std::complex<double> (9.993685838243684e-01 , 2.435880895810604e+00), 
@@ -2589,7 +2653,8 @@
              std::complex<double> (-1.283237076571066e+03 , -3.281944987699488e+02), 
              std::complex<double> (-1.398274790434476e+03 , -1.216034362263324e+02), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.264135107009560e-02 , -1.175645333795055e-01), 
              std::complex<double> (1.019392746737781e-02 , -9.633660674130409e-02), 
              std::complex<double> (-1.098597578418513e-02 , -7.008001315146835e-02), 
@@ -2651,6 +2716,7 @@
              std::complex<double> (-5.017556022807791e+01 , 5.373453712305954e+01), 
              std::complex<double> (-2.004606017223242e+01 , 7.528088783829627e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -2662,7 +2728,7 @@
             int np = 60;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.337274684901893e-01 , 2.233703338149454e+00), 
              std::complex<double> (7.115319101155055e-01 , 2.332612201546095e+00), 
              std::complex<double> (1.220843144646808e+00 , 2.534809632118855e+00), 
@@ -2724,7 +2790,8 @@
              std::complex<double> (-1.232163559902056e+04 , -3.758548852529564e+03), 
              std::complex<double> (-1.391217958980615e+04 , -1.455725324474690e+03), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.687323212852271e-02 , -1.395045477936762e-01), 
              std::complex<double> (2.904915129935102e-03 , -1.066028799674519e-01), 
              std::complex<double> (-2.090281845171531e-02 , -6.836941903140625e-02), 
@@ -2786,6 +2853,7 @@
              std::complex<double> (-6.683072503545627e+02 , 5.432956351862030e+02), 
              std::complex<double> (-2.877667098641024e+02 , 8.898531512173056e+02), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -2797,7 +2865,7 @@
             int np = 60;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.785108125258925e-01 , 2.238832390323359e+00), 
              std::complex<double> (8.530436583379893e-01 , 2.379597798268594e+00), 
              std::complex<double> (1.481211175229646e+00 , 2.669979165047927e+00), 
@@ -2859,7 +2927,8 @@
              std::complex<double> (-1.169879351443493e+05 , -4.193810241767642e+04), 
              std::complex<double> (-1.381843621202163e+05 , -1.719013854680977e+04), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.993657181725414e-02 , -1.630982241731053e-01), 
              std::complex<double> (-7.123267096976707e-03 , -1.138571544251580e-01), 
              std::complex<double> (-3.074947284306809e-02 , -6.146415413361575e-02), 
@@ -2921,6 +2990,7 @@
              std::complex<double> (-8.495070197100855e+03 , 5.070999125182982e+03), 
              std::complex<double> (-4.021992067616447e+03 , 1.032999041212333e+04), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -2932,7 +3002,7 @@
             int np = 60;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (3.197363428479155e-01 , 2.244333649333830e+00), 
              std::complex<double> (9.857041705413224e-01 , 2.430311690342918e+00), 
              std::complex<double> (1.733352959859337e+00 , 2.817678953273663e+00), 
@@ -2994,7 +3064,8 @@
              std::complex<double> (-1.110063781298317e+06 , -4.502280522701592e+05), 
              std::complex<double> (-1.371943711633377e+06 , -1.954523406498802e+05), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (5.124559001177230e-02 , -1.837241308119611e-01), 
              std::complex<double> (-1.725699605587730e-02 , -1.167046563400317e-01), 
              std::complex<double> (-3.758068420264156e-02 , -5.176730935964352e-02), 
@@ -3056,6 +3127,7 @@
              std::complex<double> (-1.001085234164198e+05 , 4.408929766738044e+04), 
              std::complex<double> (-5.212389489190626e+04 , 1.153125613621245e+05), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -3067,7 +3139,7 @@
             int np = 70;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (8.095952496331538e-02 , 2.193746515945179e+00), 
              std::complex<double> (2.433606511185071e-01 , 2.204494205981956e+00), 
              std::complex<double> (4.072132501414205e-01 , 2.226015498687059e+00), 
@@ -3139,7 +3211,8 @@
              std::complex<double> (-1.336644646256196e+01 , -1.475561652846714e+00), 
              std::complex<double> (-1.357713010728519e+01 , -5.010597149039074e-01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (2.245957185845813e-02 , -4.918546645265892e-02), 
              std::complex<double> (1.609734428889497e-02 , -4.663379280923365e-02), 
              std::complex<double> (1.026217176060783e-02 , -4.332922440745478e-02), 
@@ -3211,6 +3284,7 @@
              std::complex<double> (-9.898380685154805e-02 , 3.001575503013630e-01), 
              std::complex<double> (-3.407735682425031e-02 , 3.174941143877986e-01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -3222,7 +3296,7 @@
             int np = 70;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.282559695822731e-01 , 2.224863430910784e+00), 
              std::complex<double> (3.864801577709565e-01 , 2.254506372276067e+00), 
              std::complex<double> (6.498642283432732e-01 , 2.314185586904715e+00), 
@@ -3294,7 +3368,8 @@
              std::complex<double> (-1.353023727354058e+02 , -2.319429344028576e+01), 
              std::complex<double> (-1.406666890293802e+02 , -8.108966302711917e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.239579819177296e-02 , -7.952922630229921e-02), 
              std::complex<double> (1.684156665264725e-02 , -7.155947903902719e-02), 
              std::complex<double> (4.065675511422760e-03 , -6.115931040180501e-02), 
@@ -3366,6 +3441,7 @@
              std::complex<double> (-2.458375658987351e+00 , 4.403751622403011e+00), 
              std::complex<double> (-8.895238740237641e-01 , 5.099628520452095e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -3377,7 +3453,7 @@
             int np = 70;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.655884801622234e-01 , 2.227601691727355e+00), 
              std::complex<double> (5.004457649091401e-01 , 2.277110755037943e+00), 
              std::complex<double> (8.464258308992847e-01 , 2.377229188370575e+00), 
@@ -3449,7 +3525,8 @@
              std::complex<double> (-1.316067164869750e+03 , -2.892350482021686e+02), 
              std::complex<double> (-1.402545719713254e+03 , -1.042580524821230e+02), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.872814711564961e-02 , -1.014257574013252e-01), 
              std::complex<double> (1.402606776700513e-02 , -8.682278003349037e-02), 
              std::complex<double> (-3.977381614070602e-03 , -6.817115236665321e-02), 
@@ -3521,6 +3598,7 @@
              std::complex<double> (-3.861098340089897e+01 , 5.089615341191893e+01), 
              std::complex<double> (-1.472007952776949e+01 , 6.503375378705698e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -3532,7 +3610,7 @@
             int np = 70;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.021708718349744e-01 , 2.230622141048614e+00), 
              std::complex<double> (6.132106294769841e-01 , 2.304523663351456e+00), 
              std::complex<double> (1.044566337597725e+00 , 2.454775097829716e+00), 
@@ -3604,7 +3682,8 @@
              std::complex<double> (-1.273088944238405e+04 , -3.387561973398755e+03), 
              std::complex<double> (-1.396917862536416e+04 , -1.266086698208270e+03), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.363782994091615e-02 , -1.221812650141633e-01), 
              std::complex<double> (8.847828818564614e-03 , -9.876184141870101e-02), 
              std::complex<double> (-1.307011235715247e-02 , -7.012392788238009e-02), 
@@ -3676,6 +3755,7 @@
              std::complex<double> (-5.361568879026403e+02 , 5.417691400688285e+02), 
              std::complex<double> (-2.173737192719460e+02 , 7.818929823288636e+02), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -3687,7 +3767,7 @@
             int np = 70;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.378330402956910e-01 , 2.234136691056260e+00), 
              std::complex<double> (7.244036472059422e-01 , 2.336570744242283e+00), 
              std::complex<double> (1.244187800178592e+00 , 2.546135400842448e+00), 
@@ -3759,7 +3839,8 @@
              std::complex<double> (-1.226630461591275e+05 , -3.802904672769193e+04), 
              std::complex<double> (-1.390420546972927e+05 , -1.480159863537414e+04), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.722771559883712e-02 , -1.417169197215209e-01), 
              std::complex<double> (2.052145764463009e-03 , -1.074555104328661e-01), 
              std::complex<double> (-2.188374457147649e-02 , -6.793468550560181e-02), 
@@ -3831,6 +3912,7 @@
              std::complex<double> (-6.853753525816459e+03 , 5.417667344726699e+03), 
              std::complex<double> (-2.975661318670755e+03 , 9.034866270057402e+03), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -3842,7 +3924,7 @@
             int np = 70;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.746154632474116e-01 , 2.238351146061742e+00), 
              std::complex<double> (8.406330849892244e-01 , 2.375177084752503e+00), 
              std::complex<double> (1.458036929638161e+00 , 2.657192858741442e+00), 
@@ -3914,7 +3996,8 @@
              std::complex<double> (-1.175438858905829e+06 , -4.160164732426154e+05), 
              std::complex<double> (-1.382717224784044e+06 , -1.696407339285640e+05), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.973931937341641e-02 , -1.610940320919921e-01), 
              std::complex<double> (-6.198166443630582e-03 , -1.134024973685601e-01), 
              std::complex<double> (-2.998070554496576e-02 , -6.223635975489507e-02), 
@@ -3986,6 +4069,7 @@
              std::complex<double> (-8.343055400197847e+04 , 5.118573811160594e+04), 
              std::complex<double> (-3.916055779709476e+04 , 1.021051814450940e+05), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -3997,7 +4081,7 @@
             int np = 80;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (7.083546963511003e-02 , 2.193431773828008e+00), 
              std::complex<double> (2.128292596780030e-01 , 2.201659497256350e+00), 
              std::complex<double> (3.557942885723127e-01 , 2.218130188354594e+00), 
@@ -4079,7 +4163,8 @@
              std::complex<double> (-1.342134002449547e+01 , -1.297409460845221e+00), 
              std::complex<double> (-1.358340595429821e+01 , -4.386673665886801e-01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (2.001069762260830e-02 , -4.315276230242345e-02), 
              std::complex<double> (1.509973855369310e-02 , -4.127674639303009e-02), 
              std::complex<double> (1.051431572528286e-02 , -3.887987262621867e-02), 
@@ -4161,6 +4246,7 @@
              std::complex<double> (-7.642828534800115e-02 , 2.665552907377046e-01), 
              std::complex<double> (-2.611539125691093e-02 , 2.782647878848628e-01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -4172,7 +4258,7 @@
             int np = 80;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.122093626547606e-01 , 2.223996957105819e+00), 
              std::complex<double> (3.377747077352575e-01 , 2.246677659337773e+00), 
              std::complex<double> (5.667917698004453e-01 , 2.292269426708736e+00), 
@@ -4254,7 +4340,8 @@
              std::complex<double> (-1.366744941627362e+02 , -2.054820242183309e+01), 
              std::complex<double> (-1.408306319245036e+02 , -7.105457316398669e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (2.925265625719715e-02 , -6.993300600712424e-02), 
              std::complex<double> (1.713187642882117e-02 , -6.411437645734148e-02), 
              std::complex<double> (6.741381739717948e-03 , -5.652138214436539e-02), 
@@ -4336,6 +4423,7 @@
              std::complex<double> (-1.922689619082988e+00 , 4.005526141424753e+00), 
              std::complex<double> (-6.827180395701320e-01 , 4.481363489046805e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -4347,7 +4435,7 @@
             int np = 80;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.444817574819190e-01 , 2.226132250270381e+00), 
              std::complex<double> (4.358900241427738e-01 , 2.263799503062317e+00), 
              std::complex<double> (7.346739181829208e-01 , 2.339771330850222e+00), 
@@ -4429,7 +4517,8 @@
              std::complex<double> (-1.338134350081041e+03 , -2.576550676745413e+02), 
              std::complex<double> (-1.405307006259993e+03 , -9.120806997943136e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.531387072031116e-02 , -8.914254266512388e-02), 
              std::complex<double> (1.596084517744170e-02 , -7.857339097138005e-02), 
              std::complex<double> (8.169131502921423e-04 , -6.486428763536679e-02), 
@@ -4511,6 +4600,7 @@
              std::complex<double> (-3.045797901156062e+01 , 4.744992532719559e+01), 
              std::complex<double> (-1.125823728769585e+01 , 5.717097801483821e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -4522,7 +4612,7 @@
             int np = 80;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.401180702433961e+04 , -1.101375521307736e+03), 
              std::complex<double> (-1.305371574950660e+04 , -3.028405508328573e+03), 
              std::complex<double> (-1.149810919455092e+04 , -4.307844815788613e+03), 
@@ -4604,7 +4694,8 @@
              std::complex<double> (2.041770103386169e+01 , 2.053810606289690e+01), 
              std::complex<double> (2.392040509776416e+01 , 2.402319666054810e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-1.643253277213865e+02 , 6.853492641853270e+02), 
              std::complex<double> (-4.245452330975214e+02 , 5.208417899852682e+02), 
              std::complex<double> (-5.416809261337361e+02 , 2.926853310663033e+02), 
@@ -4686,6 +4777,7 @@
              std::complex<double> (1.215861534831776e-09 , -1.551522131425143e-09), 
              std::complex<double> (-2.199115146298565e-11 , 6.592063658416611e-11), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -4697,7 +4789,7 @@
             int np = 80;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.075381190344780e-01 , 2.231115028437246e+00), 
              std::complex<double> (6.298601158726912e-01 , 2.309009736757388e+00), 
              std::complex<double> (1.074172359511856e+00 , 2.467518683987493e+00), 
@@ -4779,7 +4871,8 @@
              std::complex<double> (-1.266349821387212e+05 , -3.454395330293699e+04), 
              std::complex<double> (-1.396002686181592e+05 , -1.298560441583595e+04), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.425259009253896e-02 , -1.251666915770174e-01), 
              std::complex<double> (7.921786328353043e-03 , -1.002567090439868e-01), 
              std::complex<double> (-1.442519387075889e-02 , -7.003556718962822e-02), 
@@ -4861,6 +4954,7 @@
              std::complex<double> (-5.586352232782305e+03 , 5.437353166195682e+03), 
              std::complex<double> (-2.287181954552755e+03 , 8.006368921483246e+03), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -4872,7 +4966,7 @@
             int np = 80;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.406758305584298e-01 , 2.234441105956614e+00), 
              std::complex<double> (7.333277319730555e-01 , 2.339352851379736e+00), 
              std::complex<double> (1.260410924558027e+00 , 2.554102170925378e+00), 
@@ -4954,7 +5048,8 @@
              std::complex<double> (-1.222774770001252e+06 , -3.833088490028189e+05), 
              std::complex<double> (-1.389860930135289e+06 , -1.497045202197722e+05), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.746432831988071e-02 , -1.432430936539446e-01), 
              std::complex<double> (1.452404902773017e-03 , -1.080234302313324e-01), 
              std::complex<double> (-2.255554446640939e-02 , -6.760798558040539e-02), 
@@ -5036,6 +5131,7 @@
              std::complex<double> (-6.971567822277060e+04 , 5.404847578039418e+04), 
              std::complex<double> (-3.044356397095970e+04 , 9.128686378653791e+04), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -5047,7 +5143,7 @@
             int np = 90;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (6.296235444976131e-02 , 2.193215992013474e+00), 
              std::complex<double> (1.891137623699831e-01 , 2.199716379353577e+00), 
              std::complex<double> (3.159467569500394e-01 , 2.212726694289086e+00), 
@@ -5139,7 +5235,8 @@
              std::complex<double> (-1.345924457642756e+01 , -1.157116619395263e+00), 
              std::complex<double> (-1.358771211763002e+01 , -3.900730022154079e-01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.803575797072527e-02 , -3.843605822762404e-02), 
              std::complex<double> (1.413272326810967e-02 , -3.700212564855036e-02), 
              std::complex<double> (1.044256601959725e-02 , -3.519427963770197e-02), 
@@ -5231,6 +5328,7 @@
              std::complex<double> (-6.074038897867824e-02 , 2.393552906465018e-01), 
              std::complex<double> (-2.064789650063147e-02 , 2.476256396004479e-01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -5242,7 +5340,7 @@
             int np = 90;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.409585574666739e+02 , -6.208013012619640e+00), 
              std::complex<double> (-1.377633378128593e+02 , -1.810845650899650e+01), 
              std::complex<double> (-1.318097313020153e+02 , -2.858398449834590e+01), 
@@ -5334,7 +5432,8 @@
              std::complex<double> (2.167328247083047e+01 , 2.082802490383194e+01), 
              std::complex<double> (2.377601132671651e+01 , 2.263036008990241e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-5.209916032474363e-01 , 3.924096258211076e+00), 
              std::complex<double> (-1.489146998454898e+00 , 3.602663574926765e+00), 
              std::complex<double> (-2.261075406072512e+00 , 3.034139868494358e+00), 
@@ -5426,6 +5525,7 @@
              std::complex<double> (9.861036921629750e-11 , -3.108781043269991e-10), 
              std::complex<double> (-4.340741045406050e-11 , -2.738064999809111e-12), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -5437,7 +5537,7 @@
             int np = 90;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.281500815092744e-01 , 2.225131974763747e+00), 
              std::complex<double> (3.861561397220034e-01 , 2.254751665349612e+00), 
              std::complex<double> (6.493025946347207e-01 , 2.314385310896215e+00), 
@@ -5529,7 +5629,8 @@
              std::complex<double> (-1.353611126336585e+03 , -2.318238656893732e+02), 
              std::complex<double> (-1.407193588593129e+03 , -8.104327074652201e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.237426971377125e-02 , -7.949234361981600e-02), 
              std::complex<double> (1.684047979275636e-02 , -7.153375986924793e-02), 
              std::complex<double> (4.077526677481833e-03 , -6.114917220252137e-02), 
@@ -5621,6 +5722,7 @@
              std::complex<double> (-2.455726628923597e+01 , 4.402114549036602e+01), 
              std::complex<double> (-8.884691205928279e+00 , 5.096790087245800e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -5632,7 +5734,7 @@
             int np = 90;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.568229049436618e-01 , 2.226970026708835e+00), 
              std::complex<double> (4.735949293770211e-01 , 2.271363954273878e+00), 
              std::complex<double> (7.998079176145666e-01 , 2.361036787630041e+00), 
@@ -5724,7 +5826,8 @@
              std::complex<double> (-1.325503961620700e+04 , -2.763766475699011e+03), 
              std::complex<double> (-1.403741548784747e+04 , -9.885127542373318e+02), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.736248847814026e-02 , -9.635130843869724e-02), 
              std::complex<double> (1.493276057287650e-02 , -8.351550622180254e-02), 
              std::complex<double> (-1.923019032592736e-03 , -6.699965974697998e-02), 
@@ -5816,6 +5919,7 @@
              std::complex<double> (-3.516377197424043e+02 , 4.960215095693026e+02), 
              std::complex<double> (-1.322913327119501e+02 , 6.179082911704741e+02), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -5827,7 +5931,7 @@
             int np = 90;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.399833798159727e+05 , -1.156116349392682e+04), 
              std::complex<double> (-1.295008633859566e+05 , -3.151432479584240e+04), 
              std::complex<double> (-1.128030015822007e+05 , -4.419295055400243e+04), 
@@ -5919,7 +6023,8 @@
              std::complex<double> (2.006934596716368e+01 , 2.019191464189026e+01), 
              std::complex<double> (2.370320231643982e+01 , 2.380706908810149e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-1.811246316918194e+03 , 7.176960641367630e+03), 
              std::complex<double> (-4.610836940794743e+03 , 5.298254964096260e+03), 
              std::complex<double> (-5.747120795212510e+03 , 2.780565830457669e+03), 
@@ -6011,6 +6116,7 @@
              std::complex<double> (2.444424279158997e-09 , -1.532547553601588e-09), 
              std::complex<double> (-4.608808248408123e-11 , 7.722105148379040e-11), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -6022,7 +6128,7 @@
             int np = 90;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (2.142139585260445e-01 , 2.231745913138039e+00), 
              std::complex<double> (6.506095860214213e-01 , 2.314755933981375e+00), 
              std::complex<double> (1.111204704596179e+00 , 2.483863542152572e+00), 
@@ -6114,7 +6220,8 @@
              std::complex<double> (-1.257832963961750e+06 , -3.535397282882524e+05), 
              std::complex<double> (-1.394833094330620e+06 , -1.338829464816422e+05), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.498011403180879e-02 , -1.288579511892791e-01), 
              std::complex<double> (6.718395015934575e-03 , -1.020237591900611e-01), 
              std::complex<double> (-1.610290893921635e-02 , -6.980127117616158e-02), 
@@ -6206,6 +6313,7 @@
              std::complex<double> (-5.866380443059179e+04 , 5.451888758519678e+04), 
              std::complex<double> (-2.431924451621536e+04 , 8.237377747313668e+04), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -6217,7 +6325,7 @@
             int np = 100;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (5.666450485846061e-02 , 2.193061646719562e+00), 
              std::complex<double> (1.701587524136213e-01 , 2.198326653094210e+00), 
              std::complex<double> (2.841495925536128e-01 , 2.208862936138592e+00), 
@@ -6319,7 +6427,8 @@
              std::complex<double> (-1.348649335512484e+01 , -1.043905317943798e+00), 
              std::complex<double> (-1.359079402110030e+01 , -3.511600392040694e-01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.641138854007152e-02 , -3.464762921578869e-02), 
              std::complex<double> (1.323607837140674e-02 , -3.351777480770128e-02), 
              std::complex<double> (1.020646943390519e-02 , -3.211105828876636e-02), 
@@ -6421,6 +6530,7 @@
              std::complex<double> (-4.940558935987494e-02 , 2.169895114863689e-01), 
              std::complex<double> (-1.673263236934769e-02 , 2.230429654032053e-01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -6432,7 +6542,7 @@
             int np = 100;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.410351381260263e+02 , -5.601106064869741e+00), 
              std::complex<double> (-1.384229471880053e+02 , -1.642319356040026e+01), 
              std::complex<double> (-1.334929262009688e+02 , -2.617893604212439e+01), 
@@ -6534,7 +6644,8 @@
              std::complex<double> (2.230611346503077e+01 , 2.137527369277894e+01), 
              std::complex<double> (2.425175310415260e+01 , 2.303164661332415e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-4.240277589976861e-01 , 3.545191809022904e+00), 
              std::complex<double> (-1.222870874650325e+00 , 3.307290011531330e+00), 
              std::complex<double> (-1.888001449007724e+00 , 2.877006876496610e+00), 
@@ -6636,6 +6747,7 @@
              std::complex<double> (-3.874194490407036e-11 , -1.557683314464242e-10), 
              std::complex<double> (-2.339852766377716e-11 , 8.311220753783917e-12), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -6647,7 +6759,7 @@
             int np = 100;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.151370639329965e-01 , 2.224420472089534e+00), 
              std::complex<double> (3.466483952429339e-01 , 2.248322467843213e+00), 
              std::complex<double> (5.818846328398292e-01 , 2.296383282303677e+00), 
@@ -6749,7 +6861,8 @@
              std::complex<double> (-1.364853339933160e+03 , -2.104343246116567e+02), 
              std::complex<double> (-1.408538957608287e+03 , -7.290664784340048e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (2.984386463043470e-02 , -7.171594048967596e-02), 
              std::complex<double> (1.711955768377752e-02 , -6.553114089315927e-02), 
              std::complex<double> (6.292210956861399e-03 , -5.745743239576310e-02), 
@@ -6851,6 +6964,7 @@
              std::complex<double> (-2.017646053088083e+01 , 4.083364702167486e+01), 
              std::complex<double> (-7.187926704911654e+00 , 4.595882059612858e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -6862,7 +6976,7 @@
             int np = 100;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.405843210685310e+04 , -8.846891643929260e+02), 
              std::complex<double> (-1.342462367628984e+04 , -2.507961959703773e+03), 
              std::complex<double> (-1.232163559902056e+04 , -3.758548852529564e+03), 
@@ -6964,7 +7078,8 @@
              std::complex<double> (2.141149735278718e+01 , 2.152632741992428e+01), 
              std::complex<double> (2.430183490944760e+01 , 2.440301104708961e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-1.059083105320044e+02 , 5.550577664533006e+02), 
              std::complex<double> (-2.882501538390075e+02 , 4.658849656961488e+02), 
              std::complex<double> (-4.009843502127376e+02 , 3.259773811117217e+02), 
@@ -7066,6 +7181,7 @@
              std::complex<double> (-1.944026031218428e-10 , -5.802855675171922e-10), 
              std::complex<double> (2.226270631783889e-12 , 3.850248353673236e-11), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -7077,7 +7193,7 @@
             int np = 100;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.402574684814654e+05 , -1.041531723113820e+04), 
              std::complex<double> (-1.316259157006457e+05 , -2.889887664249141e+04), 
              std::complex<double> (-1.173253533125344e+05 , -4.173500114413752e+04), 
@@ -7179,7 +7295,8 @@
              std::complex<double> (2.015415279409038e+01 , 2.027620880854997e+01), 
              std::complex<double> (2.340572076142829e+01 , 2.351090185419352e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-1.469038912878495e+03 , 6.497105680704411e+03), 
              std::complex<double> (-3.854327025815027e+03 , 5.087289166072281e+03), 
              std::complex<double> (-5.041821529563605e+03 , 3.060114138094353e+03), 
@@ -7281,6 +7398,7 @@
              std::complex<double> (1.912591477659867e-09 , -1.436753819772011e-09), 
              std::complex<double> (-7.960514117276188e-11 , 7.219142043605044e-11), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -7292,7 +7410,7 @@
             int np = 100;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.930010546223877e-01 , 2.229809769416363e+00), 
              std::complex<double> (5.848304895228312e-01 , 2.297134933336184e+00), 
              std::complex<double> (9.943178471421988e-01 , 2.433818025580559e+00), 
@@ -7394,7 +7512,8 @@
              std::complex<double> (-1.284365134135903e+06 , -3.269881447574507e+05), 
              std::complex<double> (-1.398429435543758e+06 , -1.210409782909898e+05), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.252554826782776e-02 , -1.170447126255719e-01), 
              std::complex<double> (1.033880119648197e-02 , -9.605511064846925e-02), 
              std::complex<double> (-1.075261155832256e-02 , -7.006142056968370e-02), 
@@ -7496,6 +7615,7 @@
              std::complex<double> (-4.979118309998683e+04 , 5.367427019825974e+04), 
              std::complex<double> (-1.986032494063841e+04 , 7.495263026716369e+04), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -7507,7 +7627,7 @@
             int np = 110;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (5.151210055007670e-02 , 2.192947449821785e+00), 
              std::complex<double> (1.546604329746950e-01 , 2.197298506662321e+00), 
              std::complex<double> (2.581817049661390e-01 , 2.206004908555526e+00), 
@@ -7619,7 +7739,8 @@
              std::complex<double> (-1.350672780262413e+01 , -9.506930276843925e-01), 
              std::complex<double> (-1.359307521062537e+01 , -3.192998797537979e-01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.505291515835490e-02 , -3.153827299423523e-02), 
              std::complex<double> (1.241982576140167e-02 , -3.062604453921823e-02), 
              std::complex<double> (9.890237230748984e-03 , -2.950340612139461e-02), 
@@ -7731,6 +7852,7 @@
              std::complex<double> (-4.095765906069090e-02 , 1.983257479091159e-01), 
              std::complex<double> (-1.383341645406504e-02 , 2.028874161559498e-01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -7742,7 +7864,7 @@
             int np = 110;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.410921389298206e+02 , -5.102033652416205e+00), 
              std::complex<double> (-1.389177570776760e+02 , -1.501797694161365e+01), 
              std::complex<double> (-1.347742194972778e+02 , -2.411654190034418e+01), 
@@ -7854,7 +7976,8 @@
              std::complex<double> (2.284030581881544e+01 , 2.183402366888537e+01), 
              std::complex<double> (2.464994204283032e+01 , 2.336562218076628e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-3.517829167161356e-01 , 3.232508060263609e+00), 
              std::complex<double> (-1.021317643232003e+00 , 3.051663195283350e+00), 
              std::complex<double> (-1.596845243696964e+00 , 2.719037511266470e+00), 
@@ -7966,6 +8089,7 @@
              std::complex<double> (-5.682014538472087e-11 , -6.668315570712365e-11), 
              std::complex<double> (-1.200870690808765e-11 , 9.668143779702450e-12), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -7977,7 +8101,7 @@
             int np = 110;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.045241189787993e-01 , 2.223896402202552e+00), 
              std::complex<double> (3.144980035218642e-01 , 2.243590431163084e+00), 
              std::complex<double> (5.272570261657736e-01 , 2.283152885302731e+00), 
@@ -8089,7 +8213,8 @@
              std::complex<double> (-1.373261660214161e+03 , -1.924986149217022e+02), 
              std::complex<double> (-1.409531742962797e+03 , -6.624861817300990e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (2.765557672549822e-02 , -6.531864381498556e-02), 
              std::complex<double> (1.705226879142394e-02 , -6.038768673116501e-02), 
              std::complex<double> (7.791502511384330e-03 , -5.396871553036173e-02), 
@@ -8201,6 +8326,7 @@
              std::complex<double> (-1.684786647837975e+01 , 3.795058385392257e+01), 
              std::complex<double> (-5.933631991313323e+00 , 4.183415948784990e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -8212,7 +8338,7 @@
             int np = 110;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.281004846461905e-01 , 2.225131863806213e+00), 
              std::complex<double> (3.860053480990931e-01 , 2.254728851191238e+00), 
              std::complex<double> (6.490445579509870e-01 , 2.314316502093808e+00), 
@@ -8324,7 +8450,8 @@
              std::complex<double> (-1.353660774944230e+04 , -2.317441843901861e+03), 
              std::complex<double> (-1.407204133330409e+04 , -8.101251634024560e+02), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.236492721530396e-02 , -7.946311023989693e-02), 
              std::complex<double> (1.684222370803156e-02 , -7.151175108458524e-02), 
              std::complex<double> (4.086593939525342e-03 , -6.113650629284959e-02), 
@@ -8436,6 +8563,7 @@
              std::complex<double> (-2.454009737275053e+02 , 4.400982872099809e+02), 
              std::complex<double> (-8.877934455129612e+01 , 5.094903844701616e+02), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -8447,7 +8575,7 @@
             int np = 110;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.519316366493614e-01 , 2.226630957638840e+00), 
              std::complex<double> (4.586376352225857e-01 , 2.268292458996861e+00), 
              std::complex<double> (7.739249985855426e-01 , 2.352394971536943e+00), 
@@ -8559,7 +8687,8 @@
              std::complex<double> (-1.330604432747049e+05 , -2.690417049303872e+04), 
              std::complex<double> (-1.404378938245601e+05 , -9.582620318434125e+03), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.656821562357824e-02 , -9.350312110421206e-02), 
              std::complex<double> (1.537595786432195e-02 , -8.159641738884937e-02), 
              std::complex<double> (-8.132431991534975e-04 , -6.622192360117228e-02), 
@@ -8671,6 +8800,7 @@
              std::complex<double> (-3.327632604388425e+03 , 4.879509354140049e+03), 
              std::complex<double> (-1.242994336918560e+03 , 5.996718251170348e+03), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -8682,7 +8812,7 @@
             int np = 110;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.756148204503710e-01 , 2.228372223360712e+00), 
              std::complex<double> (5.312345544927320e-01 , 2.284078009265607e+00), 
              std::complex<double> (9.001343133269728e-01 , 2.396882137807526e+00), 
@@ -8794,7 +8924,8 @@
              std::complex<double> (-1.304846764880905e+06 , -3.034833692235303e+05), 
              std::complex<double> (-1.401113011445725e+06 , -1.104197078796634e+05), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.019981173074939e-02 , -1.071835896388047e-01), 
              std::complex<double> (1.282049868658381e-02 , -9.039656229601037e-02), 
              std::complex<double> (-6.409093897302265e-03 , -6.916855866375468e-02), 
@@ -8906,6 +9037,7 @@
              std::complex<double> (-4.264119899556440e+04 , 5.213539800406805e+04), 
              std::complex<double> (-1.651710486665597e+04 , 6.870225757258547e+04), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -8917,7 +9049,7 @@
             int np = 120;
             int m = 1;
             double b = 1.000000000000000e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (4.721866857989455e-02 , 2.192860594378805e+00), 
              std::complex<double> (1.417516100858694e-01 , 2.196516570468493e+00), 
              std::complex<double> (2.365717176355717e-01 , 2.203831553370526e+00), 
@@ -9039,7 +9171,8 @@
              std::complex<double> (-1.352215978190297e+01 , -8.726489691422212e-01), 
              std::complex<double> (-1.359481077192524e+01 , -2.927358291226765e-01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.390057028792937e-02 , -2.894057993387196e-02), 
              std::complex<double> (1.168212743403506e-02 , -2.818921168783877e-02), 
              std::complex<double> (9.539510831581294e-03 , -2.727436078136892e-02), 
@@ -9161,6 +9294,7 @@
              std::complex<double> (-3.449705675853123e-02 , 1.825429397373604e-01), 
              std::complex<double> (-1.162697814453162e-02 , 1.860645960198832e-01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -9172,7 +9306,7 @@
             int np = 120;
             int m = 1;
             double b = 1.000000000000000e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.411357041271868e+02 , -4.684455601586700e+00), 
              std::complex<double> (-1.392981729789154e+02 , -1.382986456930154e+01), 
              std::complex<double> (-1.357703801047031e+02 , -2.233571929779325e+01), 
@@ -9294,7 +9428,8 @@
              std::complex<double> (2.329716504867055e+01 , 2.222399632907984e+01), 
              std::complex<double> (2.498808149511691e+01 , 2.364786126507799e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-2.965252072279357e-01 , 2.970188652038569e+00), 
              std::complex<double> (-8.653086538585906e-01 , 2.829593453652483e+00), 
              std::complex<double> (-1.366197405476160e+00 , 2.567631648884073e+00), 
@@ -9416,6 +9551,7 @@
              std::complex<double> (-4.620499194627627e-11 , -2.360630933830548e-11), 
              std::complex<double> (-5.842667831558888e-12 , 8.386119935946834e-12), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -9427,7 +9563,7 @@
             int np = 120;
             int m = 1;
             double b = 1.000000000000000e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (9.570313129143278e-02 , 2.223499274369724e+00), 
              std::complex<double> (2.878199102472087e-01 , 2.240006583417782e+00), 
              std::complex<double> (4.820735139497593e-01 , 2.273143747222095e+00), 
@@ -9549,7 +9685,8 @@
              std::complex<double> (-1.379706925594010e+03 , -1.772794448157480e+02), 
              std::complex<double> (-1.410285088820463e+03 , -6.070103128412122e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (2.575106391129850e-02 , -5.996498248169562e-02), 
              std::complex<double> (1.678528370356886e-02 , -5.594973682732356e-02), 
              std::complex<double> (8.796989950031978e-03 , -5.074728013393329e-02), 
@@ -9671,6 +9808,7 @@
              std::complex<double> (-1.426617971558032e+01 , 3.537136171969730e+01), 
              std::complex<double> (-4.980597915519158e+00 , 3.838135979112686e+01), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -9682,7 +9820,7 @@
             int np = 120;
             int m = 1;
             double b = 1.000000000000000e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.408389687120314e+04 , -7.388746548018654e+02), 
              std::complex<double> (-1.363559035551024e+04 , -2.130444299991719e+03), 
              std::complex<double> (-1.282343730637285e+04 , -3.291543099608224e+03), 
@@ -9804,7 +9942,8 @@
              std::complex<double> (2.210045993695806e+01 , 2.221171564874800e+01), 
              std::complex<double> (2.455946614154779e+01 , 2.465957914435723e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-7.382895002768703e+01 , 4.656454082900657e+02), 
              std::complex<double> (-2.068691018645300e+02 , 4.123789941515275e+02), 
              std::complex<double> (-3.028956083954707e+02 , 3.226867342604847e+02), 
@@ -9926,6 +10065,7 @@
              std::complex<double> (-2.235692534183721e-10 , -1.408872983139969e-10), 
              std::complex<double> (7.759828124169853e-12 , 2.387230763154317e-11), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -9937,7 +10077,7 @@
             int np = 120;
             int m = 1;
             double b = 1.000000000000000e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (1.389836578003120e-01 , 2.225784952873012e+00), 
              std::complex<double> (4.191270864547640e-01 , 2.260634803267018e+00), 
              std::complex<double> (7.058329263926991e-01 , 2.330880159673208e+00), 
@@ -10059,7 +10199,8 @@
              std::complex<double> (-1.343512924485570e+05 , -2.490905018532803e+04), 
              std::complex<double> (-1.405971826972130e+05 , -8.779244689562247e+03), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.435341887844948e-02 , -8.590795082384303e-02), 
              std::complex<double> (1.632009313926057e-02 , -7.626642179318589e-02), 
              std::complex<double> (1.966588297990509e-03 , -6.372761385786012e-02), 
@@ -10181,6 +10322,7 @@
              std::complex<double> (-2.842640829108095e+03 , 4.636855936144428e+03), 
              std::complex<double> (-1.042916655308740e+03 , 5.509379004523547e+03), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10192,7 +10334,7 @@
             int np = 120;
             int m = 1;
             double b = 1.000000000000000e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.403390206060129e+06 , -1.004786045365604e+05), 
              std::complex<double> (-1.322707426990754e+06 , -2.802810429751684e+05), 
              std::complex<double> (-1.187417097299995e+06 , -4.084468652687542e+05), 
@@ -10314,7 +10456,8 @@
              std::complex<double> (2.096226405417582e+01 , 2.107964221913641e+01), 
              std::complex<double> (2.421231576437270e+01 , 2.431400905200527e+01), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (-1.366943543647632e+04 , 6.276914911642903e+04), 
              std::complex<double> (-3.619173519030923e+04 , 5.001175496973013e+04), 
              std::complex<double> (-4.805441622735605e+04 , 3.127077775677557e+04), 
@@ -10436,6 +10579,7 @@
              std::complex<double> (1.314654406080122e-10 , -1.060674095408753e-09), 
              std::complex<double> (-1.493912502573261e-12 , 4.780741989648960e-11), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10447,20 +10591,22 @@
             int np = 5;
             int m = 2;
             double b = 4.754276176478917e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.946861030831248e+06 , 3.466755326606405e+06), 
              std::complex<double> (-3.194821559260857e+03 , 1.610341217030958e+05), 
              std::complex<double> (-4.297502137712511e+00 , 5.907285762749364e+03), 
              std::complex<double> (-5.778795889148681e-03 , 2.166148672731455e+02), 
              std::complex<double> (-7.536111765206299e-06 , 7.656827074796709e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.318064098884963e+06 , -2.022541739446533e+06), 
              std::complex<double> (6.653510807494008e+03 , -1.676182108199611e+05), 
              std::complex<double> (8.952581631955500e+00 , -6.153043298116445e+03), 
              std::complex<double> (1.203899544460975e-02 , -2.256483267707010e+02), 
              std::complex<double> (1.613855688985912e-05 , -8.578097024537158e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10472,20 +10618,22 @@
             int np = 5;
             int m = 2;
             double b = 1.929359655736823e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.166555857792123e+05 , 1.643367718523635e+05), 
              std::complex<double> (-7.514143203926686e+02 , 1.615703144671552e+04), 
              std::complex<double> (-3.735604646002479e+00 , 1.140431725572104e+03), 
              std::complex<double> (-1.853137934183301e-02 , 8.033020123555853e+01), 
              std::complex<double> (-8.235334290060451e-05 , 5.300406238408231e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.505030088371715e+05 , -5.259160857469719e+04), 
              std::complex<double> (1.264161757745586e+03 , -1.356170840398750e+04), 
              std::complex<double> (6.293858648115211e+00 , -9.607057064381456e+02), 
              std::complex<double> (3.124454004433670e-02 , -6.770929837956629e+01), 
              std::complex<double> (1.517929579459690e-04 , -5.110489998965694e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10497,20 +10645,22 @@
             int np = 5;
             int m = 2;
             double b = 2.352699225192334e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.862211631189100e+04 , 2.163767382592681e+04), 
              std::complex<double> (-3.034717531824400e+02 , 3.631659031140577e+03), 
              std::complex<double> (-3.608328744822498e+00 , 3.973734595337082e+02), 
              std::complex<double> (-4.255372563255384e-02 , 4.321103903220411e+01), 
              std::complex<double> (-3.938722873497464e-04 , 4.296822012346186e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.878579439536142e+04 , -2.830082326877334e+03), 
              std::complex<double> (4.264339341259439e+02 , -2.533758290280452e+03), 
              std::complex<double> (5.092612048899103e+00 , -2.803844017083945e+02), 
              std::complex<double> (6.029749726793857e-02 , -3.053576668190605e+01), 
              std::complex<double> (6.694655782523798e-04 , -3.701416529003495e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10522,20 +10672,22 @@
             int np = 5;
             int m = 2;
             double b = 1.765915008963304e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.947377806674931e+03 , 1.674466524728663e+03), 
              std::complex<double> (-1.047929084361665e+02 , 5.865023929298897e+02), 
              std::complex<double> (-3.762497415441033e+00 , 1.128940039023474e+02), 
              std::complex<double> (-1.288451256862734e-01 , 2.122897595164211e+01), 
              std::complex<double> (-2.382903724382977e-03 , 3.517696741585170e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.288627566572213e+03 , 1.953118537029985e+02), 
              std::complex<double> (1.095143820548338e+02 , -2.966666335909262e+02), 
              std::complex<double> (4.006000061451483e+00 , -5.996285636016435e+01), 
              std::complex<double> (1.415274613924904e-01 , -1.130840867511528e+01), 
              std::complex<double> (3.931476553003528e-03 , -2.604882313795629e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10547,20 +10699,22 @@
             int np = 5;
             int m = 2;
             double b = 1.000579208201004e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.547238643537001e+02 , 8.105637703696272e+01), 
              std::complex<double> (-3.406686599486403e+01 , 7.481751505704190e+01), 
              std::complex<double> (-4.504086450290978e+00 , 3.029656991427235e+01), 
              std::complex<double> (-4.145553155245011e-01 , 1.117658457886601e+01), 
              std::complex<double> (-6.486243326569170e-03 , 3.165000076234382e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (4.609342039725342e+01 , 3.201479941137274e+01), 
              std::complex<double> (2.041059397555925e+01 , -1.755755921707144e+01), 
              std::complex<double> (3.067084432942332e+00 , -9.516725097319602e+00), 
              std::complex<double> (3.731958350013732e-01 , -3.572807519232854e+00), 
              std::complex<double> (1.315295794894268e-02 , -2.048979911103968e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10572,20 +10726,22 @@
             int np = 5;
             int m = 2;
             double b = 1.209274548499165e+01;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-2.554090010277767e+01 , 8.638640679328239e+00), 
              std::complex<double> (-1.246440939244841e+01 , 1.609925983411248e+01), 
              std::complex<double> (-2.525722116114511e+00 , 1.336080612620282e+01), 
              std::complex<double> (1.081718564305512e-01 , 9.270389934959379e+00), 
              std::complex<double> (9.225429531107947e-05 , 3.141649048770424e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.033611448442282e+00 , 4.764487587422160e+00), 
              std::complex<double> (4.183144608690097e+00 , 1.482503127170896e-01), 
              std::complex<double> (2.076676551343867e+00 , -1.223030987690861e+00), 
              std::complex<double> (-5.341903753127276e-02 , -1.689775951588069e+00), 
              std::complex<double> (-3.135698211663160e-04 , -2.000162109432435e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10597,7 +10753,7 @@
             int np = 10;
             int m = 2;
             double b = 1.290985308157311e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.580972615908010e+06 , 1.203561258897960e+06), 
              std::complex<double> (-1.278275496987531e+05 , 5.503393895202582e+05), 
              std::complex<double> (-6.698848876743868e+03 , 1.291650688368753e+05), 
@@ -10609,7 +10765,8 @@
              std::complex<double> (-1.100909893889450e-04 , 1.716220242977646e+01), 
              std::complex<double> (-2.289831112613212e-06 , 3.360647540251634e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (8.701120180884706e+05 , 2.402813672182368e+05), 
              std::complex<double> (1.175901570695602e+05 , -2.394756773944366e+05), 
              std::complex<double> (6.337463238907602e+03 , -6.093413403216130e+04), 
@@ -10621,6 +10778,7 @@
              std::complex<double> (1.110150185677044e-04 , -8.117993876151560e+00), 
              std::complex<double> (3.870864037752220e-06 , -2.371501741456056e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10632,7 +10790,7 @@
             int np = 10;
             int m = 2;
             double b = 1.011393241376369e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.428603078252365e+05 , 8.854625242936362e+04), 
              std::complex<double> (-2.096982075063316e+04 , 6.088418821626271e+04), 
              std::complex<double> (-1.928152539915390e+03 , 1.943088566651270e+04), 
@@ -10644,7 +10802,8 @@
              std::complex<double> (-7.037281719416144e-04 , 1.305469865817097e+01), 
              std::complex<double> (-1.421408210600723e-05 , 3.215478433048512e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (5.660149505805381e+04 , 2.811926983163520e+04), 
              std::complex<double> (1.533514053977184e+04 , -1.962129774604957e+04), 
              std::complex<double> (1.490363817974273e+03 , -7.435596941967240e+03), 
@@ -10656,6 +10815,7 @@
              std::complex<double> (6.439158240058465e-04 , -5.009045346064647e+00), 
              std::complex<double> (2.611935108885642e-05 , -2.139547045657126e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10667,7 +10827,7 @@
             int np = 10;
             int m = 2;
             double b = 1.770766131099239e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-2.735487926298620e+04 , 1.430831195405075e+04), 
              std::complex<double> (-6.052868944139718e+03 , 1.319995629014940e+04), 
              std::complex<double> (-8.332473897685190e+02 , 5.323088658739502e+03), 
@@ -10679,7 +10839,8 @@
              std::complex<double> (-2.357685107190892e-03 , 1.120947014647582e+01), 
              std::complex<double> (-3.704363969261008e-05 , 3.165754611818758e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (8.137790793302991e+03 , 5.650698761644630e+03), 
              std::complex<double> (3.603512235862979e+03 , -3.103027570633254e+03), 
              std::complex<double> (5.417765597007763e+02 , -1.688126686747975e+03), 
@@ -10691,6 +10852,7 @@
              std::complex<double> (2.124014496053039e-03 , -3.602552308819546e+00), 
              std::complex<double> (7.498359129652677e-05 , -2.050381159183316e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10702,7 +10864,7 @@
             int np = 10;
             int m = 2;
             double b = 1.309935703693513e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-2.274457093148581e+03 , 8.568804108514295e+02), 
              std::complex<double> (-9.187129229487347e+02 , 1.241847095125482e+03), 
              std::complex<double> (-2.417599090810289e+02 , 7.546960297935219e+02), 
@@ -10714,7 +10876,8 @@
              std::complex<double> (-9.249622639135294e-03 , 9.713004727279520e+00), 
              std::complex<double> (-5.098768728747187e-05 , 3.142848009151120e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.766119122544866e+02 , 4.288970428869044e+02), 
              std::complex<double> (3.500773456138319e+02 , -1.070948056163151e+02), 
              std::complex<double> (1.096326999220600e+02 , -1.535266579530764e+02), 
@@ -10726,6 +10889,7 @@
              std::complex<double> (9.879394028859808e-03 , -2.332857725660222e+00), 
              std::complex<double> (1.261386207797346e-04 , -2.003158096401944e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10737,7 +10901,7 @@
             int np = 10;
             int m = 2;
             double b = 3.172305323816737e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-5.809205613865953e+02 , 1.712116651384128e+02), 
              std::complex<double> (-3.192914878221479e+02 , 3.157981973922744e+02), 
              std::complex<double> (-1.228707736463758e+02 , 2.502456547118489e+02), 
@@ -10749,7 +10913,8 @@
              std::complex<double> (-8.323591044985035e-03 , 9.459938671536779e+00), 
              std::complex<double> (-1.505288530203722e-05 , 3.141645614487579e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (6.077593094379878e+01 , 9.420513079285334e+01), 
              std::complex<double> (8.348916402748404e+01 , 9.929637216513899e-01), 
              std::complex<double> (4.119366193170025e+01 , -3.171509381847607e+01), 
@@ -10761,6 +10926,7 @@
              std::complex<double> (1.149867943559144e-02 , -2.051749410099756e+00), 
              std::complex<double> (4.246018475094892e-05 , -2.000150776505864e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10772,7 +10938,7 @@
             int np = 15;
             int m = 2;
             double b = 2.166546948895497e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-3.385879641866369e+06 , 1.726210205061707e+06), 
              std::complex<double> (-7.922212469180174e+05 , 1.658903021713648e+06), 
              std::complex<double> (-1.154176033095820e+05 , 6.921301461044513e+05), 
@@ -10789,7 +10955,8 @@
              std::complex<double> (-1.774919765884570e-05 , 1.101184090070446e+01), 
              std::complex<double> (-2.636634171792006e-07 , 3.161572777755021e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (9.635623239800008e+05 , 6.993662871740375e+05), 
              std::complex<double> (4.565627974088923e+05 , -3.690014177845073e+05), 
              std::complex<double> (7.306277918570081e+04 , -2.129776265811492e+05), 
@@ -10806,6 +10973,7 @@
              std::complex<double> (1.604941909550027e-05 , -3.446970226546104e+00), 
              std::complex<double> (5.421813582989691e-07 , -2.042299222653249e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10817,7 +10985,7 @@
             int np = 15;
             int m = 2;
             double b = 1.601767940704642e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-2.703524319835728e+05 , 1.123075595283472e+05), 
              std::complex<double> (-9.356434578914900e+04 , 1.445897671219019e+05), 
              std::complex<double> (-2.065312922187001e+04 , 7.823439465627717e+04), 
@@ -10834,7 +11002,8 @@
              std::complex<double> (-1.159700831130521e-04 , 9.965604514487502e+00), 
              std::complex<double> (-9.355796827656802e-07 , 3.145038541211152e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (5.350042922869226e+04 , 5.328211658562325e+04), 
              std::complex<double> (4.100212181764019e+04 , -1.841505731653905e+04), 
              std::complex<double> (1.047334334363492e+04 , -1.845416745864924e+04), 
@@ -10851,6 +11020,7 @@
              std::complex<double> (1.146407092880542e-04 , -2.572673341944408e+00), 
              std::complex<double> (2.184467006656409e-06 , -2.008216560524396e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10862,7 +11032,7 @@
             int np = 15;
             int m = 2;
             double b = 1.110657715232228e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-2.102013583493623e+03 , 4.854486997637087e+02), 
              std::complex<double> (-1.426932638084718e+03 , 1.059889853957434e+03), 
              std::complex<double> (-7.373954335086265e+02 , 1.043612485056151e+03), 
@@ -10879,7 +11049,8 @@
              std::complex<double> (-1.988156522421698e-04 , 9.426469287518469e+00), 
              std::complex<double> (-1.166695585979868e-07 , 3.141593548270519e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.378991690184070e+02 , 2.826512095221750e+02), 
              std::complex<double> (2.485688765195191e+02 , 7.503355866571955e+01), 
              std::complex<double> (1.763109435064582e+02 , -6.244070835866666e+01), 
@@ -10896,6 +11067,7 @@
              std::complex<double> (3.515563501331491e-04 , -2.003083586937637e+00), 
              std::complex<double> (3.673502695048175e-07 , -2.000002830271054e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10907,7 +11079,7 @@
             int np = 15;
             int m = 2;
             double b = 2.635002559079762e+02;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-5.114065966622117e+02 , 8.936507958623726e+01), 
              std::complex<double> (-4.062268650550005e+02 , 2.217612088065892e+02), 
              std::complex<double> (-2.679562277212592e+02 , 2.639459577395004e+02), 
@@ -10924,7 +11096,8 @@
              std::complex<double> (-7.859026601898820e-06 , 9.424784108720845e+00), 
              std::complex<double> (-1.309314700314198e-09 , 3.141592654510955e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.945281468416921e+01 , 5.407265327360384e+01), 
              std::complex<double> (4.306123267366677e+01 , 2.781158521875630e+01), 
              std::complex<double> (4.168085348003856e+01 , 7.827216221003346e-01), 
@@ -10941,6 +11114,7 @@
              std::complex<double> (1.731008268421628e-05 , -2.000013858491859e+00), 
              std::complex<double> (4.615440311858388e-09 , -2.000000003262454e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -10952,7 +11126,7 @@
             int np = 20;
             int m = 2;
             double b = 1.094344975543047e+07;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.843340376824855e+07 , 7.706592728737802e+06), 
              std::complex<double> (-6.310869391131245e+06 , 9.840582271795252e+06), 
              std::complex<double> (-1.376419175767611e+06 , 5.283211086231250e+06), 
@@ -10974,7 +11148,8 @@
              std::complex<double> (-1.741486416532828e-06 , 9.986633955836457e+00), 
              std::complex<double> (-1.437803566715412e-08 , 3.145258673585706e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (3.690251956475755e+06 , 3.641952140790702e+06), 
              std::complex<double> (2.790426848799685e+06 , -1.280800826922408e+06), 
              std::complex<double> (7.030168549697653e+05 , -1.257643244584517e+06), 
@@ -10996,6 +11171,7 @@
              std::complex<double> (1.714068815178379e-06 , -2.591754571863651e+00), 
              std::complex<double> (3.344087840258191e-08 , -2.008710099030617e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -11007,7 +11183,7 @@
             int np = 20;
             int m = 2;
             double b = 2.017713616400269e+06;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-3.513344352983811e+06 , 1.309314866250858e+06), 
              std::complex<double> (-1.441997872322787e+06 , 1.921064125313279e+06), 
              std::complex<double> (-3.866462132480044e+05 , 1.182195672718637e+06), 
@@ -11029,7 +11205,8 @@
              std::complex<double> (-5.700188323553038e-06 , 9.692098428416061e+00), 
              std::complex<double> (-3.004041861052978e-08 , 3.142707342514222e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (5.702461395212540e+05 , 6.588271925886495e+05), 
              std::complex<double> (5.407969321635104e+05 , -1.572635932487692e+05), 
              std::complex<double> (1.730983776389920e+05 , -2.363231333492580e+05), 
@@ -11051,6 +11228,7 @@
              std::complex<double> (6.147897251077524e-06 , -2.311820447484295e+00), 
              std::complex<double> (7.477918316363095e-08 , -2.002820348497667e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -11062,7 +11240,7 @@
             int np = 20;
             int m = 2;
             double b = 1.069717540448873e+05;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-1.959655367138746e+05 , 5.745751043909320e+04), 
              std::complex<double> (-1.082740367096186e+05 , 1.063897037408112e+05), 
              std::complex<double> (-4.198433931434520e+04 , 8.468822249692281e+04), 
@@ -11084,7 +11262,8 @@
              std::complex<double> (-2.390396050194380e-05 , 9.459017768247080e+00), 
              std::complex<double> (-4.255114254655321e-08 , 3.141643914629745e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (2.031064741891039e+04 , 3.165835297690931e+04), 
              std::complex<double> (2.807761526179717e+04 , 4.929726536221493e+02), 
              std::complex<double> (1.396364875411875e+04 , -1.062205355878130e+04), 
@@ -11106,6 +11285,7 @@
              std::complex<double> (3.314797149644424e-05 , -2.050438868294707e+00), 
              std::complex<double> (1.202303182951202e-07 , -2.000146100753941e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -11117,7 +11297,7 @@
             int np = 20;
             int m = 2;
             double b = 1.222015728799431e+04;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-2.309805899879820e+04 , 5.394337935974982e+03), 
              std::complex<double> (-1.555512023205595e+04 , 1.170161182960154e+04), 
              std::complex<double> (-7.944568726043814e+03 , 1.141913680938806e+04), 
@@ -11139,7 +11319,8 @@
              std::complex<double> (-2.085902319099095e-05 , 9.426789422361649e+00), 
              std::complex<double> (-1.289228047401315e-08 , 3.141593772410077e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.548492418633355e+03 , 3.134434847243796e+03), 
              std::complex<double> (2.762357706195695e+03 , 7.970070455891505e+02), 
              std::complex<double> (1.930566204173797e+03 , -7.158771784887764e+02), 
@@ -11161,6 +11342,7 @@
              std::complex<double> (3.650367791888589e-05 , -2.003632537865038e+00), 
              std::complex<double> (4.039716013375616e-08 , -2.000003522523785e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -11172,7 +11354,7 @@
             int np = 20;
             int m = 2;
             double b = 1.510880363666204e+03;
-            std::vector< std::complex<double> >zvec = {
+             std::complex<double> zvec1[] = {
              std::complex<double> (-2.927141208542207e+03 , 5.106538085828216e+02), 
              std::complex<double> (-2.325981028895545e+03 , 1.267125509004393e+03), 
              std::complex<double> (-1.535688008522509e+03 , 1.507944389415590e+03), 
@@ -11194,7 +11376,8 @@
              std::complex<double> (-1.546488206167689e-06 , 9.424787610884120e+00), 
              std::complex<double> (-2.653887044152492e-10 , 3.141592655157290e+00), 
             };
-            std::vector< std::complex<double> >wvec = {
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
              std::complex<double> (1.111834864143358e+02 , 3.089808067753514e+02), 
              std::complex<double> (2.461187480730546e+02 , 1.588750617806762e+02), 
              std::complex<double> (2.382290027542898e+02 , 4.370527897657581e+00), 
@@ -11216,6 +11399,7 @@
              std::complex<double> (3.387774389032928e-06 , -2.000021408739579e+00), 
              std::complex<double> (9.336869462210888e-10 , -2.000000005527582e+00), 
             };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             method.push_back(m);
             beta.push_back(b);
             numPole.push_back(np);
@@ -11223,17 +11407,17 @@
             zweight.push_back(wvec);
         } 
 
-        };
-        poleClass::~poleClass(){};
+   };
+   poleClass::~poleClass(){};
 
         // give me a set of parameter, return a set of pole and zshift.
-        bool poleClass::getPole ( int inputMethod, int inputPole, double inputBeta,  std::vector< std::complex<double> > &out_zshift, std::vector < std::complex<double> > &out_zweight ){
+   bool poleClass::getPole ( int inputMethod, int inputPole, double inputBeta,  std::vector< std::complex<double> > &out_zshift, std::vector < std::complex<double> > &out_zweight ){
              for ( int i = 0; i < method.size(); i++ ){
                if(inputMethod == method[i] ){ 
                  if(numPole[i] >= inputPole && beta[i] >= inputBeta){
                    if(i < method.size() - 1)
                    if((numPole[i+1] >= inputPole) && (beta[i+1] >= inputBeta)){
-                      // assume the numPole and beta are descent
+                      // assume the numPole and beta are in assending or desending order 
                       if( (numPole[i+1] < numPole[i]) || (beta[i+1] < beta[i]))
                           continue;
                     }
@@ -11244,6 +11428,6 @@
                }
              }
              return false;
-        }
-        
+   }
+   
 

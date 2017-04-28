@@ -122,15 +122,20 @@ def constructPoleCPP():
                 zx.append(data[i+j+1][2])
                 zy.append(data[i+j+1][3])
 
-            zshiftStr = tab3+ complex_vector + 'zvec'+' = {\n' + tab3
+            #zshiftStr = tab3+ complex_vector + 'zvec'+' = {\n' + tab3
+            zshiftStr = tab3+ type_convert + 'zvec1[] = {\n' + tab3
             for j in range(numPole):
                 zshiftStr +=  type_convert + '(' + str(wx[j]) + ' , ' + str(wy[j]) + '), \n' + tab3
             zshiftStr += '}'+ semicolon + newline
+            zshiftStr += tab3+'std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));' + newline
 
-            zweightStr = tab3+complex_vector + 'wvec'+' = {\n'+ tab3
+            #zweightStr = tab3+complex_vector + 'wvec'+' = {\n'+ tab3
+            zweightStr = tab3+type_convert + 'wvec1[] = {\n'+ tab3
+
             for j in range(numPole):
                 zweightStr +=  type_convert + '(' + str(zx[j]) + ' , ' + str(zy[j]) + '), \n' + tab3
             zweightStr += '}' + semicolon + newline
+            zweightStr += tab3+'std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));' + newline
             print tab2+"{", newline,numPoleStr, methodStr, betaStr, zshiftStr, zweightStr, push_operations+ tab2+"}",newline
     
     print CPP_CONTENT_REST 
