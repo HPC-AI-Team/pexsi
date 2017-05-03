@@ -48,25 +48,25 @@ CPP_CONTENT_REST =  \
 "   };"+ newline + \
 "   poleClass::~poleClass(){};"+ newline + \
 ""+ newline + \
-"        // give me a set of parameter, return a set of pole and zshift."+ newline + \
+"   // give me a set of parameter, return a set of pole and zshift."+ newline + \
 "   bool poleClass::getPole ( int inputMethod, int inputPole, double inputBeta,  " + \
 "std::vector< std::complex<double> > &out_zshift, std::vector < std::complex<double> > &out_zweight ){"+ newline + \
-"             for ( int i = 0; i < method.size(); i++ ){"+ newline + \
-"               if(inputMethod == method[i] ){ "+ newline + \
-"                 if(numPole[i] >= inputPole && beta[i] >= inputBeta){"+ newline + \
-"                   if(i < method.size() - 1)" + newline + \
+"        for ( int i = 0; i < method.size(); i++ ){"+ newline + \
+"            if(inputMethod == method[i] ){ "+ newline + \
+"               if(numPole[i] >= inputPole && beta[i] >= inputBeta){"+ newline + \
+"                 if(i < method.size() - 1)" + newline + \
 "                   if((numPole[i+1] >= inputPole) && (beta[i+1] >= inputBeta)){" + newline + \
 "                      // assume the numPole and beta are in assending or desending order " + newline + \
 "                      if( (numPole[i+1] < numPole[i]) || (beta[i+1] < beta[i]))" + newline + \
 "                          continue;" +newline +\
-"                    }" + newline+ \
-"                    out_zshift = zshift[i];"+ newline + \
-"                    out_zweight = zweight[i];"+ newline + \
-"                    return true;"+ newline + \
-"                 }"+ newline + \
+"                   }" + newline+ \
+"                   out_zshift = zshift[i];"+ newline + \
+"                   out_zweight = zweight[i];"+ newline + \
+"                   return true;"+ newline + \
 "               }"+ newline + \
-"             }"+ newline + \
-"             return false;"+ newline + \
+"            }"+ newline + \
+"        }"+ newline + \
+"        return false;"+ newline + \
 "   }"+ newline + \
 "   "+ newline 
 #"};"+ newline 

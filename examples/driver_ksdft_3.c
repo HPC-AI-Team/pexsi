@@ -114,7 +114,7 @@ int main(int argc, char **argv)
   /* Below is the data used for the toy matrix */
 
 #if 1
-  numElectronExact    = 11.0;
+  numElectronExact    = 12.0;
   nprow               = 1;
   npcol               = 1;
   Hfile               = "H.csc";
@@ -271,7 +271,7 @@ int main(int argc, char **argv)
   options.isInertiaCount = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  options.numPole  = 20;
+  options.numPole  = 15;
   options.temperature  = 0.0095; // 3000K
   options.numElectronPEXSITolerance = 0.001;
   options.muInertiaTolerance = 0.05;
@@ -282,9 +282,9 @@ int main(int argc, char **argv)
     int npoints   = mpisize / ( nprow * npcol* options.numPole);
     if (mpisize % (nprow*npcol*options.numPole)) {
       if( mpirank == 0){
-        printf(" ------------------   ERROR  -------------------- "); 
+        printf(" ------------------   ERROR  -------------------- \n"); 
         printf(" nprocessor %d can not be distributed nprow : %d npcol: %d numPole: %d \n", mpisize, nprow, npcol, options.numPole ); 
-        printf(" ------------------   ERROR  -------------------- "); 
+        printf(" ------------------   ERROR  -------------------- \n"); 
       }
       int ierr;
       MPI_Barrier(MPI_COMM_WORLD);

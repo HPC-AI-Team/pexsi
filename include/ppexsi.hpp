@@ -635,6 +635,13 @@ public:
       Real& numElectron,
       Int   method);
 
+  /// @brief Compute the Correction of the EDM matrix.
+  void CalculateEDMCorrection(
+      Int   numPole,
+      Int   verbosity);
+
+
+
  
   /// @brief Updated main driver for DFT. This reuses the pole
   /// expansion and only performs one PEXSI iteration per SCF step.
