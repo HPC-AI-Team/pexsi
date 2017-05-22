@@ -217,8 +217,8 @@ int main(int argc, char **argv)
 
 //  optionsFact.MPIcomm = worldcomm;
   optionsFact.factorization = symPACK::FANBOTH;
-  symPACK::Multithreading::NumThread = omp_get_max_threads();
-  optionsFact.print_stats=false;
+  //symPACK::Multithreading::NumThread = omp_get_max_threads();
+  //optionsFact.print_stats=false;
 
 //    optionsFact.load_balance_str = "NNZ";
 //    optionsFact.maxIsend = 100;

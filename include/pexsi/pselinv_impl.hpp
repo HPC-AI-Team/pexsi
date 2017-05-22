@@ -580,10 +580,10 @@ namespace PEXSI{
                       Int * colsUBPtr = pUB->cols.Data();
 
                       //find contiguous blocks in pUB and pLB
-                      std::vector<Int > blockRowsC;
-                      blockRowsC.reserve(3*pLB->numRow);
-                      std::vector<Int > blockColsC;
-                      blockColsC.reserve(2*pUB->numCol);
+                      //std::vector<Int > blockRowsC;
+                      //blockRowsC.reserve(3*pLB->numRow);
+                      //std::vector<Int > blockColsC;
+                      //blockColsC.reserve(2*pUB->numCol);
   
                       Int blockRowsSize = 0; 
                       Int blockColsSize = 0;
@@ -1887,9 +1887,122 @@ delete [] blockRows;
                 LBlock<T> & SinvB = LcolSinv[ibSinv];
 
                 // Row relative indices
-                std::vector<Int> relRows( LB.numRow );
                 Int* rowsLBPtr    = LB.rows.Data();
                 Int* rowsSinvBPtr = SinvB.rows.Data();
+
+                // Column relative indicies
+                Int SinvColsSta = FirstBlockCol( jsup, super_ );
+
+#ifdef _OPENMP_BLOCKS_
+                Int lastRowIdxSinv = 0;
+                Int blockRowsSize = 0; 
+                Int blockColsSize = 0;
+                Int * blockRows = new Int[3*LB.numRow]; 
+                Int * blockCols = new Int[2*UB.numCol]; 
+
+
+                Int* colsUBPtr    = UB.cols.Data();
+
+                if(LB.numRow>0){
+                  //find blocks
+                  Int ifr = 0;
+                  Int fr = rowsLBPtr[0];
+                  Int nrows = 1;
+                  for( Int i = 1; i < LB.numRow; i++ ){
+                    if(rowsLBPtr[i]==rowsLBPtr[i-1]+1){ 
+                      nrows++;
+                    }
+                    else{
+                      blockRows[blockRowsSize++] = fr;
+                      blockRows[blockRowsSize++] = nrows;
+                      blockRows[blockRowsSize++] = ifr;
+                      fr = rowsLBPtr[i];
+                      nrows = 1;
+                      ifr = i;
+                    }
+                  }
+                  blockRows[blockRowsSize++] = fr;
+                  blockRows[blockRowsSize++] = nrows;
+                  blockRows[blockRowsSize++] = ifr;
+
+
+                  for(Int ii = 0; ii<blockRowsSize;ii+=3){
+                    {
+                      auto fr = blockRows[ii];
+                      auto nr = blockRows[ii+1];
+                      Int ifr = blockRows[ii+2];
+
+                      bool isRowFound = false;
+                      for( lastRowIdxSinv; lastRowIdxSinv < SinvB.numRow; lastRowIdxSinv++ ){
+                        if( fr == rowsSinvBPtr[lastRowIdxSinv] ){
+                          isRowFound = true;
+                          blockRows[ii] = lastRowIdxSinv;
+                          break;
+                        }
+                      }
+                      if( isRowFound == false ){
+                        std::ostringstream msg;
+                        msg << "Row " << rowsLBPtr[ifr] << "("<<fr<<")"
+                          " in pLB cannot find the corresponding row in SinvB" << std::endl
+                          << "LB.rows    = " << LB.rows << std::endl
+                          << "SinvB.rows = " << SinvB.rows << std::endl;
+                        ErrorHandling( msg.str().c_str() );
+                      }
+                    }
+                  }
+                }
+
+                if(UB.numCol>0){
+                  //find blocks
+                  Int fc = colsUBPtr[0]- SinvColsSta;
+                  Int ncols = 1;
+                  for( Int j = 1; j < UB.numCol; j++ ){
+                    if(colsUBPtr[j]==colsUBPtr[j-1]+1){ 
+                      ncols++;
+                    }
+                    else{
+                      blockCols[blockColsSize++] = fc;
+                      blockCols[blockColsSize++] = ncols;
+                      fc = colsUBPtr[j]- SinvColsSta;
+                      ncols = 1;
+                    }
+                  }
+                  blockCols[blockColsSize++] = fc;
+                  blockCols[blockColsSize++] = ncols;
+                }
+
+
+
+                // Transfer the values from Sinv to AinvBlock
+                T* nzvalSinv = SinvB.nzval.Data();
+                Int     ldSinv    = SinvB.numRow;
+
+                Int j = 0;
+                for(Int jj = 0; jj<blockColsSize;jj+=2){
+                  auto fc = blockCols[jj];
+                  auto nc = blockCols[jj+1];
+                  Int offsetJ = j+colPtr[jb];
+                  Int i = 0;
+                  for(Int ii = 0; ii<blockRowsSize;ii+=3){
+                    auto fr = blockRows[ii];
+                    auto nr = blockRows[ii+1];
+                    Int ifr = blockRows[ii+2];
+                    assert(i==ifr);
+                    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+                    i+=nr;
+                  }
+                  j+=nc;
+                }
+
+                delete [] blockCols;
+                delete [] blockRows;
+#else
+                std::vector<Int> relCols( UB.numCol );
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  relCols[j] = UB.cols[j] - SinvColsSta;
+                }
+
+                std::vector<Int> relRows( LB.numRow );
                 for( Int i = 0; i < LB.numRow; i++ ){
                   bool isRowFound = false;
                   for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
@@ -1909,13 +2022,6 @@ delete [] blockRows;
                   }
                 }
 
-                // Column relative indicies
-                std::vector<Int> relCols( UB.numCol );
-                Int SinvColsSta = FirstBlockCol( jsup, super_ );
-                for( Int j = 0; j < UB.numCol; j++ ){
-                  relCols[j] = UB.cols[j] - SinvColsSta;
-                }
-
                 // Transfer the values from Sinv to AinvBlock
                 T* nzvalSinv = SinvB.nzval.Data();
                 Int     ldSinv    = SinvB.numRow;
@@ -1925,6 +2031,7 @@ delete [] blockRows;
                       nzvalSinv[relRows[i] + relCols[j] * ldSinv];
                   }
                 }
+#endif
 
                 isBlockFound = true;
                 break;
@@ -1948,16 +2055,117 @@ delete [] blockRows;
                 UBlock<T> & SinvB = UrowSinv[jbSinv];
 
                 // Row relative indices
-                std::vector<Int> relRows( LB.numRow );
                 Int SinvRowsSta = FirstBlockCol( isup, super_ );
+
+                Int* colsUBPtr    = UB.cols.Data();
+                Int* colsSinvBPtr = SinvB.cols.Data();
+#ifdef _OPENMP_BLOCKS_
+                Int* rowsLBPtr    = LB.rows.Data();
+
+                Int lastColIdxSinv = 0;
+                Int * blockCols = new Int[3*UB.numCol];
+                Int * blockRows = new Int[2*LB.numRow];
+                Int blockColsSize = 0;
+                Int blockRowsSize = 0;
+
+                if(UB.numCol>0){
+                  //find blocks
+                  Int jfc = 0;
+                  Int fc = colsUBPtr[0];
+                  Int ncols = 1;
+                  for( Int j = 1; j < UB.numCol; j++ ){
+                    if(colsUBPtr[j]==colsUBPtr[j-1]+1){ 
+                      ncols++;
+                    }
+                    else{
+                      blockCols[blockColsSize++] = fc;
+                      blockCols[blockColsSize++] = ncols;
+                      blockCols[blockColsSize++] = jfc;
+                      fc = colsUBPtr[j];
+                      ncols = 1;
+                      jfc = j;
+                    }
+                  }
+                  blockCols[blockColsSize++] = fc;
+                  blockCols[blockColsSize++] = ncols;
+                  blockCols[blockColsSize++] = jfc;
+
+                  for(Int jj = 0; jj<blockColsSize;jj+=3){
+                    auto fc = blockCols[jj];
+                    auto nc = blockCols[jj+1];
+                    Int jfc = blockCols[jj+2];
+
+                    bool isColFound = false;
+                    for( lastColIdxSinv; lastColIdxSinv < SinvB.numCol; lastColIdxSinv++ ){
+                      if( fc == colsSinvBPtr[lastColIdxSinv] ){
+                        isColFound = true;
+                        blockCols[jj] = lastColIdxSinv;
+                        break;
+                      }
+                    }
+                    if( isColFound == false ){
+                      std::ostringstream msg;
+                      msg << "Col " << colsUBPtr[jfc] << "("<<fc<<")"
+                        " in UB cannot find the corresponding row in SinvB" << std::endl
+                        << "UB.cols    = " << UB.cols << std::endl
+                        << "SinvB.cols = " << SinvB.cols << std::endl;
+                      ErrorHandling( msg.str().c_str() );
+                    }
+                  }
+                }
+
+                if(LB.numRow>0){
+                  //find blocks
+                  Int fr = rowsLBPtr[0]- SinvRowsSta;
+                  Int nrows = 1;
+                  for( Int j = 1; j < LB.numRow; j++ ){
+                    if(rowsLBPtr[j]==rowsLBPtr[j-1]+1){ 
+                      nrows++;
+                    }
+                    else{
+                      blockRows[blockRowsSize++] = fr;
+                      blockRows[blockRowsSize++] = nrows;
+                      fr = rowsLBPtr[j]- SinvRowsSta;
+                      nrows = 1;
+                    }
+                  }
+                  blockRows[blockRowsSize++] = fr;
+                  blockRows[blockRowsSize++] = nrows;
+                }
+
+
+                // Transfer the values from Sinv to AinvBlock
+                T* nzvalSinv = SinvB.nzval.Data();
+                Int     ldSinv    = SinvB.numRow;
+
+                Int j = 0;
+                for(Int jj = 0; jj<blockColsSize;jj+=3){
+                  auto fc = blockCols[jj];
+                  auto nc = blockCols[jj+1];
+                  Int jfc = blockCols[jj+2];
+                  Int offsetJ = j+colPtr[jb];
+
+                  Int i = 0;
+                  for(Int ii = 0; ii<blockRowsSize;ii+=2){
+                    auto fr = blockRows[ii];
+                    auto nr = blockRows[ii+1];
+                    Int offsetI = i+rowPtr[ib];
+                    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+                    i+=nr;
+                  }
+                  j+=nc;
+                }
+
+                delete [] blockCols;
+                delete [] blockRows;
+#else
+                std::vector<Int> relRows( LB.numRow );
                 for( Int i = 0; i < LB.numRow; i++ ){
                   relRows[i] = LB.rows[i] - SinvRowsSta;
                 }
 
                 // Column relative indices
                 std::vector<Int> relCols( UB.numCol );
-                Int* colsUBPtr    = UB.cols.Data();
-                Int* colsSinvBPtr = SinvB.cols.Data();
                 for( Int j = 0; j < UB.numCol; j++ ){
                   bool isColFound = false;
                   for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
@@ -1987,6 +2195,7 @@ delete [] blockRows;
                       nzvalSinv[relRows[i] + relCols[j] * ldSinv];
                   }
                 }
+#endif
 
                 isBlockFound = true;
                 break;
