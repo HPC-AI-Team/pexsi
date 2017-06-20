@@ -4,12 +4,12 @@
 /// @date 2014-07-04
 
 #include <mpi.h>
+#include <omp.h>
 
 #include <complex>
 #include <string>
 #include <sstream>
 
-// Libraries from NGCHOL BEGIN
 #include  "ppexsi.hpp"
 #include "pexsi/timer.h"
 
@@ -17,7 +17,7 @@
 #include "pexsi/sympack_interf.hpp"
 #include <memory>
 
-//#define _MYCOMPLEX_
+#define _MYCOMPLEX_
 
 typedef double ISCALAR;
 #ifdef _MYCOMPLEX_
@@ -175,6 +175,18 @@ int main(int argc, char **argv)
     }
 
 
+
+    std::string refinement;
+    if( options.find("-refine") != options.end() ){ 
+      refinement = options["-refine"];
+    }
+    else{
+      refinement = "NO";
+    }  
+
+
+
+
 #ifdef _MYCOMPLEX_
     int isComplex = 0;
     if( options.find("-Complex") != options.end() ){ 
@@ -197,15 +209,25 @@ int main(int argc, char **argv)
 
     symPACK::symPACKOptions optionsFact;
     optionsFact.NpOrdering = numProcSymbFact;
-    optionsFact.decomposition = symPACK::LDL;
+    optionsFact.decomposition = symPACK::DecompositionType::LDL;
     optionsFact.orderingStr = ColPerm;
     optionsFact.MPIcomm = workcomm;
     optionsFact.verbose=0;
+    optionsFact.order_refinement_str = refinement;
+
+//  optionsFact.MPIcomm = worldcomm;
+  optionsFact.factorization = symPACK::FANBOTH;
+  //symPACK::Multithreading::NumThread = 1;
+  symPACK::Multithreading::NumThread = omp_get_max_threads();
+  optionsFact.print_stats=false;
 
 //    optionsFact.load_balance_str = "NNZ";
 //    optionsFact.maxIsend = 100;
-//    optionsFact.relax.SetMaxSize(300);
 
+    if( options.find("-b") != options.end() ){ 
+      optionsFact.relax.SetMaxSize(atoi(options["-b"].c_str()));
+    }
+    
 
     //Initialize UPCXX for symPACK
     //upcxx::init(&argc, &argv);
@@ -382,15 +404,15 @@ int main(int argc, char **argv)
       GridType *gPtr = new GridType( workcomm, nprow, npcol );
       SuperNodeType *superPtr = new SuperNodeType();
       {
-        GetTime( timeTotalFactorizationSta );
         GetTime( timeSta );
         std::unique_ptr<symPACK::symPACKMatrix<SCALAR> > symPACKMat(new symPACK::symPACKMatrix<SCALAR>());
-
         symPACKMat->Init(optionsFact);
         symPACKMat->SymbolicFactorization(AMat);
         GetTime( timeEnd );
         if( mpirank == 0 )
-          cout << "Time for symbolic factorization is " << timeEnd - timeSta << " sec" << endl; 
+          cout << "Time for performing the symbolic factorization is " << timeEnd - timeSta << endl;
+
+        GetTime( timeTotalFactorizationSta );
         GetTime( timeSta );
         symPACKMat->DistributeMatrix(AMat);
         GetTime( timeEnd );

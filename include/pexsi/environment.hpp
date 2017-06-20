@@ -61,6 +61,8 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include <map>
 #include <stack>
 #include <vector>
+#include <memory>
+#include <numeric>
 
 #include <algorithm>
 #include <cmath>
