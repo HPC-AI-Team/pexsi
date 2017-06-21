@@ -4874,7 +4874,7 @@ PPEXSIData::DFTDriver3 (
     bool  isBadBound = false;  
 
     while( numTotalInertiaIter < maxTotalInertiaIter ){
-      
+
       GetTime( timeInertiaSta );
 
       // Number of shifts is exactly determined by the number of
@@ -4931,7 +4931,7 @@ PPEXSIData::DFTDriver3 (
       }
 
       if( verbosity >= 1 ){
-        
+
         statusOFS << std::endl;
 
 
@@ -4981,7 +4981,7 @@ PPEXSIData::DFTDriver3 (
       numTotalInertiaIter++;
 
       if( verbosity >= 1 ){
-         statusOFS << std::endl
+        statusOFS << std::endl
           << "Inertia Counting " << std::endl
           << "(muMin, muMax)   = " << "(" << muMin<< ", " << muMax
           << ")" << std::endl
@@ -5006,7 +5006,7 @@ PPEXSIData::DFTDriver3 (
 
     std::vector<Real>  shiftVec( numShift );
     Real hsShift = ( muMax - muMin ) / ( numShift + 1);
-    
+
     double * NeVec      = new double[numShift];
     double * NeVec_temp = new double[numShift];
     for(Int l = 0; l < numShift; l++)
@@ -5059,10 +5059,10 @@ PPEXSIData::DFTDriver3 (
     }
 
     MPI_Allreduce(NeVec_temp, NeVec, numShift, MPI_DOUBLE, MPI_SUM, pointRowComm); 
-    
+
     if( verbosity >= 1 ) {
-       for(int i = 0; i < numShift; i++)
-          statusOFS << " MuPEXSI from Point :" << i << " is  " << shiftVec[i]<< " numElectron " << NeVec[i] << std::endl;
+      for(int i = 0; i < numShift; i++)
+        statusOFS << " MuPEXSI from Point :" << i << " is  " << shiftVec[i]<< " numElectron " << NeVec[i] << std::endl;
     }
 
     // muMin, muMax are the results from the inertia counting or input
@@ -5243,7 +5243,7 @@ PPEXSIData::DFTDriver3 (
   }
 
   return ;
-  }         // -----  end of method PPEXSIData::DFTDriver3  ----- 
+}         // -----  end of method PPEXSIData::DFTDriver3  ----- 
 
 
 // Main subroutine for the electronic structure calculation
@@ -7727,6 +7727,24 @@ void PPEXSIData::CalculateFermiOperatorReal3(
   }
 #endif
 
+
+  // FIXME A placeholder
+#if 1
+  if( isFreeEnergyDensityMatrix ){
+
+    blas::Copy( hmzMat.nnzLocal, rhoMat.nzvalLocal.Data(), 1, 
+        hmzMat.nzvalLocal.Data(), 1 );
+  }
+
+  // Reduce the energy density matrix across the processor rows in gridPole_ 
+  if( isEnergyDensityMatrix ){
+
+    blas::Copy( frcMat.nnzLocal, rhoMat.nzvalLocal.Data(), 1, 
+        frcMat.nzvalLocal.Data(), 1 );
+  }
+#endif
+
+
   // Compute the number of electrons
   // The number of electrons is computed by Tr[DM*S]
   {
@@ -7827,6 +7845,24 @@ void PPEXSIData::CalculateFermiOperatorReal3(
       totalFreeEnergy_ += mu * numElectron;
     }
 #endif
+
+
+    // FIXME: A placeholder
+#if 1
+    // Energy computed from Tr[S*EDM]
+    if( isEnergyDensityMatrix )
+    {
+      totalEnergyS_ = totalEnergyH_;
+    }
+
+
+    // Free energy 
+    if( isFreeEnergyDensityMatrix )
+    {
+      totalFreeEnergy_ = totalEnergyH_;
+    }
+#endif
+
   } 
   return ;
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal3  ----- 
