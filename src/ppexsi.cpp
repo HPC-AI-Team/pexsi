@@ -4701,12 +4701,12 @@ PPEXSIData::DFTDriver3 (
     Real       gap,
     Real       deltaE,
     Int        numPole, 
-    Int        isInertiaCount,
-    Real       muMin0,
-    Real       muMax0,
-    Real       mu0,
+    //Int        isInertiaCount,
+    //Real       muMin0,
+    //Real       muMax0,
+    //Real       mu0,
     Real       muInertiaTolerance,
-    Real       muInertiaExpansion,
+    //Real       muInertiaExpansion,
     Real       numElectronPEXSITolerance,
     Int        matrixType,
     Int        isSymbolicFactorize,
@@ -4733,7 +4733,7 @@ PPEXSIData::DFTDriver3 (
   // Initial setup
   Real muMin = muMinInertia;
   Real muMax = muMaxInertia;
-  muPEXSI = mu0;        
+  //muPEXSI = mu0;        
 
   // parameters. 
   // Real K2au = 3.166815E-6;
@@ -4859,10 +4859,13 @@ PPEXSIData::DFTDriver3 (
   }
 
 
-  if(muMax - muMin > muInertiaTolerance){ // do the Inertia Counting 
+  numTotalInertiaIter = 0;
+
+  if(muMax - muMin > muInertiaTolerance){
+
+    // do the Inertia Counting 
     // Inertia counting loop
-    numTotalInertiaIter = 0;
-    // Hard coded
+    // Hard coded: max inertia counting 10 steps
     const Int maxTotalInertiaIter = 10;
 
     if( verbosity >= 1 ){
@@ -5044,11 +5047,14 @@ PPEXSIData::DFTDriver3 (
              method,
              nPoints);
 
-             NeVec_temp[l] = numElectronPEXSI;
-             CalculateEDMCorrection(
-                 numPole,
-                 verbosity,
-                 nPoints);
+         // exact numElectron for the correspoding muPEXSI
+         NeVec_temp[l] = numElectronPEXSI;
+         
+	 // correct the coressponding EDM if Smatrix != I
+         CalculateEDMCorrection(
+             numPole,
+             verbosity,
+             nPoints);
       }
     }
 
@@ -5080,8 +5086,10 @@ PPEXSIData::DFTDriver3 (
     Real mu;
     if(numShift == 1) {
       mu = shiftVec[0];
+
       // Scale the density matrix. numElectron = numElectronExact in the linear sense
       Real fac = numElectronExact / numElectronPEXSI;
+
       blas::Scal( rhoRealMat_.nnzLocal, fac, rhoRealMat_.nzvalLocal.Data(), 1 );
       blas::Scal( energyDensityRealMat_.nnzLocal, fac, energyDensityRealMat_.nzvalLocal.Data(), 1 );
 

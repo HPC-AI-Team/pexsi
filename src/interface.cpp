@@ -262,7 +262,7 @@ void PPEXSISetDefaultOptions(
   options->muInertiaTolerance    = 0.05;
   options->muInertiaExpansion    = 0.3;      
   options->muPEXSISafeGuard      = 0.05;
-  options->numElectronPEXSITolerance = 0.01;
+  options->numElectronPEXSITolerance = 1.0E-10;
   options->matrixType            = 0;
   options->isSymbolicFactorize   = 1;
   options->solver                = 0;
@@ -1119,12 +1119,12 @@ void PPEXSIDFTDriver3(
         options.gap,
         options.deltaE,
         options.numPole,
-        options.isInertiaCount,
-        options.muMin0,
-        options.muMax0,
-        options.mu0,
+        //options.isInertiaCount,
+        //options.muMin0,
+        //options.muMax0,
+        //options.mu0,
         options.muInertiaTolerance,
-        options.muInertiaExpansion,
+        //options.muInertiaExpansion,
         options.numElectronPEXSITolerance,
         options.matrixType,
         options.isSymbolicFactorize,

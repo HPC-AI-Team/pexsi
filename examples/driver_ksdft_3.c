@@ -271,9 +271,9 @@ int main(int argc, char **argv)
   options.isInertiaCount = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  options.numPole  = 10;
+  options.numPole  = 20;
   options.temperature  = 0.0095; // 3000K
-  options.numElectronPEXSITolerance = 0.00001;
+  options.numElectronPEXSITolerance = 0.1E-10;
   options.muInertiaTolerance = 0.05;
   options.isSymbolicFactorize = 1;
   int method = 2;
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
   muMinInertia = -10.0;
   muMaxInertia =  10.0;
   int iter = 0;
-  while (iter < 12 ) {
+  while (iter < 40 ) {
     if( iter > 0 ){
       options.isSymbolicFactorize = 0;
     }
