@@ -2,7 +2,7 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Authors: Weile Jia and Lin Lin 
+   Authors: Lin Lin and Weile
 
    This file is part of PEXSI. All rights reserved.
 
@@ -41,15 +41,15 @@
    such enhancements or derivative works thereof, in binary and source code form.
 */
 /**
- * @file driver_ksdft_2.c
+ * @file driver_ksdft_3.c
  * @brief Example for using the new driver interface for performing KSDFT
  * calculations.
  *
  * This file is eventually going to be merged with the driver_ksdft.c
  *
- * @date 2015-11-25  Test for DFTDriver2 with updating strategy of pole
+ * @date 2017-06-16  Test for DFTDriver3 with updating strategy of pole
  * expansion
- * @date 2016-09-10 Compatible with the interface at version 0.10.0
+ * @date 2017-05-10 Compatible with the interface at version 0.10.0
  *
  */
 #include  <stdio.h>
@@ -115,15 +115,14 @@ int main(int argc, char **argv)
 
 #if 1
   numElectronExact    = 12.0;
-  nprow               = 1;
-  npcol               = 1;
+  nprow               = 2;
+  npcol               = 2;
   Hfile               = "H.csc";
   Sfile               = "";
   isFormatted         = 0;
   //Hfile               = "lap2dr.matrix";
   //isFormatted         = 1;
   isSIdentity         = 1;
-  int npoints         = 1;
 
 #else
 #if 1
@@ -150,6 +149,7 @@ int main(int argc, char **argv)
   eta                 = 0.001;
 #endif
 #endif
+
 
   /* Split the processors to read matrix ,note in the multi-point parallelization. only the first point processors will do the reading */
   if( mpirank < nprow * npcol )
@@ -271,25 +271,33 @@ int main(int argc, char **argv)
   options.isInertiaCount = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  options.numPole  = 15;
+  options.numPole  = 10;
   options.temperature  = 0.0095; // 3000K
-  options.numElectronPEXSITolerance = 0.001;
+  options.numElectronPEXSITolerance = 0.00001;
   options.muInertiaTolerance = 0.05;
   options.isSymbolicFactorize = 1;
   int method = 2;
+  int npoints = 2;
 
-  if( mpisize > nprow * npcol * options.numPole){
-    int npoints   = mpisize / ( nprow * npcol* options.numPole);
-    if (mpisize % (nprow*npcol*options.numPole)) {
-      if( mpirank == 0){
-        printf(" ------------------   ERROR  -------------------- \n"); 
-        printf(" nprocessor %d can not be distributed nprow : %d npcol: %d numPole: %d \n", mpisize, nprow, npcol, options.numPole ); 
-        printf(" ------------------   ERROR  -------------------- \n"); 
-      }
-      int ierr;
-      MPI_Barrier(MPI_COMM_WORLD);
-      MPI_Abort(MPI_COMM_WORLD, ierr);
+  if( mpisize / ( nprow * npcol* options.numPole) > npoints ) 
+  {
+    npoints = mpisize / ( nprow * npcol* options.numPole);  
+    if( mpirank == 0)
+    printf(" Error, Npoints should be set to %d\n", npoints); 
+    int ierr;
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Abort(MPI_COMM_WORLD, ierr);
+  }
+
+  if (mpisize % npoints) {
+    if( mpirank == 0){
+      printf(" ------------------   ERROR  -------------------- \n"); 
+      printf(" nprocessor %d can not be distributed nppoints %d \n", mpisize, npoints);
+      printf(" ------------------   ERROR  -------------------- \n"); 
     }
+    int ierr;
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Abort(MPI_COMM_WORLD, ierr);
   }
 
 
@@ -300,8 +308,8 @@ int main(int argc, char **argv)
    * work, only that the outputFileIndex will be the index 
    * of points* numPole + pole index */
 
-  if( mpirank % (nprow * npcol) == 0 ){
-    outputFileIndex = mpirank / (nprow * npcol);
+  if( mpirank % ( nprow * npcol ) == 0 ){
+    outputFileIndex = mpirank / (nprow* npcol);
   }
   else{
     outputFileIndex = -1;
@@ -332,7 +340,7 @@ int main(int argc, char **argv)
   muMinInertia = -10.0;
   muMaxInertia =  10.0;
   int iter = 0;
-  while (iter < 15) {
+  while (iter < 12 ) {
     if( iter > 0 ){
       options.isSymbolicFactorize = 0;
     }
@@ -342,6 +350,7 @@ int main(int argc, char **argv)
         options,
         numElectronExact,
         method,
+	npoints,
         &muPEXSI,                   
         &numElectronPEXSI,         
         &muMinInertia,              

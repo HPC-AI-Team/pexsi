@@ -1111,6 +1111,7 @@ void PPEXSIDFTDriver3(
     PPEXSIOptions     options,
     double            numElectronExact,
     int               method,
+    int               nPoints,
     double*           muPEXSI,
     double*           numElectronPEXSI,
     double*           muMinInertia,

@@ -4719,7 +4719,8 @@ PPEXSIData::DFTDriver3 (
     Real&      muMinInertia,              
     Real&      muMaxInertia,             
     Int&       numTotalInertiaIter,
-    Int        method) 
+    Int        method,
+    Int        nPoints) 
 {
   Real timeSta, timeEnd;
   Real timeInertiaSta, timeInertiaEnd;
@@ -4742,14 +4743,19 @@ PPEXSIData::DFTDriver3 (
   Real numElecTol = 1.0e-5;
 
   // add the points parallelization.
-  Int myPoint     = gridPole_->mpirank / ( gridPole_->numProcCol * numPole );
-  Int myPointRank = gridPole_->mpirank % ( gridPole_->numProcCol * numPole );
-  Int totPoint    = gridPole_->mpisize / (  gridPole_->numProcCol * numPole );
-  if(totPoint <= 0) totPoint = 1;
+  if(gridPole_->mpisize % nPoints){
+    ErrorHandling("nPoints can not divided by MPI used in PEXSI.");
+  }
+  if(gridPole_->mpisize / nPoints > numPole * gridPole_-> numProcRow * gridPole_-> numProcCol ){
+    ErrorHandling("use more points in the PEXSI parallelization.");
+  }
+  Int npPerPoint  = gridPole_->mpisize / nPoints;
+  Int myPoint     = gridPole_->mpirank / npPerPoint;
+  Int myPointRank = gridPole_->mpirank % npPerPoint;
 
   if( verbosity >= 1 ){
     statusOFS << gridPole_->numProcRow << " numProcCol: " <<  gridPole_->numProcCol << " numPole " << numPole<< std::endl;
-    statusOFS << gridPole_->mpisize << " "  << gridPole_->mpirank << " myPoint "  <<  myPointRank<< " totPoint " << totPoint << std::endl;
+    statusOFS << gridPole_->mpisize << " "  << gridPole_->mpirank << " myPoint "  <<  myPointRank<< " nPoints " << nPoints << std::endl;
   }
 
 
@@ -4987,7 +4993,7 @@ PPEXSIData::DFTDriver3 (
   //
   {
 
-    Int numShift = std::max( gridPole_->numProcRow/ numPole, 1); 
+    Int numShift = nPoints;//std::max( gridPole_->numProcRow/ numPole, 1); 
     if( verbosity >= 1 ) {
       statusOFS << "  >> total Number of Points : " << numShift << std::endl;
       statusOFS << "  >> Pole Expansion Method  : " << method   << std::endl;
@@ -5018,7 +5024,7 @@ PPEXSIData::DFTDriver3 (
     for(int l = 0; l < numShift ; l++)
     {
       muPEXSI = shiftVec[l];
-      Int currentPoint = l % totPoint;
+      Int currentPoint = l % nPoints;
 
       // add a point parallelization. only the corresponding point work here
       if(myPoint == currentPoint){
@@ -5035,9 +5041,14 @@ PPEXSIData::DFTDriver3 (
              verbosity,
              muPEXSI, 
              numElectronPEXSI, 
-             method);
+             method,
+             nPoints);
 
              NeVec_temp[l] = numElectronPEXSI;
+             CalculateEDMCorrection(
+                 numPole,
+                 verbosity,
+                 nPoints);
       }
     }
 
@@ -5072,10 +5083,12 @@ PPEXSIData::DFTDriver3 (
       // Scale the density matrix. numElectron = numElectronExact in the linear sense
       Real fac = numElectronExact / numElectronPEXSI;
       blas::Scal( rhoRealMat_.nnzLocal, fac, rhoRealMat_.nzvalLocal.Data(), 1 );
+      blas::Scal( energyDensityRealMat_.nnzLocal, fac, energyDensityRealMat_.nzvalLocal.Data(), 1 );
 
       numElectronPEXSI = numElectronExact;
 
-      // totalEnergyH_ *= fac;
+      totalEnergyH_ *= fac;
+      totalEnergyS_ *= fac;
     }
     else
     {
@@ -5130,10 +5143,36 @@ PPEXSIData::DFTDriver3 (
         local = blas::Dot( HRealMat_.nnzLocal, 
             HRealMat_.nzvalLocal.Data(),
             1, rhoRealMat_.nzvalLocal.Data(), 1 );
-
         mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
-            gridPole_->rowComm ); 
+               gridPole_->rowComm ); 
       }
+
+      CopyPattern( energyDensityRealMat_, rhoMatMin );
+      rhoMatMin.nzvalLocal = energyDensityRealMat_.nzvalLocal;
+      MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
+
+      CopyPattern( energyDensityRealMat_, rhoMatMax );
+      rhoMatMax.nzvalLocal = energyDensityRealMat_.nzvalLocal;
+      MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
+
+      SetValue( energyDensityRealMat_.nzvalLocal, 0.0 );
+      blas::Axpy( energyDensityRealMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1, 
+          energyDensityRealMat_.nzvalLocal.Data(), 1 );
+
+      blas::Axpy( energyDensityRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1, 
+          energyDensityRealMat_.nzvalLocal.Data(), 1 );
+
+    //if( isEnergyDensityMatrix )
+    {
+      Real local = 0.0;
+      DblNumVec& nzval = energyDensityRealMat_.nzvalLocal;
+      for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+         local += nzval(diagIdxLocal_[i]);
+      }
+      mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+    }
+
     }
     muPEXSI = mu;
 
@@ -5166,9 +5205,7 @@ PPEXSIData::DFTDriver3 (
     delete []NeVec_temp;
   }
 
-  CalculateEDMCorrection(
-      numPole,
-      verbosity);
+
 
   muMinInertia = muMin;
   muMaxInertia = muMax;
@@ -7111,7 +7148,14 @@ void PPEXSIData::CalculateFermiOperatorReal3(
     Int   verbosity,
     Real& mu,
     Real& numElectron,
-    Int   method) {
+    Int   method,
+    Int   nPoints) {
+
+  Int npPerPoint  = gridPole_->mpisize / nPoints;
+  Int myPoint     = gridPole_->mpirank / npPerPoint;
+  Int myPointRank = gridPole_->mpirank % npPerPoint;
+  Int myRowPoint  = myPointRank / gridPole_->numProcCol;
+
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
@@ -7167,7 +7211,7 @@ void PPEXSIData::CalculateFermiOperatorReal3(
   // check check
   if( isEnergyDensityMatrix )
     CopyPattern( PatternMat_, frcMat );
-#if 0
+#if 1
   if( isFreeEnergyDensityMatrix )
     CopyPattern( PatternMat_, hmzMat );
 #endif
@@ -7178,7 +7222,7 @@ void PPEXSIData::CalculateFermiOperatorReal3(
   // check check
   if( isEnergyDensityMatrix )
     SetValue( frcMat.nzvalLocal, 0.0 );
-#if 0
+#if 1
   if( isFreeEnergyDensityMatrix )
     SetValue( hmzMat.nzvalLocal, 0.0 );
 #endif
@@ -7430,8 +7474,11 @@ void PPEXSIData::CalculateFermiOperatorReal3(
   Int numPoleComputed = 0;
   for(Int lidx = 0; lidx < numPole; lidx++){
     // add another line here to do the 
-    if( MYROW( gridPole_ ) % numPole == PROW( lidx, gridPole_ ) ){
-
+    //if( MYROW( gridPole_ ) % numPole == PROW( lidx, gridPole_ ) ){
+    //if( MYROW( gridPole_ ) % numPole == lidx % (gridPole_->numProcRow /nPoints)){
+    //if( (MYROW( gridPole_ )/nPoints) % numPole == lidx % (gridPole_->numProcRow /nPoints)){
+    if( myRowPoint % numPole == lidx % (gridPole_->numProcRow /nPoints)){
+      //std::cout << " rank " << gridPole_->mpirank << " working on pole " << lidx << std::endl;
       //Int l = poleIdx[lidx];
       Int l = lidx;
 
@@ -7692,8 +7739,9 @@ void PPEXSIData::CalculateFermiOperatorReal3(
 #if ( _DEBUGlevel_ >= 0 )
     statusOFS << std::endl << "numElecLocal = " << numElecLocal << std::endl;
 #endif
-
-    mpi::Allreduce( &numElecLocal, &numElectron, 1, MPI_SUM, rhoMat.comm ); 
+    //numElectron = numElecLocal;
+    mpi::Allreduce( &numElecLocal, &numElectron, 1, MPI_SUM, gridPole_->rowComm); 
+    //mpi::Allreduce( &numElecLocal, &numElectron, 1, MPI_SUM, pointColComm); 
   }
 
 
@@ -7707,11 +7755,15 @@ void PPEXSIData::CalculateFermiOperatorReal3(
           HRealMat_.nzvalLocal.Data(),
           1, rhoRealMat_.nzvalLocal.Data(), 1 );
 
+      //mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
+      //    gridPole_->rowComm ); 
+      //totalEnergyH_ = local; 
       mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
-          gridPole_->rowComm ); 
+                      gridPole_->rowComm); 
     }
 
     // Energy computed from Tr[S*EDM] check check
+    
     if( isEnergyDensityMatrix )
     {
       Real local = 0.0;
@@ -7731,6 +7783,17 @@ void PPEXSIData::CalculateFermiOperatorReal3(
           gridPole_->rowComm ); 
     }
 
+    // FIXME: A placeholder
+    if( isFreeEnergyDensityMatrix )
+    {
+      totalFreeEnergy_ = totalEnergyH_;
+    }
+    // FIXME A placeholder
+    if( isFreeEnergyDensityMatrix )
+    {
+       blas::Copy( hmzMat.nnzLocal, rhoMat.nzvalLocal.Data(), 1,
+              hmzMat.nzvalLocal.Data(), 1 );
+    }
 
 #if 0
     // Free energy 
@@ -7762,13 +7825,14 @@ void PPEXSIData::CalculateFermiOperatorReal3(
 
 void PPEXSIData::CalculateEDMCorrection(
     Int   numPole,
-    Int   verbosity) {
+    Int   verbosity,
+    Int   nPoints) {
 
   // add the points parallelization.
-  Int myPoint     = gridPole_->mpirank / ( gridPole_->numProcCol * numPole );
-  Int myPointRank = gridPole_->mpirank % ( gridPole_->numProcCol * numPole );
-  Int totPoint    = gridPole_->mpisize / (  gridPole_->numProcCol * numPole );
-  if(totPoint <= 0) totPoint = 1;
+  Int npPerPoint  = gridPole_->mpisize / nPoints;
+  Int myPoint     = gridPole_->mpirank / npPerPoint;
+  Int myPointRank = gridPole_->mpirank % npPerPoint;
+  Int myRowPoint  = myPointRank / gridPole_->numProcCol;
 
   MPI_Comm pointColComm, pointRowComm;
   MPI_Comm_split( gridPole_->colComm, myPoint, myPointRank, &pointColComm);
@@ -7911,7 +7975,9 @@ void PPEXSIData::CalculateEDMCorrection(
   Int numPoleComputed = 0;
   for(Int lidx = 0; lidx < numPole; lidx++){
     // add another line here to do the 
-    if( MYROW( gridPole_ ) % numPole == PROW( lidx, gridPole_ ) ){
+    //if( MYROW( gridPole_ ) % numPole == PROW( lidx, gridPole_ ) ){
+    //if( MYROW( gridPole_ ) % numPole == lidx % (gridPole_->numProcRow /nPoints)){
+    if( myRowPoint % numPole == lidx % (gridPole_->numProcRow /nPoints)){
 
       Int l = lidx;
 
@@ -7929,9 +7995,9 @@ void PPEXSIData::CalculateEDMCorrection(
            
           if( SMat.size == 0 )
             for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-              frcMat.nzvalLocal( diagIdxLocal_[i] ) += 2.0*zweightRho_[l].imag();
+              frcMat.nzvalLocal( diagIdxLocal_[i] ) += numSpin*zweightRho_[l].imag();
           }
-	  else
+          else
             for( Int i = 0; i < SMat.nnzLocal; i++ ){
               frcMat.nzvalLocal(i) = frcMat.nzvalLocal(i)+  (zweightRho_[l] * AinvMat.nzvalLocal(i)).real();
             }

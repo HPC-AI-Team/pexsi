@@ -633,12 +633,14 @@ public:
       Int   verbosity,
       Real& mu,
       Real& numElectron,
-      Int   method);
+      Int   method,
+      Int   nPoints);
 
   /// @brief Compute the Correction of the EDM matrix.
   void CalculateEDMCorrection(
       Int   numPole,
-      Int   verbosity);
+      Int   verbosity,
+      Int   nPoints);
 
 
 
@@ -696,7 +698,8 @@ public:
       Real&      muMinInertia,              
       Real&      muMaxInertia,             
       Int&       numTotalInertiaIter,
-      Int        method);
+      Int        method,
+      Int        nPoints);
 
 
 

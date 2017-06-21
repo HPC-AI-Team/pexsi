@@ -1100,6 +1100,7 @@ void PPEXSIDFTDriver3(
     PPEXSIOptions     options,
     double            numElectronExact,
     int               method,
+    int               nPoints,
     /* Output parameters */
     double*           muPEXSI,                   
     double*           numElectronPEXSI,         
@@ -1136,7 +1137,8 @@ void PPEXSIDFTDriver3(
         *muMinInertia,
         *muMaxInertia,
         *numTotalInertiaIter,
-         method	);
+         method,
+         nPoints);
   }
   catch( std::exception& e )
   {
