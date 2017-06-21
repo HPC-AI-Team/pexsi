@@ -7729,7 +7729,7 @@ void PPEXSIData::CalculateFermiOperatorReal3(
 
 
   // FIXME A placeholder
-#if 1
+#if 0
   if( isFreeEnergyDensityMatrix ){
 
     blas::Copy( hmzMat.nnzLocal, rhoMat.nzvalLocal.Data(), 1, 
@@ -7848,7 +7848,7 @@ void PPEXSIData::CalculateFermiOperatorReal3(
 
 
     // FIXME: A placeholder
-#if 1
+#if 0
     // Energy computed from Tr[S*EDM]
     if( isEnergyDensityMatrix )
     {
