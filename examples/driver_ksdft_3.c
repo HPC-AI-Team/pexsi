@@ -347,14 +347,14 @@ int main(int argc, char **argv)
 
     PPEXSIDFTDriver3(
         plan,
-        options,
+        &options,
         numElectronExact,
         method,
 	npoints,
         &muPEXSI,                   
         &numElectronPEXSI,         
-        &muMinInertia,              
-        &muMaxInertia,             
+        //&muMinInertia,              
+        //&muMaxInertia,             
         &numTotalInertiaIter,   
         &info );
 
