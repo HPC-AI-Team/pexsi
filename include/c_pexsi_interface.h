@@ -1108,14 +1108,14 @@ void PPEXSIDFTDriver2(
  */
 void PPEXSIDFTDriver3(
     PPEXSIPlan        plan,
-    PPEXSIOptions     options,
+    PPEXSIOptions*    options,
     double            numElectronExact,
     int               method,
     int               nPoints,
     double*           muPEXSI,
     double*           numElectronPEXSI,
-    double*           muMinInertia,
-    double*           muMaxInertia,
+    //double*           muMinInertia,
+    //double*           muMaxInertia,
     int*              numTotalInertiaIter,
     int*              info );
 

@@ -1097,45 +1097,38 @@ extern "C"
 void PPEXSIDFTDriver3(
     /* Input parameters */
     PPEXSIPlan        plan,
-    PPEXSIOptions     options,
+    PPEXSIOptions*    options,        // options is input and output
     double            numElectronExact,
     int               method,
     int               nPoints,
     /* Output parameters */
     double*           muPEXSI,                   
     double*           numElectronPEXSI,         
-    double*           muMinInertia,              
-    double*           muMaxInertia,             
     int*              numTotalInertiaIter,   
     int*              info ){
   *info = 0;
   const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->DFTDriver3(
         numElectronExact,
-        options.temperature,
-        options.gap,
-        options.deltaE,
-        options.numPole,
-        //options.isInertiaCount,
-        //options.muMin0,
-        //options.muMax0,
-        //options.mu0,
-        options.muInertiaTolerance,
-        //options.muInertiaExpansion,
-        options.numElectronPEXSITolerance,
-        options.matrixType,
-        options.isSymbolicFactorize,
-        options.solver,
-        options.ordering,
-        options.npSymbFact,
-        options.verbosity,
+        options->temperature,
+        options->gap,
+        options->deltaE,
+        options->numPole,
+        options->muInertiaTolerance,
+        options->numElectronPEXSITolerance,
+        options->matrixType,
+        options->isSymbolicFactorize,
+        options->solver,
+        options->ordering,
+        options->npSymbFact,
+        options->verbosity,
         *muPEXSI,
         *numElectronPEXSI,
-        *muMinInertia,
-        *muMaxInertia,
+        options->muMin0,
+        options->muMax0,
         *numTotalInertiaIter,
          method,
          nPoints);
