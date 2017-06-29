@@ -5025,6 +5025,8 @@ PPEXSIData::DFTDriver3 (
     MPI_Comm_split( gridPole_->colComm, myPoint, myPointRank, &pointColComm);
     MPI_Comm_split( gridPole_->colComm, myPointRank, myPoint, &pointRowComm);
 
+    GetTime( timePEXSISta );
+
     for(int l = 0; l < numShift ; l++)
     {
       muPEXSI = shiftVec[l];
@@ -5060,6 +5062,9 @@ PPEXSIData::DFTDriver3 (
     }
 
     MPI_Allreduce(NeVec_temp, NeVec, numShift, MPI_DOUBLE, MPI_SUM, pointRowComm); 
+
+    GetTime( timePEXSIEnd );
+    timePEXSI = timePEXSIEnd - timePEXSISta;
 
     if( verbosity >= 1 ) {
       for(int i = 0; i < numShift; i++)
@@ -5155,7 +5160,7 @@ PPEXSIData::DFTDriver3 (
           if( verbosity >= 1 ) {
             statusOFS << "PEXSI Converged " <<std::endl;
             Print( statusOFS, "converged idx               = ", mu_idx);
-            Print( statusOFS, "converged NeVec[mu_idx]      = ", NeVec[mu_idx]);
+            Print( statusOFS, "converged NeVec[mu_idx]     = ", NeVec[mu_idx]);
             Print( statusOFS, "Final mu                    = ", mu);
           }
           break;

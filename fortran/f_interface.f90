@@ -511,15 +511,14 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    value, intent(in)  :: plan
-    type(f_ppexsi_options),        intent(out) :: options
-    real(c_double),         value, intent(in)  :: numElectronExact
-    integer(c_int),         value, intent(in)  :: method
-    integer(c_int),         value, intent(in)  :: npoints
-    real(c_double),                intent(out) :: muPEXSI, numElectronPEXSI
-    !real(c_double),                intent(out) :: muMinInertia, muMaxInertia
-    integer(c_int),                intent(out) :: numTotalInertiaIter
-    integer(c_int),                intent(out) :: info
+    integer(c_intptr_t),    value, intent(in)    :: plan
+    type(f_ppexsi_options),        intent(inout) :: options
+    real(c_double),         value, intent(in)    :: numElectronExact
+    integer(c_int),         value, intent(in)    :: method
+    integer(c_int),         value, intent(in)    :: npoints
+    real(c_double),                intent(out)   :: muPEXSI, numElectronPEXSI
+    integer(c_int),                intent(out)   :: numTotalInertiaIter
+    integer(c_int),                intent(out)   :: info
   end subroutine
 
   subroutine f_ppexsi_retrieve_real_dft_matrix(&
