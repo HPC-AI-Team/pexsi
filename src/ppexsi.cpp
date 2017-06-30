@@ -4966,6 +4966,10 @@ PPEXSIData::DFTDriver3 (
       if ( ( ( idxMin == 0 ) && (idxMax == numShift-1 ) ) || 
           ( NeLower[idxMin] == 0 && NeUpper[idxMax] == matrix_size) ||
           muMax - muMin < muInertiaTolerance ) {
+
+          muMinInertia = shiftVec[idxMin];
+          muMaxInertia = shiftVec[idxMax];
+
         if( verbosity >= 1 ){
           statusOFS << std::endl << std::endl
             << "Inertia counting has converged." << std::endl
@@ -5150,7 +5154,7 @@ PPEXSIData::DFTDriver3 (
       bool isLinearInterplate = true;
       for(Int mu_idx = idxMin; mu_idx <= idxMax; mu_idx++)
       {
-        if ( std::abs( NeVec[mu_idx] - numElectronExact ) < numElectronPEXSITolerance) {
+        if (std::abs( NeVec[mu_idx] - numElectronExact ) < numElectronPEXSITolerance){
           mu = shiftVec[mu_idx];
           numElectronPEXSI = NeVec[mu_idx];
           isLinearInterplate = false;
@@ -5162,6 +5166,7 @@ PPEXSIData::DFTDriver3 (
             statusOFS << "PEXSI Converged " <<std::endl;
             Print( statusOFS, "converged idx               = ", mu_idx);
             Print( statusOFS, "converged NeVec[mu_idx]     = ", NeVec[mu_idx]);
+            Print( statusOFS, "numElectronTolerance        = ", numElectronPEXSITolerance);
             Print( statusOFS, "Final mu                    = ", mu);
           }
           break;
@@ -5264,11 +5269,11 @@ PPEXSIData::DFTDriver3 (
     for(l = 0; l < numShift; l++)
       if( NeVec[l] < numElectronExact - numElectronPEXSITolerance)
         muMinInertia = shiftVec[l];
-
+  
     for(l = numShift-1; l >= 0; l--)
       if( NeVec[l] > numElectronExact + numElectronPEXSITolerance)
         muMaxInertia = shiftVec[l];
-
+  
     if ( muMaxInertia < muMinInertia)
        ErrorHandling( " muMax < muMin , Error occured in the PEXSI ");
 
