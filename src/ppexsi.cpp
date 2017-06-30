@@ -5053,7 +5053,7 @@ PPEXSIData::DFTDriver3 (
          // exact numElectron for the correspoding muPEXSI
          NeVec_temp[l] = numElectronPEXSI;
          
-	     // correct the coressponding EDM 
+	 // correct the coressponding EDM 
          CalculateEDMCorrection(
              numPole,
              verbosity,
@@ -5157,6 +5157,7 @@ PPEXSIData::DFTDriver3 (
           MPI_Bcast(rhoRealMat_.nzvalLocal.Data(), rhoRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
           MPI_Bcast(energyDensityRealMat_.nzvalLocal.Data(), 
                     energyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
+
           if( verbosity >= 1 ) {
             statusOFS << "PEXSI Converged " <<std::endl;
             Print( statusOFS, "converged idx               = ", mu_idx);
@@ -5202,16 +5203,7 @@ PPEXSIData::DFTDriver3 (
   
         blas::Axpy( rhoRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1, 
             rhoRealMat_.nzvalLocal.Data(), 1 );
-        {
-          Real local = 0.0;
-          local = blas::Dot( HRealMat_.nnzLocal, 
-              HRealMat_.nzvalLocal.Data(),
-              1, rhoRealMat_.nzvalLocal.Data(), 1 );
-          mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
-                 gridPole_->rowComm ); 
-        }
-  
-        CopyPattern( energyDensityRealMat_, rhoMatMin );
+       CopyPattern( energyDensityRealMat_, rhoMatMin );
         rhoMatMin.nzvalLocal = energyDensityRealMat_.nzvalLocal;
         MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
   
@@ -5226,7 +5218,16 @@ PPEXSIData::DFTDriver3 (
         blas::Axpy( energyDensityRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1, 
             energyDensityRealMat_.nzvalLocal.Data(), 1 );
       }
-
+      // calculate the totalEnergyH_
+      {
+          Real local = 0.0;
+          local = blas::Dot( HRealMat_.nnzLocal, 
+              HRealMat_.nzvalLocal.Data(),
+              1, rhoRealMat_.nzvalLocal.Data(), 1 );
+          mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
+                 gridPole_->rowComm ); 
+      }
+ 
       //if( isEnergyDensityMatrix )
       {
   
