@@ -63,11 +63,16 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/TreeBcast.hpp"
 
+#include	"pexsi/TreeBcast_v2.hpp"
+#include	"pexsi/TreeReduce_v2.hpp"
 
 #include <set>
 
+#define _SYM_STORAGE_
 
 //#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
+#define sym_IDX_TO_TAG( lidx, tag, numSuper, max)  ((SELINV_TAG_COUNT)*(numSuper)*((lidx)%((max)+1))+(tag))
+
 #define IDX_TO_TAG(lidx,tag,max) ((SELINV_TAG_COUNT*(lidx%(max+1))+(tag)))
 #define IDX_TO_TAG2(sidx,lidx,tag) (SELINV_TAG_COUNT*(sidx)+(tag)) 
 #define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 
@@ -601,28 +606,47 @@ protected:
   BolNumMat                       isRecvFromCrossDiagonal_;
 
 
+  std::vector<std::shared_ptr<TreeReduce_v2<T> > > redDTree2_; 
+
+  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastLDataTree_; 
+  std::vector<std::shared_ptr<TreeReduce_v2<T> > > redLTree2_; 
+
+#ifndef _SYM_STORAGE_
   std::vector<TreeBcast *> fwdToBelowTree_; 
   std::vector<TreeBcast *> fwdToRightTree_; 
   std::vector<TreeReduce<T> *> redToLeftTree_; 
   std::vector<TreeReduce<T> *> redToAboveTree_; 
 
+#else
+  //std::vector<std::vector<Int> > blocksToRecv_; 
+  std::vector<Int> gemmCount_; 
+  std::vector<Int> snodeEtree_;
+  //either use a std::map or a numSuper * numSuper array
+  std::vector< std::map< Int, std::shared_ptr<TreeBcast_v2<char> > > > symBcastLDataTree_; 
+  std::vector< std::map< Int, std::shared_ptr<TreeReduce_v2<T> > > > symRedLTree2_; 
+#endif
 
   double localFlops_;
 
   struct SuperNodeBufferType{
+#ifdef _SYM_STORAGE_
+    std::map<Int, NumMat<T> > LUpdateBufBlk;
+    std::map<Int, std::vector<char> > SstrLcolSendBlk;
+    std::map<Int, Int > SizeSstrLcolSendBlk;
+#endif
     NumMat<T>    LUpdateBuf;
+    std::vector<char> SstrLcolSend;
+    Int               SizeSstrLcolSend;
+    std::vector<char> SstrUrowSend;
+    std::vector<char> SstrLcolRecv;
+    std::vector<char> SstrUrowRecv;
+    Int               SizeSstrUrowSend;
+    Int               SizeSstrLcolRecv;
+    Int               SizeSstrUrowRecv;
 
     NumMat<T>    DiagBuf;
     std::vector<Int>  RowLocalPtr;
     std::vector<Int>  BlockIdxLocal;
-    std::vector<char> SstrLcolSend;
-    std::vector<char> SstrUrowSend;
-    std::vector<char> SstrLcolRecv;
-    std::vector<char> SstrUrowRecv;
-    Int               SizeSstrLcolSend;
-    Int               SizeSstrUrowSend;
-    Int               SizeSstrLcolRecv;
-    Int               SizeSstrUrowRecv;
     Int               Index;
     Int               Rank;
     Int               isReady;

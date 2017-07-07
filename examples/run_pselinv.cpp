@@ -556,31 +556,31 @@ int main(int argc, char **argv)
 
 
 
-                // Convert to DistSparseMatrix and get the diagonal
-                GetTime( timeSta );
-                DistSparseMatrix<MYSCALAR> Ainv;
-                PMlocIt.PMatrixToDistSparseMatrix( Ainv );
-                GetTime( timeEnd );
+                ////// Convert to DistSparseMatrix and get the diagonal
+                ////GetTime( timeSta );
+                ////DistSparseMatrix<MYSCALAR> Ainv;
+                ////PMlocIt.PMatrixToDistSparseMatrix( Ainv );
+                ////GetTime( timeEnd );
 
-                if( mpirank == 0 )
-                  cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
+                ////if( mpirank == 0 )
+                ////  cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-                NumVec<MYSCALAR> diagDistSparse;
-                GetTime( timeSta );
-                GetDiagonal( Ainv, diagDistSparse );
-                GetTime( timeEnd );
-                if( mpirank == 0 )
-                  cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+                ////NumVec<MYSCALAR> diagDistSparse;
+                ////GetTime( timeSta );
+                ////GetDiagonal( Ainv, diagDistSparse );
+                ////GetTime( timeEnd );
+                ////if( mpirank == 0 )
+                ////  cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-                if( mpirank == 0 ){
-                  statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-                  Real diffNorm = 0.0;;
-                  for( Int i = 0; i < diag.m(); i++ ){
-                    diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
-                  }
-                  diffNorm = std::sqrt( diffNorm );
-                  statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-                }
+                ////if( mpirank == 0 ){
+                ////  statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+                ////  Real diffNorm = 0.0;;
+                ////  for( Int i = 0; i < diag.m(); i++ ){
+                ////    diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+                ////  }
+                ////  diffNorm = std::sqrt( diffNorm );
+                ////  statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+                ////}
 
                 // Convert to DistSparseMatrix in the 2nd format and get the diagonal
                 GetTime( timeSta );
@@ -680,31 +680,31 @@ int main(int argc, char **argv)
 
 
             if(doToDist){
-              // Convert to DistSparseMatrix and get the diagonal
-              GetTime( timeSta );
-              DistSparseMatrix<MYSCALAR> Ainv;
-              PMloc.PMatrixToDistSparseMatrix( Ainv );
-              GetTime( timeEnd );
-
-              if( mpirank == 0 )
-                cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-              NumVec<MYSCALAR> diagDistSparse;
-              GetTime( timeSta );
-              GetDiagonal( Ainv, diagDistSparse );
-              GetTime( timeEnd );
-              if( mpirank == 0 )
-                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-              if( mpirank == 0 ){
-                statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-                Real diffNorm = 0.0;;
-                for( Int i = 0; i < diag.m(); i++ ){
-                  diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
-                }
-                diffNorm = std::sqrt( diffNorm );
-                statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-              }
+/////              // Convert to DistSparseMatrix and get the diagonal
+/////              GetTime( timeSta );
+/////              DistSparseMatrix<MYSCALAR> Ainv;
+/////              PMloc.PMatrixToDistSparseMatrix( Ainv );
+/////              GetTime( timeEnd );
+/////
+/////              if( mpirank == 0 )
+/////                cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
+/////
+/////              NumVec<MYSCALAR> diagDistSparse;
+/////              GetTime( timeSta );
+/////              GetDiagonal( Ainv, diagDistSparse );
+/////              GetTime( timeEnd );
+/////              if( mpirank == 0 )
+/////                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+/////
+/////              if( mpirank == 0 ){
+/////                statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+/////                Real diffNorm = 0.0;;
+/////                for( Int i = 0; i < diag.m(); i++ ){
+/////                  diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+/////                }
+/////                diffNorm = std::sqrt( diffNorm );
+/////                statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+/////              }
 
               // Convert to DistSparseMatrix in the 2nd format and get the diagonal
               GetTime( timeSta );

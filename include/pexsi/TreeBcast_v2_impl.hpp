@@ -704,7 +704,7 @@ namespace PEXSI{
 
 
   template< typename T>
-   void TreeBcast_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+   void TreeBcast_Waitsome(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
       doneIdx.clear();
       auto all_done = [](const std::vector<bool> & boolvec){
         return std::all_of(boolvec.begin(), boolvec.end(), [](bool v) { return v; });
@@ -737,7 +737,7 @@ namespace PEXSI{
     }
 
   template< typename T>
-  void TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+  void TreeBcast_Testsome(const std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
       doneIdx.clear();
       for(int i = 0; i<treeIdx.size(); i++){
         Int idx = treeIdx[i];
@@ -757,9 +757,33 @@ namespace PEXSI{
       }
     }
 
+  template< typename T>
+  void TreeBcast_Testsome(const std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<int> & finishedEpochs){
+      doneIdx.clear();
+      assert(finishedEpochs.size()==treeIdx.size()+1);
+      Int curEpoch = ++finishedEpochs.back();
+      for(int i = 0; i<treeIdx.size(); i++){
+        Int idx = treeIdx[i];
+        auto & curTree = arrTrees[idx];
+        if(curTree!=nullptr){
+          bool done = curTree->Progress();
+          if(done){
+            if(!finishedEpochs[i]){
+              doneIdx.push_back(i);
+              finishedEpochs[i] = curEpoch;
+            }
+          }
+        }
+        else{
+          finishedEpochs[i] = curEpoch;
+        }
+      }
+    }
+
+
 
   template< typename T>
-   void TreeBcast_Waitall(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees){
+   void TreeBcast_Waitall(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees){
      std::list<int> doneIdx;
      std::vector<bool> finishedFlags(treeIdx.size(),false);
      

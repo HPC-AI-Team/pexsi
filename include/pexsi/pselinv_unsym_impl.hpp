@@ -4472,10 +4472,10 @@ namespace PEXSI{
 
 
         this->bcastLDataTree_.resize(numSuper);
-        this->bcastUDataTree_.resize(numSuper);
         this->redLTree2_.resize(numSuper);
-        this->redUTree2_.resize(numSuper);
         this->redDTree2_.resize(numSuper);
+        this->bcastUDataTree_.resize(numSuper);
+        this->redUTree2_.resize(numSuper);
         //Loop through each supernode and share its structure among all processors in supernode's column
 
         std::vector< std::list<Int > > structRows(numSuper);

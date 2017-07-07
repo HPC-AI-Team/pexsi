@@ -876,7 +876,7 @@ namespace PEXSI{
 
 
   template< typename T>
-    void TreeReduce_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+    void TreeReduce_Waitsome(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
       doneIdx.clear();
       auto all_done = [](const std::vector<bool> & boolvec){
         return std::all_of(boolvec.begin(), boolvec.end(), [](bool v) { return v; });
@@ -903,7 +903,7 @@ namespace PEXSI{
     }
 
   template< typename T>
-    void TreeReduce_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+    void TreeReduce_Testsome(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeReduce_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
       doneIdx.clear();
       for(int i = 0; i<treeIdx.size(); i++){
         Int idx = treeIdx[i];
@@ -925,7 +925,7 @@ namespace PEXSI{
 
 
   template< typename T>
-    void TreeReduce_Waitall(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees){
+    void TreeReduce_Waitall(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeReduce_v2<T> > > & arrTrees){
       std::list<int> doneIdx;
       std::vector<bool> finishedFlags(treeIdx.size(),false);
 
@@ -955,7 +955,7 @@ namespace PEXSI{
     }
 
   template< typename T>
-    void TreeReduce_ProgressAll(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeReduce_v2<T> > > & arrTrees){
+    void TreeReduce_ProgressAll(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeReduce_v2<T> > > & arrTrees){
 
       for(int i = 0; i<treeIdx.size(); i++){
         Int idx = treeIdx[i];

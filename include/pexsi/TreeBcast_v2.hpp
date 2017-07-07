@@ -5,6 +5,7 @@
 #include "pexsi/timer.h"
 
 #include <vector>
+#include <list>
 #include <map>
 #include <algorithm>
 #include <string>
@@ -154,13 +155,13 @@ namespace PEXSI{
 
 
   template< typename T>
-  void TreeBcast_Waitsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
+  void TreeBcast_Waitsome(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
 
   template< typename T>
-  void TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
+  void TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
 
   template< typename T>
-  void TreeBcast_Waitall(std::vector<Int> & treeIdx, std::vector< std::unique_ptr<TreeBcast_v2<T> > > & arrTrees);
+  void TreeBcast_Waitall(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees);
 
 }//namespace PEXSI
 

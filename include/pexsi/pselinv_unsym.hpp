@@ -62,8 +62,6 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include	"pexsi/lapack.hpp"
 #include	"pexsi/pselinv.hpp"
 
-#include	"pexsi/TreeBcast_v2.hpp"
-#include	"pexsi/TreeReduce_v2.hpp"
 
 #include <memory>
 #include <set>
@@ -190,19 +188,16 @@ template<typename T>
 
   protected:
 
-      std::vector<std::vector<Int> > isSendToCD_;
-      std::vector<std::vector<Int> > isRecvFromCD_; 
+  std::vector<std::vector<Int> > isSendToCD_;
+  std::vector<std::vector<Int> > isRecvFromCD_; 
 
-  std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastLDataTree_; 
-  std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastLStructTree_; 
+  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastLStructTree_; 
 
-  std::vector<std::vector< std::unique_ptr<TreeBcast_v2<char> > > > bcastUDataTrees_; 
-  std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastUDataTree_; 
-  std::vector<std::unique_ptr<TreeBcast_v2<char> > > bcastUStructTree_; 
+  std::vector<std::vector< std::shared_ptr<TreeBcast_v2<char> > > > bcastUDataTrees_; 
+  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastUDataTree_; 
+  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastUStructTree_; 
 
-  std::vector<std::unique_ptr<TreeReduce_v2<T> > > redLTree2_; 
-  std::vector<std::unique_ptr<TreeReduce_v2<T> > > redUTree2_; 
-  std::vector<std::unique_ptr<TreeReduce_v2<T> > > redDTree2_; 
+  std::vector<std::shared_ptr<TreeReduce_v2<T> > > redUTree2_; 
 
   std::vector<TreeReduce<T> *> redLTree_; 
   std::vector<TreeReduce<T> *> redDTree_; 
