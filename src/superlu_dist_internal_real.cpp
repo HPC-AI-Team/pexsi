@@ -878,6 +878,7 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
     }  // if(index)
   } // for(jb)
 
+#ifndef _SYM_STORAGE_
   // U part
 #if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "LUstructToPMatrix::U part" << std::endl;
@@ -957,6 +958,7 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
     } // if( index )
 
   } // for(ib)
+#endif
 
   for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
     std::vector<Int> & rowBlockIdx = PMloc.RowBlockIdx(ib);

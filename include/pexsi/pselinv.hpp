@@ -68,7 +68,6 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include <set>
 
-#define _SYM_STORAGE_
 
 //#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
 #define sym_IDX_TO_TAG( lidx, tag, numSuper, max)  ((SELINV_TAG_COUNT)*(numSuper)*((lidx)%((max)+1))+(tag))
@@ -619,11 +618,16 @@ protected:
 
 #else
   //std::vector<std::vector<Int> > blocksToRecv_; 
-  std::vector<Int> gemmCount_; 
   std::vector<Int> snodeEtree_;
+
+  std::vector<Int> snodeTreeOffset_;
+//  std::vector<std::vector<Int> > snodeBlkidxToTree_;
+  std::vector<std::map<Int,Int> > snodeBlkidxToTree_;
+  std::vector<std::vector<Int> > snodeTreeToBlkidx_;
+
   //either use a std::map or a numSuper * numSuper array
-  std::vector< std::map< Int, std::shared_ptr<TreeBcast_v2<char> > > > symBcastLDataTree_; 
-  std::vector< std::map< Int, std::shared_ptr<TreeReduce_v2<T> > > > symRedLTree2_; 
+  //std::vector< std::map< Int, std::shared_ptr<TreeBcast_v2<char> > > > symBcastLDataTree_; 
+  //std::vector< std::map< Int, std::shared_ptr<TreeReduce_v2<T> > > > symRedLTree2_; 
 #endif
 
   double localFlops_;

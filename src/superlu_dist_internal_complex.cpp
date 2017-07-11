@@ -944,6 +944,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 
 
 
+#ifndef _SYM_STORAGE_
 
 
   // U part
@@ -1064,7 +1065,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 
   } // for(ib)
 
-
+#endif
 
 
   for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){

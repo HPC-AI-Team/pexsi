@@ -416,6 +416,8 @@ namespace PEXSI{
 
   template< typename T> 
     inline T* TreeBcast_v2<T>::GetLocalBuffer(){
+      assert(this->recvDataPtrs_.size()>0);
+      assert(this->recvDataPtrs_[0]!=nullptr);
       return this->recvDataPtrs_[0];
     }
 
@@ -768,7 +770,7 @@ namespace PEXSI{
         if(curTree!=nullptr){
           bool done = curTree->Progress();
           if(done){
-            if(!finishedEpochs[i]){
+            if(finishedEpochs[i]<=0){
               doneIdx.push_back(i);
               finishedEpochs[i] = curEpoch;
             }
