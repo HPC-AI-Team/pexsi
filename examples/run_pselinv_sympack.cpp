@@ -17,7 +17,7 @@
 #include "pexsi/sympack_interf.hpp"
 #include <memory>
 
-#define _MYCOMPLEX_
+//#define _MYCOMPLEX_
 
 typedef double ISCALAR;
 #ifdef _MYCOMPLEX_

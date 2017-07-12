@@ -4871,12 +4871,21 @@ delete [] blockRows;
         }
 
 
+          std::list<int> bcastLDataIdx; 
+          std::vector<int> bcastLDataDone(totTreeCount+1,0);
+          std::vector<Int> gemmCount(totTreeCount,0);        
+          std::vector<Int> gemmCountDiag(stepSuper,0);        
         std::vector<Int> treeIdx;
         treeIdx.reserve(totTreeCount);
         std::vector<Int> treeToSupidx;
         treeToSupidx.reserve(totTreeCount);
         std::vector<Int> treeToIb;
         treeToIb.reserve(totTreeCount);
+
+       
+
+        std::vector<Int> treeToBufIdx;
+        treeToBufIdx.reserve(totTreeCount);
 
 
         //NumMat<T> AinvBuf, LBuf;
@@ -4893,29 +4902,25 @@ delete [] blockRows;
         //#define BLOCK_BCAST_LDATA
         //#define BLOCK_REDUCE_L
         //#define BLOCK_REDUCE_D
-//if(lidx==2 && grid_->mpirank==0){gdb_lock();}
 
         TIMER_START(WaitContentLU);
+        {
+        std::vector<Int> treeToBufIdxHeads(stepSuper,0);
         for (Int supidx=0; supidx<stepSuper ; supidx++){
           auto & snode = arrSuperNodes[supidx];
-#ifdef BCAST_LDATA
-          TIMER_START(Alloc_Buffer_Recv_LrowL);
-
           Int treeCount = snodeTreeOffset_[snode.Index+1] - snodeTreeOffset_[snode.Index]; 
           for(Int offset = 0; offset<treeCount; offset++){
             Int tidx = snodeTreeOffset_[snode.Index] + offset;
             Int blkIdx = snodeTreeToBlkidx_[snode.Index][offset];
             auto & bcastLData = this->bcastLDataTree_[tidx];
-
             if(bcastLData != nullptr){
               //add the global index of the tree to the watch list
               treeIdx.push_back(tidx);
               treeToSupidx.push_back(supidx);
               treeToIb.push_back(-1);
+              treeToBufIdx.push_back(treeToBufIdxHeads[supidx]++);
 
               if(bcastLData->IsRoot()){
-                std::stringstream sstm;
-                std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
                 auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
                 Int ibFound = -1;
                 for( Int ib = 0; ib < Lcol.size(); ib++ ){
@@ -4924,127 +4929,67 @@ delete [] blockRows;
                     break;
                   }
                 }
-
                 assert(ibFound>=0);
-
                 treeToIb.back() = ibFound;
+              }
+            }
+          }
+          }
 
+            for (Int supidx=0; supidx<stepSuper ; supidx++){
+              auto & snode = arrSuperNodes[supidx];
+              snode.LUpdateBufBlk.resize(treeToBufIdxHeads[supidx]);
+              snode.SstrLcolSendBlk.resize(treeToBufIdxHeads[supidx]);
+              snode.SizeSstrLcolSendBlk.resize(treeToBufIdxHeads[supidx]);
+            }
+
+#ifdef BCAST_LDATA
+                TIMER_START(Serialize_LcolL);
+        for(Int ltidx=0;ltidx<treeIdx.size();ltidx++){
+          Int tidx = treeIdx[ltidx];
+          Int supidx = treeToSupidx[ltidx];
+          auto & snode = arrSuperNodes[supidx];
+          auto & bcastLData = this->bcastLDataTree_[tidx];
+          if(bcastLData != nullptr){
+            if(bcastLData->IsRoot()){
+              Int ibFound = treeToIb[ltidx];
+                std::stringstream sstm;
+                std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+                auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
+                assert(ibFound>=0);
                 auto & LB = Lcol[ibFound];
 
                 // Only LB is to be sent down
                 // TODO this is useless
                 //serialize( 1, sstm, NO_MASK );
                 serialize( LB, sstm, mask );
-                auto & SstrLcolSend = snode.SstrLcolSendBlk[blkIdx];
-                auto & SizeSstrLcolSend = snode.SizeSstrLcolSendBlk[blkIdx];
+                auto & SstrLcolSend = snode.SstrLcolSendBlk[treeToBufIdx[ltidx]];
+                auto & SizeSstrLcolSend = snode.SizeSstrLcolSendBlk[treeToBufIdx[ltidx]];
                 SstrLcolSend.resize( Size( sstm ) );
                 sstm.read( &SstrLcolSend[0], SstrLcolSend.size() );
                 SizeSstrLcolSend = SstrLcolSend.size();
-                TIMER_STOP(Serialize_LcolL);
 
                 assert(bcastLData->GetMsgSize()==SizeSstrLcolSend);
                 bcastLData->SetLocalBuffer(&SstrLcolSend[0]);
                 bcastLData->SetDataReady(true);
               }
-
-              //TODO we might have a problem with the tag here...
-              //Tag should be assigned beforehand ?
-              //              Int tag = sym_IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT*blkIdx,numSuper,this->limIndex_);
-              //              assert(tag<maxTag_);
-              //              bcastLData->SetTag(tag);
               bool done = bcastLData->Progress();
             }
-
-
-
-            ////          auto bcastLDataArr = &this->bcastLDataTree_[snode.Index*numSuper];
-            //////if(snode.Index==62){gdb_lock();}
-            ////
-            ////          //TODO loop through the ancestors of ksup instead
-            ////          Int blkIdx = snodeEtree_[snode.Index];
-            ////          while(blkIdx<numSuper){
-            ////            auto & bcastLData = bcastLDataArr[blkIdx];
-            ////
-            ////            if(bcastLData != nullptr){
-            ////              //add the global index of the tree to the watch list
-            ////              treeIdx.push_back(snode.Index*numSuper+blkIdx);
-            ////              treeToSupidx.push_back(supidx);
-            ////              treeToIb.push_back(-1);
-            ////
-            ////              if(bcastLData->IsRoot()){
-            ////                std::stringstream sstm;
-            ////                std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-            ////                auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
-            ////                Int ibFound = -1;
-            ////                for( Int ib = 0; ib < Lcol.size(); ib++ ){
-            ////                  if(Lcol[ib].blockIdx == blkIdx){
-            ////                    ibFound = ib;
-            ////                    break;
-            ////                  }
-            ////                }
-            ////
-            ////                assert(ibFound>=0);
-            ////              
-            ////                treeToIb.back() = ibFound;
-            ////
-            ////                auto & LB = Lcol[ibFound];
-            ////
-            ////                // Only LB is to be sent down
-            ////                // TODO this is useless
-            ////                //serialize( 1, sstm, NO_MASK );
-            ////                serialize( LB, sstm, mask );
-            ////                auto & SstrLcolSend = snode.SstrLcolSendBlk[blkIdx];
-            ////                auto & SizeSstrLcolSend = snode.SizeSstrLcolSendBlk[blkIdx];
-            ////                SstrLcolSend.resize( Size( sstm ) );
-            ////                sstm.read( &SstrLcolSend[0], SstrLcolSend.size() );
-            ////                SizeSstrLcolSend = SstrLcolSend.size();
-            ////                TIMER_STOP(Serialize_LcolL);
-            ////
-            ////                assert(bcastLData->GetMsgSize()==SizeSstrLcolSend);
-            ////                bcastLData->SetLocalBuffer(&SstrLcolSend[0]);
-            ////                bcastLData->SetDataReady(true);
-            ////              }
-            ////
-            ////              //TODO we might have a problem with the tag here...
-            ////              //Tag should be assigned beforehand ?
-            ////              Int tag = sym_IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT*blkIdx,numSuper,this->limIndex_);
-            ////              assert(tag<maxTag_);
-            ////              bcastLData->SetTag(tag);
-            ////              bool done = bcastLData->Progress();
-            ////            }
-            ////            blkIdx = snodeEtree_[blkIdx];
           }
-
-          TIMER_STOP(Alloc_Buffer_Recv_LrowL);
+                TIMER_STOP(Serialize_LcolL);
 #endif
+
 
           }
           TIMER_STOP(WaitContentLU);
 
 
-          std::list<int> bcastLDataIdx; 
-          std::vector<int> bcastLDataDone(treeIdx.size()+1,0);
 
-
-
-          //TODO dummy wait
 #ifdef BLOCK_BCAST_LDATA
-          //{
-          //  bool all_doneBCastL = false;
-          //  while(!(all_doneBCastL = std::all_of(bcastLDataDone.begin(), bcastLDataDone.end()-1, [](int v) { return v>0; })))//gemmProcessed<gemmToDo)
-          //  {
-          //      TreeBcast_Testsome( treeIdx, this->bcastLDataTree_, bcastLDataIdx, bcastLDataDone);
-          //  }
-
-          //  bcastLDataDone.assign(treeIdx.size()+1,0);
-          //}
-
           TreeBcast_Waitall( treeIdx, this->bcastLDataTree_);
 #endif
 
 
-          std::vector<Int> gemmCount(treeIdx.size(),0);        
-          std::vector<Int> gemmCountDiag(stepSuper,0);        
           for(int ltidx = 0; ltidx<treeIdx.size();ltidx++){
             Int tidx = treeIdx[ltidx];
             Int supidx = treeToSupidx[ltidx]; 
@@ -5122,6 +5067,7 @@ delete [] blockRows;
             };
 
             auto getBlocks = [&] (Int ksup, LBlock<T> * pLB, LBlock<T> * pSinvB, Int * blockRows, Int & blockRowsSize){
+              TIMER_START(GET_BLOCKS);
               //TODO this doesn't handle transpose if pLB->blockIdx < pSinvB->blockIdx ...
               if(pLB->numRow>0){
                 Int* rowsSinvBPtr    = pSinvB->rows.Data();
@@ -5211,10 +5157,11 @@ delete [] blockRows;
 
                 }
               }
+              TIMER_STOP(GET_BLOCKS);
             };
 
 
-            auto ComputeLUpdateBuf = [&](SuperNodeBufferType & snode, LBlock<T> & LB1, LBlock<T> & LB2) {
+            auto ComputeLUpdateBuf = [&](SuperNodeBufferType & snode, LBlock<T> & LB1, LBlock<T> & LB2, NumMat<T> & LUpdateBuf1, NumMat<T> & LUpdateBuf2) {
               Int superSize = SuperSize( snode.Index, this->super_ );
 
               Int isup = LB1.blockIdx;
@@ -5224,7 +5171,6 @@ delete [] blockRows;
               LBlock<T> * pLB1 = &LB1;
               LBlock<T> * pLB2 = &LB2;
 
-              auto & LUpdateBuf1 = snode.LUpdateBufBlk[pLB1->blockIdx];
               TIMER_START(Compute_Sinv_L_Resize);
               if(LUpdateBuf1.Size()==0){
                 LUpdateBuf1.Resize(pLB1->nzval.m(),SuperSize( snode.Index, this->super_ ));
@@ -5236,8 +5182,6 @@ delete [] blockRows;
               size_t ldLUBuf1 = LUpdateBuf1.m(); 
 
 
-
-              auto & LUpdateBuf2 = snode.LUpdateBufBlk[pLB2->blockIdx];
               T * nzvalLUpd2 =  nullptr;
               size_t ldLUBuf2 = 0;
               if(pLB1!=pLB2){
@@ -5464,7 +5408,6 @@ delete [] blockRows;
                     break;
                   }	
                 } // for (ibSinv )
-
                 TIMER_STOP(PARSING_ROW_BLOCKIDX);
                 if( isBlockFound == false ){
                   abort();
@@ -5590,7 +5533,8 @@ delete [] blockRows;
                     LBlock<T> LB1;
                     //Unpack the data
                     UnpackLBlock(bcastLDataTree1, LB1);
-                    ComputeLUpdateBuf(snode, LB1, LB1);
+                    auto & LUpdateBuf1 = snode.LUpdateBufBlk[treeToBufIdx[ltidx1]];
+                    ComputeLUpdateBuf(snode, LB1, LB1, LUpdateBuf1, LUpdateBuf1);
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS<<"["<<snode.Index<<"] Decreasing gemmCount of "<<ltidx1<<" after U("<<blkIdx1<<")"<<std::endl;
                     assert(gemmCount[ltidx1]>0);
@@ -5609,7 +5553,10 @@ delete [] blockRows;
                     //Unpack the data
                     UnpackLBlock(bcastLDataTree1, LB1);
                     UnpackLBlock(bcastLDataTree2, LB2);
-                    ComputeLUpdateBuf(snode, LB1, LB2);
+
+                    auto & LUpdateBuf1 = snode.LUpdateBufBlk[treeToBufIdx[ltidx1]];
+                    auto & LUpdateBuf2 = snode.LUpdateBufBlk[treeToBufIdx[ltidx2]];
+                    ComputeLUpdateBuf(snode, LB1, LB2,LUpdateBuf1,LUpdateBuf2);
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS<<"["<<snode.Index<<"] Decreasing gemmCount of "<<ltidx1<<" after U("<<blkIdx1<<","<<blkIdx2<<")"<<std::endl;
                     statusOFS<<"["<<snode.Index<<"] Decreasing gemmCount of "<<ltidx2<<" after U("<<blkIdx1<<","<<blkIdx2<<")"<<std::endl;
@@ -5623,7 +5570,7 @@ delete [] blockRows;
 #ifdef REDUCE_L
                   if (gemmCount[ltidx1]==0){
                     auto & bcastLDataTree1 = this->bcastLDataTree_[ treeIdx[ltidx1] ];
-                    auto & LUpdateBuf1 = snode.LUpdateBufBlk[blkIdx1];
+                    auto & LUpdateBuf1 = snode.LUpdateBufBlk[treeToBufIdx[ltidx1]];
                     //Now participate to the reduction of L1
                     auto & redLTree1 = this->redLTree2_[ treeIdx[ltidx1] ];
                     assert(redLTree1!=nullptr);
@@ -5638,7 +5585,7 @@ delete [] blockRows;
                   }
                   if (blkIdx1!=blkIdx2 && gemmCount[ltidx2]==0){
                     auto & bcastLDataTree2 = this->bcastLDataTree_[ treeIdx[ltidx2] ];
-                    auto & LUpdateBuf2 = snode.LUpdateBufBlk[blkIdx2];
+                    auto & LUpdateBuf2 = snode.LUpdateBufBlk[treeToBufIdx[ltidx2]];
                     //Now participate to the reduction of L2
                     auto & redLTree2 = this->redLTree2_[ treeIdx[ltidx2] ];
                     assert(redLTree2!=nullptr);
@@ -5809,7 +5756,7 @@ delete [] blockRows;
               if(redLTree->IsRoot()){
 
                 //TODO this has to be index by ib instead of blkidx ? or use a map instead....
-                auto & LUpdateBuf = snode.LUpdateBufBlk[blkIdx];
+                auto & LUpdateBuf = snode.LUpdateBufBlk[treeToBufIdx[ltidx]];
 
                 if( LUpdateBuf.ByteSize() == 0 ){
                   Int n = SuperSize( snode.Index, this->super_);
@@ -5957,15 +5904,6 @@ delete [] blockRows;
             auto & redDTree = this->redDTree2_[snode.Index];
             if(redDTree!=nullptr){
               if(redDTree->IsRoot()){
-#if ( _DEBUGlevel_ >= 1 )
-                Int destCnt = redDTree->GetDestCount();
-                Int * dests = redDTree->GetDests();
-                statusOFS<<"["<<snode.Index<<"] redD: ";
-                for(Int i = 0;i<destCnt;i++){ statusOFS<<dests[i]<<" "; }
-                statusOFS<<std::endl;
-                statusOFS<<"["<<snode.Index<<"] I AM ROOT of D"<<std::endl;
-#endif
-
                 if( snode.DiagBuf.Size()==0){
                   snode.DiagBuf.Resize( SuperSize( snode.Index, this->super_ ), SuperSize( snode.Index, this->super_ ));
                   SetValue(snode.DiagBuf, ZERO<T>());
@@ -5979,19 +5917,6 @@ delete [] blockRows;
 
 #ifdef BLOCK_REDUCE_D
           TreeReduce_Waitall( superList[lidx], this->redDTree2_);
-#if ( _DEBUGlevel_ >= 1 )
-          for(auto && snode : arrSuperNodes){
-            auto & redDTree = this->redDTree2_[snode.Index];
-            if(redDTree!=nullptr){
-              Int destCnt = redDTree->GetDestCount();
-              Int * dests = redDTree->GetDests();
-              statusOFS<<"["<<snode.Index<<"] redD: "; for(Int i = 0;i<destCnt;i++){ statusOFS<<dests[i]<<" "; }
-              statusOFS<<std::endl;
-
-              if(redDTree->IsRoot()){ statusOFS<<"["<<snode.Index<<"] I AM ROOT"; }
-            }
-          }
-#endif
 #endif
 
           //Reduce D
@@ -6920,6 +6845,7 @@ delete [] blockRows;
 
       return ;
 #else
+      TIMER_START(ConstructCommunicationPattern);
       Int numSuper = this->NumSuper();
 
       TIMER_START(GetEtree);
@@ -7247,7 +7173,7 @@ delete [] blockRows;
       }
 
       std::vector<int> tagCountPerLevelPerRoot(grid_->mpisize*numSteps,0);
-        MPI_Request request_tags = MPI_REQUEST_NULL;
+      MPI_Request request_tags = MPI_REQUEST_NULL;
       MPI_Iallgather(tagCountPerLevel.data(),numSteps,MPI_INT,tagCountPerLevelPerRoot.data(),numSteps,MPI_INT,grid_->comm,&request_tags);
 
         //TODO this can be moved further down
@@ -7529,16 +7455,7 @@ delete [] blockRows;
           i+=sizeof(double)/sizeof(Int);
           Int ranklistSize = recvBuffer[i++];
           Int * ranklist = &recvBuffer[i];
-          //          std::vector<Int> ranklist(ranklistSize);
-          //          std::copy(&recvBuffer[i], &recvBuffer[i]+ranklistSize, ranklist.data());
           i+=ranklistSize;
-          //#if ( _DEBUGlevel_ >= 1 )
-          //          statusOFS<<"["<<ksup<<"] blockIdx "<<blockIdx<<" messageSize "<<messageSize;
-          //          statusOFS<<" seed "<<seed<<" ranklistSize "<<ranklistSize<<" { ";
-          //          for(auto&& rank: ranklist){statusOFS<<rank<<" ";}statusOFS<<"}"<<std::endl;
-          //#endif
-
-
 
           Int offset = heads[ksup]++;
           snodeTreeToBlkidx_[ksup][offset] = blockIdx;
@@ -7558,9 +7475,11 @@ delete [] blockRows;
           bcastLTree->SetGlobalComm(this->grid_->comm);
 #endif
 
+#if ( _DEBUGlevel_ >= 1 )
                   statusOFS<<"L ["<<ksup<<"] blockIdx "<<blockIdx<<" messageSize "<<bcastLTree->GetMsgSize();
                   statusOFS<<" tag "<<bcastLTree->GetTag()<<" { ";
                   for(Int ir=0; ir < ranklistSize; ir++){statusOFS<<ranklist[ir]<<" ";}statusOFS<<"}"<<std::endl;
+#endif
 
           auto & redLTree = redLTree2_[ snodeTreeOffset_[ksup] + offset ];
           redLTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,ranklist,ranklistSize,blockSize,seed));
@@ -7569,9 +7488,11 @@ delete [] blockRows;
           redLTree->SetGlobalComm(this->grid_->comm);
 #endif
 
+#if ( _DEBUGlevel_ >= 1 )
                   statusOFS<<"RL ["<<ksup<<"] blockIdx "<<blockIdx<<" messageSize "<<redLTree->GetMsgSize();
                   statusOFS<<" tag "<<redLTree->GetTag()<<" { ";
                   for(Int ir=0; ir < ranklistSize; ir++){statusOFS<<ranklist[ir]<<" ";}statusOFS<<"}"<<std::endl;
+#endif
           GetTime( timeEnd3 );
           tcreat += timeEnd3 - timeSta3;
           }
@@ -7595,53 +7516,6 @@ delete [] blockRows;
       statusOFS<<"Time to other: "<<tother<<std::endl; 
 
       statusOFS<<"Tree structure allocation new: "<<timeEnd2 - timeSta2<<std::endl; 
-
-////      GetTime( timeSta2 );
-////        this->bcastLDataTree_.resize(numSuper*numSuper,nullptr);
-////        this->redLTree2_.resize(numSuper*numSuper,nullptr);
-////      GetTime( timeEnd2 );
-////      statusOFS<<"Tree structure allocation: "<<timeEnd2 - timeSta2<<std::endl; 
-////
-////      GetTime( timeSta2 );
-////        //symBcastLDataTree_.resize(numSuper);
-////        //symRedLTree2_.resize(numSuper);
-////        i = 0;
-////        while(i<recvBuffer.size()){
-////          Int ksup = recvBuffer[i++];
-////          Int blockIdx = recvBuffer[i++];
-////          Int messageSize = recvBuffer[i++];
-////          Int blockSize = recvBuffer[i++];
-////          double seed = *((double*)&recvBuffer[i]);
-////          i+=sizeof(double)/sizeof(Int);
-////          Int ranklistSize = recvBuffer[i++];
-////          std::vector<Int> ranklist(ranklistSize);
-////          std::copy(&recvBuffer[i], &recvBuffer[i]+ranklistSize, ranklist.data());
-////          i+=ranklistSize;
-////#if ( _DEBUGlevel_ >= 1 )
-////          statusOFS<<"["<<ksup<<"] blockIdx "<<blockIdx<<" messageSize "<<messageSize;
-////          statusOFS<<" seed "<<seed<<" ranklistSize "<<ranklistSize<<" { ";
-////          for(auto&& rank: ranklist){statusOFS<<rank<<" ";}statusOFS<<"}"<<std::endl;
-////#endif
-////
-////          auto & bcastLTree = bcastLDataTree_[ksup*numSuper+blockIdx];
-////          //auto & bcastLTree = symBcastLDataTree_[ksup][blockIdx];
-////          bcastLTree.reset(TreeBcast_v2<char>::Create(this->grid_->comm,ranklist.data(),ranklist.size(),messageSize,seed));
-////#ifdef COMM_PROFILE_BCAST
-////          bcastLTree->SetGlobalComm(this->grid_->comm);
-////#endif
-////
-////
-////          auto & redLTree = redLTree2_[ksup*numSuper+blockIdx];
-////          //auto & redLTree = symRedLTree2_[ksup][blockIdx];
-////          redLTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,ranklist.data(),ranklist.size(),blockSize,seed));
-////#ifdef COMM_PROFILE_BCAST
-////          redLTree->SetGlobalComm(this->grid_->comm);
-////#endif
-////
-////        }
-////
-////      GetTime( timeEnd2 );
-////      statusOFS<<"Tree structure unpacking: "<<timeEnd2 - timeSta2<<std::endl; 
 
       } 
       GetTime( timeEnd );
@@ -7694,6 +7568,7 @@ delete [] blockRows;
         //    }
         //  }
         //}
+#if ( _DEBUGlevel_ >= 1 )
         statusOFS<<tagOffsetPerLevelPerRoot<<std::endl;
         for(Int lidx = 0 ; lidx < numSteps; lidx++){
           Int stepSuper = wset[lidx].size(); 
@@ -7716,9 +7591,9 @@ delete [] blockRows;
             }
           }
         }
+#endif
 
-//      MPI_Barrier(this->grid_->comm);
-//      abort();
+      TIMER_STOP(ConstructCommunicationPattern);
       return ;
 #endif
     } 		// -----  end of method PMatrix::ConstructCommunicationPattern_P2p  ----- 
@@ -8719,7 +8594,10 @@ Int lidx=0;
             IntNumVec ipiv( SuperSize( ksup, this->super_ ) );
             // Note that the pivoting vector ipiv should follow the FORTRAN
             // notation by adding the +1
-            std::iota(ipiv.Data(),ipiv.Data()+ipiv.m(),1);
+          //  std::iota(ipiv.Data(),ipiv.Data()+ipiv.m(),1);
+          for(Int i = 0; i < SuperSize( ksup, super_ ); i++){
+            ipiv[i] = i + 1;
+          }
 
             LBlock<T> & LB = (this->L( LBj( ksup, this->grid_ ) ))[0];
             lapack::Getri( SuperSize( ksup, this->super_ ), LB.nzval.Data(), 

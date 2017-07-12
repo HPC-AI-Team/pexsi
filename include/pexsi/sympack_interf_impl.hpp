@@ -400,7 +400,9 @@ template<typename T> void symPACKMatrixToPMatrix(
 
 #endif
 
+#ifndef _SYM_STORAGE_
   PMatrixLtoU( PMat );
+#endif
 
 
   //Fill ColBlockIdx and RowBlockIdx
@@ -416,6 +418,7 @@ template<typename T> void symPACKMatrixToPMatrix(
     }
   }
 
+#ifndef _SYM_STORAGE_
   for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
     Int bnum = GBi( ib, g );
     if( bnum >= numSuper ) continue;
@@ -427,6 +430,7 @@ template<typename T> void symPACKMatrixToPMatrix(
       PMat.ColBlockIdx( LBj ).push_back( bnum );
     }
   }
+#endif
 
   for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
     std::sort(PMat.RowBlockIdx(ib).begin(),PMat.RowBlockIdx(ib).end(),std::less<Int>());

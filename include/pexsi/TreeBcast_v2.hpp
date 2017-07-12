@@ -161,10 +161,14 @@ namespace PEXSI{
   void TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags);
 
   template< typename T>
-  void TreeBcast_Testsome(const std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<int> & finishedEpochs);
+  void TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<int> & finishedEpochs);
 
   template< typename T>
   void TreeBcast_Waitall(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees);
+
+
+
+
 
 }//namespace PEXSI
 

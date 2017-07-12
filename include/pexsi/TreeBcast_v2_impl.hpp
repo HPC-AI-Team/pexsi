@@ -739,7 +739,7 @@ namespace PEXSI{
     }
 
   template< typename T>
-  void TreeBcast_Testsome(const std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
+  void TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<bool> & finishedFlags){
       doneIdx.clear();
       for(int i = 0; i<treeIdx.size(); i++){
         Int idx = treeIdx[i];
@@ -760,7 +760,7 @@ namespace PEXSI{
     }
 
   template< typename T>
-  void TreeBcast_Testsome(const std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<int> & finishedEpochs){
+  void TreeBcast_Testsome(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees, std::list<int> & doneIdx, std::vector<int> & finishedEpochs){
       doneIdx.clear();
       assert(finishedEpochs.size()==treeIdx.size()+1);
       Int curEpoch = ++finishedEpochs.back();

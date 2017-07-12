@@ -634,9 +634,9 @@ protected:
 
   struct SuperNodeBufferType{
 #ifdef _SYM_STORAGE_
-    std::map<Int, NumMat<T> > LUpdateBufBlk;
-    std::map<Int, std::vector<char> > SstrLcolSendBlk;
-    std::map<Int, Int > SizeSstrLcolSendBlk;
+    std::vector<NumMat<T> > LUpdateBufBlk;
+    std::vector< std::vector<char> > SstrLcolSendBlk;
+    std::vector< Int > SizeSstrLcolSendBlk;
 #endif
     NumMat<T>    LUpdateBuf;
     std::vector<char> SstrLcolSend;
