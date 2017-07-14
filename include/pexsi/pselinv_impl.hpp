@@ -8512,32 +8512,33 @@ Int lidx=0;
       statusOFS << std::endl << "L(i,i) <- [L(k,k) * U(k,k)]^{-1}" << std::endl << std::endl; 
 #endif
 
-      for( Int ksup = 0; ksup < numSuper; ksup++ ){
-        if( MYROW( grid_ ) == PROW( ksup, grid_ ) &&
-            MYCOL( grid_ ) == PCOL( ksup, grid_ )	){
-          IntNumVec ipiv( SuperSize( ksup, super_ ) );
+      for( Int ksup3 = 0; ksup3 < numSuper; ksup3++ ){
+        Int ksup2 = ksup3;
+        if( MYROW( grid_ ) == PROW( ksup3, grid_ ) &&
+            MYCOL( grid_ ) == PCOL( ksup3, grid_ )	){
+          IntNumVec ipiv( SuperSize( ksup3, super_ ) );
           // Note that the pivoting vector ipiv should follow the FORTRAN
           // notation by adding the +1
-          for(Int i = 0; i < SuperSize( ksup, super_ ); i++){
+          for(Int i = 0; i < SuperSize( ksup3, super_ ); i++){
             ipiv[i] = i + 1;
           }
-          LBlock<T> & LB = (this->L( LBj( ksup, grid_ ) ))[0];
+          LBlock<T> & LB = (this->L( LBj( ksup3, grid_ ) ))[0];
 #if ( _DEBUGlevel_ >= 2 )
           // Check the correctness of the matrix inversion for the first local column
-          statusOFS << "Factorized A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;
+          statusOFS << "Factorized A (" << ksup3 << ", " << ksup3 << "): " << LB.nzval << std::endl;
 #endif
-          lapack::Getri( SuperSize( ksup, super_ ), LB.nzval.Data(), 
-              SuperSize( ksup, super_ ), ipiv.Data() );
+          lapack::Getri( SuperSize( ksup3, super_ ), LB.nzval.Data(), 
+              SuperSize( ksup3, super_ ), ipiv.Data() );
 
 #ifdef _PRINT_STATS_
-          this->localFlops_+=flops::Getri<T>(SuperSize( ksup, this->super_ ));
+          this->localFlops_+=flops::Getri<T>(SuperSize( ksup3, this->super_ ));
 #endif
           // Symmetrize the diagonal block
           Symmetrize( LB.nzval );
 
 #if ( _DEBUGlevel_ >= 2 )
           // Check the correctness of the matrix inversion for the first local column
-          statusOFS << "Inversed   A (" << ksup << ", " << ksup << "): " << LB.nzval << std::endl;
+          statusOFS << "Inversed   A (" << ksup3 << ", " << ksup3 << "): " << LB.nzval << std::endl;
 #endif
         } // if I need to inverse the diagonal block
       } // for (ksup)

@@ -560,7 +560,6 @@ int main(int argc, char **argv)
       delete gPtr;
     }
 //    delete symPACK::logfileptr;
-    statusOFS.close();
 
   }
   catch( std::exception& e )
@@ -571,6 +570,7 @@ int main(int argc, char **argv)
 
 
 
+    statusOFS.close();
   symPACK_Finalize();
 //MPI_Finalize();
 
