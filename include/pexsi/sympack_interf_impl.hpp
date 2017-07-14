@@ -362,7 +362,7 @@ namespace PEXSI{
     //first do the counting
     for(Int supidx = 0; supidx < localSnodes.size(); supidx++){
       symPACK::SuperNode<T> * snode = localSnodes[supidx];
-      Int ksup = snode->Id();
+      Int ksup = snode->Id()-1;
       Int superSize = snode->Size();
 
       std::vector<bool> isSent(mpisize,false);
@@ -406,7 +406,7 @@ namespace PEXSI{
 
     for(Int supidx = 0; supidx < localSnodes.size(); supidx++){
       symPACK::SuperNode<T> * snode = localSnodes[supidx];
-      Int ksup = snode->Id();
+      Int ksup = snode->Id() - 1;
       Int superSize = snode->Size();
 
       std::vector<bool> isSent(mpisize,false);
@@ -442,7 +442,7 @@ namespace PEXSI{
           if(!isSent[pnum]){
             //Supernode index //and number of rows
             IsendPtr->setHead(displs[pnum]*sizeof(Int));
-            *IsendPtr << -ksup;
+            *IsendPtr << -(ksup+1);
             //*IsendPtr << numRows[pnum];
             displs[pnum]+=1;//+sizeof(Int);
             isSent[pnum] = true;
@@ -450,7 +450,7 @@ namespace PEXSI{
 
           IsendPtr->setHead(displs[pnum]*sizeof(Int));
           //add one row + the index
-          *IsendPtr<<i;
+          *IsendPtr<<(i+1);
           Serialize(*IsendPtr, &nzval[(i-firstRow)*superSize],superSize);
           displs[pnum]+=1+superSize*sizeTtoInt;
         }
@@ -467,10 +467,10 @@ namespace PEXSI{
     MPI_Alltoall(sizes.data(),sizeof(int),MPI_BYTE,rsizes.data(),sizeof(int),MPI_BYTE,comm);
 
     std::vector<int> rdispls(mpisize+1,0);
-    displs[0]=0;
+    rdispls[0]=0;
     std::partial_sum(rsizes.begin(),rsizes.end(),rdispls.begin()+1);
 
-    size_t total_recv_size = rdispls.back();
+    size_t total_recv_size = rdispls.back()*sizeof(Int);
     symPACK::Icomm * IrecvPtr = new symPACK::Icomm(total_recv_size,MPI_REQUEST_NULL);
 
     MPI_Datatype type;
@@ -483,15 +483,14 @@ namespace PEXSI{
 
     MPI_Type_free(&type);
 
-    std::vector<T> nzvalRow;
     IrecvPtr->setHead(0);
     while(IrecvPtr->head < IrecvPtr->capacity()){
       Int ksup = 0;
       *IrecvPtr >> ksup; //ksup is 1-based
-      ksup = -ksup;
-      Int superSize = superPtr[ksup]-superPtr[ksup-1];
+      ksup = -ksup -1; //ksup is now 0-based
+      Int superSize = superPtr[ksup+1]-superPtr[ksup];
 
-      size_t cur_head = IrecvPtr->size();
+      size_t cur_head = IrecvPtr->head;
       std::list<Int> blockSizes;
 
       Int curBlkIdx = -1;
@@ -499,18 +498,23 @@ namespace PEXSI{
 
       //we have at least one row
       *IrecvPtr >> rowIndex;
-      while( rowIndex>0 ){
-        Int destBlkIdx = superIdx[rowIndex-1];
+      while( rowIndex>0 && IrecvPtr->head < IrecvPtr->capacity()){
+        rowIndex--;
+        Int destBlkIdx = superIdx[rowIndex];
         if(destBlkIdx!=curBlkIdx){
           //push a new block
           blockSizes.push_back(0);
         }  
         blockSizes.back()++;
         curBlkIdx = destBlkIdx;
-        *IrecvPtr >> rowIndex;
+
+        IrecvPtr->setHead(IrecvPtr->head + superSize*sizeof(T) );
+        if (IrecvPtr->head < IrecvPtr->capacity()){
+          *IrecvPtr >> rowIndex;
+        }
       }
 
-      Int jb = ksup-1 / npcol;
+      Int jb = ksup / npcol;
       std::vector<LBlock<T> >& Lcol = PMat.L(jb);
 
       Lcol.resize(blockSizes.size());
@@ -526,50 +530,62 @@ namespace PEXSI{
       IrecvPtr->setHead(cur_head);
 
       ib = -1;
-      nzvalRow.resize(superSize);
       curBlkIdx = -1;
       //we have at least one row
       *IrecvPtr >> rowIndex;
       //super node indices are negative
-      while( rowIndex>0 ){
-        Int destBlkIdx = superIdx[rowIndex-1];
+      while( rowIndex>0 && IrecvPtr->head < IrecvPtr->capacity()){
+        rowIndex--;
+        Int destBlkIdx = superIdx[rowIndex];
         if(destBlkIdx!=curBlkIdx){
-          if(ib>0){
+          //if(ib>=0){
             // Convert the row major format to column major format
-            auto & LB = Lcol[ib];
-            Transpose( LB.nzval, LB.nzval);
-          }
+          //  auto & LB = Lcol[ib];
+          //  Transpose( LB.nzval, LB.nzval);
+          //}
           ib++;
           Lcol[ib].blockIdx = destBlkIdx;
         }
         auto & LB = Lcol[ib];
         LB.rows[LB.numRow++] = rowIndex;
-        Int offset = (LB.numRow-1)*superSize;
+        //Int offset = (LB.numRow-1)*superSize;
         //Deserialize(*IrecvPtr,LB.nzval.Data() + offset, superSize);
-        std::copy((T*)IrecvPtr->back(),((T*)IrecvPtr->back()) + superSize,LB.nzval.Data() + offset);
-        IrecvPtr->setHead(IrecvPtr->size() + superSize*sizeof(T) );
+        auto nzval = LB.nzval.Data();
+        Int lda = LB.nzval.m();
+        auto nzvalSrc = (T*)IrecvPtr->back();
+        for(Int col = 0; col < superSize; col++){
+          // Convert the row major format to column major format
+          nzval[col*lda + LB.numRow-1] = nzvalSrc[col];
+        }
+        //std::copy(,((T*)IrecvPtr->back()) + superSize,LB.nzval.Data() + offset);
+        IrecvPtr->setHead(IrecvPtr->head + superSize*sizeof(T) );
 
         curBlkIdx = destBlkIdx;
-        cur_head = IrecvPtr->size(); // backup head
+        cur_head = IrecvPtr->head; // backup head
+        if (IrecvPtr->head < IrecvPtr->capacity()){
         *IrecvPtr >> rowIndex;
+        }
       }
 
       //do this for the last block
-      if(ib>0){
-         auto & LB = Lcol[ib];
-        // Convert the row major format to column major format
-        Transpose( LB.nzval, LB.nzval);
-      }
+      //if(ib>0){
+      //   auto & LB = Lcol[ib];
+      //  // Convert the row major format to column major format
+      //  Transpose( LB.nzval, LB.nzval);
+      //}
 
       //restore head
       IrecvPtr->setHead(cur_head);
     }
 #endif
 
+
+
 #ifndef _SYM_STORAGE_
     PMatrixLtoU( PMat );
 #endif
 
+//    PMat.DumpLU();
 
     //Fill ColBlockIdx and RowBlockIdx
     for( Int jb = 0; jb < PMat.NumLocalBlockCol(); jb++ ){
