@@ -17,7 +17,7 @@
 #include "pexsi/sympack_interf.hpp"
 #include <memory>
 
-//#define _MYCOMPLEX_
+#define _MYCOMPLEX_
 
 typedef double ISCALAR;
 #ifdef _MYCOMPLEX_
@@ -245,13 +245,13 @@ int main(int argc, char **argv)
       //symPACK::symPACKMatrix<SCALAR>*  symPACKMat = NULL;
 #ifdef _MYCOMPLEX_
       if(isComplex){
-        symPACK::DistSparseMatrix<Complex> HMat(workcomm);
-        symPACK::ReadMatrix<Complex,Complex>(Hfile, format, HMat);
+        symPACK::DistSparseMatrix<Complex> HMatComplex(workcomm);
+        symPACK::ReadMatrix<Complex,Complex>(Hfile, format, HMatComplex);
 
         //Build AMat
         symPACK::DistSparseMatrix<Complex> SMat(workcomm);
 
-        const symPACK::DistSparseMatrixGraph & Hgraph = HMat.GetLocalGraph();
+        const symPACK::DistSparseMatrixGraph & Hgraph = HMatComplex.GetLocalGraph();
         // Get the diagonal indices for H and save it n diagIdxLocal_
         std::vector<Int>  diagIdxLocal;
         { 
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
           Int firstCol         = Hgraph.LocalFirstVertex();
 
           diagIdxLocal.clear();
-          diagIdxLocal.reserve( HMat.size );
+          diagIdxLocal.reserve( HMatComplex.size );
           for( symPACK::Idx j = 0; j < numColLocal; j++ ){
             symPACK::Idx jcol = firstCol + j + 1;
             for( symPACK::Ptr i = Hgraph.colptr[j]-1; 
@@ -275,26 +275,26 @@ int main(int argc, char **argv)
 
         GetTime( timeSta );
 
-        AMat.size          = HMat.size;
-        AMat.nnz           = HMat.nnz;
-        AMat.SetLocalGraph(HMat.GetLocalGraph());
-        AMat.nzvalLocal.resize( HMat.nzvalLocal.size() );
+        AMat.size          = HMatComplex.size;
+        AMat.nnz           = HMatComplex.nnz;
+        AMat.SetLocalGraph(HMatComplex.GetLocalGraph());
+        AMat.nzvalLocal.resize( HMatComplex.nzvalLocal.size() );
 
         SCALAR *ptr0 = AMat.nzvalLocal.data();
-        Complex *ptr1 = HMat.nzvalLocal.data();
+        Complex *ptr1 = HMatComplex.nzvalLocal.data();
         Complex *ptr2 = SMat.nzvalLocal.data();
 
 
         if( SMat.size != 0 ){
           // S is not an identity matrix
-          for( Int i = 0; i < HMat.nzvalLocal.size(); i++ ){
-            AMat.nzvalLocal[i] = HMat.nzvalLocal[i] - zshift * SMat.nzvalLocal[i];
+          for( Int i = 0; i < HMatComplex.nzvalLocal.size(); i++ ){
+            AMat.nzvalLocal[i] = HMatComplex.nzvalLocal[i] - zshift * SMat.nzvalLocal[i];
           }
         }
         else{
           // S is an identity matrix
           for( Int i = 0; i < Hgraph.LocalEdgeCount(); i++ ){
-            AMat.nzvalLocal[i] = HMat.nzvalLocal[i];
+            AMat.nzvalLocal[i] = HMatComplex.nzvalLocal[i];
           }
 
           for( Int i = 0; i < diagIdxLocal.size(); i++ ){
@@ -316,8 +316,8 @@ int main(int argc, char **argv)
       else
 #endif
       {
-        symPACK::DistSparseMatrix<ISCALAR> HMat(workcomm);
-        symPACK::ReadMatrix<ISCALAR,ISCALAR>(Hfile, format, HMat);
+        symPACK::DistSparseMatrix<ISCALAR> HMatReal(workcomm);
+        symPACK::ReadMatrix<ISCALAR,ISCALAR>(Hfile, format, HMatReal);
 
         //Build AMat
         symPACK::DistSparseMatrix<ISCALAR> SMat(workcomm);
@@ -335,7 +335,7 @@ int main(int argc, char **argv)
 
 
 
-        const symPACK::DistSparseMatrixGraph & Hgraph = HMat.GetLocalGraph();
+        const symPACK::DistSparseMatrixGraph & Hgraph = HMatReal.GetLocalGraph();
         // Get the diagonal indices for H and save it n diagIdxLocal_
         std::vector<Int>  diagIdxLocal;
         { 
@@ -344,7 +344,7 @@ int main(int argc, char **argv)
           Int firstCol         = Hgraph.LocalFirstVertex();
 
           diagIdxLocal.clear();
-          diagIdxLocal.reserve( HMat.size );
+          diagIdxLocal.reserve( HMatReal.size );
           for( symPACK::Idx j = 0; j < numColLocal; j++ ){
             symPACK::Idx jcol = firstCol + j + 1;
             for( symPACK::Ptr i = Hgraph.colptr[j]-1; 
@@ -359,26 +359,26 @@ int main(int argc, char **argv)
 
         GetTime( timeSta );
 
-        AMat.size          = HMat.size;
-        AMat.nnz           = HMat.nnz;
-        AMat.SetLocalGraph(HMat.GetLocalGraph());
-        AMat.nzvalLocal.resize( HMat.nzvalLocal.size() );
+        AMat.size          = HMatReal.size;
+        AMat.nnz           = HMatReal.nnz;
+        AMat.SetLocalGraph(HMatReal.GetLocalGraph());
+        AMat.nzvalLocal.resize( HMatReal.nzvalLocal.size() );
 
         SCALAR *ptr0 = AMat.nzvalLocal.data();
-        Real *ptr1 = HMat.nzvalLocal.data();
+        Real *ptr1 = HMatReal.nzvalLocal.data();
         Real *ptr2 = SMat.nzvalLocal.data();
 
 
         if( SMat.size != 0 ){
           // S is not an identity matrix
-          for( Int i = 0; i < HMat.nzvalLocal.size(); i++ ){
-            AMat.nzvalLocal[i] = HMat.nzvalLocal[i] - zshift * SMat.nzvalLocal[i];
+          for( Int i = 0; i < HMatReal.nzvalLocal.size(); i++ ){
+            AMat.nzvalLocal[i] = HMatReal.nzvalLocal[i] - zshift * SMat.nzvalLocal[i];
           }
         }
         else{
           // S is an identity matrix
           for( Int i = 0; i < Hgraph.LocalEdgeCount(); i++ ){
-            AMat.nzvalLocal[i] = HMat.nzvalLocal[i];
+            AMat.nzvalLocal[i] = HMatReal.nzvalLocal[i];
           }
 
           for( Int i = 0; i < diagIdxLocal.size(); i++ ){

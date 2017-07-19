@@ -399,8 +399,10 @@ namespace PEXSI{
     std::partial_sum(sizes.begin(),sizes.end(),displs.begin()+1);
 
     //now pack
-    size_t total_send_size = displs.back()*sizeof(Int);
-    symPACK::Icomm * IsendPtr = new symPACK::Icomm(total_send_size,MPI_REQUEST_NULL);
+    Int * sendBuffer = new Int[displs.back()];
+
+    //size_t total_send_size = displs.back()*sizeof(Int);
+    //symPACK::Icomm * IsendPtr = new symPACK::Icomm(total_send_size,MPI_REQUEST_NULL);
 
 
 
@@ -441,18 +443,21 @@ namespace PEXSI{
 
           if(!isSent[pnum]){
             //Supernode index //and number of rows
-            IsendPtr->setHead(displs[pnum]*sizeof(Int));
-            *IsendPtr << -(ksup+1);
-            //*IsendPtr << numRows[pnum];
-            displs[pnum]+=1;//+sizeof(Int);
+            sendBuffer[displs[pnum]++] = -(ksup+1);
+            //IsendPtr->setHead(displs[pnum]*sizeof(Int));
+            //*IsendPtr << -(ksup+1);
+            //displs[pnum]+=1;
             isSent[pnum] = true;
           }
 
-          IsendPtr->setHead(displs[pnum]*sizeof(Int));
           //add one row + the index
-          *IsendPtr<<(i+1);
-          Serialize(*IsendPtr, &nzval[(i-firstRow)*superSize],superSize);
-          displs[pnum]+=1+superSize*sizeTtoInt;
+          sendBuffer[displs[pnum]++] = i+1;
+          std::copy(&nzval[(i-firstRow)*superSize],&nzval[(i-firstRow)*superSize] + superSize, (T*)&sendBuffer[displs[pnum]]);
+          displs[pnum]+=superSize*sizeTtoInt;
+          //IsendPtr->setHead(displs[pnum]*sizeof(Int));
+          //*IsendPtr<<(i+1);
+          //Serialize(*IsendPtr, &nzval[(i-firstRow)*superSize],superSize);
+          //displs[pnum]+=1+superSize*sizeTtoInt;
         }
       } // for ( blkidx )
     }
@@ -470,35 +475,47 @@ namespace PEXSI{
     rdispls[0]=0;
     std::partial_sum(rsizes.begin(),rsizes.end(),rdispls.begin()+1);
 
-    size_t total_recv_size = rdispls.back()*sizeof(Int);
-    symPACK::Icomm * IrecvPtr = new symPACK::Icomm(total_recv_size,MPI_REQUEST_NULL);
+    Int * recvBuffer = new Int[rdispls.back()];
+
+    //size_t total_recv_size = rdispls.back()*sizeof(Int);
+    //symPACK::Icomm * IrecvPtr = new symPACK::Icomm(total_recv_size,MPI_REQUEST_NULL);
 
     MPI_Datatype type;
     MPI_Type_contiguous( sizeof(Int), MPI_BYTE, &type );
     MPI_Type_commit(&type);
 
-    MPI_Alltoallv(IsendPtr->front(), sizes.data(), displs.data(), type,
-        IrecvPtr->front(), rsizes.data(), rdispls.data(), type,
-        comm);
+    MPI_Alltoallv(sendBuffer, sizes.data(), displs.data(), type,
+        recvBuffer, rsizes.data(), rdispls.data(), type, comm);
+    //MPI_Alltoallv(IsendPtr->front(), sizes.data(), displs.data(), type,
+    //    IrecvPtr->front(), rsizes.data(), rdispls.data(), type, comm);
 
     MPI_Type_free(&type);
 
-    IrecvPtr->setHead(0);
-    while(IrecvPtr->head < IrecvPtr->capacity()){
+    size_t recvHead = 0;
+    
+    //IrecvPtr->setHead(0);
+    //while(IrecvPtr->head < IrecvPtr->capacity())
+    while(recvHead < rdispls.back())
+    {
       Int ksup = 0;
-      *IrecvPtr >> ksup; //ksup is 1-based
+      ksup = recvBuffer[recvHead++];
+      //*IrecvPtr >> ksup; //ksup is 1-based
       ksup = -ksup -1; //ksup is now 0-based
       Int superSize = superPtr[ksup+1]-superPtr[ksup];
 
-      size_t cur_head = IrecvPtr->head;
+      //size_t cur_head = IrecvPtr->head;
+      size_t cur_head = recvHead;
       std::list<Int> blockSizes;
 
       Int curBlkIdx = -1;
       Int rowIndex = 0;
 
       //we have at least one row
-      *IrecvPtr >> rowIndex;
-      while( rowIndex>0 && IrecvPtr->head < IrecvPtr->capacity()){
+      rowIndex = recvBuffer[recvHead++];
+      //*IrecvPtr >> rowIndex;
+      //while( rowIndex>0 && IrecvPtr->head < IrecvPtr->capacity())
+      while( rowIndex>0 && recvHead < rdispls.back())
+      {
         rowIndex--;
         Int destBlkIdx = superIdx[rowIndex];
         if(destBlkIdx!=curBlkIdx){
@@ -508,9 +525,13 @@ namespace PEXSI{
         blockSizes.back()++;
         curBlkIdx = destBlkIdx;
 
-        IrecvPtr->setHead(IrecvPtr->head + superSize*sizeof(T) );
-        if (IrecvPtr->head < IrecvPtr->capacity()){
-          *IrecvPtr >> rowIndex;
+        //IrecvPtr->setHead(IrecvPtr->head + superSize*sizeof(T) );
+        //if (IrecvPtr->head < IrecvPtr->capacity())
+        recvHead+=superSize*sizeTtoInt;
+        if (recvHead < rdispls.back())
+        {
+          //*IrecvPtr >> rowIndex;
+          rowIndex = recvBuffer[recvHead++];
         }
       }
 
@@ -527,14 +548,18 @@ namespace PEXSI{
         LB.numCol = superSize;
       }
 
-      IrecvPtr->setHead(cur_head);
+      //IrecvPtr->setHead(cur_head);
+      recvHead = cur_head;
 
       ib = -1;
       curBlkIdx = -1;
       //we have at least one row
-      *IrecvPtr >> rowIndex;
+      //*IrecvPtr >> rowIndex;
+      rowIndex = recvBuffer[recvHead++];
       //super node indices are negative
-      while( rowIndex>0 && IrecvPtr->head < IrecvPtr->capacity()){
+      //while( rowIndex>0 && IrecvPtr->head < IrecvPtr->capacity())
+      while( rowIndex>0 && recvHead < rdispls.back())
+      {
         rowIndex--;
         Int destBlkIdx = superIdx[rowIndex];
         if(destBlkIdx!=curBlkIdx){
@@ -552,18 +577,24 @@ namespace PEXSI{
         //Deserialize(*IrecvPtr,LB.nzval.Data() + offset, superSize);
         auto nzval = LB.nzval.Data();
         Int lda = LB.nzval.m();
-        auto nzvalSrc = (T*)IrecvPtr->back();
+        //auto nzvalSrc = (T*)IrecvPtr->back();
+        auto nzvalSrc = (T*)&recvBuffer[recvHead];
         for(Int col = 0; col < superSize; col++){
           // Convert the row major format to column major format
           nzval[col*lda + LB.numRow-1] = nzvalSrc[col];
         }
         //std::copy(,((T*)IrecvPtr->back()) + superSize,LB.nzval.Data() + offset);
-        IrecvPtr->setHead(IrecvPtr->head + superSize*sizeof(T) );
+        //IrecvPtr->setHead(IrecvPtr->head + superSize*sizeof(T) );
+        recvHead+=superSize*sizeTtoInt;
 
         curBlkIdx = destBlkIdx;
-        cur_head = IrecvPtr->head; // backup head
-        if (IrecvPtr->head < IrecvPtr->capacity()){
-        *IrecvPtr >> rowIndex;
+        cur_head = recvHead;
+        //cur_head = IrecvPtr->head; // backup head
+        if (recvHead < rdispls.back())
+        //if (IrecvPtr->head < IrecvPtr->capacity())
+        {
+          //*IrecvPtr >> rowIndex;
+          rowIndex = recvBuffer[recvHead++];
         }
       }
 
@@ -575,8 +606,12 @@ namespace PEXSI{
       //}
 
       //restore head
-      IrecvPtr->setHead(cur_head);
+      //IrecvPtr->setHead(cur_head);
+      recvHead = cur_head;
     }
+
+    delete [] sendBuffer;
+    delete [] recvBuffer;
 #endif
 
 
