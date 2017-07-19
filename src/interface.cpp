@@ -1041,7 +1041,7 @@ void PPEXSIDFTDriver(
 }   // -----  end of function PPEXSIDFTDriver  ----- 
 
 extern "C"
-void PPEXSIDFTDriver2(
+void PPEXSIDFTDriver2_Deprecate(
     /* Input parameters */
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -1058,7 +1058,7 @@ void PPEXSIDFTDriver2(
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   try{
-    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver2(
+    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver2_Deprecate(
         numElectronExact,
         options.temperature,
         options.gap,
@@ -1091,7 +1091,7 @@ void PPEXSIDFTDriver2(
     *info = 1;
   }
   return;
-}   // -----  end of function PPEXSIDFTDriver2  ----- 
+}   // -----  end of function PPEXSIDFTDriver2_Deprecate  ----- 
 
 extern "C"
 void PPEXSIDFTDriver3(

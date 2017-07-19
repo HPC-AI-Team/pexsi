@@ -4241,7 +4241,7 @@ PPEXSIData::DFTDriver (
 }         // -----  end of method PPEXSIData::DFTDriver  ----- 
 
     void
-PPEXSIData::DFTDriver2 (
+PPEXSIData::DFTDriver2_Deprecate (
     Real       numElectronExact,
     Real       temperature,
     Real       gap,
@@ -4691,7 +4691,7 @@ PPEXSIData::DFTDriver2 (
 
 
   return ;
-}         // -----  end of method PPEXSIData::DFTDriver2  ----- 
+}         // -----  end of method PPEXSIData::DFTDriver2_Deprecate  ----- 
 
 
 void

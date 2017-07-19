@@ -1027,7 +1027,7 @@ void PPEXSIDFTDriver(
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
  */
-void PPEXSIDFTDriver2(
+void PPEXSIDFTDriver2_Deprecate(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
     double            numElectronExact,

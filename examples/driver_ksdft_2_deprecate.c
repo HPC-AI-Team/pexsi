@@ -47,7 +47,7 @@
  *
  * This file is eventually going to be merged with the driver_ksdft.c
  *
- * @date 2015-11-25  Test for DFTDriver2 with updating strategy of pole
+ * @date 2015-11-25  Test for DFTDriver2_Deprecate with updating strategy of pole
  * expansion
  * @date 2016-09-10 Compatible with the interface at version 0.10.0
  *
@@ -308,7 +308,7 @@ int main(int argc, char **argv)
 
   /* Step 2. PEXSI Solve */
 
-  PPEXSIDFTDriver2(
+  PPEXSIDFTDriver2_Deprecate(
       plan,
       options,
       numElectronExact,
@@ -376,7 +376,7 @@ int main(int argc, char **argv)
     // Reuse previous mu to start
     options.mu0 = muPEXSI;
 
-    PPEXSIDFTDriver2(
+    PPEXSIDFTDriver2_Deprecate(
         plan,
         options,
         numElectronExact,

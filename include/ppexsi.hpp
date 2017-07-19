@@ -647,7 +647,7 @@ public:
  
   /// @brief Updated main driver for DFT. This reuses the pole
   /// expansion and only performs one PEXSI iteration per SCF step.
-  void DFTDriver2(
+  void DFTDriver2_Deprecate(
       Real       numElectronExact,
       Real       temperature,
       Real       gap,

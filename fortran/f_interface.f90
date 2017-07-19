@@ -471,7 +471,7 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_ppexsi_dft_driver2(&
+  subroutine f_ppexsi_dft_driver2_deprecate(&
       plan,&
       options,&
       numElectronExact,&
@@ -482,7 +482,7 @@ interface
       numTotalInertiaIter,&
       numTotalPEXSIIter,&
       info) &
-      bind(C, Name="PPEXSIDFTDriver2")
+      bind(C, Name="PPEXSIDFTDriver2_Deprecate")
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none

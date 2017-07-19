@@ -215,7 +215,7 @@ int main(int argc, char **argv)
         options.verbosity );
 
     // PEXSI Solve
-    pexsi.DFTDriver2(
+    pexsi.DFTDriver2_Deprecate(
         numElectronExact,
         options.temperature,
         options.gap,

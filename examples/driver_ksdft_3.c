@@ -416,7 +416,7 @@ int main(int argc, char **argv)
 //    // Reuse previous mu to start
 //    options.mu0 = muPEXSI;
 //
-//    PPEXSIDFTDriver2(
+//    PPEXSIDFTDriver2_Deprecate(
 //        plan,
 //        options,
 //        numElectronExact,
