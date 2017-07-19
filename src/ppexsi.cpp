@@ -4695,7 +4695,7 @@ PPEXSIData::DFTDriver2_Deprecate (
 
 
 void
-PPEXSIData::DFTDriver3 (
+PPEXSIData::DFTDriver2 (
     Real       numElectronExact,
     Real       temperature,
     Real       gap,
@@ -5309,7 +5309,7 @@ PPEXSIData::DFTDriver3 (
   }
 
   return ;
-}         // -----  end of method PPEXSIData::DFTDriver3  ----- 
+}         // -----  end of method PPEXSIData::DFTDriver2  ----- 
 
 
 // Main subroutine for the electronic structure calculation

@@ -47,7 +47,7 @@
  *
  * This file is eventually going to be merged with the driver_ksdft.c
  *
- * @date 2017-06-16  Test for DFTDriver3 with updating strategy of pole
+ * @date 2017-06-16  Test for DFTDriver2 with updating strategy of pole
  * expansion
  * @date 2017-05-10 Compatible with the interface at version 0.10.0
  *
@@ -345,7 +345,7 @@ int main(int argc, char **argv)
       options.isSymbolicFactorize = 0;
     }
 
-    PPEXSIDFTDriver3(
+    PPEXSIDFTDriver2(
         plan,
         &options,
         numElectronExact,

@@ -495,7 +495,7 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_ppexsi_dft_driver3(&
+  subroutine f_ppexsi_dft_driver2(&
       plan,&
       options,&
       numElectronExact,&
@@ -507,7 +507,7 @@ interface
       !muMaxInertia,&
       numTotalInertiaIter,&
       info) &
-      bind(C, Name="PPEXSIDFTDriver3")
+      bind(C, Name="PPEXSIDFTDriver2")
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
