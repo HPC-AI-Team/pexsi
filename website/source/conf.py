@@ -19,7 +19,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
-sys.path.append("/Users/weile/Downloads/breathe-4.6.0")
+#sys.path.append("/Users/weile/Downloads/breathe-4.6.0")
 
 #print sys.path
 
@@ -35,10 +35,9 @@ sys.path.append("/Users/weile/Downloads/breathe-4.6.0")
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'breathe']
-breathe_default_project = "myproject"
-breathe_projects = { "myproject": "/Users/weile/crd-pexsi/doc/xml/"}
+    'sphinx.ext.mathjax']
+#breathe_default_project = "myproject"
+#breathe_projects = { "myproject": "/Users/weile/crd-pexsi/doc/xml/"}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
