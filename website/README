@@ -1,0 +1,11 @@
+In order to create the website, first install the Sphinx-doc from :
+
+    brew install sphinx-doc ( on Mac )
+    sudo apt-get install sphinx-doc ( Ubuntu )
+    yum install sphinx-doc ( Fedora )
+
+Then, run the following command to make the website:
+
+   sphinx-build -b html source build
+
+The html pages will be built from the source files. 
