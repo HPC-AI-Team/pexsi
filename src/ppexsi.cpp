@@ -234,7 +234,7 @@ PPEXSIData::LoadRealMatrix	(
     Real*         HnzvalLocal,                  
     Int           isSIdentity,                  
     Real*         SnzvalLocal,
-    Int               solver,
+    Int           solver,
     Int           verbosity )
 {
   // Clear the previously saved information
@@ -512,7 +512,7 @@ PPEXSIData::LoadComplexMatrix	(
     Complex*      HnzvalLocal,                  
     Int           isSIdentity,                  
     Complex*      SnzvalLocal,
-    Int               solver,
+    Int           solver,
     Int           verbosity )
 {
   // Clear the previously saved information
@@ -784,6 +784,7 @@ switch (solver) {
 void
 PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
     Int                            solver,
+    Int                            symmetricStorage,
     std::string                    ColPerm,
     Int                            numProcSymbFact,
     Int                            verbosity )
@@ -809,6 +810,7 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix	(
     PMloc = PMatrix<Real>();
 
     selinvOpt_.maxPipelineDepth = -1;
+    selinvOpt_.symmetricStorage = symmetricStorage;
     factOpt_.ColPerm = ColPerm;
 
     switch (solver) {
@@ -1155,6 +1157,7 @@ PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix	(
 void
 PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
     Int                            solver,
+    Int                            symmetricStorage,
     std::string                    ColPerm,
     Int                            numProcSymbFact,
     Int                            verbosity )
@@ -1182,6 +1185,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix	(
 
     factOpt_.ColPerm = ColPerm;
     selinvOpt_.maxPipelineDepth = -1;
+    selinvOpt_.symmetricStorage = symmetricStorage;
 
     switch(solver){
       case 0:
@@ -1521,6 +1525,7 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix	(
 void 
 PPEXSIData::SelInvRealSymmetricMatrix(
     Int               solver,
+    Int               symmetricStorage,
     double*           AnzvalLocal,                  
     Int               verbosity,
     double*           AinvnzvalLocal )
@@ -1816,6 +1821,7 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
 void 
 PPEXSIData::SelInvComplexSymmetricMatrix(
     Int               solver,
+    Int               symmetricStorage,
     double*           AnzvalLocal,                  
     Int               verbosity,
     double*           AinvnzvalLocal )
@@ -2111,7 +2117,7 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
 void PPEXSIData::CalculateNegativeInertiaReal(
     const std::vector<Real>&       shiftVec, 
     std::vector<Real>&             inertiaVec,
-    Int               solver,
+    Int                            solver,
     Int                            verbosity ){
 
   // *********************************************************************
@@ -2258,7 +2264,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 void PPEXSIData::CalculateNegativeInertiaComplex(
     const std::vector<Real>&       shiftVec, 
     std::vector<Real>&             inertiaVec,
-    Int               solver,
+    Int                            solver,
     Int                            verbosity ){
 
   // *********************************************************************
@@ -2410,7 +2416,8 @@ void PPEXSIData::CalculateFermiOperatorReal(
     Real  mu,
     Real  numElectronExact,
     Real  numElectronTolerance,
-    Int               solver,
+    Int   solver,
+    Int   symmetricStorage,
     Int   verbosity,
     Real& numElectron,
     Real& numElectronDrvMu ){
@@ -2790,9 +2797,6 @@ void PPEXSIData::CalculateFermiOperatorReal(
         luMat.LUstructToPMatrix( PMloc );
 
 
-        // Collective communication version
-        //          PMloc.ConstructCommunicationPattern_Collectives();
-
         PMloc.PreSelInv();
 
         // Main subroutine for selected inversion
@@ -3056,7 +3060,8 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     Real  mu,
     Real  numElectronExact,
     Real  numElectronTolerance,
-    Int               solver,
+    Int   solver,
+    Int   symmetricStorage,
     Int   verbosity,
     Real& numElectron,
     Real& numElectronDrvMu ){
@@ -3779,6 +3784,7 @@ PPEXSIData::DFTDriver (
     Int        matrixType,
     Int        isSymbolicFactorize,
     Int        solver,
+    Int        symmetricStorage,
     Int        ordering,
     Int        numProcSymbFact,
     Int        verbosity,
@@ -3873,12 +3879,14 @@ PPEXSIData::DFTDriver (
     if( matrixType == 0 ){
       SymbolicFactorizeRealSymmetricMatrix( 
           solver,
+          symmetricStorage,
           colPerm, 
           numProcSymbFact,
           verbosity );
 
       SymbolicFactorizeComplexSymmetricMatrix( 
           solver,
+          symmetricStorage,
           colPerm, 
           numProcSymbFact,
           verbosity );
@@ -4146,6 +4154,7 @@ PPEXSIData::DFTDriver (
             numElectronExact,
             numElectronPEXSITolerance,
             solver,
+            symmetricStorage,
             verbosity,
             numElectronPEXSI,
             numElectronDrvMuPEXSI );
@@ -4256,6 +4265,7 @@ PPEXSIData::DFTDriver2 (
     Int        matrixType,
     Int        isSymbolicFactorize,
     Int        solver,
+    Int        symmetricStorage,
     Int        ordering,
     Int        numProcSymbFact,
     Int        verbosity,
@@ -4358,12 +4368,14 @@ PPEXSIData::DFTDriver2 (
     if( matrixType == 0 ){
       SymbolicFactorizeRealSymmetricMatrix( 
           solver,
+          symmetricStorage,
           colPerm, 
           numProcSymbFact,
           verbosity );
 
       SymbolicFactorizeComplexSymmetricMatrix( 
           solver,
+          symmetricStorage,
           colPerm, 
           numProcSymbFact,
           verbosity );
@@ -4646,6 +4658,7 @@ PPEXSIData::DFTDriver2 (
           muMinPEXSI,
           muMaxPEXSI,
           solver,
+          symmetricStorage,
           verbosity,
           muPEXSI, 
           numElectronPEXSI, 
@@ -4704,7 +4717,8 @@ void PPEXSIData::CalculateFermiOperatorReal2(
     Real  numElectronTolerance,
     Real  muMinPEXSI, 
     Real  muMaxPEXSI,
-    Int               solver,
+    Int   solver,
+    Int   symmetricStorage,
     Int   verbosity,
     Real& mu,
     Real& numElectron,

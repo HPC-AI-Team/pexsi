@@ -107,8 +107,11 @@ struct PSelInvOptions{
   /// @brief The maximum pipeline depth. 
   Int              maxPipelineDepth; 
 
+  /// @brief Use symmetric storage for the selected inversion or not. 
+  Int              symmetricStorage; 
+
   // Member functions to setup the default value
-  PSelInvOptions(): maxPipelineDepth(-1) {}
+  PSelInvOptions(): maxPipelineDepth(-1), symmetricStorage(0) {}
 };
 
 
@@ -610,34 +613,25 @@ protected:
   std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastLDataTree_; 
   std::vector<std::shared_ptr<TreeReduce_v2<T> > > redLTree2_; 
 
-#ifndef _SYM_STORAGE_
   std::vector<TreeBcast *> fwdToBelowTree_; 
   std::vector<TreeBcast *> fwdToRightTree_; 
   std::vector<TreeReduce<T> *> redToLeftTree_; 
   std::vector<TreeReduce<T> *> redToAboveTree_; 
 
-#else
-  //std::vector<std::vector<Int> > blocksToRecv_; 
+  //This is for the symmetric storage implementation
   std::vector<Int> snodeEtree_;
-
   std::vector<Int> snodeTreeOffset_;
-//  std::vector<std::vector<Int> > snodeBlkidxToTree_;
   std::vector<std::map<Int,Int> > snodeBlkidxToTree_;
   std::vector<std::vector<Int> > snodeTreeToBlkidx_;
-
-  //either use a std::map or a numSuper * numSuper array
-  //std::vector< std::map< Int, std::shared_ptr<TreeBcast_v2<char> > > > symBcastLDataTree_; 
-  //std::vector< std::map< Int, std::shared_ptr<TreeReduce_v2<T> > > > symRedLTree2_; 
-#endif
 
   double localFlops_;
 
   struct SuperNodeBufferType{
-#ifdef _SYM_STORAGE_
+    //This is for the symmetric storage implementation
     std::vector<NumMat<T> > LUpdateBufBlk;
     std::vector< std::vector<char> > SstrLcolSendBlk;
     std::vector< Int > SizeSstrLcolSendBlk;
-#endif
+
     NumMat<T>    LUpdateBuf;
     std::vector<char> SstrLcolSend;
     Int               SizeSstrLcolSend;
@@ -674,17 +668,11 @@ protected:
 
 
   /// @brief SelInvIntra_P2p
-  inline void SelInvIntra_P2p(Int lidx,Int & rank
-#ifdef _OPENMP_TILE_
-        ,const Int * snodeEtree
-#endif
-      );
+  inline void SelInvIntra_P2p(Int lidx,Int & rank);
 
   /// @brief SelInv_lookup_indexes
   inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
-#ifdef _OMP_ENABLED_
   inline void SelInv_lookup_indexes_seq(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
-#endif
 
   /// @brief GetWorkSet
   inline void GetWorkSet(std::vector<Int> & snodeEtree, std::vector<std::vector<Int> > & WSet);
@@ -1029,12 +1017,6 @@ public:
 
   void CopyLU( const PMatrix & C);
   inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
-
-#ifdef _OPENMP_TILE_
-  bool * deps;
-
-  std::vector<std::vector<SuperNodeBufferType> > arrArrSuperNodes;
-#endif
 
 
 

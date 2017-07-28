@@ -161,7 +161,6 @@ namespace PEXSI{
       isRecvFromCrossDiagonal_.Clear();
 
 
-#ifndef _SYM_STORAGE_
       //Cleanup tree information
       for(int i =0;i<fwdToBelowTree_.size();++i){
         if(fwdToBelowTree_[i]!=NULL){
@@ -189,7 +188,6 @@ namespace PEXSI{
           redToAboveTree_[i] = NULL;
         }
       }
-#endif
 
       //dump comm_profile info
 #if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
@@ -235,34 +233,38 @@ namespace PEXSI{
         isRecvFromLeft_ = C.isRecvFromLeft_;
         isRecvFromCrossDiagonal_ = C.isRecvFromCrossDiagonal_;
 
-#ifndef _SYM_STORAGE_
-        fwdToBelowTree_.resize(C.fwdToBelowTree_.size());
-        for(int i = 0 ; i< C.fwdToBelowTree_.size();++i){
-          if(C.fwdToBelowTree_[i]!=NULL){
-            fwdToBelowTree_[i] = C.fwdToBelowTree_[i]->clone();
-          }
-        }
-        fwdToRightTree_.resize(C.fwdToRightTree_.size());
-        for(int i = 0 ; i< C.fwdToRightTree_.size();++i){
-          if(C.fwdToRightTree_[i]!=NULL){
-            fwdToRightTree_[i] = C.fwdToRightTree_[i]->clone();
-          }
-        }
+//#ifndef _SYM_STORAGE_
+        if(options_!=nullptr){
+          if (options_->symmetricStorage!=1){
+            fwdToBelowTree_.resize(C.fwdToBelowTree_.size());
+            for(int i = 0 ; i< C.fwdToBelowTree_.size();++i){
+              if(C.fwdToBelowTree_[i]!=NULL){
+                fwdToBelowTree_[i] = C.fwdToBelowTree_[i]->clone();
+              }
+            }
+            fwdToRightTree_.resize(C.fwdToRightTree_.size());
+            for(int i = 0 ; i< C.fwdToRightTree_.size();++i){
+              if(C.fwdToRightTree_[i]!=NULL){
+                fwdToRightTree_[i] = C.fwdToRightTree_[i]->clone();
+              }
+            }
 
-        redToLeftTree_.resize(C.redToLeftTree_.size());
-        for(int i = 0 ; i< C.redToLeftTree_.size();++i){
-          if(C.redToLeftTree_[i]!=NULL){
-            redToLeftTree_[i] = C.redToLeftTree_[i]->clone();
+            redToLeftTree_.resize(C.redToLeftTree_.size());
+            for(int i = 0 ; i< C.redToLeftTree_.size();++i){
+              if(C.redToLeftTree_[i]!=NULL){
+                redToLeftTree_[i] = C.redToLeftTree_[i]->clone();
+              }
+            }
+            redToAboveTree_.resize(C.redToAboveTree_.size());
+            for(int i = 0 ; i< C.redToAboveTree_.size();++i){
+              if(C.redToAboveTree_[i]!=NULL){
+                redToAboveTree_[i] = C.redToAboveTree_[i]->clone();
+              }
+            }
           }
         }
-        redToAboveTree_.resize(C.redToAboveTree_.size());
-        for(int i = 0 ; i< C.redToAboveTree_.size();++i){
-          if(C.redToAboveTree_[i]!=NULL){
-            redToAboveTree_[i] = C.redToAboveTree_[i]->clone();
-          }
-        }
-#else
-#endif
+//#else
+//#endif
 
       }
 
@@ -303,38 +305,39 @@ namespace PEXSI{
 
 
 
-#ifndef _SYM_STORAGE_
-      fwdToBelowTree_.resize(C.fwdToBelowTree_.size());
-      for(int i = 0 ; i< C.fwdToBelowTree_.size();++i){
-        if(C.fwdToBelowTree_[i]!=NULL){
-          fwdToBelowTree_[i] = C.fwdToBelowTree_[i]->clone();
-        }
-      }
-      fwdToRightTree_.resize(C.fwdToRightTree_.size());
-      for(int i = 0 ; i< C.fwdToRightTree_.size();++i){
-        if(C.fwdToRightTree_[i]!=NULL){
-          fwdToRightTree_[i] = C.fwdToRightTree_[i]->clone();
-        }
-      }
+//#ifndef _SYM_STORAGE_
+      if(options_!=nullptr){
+        if (options_->symmetricStorage!=1){
+          fwdToBelowTree_.resize(C.fwdToBelowTree_.size());
+          for(int i = 0 ; i< C.fwdToBelowTree_.size();++i){
+            if(C.fwdToBelowTree_[i]!=NULL){
+              fwdToBelowTree_[i] = C.fwdToBelowTree_[i]->clone();
+            }
+          }
+          fwdToRightTree_.resize(C.fwdToRightTree_.size());
+          for(int i = 0 ; i< C.fwdToRightTree_.size();++i){
+            if(C.fwdToRightTree_[i]!=NULL){
+              fwdToRightTree_[i] = C.fwdToRightTree_[i]->clone();
+            }
+          }
 
-      redToLeftTree_.resize(C.redToLeftTree_.size());
-      for(int i = 0 ; i< C.redToLeftTree_.size();++i){
-        if(C.redToLeftTree_[i]!=NULL){
-          redToLeftTree_[i] = C.redToLeftTree_[i]->clone();
+          redToLeftTree_.resize(C.redToLeftTree_.size());
+          for(int i = 0 ; i< C.redToLeftTree_.size();++i){
+            if(C.redToLeftTree_[i]!=NULL){
+              redToLeftTree_[i] = C.redToLeftTree_[i]->clone();
+            }
+          }
+          redToAboveTree_.resize(C.redToAboveTree_.size());
+          for(int i = 0 ; i< C.redToAboveTree_.size();++i){
+            if(C.redToAboveTree_[i]!=NULL){
+              redToAboveTree_[i] = C.redToAboveTree_[i]->clone();
+            }
+          }
         }
       }
-      redToAboveTree_.resize(C.redToAboveTree_.size());
-      for(int i = 0 ; i< C.redToAboveTree_.size();++i){
-        if(C.redToAboveTree_[i]!=NULL){
-          redToAboveTree_[i] = C.redToAboveTree_[i]->clone();
-        }
-      }
-#else
-#endif
+//#else
+//#endif
 
-#ifdef _OPENMP_TILE_
-      delete [] deps;
-#endif
     }
 
 
@@ -429,1240 +432,9 @@ namespace PEXSI{
 #endif
 
 
-#ifdef _OPENMP_TILE_
-      {
-        Int nsupers = this->NumSuper()+1;
-        deps = new bool[nsupers*nsupers];
-      }
-#endif
-
       return ;
     } 		// -----  end of method PMatrix::Setup   ----- 
 
-#ifdef _OMP_ENABLED_
-  // weile comment : 
-  ///////////// Utility functions ///////////////////
-  template<typename T>
-    inline  void PMatrix<T>::SelInv_lookup_indexes(
-        SuperNodeBufferType & snode, 
-        std::vector<LBlock<T> > & LcolRecv, 
-        std::vector<UBlock<T> > & UrowRecv, 
-        NumMat<T> & AinvBuf,
-        NumMat<T> & UBuf )
-    {
-      //TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
-
-      std::vector<Int> rowPtrC,colPtrC;
-
-
-//return;
-
-#ifdef _OPENMP_BLOCKS_
-      size_t LcolRecvS = LcolRecv.size();
-      size_t UrowRecvS = UrowRecv.size();
-      LBlock<T> * LcolRecvP = LcolRecv.data(); 
-      UBlock<T> * UrowRecvP = UrowRecv.data();
-
-      if (LcolRecvP==nullptr){
-        Int startIdx = ( MYROW( grid_ ) == PROW( snode.Index, grid_ ) )?1:0;
-        LcolRecvS = this->L( LBj( snode.Index, grid_ ) ).size() - startIdx;
-        LcolRecvP = this->L( LBj( snode.Index, grid_ ) ).data() + startIdx;
-      }
-
-      if (UrowRecvP==nullptr){
-        UrowRecvS = this->U( LBi( snode.Index, grid_ ) ).size();
-        UrowRecvP = this->U( LBi( snode.Index, grid_ ) ).data();
-      }
-
-      //TIMER_START(Build_colptr_rowptr);
-      // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
-      // nonzero row in LcolRecv[ib]. The total number of rows in
-      // snode.LUpdateBuf is given by rowPtr[end]-1
-      rowPtrC.resize(LcolRecvS + 1);
-      // colPtr[jb] gives the column index in UBuf for the first
-      // nonzero column in UrowRecv[jb]. The total number of rows in
-      // UBuf is given by colPtr[end]-1
-      colPtrC.resize(UrowRecvS + 1);
-
-      Int * rowPtr = rowPtrC.data();
-      Int * colPtr = colPtrC.data();
-
-      rowPtr[0] = 0;
-      for( Int ib = 0; ib < LcolRecvS; ib++ ){
-        rowPtrC[ib+1] = rowPtrC[ib] + LcolRecvP[ib].numRow;
-      }
-      colPtrC[0] = 0;
-      for( Int jb = 0; jb < UrowRecvS; jb++ ){
-        colPtrC[jb+1] = colPtrC[jb] + UrowRecvP[jb].numCol;
-      }
-
-      Int numRowAinvBuf = rowPtr[LcolRecvS];
-      Int numColAinvBuf = colPtr[UrowRecvS];
-
-
-      //TIMER_STOP(Build_colptr_rowptr);
-
-      //TIMER_START(Allocate_lookup);
-      // Allocate for the computational storage
-      //AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
-      UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
-      snode.LUpdateBuf.Resize( numRowAinvBuf, SuperSize( snode.Index, super_ ) );
-      SetValue( snode.LUpdateBuf, ZERO<T>() );
-      //std::cout << " allocation done " << std::endl;
-      //    //TIMER_START(SetValue_lookup);
-      //    SetValue( AinvBuf, ZERO<T>() );
-      //SetValue( snode.LUpdateBuf, ZERO<T>() );
-      //    SetValue( UBuf, ZERO<T>() );
-      //    //TIMER_STOP(SetValue_lookup);
-      //TIMER_STOP(Allocate_lookup);
-
-      //TIMER_START(Fill_UBuf);
-      // Fill UBuf first.  Make the transpose later in the Gemm phase.
-      for( Int jb = 0; jb < UrowRecvS; jb++ ){
-        UBlock<T>& UB = UrowRecvP[jb];
-        if( UB.numRow != SuperSize(snode.Index, super_) ){
-          ErrorHandling( "The size of UB is not right.  Something is seriously wrong." );
-        }
-        lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
-            UB.numRow, UBuf.VecData( colPtrC[jb] ), SuperSize( snode.Index, super_ ) );	
-      }
-      //TIMER_STOP(Fill_UBuf);
-
-      // Calculate the relative indices for (isup, jsup)
-      // Fill AinvBuf with the information in L or U block.
-      //TIMER_START(JB_Loop);
-
-      SuperNodeBufferType * snodeP = &snode;
-      NumMat<T> * UBufP = &UBuf;
-
-      T * nzvalLUpd =  snode.LUpdateBuf.Data();
-      T * nzvalUBuf =  UBuf.Data();
-      char * nzvalLUpdDep =  (char*)snode.LUpdateBuf.Data();
-//      char * nzvalUBufDep =  (char*)UBuf.Data();
-//      char * nzvalAinvGDep = (char*)AinvBuf.Data();
-      size_t ldLUBuf = snode.LUpdateBuf.m(); 
-      size_t ldUBuf = UBuf.m(); 
-
-
-#pragma omp taskgroup
-      {
-        for( Int jb = 0; jb < UrowRecvS; jb++ ){
-          for( Int ib = 0; ib < LcolRecvS; ib++ ){
-#pragma omp task firstprivate(ib,jb,snodeP,LcolRecvP,UrowRecvP,UBufP,LcolRecvS,UrowRecvS) firstprivate(nzvalLUpdDep,nzvalUBuf,nzvalLUpd,ldLUBuf,ldUBuf,colPtr,rowPtr) default(shared)
-            {
-              SuperNodeBufferType & snode = *snodeP;
-              auto & UBuf = *UBufP;
-
-              LBlock<T>& LB = LcolRecvP[ib];
-              UBlock<T>& UB = UrowRecvP[jb];
-              Int isup = LB.blockIdx;
-              Int jsup = UB.blockIdx;
-
-              // Pin down the corresponding block in the part of Sinv.
-              if( isup >= jsup ){
-                std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-                bool isBlockFound = false;
-                TIMER_START(PARSING_ROW_BLOCKIDX);
-                for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
-                  // Found the (isup, jsup) block in Sinv
-                  if( LcolSinv[ibSinv].blockIdx == isup ){
-                    {
-                      std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-                      SuperNodeBufferType & snode = *snodeP;
-                      auto & UBuf = *UBufP;
-
-                      LBlock<T> * pLB = &LcolRecvP[ib];
-                      UBlock<T> * pUB = &UrowRecvP[jb];
-
-                      LBlock<T> * pSinvB = &LcolSinv[ibSinv];
-
-                      // Row relative indices
-                      Int* rowsLBPtr    = pLB->rows.Data();
-                      Int* rowsSinvBPtr = pSinvB->rows.Data();
-                      Int lastRowIdxSinv = 0;
-                      Int SinvBnumRow = pSinvB->numRow;
-
-
-                      // Column relative indicies
-                      Int SinvColsSta = FirstBlockCol( jsup, super_ );
-                      Int * colsUBPtr = pUB->cols.Data();
-
-                      //find contiguous blocks in pUB and pLB
-                      //std::vector<Int > blockRowsC;
-                      //blockRowsC.reserve(3*pLB->numRow);
-                      //std::vector<Int > blockColsC;
-                      //blockColsC.reserve(2*pUB->numCol);
-  
-                      Int blockRowsSize = 0; 
-                      Int blockColsSize = 0;
-                      Int * blockRows = new Int[3*pLB->numRow]; 
-                      Int * blockCols = new Int[2*pUB->numCol]; 
-
-#pragma omp task firstprivate(pLB,rowsLBPtr) shared(blockRows,blockRowsSize) 
-                      if(pLB->numRow>0){
-                        //find blocks
-                        Int ifr = 0;
-                        Int fr = rowsLBPtr[0];
-                        Int nrows = 1;
-                        for( Int i = 1; i < pLB->numRow; i++ ){
-                          if(rowsLBPtr[i]==rowsLBPtr[i-1]+1){ 
-                            nrows++;
-                          }
-                          else{
-                            blockRows[blockRowsSize++] = fr;
-                            blockRows[blockRowsSize++] = nrows;
-                            blockRows[blockRowsSize++] = ifr;
-                            fr = rowsLBPtr[i];
-                            nrows = 1;
-                            ifr = i;
-                          }
-                        }
-                        blockRows[blockRowsSize++] = fr;
-                        blockRows[blockRowsSize++] = nrows;
-                        blockRows[blockRowsSize++] = ifr;
-
-
-                        for(Int ii = 0; ii<blockRowsSize;ii+=3){
-#pragma omp task firstprivate(rowsLBPtr,lastRowIdxSinv,SinvBnumRow,pSinvB,pLB,rowsSinvBPtr,ii) shared(blockRows)
-                          {
-                            auto fr = blockRows[ii];
-                            auto nr = blockRows[ii+1];
-                            Int ifr = blockRows[ii+2];
-
-                            bool isRowFound = false;
-                            for( lastRowIdxSinv; lastRowIdxSinv < SinvBnumRow; lastRowIdxSinv++ ){
-                              if( fr == rowsSinvBPtr[lastRowIdxSinv] ){
-                                isRowFound = true;
-                                blockRows[ii] = lastRowIdxSinv;
-//#pragma omp flush(blockRows[ii])
-                                break;
-                              }
-                            }
-                            if( isRowFound == false ){
-                              std::ostringstream msg;
-                              msg << "Row " << rowsLBPtr[ifr] << "("<<fr<<")"
-                                " in pLB cannot find the corresponding row in pSinvB" << std::endl
-                                << "pLB->rows    = " << pLB->rows << std::endl
-                                << "UinvB.rows = " << pSinvB->rows << std::endl;
-                              ErrorHandling( msg.str().c_str() );
-                            }
-                          }
-                        }
-#pragma omp taskwait
-                      }
-
-                      //#pragma omp taskwait
-
-
-
-#pragma omp task shared(blockCols,blockColsSize) firstprivate(pUB,colsUBPtr) //depend(inout:blockCols,blockColsSize) 
-                      if(pUB->numCol>0){
-                        //find blocks
-                        Int fc = colsUBPtr[0]- SinvColsSta;
-                        Int ncols = 1;
-                        for( Int j = 1; j < pUB->numCol; j++ ){
-                          if(colsUBPtr[j]==colsUBPtr[j-1]+1){ 
-                            ncols++;
-                          }
-                          else{
-                            blockCols[blockColsSize++] = fc;
-                            blockCols[blockColsSize++] = ncols;
-                            fc = colsUBPtr[j]- SinvColsSta;
-                            ncols = 1;
-                          }
-                        }
-                        blockCols[blockColsSize++] = fc;
-                        blockCols[blockColsSize++] = ncols;
-                      }
-
-
-#pragma omp taskwait
-
-                      // Transfer the values from Sinv to AinvBlock
-                      T* nzvalSinv = pSinvB->nzval.Data();
-                      Int     ldSinv    = pSinvB->numRow;
-
-
-#pragma omp task shared(nzvalLUpd) shared(blockCols,blockColsSize) shared(blockRows,blockRowsSize) //depend(inout:blockColsSize) depend(inout:blockRowsSize) //depend(inout:nzvalLUpd[rowPtr[ib]])
-                      {
-                        Int j = 0;
-                        for(Int jj = 0; jj<blockColsSize;jj+=2){
-                          auto fc = blockCols[jj];
-                          auto nc = blockCols[jj+1];
-                          Int offsetJ = j+colPtr[jb];
-                          Int i = 0;
-                          for(Int ii = 0; ii<blockRowsSize;ii+=3){
-                            auto fr = blockRows[ii];
-                            auto nr = blockRows[ii+1];
-                            Int ifr = blockRows[ii+2];
-                            assert(i==ifr);
-
-                            //    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-                            Int offsetI = i+rowPtr[ib];
-                            if(nr>0 && nc > 0 && ldUBuf>0 ){
-#pragma omp task shared(nzvalLUpd,nzvalSinv,nzvalUBuf) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldUBuf,ldLUBuf,offsetI,offsetJ) //depend(inout:nzvalLUpd[offsetI]) 
-                              {
-                                blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
-                                    &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-                                    &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
-                                    &nzvalLUpd[i+rowPtr[ib]], ldLUBuf);
-#ifdef _PRINT_STATS_  
-                              localFlops_+=flops::Gemm<T>(nr, ldUBuf, nc);
-#endif
-                              }
-                            }
-
-
-                            i+=nr;
-                          }
-                          #pragma omp taskwait
-                          j+=nc;
-                        }
-//#pragma omp taskwait
-                      }
-
-#pragma omp taskwait
-delete [] blockCols;
-delete [] blockRows;
-                    }
-
-                    isBlockFound = true;
-                    break;
-                  }	
-                } // for (ibSinv )
-
-                TIMER_STOP(PARSING_ROW_BLOCKIDX);
-                if( isBlockFound == false ){
-                  std::ostringstream msg;
-                  msg << "Block(" << isup << ", " << jsup 
-                    << ") did not find a matching block in Sinv." << std::endl;
-                  ErrorHandling( msg.str().c_str() );
-                }
-              } // if (isup, jsup) is in L
-              else{ //if(isup<jsup)
-                std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
-                bool isBlockFound = false;
-                TIMER_START(PARSING_COL_BLOCKIDX);
-                for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
-                  // Found the (isup, jsup) block in Sinv
-                  if( UrowSinv[jbSinv].blockIdx == jsup ){
-#if 1
-                    {
-                      std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
-                      SuperNodeBufferType & snode = *snodeP;
-                      auto & UBuf = *UBufP;
-
-                      LBlock<T> * pLB = &LcolRecvP[ib];
-                      UBlock<T> * pUB = &UrowRecvP[jb];
-                      UBlock<T> * pSinvB = &UrowSinv[jbSinv];
-
-                      // Row relative indices
-                      std::vector<Int> relRows( pLB->numRow );
-                      Int SinvRowsSta = FirstBlockCol( isup, super_ );
-                      Int * rowsLBPtr = pLB->rows.Data();
-
-
-
-                      // Column relative indicies
-                      std::vector<Int> relCols( pUB->numCol );
-                      Int SinvColsSta = FirstBlockCol( jsup, super_ );
-                      Int * colsUBPtr = pUB->cols.Data();
-                      Int * colsSinvBPtr = pSinvB->cols.Data();
-                      Int lastColIdxSinv = 0;
-                      Int SinvBnumCol = pSinvB->numCol;
-
-
-                      //find contiguous blocks in pUB and pLB
-
-                      Int * blockCols = new Int[3*pUB->numCol];
-                      Int * blockRows = new Int[2*pLB->numRow];
-                      Int blockColsSize = 0;
-                      Int blockRowsSize = 0;
-
-
-#pragma omp task shared(blockColsSize,blockCols) firstprivate(pUB,colsUBPtr) //depend(inout:blockCols) depend(inout:blockColsSize) 
-                      if(pUB->numCol>0){
-                        //find blocks
-                        Int jfc = 0;
-                        Int fc = colsUBPtr[0];
-                        Int ncols = 1;
-                        for( Int j = 1; j < pUB->numCol; j++ ){
-                          if(colsUBPtr[j]==colsUBPtr[j-1]+1){ 
-                            ncols++;
-                          }
-                          else{
-                            blockCols[blockColsSize++] = fc;
-                            blockCols[blockColsSize++] = ncols;
-                            blockCols[blockColsSize++] = jfc;
-                            fc = colsUBPtr[j];
-                            ncols = 1;
-                            jfc = j;
-                          }
-                        }
-                        blockCols[blockColsSize++] = fc;
-                        blockCols[blockColsSize++] = ncols;
-                        blockCols[blockColsSize++] = jfc;
-
-                        //#pragma omp taskwait
-                        //
-                        //#pragma omp task firstprivate(colsUBPtr,lastColIdxSinv,SinvBnumCol,pSinvB,pUB,colsSinvBPtr) depend(inout:blockCols)
-                        //                      {
-                        for(Int jj = 0; jj<blockColsSize;jj+=3){
-#pragma omp task firstprivate(colsUBPtr,jj,lastColIdxSinv,SinvBnumCol,pSinvB,pUB,colsSinvBPtr) shared(blockColsSize,blockCols)
-                          {
-                            auto fc = blockCols[jj];
-                            auto nc = blockCols[jj+1];
-                            Int jfc = blockCols[jj+2];
-
-                            bool isColFound = false;
-                            for( lastColIdxSinv; lastColIdxSinv < SinvBnumCol; lastColIdxSinv++ ){
-                              if( fc == colsSinvBPtr[lastColIdxSinv] ){
-                                isColFound = true;
-                                blockCols[jj] = lastColIdxSinv;
-                                break;
-                              }
-                            }
-                            if( isColFound == false ){
-                              std::ostringstream msg;
-                              msg << "Col " << colsUBPtr[jfc] << "("<<fc<<")"
-                                " in pUB cannot find the corresponding row in pSinvB" << std::endl
-                                << "pUB->cols    = " << pUB->cols << std::endl
-                                << "UinvB.cols = " << pSinvB->cols << std::endl;
-                              ErrorHandling( msg.str().c_str() );
-                            }
-                          }
-                        }
-#pragma omp taskwait
-                      }
-
-#pragma omp task shared(blockRowsSize,blockRows) firstprivate(pLB,rowsLBPtr) //depend(inout:blockRows) depend(inout:blockRowsSize)
-                      if(pLB->numRow>0){
-                        //find blocks
-                        Int fr = rowsLBPtr[0]- SinvRowsSta;
-                        Int nrows = 1;
-                        for( Int j = 1; j < pLB->numRow; j++ ){
-                          if(rowsLBPtr[j]==rowsLBPtr[j-1]+1){ 
-                            nrows++;
-                          }
-                          else{
-                            blockRows[blockRowsSize++] = fr;
-                            blockRows[blockRowsSize++] = nrows;
-                            fr = rowsLBPtr[j]- SinvRowsSta;
-                            nrows = 1;
-                          }
-                        }
-                        blockRows[blockRowsSize++] = fr;
-                        blockRows[blockRowsSize++] = nrows;
-                      }
-
-
-                      // Transfer the values from Sinv to AinvBlock
-                      T* nzvalSinv = pSinvB->nzval.Data();
-                      Int     ldSinv    = pSinvB->numRow;
-                      
-#pragma omp taskwait
-
-#pragma omp task shared(nzvalLUpd,blockRowsSize,blockRows,blockColsSize,blockCols) //depend(inout:blockCols) depend(inout:blockRows) depend(inout:blockColsSize) depend(inout:blockRowsSize) //depend(inout:nzvalLUpd[rowPtr[ib]])
-                      {
-                        Int j = 0;
-                        for(Int jj = 0; jj<blockColsSize;jj+=3){
-                          auto fc = blockCols[jj];
-                          auto nc = blockCols[jj+1];
-                          Int jfc = blockCols[jj+2];
-                          Int offsetJ = j+colPtr[jb];
-
-                          Int i = 0;
-                          for(Int ii = 0; ii<blockRowsSize;ii+=2){
-                            auto fr = blockRows[ii];
-                            auto nr = blockRows[ii+1];
-                            Int offsetI = i+rowPtr[ib];
-                            //lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-                            if(nr>0 && nc > 0 && ldUBuf>0 ){
-#pragma omp task shared(nzvalLUpd,nzvalSinv,nzvalUBuf) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldUBuf,ldLUBuf,offsetI,offsetJ) //depend(inout:nzvalLUpd[offsetI]) 
-                              {
-                                blas::gemm_omp_task('N','T',nr, ldUBuf, nc, MINUS_ONE<T>(), 
-                                    &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-                                    &nzvalUBuf[(offsetJ)*ldUBuf], ldUBuf, ONE<T>(),
-                                    &nzvalLUpd[offsetI], ldLUBuf );
-#ifdef _PRINT_STATS_  
-                              localFlops_+=flops::Gemm<T>(nr, ldUBuf, nc);
-#endif
-                              }
-                            }
-
-                            i+=nr;
-                          }
-                          #pragma omp taskwait
-                          j+=nc;
-                        }
-//#pragma omp taskwait
-
-                      }
-
-
-#pragma omp taskwait
-                        delete [] blockCols;
-                        delete [] blockRows;
-
-                      }
-
-#endif
-                    isBlockFound = true;
-                    break;
-                  }
-                } // for (jbSinv)
-                TIMER_STOP(PARSING_COL_BLOCKIDX);
-                if( isBlockFound == false ){
-                  std::ostringstream msg;
-                  msg << "Block(" << isup << ", " << jsup 
-                    << ") did not find a matching block in Sinv." << std::endl;
-                  ErrorHandling( msg.str().c_str() );
-                }
-              } // if (isup, jsup) is in U
-            }
-          } // for( ib )
-#pragma omp taskwait
-
-        } // for ( jb )
-
-      }//end omp taskgroup
-//#pragma omp taskwait
-
-
-//if(AinvBuf.m()>0 && UBuf.m()>0 && snode.LUpdateBuf.m()>0){
-//
-//statusOFS<<"["<<snode.Index<<"] Before "<<snode.LUpdateBuf<<std::endl;
-//
-//
-//     blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
-//         AinvBuf.Data(), AinvBuf.m(), 
-//         UBuf.Data(), UBuf.m(), ZERO<T>(),
-//         snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
-//
-//statusOFS<<"["<<snode.Index<<"] After "<<snode.LUpdateBuf<<std::endl;
-//#pragma omp taskgroup
-//{
-//    blas::gemm_omp_task('N','T',AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
-//         AinvBuf.Data(), AinvBuf.m(), 
-//         UBuf.Data(), UBuf.m(), ZERO<T>(),
-//         snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() , 0);
-//}
-//}
-
-
-
-#else
-      size_t LcolRecvS = LcolRecv.size();
-      size_t UrowRecvS = UrowRecv.size();
-      LBlock<T> * LcolRecvP = LcolRecv.data(); 
-      UBlock<T> * UrowRecvP = UrowRecv.data();
-      //TIMER_START(Build_colptr_rowptr);
-      // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
-      // nonzero row in LcolRecv[ib]. The total number of rows in
-      // snode.LUpdateBuf is given by rowPtr[end]-1
-      rowPtrC.resize(LcolRecvS + 1);
-      // colPtr[jb] gives the column index in UBuf for the first
-      // nonzero column in UrowRecv[jb]. The total number of rows in
-      // UBuf is given by colPtr[end]-1
-      colPtrC.resize(UrowRecvS + 1);
-
-      Int * rowPtr = rowPtrC.data();
-      Int * colPtr = colPtrC.data();
-
-      rowPtr[0] = 0;
-      for( Int ib = 0; ib < LcolRecvS; ib++ ){
-        rowPtrC[ib+1] = rowPtrC[ib] + LcolRecvP[ib].numRow;
-      }
-      colPtrC[0] = 0;
-      for( Int jb = 0; jb < UrowRecvS; jb++ ){
-        colPtrC[jb+1] = colPtrC[jb] + UrowRecvP[jb].numCol;
-      }
-
-      Int numRowAinvBuf = rowPtr[LcolRecvS];
-      Int numColAinvBuf = colPtr[UrowRecvS];
-
-
-      //TIMER_STOP(Build_colptr_rowptr);
-
-      //TIMER_START(Allocate_lookup);
-      // Allocate for the computational storage
-      AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
-      UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
-      snode.LUpdateBuf.Resize( numRowAinvBuf, SuperSize( snode.Index, super_ ) );
-      SetValue( snode.LUpdateBuf, ZERO<T>() );
-      //std::cout << " allocation done " << std::endl;
-      //    //TIMER_START(SetValue_lookup);
-      //    SetValue( AinvBuf, ZERO<T>() );
-      //SetValue( snode.LUpdateBuf, ZERO<T>() );
-      //    SetValue( UBuf, ZERO<T>() );
-      //    //TIMER_STOP(SetValue_lookup);
-      //TIMER_STOP(Allocate_lookup);
-
-      //TIMER_START(Fill_UBuf);
-      // Fill UBuf first.  Make the transpose later in the Gemm phase.
-      for( Int jb = 0; jb < UrowRecvS; jb++ ){
-        UBlock<T>& UB = UrowRecvP[jb];
-        if( UB.numRow != SuperSize(snode.Index, super_) ){
-          ErrorHandling( "The size of UB is not right.  Something is seriously wrong." );
-        }
-        lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
-            UB.numRow, UBuf.VecData( colPtrC[jb] ), SuperSize( snode.Index, super_ ) );	
-      }
-      //TIMER_STOP(Fill_UBuf);
-
-      // Calculate the relative indices for (isup, jsup)
-      // Fill AinvBuf with the information in L or U block.
-      //TIMER_START(JB_Loop);
-      Real factor = 3.0;
-      Int max_blocks = factor * omp_get_num_threads();
-      Int minimal_block_size = 16;
-
-      Int rowBlock, colBlock, col_num, row_num, kBlock;
-      Real row_col_ratio = Real(numRowAinvBuf)/Real(SuperSize( snode.Index, super_ ));
-      col_num = Int(sqrt( Real(max_blocks) / row_col_ratio) + 0.5); // +0.5 maybe
-      if(col_num > max_blocks) col_num = max_blocks;
-      if(col_num < 1) col_num = 1;
-      //std::cout << "init col_num : " << col_num << " max threads: " << max_blocks<< endl;
-
-      for( ; col_num<= max_blocks; col_num++){
-        if( max_blocks % col_num == 0) {
-          row_num = max_blocks / col_num;
-          break;
-        }
-      }
-
-      rowBlock = (numRowAinvBuf + row_num - 1) / row_num;
-      colBlock = (SuperSize( snode.Index, super_ )+ col_num - 1) / col_num;
-      if(rowBlock > 2*colBlock) { rowBlock /= 2; colBlock*=2; }
-      if(colBlock > 2*rowBlock) { colBlock /= 2; rowBlock*=2; }
-      Int temp = 8;
-      if(rowBlock%temp) rowBlock = (rowBlock/temp+ 1)*temp;
-      if(colBlock%temp) colBlock = (colBlock/temp+ 1)*temp;
-
-      if(rowBlock < minimal_block_size ) rowBlock = minimal_block_size;
-      if(colBlock < minimal_block_size ) colBlock = minimal_block_size;
-
-      Int begin = 0;
-      Int end   = 0;
-      Int row_trunk_size = 0;
-      //std::cout << " before omp task " << std::endl;
-
-#pragma omp taskgroup
-      {
-        for( Int index = 0; index < LcolRecvS; index++){
-          row_trunk_size += rowPtr[index+1] - rowPtr[index];
-          end = index;
-          if((row_trunk_size >= rowBlock) || (index == LcolRecvS-1 )){
-#pragma omp task shared(UrowRecvP,colPtr,UBuf,LcolRecvP,AinvBuf,snode,colBlock,kBlock) firstprivate(begin,end)
-            {
-
-#ifdef _OMP_ID_THREAD_
-              {
-                int tid = omp_get_thread_num();
-                //std::stringstream sstrtid;
-                //sstrtid<<"Thread "<<tid<<" executing task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
-#pragma omp critical
-                statusOFS<<"Thread "<<tid<<" executing task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
-                //statusOFS<<sstrtid.str();
-
-              }
-#endif
-
-#pragma omp taskgroup
-              {
-                for( Int ib = begin; ib <= end; ib++ ){
-
-                  Int start = 0; 
-                  Int finish = 0;
-                  Int col_trunk_size = 0;
-
-                  for( Int col_index = 0; col_index < UrowRecvS; col_index++ ){
-                    col_trunk_size += colPtr[col_index +1] - colPtr[col_index];
-                    finish = col_index;
-
-                    if((col_trunk_size >= colBlock) || (col_index == UrowRecvS-1)){
-#pragma omp task shared(UrowRecvP,colPtr,UBuf,LcolRecvP,AinvBuf,snode) firstprivate(start,finish)
-                      {
-                        for( Int jb = start; jb <= finish; jb++ )
-                        {
-                          LBlock<T>& LB = LcolRecvP[ib];
-                          UBlock<T>& UB = UrowRecvP[jb];
-                          Int isup = LB.blockIdx;
-                          Int jsup = UB.blockIdx;
-                          T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
-                          Int  ldAinv  = AinvBuf.m();
-
-                          // Pin down the corresponding block in the part of Sinv.
-                          if( isup >= jsup ){
-                            std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-                            bool isBlockFound = false;
-                            ////TIMER_START(PARSING_ROW_BLOCKIDX);
-                            for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
-                              // Found the (isup, jsup) block in Sinv
-                              if( LcolSinv[ibSinv].blockIdx == isup ){
-                                LBlock<T> & SinvB = LcolSinv[ibSinv];
-
-                                // Row relative indices
-                                std::vector<Int> relRows( LB.numRow );
-                                Int* rowsLBPtr    = LB.rows.Data();
-                                Int* rowsSinvBPtr = SinvB.rows.Data();
-                                Int i2 = 0; 
-                                for( Int i = 0; i < LB.numRow; i++ ){
-                                  bool isRowFound = false;
-                                  if( rowsLBPtr[i] == rowsSinvBPtr[i2] ){
-                                    isRowFound = true;
-                                    relRows[i] = i2++;
-                                    continue;
-                                  }
-                                  for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
-                                    if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
-                                      isRowFound = true;
-                                      relRows[i] = i1;
-                                      i2 = i1+1;
-                                      break;
-                                    }
-                                  }
-                                  if( isRowFound == false ){
-                                    std::ostringstream msg;
-                                    msg << "Row " << rowsLBPtr[i] << 
-                                      " in LB cannot find the corresponding row in SinvB" << std::endl
-                                      << "LB.rows    = " << LB.rows << std::endl
-                                      << "SinvB.rows = " << SinvB.rows << std::endl;
-                                    throw std::runtime_error( msg.str().c_str() );
-                                  }
-                                }
-
-                                // Column relative indicies
-                                std::vector<Int> relCols( UB.numCol );
-                                Int SinvColsSta = FirstBlockCol( jsup, super_ );
-                                for( Int j = 0; j < UB.numCol; j++ ){
-                                  relCols[j] = UB.cols[j] - SinvColsSta;
-                                }
-
-                                // Transfer the values from Sinv to AinvBlock
-                                //indirect addressing. -- intel . // use omp simd. 
-                                T* nzvalSinv = SinvB.nzval.Data();
-                                Int     ldSinv    = SinvB.numRow;
-                                //#pragma omp simd
-                                for( Int j = 0; j < UB.numCol; j++ ){
-                                  Int offset_Ainv = j*ldAinv;
-                                  Int offset_Sinv = relCols[j] * ldSinv;
-                                  //#pragma omp novector
-                                  for( Int i = 0; i < LB.numRow; i++ ){
-                                    nzvalAinv[i+offset_Ainv] =
-                                      nzvalSinv[relRows[i] + offset_Sinv];
-                                  }
-                                }
-                                isBlockFound = true;
-                                break;
-                              }	
-                            } // for (ibSinv )
-                            ////TIMER_STOP(PARSING_ROW_BLOCKIDX);
-                            if( isBlockFound == false ){
-                              std::ostringstream msg;
-                              msg << "Block(" << isup << ", " << jsup 
-                                << ") did not find a matching block in Sinv." << std::endl;
-                              throw std::runtime_error( msg.str().c_str() );
-                            }
-                          } // if (isup, jsup) is in L
-                          else{
-                            std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
-                            bool isBlockFound = false;
-                            ////TIMER_START(PARSING_COL_BLOCKIDX);
-                            for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
-                              // Found the (isup, jsup) block in Sinv
-                              if( UrowSinv[jbSinv].blockIdx == jsup ){
-                                UBlock<T> & SinvB = UrowSinv[jbSinv];
-
-                                // Row relative indices
-                                std::vector<Int> relRows( LB.numRow );
-                                Int SinvRowsSta = FirstBlockCol( isup, super_ );
-                                for( Int i = 0; i < LB.numRow; i++ ){
-                                  relRows[i] = LB.rows[i] - SinvRowsSta;
-                                }
-
-                                // Column relative indices
-                                std::vector<Int> relCols( UB.numCol );
-                                Int* colsUBPtr    = UB.cols.Data();
-                                Int* colsSinvBPtr = SinvB.cols.Data();
-                                Int j2 = 0;
-                                for( Int j = 0; j < UB.numCol; j++ ){
-                                  bool isColFound = false;
-                                  if( colsUBPtr[j] == colsSinvBPtr[j2] ){
-                                    isColFound = true;
-                                    relCols[j] = j2++;
-                                    continue;
-                                  }
-                                  for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
-                                    if( colsUBPtr[j] == colsSinvBPtr[j1] ){
-                                      isColFound = true;
-                                      relCols[j] = j1;
-                                      j2 = j1 + 1;
-                                      break;
-                                    }
-                                  }
-                                  if( isColFound == false ){
-                                    std::ostringstream msg;
-                                    msg << "Col " << colsUBPtr[j] << 
-                                      " in UB cannot find the corresponding row in SinvB" << std::endl
-                                      << "UB.cols    = " << UB.cols << std::endl
-                                      << "UinvB.cols = " << SinvB.cols << std::endl;
-                                    throw std::runtime_error( msg.str().c_str() );
-                                  }
-                                }
-
-
-                                // Transfer the values from Sinv to AinvBlock
-                                T* nzvalSinv = SinvB.nzval.Data();
-                                Int     ldSinv    = SinvB.numRow;
-                                //indirect addressing. -- intel . // use omp simd. however, not vectorized. mystery. 
-                                //#pragma omp simd
-                                for( Int j = 0; j < UB.numCol; j++ ){
-                                  Int offset_Ainv = j*ldAinv;
-                                  Int offset_Sinv = relCols[j] * ldSinv;
-                                  //#pragma omp novector
-                                  for( Int i = 0; i < LB.numRow; i++ ){
-                                    nzvalAinv[i+offset_Ainv] =
-                                      nzvalSinv[relRows[i] + offset_Sinv];
-                                  }
-                                }
-                                isBlockFound = true;
-                                break;
-                              }
-                            } // for (jbSinv)
-                            ////TIMER_STOP(PARSING_COL_BLOCKIDX);
-                            if( isBlockFound == false ){
-                              std::ostringstream msg;
-                              msg << "Block(" << isup << ", " << jsup 
-                                << ") did not find a matching block in Sinv." << std::endl;
-                              throw std::runtime_error( msg.str().c_str() );
-                            }
-                          } // if (isup, jsup) is in U
-                        } // for jb
-                      } // omp task
-                      col_trunk_size = 0;
-                      start = col_index+1;
-                    } // if statement 
-                  } // for ( col_index )
-                } // for( ib )
-              }// end omp taskgroup
-
-              if(UBuf.m() <= colBlock || omp_get_num_threads()== 1)
-              {
-                blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[begin], UBuf.m(), UBuf.n(), MINUS_ONE<T>(), 
-                    &AinvBuf(rowPtr[begin],0), AinvBuf.m(), 
-                    UBuf.Data(),UBuf.m(), ZERO<T>(),
-                    &snode.LUpdateBuf(rowPtr[begin],0),snode.LUpdateBuf.m() ); 
-              }
-              else{
-#pragma omp taskgroup
-                {
-                  Int njob = (UBuf.m() + colBlock - 1) / colBlock;
-                  for(Int index = 0; index < njob; index++){
-                    Int stride = colBlock;
-                    Int currentCol = index * colBlock;
-                    if( currentCol + stride > UBuf.m()) stride = UBuf.m() - currentCol;
-#pragma omp task firstprivate(end,begin,stride, currentCol) shared(rowPtr,UBuf,AinvBuf,snode)
-                    {
-
-#ifdef _OMP_ID_THREAD_
-                      {
-                        int tid = omp_get_thread_num();
-                        //std::stringstream sstrtid;
-                        //sstrtid<<"Thread "<<tid<<" executing GEMM task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
-#pragma omp critical
-                        statusOFS<<"Thread "<<tid<<" executing GEMM task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
-                        //statusOFS<<sstrtid.str();
-
-                      }
-#endif
-                      blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[begin], stride, UBuf.n(), MINUS_ONE<T>(),
-                          &AinvBuf(rowPtr[begin],0), AinvBuf.m(),
-                          &UBuf(currentCol,0), UBuf.m(), ZERO<T>(),
-                          &snode.LUpdateBuf(rowPtr[begin],currentCol), snode.LUpdateBuf.m() );
-                    }
-                  }
-                }//end omp taskgroup
-              }
-            } //end omp task 
-
-            row_trunk_size = 0;
-            begin = index+1;
-          } // end if
-        }
-      }// end omp taskgroup
-
-#endif
-
-      //#pragma omp taskwait
-      //TIMER_STOP(JB_Loop);
-
-
-      //TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
-
-    }
-
-
-  ///////////// Utility functions ///////////////////
-  template<typename T>
-    inline  void PMatrix<T>::SelInv_lookup_indexes_seq(
-        SuperNodeBufferType & snode, 
-        std::vector<LBlock<T> > & LcolRecv, 
-        std::vector<UBlock<T> > & UrowRecv, 
-        NumMat<T> & AinvBuf,
-        NumMat<T> & UBuf )
-    {
-      TIMER_START(Compute_Sinv_LT_Lookup_Indexes);
-
-      TIMER_START(Build_colptr_rowptr);
-      // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
-      // nonzero row in LcolRecv[ib]. The total number of rows in
-      // snode.LUpdateBuf is given by rowPtr[end]-1
-      std::vector<Int> rowPtr(LcolRecv.size() + 1);
-      // colPtr[jb] gives the column index in UBuf for the first
-      // nonzero column in UrowRecv[jb]. The total number of rows in
-      // UBuf is given by colPtr[end]-1
-      std::vector<Int> colPtr(UrowRecv.size() + 1);
-
-      rowPtr[0] = 0;
-      for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
-        rowPtr[ib+1] = rowPtr[ib] + LcolRecv[ib].numRow;
-      }
-      colPtr[0] = 0;
-      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-        colPtr[jb+1] = colPtr[jb] + UrowRecv[jb].numCol;
-      }
-
-      Int numRowAinvBuf = *rowPtr.rbegin();
-      Int numColAinvBuf = *colPtr.rbegin();
-      TIMER_STOP(Build_colptr_rowptr);
-
-      TIMER_START(Allocate_lookup);
-      // Allocate for the computational storage
-      AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
-      UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
-      //    TIMER_START(SetValue_lookup);
-      //    SetValue( AinvBuf, ZERO<T>() );
-      //SetValue( snode.LUpdateBuf, ZERO<T>() );
-      //    SetValue( UBuf, ZERO<T>() );
-      //    TIMER_STOP(SetValue_lookup);
-      TIMER_STOP(Allocate_lookup);
-
-      TIMER_START(Fill_UBuf);
-      // Fill UBuf first.  Make the transpose later in the Gemm phase.
-      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-        UBlock<T>& UB = UrowRecv[jb];
-        if( UB.numRow != SuperSize(snode.Index, super_) ){
-          ErrorHandling( "The size of UB is not right.  Something is seriously wrong." );
-        }
-        lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
-            UB.numRow, UBuf.VecData( colPtr[jb] ), SuperSize( snode.Index, super_ ) );	
-      }
-      TIMER_STOP(Fill_UBuf);
-
-      // Calculate the relative indices for (isup, jsup)
-      // Fill AinvBuf with the information in L or U block.
-      TIMER_START(JB_Loop);
-
-#ifdef STDFIND
-      //    for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-      //
-      //      UBlock& UB = UrowRecv[jb];
-      //      Int jsup = UB.blockIdx;
-      //      Int SinvColsSta = FirstBlockCol( jsup, super_ );
-      //
-      //      // Column relative indicies
-      //      std::vector<Int> relCols( UB.numCol );
-      //      for( Int j = 0; j < UB.numCol; j++ ){
-      //        relCols[j] = UB.cols[j] - SinvColsSta;
-      //      }
-      //
-      //
-      //
-      //
-      //      for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
-      //        LBlock& LB = LcolRecv[ib];
-      //        Int isup = LB.blockIdx;
-      //        Int SinvRowsSta = FirstBlockCol( isup, super_ );
-      //        Scalar* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
-      //        Int     ldAinv    = numRowAinvBuf;
-      //
-      //        // Pin down the corresponding block in the part of Sinv.
-      //        if( isup >= jsup ){
-      //          std::vector<LBlock>&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-      //          bool isBlockFound = false;
-      //          TIMER_START(PARSING_ROW_BLOCKIDX);
-      //          for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
-      //            // Found the (isup, jsup) block in Sinv
-      //            if( LcolSinv[ibSinv].blockIdx == isup ){
-      //              LBlock& SinvB = LcolSinv[ibSinv];
-      //
-      //              // Row relative indices
-      //              std::vector<Int> relRows( LB.numRow );
-      //              Int* rowsLBPtr    = LB.rows.Data();
-      //              Int* rowsSinvBPtr = SinvB.rows.Data();
-      //
-      //              TIMER_START(STDFIND_ROW);
-      //              Int * pos =&rowsSinvBPtr[0];
-      //              Int * last =&rowsSinvBPtr[SinvB.numRow];
-      //              for( Int i = 0; i < LB.numRow; i++ ){
-      //                //                pos = std::find(pos, &rowsSinvBPtr[SinvB.numRow-1], rowsLBPtr[i]);
-      //                pos = std::find(rowsSinvBPtr, last, rowsLBPtr[i]);
-      //                if(pos != last){
-      //                  relRows[i] = (Int)(pos - rowsSinvBPtr);
-      //                }
-      //                else{
-      //                  std::ostringstream msg;
-      //                  msg << "Row " << rowsLBPtr[i] << 
-      //                    " in LB cannot find the corresponding row in SinvB" << std::endl
-      //                    << "LB.rows    = " << LB.rows << std::endl
-      //                    << "SinvB.rows = " << SinvB.rows << std::endl;
-      //                  ErrorHandling( msg.str().c_str() );
-      //                }
-      //              }
-      //              TIMER_STOP(STDFIND_ROW);
-      //
-      //              TIMER_START(Copy_Sinv_to_Ainv);
-      //              // Transfer the values from Sinv to AinvBlock
-      //              Scalar* nzvalSinv = SinvB.nzval.Data();
-      //              Int     ldSinv    = SinvB.numRow;
-      //              for( Int j = 0; j < UB.numCol; j++ ){
-      //                for( Int i = 0; i < LB.numRow; i++ ){
-      //                  nzvalAinv[i+j*ldAinv] =
-      //                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
-      //                }
-      //              }
-      //              TIMER_STOP(Copy_Sinv_to_Ainv);
-      //
-      //              isBlockFound = true;
-      //              break;
-      //            }	
-      //          } // for (ibSinv )
-      //          TIMER_STOP(PARSING_ROW_BLOCKIDX);
-      //          if( isBlockFound == false ){
-      //            std::ostringstream msg;
-      //            msg << "Block(" << isup << ", " << jsup 
-      //              << ") did not find a matching block in Sinv." << std::endl;
-      //            ErrorHandling( msg.str().c_str() );
-      //          }
-      //        } // if (isup, jsup) is in L
-      //        else{
-      //          // Row relative indices
-      //          std::vector<Int> relRows( LB.numRow );
-      //          Int SinvRowsSta = FirstBlockCol( isup, super_ );
-      //          for( Int i = 0; i < LB.numRow; i++ ){
-      //            relRows[i] = LB.rows[i] - SinvRowsSta;
-      //          }
-      //          std::vector<UBlock>&   UrowSinv = this->U( LBi( isup, grid_ ) );
-      //          bool isBlockFound = false;
-      //          TIMER_START(PARSING_COL_BLOCKIDX);
-      //          for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
-      //            // Found the (isup, jsup) block in Sinv
-      //            if( UrowSinv[jbSinv].blockIdx == jsup ){
-      //              UBlock& SinvB = UrowSinv[jbSinv];
-      //
-      //
-      //
-      //              // Column relative indices
-      //              std::vector<Int> relCols( UB.numCol );
-      //              Int* colsUBPtr    = UB.cols.Data();
-      //              Int* colsSinvBPtr = SinvB.cols.Data();
-      //              TIMER_START(STDFIND_COL);
-      //              Int * pos =&colsSinvBPtr[0];
-      //              Int * last =&colsSinvBPtr[SinvB.numCol];
-      //              for( Int j = 0; j < UB.numCol; j++ ){
-      //                //colsUB is sorted
-      //                pos = std::find(colsSinvBPtr, last, colsUBPtr[j]);
-      //                if(pos !=last){
-      //                  relCols[j] = (Int)(pos - colsSinvBPtr);
-      //                }
-      //                else{
-      //                  std::ostringstream msg;
-      //                  msg << "Col " << colsUBPtr[j] << 
-      //                    " in UB cannot find the corresponding row in SinvB" << std::endl
-      //                    << "UB.cols    = " << UB.cols << std::endl
-      //                    << "UinvB.cols = " << SinvB.cols << std::endl;
-      //                  ErrorHandling( msg.str().c_str() );
-      //                }
-      //              }
-      //              TIMER_STOP(STDFIND_COL);
-      //
-      //
-      //              TIMER_START(Copy_Sinv_to_Ainv);
-      //              // Transfer the values from Sinv to AinvBlock
-      //              Scalar* nzvalSinv = SinvB.nzval.Data();
-      //              Int     ldSinv    = SinvB.numRow;
-      //              for( Int j = 0; j < UB.numCol; j++ ){
-      //                for( Int i = 0; i < LB.numRow; i++ ){
-      //                  nzvalAinv[i+j*ldAinv] =
-      //                    nzvalSinv[relRows[i] + relCols[j] * ldSinv];
-      //                }
-      //              }
-      //              TIMER_STOP(Copy_Sinv_to_Ainv);
-      //
-      //              isBlockFound = true;
-      //              break;
-      //            }
-      //          } // for (jbSinv)
-      //          TIMER_STOP(PARSING_COL_BLOCKIDX);
-      //          if( isBlockFound == false ){
-      //            std::ostringstream msg;
-      //            msg << "Block(" << isup << ", " << jsup 
-      //              << ") did not find a matching block in Sinv." << std::endl;
-      //            ErrorHandling( msg.str().c_str() );
-      //          }
-      //        } // if (isup, jsup) is in U
-      //
-      //      } // for( ib )
-      //    } // for ( jb )
-#else
-      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
-        for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
-          LBlock<T>& LB = LcolRecv[ib];
-          UBlock<T>& UB = UrowRecv[jb];
-          Int isup = LB.blockIdx;
-          Int jsup = UB.blockIdx;
-          T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
-          Int     ldAinv    = AinvBuf.m();
-
-          // Pin down the corresponding block in the part of Sinv.
-          if( isup >= jsup ){
-            std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-            bool isBlockFound = false;
-            TIMER_START(PARSING_ROW_BLOCKIDX);
-            for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
-              // Found the (isup, jsup) block in Sinv
-              if( LcolSinv[ibSinv].blockIdx == isup ){
-                LBlock<T> & SinvB = LcolSinv[ibSinv];
-
-                // Row relative indices
-                std::vector<Int> relRows( LB.numRow );
-                Int* rowsLBPtr    = LB.rows.Data();
-                Int* rowsSinvBPtr = SinvB.rows.Data();
-                for( Int i = 0; i < LB.numRow; i++ ){
-                  bool isRowFound = false;
-                  for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
-                    if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
-                      isRowFound = true;
-                      relRows[i] = i1;
-                      break;
-                    }
-                  }
-                  if( isRowFound == false ){
-                    std::ostringstream msg;
-                    msg << "Row " << rowsLBPtr[i] << 
-                      " in LB cannot find the corresponding row in SinvB" << std::endl
-                      << "LB.rows    = " << LB.rows << std::endl
-                      << "SinvB.rows = " << SinvB.rows << std::endl;
-                    ErrorHandling( msg.str().c_str() );
-                  }
-                }
-
-                // Column relative indicies
-                std::vector<Int> relCols( UB.numCol );
-                Int SinvColsSta = FirstBlockCol( jsup, super_ );
-                for( Int j = 0; j < UB.numCol; j++ ){
-                  relCols[j] = UB.cols[j] - SinvColsSta;
-                }
-
-                // Transfer the values from Sinv to AinvBlock
-                T* nzvalSinv = SinvB.nzval.Data();
-                Int     ldSinv    = SinvB.numRow;
-                for( Int j = 0; j < UB.numCol; j++ ){
-                  for( Int i = 0; i < LB.numRow; i++ ){
-                    nzvalAinv[i+j*ldAinv] =
-                      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
-                  }
-                }
-
-                isBlockFound = true;
-                break;
-              }	
-            } // for (ibSinv )
-            TIMER_STOP(PARSING_ROW_BLOCKIDX);
-            if( isBlockFound == false ){
-              std::ostringstream msg;
-              msg << "Block(" << isup << ", " << jsup 
-                << ") did not find a matching block in Sinv." << std::endl;
-              ErrorHandling( msg.str().c_str() );
-            }
-          } // if (isup, jsup) is in L
-          else{
-            std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
-            bool isBlockFound = false;
-            TIMER_START(PARSING_COL_BLOCKIDX);
-            for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
-              // Found the (isup, jsup) block in Sinv
-              if( UrowSinv[jbSinv].blockIdx == jsup ){
-                UBlock<T> & SinvB = UrowSinv[jbSinv];
-
-                // Row relative indices
-                std::vector<Int> relRows( LB.numRow );
-                Int SinvRowsSta = FirstBlockCol( isup, super_ );
-                for( Int i = 0; i < LB.numRow; i++ ){
-                  relRows[i] = LB.rows[i] - SinvRowsSta;
-                }
-
-                // Column relative indices
-                std::vector<Int> relCols( UB.numCol );
-                Int* colsUBPtr    = UB.cols.Data();
-                Int* colsSinvBPtr = SinvB.cols.Data();
-                for( Int j = 0; j < UB.numCol; j++ ){
-                  bool isColFound = false;
-                  for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
-                    if( colsUBPtr[j] == colsSinvBPtr[j1] ){
-                      isColFound = true;
-                      relCols[j] = j1;
-                      break;
-                    }
-                  }
-                  if( isColFound == false ){
-                    std::ostringstream msg;
-                    msg << "Col " << colsUBPtr[j] << 
-                      " in UB cannot find the corresponding row in SinvB" << std::endl
-                      << "UB.cols    = " << UB.cols << std::endl
-                      << "UinvB.cols = " << SinvB.cols << std::endl;
-                    ErrorHandling( msg.str().c_str() );
-                  }
-                }
-
-
-                // Transfer the values from Sinv to AinvBlock
-                T* nzvalSinv = SinvB.nzval.Data();
-                Int     ldSinv    = SinvB.numRow;
-                for( Int j = 0; j < UB.numCol; j++ ){
-                  for( Int i = 0; i < LB.numRow; i++ ){
-                    nzvalAinv[i+j*ldAinv] =
-                      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
-                  }
-                }
-
-                isBlockFound = true;
-                break;
-              }
-            } // for (jbSinv)
-            TIMER_STOP(PARSING_COL_BLOCKIDX);
-            if( isBlockFound == false ){
-              std::ostringstream msg;
-              msg << "Block(" << isup << ", " << jsup 
-                << ") did not find a matching block in Sinv." << std::endl;
-              ErrorHandling( msg.str().c_str() );
-            }
-          } // if (isup, jsup) is in U
-
-        } // for( ib )
-      } // for ( jb )
-
-
-#endif
-      TIMER_STOP(JB_Loop);
-
-
-      TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
-    }
-
-#else
-  ///////////// Utility functions ///////////////////
   template<typename T>
     inline  void PMatrix<T>::SelInv_lookup_indexes(
         SuperNodeBufferType & snode, 
@@ -2228,7 +1000,7 @@ delete [] blockRows;
 
       TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
     }
-#endif
+
   template<typename T>
     inline void PMatrix<T>::SendRecvCD_UpdateU(
         std::vector<SuperNodeBufferType > & arrSuperNodes, 
@@ -2486,10 +1258,8 @@ delete [] blockRows;
         // (there is no diagonal block)
         // Is it a copy ?  LL: YES. Maybe we should replace the copy by
         // something more efficient especially for mpisize == 1
-#ifndef _OPENMP_TILE_
         UrowRecv.resize(this->U( LBi( snode.Index, grid_ ) ).size());
         std::copy(this->U( LBi( snode.Index, grid_ ) ).begin(),this->U( LBi( snode.Index, grid_ )).end(),UrowRecv.begin());
-#endif
       } // sender is the same as receiver
 
 
@@ -2509,12 +1279,10 @@ delete [] blockRows;
       else{
         // L is obtained locally, just make a copy. 
         // Do not include the diagonal block
-#ifndef _OPENMP_TILE_
         std::vector<LBlock<T> >& Lcol =  this->L( LBj( snode.Index, grid_ ) );
         Int startIdx = ( MYROW( grid_ ) == PROW( snode.Index, grid_ ) )?1:0;
         LcolRecv.resize( Lcol.size() - startIdx );
         std::copy(Lcol.begin()+startIdx,Lcol.end(),LcolRecv.begin());
-#endif
       } // sender is the same as receiver
     }
 
@@ -2864,1417 +1632,1022 @@ delete [] blockRows;
     }
 
   template<typename T>
-    inline void PMatrix<T>::SelInvIntra_P2p(Int lidx,Int & rank
-#ifdef _OPENMP_TILE_
-        ,const Int * snodeEtree
+    inline void PMatrix<T>::SelInvIntra_P2p(Int lidx,Int & rank) {
+
+      if (options_->symmetricStorage!=1){
+
+#if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
+        Real begin_SendULWaitContentFirst, end_SendULWaitContentFirst, time_SendULWaitContentFirst = 0;
 #endif
-        )
-    {
-#ifndef _SYM_STORAGE_
+        Int numSuper = this->NumSuper(); 
+        std::vector<std::vector<Int> > & superList = this->WorkingSet();
+        Int numSteps = superList.size();
+        Int stepSuper = superList[lidx].size(); 
 
-#ifdef _OPENMP_TILE_
-      //#pragma omp taskgroup
-      {
-          #define pmpointer this
-//          auto pmpointer = this;
-          auto tdeps = this->deps;
-          int is_master=0;
-          MPI_Is_thread_main(&is_master);
-          Int numSuper = this->NumSuper(); 
-          std::vector<std::vector<Int> > & superList = this->WorkingSet();
-          Int numSteps = superList.size();
-          Int stepSuper = superList[lidx].size(); 
+        TIMER_START(AllocateBuffer);
 
-          //this->arrArrSuperNodes[lidx].resize(stepSuper);
-          //auto & arrSuperNodes = this->arrArrSuperNodes[lidx];
-
-          //std::vector<SuperNodeBufferType> arrSuperNodes(stepSuper);
-          Int supidx = 0;
-          for (Int esupidx=0; esupidx<stepSuper; esupidx++){
-            Int snodeIdx = superList[lidx][esupidx]; 
-            TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
-            TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
-            TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
-            TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
-            bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
-              || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
-              || CountSendToRight(snodeIdx) > 0
-              || CountSendToBelow(snodeIdx) > 0
-              || CountSendToCrossDiagonal(snodeIdx) > 0
-              || CountRecvFromCrossDiagonal(snodeIdx) >0
-              || ( isRecvFromLeft_( snodeIdx ) ) 
-              || ( isRecvFromAbove_( snodeIdx ) )
-              || isSendToDiagonal_(snodeIdx)
-              || (bcastUTree!=NULL)
-              || (bcastLTree!=NULL)
-              || (redLTree!=NULL)
-              || (redDTree!=NULL) ;
-
-            if(participating){
-//#pragma omp taskgroup
-              {
-                //SuperNodeBufferType * psnode = new SuperNodeBufferType;
-                //SuperNodeBufferType & snode = *psnode;
-                SuperNodeBufferType snode;
-                //SuperNodeBufferType & snode = arrArrSuperNodes[lidx][supidx];
-
-                //create a new supernode descriptor
-                snode.Index = snodeIdx;  
-                snode.Rank = rank;
-                Int snodeIdx = snode.Index;
-                Int parentIdx = snodeEtree[snodeIdx];
+        stepSuper = 0;
+        for (Int supidx=0; supidx<superList[lidx].size(); supidx++){
+          Int snodeIdx = superList[lidx][supidx]; 
+          TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
+          TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
+          TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
+          TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
+          bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
+            || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
+            || CountSendToRight(snodeIdx) > 0
+            || CountSendToBelow(snodeIdx) > 0
+            || CountSendToCrossDiagonal(snodeIdx) > 0
+            || CountRecvFromCrossDiagonal(snodeIdx) >0
+            || ( isRecvFromLeft_( snodeIdx ) ) 
+            || ( isRecvFromAbove_( snodeIdx ) )
+            || isSendToDiagonal_(snodeIdx)
+            || (bcastUTree!=NULL)
+            || (bcastLTree!=NULL)
+            || (redLTree!=NULL)
+            || (redDTree!=NULL) ;
+          if(participating){
+            stepSuper++;
+          }
+        }
 
 
-                //TODO we can do this cause we are in shared memory 
-                if(redLTree != NULL){
-                  redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,limIndex_));
-                  //Initialize the tree
-                  redLTree->AllocRecvBuffers();
-                  //Post All Recv requests;
-                  redLTree->PostFirstRecv();
+
+        //This is required to send the size and content of U/L
+        std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
+        arrMpireqsSendToBelow.resize( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
+        std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
+        arrMpireqsSendToRight.resize(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
+
+
+        //This is required to receive the size and content of U/L
+        std::vector<MPI_Request>   arrMpireqsRecvSizeFromAny;
+        arrMpireqsRecvSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
+        std::vector<MPI_Request>   arrMpireqsRecvContentFromAny;
+        arrMpireqsRecvContentFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
+
+        //allocate the buffers for this supernode
+        std::vector<SuperNodeBufferType> arrSuperNodes(stepSuper);
+
+        Int pos = 0;
+        for (Int supidx=0; supidx<superList[lidx].size(); supidx++){ 
+          Int snodeIdx = superList[lidx][supidx]; 
+          TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
+          TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
+          TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
+          TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
+          bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
+            || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
+            || CountSendToRight(snodeIdx) > 0
+            || CountSendToBelow(snodeIdx) > 0
+            || CountSendToCrossDiagonal(snodeIdx) > 0
+            || CountRecvFromCrossDiagonal(snodeIdx) >0
+            || ( isRecvFromLeft_( snodeIdx ) ) 
+            || ( isRecvFromAbove_( snodeIdx ) )
+            || isSendToDiagonal_(snodeIdx)
+            || (bcastUTree!=NULL)
+            || (bcastLTree!=NULL)
+            || (redLTree!=NULL)
+            || (redDTree!=NULL) ;
+
+          if(participating){
+            arrSuperNodes[pos].Index = superList[lidx][supidx];  
+            arrSuperNodes[pos].Rank = rank;
+
+
+            SuperNodeBufferType & snode = arrSuperNodes[pos];
+
+            pos++;
+          }
+          rank++;
+        }
+
+
+
+        int numSentToLeft = 0;
+        std::vector<int> reqSentToLeft;
+
+
+        //NumMat<T> AinvBuf[64], UBuf[64];
+        //      std::vector<NumMat<T> > AinvBufs(omp_get_max_threads());
+        //      std::vector<NumMat<T> > UBufs(omp_get_max_threads());
+
+        TIMER_STOP(AllocateBuffer);
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
+#endif
+
+        {
+          //Receivers have to resize their buffers
+          TIMER_START(IRecv_Content_UL);
+
+
+
+          // Receivers (Content)
+          for (Int supidx=0; supidx<stepSuper ; supidx++){
+            SuperNodeBufferType & snode = arrSuperNodes[supidx];
+            MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvContentFromAny[supidx*2];
+            MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvContentFromAny[supidx*2+1];
+
+            if( isRecvFromAbove_( snode.Index ) && 
+                MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
+
+              TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+              if(bcastUTree!=NULL){
+                Int myRoot = bcastUTree->GetRoot();
+                snode.SizeSstrUrowRecv = bcastUTree->GetMsgSize();
+                snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv);
+                MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
+                    myRoot, IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), 
+                    grid_->colComm, mpireqsRecvFromAbove );
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U " << snode.SizeSstrUrowRecv << " BYTES from "<<myRoot<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+#endif
+              }
+            } // if I need to receive from up
+
+            if( isRecvFromLeft_( snode.Index ) &&
+                MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
+
+              TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
+              if(bcastLTree!=NULL){
+                Int myRoot = bcastLTree->GetRoot();
+                snode.SizeSstrLcolRecv = bcastLTree->GetMsgSize();
+                snode.SstrLcolRecv.resize(snode.SizeSstrLcolRecv);
+                MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
+                    myRoot, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), 
+                    grid_->rowComm, mpireqsRecvFromLeft );
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L " << snode.SizeSstrLcolRecv << " BYTES from "<<myRoot<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+#endif
+              }
+            } // if I need to receive from left
+          }
+          TIMER_STOP(IRecv_Content_UL);
+
+          // Senders
+          TIMER_START(ISend_Content_UL);
+          for (Int supidx=0; supidx<stepSuper; supidx++){
+            SuperNodeBufferType & snode = arrSuperNodes[supidx];
+            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl <<  "["<<snode.Index<<"] "
+              << "Communication for the U part." << std::endl << std::endl; 
+#endif
+            // Communication for the U part.
+
+            if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+              std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, grid_) );
+              // Pack the data in U
+              TIMER_START(Serialize_UL);
+              std::stringstream sstm;
+
+              std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+              // All blocks are to be sent down.
+              serialize( (Int)Urow.size(), sstm, NO_MASK );
+              for( Int jb = 0; jb < Urow.size(); jb++ ){
+                serialize( Urow[jb], sstm, mask );
+              }
+              snode.SstrUrowSend.resize( Size( sstm ) );
+              sstm.read( &snode.SstrUrowSend[0], snode.SstrUrowSend.size() );
+              snode.SizeSstrUrowSend = snode.SstrUrowSend.size();
+              TIMER_STOP(Serialize_UL);
+
+              TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+              if(bcastUTree!=NULL){
+                bcastUTree->ForwardMessage((char*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, 
+                    IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0]);
+                for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+                  Int iProcRow = bcastUTree->GetDest(idxRecv);
+#if ( _DEBUGlevel_ >= 1 )
+                  statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_) << std::endl <<  std::endl; 
+#endif
                 }
-                //if(redLTree != NULL){
-                //      TIMER_START(Reduce_Sinv_LT_Isend);
-                //      //send the data to NULL to ensure 0 byte send
-                //      redLTree->SetLocalBuffer(NULL);
-                //      redLTree->SetDataReady(true);
+              }
 
-                //      bool done = redLTree->Progress();
+            } // if I am the sender
 
-                //      TIMER_STOP(Reduce_Sinv_LT_Isend);
-                // }
 
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx) shared(snode) depend(inout:tdeps[snodeIdx*(numSuper+1) + snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                {
-                  //SuperNodeBufferType & snode = arrArrSuperNodes[lidx][supidx];
-                  std::vector<LBlock<T> > LcolRecv;
-                  std::vector<UBlock<T> > UrowRecv;
-                  // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
-                  // The size will be updated in the Gemm phase and the reduce phase
-#ifdef _OMP_ID_THREAD_
-                  {
-                    int tid = omp_get_thread_num();
-#pragma omp critical
-                    statusOFS<<"Thread "<<tid<<" executing outer task from snode "<<snode.Index<<std::endl;                
-
-                  }
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "["<<snode.Index<<"] "<< "Communication for the L part." << std::endl << std::endl; 
 #endif
 
-                  UnpackData(snode, LcolRecv, UrowRecv);
 
-                  Int rowIdx = numSuper-1;
-                  if(LcolRecv.size()>0){
-                    rowIdx = LcolRecv.begin()->blockIdx;
+
+            // Communication for the L part.
+            if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+              std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, grid_) );
+              TIMER_START(Serialize_UL);
+              // Pack the data in L 
+              std::stringstream sstm;
+              std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+              mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
+
+              // All blocks except for the diagonal block are to be sent right
+
+              if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) )
+                serialize( (Int)Lcol.size() - 1, sstm, NO_MASK );
+              else
+                serialize( (Int)Lcol.size(), sstm, NO_MASK );
+
+              for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                if( Lcol[ib].blockIdx > snode.Index ){
+#if ( _DEBUGlevel_ >= 2 )
+                  statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Serializing Block index " << Lcol[ib].blockIdx << std::endl;
+#endif
+                  serialize( Lcol[ib], sstm, mask );
+                }
+              }
+              snode.SstrLcolSend.resize( Size( sstm ) );
+              sstm.read( &snode.SstrLcolSend[0], snode.SstrLcolSend.size() );
+              snode.SizeSstrLcolSend = snode.SstrLcolSend.size();
+              TIMER_STOP(Serialize_UL);
+
+
+              TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
+              if(bcastLTree!=NULL){
+                bcastLTree->ForwardMessage((char*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, 
+                    IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
+
+                for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+                  Int iProcCol = bcastLTree->GetDest(idxRecv);
+#if ( _DEBUGlevel_ >= 1 )
+                  statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend << " BYTES on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_) << std::endl <<  std::endl; 
+#endif
+                }
+              }
+            } // if I am the sender
+          } //Senders
+          TIMER_STOP(ISend_Content_UL);
+        }
+
+        vector<char> redLdone(stepSuper,0);
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+          TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+
+          if(redLTree != NULL){
+            redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,limIndex_));
+            //Initialize the tree
+            redLTree->AllocRecvBuffers();
+            //Post All Recv requests;
+            redLTree->PostFirstRecv();
+          }
+        }
+
+
+        TIMER_START(Compute_Sinv_LT);
+        {
+          Int msgForwarded = 0;
+          Int msgReduced   = 0;
+          Int msgToReduce  = 0;
+          Int msgToFwd     = 0;
+          Int gemmProcessed= 0;
+          Int gemmToDo     = 0;
+          //      Int toRecvGemm = 0;
+          //copy the list of supernodes we need to process
+          std::list<Int> readySupidx;
+          std::list<Int> reduceSupidx;
+          //find local things to do
+          for(Int supidx = 0;supidx<stepSuper;supidx++){
+            SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+
+            if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
+              gemmToDo++;
+              if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+                snode.isReady++;
+              }
+
+              if(  MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+                snode.isReady++;
+              }
+
+              if(snode.isReady==2){
+                readySupidx.push_back(supidx);
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<<std::endl<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
+#endif
+              }
+            }
+            else if( (isRecvFromLeft_( snode.Index )  ) && MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) )
+            {
+              //Get the reduction tree
+              TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+
+              if(redLTree != NULL){
+                TIMER_START(Reduce_Sinv_LT_Isend);
+                //send the data to NULL to ensure 0 byte send
+                redLTree->SetLocalBuffer(NULL);
+                redLTree->SetDataReady(true);
+
+                bool done = redLTree->Progress();
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+#endif
+                TIMER_STOP(Reduce_Sinv_LT_Isend);
+              }
+            }// if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ))
+
+            if(MYROW(grid_)!=PROW(snode.Index,grid_)){
+              TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+              if(bcastUTree != NULL){
+                if(bcastUTree->GetDestCount()>0){
+                  msgToFwd++;
+                }
+              }
+            }
+
+            if(MYCOL(grid_)!=PCOL(snode.Index,grid_)){
+
+              TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
+              if(bcastLTree != NULL){
+                if(bcastLTree->GetDestCount()>0){
+                  msgToFwd++;
+                }
+              }
+            }
+          }
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS<<std::endl<<"gemmToDo ="<<gemmToDo<<std::endl;
+          statusOFS<<std::endl<<"msgToFwd ="<<msgToFwd<<std::endl;
+#endif
+
+
+#if defined (PROFILE) 
+          end_SendULWaitContentFirst=0;
+          begin_SendULWaitContentFirst=0;
+#endif
+
+          msgToReduce = gemmToDo; // CHECK CHECK
+
+
+
+#pragma omp parallel
+          {
+            int nthreads = omp_get_num_threads();
+            int is_master=0;
+            MPI_Is_thread_main(&is_master);
+
+            int tid      = omp_get_thread_num();
+
+
+#ifndef _OMP_MULTIPLE_
+            if(is_master == 1) {
+              while(msgReduced < msgToReduce) // CHECK CHECK
+              {
+                Int reqidx = MPI_UNDEFINED;
+                Int supidx = -1;
+
+
+                // while I don't have anything to do, wait for data to arrive 
+                // not wait for the messages to come, a looping stratergy. 
+                // do{
+
+                // then process with the remote ones
+
+                //TIMER_START(WaitContent_UL);
+#if defined(PROFILE)
+                if(begin_SendULWaitContentFirst==0){
+                  begin_SendULWaitContentFirst=1;
+                  //TIMER_START(WaitContent_UL_First);
+                }
+#endif
+
+
+                int reqIndices[arrMpireqsRecvContentFromAny.size()];
+                int numRecv = 0; 
+                numRecv = 0;
+
+                // CHECK CHECK, use MPI_TESTany to replace the MPI_WaitSome
+                int flag = 0;
+                MPI_Testany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, &flag, MPI_STATUS_IGNORE);
+
+                if( flag == true ){ // get one message. 
+
+                  //int err = MPI_Waitsome(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &numRecv, reqIndices, MPI_STATUSES_IGNORE);
+                  //assert(err==MPI_SUCCESS);
+
+                  //for(int i =0;i<numRecv;i++){
+                  //reqidx = reqIndices[i];
+                  //I've received something
+                  if(reqidx!=MPI_UNDEFINED)
+                  {
+                    //this stays true
+                    supidx = reqidx/2;
+                    SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+                    //If it's a U block 
+                    if(reqidx%2==0){
+
+                      TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+                      if(bcastUTree != NULL){
+                        if(bcastUTree->GetDestCount()>0){
+
+                          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+#if ( _DEBUGlevel_ >= 1 )
+                          for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+                            Int iProcRow = bcastUTree->GetDest(idxRecv);
+                            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+                          }
+#endif
+
+                          bcastUTree->ForwardMessage( (char*)&snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, 
+                              IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0] );
+#if ( _DEBUGlevel_ >= 1 )
+                          for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+                            Int iProcRow = bcastUTree->GetDest(idxRecv);
+                            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+                          }
+#endif
+
+                          msgForwarded++;
+                        }
+                      }
+                    }
+                    //If it's a L block 
+                    else if(reqidx%2==1){
+                      TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
+                      if(bcastLTree != NULL){
+                        if(bcastLTree->GetDestCount()>0){
+
+                          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+#if ( _DEBUGlevel_ >= 1 )
+                          for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+                            Int iProcCol = bcastLTree->GetDest(idxRecv);
+                            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+                          }
+#endif
+
+                          bcastLTree->ForwardMessage( (char*)&snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, 
+                              IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
+
+                          //                    for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+                          //                      Int iProcCol = bcastLTree->GetDest(idxRecv);
+                          //                      PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolRecv);
+                          //                    }
+#if ( _DEBUGlevel_ >= 1 )
+                          for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+                            Int iProcCol = bcastLTree->GetDest(idxRecv);
+                            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+                          }
+#endif
+                          msgForwarded++;
+                        }
+                      }
+                    }
+
+
+#if ( _DEBUGlevel_ >= 1 )
+                    statusOFS<<std::endl<<"Received data for ["<<snode.Index<<"] reqidx%2="<<reqidx%2<<" is ready ?"<<snode.isReady<<std::endl;
+#endif
+
+                    if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
+                      snode.isReady++;
+
+                      //if we received both L and U, the supernode is ready
+                      if(snode.isReady==2){
+                        readySupidx.push_back(supidx);
+
+#if defined(PROFILE)
+                        if(end_SendULWaitContentFirst==0){
+                          //TIMER_STOP(WaitContent_UL_First);
+                          end_SendULWaitContentFirst=1;
+                        }
+#endif
+                      }
+                    }
                   }
 
-                  NumMat<T> AinvBuf, UBuf;
+                  //}//end for waitsome
 
-                  //TODO omp tasks are created in here. needs to be renamed
-                  //TODO there is a taskgroup and a taskwait in there too
-                  SelInv_lookup_indexes(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
+                  //TIMER_STOP(WaitContent_UL);
+
+                } // if
+                //} while( (gemmProcessed<gemmToDo && readySupidx.size()==0) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
+
+
+                //If I have some work to do 
+                if(readySupidx.size()>0)
+                {
+                  supidx = readySupidx.back();
+                  readySupidx.pop_back();
+                  SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+
+                  // Only the processors received information participate in the Gemm 
+                  if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ) ){
+
+                    //statusOFS<<std::endl<<" tid 0 create a gemm" <<std::endl;
+#pragma omp task firstprivate(supidx) shared(arrSuperNodes,reduceSupidx) //private(LcolRecv,UrowRecv, AinvBuf, Ubuf) // CHECK CHECK arrSuperNodes using first private is not a good idea, it will duplicate another arraySuperNodes for my run
+                    {
+
+
+                      SuperNodeBufferType & snode = arrSuperNodes[supidx];
+                      std::vector<LBlock<T> > LcolRecv;
+                      std::vector<UBlock<T> > UrowRecv;
+                      // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
+                      // The size will be updated in the Gemm phase and the reduce phase
+#ifdef _OMP_ID_THREAD_
+                      {
+                        int tid = omp_get_thread_num();
+#pragma omp critical
+                        statusOFS<<"Thread "<<tid<<" executing outer task from snode "<<snode.Index<<std::endl;                
+
+                      }
+#endif
+
+                      UnpackData(snode, LcolRecv, UrowRecv);
+
+                      NumMat<T> AinvBuf, UBuf;
+
+                      SelInv_lookup_indexes(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
+
+
+#ifdef GEMM_PROFILE
+                      gemm_stat.push_back(AinvBuf.m());
+                      gemm_stat.push_back(UBuf.m());
+                      gemm_stat.push_back(AinvBuf.n());
+#endif
+
+#ifndef _OMP_ENABLED_
+                      snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
+                      //TIMER_START(Compute_Sinv_LT_GEMM);
+                      blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
+                          AinvBuf.Data(), AinvBuf.m(), 
+                          UBuf.Data(), UBuf.m(), ZERO<T>(),
+                          snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
+
+                      //if(snode.Index==62){
+                      //  statusOFS<<"LUpdateBuf : "<<snode.LUpdateBuf<<std::endl;
+                      //}
+                      //TIMER_STOP(Compute_Sinv_LT_GEMM);
+#endif
+
+#pragma omp critical
+                      {
+                        reduceSupidx.push_back(supidx);
+                      }
 
 #ifdef _PRINT_STATS_  
-                  localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
+                      this->localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
 #endif
 
+#if ( _DEBUGlevel_ >= 2 )
+                      statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
+#endif
+                    } //  omp task
+                  } // if Gemm is to be done locally
+                } // if readySupidx > 0 
+
+                //Get the reduction tree
+                while( reduceSupidx.size() > 0){
+#pragma omp critical
+                  {
+                    supidx = reduceSupidx.back();
+                    reduceSupidx.pop_back();
+                  }
+                  SuperNodeBufferType & snode = arrSuperNodes[supidx];
                   TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
                   if(redLTree != NULL){
                     assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
                     //TIMER_START(Reduce_Sinv_LT_Isend);
                     //send the data
                     redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+                    redLTree->SetDataReady(true);
 
                     bool done = redLTree->Progress();
 #ifdef _PRINT_STATS_
-                    localFlops_+=flops::Axpy<T>(snode.LUpdateBuf.Size());
+                    this->localFlops_+=flops::Axpy<T>(snode.LUpdateBuf.Size());
 #endif
 #if ( _DEBUGlevel_ >= 1 )
                     statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
 #endif
                     //TIMER_STOP(Reduce_Sinv_LT_Isend);
                   }
-                } //  omp task
 
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx) shared(snode) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                {
-                  TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-                  if(redLTree!=nullptr)
-                  {
-                    //busy poll the reduction tree
-                    while(!redLTree->Progress()){
-#pragma omp taskyield
-                    }
-
-                    if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                      //determine the number of rows in LUpdateBufReduced
-                      Int numRowLUpdateBuf;
-                      std::vector<LBlock<T> >&  Lcol = L( LBj( snode.Index, grid_ ) );
-                      if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
-                        snode.RowLocalPtr.resize( Lcol.size() + 1 );
-                        snode.BlockIdxLocal.resize( Lcol.size() );
-                        snode.RowLocalPtr[0] = 0;
-                        for( Int ib = 0; ib < Lcol.size(); ib++ ){
-                          snode.RowLocalPtr[ib+1] = snode.RowLocalPtr[ib] + Lcol[ib].numRow;
-                          snode.BlockIdxLocal[ib] = Lcol[ib].blockIdx;
-                        }
-                      } // I do not own the diagonal block
-                      else{
-                        snode.RowLocalPtr.resize( Lcol.size() );
-                        snode.BlockIdxLocal.resize( Lcol.size() - 1 );
-                        snode.RowLocalPtr[0] = 0;
-                        for( Int ib = 1; ib < Lcol.size(); ib++ ){
-                          snode.RowLocalPtr[ib] = snode.RowLocalPtr[ib-1] + Lcol[ib].numRow;
-                          snode.BlockIdxLocal[ib-1] = Lcol[ib].blockIdx;
-                        }
-                      } // I own the diagonal block, skip the diagonal block
-                      numRowLUpdateBuf = *snode.RowLocalPtr.rbegin();
-
-                      if( numRowLUpdateBuf > 0 ){
-                        if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
-                          snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
-                          SetValue(snode.LUpdateBuf, ZERO<T>());
-                        }
-                      }
-
-                      //copy the buffer from the reduce tree
-                      redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-                    }
-                    redLTree->CleanupBuffers();
-                  }
-                }//end omp task
-
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx) shared(snode) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                {
-                  ComputeDiagUpdate(snode);
-
-                  //Get the reduction tree
-                  TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-
-                  if(redDTree != NULL){
-                    //send the data
-                    if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-                      if(snode.DiagBuf.Size()==0){
-                        snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
-                        SetValue(snode.DiagBuf, ZERO<T>());
-                      }
-                    }
-
-                    redDTree->SetLocalBuffer(snode.DiagBuf.Data());
-#ifdef _PRINT_STATS_
-                    localFlops_+=flops::Axpy<T>(snode.DiagBuf.Size());
-#endif
-                    if(!redDTree->IsAllocated()){
-                      redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,limIndex_));
-                      redDTree->AllocRecvBuffers();
-                      //Post All Recv requests;
-                      redDTree->PostFirstRecv();
-                    }
-
-                    redDTree->SetDataReady(true);
-                    bool done = redDTree->Progress();
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
-#endif
-                  }
-
-                }// end omp task
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx) shared(snode) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                {
-                  TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-                  if(redDTree!=nullptr){
-                    //busy poll the reduction tree
-                    while(!redDTree->Progress()){
-#pragma omp taskyield
-                    }
-
-                    if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                      if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-                        LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
-                        // Symmetrize LB
-                        blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-#ifdef _PRINT_STATS_
-                        localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
-#endif
-                        Symmetrize( LB.nzval );
-                      }
-                    }
-                    redDTree->CleanupBuffers();
-                  }
-                }//end omp task
-
-                Int sendCount = CountSendToCrossDiagonal(snode.Index);
-                Int recvCount = CountRecvFromCrossDiagonal(snode.Index);
-#pragma omp task firstprivate(supidx,sendCount,recvCount,parentIdx,snodeIdx,lidx)  shared(snode) depend(in:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                {
-
-                  std::vector<MPI_Request > arrMpiReqsSendCD(sendCount, MPI_REQUEST_NULL );
-                  std::vector<MPI_Request > arrMpiReqsSizeSendCD(sendCount, MPI_REQUEST_NULL );
-                  std::vector<MPI_Request > arrMpiReqsRecvCD(recvCount, MPI_REQUEST_NULL );
-                  std::vector<MPI_Request > arrMpiReqsSizeRecvCD(recvCount, MPI_REQUEST_NULL );
-                  std::vector<std::vector<char> > arrSstrLcolSendCD(sendCount);
-                  std::vector<int > arrSstrLcolSizeSendCD(sendCount);
-                  std::vector<std::vector<char> > arrSstrLcolRecvCD(recvCount);
-                  std::vector<int > arrSstrLcolSizeRecvCD(recvCount);
-
-
-                  //If I'm a receiver
-                  if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, snode.Index ) ){
-                    Int recvIdx=0;
-                    for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
-                      if(isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
-                        Int src = PNUM(srcRow,PCOL(snode.Index,grid_),grid_);
-                        if( MYPROC( grid_ ) != src ){
-                          Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
-                          MPI_Request & mpiReqSizeRecv = arrMpiReqsSizeRecvCD[recvIdx];
-                          MPI_Irecv( &sstrSize, 1, MPI_INT, src, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_SIZE_CD,limIndex_), grid_->comm, &mpiReqSizeRecv);
-                          recvIdx++;
-                        }
-                      }
-                    }
-                  }//end if I'm a receiver
-
-                  //If I'm a sender
-                  if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) && isSendToCrossDiagonal_(grid_->numProcCol, snode.Index ) ){
-                    Int sendIdx = 0;
-                    for(Int dstCol = 0; dstCol<grid_->numProcCol; dstCol++){
-                      if(isSendToCrossDiagonal_(dstCol,snode.Index) ){
-                        Int dest = PNUM(PROW(snode.Index,grid_),dstCol,grid_);
-
-                        if( MYPROC( grid_ ) != dest	){
-                          MPI_Request & mpiReqSizeSend = arrMpiReqsSizeSendCD[sendIdx];
-                          MPI_Request & mpiReqSend = arrMpiReqsSendCD[sendIdx];
-                          std::vector<char> & sstrLcolSend = arrSstrLcolSendCD[sendIdx];
-                          Int & sstrSize = arrSstrLcolSizeSendCD[sendIdx];
-
-                          std::stringstream sstm;
-                          serialize( snode.RowLocalPtr, sstm, NO_MASK );
-                          serialize( snode.BlockIdxLocal, sstm, NO_MASK );
-                          serialize( snode.LUpdateBuf, sstm, NO_MASK );
-
-                          sstrLcolSend.resize( Size(sstm) );
-                          sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
-                          sstrSize = sstrLcolSend.size();
-
-                          MPI_Isend( &sstrSize, sizeof(sstrSize), MPI_BYTE, dest, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_SIZE_CD,limIndex_), grid_->comm, &mpiReqSizeSend );
-                          MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dest, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_), grid_->comm, &mpiReqSend );
-                          PROFILE_COMM(MYPROC(grid_),dest,IDX_TO_TAG(snode.Rank,SELINV_TAG_L_SIZE_CD,limIndex_),sizeof(sstrSize));
-                          PROFILE_COMM(MYPROC(grid_),dest,IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_),sstrSize);
-
-                          sendIdx++;
-                        }
-                      }
-                    }
-                  }//end if I'm a sender
-
-                  //waitall sizes
-                  mpi::Waitall(arrMpiReqsSizeRecvCD);
-
-                  //Allocate content and do Irecv
-                  //If I'm a receiver
-                  if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, snode.Index ) ){
-                    Int recvIdx=0;
-                    for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
-                      if(isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
-                        Int src = PNUM(srcRow,PCOL(snode.Index,grid_),grid_);
-                        if( MYPROC( grid_ ) != src ){
-                          Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
-                          std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvIdx];
-                          MPI_Request & mpiReqRecv = arrMpiReqsRecvCD[recvIdx];
-                          sstrLcolRecv.resize( sstrSize);
-                          MPI_Irecv( (void*)&sstrLcolRecv[0], sstrSize, MPI_BYTE, src, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_), grid_->comm, &mpiReqRecv );
-                          recvIdx++;
-                        }
-                      }
-                    }
-                  }//end if I'm a receiver
-
-                  //waitall content
-                  mpi::Waitall(arrMpiReqsRecvCD);
-
-                  // Send LUpdateBufReduced to the cross diagonal blocks. 
-                  // NOTE: This assumes square processor grid
-                  if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, snode.Index ) ){
-                    std::vector<UBlock<T> >&  Urow = U( LBi( snode.Index, grid_ ) );
-                    std::vector<bool> isBlockFound(Urow.size(),false);
-
-                    Int recvIdx=0;
-                    for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
-                      if(isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
-                        Int src = PNUM(srcRow,PCOL(snode.Index,grid_),grid_);
-                        TIMER_START(Recv_L_CrossDiag);
-
-                        std::vector<Int> rowLocalPtrRecv;
-                        std::vector<Int> blockIdxLocalRecv;
-                        NumMat<T> UUpdateBuf;
-
-                        if( MYPROC( grid_ ) != src ){
-                          std::stringstream sstm;
-                          Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
-                          std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvIdx];
-                          sstm.write( &sstrLcolRecv[0], sstrSize );
-
-                          deserialize( rowLocalPtrRecv, sstm, NO_MASK );
-                          deserialize( blockIdxLocalRecv, sstm, NO_MASK );
-                          deserialize( UUpdateBuf, sstm, NO_MASK );	
-
-                          recvIdx++;
-
-                        } // sender is not the same as receiver
-                        else{
-                          rowLocalPtrRecv   = snode.RowLocalPtr;
-                          blockIdxLocalRecv = snode.BlockIdxLocal;
-                          UUpdateBuf = snode.LUpdateBuf;
-                        } // sender is the same as receiver
-                        TIMER_STOP(Recv_L_CrossDiag);
-
-                        // Update U
-                        for( Int ib = 0; ib < blockIdxLocalRecv.size(); ib++ ){
-                          for( Int jb = 0; jb < Urow.size(); jb++ ){
-                            UBlock<T>& UB = Urow[jb];
-                            if( UB.blockIdx == blockIdxLocalRecv[ib] ){
-                              NumMat<T> Ltmp ( UB.numCol, UB.numRow );
-                              lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
-                                  &UUpdateBuf( rowLocalPtrRecv[ib], 0 ),
-                                  UUpdateBuf.m(), Ltmp.Data(), Ltmp.m() );
-                              isBlockFound[jb] = true;
-                              Transpose( Ltmp, UB.nzval );
-                              break;
-                            }
-                          }
-                        }
-                      }
-                    }
-
-                    for( Int jb = 0; jb < Urow.size(); jb++ ){
-                      UBlock<T>& UB = Urow[jb];
-                      if( !isBlockFound[jb] ){
-                        ErrorHandling( "UBlock cannot find its update. Something is seriously wrong." );
-                      }
-                    }
-                  } // receiver
-
-                  mpi::Waitall(arrMpiReqsSizeSendCD);
-                  mpi::Waitall(arrMpiReqsSendCD);
-                }//end omp task
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx) shared(snode) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                {
+                  //gemmProcessed++; 
+                  msgReduced++;
 
 #if ( _DEBUGlevel_ >= 1 )
-                  statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
+                  statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<"/"<<gemmToDo<<std::endl;
 #endif
 
-                  if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) && snode.LUpdateBuf.m() > 0 ){
-                    std::vector<LBlock<T> >&  Lcol = L( LBj( snode.Index, grid_ ) );
-                    //Need to skip the diagonal block if present
-                    Int startBlock = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
-                    for( Int ib = startBlock; ib < Lcol.size(); ib++ ){
-                      LBlock<T> & LB = Lcol[ib];
-                      lapack::Lacpy( 'A', LB.numRow, LB.numCol, &snode.LUpdateBuf( snode.RowLocalPtr[ib-startBlock], 0 ),
-                          snode.LUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
-                    }
-                  } // Finish updating L	
-                }//end omp task
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx)  shared(snode) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                {
-                  TreeReduce<T> * &redLTree = redToLeftTree_[snodeIdx];
-                  if(redLTree != NULL){
-                    redLTree->Wait();
-                    redLTree->CleanupBuffers();
-                  }
-                  TreeReduce<T> * &redDTree = redToAboveTree_[snodeIdx];
-                  if(redDTree != NULL){
-                    redDTree->Wait();
-                    redDTree->CleanupBuffers();
-                  }
-
-
-                  //clear the vector              
-                  {
-                    //std::vector<SuperNodeBufferType> dummy;
-                    //dummy.swap(arrSuperNodes);
-                  }
-                }//end omp task
-
-#pragma omp taskwait
-
-                supidx++;
-              }
-            }
-            rank++;
-//#pragma omp taskwait
-          }//end for supidx
-      }//end omp taskgroup
-#else
-
-#ifdef _OPENMP_TILE_
-
-              int is_master=0;
-              MPI_Is_thread_main(&is_master);
-      //        if(is_master==1)
-////#pragma omp single nowait 
-//      {
-////#pragma omp taskgroup
-//      {
-//        //this is a dummy task used to keep all the resources alive while inner tasks execute
-////#pragma omp task depend(inout:prank[0]) //shared(snodeEtree) //depend(inout:depSuperList[lidx]) depend(in:depSuperList[lidx-1]) 
-//        {
-#pragma omp taskgroup
-      {
-         //auto depSuperList = this->WorkingSet().data();
-#endif
-
-#if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
-          Real begin_SendULWaitContentFirst, end_SendULWaitContentFirst, time_SendULWaitContentFirst = 0;
-#endif
-#ifdef _OPENMP_TILE_
-          auto tdeps = this->deps;
-#endif
-          Int numSuper = this->NumSuper(); 
-          std::vector<std::vector<Int> > & superList = this->WorkingSet();
-          Int numSteps = superList.size();
-          Int stepSuper = superList[lidx].size(); 
-
-
-
-
-          TIMER_START(AllocateBuffer);
-
-          stepSuper = 0;
-          for (Int supidx=0; supidx<superList[lidx].size(); supidx++){
-            Int snodeIdx = superList[lidx][supidx]; 
-            TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
-            TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
-            TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
-            TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
-            bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
-              || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
-              || CountSendToRight(snodeIdx) > 0
-              || CountSendToBelow(snodeIdx) > 0
-              || CountSendToCrossDiagonal(snodeIdx) > 0
-              || CountRecvFromCrossDiagonal(snodeIdx) >0
-              || ( isRecvFromLeft_( snodeIdx ) ) 
-              || ( isRecvFromAbove_( snodeIdx ) )
-              || isSendToDiagonal_(snodeIdx)
-              || (bcastUTree!=NULL)
-              || (bcastLTree!=NULL)
-              || (redLTree!=NULL)
-              || (redDTree!=NULL) ;
-            if(participating){
-              stepSuper++;
-            }
-          }
-
-
-
-#ifndef _OPENMP_TILE_
-          //This is required to send the size and content of U/L
-          std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
-          arrMpireqsSendToBelow.resize( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
-          std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
-          arrMpireqsSendToRight.resize(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
-
-
-          //This is required to receive the size and content of U/L
-          std::vector<MPI_Request>   arrMpireqsRecvSizeFromAny;
-          arrMpireqsRecvSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
-          std::vector<MPI_Request>   arrMpireqsRecvContentFromAny;
-          arrMpireqsRecvContentFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
-#endif
-
-          //allocate the buffers for this supernode
-          std::vector<SuperNodeBufferType> arrSuperNodes(stepSuper);
-
-          Int pos = 0;
-          for (Int supidx=0; supidx<superList[lidx].size(); supidx++){ 
-            Int snodeIdx = superList[lidx][supidx]; 
-            TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
-            TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
-            TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
-            TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
-            bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
-              || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
-              || CountSendToRight(snodeIdx) > 0
-              || CountSendToBelow(snodeIdx) > 0
-              || CountSendToCrossDiagonal(snodeIdx) > 0
-              || CountRecvFromCrossDiagonal(snodeIdx) >0
-              || ( isRecvFromLeft_( snodeIdx ) ) 
-              || ( isRecvFromAbove_( snodeIdx ) )
-              || isSendToDiagonal_(snodeIdx)
-              || (bcastUTree!=NULL)
-              || (bcastLTree!=NULL)
-              || (redLTree!=NULL)
-              || (redDTree!=NULL) ;
-
-            if(participating){
-              arrSuperNodes[pos].Index = superList[lidx][supidx];  
-              arrSuperNodes[pos].Rank = rank;
-
-
-              SuperNodeBufferType & snode = arrSuperNodes[pos];
-
-              pos++;
-            }
-            rank++;
-          }
-
-
-
-          int numSentToLeft = 0;
-          std::vector<int> reqSentToLeft;
-
-
-          //NumMat<T> AinvBuf[64], UBuf[64];
-          //      std::vector<NumMat<T> > AinvBufs(omp_get_max_threads());
-          //      std::vector<NumMat<T> > UBufs(omp_get_max_threads());
-
-          TIMER_STOP(AllocateBuffer);
-
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
-#endif
-
-#ifndef _OPENMP_TILE_
-          {
-            //Receivers have to resize their buffers
-            TIMER_START(IRecv_Content_UL);
-
-
-
-            // Receivers (Content)
-            for (Int supidx=0; supidx<stepSuper ; supidx++){
-              SuperNodeBufferType & snode = arrSuperNodes[supidx];
-              MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvContentFromAny[supidx*2];
-              MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvContentFromAny[supidx*2+1];
-
-              if( isRecvFromAbove_( snode.Index ) && 
-                  MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
-
-                TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-                if(bcastUTree!=NULL){
-                  Int myRoot = bcastUTree->GetRoot();
-                  snode.SizeSstrUrowRecv = bcastUTree->GetMsgSize();
-                  snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv);
-                  MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
-                      myRoot, IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), 
-                      grid_->colComm, mpireqsRecvFromAbove );
-#if ( _DEBUGlevel_ >= 1 )
-                  statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U " << snode.SizeSstrUrowRecv << " BYTES from "<<myRoot<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-#endif
-                }
-              } // if I need to receive from up
-
-              if( isRecvFromLeft_( snode.Index ) &&
-                  MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
-
-                TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-                if(bcastLTree!=NULL){
-                  Int myRoot = bcastLTree->GetRoot();
-                  snode.SizeSstrLcolRecv = bcastLTree->GetMsgSize();
-                  snode.SstrLcolRecv.resize(snode.SizeSstrLcolRecv);
-                  MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
-                      myRoot, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), 
-                      grid_->rowComm, mpireqsRecvFromLeft );
-#if ( _DEBUGlevel_ >= 1 )
-                  statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L " << snode.SizeSstrLcolRecv << " BYTES from "<<myRoot<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-#endif
-                }
-              } // if I need to receive from left
-            }
-            TIMER_STOP(IRecv_Content_UL);
-
-            // Senders
-            TIMER_START(ISend_Content_UL);
-            for (Int supidx=0; supidx<stepSuper; supidx++){
-              SuperNodeBufferType & snode = arrSuperNodes[supidx];
-              std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-              std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-
-#if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl <<  "["<<snode.Index<<"] "
-                << "Communication for the U part." << std::endl << std::endl; 
-#endif
-              // Communication for the U part.
-
-              if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-                std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, grid_) );
-                // Pack the data in U
-                TIMER_START(Serialize_UL);
-                std::stringstream sstm;
-
-                std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
-                // All blocks are to be sent down.
-                serialize( (Int)Urow.size(), sstm, NO_MASK );
-                for( Int jb = 0; jb < Urow.size(); jb++ ){
-                  serialize( Urow[jb], sstm, mask );
-                }
-                snode.SstrUrowSend.resize( Size( sstm ) );
-                sstm.read( &snode.SstrUrowSend[0], snode.SstrUrowSend.size() );
-                snode.SizeSstrUrowSend = snode.SstrUrowSend.size();
-                TIMER_STOP(Serialize_UL);
-
-                TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-                if(bcastUTree!=NULL){
-                  bcastUTree->ForwardMessage((char*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, 
-                      IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0]);
-                  for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-                    Int iProcRow = bcastUTree->GetDest(idxRecv);
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_) << std::endl <<  std::endl; 
-#endif
-                  }
-                }
-
-              } // if I am the sender
-
-
-#if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl << "["<<snode.Index<<"] "<< "Communication for the L part." << std::endl << std::endl; 
-#endif
-
-
-
-              // Communication for the L part.
-              if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, grid_) );
-                TIMER_START(Serialize_UL);
-                // Pack the data in L 
-                std::stringstream sstm;
-                std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-                mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
-
-                // All blocks except for the diagonal block are to be sent right
-
-                if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) )
-                  serialize( (Int)Lcol.size() - 1, sstm, NO_MASK );
-                else
-                  serialize( (Int)Lcol.size(), sstm, NO_MASK );
-
-                for( Int ib = 0; ib < Lcol.size(); ib++ ){
-                  if( Lcol[ib].blockIdx > snode.Index ){
-#if ( _DEBUGlevel_ >= 2 )
-                    statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Serializing Block index " << Lcol[ib].blockIdx << std::endl;
-#endif
-                    serialize( Lcol[ib], sstm, mask );
-                  }
-                }
-                snode.SstrLcolSend.resize( Size( sstm ) );
-                sstm.read( &snode.SstrLcolSend[0], snode.SstrLcolSend.size() );
-                snode.SizeSstrLcolSend = snode.SstrLcolSend.size();
-                TIMER_STOP(Serialize_UL);
-
-
-                TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-                if(bcastLTree!=NULL){
-                  bcastLTree->ForwardMessage((char*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, 
-                      IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
-
-                  for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-                    Int iProcCol = bcastLTree->GetDest(idxRecv);
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend << " BYTES on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_) << std::endl <<  std::endl; 
-#endif
-                  }
-                }
-              } // if I am the sender
-            } //Senders
-            TIMER_STOP(ISend_Content_UL);
-          }
-#endif
-
-#ifndef _OPENMP_TILE_
-          vector<char> redLdone(stepSuper,0);
-#endif
-          for (Int supidx=0; supidx<stepSuper; supidx++){
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-
-            if(redLTree != NULL){
-              redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,limIndex_));
-              //Initialize the tree
-              redLTree->AllocRecvBuffers();
-              //Post All Recv requests;
-              redLTree->PostFirstRecv();
-            }
-          }
-
-
-          TIMER_START(Compute_Sinv_LT);
-          {
-            Int msgForwarded = 0;
-            Int msgReduced   = 0;
-            Int msgToReduce  = 0;
-            Int msgToFwd     = 0;
-            Int gemmProcessed= 0;
-            Int gemmToDo     = 0;
-            //      Int toRecvGemm = 0;
-            //copy the list of supernodes we need to process
-            std::list<Int> readySupidx;
-            std::list<Int> reduceSupidx;
-            //find local things to do
-            for(Int supidx = 0;supidx<stepSuper;supidx++){
-              SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-
-              if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
-                gemmToDo++;
-                if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                  snode.isReady++;
-                }
-
-                if(  MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-                  snode.isReady++;
-                }
-
-                if(snode.isReady==2){
-                  readySupidx.push_back(supidx);
-#if ( _DEBUGlevel_ >= 1 )
-                  statusOFS<<std::endl<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
-#endif
-                }
-              }
-              else if( (isRecvFromLeft_( snode.Index )  ) && MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) )
-              {
-                //Get the reduction tree
-                TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-
-                if(redLTree != NULL){
-                  TIMER_START(Reduce_Sinv_LT_Isend);
-                  //send the data to NULL to ensure 0 byte send
-                  redLTree->SetLocalBuffer(NULL);
-                  redLTree->SetDataReady(true);
-
-                  bool done = redLTree->Progress();
-
-#if ( _DEBUGlevel_ >= 1 )
-                  statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-#endif
-                  TIMER_STOP(Reduce_Sinv_LT_Isend);
-                }
-              }// if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ))
-
-              if(MYROW(grid_)!=PROW(snode.Index,grid_)){
-                TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-                if(bcastUTree != NULL){
-                  if(bcastUTree->GetDestCount()>0){
-                    msgToFwd++;
-                  }
-                }
-              }
-
-              if(MYCOL(grid_)!=PCOL(snode.Index,grid_)){
-
-                TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-                if(bcastLTree != NULL){
-                  if(bcastLTree->GetDestCount()>0){
-                    msgToFwd++;
-                  }
-                }
-              }
-            }
-
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS<<std::endl<<"gemmToDo ="<<gemmToDo<<std::endl;
-            statusOFS<<std::endl<<"msgToFwd ="<<msgToFwd<<std::endl;
-#endif
-
-
-#if defined (PROFILE) 
-            end_SendULWaitContentFirst=0;
-            begin_SendULWaitContentFirst=0;
-#endif
-
-            msgToReduce = gemmToDo; // CHECK CHECK
-
-
-
-#pragma omp parallel
-            {
-              int nthreads = omp_get_num_threads();
-              int is_master=0;
-              MPI_Is_thread_main(&is_master);
-
-              int tid      = omp_get_thread_num();
-
-
-#ifndef _OMP_MULTIPLE_
-              if(is_master == 1) {
-                while(msgReduced < msgToReduce) // CHECK CHECK
-                {
-                  Int reqidx = MPI_UNDEFINED;
-                  Int supidx = -1;
-
-
-                  // while I don't have anything to do, wait for data to arrive 
-                  // not wait for the messages to come, a looping stratergy. 
-                  // do{
-
-                  // then process with the remote ones
-
-                  //TIMER_START(WaitContent_UL);
-#if defined(PROFILE)
-                  if(begin_SendULWaitContentFirst==0){
-                    begin_SendULWaitContentFirst=1;
-                    //TIMER_START(WaitContent_UL_First);
-                  }
-#endif
-
-
-                  int reqIndices[arrMpireqsRecvContentFromAny.size()];
-                  int numRecv = 0; 
-                  numRecv = 0;
-
-                  // CHECK CHECK, use MPI_TESTany to replace the MPI_WaitSome
-                  int flag = 0;
-                  MPI_Testany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, &flag, MPI_STATUS_IGNORE);
-
-                  if( flag == true ){ // get one message. 
-
-                    //int err = MPI_Waitsome(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &numRecv, reqIndices, MPI_STATUSES_IGNORE);
-                    //assert(err==MPI_SUCCESS);
-
-                    //for(int i =0;i<numRecv;i++){
-                    //reqidx = reqIndices[i];
-                    //I've received something
-                    if(reqidx!=MPI_UNDEFINED)
-                    {
-                      //this stays true
-                      supidx = reqidx/2;
-                      SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-                      //If it's a U block 
-                      if(reqidx%2==0){
-
-                        TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-                        if(bcastUTree != NULL){
-                          if(bcastUTree->GetDestCount()>0){
-
-                            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-#if ( _DEBUGlevel_ >= 1 )
-                            for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-                              Int iProcRow = bcastUTree->GetDest(idxRecv);
-                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-                            }
-#endif
-
-                            bcastUTree->ForwardMessage( (char*)&snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, 
-                                IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0] );
-#if ( _DEBUGlevel_ >= 1 )
-                            for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-                              Int iProcRow = bcastUTree->GetDest(idxRecv);
-                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-                            }
-#endif
-
-                            msgForwarded++;
-                          }
-                        }
-                      }
-                      //If it's a L block 
-                      else if(reqidx%2==1){
-                        TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-                        if(bcastLTree != NULL){
-                          if(bcastLTree->GetDestCount()>0){
-
-                            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-#if ( _DEBUGlevel_ >= 1 )
-                            for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-                              Int iProcCol = bcastLTree->GetDest(idxRecv);
-                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-                            }
-#endif
-
-                            bcastLTree->ForwardMessage( (char*)&snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, 
-                                IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
-
-                            //                    for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-                            //                      Int iProcCol = bcastLTree->GetDest(idxRecv);
-                            //                      PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolRecv);
-                            //                    }
-#if ( _DEBUGlevel_ >= 1 )
-                            for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-                              Int iProcCol = bcastLTree->GetDest(idxRecv);
-                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-                            }
-#endif
-                            msgForwarded++;
-                          }
-                        }
-                      }
-
-
-#if ( _DEBUGlevel_ >= 1 )
-                      statusOFS<<std::endl<<"Received data for ["<<snode.Index<<"] reqidx%2="<<reqidx%2<<" is ready ?"<<snode.isReady<<std::endl;
-#endif
-
-                      if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
-                        snode.isReady++;
-
-                        //if we received both L and U, the supernode is ready
-                        if(snode.isReady==2){
-                          readySupidx.push_back(supidx);
-
-#if defined(PROFILE)
-                          if(end_SendULWaitContentFirst==0){
-                            //TIMER_STOP(WaitContent_UL_First);
-                            end_SendULWaitContentFirst=1;
-                          }
-#endif
-                        }
-                      }
-                    }
-
-                    //}//end for waitsome
-
-                    //TIMER_STOP(WaitContent_UL);
-
-                  } // if
-                  //} while( (gemmProcessed<gemmToDo && readySupidx.size()==0) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
-
-
-                  //If I have some work to do 
-                  if(readySupidx.size()>0)
-                  {
-                    supidx = readySupidx.back();
-                    readySupidx.pop_back();
-                    SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-
-                    // Only the processors received information participate in the Gemm 
-                    if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ) ){
-
-                      //statusOFS<<std::endl<<" tid 0 create a gemm" <<std::endl;
-#pragma omp task firstprivate(supidx) shared(arrSuperNodes,reduceSupidx) //private(LcolRecv,UrowRecv, AinvBuf, Ubuf) // CHECK CHECK arrSuperNodes using first private is not a good idea, it will duplicate another arraySuperNodes for my run
-                      {
-
-
-                        SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                        std::vector<LBlock<T> > LcolRecv;
-                        std::vector<UBlock<T> > UrowRecv;
-                        // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
-                        // The size will be updated in the Gemm phase and the reduce phase
-#ifdef _OMP_ID_THREAD_
-                        {
-                          int tid = omp_get_thread_num();
-#pragma omp critical
-                          statusOFS<<"Thread "<<tid<<" executing outer task from snode "<<snode.Index<<std::endl;                
-
-                        }
-#endif
-
-                        UnpackData(snode, LcolRecv, UrowRecv);
-
-                        NumMat<T> AinvBuf, UBuf;
-
-                        SelInv_lookup_indexes(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
-
-
-#ifdef GEMM_PROFILE
-                        gemm_stat.push_back(AinvBuf.m());
-                        gemm_stat.push_back(UBuf.m());
-                        gemm_stat.push_back(AinvBuf.n());
-#endif
-
-#ifndef _OMP_ENABLED_
-                        snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
-                        //TIMER_START(Compute_Sinv_LT_GEMM);
-                        blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
-                            AinvBuf.Data(), AinvBuf.m(), 
-                            UBuf.Data(), UBuf.m(), ZERO<T>(),
-                            snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
-
-                  //if(snode.Index==62){
-                  //  statusOFS<<"LUpdateBuf : "<<snode.LUpdateBuf<<std::endl;
-                  //}
-                        //TIMER_STOP(Compute_Sinv_LT_GEMM);
-#endif
-
-#pragma omp critical
-                        {
-                          reduceSupidx.push_back(supidx);
-                        }
-
-#ifdef _PRINT_STATS_  
-                        this->localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
-#endif
-
-#if ( _DEBUGlevel_ >= 2 )
-                        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
-#endif
-                      } //  omp task
-                    } // if Gemm is to be done locally
-                  } // if readySupidx > 0 
-
-                  //Get the reduction tree
-                  while( reduceSupidx.size() > 0){
-#pragma omp critical
-                    {
-                      supidx = reduceSupidx.back();
-                      reduceSupidx.pop_back();
-                    }
+                  //advance reductions
+                  for (Int supidx=0; supidx<stepSuper; supidx++){
                     SuperNodeBufferType & snode = arrSuperNodes[supidx];
                     TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-                    if(redLTree != NULL){
-                      assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
-                      //TIMER_START(Reduce_Sinv_LT_Isend);
-                      //send the data
-                      redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-                      redLTree->SetDataReady(true);
-
+                    if(redLTree != NULL && !redLdone[supidx]){
                       bool done = redLTree->Progress();
-#ifdef _PRINT_STATS_
-                      this->localFlops_+=flops::Axpy<T>(snode.LUpdateBuf.Size());
-#endif
+
 #if ( _DEBUGlevel_ >= 1 )
                       statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
 #endif
-                      //TIMER_STOP(Reduce_Sinv_LT_Isend);
                     }
-
-                    //gemmProcessed++; 
-                    msgReduced++;
-
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<"/"<<gemmToDo<<std::endl;
-#endif
-
-                    //advance reductions
-                    for (Int supidx=0; supidx<stepSuper; supidx++){
-                      SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                      TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-                      if(redLTree != NULL && !redLdone[supidx]){
-                        bool done = redLTree->Progress();
-
-#if ( _DEBUGlevel_ >= 1 )
-                        statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-#endif
-                      }
-                    }
-                  }  // reduction tree 
-                }
-              } // if is_master == 1
+                  }
+                }  // reduction tree 
+              }
+            } // if is_master == 1
 #else
-/////
-/////              //launch a task to progress the reductions
-/////#pragma omp task shared(msgReduced,arrSuperNodes) firstprivate(msgToReduce)
-/////              {
-/////                while(msgReduced < msgToReduce) // CHECK CHECK
-/////                {
-/////                  //advance reductions
-/////                  for (Int supidx=0; supidx<stepSuper; supidx++){
-/////                    SuperNodeBufferType & snode = arrSuperNodes[supidx];
-/////                    TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-/////                    if(redLTree != NULL && !redLdone[supidx]){
-/////                      bool done = redLTree->Progress();
-/////
-/////#if ( _DEBUGlevel_ >= 1 )
-/////                      statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-/////#endif
-/////                    }
-/////                  }
-/////#pragma omp taskyield
-/////                }
-/////              }// end omp task 
-/////
-/////#pragma omp single nowait
-/////              {
-/////#pragma omp flush(msgReduced)
-/////                while(msgReduced < msgToReduce) // CHECK CHECK
-/////                {
-/////
-/////                  Int reqidx = MPI_UNDEFINED;
-/////                  Int supidx = -1;
-/////
-/////
-/////                  // while I don't have anything to do, wait for data to arrive 
-/////                  // not wait for the messages to come, a looping stratergy. 
-/////                  // do{
-/////
-/////                  // then process with the remote ones
-/////
-/////                  //TIMER_START(WaitContent_UL);
-/////#if defined(PROFILE)
-/////                  if(begin_SendULWaitContentFirst==0){
-/////                    begin_SendULWaitContentFirst=1;
-/////                    //TIMER_START(WaitContent_UL_First);
-/////                  }
-/////#endif
-/////
-/////
-/////                  int reqIndices[arrMpireqsRecvContentFromAny.size()];
-/////                  int numRecv = 0; 
-/////                  numRecv = 0;
-/////
-/////                  // CHECK CHECK, use MPI_TESTany to replace the MPI_WaitSome
-/////                  int flag = 0;
-/////                  MPI_Testany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, &flag, MPI_STATUS_IGNORE);
-/////
-/////                  if( flag == true ){ // get one message. 
-/////
-/////                    //int err = MPI_Waitsome(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &numRecv, reqIndices, MPI_STATUSES_IGNORE);
-/////                    //assert(err==MPI_SUCCESS);
-/////
-/////                    //for(int i =0;i<numRecv;i++){
-/////                    //reqidx = reqIndices[i];
-/////                    //I've received something
-/////                    if(reqidx!=MPI_UNDEFINED)
-/////                    {
-/////                      //this stays true
-/////                      supidx = reqidx/2;
-/////                      SuperNodeBufferType & snode = arrSuperNodes[supidx];
-/////
-/////                      //If it's a U block 
-/////                      if(reqidx%2==0){
-/////
-/////                        TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-/////                        if(bcastUTree != NULL){
-/////                          if(bcastUTree->GetDestCount()>0){
-/////
-/////                            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-/////#if ( _DEBUGlevel_ >= 1 )
-/////                            for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-/////                              Int iProcRow = bcastUTree->GetDest(idxRecv);
-/////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-/////                            }
-/////#endif
-/////
-/////                            bcastUTree->ForwardMessage( (char*)&snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, 
-/////                                IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0] );
-/////#if ( _DEBUGlevel_ >= 1 )
-/////                            for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-/////                              Int iProcRow = bcastUTree->GetDest(idxRecv);
-/////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-/////                            }
-/////#endif
-/////
-/////                            msgForwarded++;
-/////                          }
-/////                        }
-/////                      }
-/////                      //If it's a L block 
-/////                      else if(reqidx%2==1){
-/////                        TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-/////                        if(bcastLTree != NULL){
-/////                          if(bcastLTree->GetDestCount()>0){
-/////
-/////                            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-/////#if ( _DEBUGlevel_ >= 1 )
-/////                            for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-/////                              Int iProcCol = bcastLTree->GetDest(idxRecv);
-/////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-/////                            }
-/////#endif
-/////
-/////                            bcastLTree->ForwardMessage( (char*)&snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, 
-/////                                IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
-/////
-/////                            //                    for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-/////                            //                      Int iProcCol = bcastLTree->GetDest(idxRecv);
-/////                            //                      PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolRecv);
-/////                            //                    }
-/////#if ( _DEBUGlevel_ >= 1 )
-/////                            for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-/////                              Int iProcCol = bcastLTree->GetDest(idxRecv);
-/////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-/////                            }
-/////#endif
-/////                            msgForwarded++;
-/////                          }
-/////                        }
-/////                      }
-/////
-/////
-/////#if ( _DEBUGlevel_ >= 1 )
-/////                      statusOFS<<std::endl<<"Received data for ["<<snode.Index<<"] reqidx%2="<<reqidx%2<<" is ready ?"<<snode.isReady<<std::endl;
-/////#endif
-/////
-/////                      if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
-/////                        snode.isReady++;
-/////
-/////                        //if we received both L and U, the supernode is ready
-/////                        if(snode.isReady==2){
-/////#pragma omp critical
-/////                          {
-/////                            readySupidx.push_back(supidx);
-/////                          }
-/////
-/////#if defined(PROFILE)
-/////                          if(end_SendULWaitContentFirst==0){
-/////                            //TIMER_STOP(WaitContent_UL_First);
-/////                            end_SendULWaitContentFirst=1;
-/////                          }
-/////#endif
-/////                        }
-/////                      }
-/////                    }
-/////
-/////                    //}//end for waitsome
-/////
-/////                    //TIMER_STOP(WaitContent_UL);
-/////
-/////                  } // if
-/////                  //} while( (gemmProcessed<gemmToDo && readySupidx.size()==0) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
-/////
-/////
-/////                  //If I have some work to do 
-/////                  if(readySupidx.size()>0)
-/////                  {
-/////
-/////#pragma omp critical
-/////                    {
-/////                      supidx = readySupidx.back();
-/////                      readySupidx.pop_back();
-/////                    }
-/////
-/////                    SuperNodeBufferType & snode = arrSuperNodes[supidx];
-/////
-/////
-/////                    // Only the processors received information participate in the Gemm 
-/////                    if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ) ){
-/////
-/////                      //statusOFS<<std::endl<<" tid 0 create a gemm" <<std::endl;
-/////#pragma omp task firstprivate(supidx) shared(arrSuperNodes) //private(LcolRecv,UrowRecv, AinvBuf, Ubuf) // CHECK CHECK arrSuperNodes using first private is not a good idea, it will duplicate another arraySuperNodes for my run
-/////                      {
-/////
-/////
-/////                        SuperNodeBufferType & snode = arrSuperNodes[supidx];
-/////                        std::vector<LBlock<T> > LcolRecv;
-/////                        std::vector<UBlock<T> > UrowRecv;
-/////                        // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
-/////                        // The size will be updated in the Gemm phase and the reduce phase
-/////#ifdef _OMP_ID_THREAD_
-/////                        {
-/////                          int tid = omp_get_thread_num();
-/////#pragma omp critical
-/////                          statusOFS<<"Thread "<<tid<<" executing outer task from snode "<<snode.Index<<std::endl;                
-/////
-/////                        }
-/////#endif
-/////
-/////                        UnpackData(snode, LcolRecv, UrowRecv);
-/////
-/////                        NumMat<T> AinvBuf, UBuf;
-/////
-/////                        SelInv_lookup_indexes(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
-/////
-/////
-/////                        {
-/////                          TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-/////                          if(redLTree != NULL){
-/////                            assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
-/////                            //TIMER_START(Reduce_Sinv_LT_Isend);
-/////                            //send the data
-/////                            redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-/////                            redLTree->SetDataReady(true);
-/////
-/////                            bool done = redLTree->Progress();
-/////#ifdef _PRINT_STATS_
-/////                            this->localFlops_+=flops::Axpy<T>(snode.LUpdateBuf.Size());
-/////#endif
-/////#if ( _DEBUGlevel_ >= 1 )
-/////                            statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-/////#endif
-/////                            //TIMER_STOP(Reduce_Sinv_LT_Isend);
-/////#pragma omp atomic
-/////                            msgReduced++;
-/////                          }
-/////                        }
-/////
-/////
-/////#if ( _DEBUGlevel_ >= 1 )
-/////                        statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<"/"<<gemmToDo<<std::endl;
-/////#endif
-/////
-/////#ifdef _PRINT_STATS_  
-/////                        this->localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
-/////#endif
-/////
-/////#if ( _DEBUGlevel_ >= 2 )
-/////                        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
-/////#endif
-/////                      } //  omp task
-/////                    } // if Gemm is to be done locally
-/////                  } // if readySupidx > 0 
-/////
-/////
-/////                }
-/////              }//end omp single
-/////
+            /////
+            /////              //launch a task to progress the reductions
+            /////#pragma omp task shared(msgReduced,arrSuperNodes) firstprivate(msgToReduce)
+            /////              {
+            /////                while(msgReduced < msgToReduce) // CHECK CHECK
+            /////                {
+            /////                  //advance reductions
+            /////                  for (Int supidx=0; supidx<stepSuper; supidx++){
+            /////                    SuperNodeBufferType & snode = arrSuperNodes[supidx];
+            /////                    TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+            /////                    if(redLTree != NULL && !redLdone[supidx]){
+            /////                      bool done = redLTree->Progress();
+            /////
+            /////#if ( _DEBUGlevel_ >= 1 )
+            /////                      statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+            /////#endif
+            /////                    }
+            /////                  }
+            /////#pragma omp taskyield
+            /////                }
+            /////              }// end omp task 
+            /////
+            /////#pragma omp single nowait
+            /////              {
+            /////#pragma omp flush(msgReduced)
+            /////                while(msgReduced < msgToReduce) // CHECK CHECK
+            /////                {
+            /////
+            /////                  Int reqidx = MPI_UNDEFINED;
+            /////                  Int supidx = -1;
+            /////
+            /////
+            /////                  // while I don't have anything to do, wait for data to arrive 
+            /////                  // not wait for the messages to come, a looping stratergy. 
+            /////                  // do{
+            /////
+            /////                  // then process with the remote ones
+            /////
+            /////                  //TIMER_START(WaitContent_UL);
+            /////#if defined(PROFILE)
+            /////                  if(begin_SendULWaitContentFirst==0){
+            /////                    begin_SendULWaitContentFirst=1;
+            /////                    //TIMER_START(WaitContent_UL_First);
+            /////                  }
+            /////#endif
+            /////
+            /////
+            /////                  int reqIndices[arrMpireqsRecvContentFromAny.size()];
+            /////                  int numRecv = 0; 
+            /////                  numRecv = 0;
+            /////
+            /////                  // CHECK CHECK, use MPI_TESTany to replace the MPI_WaitSome
+            /////                  int flag = 0;
+            /////                  MPI_Testany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, &flag, MPI_STATUS_IGNORE);
+            /////
+            /////                  if( flag == true ){ // get one message. 
+            /////
+            /////                    //int err = MPI_Waitsome(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &numRecv, reqIndices, MPI_STATUSES_IGNORE);
+            /////                    //assert(err==MPI_SUCCESS);
+            /////
+            /////                    //for(int i =0;i<numRecv;i++){
+            /////                    //reqidx = reqIndices[i];
+            /////                    //I've received something
+            /////                    if(reqidx!=MPI_UNDEFINED)
+            /////                    {
+            /////                      //this stays true
+            /////                      supidx = reqidx/2;
+            /////                      SuperNodeBufferType & snode = arrSuperNodes[supidx];
+            /////
+            /////                      //If it's a U block 
+            /////                      if(reqidx%2==0){
+            /////
+            /////                        TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+            /////                        if(bcastUTree != NULL){
+            /////                          if(bcastUTree->GetDestCount()>0){
+            /////
+            /////                            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+            /////#if ( _DEBUGlevel_ >= 1 )
+            /////                            for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+            /////                              Int iProcRow = bcastUTree->GetDest(idxRecv);
+            /////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+            /////                            }
+            /////#endif
+            /////
+            /////                            bcastUTree->ForwardMessage( (char*)&snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, 
+            /////                                IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0] );
+            /////#if ( _DEBUGlevel_ >= 1 )
+            /////                            for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+            /////                              Int iProcRow = bcastUTree->GetDest(idxRecv);
+            /////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+            /////                            }
+            /////#endif
+            /////
+            /////                            msgForwarded++;
+            /////                          }
+            /////                        }
+            /////                      }
+            /////                      //If it's a L block 
+            /////                      else if(reqidx%2==1){
+            /////                        TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
+            /////                        if(bcastLTree != NULL){
+            /////                          if(bcastLTree->GetDestCount()>0){
+            /////
+            /////                            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+            /////#if ( _DEBUGlevel_ >= 1 )
+            /////                            for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+            /////                              Int iProcCol = bcastLTree->GetDest(idxRecv);
+            /////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+            /////                            }
+            /////#endif
+            /////
+            /////                            bcastLTree->ForwardMessage( (char*)&snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, 
+            /////                                IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
+            /////
+            /////                            //                    for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+            /////                            //                      Int iProcCol = bcastLTree->GetDest(idxRecv);
+            /////                            //                      PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolRecv);
+            /////                            //                    }
+            /////#if ( _DEBUGlevel_ >= 1 )
+            /////                            for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+            /////                              Int iProcCol = bcastLTree->GetDest(idxRecv);
+            /////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+            /////                            }
+            /////#endif
+            /////                            msgForwarded++;
+            /////                          }
+            /////                        }
+            /////                      }
+            /////
+            /////
+            /////#if ( _DEBUGlevel_ >= 1 )
+            /////                      statusOFS<<std::endl<<"Received data for ["<<snode.Index<<"] reqidx%2="<<reqidx%2<<" is ready ?"<<snode.isReady<<std::endl;
+            /////#endif
+            /////
+            /////                      if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
+            /////                        snode.isReady++;
+            /////
+            /////                        //if we received both L and U, the supernode is ready
+            /////                        if(snode.isReady==2){
+            /////#pragma omp critical
+            /////                          {
+            /////                            readySupidx.push_back(supidx);
+            /////                          }
+            /////
+            /////#if defined(PROFILE)
+            /////                          if(end_SendULWaitContentFirst==0){
+            /////                            //TIMER_STOP(WaitContent_UL_First);
+            /////                            end_SendULWaitContentFirst=1;
+            /////                          }
+            /////#endif
+            /////                        }
+            /////                      }
+            /////                    }
+            /////
+            /////                    //}//end for waitsome
+            /////
+            /////                    //TIMER_STOP(WaitContent_UL);
+            /////
+            /////                  } // if
+            /////                  //} while( (gemmProcessed<gemmToDo && readySupidx.size()==0) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
+            /////
+            /////
+            /////                  //If I have some work to do 
+            /////                  if(readySupidx.size()>0)
+            /////                  {
+            /////
+            /////#pragma omp critical
+            /////                    {
+            /////                      supidx = readySupidx.back();
+            /////                      readySupidx.pop_back();
+            /////                    }
+            /////
+            /////                    SuperNodeBufferType & snode = arrSuperNodes[supidx];
+            /////
+            /////
+            /////                    // Only the processors received information participate in the Gemm 
+            /////                    if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ) ){
+            /////
+            /////                      //statusOFS<<std::endl<<" tid 0 create a gemm" <<std::endl;
+            /////#pragma omp task firstprivate(supidx) shared(arrSuperNodes) //private(LcolRecv,UrowRecv, AinvBuf, Ubuf) // CHECK CHECK arrSuperNodes using first private is not a good idea, it will duplicate another arraySuperNodes for my run
+            /////                      {
+            /////
+            /////
+            /////                        SuperNodeBufferType & snode = arrSuperNodes[supidx];
+            /////                        std::vector<LBlock<T> > LcolRecv;
+            /////                        std::vector<UBlock<T> > UrowRecv;
+            /////                        // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
+            /////                        // The size will be updated in the Gemm phase and the reduce phase
+            /////#ifdef _OMP_ID_THREAD_
+            /////                        {
+            /////                          int tid = omp_get_thread_num();
+            /////#pragma omp critical
+            /////                          statusOFS<<"Thread "<<tid<<" executing outer task from snode "<<snode.Index<<std::endl;                
+            /////
+            /////                        }
+            /////#endif
+            /////
+            /////                        UnpackData(snode, LcolRecv, UrowRecv);
+            /////
+            /////                        NumMat<T> AinvBuf, UBuf;
+            /////
+            /////                        SelInv_lookup_indexes(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
+            /////
+            /////
+            /////                        {
+            /////                          TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+            /////                          if(redLTree != NULL){
+            /////                            assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
+            /////                            //TIMER_START(Reduce_Sinv_LT_Isend);
+            /////                            //send the data
+            /////                            redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+            /////                            redLTree->SetDataReady(true);
+            /////
+            /////                            bool done = redLTree->Progress();
+            /////#ifdef _PRINT_STATS_
+            /////                            this->localFlops_+=flops::Axpy<T>(snode.LUpdateBuf.Size());
+            /////#endif
+            /////#if ( _DEBUGlevel_ >= 1 )
+            /////                            statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+            /////#endif
+            /////                            //TIMER_STOP(Reduce_Sinv_LT_Isend);
+            /////#pragma omp atomic
+            /////                            msgReduced++;
+            /////                          }
+            /////                        }
+            /////
+            /////
+            /////#if ( _DEBUGlevel_ >= 1 )
+            /////                        statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<"/"<<gemmToDo<<std::endl;
+            /////#endif
+            /////
+            /////#ifdef _PRINT_STATS_  
+            /////                        this->localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
+            /////#endif
+            /////
+            /////#if ( _DEBUGlevel_ >= 2 )
+            /////                        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
+            /////#endif
+            /////                      } //  omp task
+            /////                    } // if Gemm is to be done locally
+            /////                  } // if readySupidx > 0 
+            /////
+            /////
+            /////                }
+            /////              }//end omp single
+            /////
 #endif
-            } // omp parallel
+          } // omp parallel
+        }
+
+        TIMER_STOP(Compute_Sinv_LT);
+
+        //Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
+
+
+
+
+        TIMER_START(Reduce_Sinv_LT);
+        //blocking wait for the reduction
+        bool all_done = false;
+        while(!all_done)
+        {
+          all_done = true;
+
+          for (Int supidx=0; supidx<stepSuper; supidx++){
+            SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+            TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+
+            if(redLTree != NULL && !redLdone[supidx])
+            {
+
+              //TODO restore this
+              //bool done = redLTree->Progress();
+              redLTree->Wait();
+              bool done = true;
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+#endif
+              redLdone[supidx]=done?1:0;
+              if(done){
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<<"["<<snode.Index<<"] "<<" DONE reduce L"<<std::endl;
+#endif
+
+                //if(redLTree->GetTag() == 2344 && MYPROC(grid_)==0){gdb_lock();}
+                if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+                  //determine the number of rows in LUpdateBufReduced
+                  Int numRowLUpdateBuf;
+                  std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
+                  if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
+                    snode.RowLocalPtr.resize( Lcol.size() + 1 );
+                    snode.BlockIdxLocal.resize( Lcol.size() );
+                    snode.RowLocalPtr[0] = 0;
+                    for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                      snode.RowLocalPtr[ib+1] = snode.RowLocalPtr[ib] + Lcol[ib].numRow;
+                      snode.BlockIdxLocal[ib] = Lcol[ib].blockIdx;
+                    }
+                  } // I do not own the diagonal block
+                  else{
+                    snode.RowLocalPtr.resize( Lcol.size() );
+                    snode.BlockIdxLocal.resize( Lcol.size() - 1 );
+                    snode.RowLocalPtr[0] = 0;
+                    for( Int ib = 1; ib < Lcol.size(); ib++ ){
+                      snode.RowLocalPtr[ib] = snode.RowLocalPtr[ib-1] + Lcol[ib].numRow;
+                      snode.BlockIdxLocal[ib-1] = Lcol[ib].blockIdx;
+                    }
+                  } // I own the diagonal block, skip the diagonal block
+                  numRowLUpdateBuf = *snode.RowLocalPtr.rbegin();
+
+                  if( numRowLUpdateBuf > 0 ){
+                    if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
+                      snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
+                      SetValue(snode.LUpdateBuf, ZERO<T>());
+                    }
+                  }
+
+                  //copy the buffer from the reduce tree
+                  redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
+                }
+                redLdone[supidx]=1;
+                redLTree->CleanupBuffers();
+              }
+
+              all_done = all_done && (done || redLdone[supidx]);
+            }
+          }
+        }
+        TIMER_STOP(Reduce_Sinv_LT);
+
+        //--------------------- End of reduce of LUpdateBuf-------------------------
+        TIMER_START(Update_Diagonal);
+
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+
+          ComputeDiagUpdate(snode);
+
+          //Get the reduction tree
+          TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+
+          if(redDTree != NULL){
+
+            //send the data
+            if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+              if(snode.DiagBuf.Size()==0){
+                snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+                SetValue(snode.DiagBuf, ZERO<T>());
+              }
+            }
+
+            redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+#ifdef _PRINT_STATS_
+            this->localFlops_+=flops::Axpy<T>(snode.DiagBuf.Size());
+#endif
+            if(!redDTree->IsAllocated()){
+              redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,limIndex_));
+              redDTree->AllocRecvBuffers();
+              //Post All Recv requests;
+              redDTree->PostFirstRecv();
+            }
+
+            redDTree->SetDataReady(true);
+            bool done = redDTree->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
+#endif
           }
 
-          TIMER_STOP(Compute_Sinv_LT);
+          //advance reductions
+          for (Int supidx=0; supidx<stepSuper; supidx++){
+            SuperNodeBufferType & snode = arrSuperNodes[supidx];
+            TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+            if(redDTree != NULL){
+              if(redDTree->IsAllocated())
+              {
+                bool done = redDTree->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
+#endif
+              }
+            }
+          }
+        }
+        TIMER_STOP(Update_Diagonal);
 
-          //Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
+        TIMER_START(Reduce_Diagonal);
+        //blocking wait for the reduction
 
-
-
-
-          TIMER_START(Reduce_Sinv_LT);
-          //blocking wait for the reduction
-#ifdef _OPENMP_TILE_
-            //#pragma omp taskgroup
-            {
-            for (Int supidx=0; supidx<stepSuper; supidx++){
-                SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                Int snodeIdx = snode.Index;
-                Int parentIdx = snodeEtree[snodeIdx];
-#pragma omp task firstprivate(supidx) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                {
-                  SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                  TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-                  if(redLTree!=nullptr)
-                  {
-                    //busy poll the reduction tree
-                    while(!redLTree->Progress()){
-#pragma omp taskyield
-                    }
-
-                    if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                      //determine the number of rows in LUpdateBufReduced
-                      Int numRowLUpdateBuf;
-                      std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
-                      if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
-                        snode.RowLocalPtr.resize( Lcol.size() + 1 );
-                        snode.BlockIdxLocal.resize( Lcol.size() );
-                        snode.RowLocalPtr[0] = 0;
-                        for( Int ib = 0; ib < Lcol.size(); ib++ ){
-                          snode.RowLocalPtr[ib+1] = snode.RowLocalPtr[ib] + Lcol[ib].numRow;
-                          snode.BlockIdxLocal[ib] = Lcol[ib].blockIdx;
-                        }
-                      } // I do not own the diagonal block
-                      else{
-                        snode.RowLocalPtr.resize( Lcol.size() );
-                        snode.BlockIdxLocal.resize( Lcol.size() - 1 );
-                        snode.RowLocalPtr[0] = 0;
-                        for( Int ib = 1; ib < Lcol.size(); ib++ ){
-                          snode.RowLocalPtr[ib] = snode.RowLocalPtr[ib-1] + Lcol[ib].numRow;
-                          snode.BlockIdxLocal[ib-1] = Lcol[ib].blockIdx;
-                        }
-                      } // I own the diagonal block, skip the diagonal block
-                      numRowLUpdateBuf = *snode.RowLocalPtr.rbegin();
-
-                      if( numRowLUpdateBuf > 0 ){
-                        if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
-                          snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
-                          SetValue(snode.LUpdateBuf, ZERO<T>());
-                        }
-                      }
-
-                      //copy the buffer from the reduce tree
-                      redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-                    }
-                    redLTree->CleanupBuffers();
-                  }
-                }//end omp task
-              }//end for
-            }//end omp taskgroup
-#else
+        {
+          vector<char> is_done(stepSuper,0);
           bool all_done = false;
           while(!all_done)
           {
@@ -4282,565 +2655,124 @@ delete [] blockRows;
 
             for (Int supidx=0; supidx<stepSuper; supidx++){
               SuperNodeBufferType & snode = arrSuperNodes[supidx];
+              TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
 
-              TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-
-              if(redLTree != NULL && !redLdone[supidx])
+              if(redDTree != NULL && !is_done[supidx])
               {
 
-                //TODO restore this
-                //bool done = redLTree->Progress();
-                redLTree->Wait();
-                bool done = true;
+                bool done = redDTree->Progress();
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
 #endif
-                redLdone[supidx]=done?1:0;
+                is_done[supidx]=done?1:0;
                 if(done){
 
 #if ( _DEBUGlevel_ >= 1 )
-                  statusOFS<<"["<<snode.Index<<"] "<<" DONE reduce L"<<std::endl;
+                  statusOFS<<"["<<snode.Index<<"] "<<" DONE reduce D"<<std::endl;
 #endif
-
-                  //if(redLTree->GetTag() == 2344 && MYPROC(grid_)==0){gdb_lock();}
                   if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                    //determine the number of rows in LUpdateBufReduced
-                    Int numRowLUpdateBuf;
-                    std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
-                    if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
-                      snode.RowLocalPtr.resize( Lcol.size() + 1 );
-                      snode.BlockIdxLocal.resize( Lcol.size() );
-                      snode.RowLocalPtr[0] = 0;
-                      for( Int ib = 0; ib < Lcol.size(); ib++ ){
-                        snode.RowLocalPtr[ib+1] = snode.RowLocalPtr[ib] + Lcol[ib].numRow;
-                        snode.BlockIdxLocal[ib] = Lcol[ib].blockIdx;
-                      }
-                    } // I do not own the diagonal block
-                    else{
-                      snode.RowLocalPtr.resize( Lcol.size() );
-                      snode.BlockIdxLocal.resize( Lcol.size() - 1 );
-                      snode.RowLocalPtr[0] = 0;
-                      for( Int ib = 1; ib < Lcol.size(); ib++ ){
-                        snode.RowLocalPtr[ib] = snode.RowLocalPtr[ib-1] + Lcol[ib].numRow;
-                        snode.BlockIdxLocal[ib-1] = Lcol[ib].blockIdx;
-                      }
-                    } // I own the diagonal block, skip the diagonal block
-                    numRowLUpdateBuf = *snode.RowLocalPtr.rbegin();
-
-                    if( numRowLUpdateBuf > 0 ){
-                      if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
-                        snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
-                        SetValue(snode.LUpdateBuf, ZERO<T>());
-                      }
-                    }
-
-                    //copy the buffer from the reduce tree
-                    redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-                  }
-                  redLdone[supidx]=1;
-                  redLTree->CleanupBuffers();
-                }
-
-                all_done = all_done && (done || redLdone[supidx]);
-              }
-            }
-          }
-#endif
-          TIMER_STOP(Reduce_Sinv_LT);
-
-//#ifdef _OPENMP_TILE_
-//#pragma omp taskwait
-//#endif
-          //--------------------- End of reduce of LUpdateBuf-------------------------
-          TIMER_START(Update_Diagonal);
-
-#ifdef _OPENMP_TILE_
-//#pragma omp taskgroup
-          {
-#endif
-          for (Int supidx=0; supidx<stepSuper; supidx++){
-#ifdef _OPENMP_TILE_
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            Int snodeIdx = snode.Index;
-            Int parentIdx = snodeEtree[snodeIdx];
-#pragma omp task firstprivate(supidx) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-            {
-#endif
-
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-
-            ComputeDiagUpdate(snode);
-
-            //Get the reduction tree
-            TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-
-            if(redDTree != NULL){
-
-              //send the data
-              if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-                if(snode.DiagBuf.Size()==0){
-                  snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
-                  SetValue(snode.DiagBuf, ZERO<T>());
-                }
-              }
-
-              redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+                    if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+                      LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
+                      blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
 #ifdef _PRINT_STATS_
-              this->localFlops_+=flops::Axpy<T>(snode.DiagBuf.Size());
+                      this->localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
 #endif
-              if(!redDTree->IsAllocated()){
-                redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,limIndex_));
-                redDTree->AllocRecvBuffers();
-                //Post All Recv requests;
-                redDTree->PostFirstRecv();
-              }
-
-              redDTree->SetDataReady(true);
-              bool done = redDTree->Progress();
-#if ( _DEBUGlevel_ >= 1 )
-              statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
-#endif
-            }
-            
-#ifdef _OPENMP_TILE_
-            }
-#else
-            //advance reductions
-            for (Int supidx=0; supidx<stepSuper; supidx++){
-              SuperNodeBufferType & snode = arrSuperNodes[supidx];
-              TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-              if(redDTree != NULL){
-                if(redDTree->IsAllocated())
-                {
-                  bool done = redDTree->Progress();
-#if ( _DEBUGlevel_ >= 1 )
-                  statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
-#endif
-                }
-              }
-            }
-#endif
-          }
-#ifdef _OPENMP_TILE_
-          }//end omp taskgroup
-#endif
-          TIMER_STOP(Update_Diagonal);
-
-          TIMER_START(Reduce_Diagonal);
-          //blocking wait for the reduction
-
-//#ifdef _OPENMP_TILE_
-//#pragma omp taskwait
-//#endif
-
-#ifdef _OPENMP_TILE_
-            //#pragma omp taskgroup
-            {
-              for (Int supidx=0; supidx<stepSuper; supidx++){
-                SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                Int snodeIdx = snode.Index;
-                Int parentIdx = snodeEtree[snodeIdx];
-#pragma omp task firstprivate(supidx) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                {
-                  SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                  TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-                  if(redDTree!=nullptr){
-                    //busy poll the reduction tree
-                    while(!redDTree->Progress()){
-#pragma omp taskyield
+                      // Symmetrize LB
+                      Symmetrize( LB.nzval );
                     }
-
-                    if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                      if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-                        LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
-                        // Symmetrize LB
-                        blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-#ifdef _PRINT_STATS_
-                        this->localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
-#endif
-                        Symmetrize( LB.nzval );
-                      }
-                    }
-                    redDTree->CleanupBuffers();
                   }
-                }//end omp task
-              }//end for
-            }//end omp taskgroup
-#else
-          {
-            vector<char> is_done(stepSuper,0);
-            bool all_done = false;
-            while(!all_done)
-            {
-              all_done = true;
-
-              for (Int supidx=0; supidx<stepSuper; supidx++){
-                SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-
-                if(redDTree != NULL && !is_done[supidx])
-                {
-
-                  bool done = redDTree->Progress();
-#if ( _DEBUGlevel_ >= 1 )
-                  statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
-#endif
-                  is_done[supidx]=done?1:0;
-                  if(done){
-
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<"["<<snode.Index<<"] "<<" DONE reduce D"<<std::endl;
-#endif
-                    if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                      if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-                        LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
-                        blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-#ifdef _PRINT_STATS_
-                        this->localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
-#endif
-                        // Symmetrize LB
-                        Symmetrize( LB.nzval );
-                      }
-                    }
-                    is_done[supidx]=1;
-                    redDTree->CleanupBuffers();
-                  }
-
-                  all_done = all_done && (done || is_done[supidx]);
+                  is_done[supidx]=1;
+                  redDTree->CleanupBuffers();
                 }
+
+                all_done = all_done && (done || is_done[supidx]);
               }
             }
           }
-#endif
+        }
 
-          TIMER_STOP(Reduce_Diagonal);
+        TIMER_STOP(Reduce_Diagonal);
 
-
-
-
-//#ifdef _OPENMP_TILE_
-//#pragma omp taskwait
-//#endif
-
-#ifdef _OPENMP_TILE_
-          {
-#pragma omp taskgroup
-            {
-              for (Int supidx=0; supidx<stepSuper; supidx++){
-                SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                Int snodeIdx = snode.Index;
-                Int parentIdx = snodeEtree[snodeIdx];
-                  Int sendCount = CountSendToCrossDiagonal(snode.Index);
-                  Int recvCount = CountRecvFromCrossDiagonal(snode.Index);
-#pragma omp task firstprivate(supidx,sendCount,recvCount)  shared(arrSuperNodes) depend(in:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                {
-                  SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-                  std::vector<MPI_Request > arrMpiReqsSendCD(sendCount, MPI_REQUEST_NULL );
-                  std::vector<MPI_Request > arrMpiReqsSizeSendCD(sendCount, MPI_REQUEST_NULL );
-                  std::vector<MPI_Request > arrMpiReqsRecvCD(recvCount, MPI_REQUEST_NULL );
-                  std::vector<MPI_Request > arrMpiReqsSizeRecvCD(recvCount, MPI_REQUEST_NULL );
-                  std::vector<std::vector<char> > arrSstrLcolSendCD(sendCount);
-                  std::vector<int > arrSstrLcolSizeSendCD(sendCount);
-                  std::vector<std::vector<char> > arrSstrLcolRecvCD(recvCount);
-                  std::vector<int > arrSstrLcolSizeRecvCD(recvCount);
+        SendRecvCD_UpdateU(arrSuperNodes, stepSuper);
 
 
-                  //If I'm a receiver
-                  if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, snode.Index ) ){
-                    Int recvIdx=0;
-                    for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
-                      if(isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
-                        Int src = PNUM(srcRow,PCOL(snode.Index,grid_),grid_);
-                        if( MYPROC( grid_ ) != src ){
-                          Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
-                          MPI_Request & mpiReqSizeRecv = arrMpiReqsSizeRecvCD[recvIdx];
-                          MPI_Irecv( &sstrSize, 1, MPI_INT, src, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_SIZE_CD,limIndex_), grid_->comm, &mpiReqSizeRecv);
-                          recvIdx++;
-                        }
-                      }
-                    }
-                  }//end if I'm a receiver
-
-                  //If I'm a sender
-                  if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) && isSendToCrossDiagonal_(grid_->numProcCol, snode.Index ) ){
-                    Int sendIdx = 0;
-                    for(Int dstCol = 0; dstCol<grid_->numProcCol; dstCol++){
-                      if(isSendToCrossDiagonal_(dstCol,snode.Index) ){
-                        Int dest = PNUM(PROW(snode.Index,grid_),dstCol,grid_);
-
-                        if( MYPROC( grid_ ) != dest	){
-                          MPI_Request & mpiReqSizeSend = arrMpiReqsSizeSendCD[sendIdx];
-                          MPI_Request & mpiReqSend = arrMpiReqsSendCD[sendIdx];
-                          std::vector<char> & sstrLcolSend = arrSstrLcolSendCD[sendIdx];
-                          Int & sstrSize = arrSstrLcolSizeSendCD[sendIdx];
-
-                          std::stringstream sstm;
-                          serialize( snode.RowLocalPtr, sstm, NO_MASK );
-                          serialize( snode.BlockIdxLocal, sstm, NO_MASK );
-                          serialize( snode.LUpdateBuf, sstm, NO_MASK );
-        
-                          sstrLcolSend.resize( Size(sstm) );
-                          sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
-                          sstrSize = sstrLcolSend.size();
-
-                          MPI_Isend( &sstrSize, sizeof(sstrSize), MPI_BYTE, dest, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_SIZE_CD,limIndex_), grid_->comm, &mpiReqSizeSend );
-                          MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dest, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_), grid_->comm, &mpiReqSend );
-                          PROFILE_COMM(MYPROC(this->grid_),dest,IDX_TO_TAG(snode.Rank,SELINV_TAG_L_SIZE_CD,limIndex_),sizeof(sstrSize));
-                          PROFILE_COMM(MYPROC(this->grid_),dest,IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_),sstrSize);
-
-                          sendIdx++;
-                        }
-                      }
-                    }
-                  }//end if I'm a sender
-
-                  //waitall sizes
-                  mpi::Waitall(arrMpiReqsSizeRecvCD);
-
-                  //Allocate content and do Irecv
-                  //If I'm a receiver
-                  if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, snode.Index ) ){
-                    Int recvIdx=0;
-                    for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
-                      if(isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
-                        Int src = PNUM(srcRow,PCOL(snode.Index,grid_),grid_);
-                        if( MYPROC( grid_ ) != src ){
-                          Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
-                          std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvIdx];
-                          MPI_Request & mpiReqRecv = arrMpiReqsRecvCD[recvIdx];
-                          sstrLcolRecv.resize( sstrSize);
-                          MPI_Irecv( (void*)&sstrLcolRecv[0], sstrSize, MPI_BYTE, src, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_), grid_->comm, &mpiReqRecv );
-                          recvIdx++;
-                        }
-                      }
-                    }
-                  }//end if I'm a receiver
-
-                  //waitall content
-                  mpi::Waitall(arrMpiReqsRecvCD);
-
-                  // Send LUpdateBufReduced to the cross diagonal blocks. 
-                  // NOTE: This assumes square processor grid
-                  if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, snode.Index ) ){
-                    std::vector<UBlock<T> >&  Urow = this->U( LBi( snode.Index, grid_ ) );
-                    std::vector<bool> isBlockFound(Urow.size(),false);
-          
-                    Int recvIdx=0;
-                    for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
-                      if(isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
-                        Int src = PNUM(srcRow,PCOL(snode.Index,grid_),grid_);
-                        TIMER_START(Recv_L_CrossDiag);
-          
-                        std::vector<Int> rowLocalPtrRecv;
-                        std::vector<Int> blockIdxLocalRecv;
-                        NumMat<T> UUpdateBuf;
-          
-                        if( MYPROC( grid_ ) != src ){
-                          std::stringstream sstm;
-                          Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
-                          std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvIdx];
-                          sstm.write( &sstrLcolRecv[0], sstrSize );
-          
-                          deserialize( rowLocalPtrRecv, sstm, NO_MASK );
-                          deserialize( blockIdxLocalRecv, sstm, NO_MASK );
-                          deserialize( UUpdateBuf, sstm, NO_MASK );	
-          
-                          recvIdx++;
-          
-                        } // sender is not the same as receiver
-                        else{
-                          rowLocalPtrRecv   = snode.RowLocalPtr;
-                          blockIdxLocalRecv = snode.BlockIdxLocal;
-                          UUpdateBuf = snode.LUpdateBuf;
-                        } // sender is the same as receiver
-                        TIMER_STOP(Recv_L_CrossDiag);
-          
-                        // Update U
-                        for( Int ib = 0; ib < blockIdxLocalRecv.size(); ib++ ){
-                          for( Int jb = 0; jb < Urow.size(); jb++ ){
-                            UBlock<T>& UB = Urow[jb];
-                            if( UB.blockIdx == blockIdxLocalRecv[ib] ){
-                              NumMat<T> Ltmp ( UB.numCol, UB.numRow );
-                              lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
-                                  &UUpdateBuf( rowLocalPtrRecv[ib], 0 ),
-                                  UUpdateBuf.m(), Ltmp.Data(), Ltmp.m() );
-                              isBlockFound[jb] = true;
-                              Transpose( Ltmp, UB.nzval );
-                              break;
-                            }
-                          }
-                        }
-                      }
-                    }
-          
-                    for( Int jb = 0; jb < Urow.size(); jb++ ){
-                      UBlock<T>& UB = Urow[jb];
-                      if( !isBlockFound[jb] ){
-                        ErrorHandling( "UBlock cannot find its update. Something is seriously wrong." );
-                      }
-                    }
-                  } // receiver
-
-                  mpi::Waitall(arrMpiReqsSizeSendCD);
-                  mpi::Waitall(arrMpiReqsSendCD);
-                }//end omp task
-              }// end for
-            }//end omp taskgroup
-          }
-#else
-          SendRecvCD_UpdateU(arrSuperNodes, stepSuper);
-#endif
-
-
-          TIMER_START(Update_L);
-          for (Int supidx=0; supidx<stepSuper; supidx++){
-#ifdef _OPENMP_TILE_
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            Int snodeIdx = snode.Index;
-            Int parentIdx = snodeEtree[snodeIdx];
-#pragma omp task firstprivate(supidx) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-            {
-#endif
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
+        TIMER_START(Update_L);
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
 
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
+          statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
 #endif
 
-            if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) && snode.LUpdateBuf.m() > 0 ){
-              std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
-              //Need to skip the diagonal block if present
-              Int startBlock = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
-              for( Int ib = startBlock; ib < Lcol.size(); ib++ ){
-//#ifdef _OPENMP_TILE_
-//                Int snodeIdx = snode.Index;
-//                Int lblkIdx = Lcol[ib].blockIdx;
-//                Int parentIdx = snodeEtree[snodeIdx];
-//#pragma omp task firstprivate(supidx,ib,startBlock) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*numSuper+lblkIdx]) depend(in:tdeps[snodeIdx*numSuper+snodeIdx]) depend(in:tdeps[parentIdx*numSuper+parentIdx])
-//                {
-//                  SuperNodeBufferType & snode = arrSuperNodes[supidx];
-//#endif
-                LBlock<T> & LB = Lcol[ib];
-                lapack::Lacpy( 'A', LB.numRow, LB.numCol, &snode.LUpdateBuf( snode.RowLocalPtr[ib-startBlock], 0 ),
-                    snode.LUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
-//#ifdef _OPENMP_TILE_
-//                }
-//#endif
-              }
-            } // Finish updating L	
-
-#ifdef _OPENMP_TILE_
-              }
-#endif
-          } // for (snode.Index) : Main loop
-          TIMER_STOP(Update_L);
-
-//#ifdef _OPENMP_TILE_
-//#pragma omp taskwait
-//#endif
-
-
-#ifdef _OPENMP_TILE_
-#pragma omp taskgroup
-          {
-          for (Int supidx=0; supidx<stepSuper; supidx++){
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            Int snodeIdx = snode.Index;
-            Int parentIdx = snodeEtree[snodeIdx];
-#pragma omp task firstprivate(supidx)  shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-            {
-              SuperNodeBufferType & snode = arrSuperNodes[supidx];
-              TreeReduce<T> * &redLTree = redToLeftTree_[snode.Index];
-              if(redLTree != NULL){
-                redLTree->Wait();
-                redLTree->CleanupBuffers();
-              }
-              TreeReduce<T> * &redDTree = redToAboveTree_[snode.Index];
-              if(redDTree != NULL){
-                redDTree->Wait();
-                redDTree->CleanupBuffers();
-              }
-            }//end omp task
-          }
-          }//end omp taskgroup
-#else
-          TIMER_START(Barrier);
-          for (Int supidx=0; supidx<stepSuper; supidx++){
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-            TreeReduce<T> * &redLTree = redToLeftTree_[snode.Index];
-
-            if(redLTree != NULL){
-              redLTree->Wait();
-              redLTree->CleanupBuffers();
-              //          delete redLTree;
-              //          redLTree = NULL;
+          if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) && snode.LUpdateBuf.m() > 0 ){
+            std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
+            //Need to skip the diagonal block if present
+            Int startBlock = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
+            for( Int ib = startBlock; ib < Lcol.size(); ib++ ){
+              LBlock<T> & LB = Lcol[ib];
+              lapack::Lacpy( 'A', LB.numRow, LB.numCol, &snode.LUpdateBuf( snode.RowLocalPtr[ib-startBlock], 0 ),
+                  snode.LUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
             }
+          } // Finish updating L	
+
+        } // for (snode.Index) : Main loop
+        TIMER_STOP(Update_L);
+
+
+
+        TIMER_START(Barrier);
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+          TreeReduce<T> * &redLTree = redToLeftTree_[snode.Index];
+
+          if(redLTree != NULL){
+            redLTree->Wait();
+            redLTree->CleanupBuffers();
+            //          delete redLTree;
+            //          redLTree = NULL;
           }
+        }
 
-          for (Int supidx=0; supidx<stepSuper; supidx++){
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            TreeReduce<T> * &redDTree = redToAboveTree_[snode.Index];
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+          TreeReduce<T> * &redDTree = redToAboveTree_[snode.Index];
 
-            if(redDTree != NULL){
-              redDTree->Wait();
-              redDTree->CleanupBuffers();
-              //          delete redDTree;
-              //          redDTree = NULL;
-            }
+          if(redDTree != NULL){
+            redDTree->Wait();
+            redDTree->CleanupBuffers();
+            //          delete redDTree;
+            //          redDTree = NULL;
           }
+        }
 
-#ifndef _OPENMP_TILE_
-          mpi::Waitall(arrMpireqsRecvContentFromAny);
-#endif
-          for (Int supidx=0; supidx<stepSuper; supidx++){
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            Int ksup = snode.Index;
-            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-
-#ifndef _OPENMP_TILE_
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS<<"["<<ksup<<"] mpireqsSendToRight"<<std::endl;
-#endif
-            mpi::Waitall( mpireqsSendToRight );
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS<<"["<<ksup<<"] mpireqsSendToBelow"<<std::endl;
-#endif
-
-            mpi::Waitall( mpireqsSendToBelow );
-#endif
-          }
+        mpi::Waitall(arrMpireqsRecvContentFromAny);
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+          Int ksup = snode.Index;
+          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
 
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"barrier done"<<std::endl;
+          statusOFS<<"["<<ksup<<"] mpireqsSendToRight"<<std::endl;
 #endif
-          TIMER_STOP(Barrier);
-#endif
-
-#ifdef _OPENMP_TILE_
-
-      //cleanup arrSuperNodes
-
-
-//#pragma omp taskwait
-      } // end omp taskgroup
-
-//#pragma omp taskwait
-
-//        } // end omp task
-//      } // end omp taskgroup
-//      }//end omp single nowait
-
-
+          mpi::Waitall( mpireqsSendToRight );
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS<<"["<<ksup<<"] mpireqsSendToBelow"<<std::endl;
 #endif
 
+          mpi::Waitall( mpireqsSendToBelow );
+        }
 
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"barrier done"<<std::endl;
 #endif
+        TIMER_STOP(Barrier);
 
-#else
+
+
+      }
+      else
       {
         auto LBlockComparator = [](const LBlock<T> & a, const LBlock<T> & b){
           return a.blockIdx<b.blockIdx;
@@ -4853,7 +2785,7 @@ delete [] blockRows;
 
         Int numSteps = superList.size();
         Int stepSuper = superList[lidx].size(); 
-        
+
 
         TIMER_START(AllocateBuffer);
         //allocate the buffers for this supernode
@@ -4871,10 +2803,10 @@ delete [] blockRows;
         }
 
 
-          std::list<int> bcastLDataIdx; 
-          std::vector<int> bcastLDataDone(totTreeCount+1,0);
-          std::vector<Int> gemmCount(totTreeCount,0);        
-          std::vector<Int> gemmCountDiag(stepSuper,0);        
+        std::list<int> bcastLDataIdx; 
+        std::vector<int> bcastLDataDone(totTreeCount+1,0);
+        std::vector<Int> gemmCount(totTreeCount,0);        
+        std::vector<Int> gemmCountDiag(stepSuper,0);        
         std::vector<Int> treeIdx;
         treeIdx.reserve(totTreeCount);
         std::vector<Int> treeToSupidx;
@@ -4882,7 +2814,7 @@ delete [] blockRows;
         std::vector<Int> treeToIb;
         treeToIb.reserve(totTreeCount);
 
-       
+
 
         std::vector<Int> treeToBufIdx;
         treeToBufIdx.reserve(totTreeCount);
@@ -4896,63 +2828,59 @@ delete [] blockRows;
 #endif
 
         //These are debug toggles
-#define BCAST_LDATA
-#define REDUCE_L
-#define REDUCE_D
         //#define BLOCK_BCAST_LDATA
         //#define BLOCK_REDUCE_L
         //#define BLOCK_REDUCE_D
 
         TIMER_START(WaitContentLU);
         {
-        std::vector<Int> treeToBufIdxHeads(stepSuper,0);
-        for (Int supidx=0; supidx<stepSuper ; supidx++){
-          auto & snode = arrSuperNodes[supidx];
-          Int treeCount = snodeTreeOffset_[snode.Index+1] - snodeTreeOffset_[snode.Index]; 
-          for(Int offset = 0; offset<treeCount; offset++){
-            Int tidx = snodeTreeOffset_[snode.Index] + offset;
-            Int blkIdx = snodeTreeToBlkidx_[snode.Index][offset];
-            auto & bcastLData = this->bcastLDataTree_[tidx];
-            if(bcastLData != nullptr){
-              //add the global index of the tree to the watch list
-              treeIdx.push_back(tidx);
-              treeToSupidx.push_back(supidx);
-              treeToIb.push_back(-1);
-              treeToBufIdx.push_back(treeToBufIdxHeads[supidx]++);
+          std::vector<Int> treeToBufIdxHeads(stepSuper,0);
+          for (Int supidx=0; supidx<stepSuper ; supidx++){
+            auto & snode = arrSuperNodes[supidx];
+            Int treeCount = snodeTreeOffset_[snode.Index+1] - snodeTreeOffset_[snode.Index]; 
+            for(Int offset = 0; offset<treeCount; offset++){
+              Int tidx = snodeTreeOffset_[snode.Index] + offset;
+              Int blkIdx = snodeTreeToBlkidx_[snode.Index][offset];
+              auto & bcastLData = this->bcastLDataTree_[tidx];
+              if(bcastLData != nullptr){
+                //add the global index of the tree to the watch list
+                treeIdx.push_back(tidx);
+                treeToSupidx.push_back(supidx);
+                treeToIb.push_back(-1);
+                treeToBufIdx.push_back(treeToBufIdxHeads[supidx]++);
 
-              if(bcastLData->IsRoot()){
-                auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
-                Int ibFound = -1;
-                for( Int ib = 0; ib < Lcol.size(); ib++ ){
-                  if(Lcol[ib].blockIdx == blkIdx){
-                    ibFound = ib;
-                    break;
+                if(bcastLData->IsRoot()){
+                  auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
+                  Int ibFound = -1;
+                  for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                    if(Lcol[ib].blockIdx == blkIdx){
+                      ibFound = ib;
+                      break;
+                    }
                   }
+                  assert(ibFound>=0);
+                  treeToIb.back() = ibFound;
                 }
-                assert(ibFound>=0);
-                treeToIb.back() = ibFound;
               }
             }
           }
+
+          for (Int supidx=0; supidx<stepSuper ; supidx++){
+            auto & snode = arrSuperNodes[supidx];
+            snode.LUpdateBufBlk.resize(treeToBufIdxHeads[supidx]);
+            snode.SstrLcolSendBlk.resize(treeToBufIdxHeads[supidx]);
+            snode.SizeSstrLcolSendBlk.resize(treeToBufIdxHeads[supidx]);
           }
 
-            for (Int supidx=0; supidx<stepSuper ; supidx++){
-              auto & snode = arrSuperNodes[supidx];
-              snode.LUpdateBufBlk.resize(treeToBufIdxHeads[supidx]);
-              snode.SstrLcolSendBlk.resize(treeToBufIdxHeads[supidx]);
-              snode.SizeSstrLcolSendBlk.resize(treeToBufIdxHeads[supidx]);
-            }
-
-#ifdef BCAST_LDATA
-                TIMER_START(Serialize_LcolL);
-        for(Int ltidx=0;ltidx<treeIdx.size();ltidx++){
-          Int tidx = treeIdx[ltidx];
-          Int supidx = treeToSupidx[ltidx];
-          auto & snode = arrSuperNodes[supidx];
-          auto & bcastLData = this->bcastLDataTree_[tidx];
-          if(bcastLData != nullptr){
-            if(bcastLData->IsRoot()){
-              Int ibFound = treeToIb[ltidx];
+          TIMER_START(Serialize_LcolL);
+          for(Int ltidx=0;ltidx<treeIdx.size();ltidx++){
+            Int tidx = treeIdx[ltidx];
+            Int supidx = treeToSupidx[ltidx];
+            auto & snode = arrSuperNodes[supidx];
+            auto & bcastLData = this->bcastLDataTree_[tidx];
+            if(bcastLData != nullptr){
+              if(bcastLData->IsRoot()){
+                Int ibFound = treeToIb[ltidx];
                 std::stringstream sstm;
                 std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
                 auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
@@ -4960,8 +2888,6 @@ delete [] blockRows;
                 auto & LB = Lcol[ibFound];
 
                 // Only LB is to be sent down
-                // TODO this is useless
-                //serialize( 1, sstm, NO_MASK );
                 serialize( LB, sstm, mask );
                 auto & SstrLcolSend = snode.SstrLcolSendBlk[treeToBufIdx[ltidx]];
                 auto & SizeSstrLcolSend = snode.SizeSstrLcolSendBlk[treeToBufIdx[ltidx]];
@@ -4976,21 +2902,600 @@ delete [] blockRows;
               bool done = bcastLData->Progress();
             }
           }
-                TIMER_STOP(Serialize_LcolL);
-#endif
+          TIMER_STOP(Serialize_LcolL);
 
 
-          }
-          TIMER_STOP(WaitContentLU);
+        }
+        TIMER_STOP(WaitContentLU);
 
 
 
 #ifdef BLOCK_BCAST_LDATA
-          TreeBcast_Waitall( treeIdx, this->bcastLDataTree_);
+        TreeBcast_Waitall( treeIdx, this->bcastLDataTree_);
 #endif
 
 
-          for(int ltidx = 0; ltidx<treeIdx.size();ltidx++){
+        for(int ltidx = 0; ltidx<treeIdx.size();ltidx++){
+          Int tidx = treeIdx[ltidx];
+          Int supidx = treeToSupidx[ltidx]; 
+          auto & snode = arrSuperNodes[supidx];
+
+          Int offset = tidx - snodeTreeOffset_[snode.Index];  
+          Int blkIdx = snodeTreeToBlkidx_[snode.Index][offset];
+
+          auto & redLTree = this->redLTree2_[tidx];
+          if(redLTree != nullptr){
+            auto & snode = arrSuperNodes[supidx];
+            redLTree->Progress();
+          }
+
+
+          if(MYPROC(this->grid_) == PNUM(PROW(blkIdx,this->grid_),PCOL(blkIdx,this->grid_),this->grid_)){
+            gemmCount[ltidx]++;
+          }
+
+          for(Int ltidx2 = ltidx-1;ltidx2>=0;ltidx2--){
+            if (treeToSupidx[ltidx2]!=supidx){
+              break;
+            }
+            Int tidx2 = treeIdx[ltidx2];
+            Int offset2 = tidx2 - snodeTreeOffset_[snode.Index];  
+            Int blkIdx2 = snodeTreeToBlkidx_[snode.Index][offset2];
+            if(blkIdx2>blkIdx){
+              if(MYROW(this->grid_)==PROW(blkIdx2,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx,this->grid_)){
+                gemmCount[ltidx]++;
+                gemmCount[ltidx2]++;
+              }
+            }
+          }
+          for(Int ltidx2 = ltidx+1;ltidx2<treeIdx.size();ltidx2++){
+            if (treeToSupidx[ltidx2]!=supidx){
+              break;
+            }
+            Int tidx2 = treeIdx[ltidx2];
+            Int offset2 = tidx2 - snodeTreeOffset_[snode.Index];  
+            Int blkIdx2 = snodeTreeToBlkidx_[snode.Index][offset2];
+            if(blkIdx2>blkIdx){
+              if(MYROW(this->grid_)==PROW(blkIdx2,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx,this->grid_)){
+                gemmCount[ltidx]++;
+                gemmCount[ltidx2]++;
+              }
+            }
+          }
+        }
+
+        for (auto && snode : arrSuperNodes){
+          auto & redDTree = this->redDTree2_[snode.Index];
+          if(redDTree != nullptr){
+            if(redDTree->IsRoot()){
+              auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
+              assert( redDTree->GetMsgSize() == Lcol[0].nzval.Size() );
+            }           
+            redDTree->Progress();
+          }
+        }
+
+        TIMER_START(Compute_Sinv_LU);
+        {
+          //list of supidx / blkIdx1 / blkIdx2 / ltidx / ltidx2 
+          std::list< std::tuple< Int,Int,Int,Int,Int> > readySnode;
+
+          auto UnpackLBlock = [](const std::shared_ptr<TreeBcast_v2<char>> & tree, LBlock<T> & LB){
+            std::stringstream sstm;
+            sstm.write( tree->GetLocalBuffer(), tree->GetMsgSize() );
+            std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+            deserialize( LB, sstm, mask );
+          };
+
+          auto getBlocks = [&] (Int ksup, LBlock<T> * pLB, LBlock<T> * pSinvB, Int * blockRows, Int & blockRowsSize){
+            TIMER_START(GET_BLOCKS);
+            if(pLB->numRow>0){
+              Int* rowsSinvBPtr    = pSinvB->rows.Data();
+              Int* rowsLBPtr    = pLB->rows.Data();
+
+              //find blocks
+              Int ifr = 0;
+              Int fr = rowsLBPtr[0];
+              Int nrows = 1;
+              for( Int i = 1; i < pLB->numRow; i++ ){
+                if(rowsLBPtr[i]==rowsLBPtr[i-1]+1){ 
+                  nrows++;
+                }
+                else{
+                  blockRows[blockRowsSize++] = fr;
+                  blockRows[blockRowsSize++] = nrows;
+                  blockRows[blockRowsSize++] = ifr;
+                  fr = rowsLBPtr[i];
+                  nrows = 1;
+                  ifr = i;
+                }
+              }
+              blockRows[blockRowsSize++] = fr;
+              blockRows[blockRowsSize++] = nrows;
+              blockRows[blockRowsSize++] = ifr;
+
+              if(pLB->blockIdx == pSinvB->blockIdx){
+
+                Int lastRowIdxSinv = 0;
+                Int SinvBnumRow = pSinvB->numRow;
+                for(Int ii = 0; ii<blockRowsSize;ii+=3){
+                  {
+                    auto fr = blockRows[ii];
+                    auto nr = blockRows[ii+1];
+                    Int ifr = blockRows[ii+2];
+
+                    bool isRowFound = false;
+                    for( lastRowIdxSinv; lastRowIdxSinv < SinvBnumRow; lastRowIdxSinv++ ){
+                      if( fr == rowsSinvBPtr[lastRowIdxSinv] ){
+                        isRowFound = true;
+                        blockRows[ii] = lastRowIdxSinv;
+                        break;
+                      }
+                    }
+                    if( isRowFound == false ){
+                      std::ostringstream msg;
+                      msg << "Row " << fr
+                        <<" in LB cannot find the corresponding row in SinvB" << std::endl
+                        << "LB.rows    = " << pLB->rows << std::endl
+                        << "SinvB.rows = " << pSinvB->rows << std::endl;
+                      ErrorHandling( msg.str().c_str() );
+                    }
+                  }
+                }
+              }
+              else{
+                Int SinvColsSta = FirstBlockCol( ksup, super_ );
+
+                for(Int ii = 0; ii<blockRowsSize;ii+=3){
+                  {
+                    auto fc = blockRows[ii];
+                    auto nc = blockRows[ii+1];
+                    Int ifc = blockRows[ii+2];
+
+                    bool isColFound = (fc >= SinvColsSta) && (fc+nc <= SinvColsSta + pSinvB->nzval.n()); 
+
+                    if( isColFound == false ){
+                      std::ostringstream msg;
+                      msg << "Column " << fc
+                        <<" in LB cannot find the corresponding column in SinvB" << std::endl
+                        << "LB->rows    = " << pLB->rows << std::endl
+                        << "SinvB.columns = ["<<SinvColsSta<<" - "<< SinvColsSta + pSinvB->nzval.n()<<"]"<<std::endl;
+                      ErrorHandling( msg.str().c_str() );
+                    }
+                    else{
+                      blockRows[ii] = fc - SinvColsSta;
+                    }
+                  }
+                }
+
+              }
+            }
+            TIMER_STOP(GET_BLOCKS);
+          };
+
+
+          auto ComputeLUpdateBuf = [&](SuperNodeBufferType & snode, LBlock<T> & LB1, LBlock<T> & LB2, NumMat<T> & LUpdateBuf1, NumMat<T> & LUpdateBuf2) {
+            Int superSize = SuperSize( snode.Index, this->super_ );
+
+            Int isup = LB1.blockIdx;
+            Int jsup = LB2.blockIdx;
+
+            //pLB1 should point to the one with the largest blockIdx
+            LBlock<T> * pLB1 = &LB1;
+            LBlock<T> * pLB2 = &LB2;
+
+            TIMER_START(Compute_Sinv_L_Resize);
+            if(LUpdateBuf1.Size()==0){
+              LUpdateBuf1.Resize(pLB1->nzval.m(),SuperSize( snode.Index, this->super_ ));
+              SetValue(LUpdateBuf1,ZERO<T>());
+            }
+            TIMER_STOP(Compute_Sinv_L_Resize);
+
+            T * nzvalLUpd1 =  LUpdateBuf1.Data();
+            size_t ldLUBuf1 = LUpdateBuf1.m(); 
+
+
+            T * nzvalLUpd2 =  nullptr;
+            size_t ldLUBuf2 = 0;
+            if(pLB1!=pLB2){
+              TIMER_START(Compute_Sinv_L_Resize);
+              if(LUpdateBuf2.Size()==0){
+                LUpdateBuf2.Resize(pLB2->nzval.m(),SuperSize( snode.Index, this->super_ ));
+                SetValue(LUpdateBuf2,ZERO<T>());
+              }
+              TIMER_STOP(Compute_Sinv_L_Resize);
+
+              nzvalLUpd2 =  LUpdateBuf2.Data();
+              ldLUBuf2 = LUpdateBuf2.m(); 
+            }
+
+
+            if(jsup>isup){
+              isup = LB2.blockIdx;
+              jsup = LB1.blockIdx;
+              pLB1 = &LB2;
+              pLB2 = &LB1;
+
+              nzvalLUpd1 =  LUpdateBuf2.Data();
+              nzvalLUpd2 =  LUpdateBuf1.Data();
+              ldLUBuf1 = LUpdateBuf2.m(); 
+              ldLUBuf2 = LUpdateBuf1.m(); 
+            }
+
+            size_t ldLB1 = pLB1->nzval.m(); 
+            size_t ldLB2 = pLB2->nzval.m(); 
+            T * nzvalLB1 =  pLB1->nzval.Data();
+            T * nzvalLB2 =  pLB2->nzval.Data();
+
+
+            // Pin down the corresponding block in the part of Sinv.
+            {
+              std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
+              bool isBlockFound = false;
+              TIMER_START(PARSING_ROW_BLOCKIDX);
+              for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+                // Found the (isup, jsup) block in Sinv
+                if( LcolSinv[ibSinv].blockIdx == isup ){
+
+
+                  Int lastRowIdxSinv = 0;
+                  LBlock<T> * pSinvB = &LcolSinv[ibSinv];
+
+                  // Row relative indices
+                  Int* rowsLB1Ptr    = pLB1->rows.Data();
+                  Int* rowsSinvBPtr = pSinvB->rows.Data();
+                  Int SinvBnumRow = pSinvB->numRow;
+
+                  // Column relative indicies
+                  Int * rowsLB2Ptr = pLB2->rows.Data();
+
+                  //find contiguous blocks in pLB1 and pLB2
+
+                  Int blockRows1Size = 0; 
+                  Int blockRows2Size = 0;
+                  Int * blockRows1 = nullptr;
+                  Int * blockRows2 = nullptr;
+
+                  std::vector<Int> cblockRows1(3*pLB1->numRow); 
+                  blockRows1 = cblockRows1.data();
+
+                  getBlocks(jsup, pLB1, pSinvB, blockRows1, blockRows1Size);
+
+
+                  std::vector<Int> cblockRows2;
+                  if(pLB1!=pLB2){
+                    cblockRows2.resize(3*pLB2->numRow);
+                    blockRows2 = cblockRows2.data();
+                    getBlocks(jsup, pLB2, pSinvB, blockRows2, blockRows2Size);
+                  }
+                  else{
+                    blockRows2 = blockRows1;
+                    blockRows2Size = blockRows1Size;
+                  }
+
+
+                  // Transfer the values from Sinv to AinvBlock
+                  T* nzvalSinv = pSinvB->nzval.Data();
+                  Int ldSinv = pSinvB->numRow;
+
+
+                  if(pLB1==pLB2){
+                    Int j = 0;
+                    for(Int jj = 0; jj<blockRows2Size;jj+=3){
+                      auto fc = blockRows2[jj];
+                      auto nc = blockRows2[jj+1];
+                      Int  ifc = blockRows2[jj+2];
+                      assert(j==ifc);
+                      Int offsetJ = j;
+                      Int i = 0;
+                      for(Int ii = 0; ii<blockRows1Size;ii+=3){
+                        auto fr = blockRows1[ii];
+                        auto nr = blockRows1[ii+1];
+                        Int ifr = blockRows1[ii+2];
+                        assert(i==ifr);
+                        Int offsetI = i;
+                        if(nr>0 && nc > 0 ){
+                          blas::Gemm('N','N',nr, superSize, nc, MINUS_ONE<T>(), 
+                              &nzvalSinv[fr+fc*ldSinv], ldSinv, 
+                              &nzvalLB2[j], ldLB2, ONE<T>(),
+                              &nzvalLUpd1[i], ldLUBuf1);
+#ifdef _PRINT_STATS_  
+                          localFlops_+=flops::Gemm<T>(nr, superSize, nc);
+#endif
+                        }
+
+
+                        i+=nr;
+                      }
+                      j+=nc;
+                    }
+                  }
+                  else if(pLB1!=pLB2){
+                    Int j = 0;
+                    for(Int jj = 0; jj<blockRows2Size;jj+=3){
+                      auto fc = blockRows2[jj];
+                      auto nc = blockRows2[jj+1];
+                      Int  ifc = blockRows2[jj+2];
+                      assert(j==ifc);
+                      Int offsetJ = j;
+                      Int i = 0;
+                      for(Int ii = 0; ii<blockRows1Size;ii+=3){
+                        auto fr = blockRows1[ii];
+                        auto nr = blockRows1[ii+1];
+                        Int ifr = blockRows1[ii+2];
+                        assert(i==ifr);
+                        Int offsetI = i;
+                        if(nr>0 && nc > 0 ){
+                          blas::Gemm('N','N',nr, superSize, nc, MINUS_ONE<T>(), 
+                              &nzvalSinv[fr+fc*ldSinv], ldSinv, 
+                              &nzvalLB2[j], ldLB2, ONE<T>(),
+                              &nzvalLUpd1[i], ldLUBuf1);
+
+#ifdef _PRINT_STATS_  
+                          localFlops_+=flops::Gemm<T>(nr, superSize, nc);
+#endif
+                          assert(ldSinv>=nr);
+                          assert(ldLB1>=nr);
+                          assert(ldLUBuf2>=nc);
+                          blas::Gemm('T','N', nc,  superSize , nr , MINUS_ONE<T>(), 
+                              &nzvalSinv[fc*ldSinv+fr], ldSinv, 
+                              &nzvalLB1[i], ldLB1, ONE<T>(),
+                              &nzvalLUpd2[j], ldLUBuf2);
+#ifdef _PRINT_STATS_  
+                          localFlops_+=flops::Gemm<T>(nc, superSize, nr);
+#endif
+
+                        }
+
+
+                        i+=nr;
+                      }
+                      j+=nc;
+                    }
+                  }
+
+                  isBlockFound = true;
+                  break;
+                }	
+              } // for (ibSinv )
+              TIMER_STOP(PARSING_ROW_BLOCKIDX);
+              if( isBlockFound == false ){
+                abort();
+                std::ostringstream msg;
+                msg << "Block(" << isup << ", " << jsup 
+                  << ") did not find a matching block in Sinv." << std::endl;
+                ErrorHandling( msg.str().c_str() );
+              }
+            } // if (isup, jsup) is in L
+
+          };
+
+
+
+
+
+
+
+          bool all_doneBCastL = false;
+          while(!(all_doneBCastL = std::all_of(bcastLDataDone.begin(), bcastLDataDone.end()-1, [](int v) { return v>0; })))//gemmProcessed<gemmToDo)
+          {
+
+            TIMER_START(WaitContentLU);
+            readySnode.clear();
+            while( !(all_doneBCastL = std::all_of(bcastLDataDone.begin(), bcastLDataDone.end()-1, [](int v) { return v>0; })) && readySnode.empty()) {
+              //TODO this ensure that one of the Tree is IsDone(). Ideally, we should react at IsDataReceived() 
+              TreeBcast_Testsome( treeIdx, this->bcastLDataTree_, bcastLDataIdx, bcastLDataDone);
+
+              for(auto ltidx : bcastLDataIdx){
+                Int tidx = treeIdx[ltidx];
+                Int supidx = treeToSupidx[ltidx]; 
+                auto & snode = arrSuperNodes[supidx];
+
+                Int offset = tidx - snodeTreeOffset_[snode.Index];  
+                Int blkIdx = snodeTreeToBlkidx_[snode.Index][offset];
+
+                if(MYPROC(this->grid_) == PNUM(PROW(blkIdx,this->grid_),PCOL(blkIdx,this->grid_),this->grid_)){
+                  readySnode.push_back(std::make_tuple(supidx,blkIdx,blkIdx,ltidx,ltidx));
+                }
+
+                for(Int ltidx2 = ltidx-1;ltidx2>=0;ltidx2--){
+                  if (treeToSupidx[ltidx2]!=supidx){
+                    break;
+                  }
+
+                  if( bcastLDataDone[ltidx2] ){
+                    Int tidx2 = treeIdx[ltidx2];
+                    Int offset2 = tidx2 - snodeTreeOffset_[snode.Index];  
+                    Int blkIdx2 = snodeTreeToBlkidx_[snode.Index][offset2];
+                    if(blkIdx2<blkIdx){
+                      if(MYROW(this->grid_)==PROW(blkIdx,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx2,this->grid_)){
+#if ( _DEBUGlevel_ >= 1 )
+                        statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
+#endif
+                        readySnode.push_back(std::make_tuple(supidx,blkIdx2,blkIdx,ltidx2,ltidx));
+                      }
+                    }
+                    else{
+                      if(MYROW(this->grid_)==PROW(blkIdx2,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx,this->grid_)){
+                        if ( bcastLDataDone[ltidx2] < bcastLDataDone[ltidx] ){
+#if ( _DEBUGlevel_ >= 1 )
+                          statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
+#endif
+                          readySnode.push_back(std::make_tuple(supidx,blkIdx,blkIdx2,ltidx,ltidx2));
+                        }
+                      }
+                    }
+                  }
+                }
+
+
+                for(Int ltidx2 = ltidx+1;ltidx2<treeIdx.size();ltidx2++){
+                  if (treeToSupidx[ltidx2]!=supidx){
+                    break;
+                  }
+
+                  if(bcastLDataDone[ltidx2]){
+                    Int tidx2 = treeIdx[ltidx2];
+                    Int offset2 = tidx2 - snodeTreeOffset_[snode.Index];  
+                    Int blkIdx2 = snodeTreeToBlkidx_[snode.Index][offset2];
+                    if(blkIdx2>blkIdx){
+                      if(MYROW(this->grid_)==PROW(blkIdx2,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx,this->grid_)){
+                        if ( bcastLDataDone[ltidx2] < bcastLDataDone[ltidx] ){
+#if ( _DEBUGlevel_ >= 1 )
+                          statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
+#endif
+                          readySnode.push_back(std::make_tuple(supidx,blkIdx,blkIdx2,ltidx,ltidx2));
+                        }
+                      }
+                    }
+                    else {
+                      if(MYROW(this->grid_)==PROW(blkIdx,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx2,this->grid_)){
+#if ( _DEBUGlevel_ >= 1 )
+                        statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
+#endif
+                        readySnode.push_back(std::make_tuple(supidx,blkIdx2,blkIdx,ltidx2,ltidx));
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            TIMER_STOP(WaitContentLU);
+
+            //If I have some work to do 
+            if(readySnode.size()>0)
+            {
+              //gdb_lock();
+              for(auto && operation: readySnode){
+                auto & supidx = std::get<0>(operation);
+                auto & blkIdx1 = std::get<1>(operation);
+                auto & blkIdx2 = std::get<2>(operation);
+                auto & ltidx1 = std::get<3>(operation);
+                auto & ltidx2 = std::get<4>(operation);
+                auto & snode = arrSuperNodes[supidx];
+
+                if (blkIdx1==blkIdx2){
+#if ( _DEBUGlevel_ >= 1 )
+                  statusOFS<<"["<<snode.Index<<"] Processing operation A^-1 * L("<<blkIdx1<<","<<snode.Index<<")"<<std::endl;
+#endif
+
+                  auto & bcastLDataTree1 = this->bcastLDataTree_[ treeIdx[ltidx1] ];
+                  LBlock<T> LB1;
+                  //Unpack the data
+                  UnpackLBlock(bcastLDataTree1, LB1);
+                  auto & LUpdateBuf1 = snode.LUpdateBufBlk[treeToBufIdx[ltidx1]];
+                  ComputeLUpdateBuf(snode, LB1, LB1, LUpdateBuf1, LUpdateBuf1);
+#if ( _DEBUGlevel_ >= 1 )
+                  statusOFS<<"["<<snode.Index<<"] Decreasing gemmCount of "<<ltidx1<<" after U("<<blkIdx1<<")"<<std::endl;
+                  assert(gemmCount[ltidx1]>0);
+#endif
+                  gemmCount[ltidx1]--;
+                }
+                else{
+#if ( _DEBUGlevel_ >= 1 )
+                  statusOFS<<"["<<snode.Index<<"] Processing operations A^-1 * L("<<blkIdx1<<","<<snode.Index<<") and A^-1 * L("<<blkIdx2<<","<<snode.Index<<")"<<std::endl;
+#endif
+
+                  auto & bcastLDataTree1 = this->bcastLDataTree_[ treeIdx[ltidx1] ];
+                  auto & bcastLDataTree2 = this->bcastLDataTree_[ treeIdx[ltidx2] ];
+
+                  LBlock<T> LB1,LB2;
+                  //Unpack the data
+                  UnpackLBlock(bcastLDataTree1, LB1);
+                  UnpackLBlock(bcastLDataTree2, LB2);
+
+                  auto & LUpdateBuf1 = snode.LUpdateBufBlk[treeToBufIdx[ltidx1]];
+                  auto & LUpdateBuf2 = snode.LUpdateBufBlk[treeToBufIdx[ltidx2]];
+                  ComputeLUpdateBuf(snode, LB1, LB2,LUpdateBuf1,LUpdateBuf2);
+#if ( _DEBUGlevel_ >= 1 )
+                  statusOFS<<"["<<snode.Index<<"] Decreasing gemmCount of "<<ltidx1<<" after U("<<blkIdx1<<","<<blkIdx2<<")"<<std::endl;
+                  statusOFS<<"["<<snode.Index<<"] Decreasing gemmCount of "<<ltidx2<<" after U("<<blkIdx1<<","<<blkIdx2<<")"<<std::endl;
+                  assert(gemmCount[ltidx1]>0);
+                  assert(gemmCount[ltidx2]>0);
+#endif
+                  gemmCount[ltidx1]--;
+                  gemmCount[ltidx2]--;
+                }
+                if (gemmCount[ltidx1]==0){
+                  auto & bcastLDataTree1 = this->bcastLDataTree_[ treeIdx[ltidx1] ];
+                  auto & LUpdateBuf1 = snode.LUpdateBufBlk[treeToBufIdx[ltidx1]];
+                  //Now participate to the reduction of L1
+                  auto & redLTree1 = this->redLTree2_[ treeIdx[ltidx1] ];
+                  assert(redLTree1!=nullptr);
+                  assert(LUpdateBuf1.Size() == redLTree1->GetMsgSize());
+                  redLTree1->SetLocalBuffer(LUpdateBuf1.Data());
+#ifdef _PRINT_STATS_
+                  this->localFlops_+=flops::Axpy<T>(LUpdateBuf1.Size());
+#endif
+                  redLTree1->SetDataReady(true);
+                  redLTree1->Progress();
+                  bcastLDataTree1->cleanupBuffers();
+                }
+                if (blkIdx1!=blkIdx2 && gemmCount[ltidx2]==0){
+                  auto & bcastLDataTree2 = this->bcastLDataTree_[ treeIdx[ltidx2] ];
+                  auto & LUpdateBuf2 = snode.LUpdateBufBlk[treeToBufIdx[ltidx2]];
+                  //Now participate to the reduction of L2
+                  auto & redLTree2 = this->redLTree2_[ treeIdx[ltidx2] ];
+                  assert(redLTree2!=nullptr);
+                  //redLTree2->SetMsgSize( LUpdateBuf2.Size() );
+                  assert(LUpdateBuf2.Size() == redLTree2->GetMsgSize());
+                  redLTree2->SetLocalBuffer(LUpdateBuf2.Data());
+#ifdef _PRINT_STATS_
+                  this->localFlops_+=flops::Axpy<T>(LUpdateBuf2.Size());
+#endif
+                  redLTree2->SetDataReady(true);
+                  redLTree2->Progress();
+                  bcastLDataTree2->cleanupBuffers();
+                }
+              }
+            }
+
+            //Progress the reduction trees
+            //        TIMER_START(Progress_all_reductions);
+            //        TIMER_START(Progress_all_reductions_L);
+            //            TreeReduce_ProgressAll(superList[lidx],this->redLTree2_);
+            //        TIMER_STOP(Progress_all_reductions_L);
+            //        TIMER_START(Progress_all_reductions_U);
+            //            TreeReduce_ProgressAll(superList[lidx],this->redUTree2_);
+            //        TIMER_STOP(Progress_all_reductions_U);
+            //        TIMER_STOP(Progress_all_reductions);
+          }
+
+
+
+        }
+        TIMER_STOP(Compute_Sinv_LU);
+
+
+#ifdef BLOCK_REDUCE_L
+        TreeReduce_Waitall( treeIdx, this->redLTree2_);
+#endif
+
+        TIMER_START(Reduce_Sinv_L);
+        std::list<int> redLIdx; 
+        std::vector<bool> redLdone(treeIdx.size(),false);
+
+
+
+
+        for(Int ltidx=0;ltidx<treeIdx.size();ltidx++){
+          Int tidx = treeIdx[ltidx];
+          auto & redLTree = this->redLTree2_[tidx];
+          if(redLTree!=nullptr){
+            if(redLTree->IsRoot()){
+              redLTree->AllocRecvBuffers();
+              redLTree->SetDataReady(true);
+              redLTree->Progress();
+            }
+          }
+        }
+
+
+        bool all_doneL = false;
+        while(!(all_doneL = std::all_of(redLdone.begin(), redLdone.end(), [](bool v) { return v; }))){
+          TreeReduce_Testsome( treeIdx, this->redLTree2_, redLIdx, redLdone);
+
+          for(auto ltidx : redLIdx){
             Int tidx = treeIdx[ltidx];
             Int supidx = treeToSupidx[ltidx]; 
             auto & snode = arrSuperNodes[supidx];
@@ -4998,994 +3503,226 @@ delete [] blockRows;
             Int offset = tidx - snodeTreeOffset_[snode.Index];  
             Int blkIdx = snodeTreeToBlkidx_[snode.Index][offset];
 
-#ifdef REDUCE_L
             auto & redLTree = this->redLTree2_[tidx];
-            if(redLTree != nullptr){
-              auto & snode = arrSuperNodes[supidx];
-              redLTree->Progress();
-            }
+
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "["<<snode.Index<<"] REDUCE L is done"<<std::endl;
 #endif
+            if(redLTree->IsRoot()){
 
+              //TODO this has to be index by ib instead of blkidx ? or use a map instead....
+              auto & LUpdateBuf = snode.LUpdateBufBlk[treeToBufIdx[ltidx]];
 
-            if(MYPROC(this->grid_) == PNUM(PROW(blkIdx,this->grid_),PCOL(blkIdx,this->grid_),this->grid_)){
-              gemmCount[ltidx]++;
-            }
-
-            for(Int ltidx2 = ltidx-1;ltidx2>=0;ltidx2--){
-              if (treeToSupidx[ltidx2]!=supidx){
-                break;
-              }
-              Int tidx2 = treeIdx[ltidx2];
-              Int offset2 = tidx2 - snodeTreeOffset_[snode.Index];  
-              Int blkIdx2 = snodeTreeToBlkidx_[snode.Index][offset2];
-              if(blkIdx2>blkIdx){
-                if(MYROW(this->grid_)==PROW(blkIdx2,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx,this->grid_)){
-                  gemmCount[ltidx]++;
-                  gemmCount[ltidx2]++;
-                }
-              }
-            }
-            for(Int ltidx2 = ltidx+1;ltidx2<treeIdx.size();ltidx2++){
-              if (treeToSupidx[ltidx2]!=supidx){
-                break;
-              }
-              Int tidx2 = treeIdx[ltidx2];
-              Int offset2 = tidx2 - snodeTreeOffset_[snode.Index];  
-              Int blkIdx2 = snodeTreeToBlkidx_[snode.Index][offset2];
-              if(blkIdx2>blkIdx){
-                if(MYROW(this->grid_)==PROW(blkIdx2,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx,this->grid_)){
-                  gemmCount[ltidx]++;
-                  gemmCount[ltidx2]++;
-                }
-              }
-            }
-          }
-
-#ifdef REDUCE_D
-          for (auto && snode : arrSuperNodes){
-            auto & redDTree = this->redDTree2_[snode.Index];
-            if(redDTree != nullptr){
-              if(redDTree->IsRoot()){
-                auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
-                assert( redDTree->GetMsgSize() == Lcol[0].nzval.Size() );
-              }           
-              redDTree->Progress();
-            }
-          }
-#endif
-
-          TIMER_START(Compute_Sinv_LU);
-          {
-            //list of supidx / blkIdx1 / blkIdx2 / ltidx / ltidx2 
-            std::list< std::tuple< Int,Int,Int,Int,Int> > readySnode;
-
-            auto UnpackLBlock = [](const std::shared_ptr<TreeBcast_v2<char>> & tree, LBlock<T> & LB){
-              std::stringstream sstm;
-              sstm.write( tree->GetLocalBuffer(), tree->GetMsgSize() );
-              std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-              deserialize( LB, sstm, mask );
-            };
-
-            auto getBlocks = [&] (Int ksup, LBlock<T> * pLB, LBlock<T> * pSinvB, Int * blockRows, Int & blockRowsSize){
-              TIMER_START(GET_BLOCKS);
-              //TODO this doesn't handle transpose if pLB->blockIdx < pSinvB->blockIdx ...
-              if(pLB->numRow>0){
-                Int* rowsSinvBPtr    = pSinvB->rows.Data();
-                Int* rowsLBPtr    = pLB->rows.Data();
-
-                //find blocks
-                Int ifr = 0;
-                Int fr = rowsLBPtr[0];
-                Int nrows = 1;
-                for( Int i = 1; i < pLB->numRow; i++ ){
-                  if(rowsLBPtr[i]==rowsLBPtr[i-1]+1){ 
-                    nrows++;
-                  }
-                  else{
-                    blockRows[blockRowsSize++] = fr;
-                    blockRows[blockRowsSize++] = nrows;
-                    blockRows[blockRowsSize++] = ifr;
-                    fr = rowsLBPtr[i];
-                    nrows = 1;
-                    ifr = i;
-                  }
-                }
-                blockRows[blockRowsSize++] = fr;
-                blockRows[blockRowsSize++] = nrows;
-                blockRows[blockRowsSize++] = ifr;
-
-                if(pLB->blockIdx == pSinvB->blockIdx){
-
-                  Int lastRowIdxSinv = 0;
-                  Int SinvBnumRow = pSinvB->numRow;
-                  for(Int ii = 0; ii<blockRowsSize;ii+=3){
-                    //#pragma omp task firstprivate(rowsLBPtr,lastRowIdxSinv,SinvBnumRow,pSinvB,pLB,rowsSinvBPtr,ii) shared(blockRows)
-                    {
-                      auto fr = blockRows[ii];
-                      auto nr = blockRows[ii+1];
-                      Int ifr = blockRows[ii+2];
-
-                      bool isRowFound = false;
-                      for( lastRowIdxSinv; lastRowIdxSinv < SinvBnumRow; lastRowIdxSinv++ ){
-                        if( fr == rowsSinvBPtr[lastRowIdxSinv] ){
-                          isRowFound = true;
-                          blockRows[ii] = lastRowIdxSinv;
-                          //#pragma omp flush(blockRows[ii])
-                          break;
-                        }
-                      }
-                      if( isRowFound == false ){
-                        std::ostringstream msg;
-                        //TODO rewrite this
-                        //msg << "Row " << rowsLBPtr[ifr] << "("<<fr<<")"
-                        //  " in pLB cannot find the corresponding row in pSinvB" << std::endl
-                        //  << "pLB->rows    = " << pLB->rows << std::endl
-                        //  << "UinvB.rows = " << pSinvB->rows << std::endl;
-                        ErrorHandling( msg.str().c_str() );
-                      }
-                    }
-                  }
-                  //#pragma omp taskwait
-                }
-                else{
-                  //assert(pLB->blockIdx<ksup);
-                  Int SinvColsSta = FirstBlockCol( ksup, super_ );
-
-                  for(Int ii = 0; ii<blockRowsSize;ii+=3){
-                    //#pragma omp task firstprivate(rowsLBPtr,lastRowIdxSinv,SinvBnumRow,pSinvB,pLB,rowsSinvBPtr,ii) shared(blockRows)
-                    {
-                      auto fr = blockRows[ii];
-                      auto nr = blockRows[ii+1];
-                      Int ifr = blockRows[ii+2];
-
-                      bool isColFound = (fr >= SinvColsSta) && (fr+nr <= SinvColsSta + pSinvB->nzval.n()); 
-
-                      if( isColFound == false ){
-                        std::ostringstream msg;
-                        //TODO rewrite this
-                        //msg << "Row " << rowsLBPtr[ifr] << "("<<fr<<")"
-                        //  " in pLB cannot find the corresponding row in pSinvB" << std::endl
-                        //  << "pLB->rows    = " << pLB->rows << std::endl
-                        //  << "UinvB.rows = " << pSinvB->rows << std::endl;
-                        ErrorHandling( msg.str().c_str() );
-                      }
-                      else{
-                        blockRows[ii] = fr - SinvColsSta;
-                      }
-                    }
-                  }
-
-                }
-              }
-              TIMER_STOP(GET_BLOCKS);
-            };
-
-
-            auto ComputeLUpdateBuf = [&](SuperNodeBufferType & snode, LBlock<T> & LB1, LBlock<T> & LB2, NumMat<T> & LUpdateBuf1, NumMat<T> & LUpdateBuf2) {
-              Int superSize = SuperSize( snode.Index, this->super_ );
-
-              Int isup = LB1.blockIdx;
-              Int jsup = LB2.blockIdx;
-
-              //pLB1 should point to the one with the largest blockIdx
-              LBlock<T> * pLB1 = &LB1;
-              LBlock<T> * pLB2 = &LB2;
-
-              TIMER_START(Compute_Sinv_L_Resize);
-              if(LUpdateBuf1.Size()==0){
-                LUpdateBuf1.Resize(pLB1->nzval.m(),SuperSize( snode.Index, this->super_ ));
-                SetValue(LUpdateBuf1,ZERO<T>());
-              }
-              TIMER_STOP(Compute_Sinv_L_Resize);
-
-              T * nzvalLUpd1 =  LUpdateBuf1.Data();
-              size_t ldLUBuf1 = LUpdateBuf1.m(); 
-
-
-              T * nzvalLUpd2 =  nullptr;
-              size_t ldLUBuf2 = 0;
-              if(pLB1!=pLB2){
-                TIMER_START(Compute_Sinv_L_Resize);
-                if(LUpdateBuf2.Size()==0){
-                  LUpdateBuf2.Resize(pLB2->nzval.m(),SuperSize( snode.Index, this->super_ ));
-                  SetValue(LUpdateBuf2,ZERO<T>());
-                }
-                TIMER_STOP(Compute_Sinv_L_Resize);
-
-                nzvalLUpd2 =  LUpdateBuf2.Data();
-                ldLUBuf2 = LUpdateBuf2.m(); 
+              if( LUpdateBuf.ByteSize() == 0 ){
+                Int n = SuperSize( snode.Index, this->super_);
+                Int m = redLTree->GetMsgSize() / n;
+                LUpdateBuf.Resize(m,n); 
+                SetValue(LUpdateBuf, ZERO<T>());
               }
 
+              //copy the buffer from the reduce tree
+              redLTree->SetLocalBuffer(LUpdateBuf.Data());
 
-              if(jsup>isup){
-                isup = LB2.blockIdx;
-                jsup = LB1.blockIdx;
-                pLB1 = &LB2;
-                pLB2 = &LB1;
-
-                nzvalLUpd1 =  LUpdateBuf2.Data();
-                nzvalLUpd2 =  LUpdateBuf1.Data();
-                ldLUBuf1 = LUpdateBuf2.m(); 
-                ldLUBuf2 = LUpdateBuf1.m(); 
-              }
-
-              size_t ldLB1 = pLB1->nzval.m(); 
-              size_t ldLB2 = pLB2->nzval.m(); 
-              T * nzvalLB1 =  pLB1->nzval.Data();
-              T * nzvalLB2 =  pLB2->nzval.Data();
-
-
-              // Pin down the corresponding block in the part of Sinv.
               {
-                std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-                bool isBlockFound = false;
-                TIMER_START(PARSING_ROW_BLOCKIDX);
-                for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
-                  // Found the (isup, jsup) block in Sinv
-                  if( LcolSinv[ibSinv].blockIdx == isup ){
-                    //std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-
-
-                    Int lastRowIdxSinv = 0;
-                    LBlock<T> * pSinvB = &LcolSinv[ibSinv];
-
-                    // Row relative indices
-                    Int* rowsLB1Ptr    = pLB1->rows.Data();
-                    Int* rowsSinvBPtr = pSinvB->rows.Data();
-                    Int SinvBnumRow = pSinvB->numRow;
-
-                    // Column relative indicies
-                    Int * rowsLB2Ptr = pLB2->rows.Data();
-
-                    //find contiguous blocks in pLB1 and pLB2
-
-                    Int blockRows1Size = 0; 
-                    Int blockRows2Size = 0;
-                    Int * blockRows1 = nullptr;
-                    Int * blockRows2 = nullptr;
-
-                    std::vector<Int> cblockRows1(3*pLB1->numRow); 
-                    blockRows1 = cblockRows1.data();
-                    //#pragma omp taskwait
-
-                    getBlocks(jsup, pLB1, pSinvB, blockRows1, blockRows1Size);
-
-
-                    std::vector<Int> cblockRows2;
-                    if(pLB1!=pLB2){
-                      cblockRows2.resize(3*pLB2->numRow);
-                      blockRows2 = cblockRows2.data();
-                      getBlocks(jsup, pLB2, pSinvB, blockRows2, blockRows2Size);
-                    }
-                    else{
-                      blockRows2 = blockRows1;
-                      blockRows2Size = blockRows1Size;
-                    }
-
-                    //#pragma omp taskwait
-
-                    // Transfer the values from Sinv to AinvBlock
-                    T* nzvalSinv = pSinvB->nzval.Data();
-                    Int ldSinv = pSinvB->numRow;
-
-
-                    //#pragma omp task shared(nzvalLUpd) shared(blockCols,blockColsSize) shared(blockRows,blockRowsSize) //depend(inout:blockColsSize) depend(inout:blockRowsSize) //depend(inout:nzvalLUpd[rowPtr[ib]])
-                    if(pLB1==pLB2){
-                      Int j = 0;
-                      for(Int jj = 0; jj<blockRows2Size;jj+=3){
-                        auto fc = blockRows2[jj];
-                        auto nc = blockRows2[jj+1];
-                        Int  ifc = blockRows2[jj+2];
-                        assert(j==ifc);
-                        Int offsetJ = j;
-                        Int i = 0;
-                        for(Int ii = 0; ii<blockRows1Size;ii+=3){
-                          auto fr = blockRows1[ii];
-                          auto nr = blockRows1[ii+1];
-                          Int ifr = blockRows1[ii+2];
-                          assert(i==ifr);
-
-                          //    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-                          Int offsetI = i;
-                          if(nr>0 && nc > 0 ){
-                            //#pragma omp task shared(nzvalLUpd,nzvalSinv,nzvalUBuf) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldUBuf,ldLUBuf,offsetI,offsetJ) //depend(inout:nzvalLUpd[offsetI]) 
-                            {
-                              blas::Gemm('N','N',nr, superSize, nc, MINUS_ONE<T>(), 
-                                  &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-                                  &nzvalLB2[j], ldLB2, ONE<T>(),
-                                  &nzvalLUpd1[i], ldLUBuf1);
-#ifdef _PRINT_STATS_  
-                              localFlops_+=flops::Gemm<T>(nr, superSize, nc);
-#endif
-                            }
-                          }
-
-
-                          i+=nr;
-                        }
-#pragma omp taskwait
-                        j+=nc;
-                      }
-                      //#pragma omp taskwait
-                    }
-                    else if(pLB1!=pLB2){
-                      //#pragma omp task shared(nzvalLUpd) shared(blockCols,blockColsSize) shared(blockRows,blockRowsSize) //depend(inout:blockColsSize) depend(inout:blockRowsSize) //depend(inout:nzvalLUpd[rowPtr[ib]])
-                      Int j = 0;
-                      for(Int jj = 0; jj<blockRows2Size;jj+=3){
-                        auto fc = blockRows2[jj];
-                        auto nc = blockRows2[jj+1];
-                        Int  ifc = blockRows2[jj+2];
-                        assert(j==ifc);
-                        Int offsetJ = j;
-                        Int i = 0;
-                        for(Int ii = 0; ii<blockRows1Size;ii+=3){
-                          auto fr = blockRows1[ii];
-                          auto nr = blockRows1[ii+1];
-                          Int ifr = blockRows1[ii+2];
-                          assert(i==ifr);
-
-                          //    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-                          Int offsetI = i;
-                          if(nr>0 && nc > 0 ){
-                            //#pragma omp task shared(nzvalLUpd,nzvalSinv,nzvalUBuf) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldUBuf,ldLUBuf,offsetI,offsetJ) //depend(inout:nzvalLUpd[offsetI]) 
-                            {
-                              blas::Gemm('N','N',nr, superSize, nc, MINUS_ONE<T>(), 
-                                  &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-                                  &nzvalLB2[j], ldLB2, ONE<T>(),
-                                  &nzvalLUpd1[i], ldLUBuf1);
-
-#ifdef _PRINT_STATS_  
-                              localFlops_+=flops::Gemm<T>(nr, superSize, nc);
-#endif
-                              assert(ldSinv>=nr);
-                              assert(ldLB1>=nr);
-                              assert(ldLUBuf2>=nc);
-                              blas::Gemm('T','N', nc,  superSize , nr , MINUS_ONE<T>(), 
-                                  &nzvalSinv[fc*ldSinv+fr], ldSinv, 
-                                  &nzvalLB1[i], ldLB1, ONE<T>(),
-                                  &nzvalLUpd2[j], ldLUBuf2);
-#ifdef _PRINT_STATS_  
-                              localFlops_+=flops::Gemm<T>(nc, superSize, nr);
-#endif
-
-                            }
-                          }
-
-
-                          i+=nr;
-                        }
-#pragma omp taskwait
-                        j+=nc;
-                      }
-                      //#pragma omp taskwait
-
-                      if (0){
-                        Int j = 0;
-                        for(Int jj = 0; jj<blockRows1Size;jj+=3){
-                          auto fc = blockRows1[jj];
-                          auto nc = blockRows1[jj+1];
-                          Int ifc = blockRows1[jj+2];
-                          assert(j==ifc);
-                          Int offsetJ = j;
-                          Int i = 0;
-                          for(Int ii = 0; ii<blockRows2Size;ii+=3){
-                            auto fr = blockRows2[ii];
-                            auto nr = blockRows2[ii+1];
-                            Int ifr = blockRows2[ii+2];
-                            assert(i==ifr);
-
-                            //    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
-                            Int offsetI = i;
-                            if(nr>0 && nc > 0 ){
-                              //#pragma omp task shared(nzvalLUpd,nzvalSinv,nzvalUBuf) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldUBuf,ldLUBuf,offsetI,offsetJ) //depend(inout:nzvalLUpd[offsetI]) 
-                              {
-                                assert(ldSinv>=nc);
-                                assert(ldLB1>=nc);
-                                assert(ldLUBuf2>=nr);
-                                blas::Gemm('T','N', nr,  superSize , nc , MINUS_ONE<T>(), 
-                                    &nzvalSinv[fr*ldSinv+fc], ldSinv, 
-                                    &nzvalLB1[j], ldLB1, ONE<T>(),
-                                    &nzvalLUpd2[i], ldLUBuf2);
-#ifdef _PRINT_STATS_  
-                                localFlops_+=flops::Gemm<T>(nr, superSize, nc);
-#endif
-                              }
-                            }
-
-
-                            i+=nr;
-                          }
-#pragma omp taskwait
-                          j+=nc;
-                        }
-                        //#pragma omp taskwait
-                      }
-                    }
-
-#pragma omp taskwait
-
-                    isBlockFound = true;
-                    break;
-                  }	
-                } // for (ibSinv )
-                TIMER_STOP(PARSING_ROW_BLOCKIDX);
-                if( isBlockFound == false ){
-                  abort();
-                  std::ostringstream msg;
-                  msg << "Block(" << isup << ", " << jsup 
-                    << ") did not find a matching block in Sinv." << std::endl;
-                  ErrorHandling( msg.str().c_str() );
-                }
-              } // if (isup, jsup) is in L
-
-            };
-
-
-
-
-
-
-
-            bool all_doneBCastL = false;
-            while(!(all_doneBCastL = std::all_of(bcastLDataDone.begin(), bcastLDataDone.end()-1, [](int v) { return v>0; })))//gemmProcessed<gemmToDo)
-            {
-
-              TIMER_START(WaitContentLU);
-              readySnode.clear();
-              while( !(all_doneBCastL = std::all_of(bcastLDataDone.begin(), bcastLDataDone.end()-1, [](int v) { return v>0; })) && readySnode.empty()) {
-                //TODO this ensure that one of the Tree is IsDone(). Ideally, we should react at IsDataReceived() 
-                TreeBcast_Testsome( treeIdx, this->bcastLDataTree_, bcastLDataIdx, bcastLDataDone);
-
-                for(auto ltidx : bcastLDataIdx){
-                  Int tidx = treeIdx[ltidx];
-                  Int supidx = treeToSupidx[ltidx]; 
-                  auto & snode = arrSuperNodes[supidx];
-
-                  Int offset = tidx - snodeTreeOffset_[snode.Index];  
-                  Int blkIdx = snodeTreeToBlkidx_[snode.Index][offset];
-
-                  if(MYPROC(this->grid_) == PNUM(PROW(blkIdx,this->grid_),PCOL(blkIdx,this->grid_),this->grid_)){
-                    readySnode.push_back(std::make_tuple(supidx,blkIdx,blkIdx,ltidx,ltidx));
-                  }
-
-                  for(Int ltidx2 = ltidx-1;ltidx2>=0;ltidx2--){
-                    if (treeToSupidx[ltidx2]!=supidx){
-                      break;
-                    }
-
-                    if( bcastLDataDone[ltidx2] ){
-                      Int tidx2 = treeIdx[ltidx2];
-                      Int offset2 = tidx2 - snodeTreeOffset_[snode.Index];  
-                      Int blkIdx2 = snodeTreeToBlkidx_[snode.Index][offset2];
-                      if(blkIdx2<blkIdx){
-                        if(MYROW(this->grid_)==PROW(blkIdx,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx2,this->grid_)){
-#if ( _DEBUGlevel_ >= 1 )
-                          statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
-#endif
-                          readySnode.push_back(std::make_tuple(supidx,blkIdx2,blkIdx,ltidx2,ltidx));
-                        }
-                      }
-                      else{
-                        if(MYROW(this->grid_)==PROW(blkIdx2,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx,this->grid_)){
-                          if ( bcastLDataDone[ltidx2] < bcastLDataDone[ltidx] ){
-#if ( _DEBUGlevel_ >= 1 )
-                            statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
-#endif
-                            readySnode.push_back(std::make_tuple(supidx,blkIdx,blkIdx2,ltidx,ltidx2));
-                          }
-                        }
-                      }
-                    }
-                  }
-
-
-                  for(Int ltidx2 = ltidx+1;ltidx2<treeIdx.size();ltidx2++){
-                    if (treeToSupidx[ltidx2]!=supidx){
-                      break;
-                    }
-
-                    if(bcastLDataDone[ltidx2]){
-                      Int tidx2 = treeIdx[ltidx2];
-                      Int offset2 = tidx2 - snodeTreeOffset_[snode.Index];  
-                      Int blkIdx2 = snodeTreeToBlkidx_[snode.Index][offset2];
-                      if(blkIdx2>blkIdx){
-                        if(MYROW(this->grid_)==PROW(blkIdx2,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx,this->grid_)){
-                          if ( bcastLDataDone[ltidx2] < bcastLDataDone[ltidx] ){
-#if ( _DEBUGlevel_ >= 1 )
-                            statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
-#endif
-                            readySnode.push_back(std::make_tuple(supidx,blkIdx,blkIdx2,ltidx,ltidx2));
-                          }
-                        }
-                      }
-                      else {
-                        if(MYROW(this->grid_)==PROW(blkIdx,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx2,this->grid_)){
-#if ( _DEBUGlevel_ >= 1 )
-                          statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
-#endif
-                          readySnode.push_back(std::make_tuple(supidx,blkIdx2,blkIdx,ltidx2,ltidx));
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              TIMER_STOP(WaitContentLU);
-
-              //If I have some work to do 
-              if(readySnode.size()>0)
-              {
-                //gdb_lock();
-                for(auto && operation: readySnode){
-                  auto & supidx = std::get<0>(operation);
-                  auto & blkIdx1 = std::get<1>(operation);
-                  auto & blkIdx2 = std::get<2>(operation);
-                  auto & ltidx1 = std::get<3>(operation);
-                  auto & ltidx2 = std::get<4>(operation);
-                  auto & snode = arrSuperNodes[supidx];
-
-                  if (blkIdx1==blkIdx2){
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<"["<<snode.Index<<"] Processing operation A^-1 * L("<<blkIdx1<<","<<snode.Index<<")"<<std::endl;
-#endif
-
-                    auto & bcastLDataTree1 = this->bcastLDataTree_[ treeIdx[ltidx1] ];
-                    LBlock<T> LB1;
-                    //Unpack the data
-                    UnpackLBlock(bcastLDataTree1, LB1);
-                    auto & LUpdateBuf1 = snode.LUpdateBufBlk[treeToBufIdx[ltidx1]];
-                    ComputeLUpdateBuf(snode, LB1, LB1, LUpdateBuf1, LUpdateBuf1);
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<"["<<snode.Index<<"] Decreasing gemmCount of "<<ltidx1<<" after U("<<blkIdx1<<")"<<std::endl;
-                    assert(gemmCount[ltidx1]>0);
-#endif
-                    gemmCount[ltidx1]--;
-                  }
-                  else{
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<"["<<snode.Index<<"] Processing operations A^-1 * L("<<blkIdx1<<","<<snode.Index<<") and A^-1 * L("<<blkIdx2<<","<<snode.Index<<")"<<std::endl;
-#endif
-
-                    auto & bcastLDataTree1 = this->bcastLDataTree_[ treeIdx[ltidx1] ];
-                    auto & bcastLDataTree2 = this->bcastLDataTree_[ treeIdx[ltidx2] ];
-
-                    LBlock<T> LB1,LB2;
-                    //Unpack the data
-                    UnpackLBlock(bcastLDataTree1, LB1);
-                    UnpackLBlock(bcastLDataTree2, LB2);
-
-                    auto & LUpdateBuf1 = snode.LUpdateBufBlk[treeToBufIdx[ltidx1]];
-                    auto & LUpdateBuf2 = snode.LUpdateBufBlk[treeToBufIdx[ltidx2]];
-                    ComputeLUpdateBuf(snode, LB1, LB2,LUpdateBuf1,LUpdateBuf2);
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<"["<<snode.Index<<"] Decreasing gemmCount of "<<ltidx1<<" after U("<<blkIdx1<<","<<blkIdx2<<")"<<std::endl;
-                    statusOFS<<"["<<snode.Index<<"] Decreasing gemmCount of "<<ltidx2<<" after U("<<blkIdx1<<","<<blkIdx2<<")"<<std::endl;
-                    assert(gemmCount[ltidx1]>0);
-                    assert(gemmCount[ltidx2]>0);
-#endif
-                    gemmCount[ltidx1]--;
-                    gemmCount[ltidx2]--;
-                  }
-#if 1
-#ifdef REDUCE_L
-                  if (gemmCount[ltidx1]==0){
-                    auto & bcastLDataTree1 = this->bcastLDataTree_[ treeIdx[ltidx1] ];
-                    auto & LUpdateBuf1 = snode.LUpdateBufBlk[treeToBufIdx[ltidx1]];
-                    //Now participate to the reduction of L1
-                    auto & redLTree1 = this->redLTree2_[ treeIdx[ltidx1] ];
-                    assert(redLTree1!=nullptr);
-                    assert(LUpdateBuf1.Size() == redLTree1->GetMsgSize());
-                    redLTree1->SetLocalBuffer(LUpdateBuf1.Data());
-#ifdef _PRINT_STATS_
-                    this->localFlops_+=flops::Axpy<T>(LUpdateBuf1.Size());
-#endif
-                    redLTree1->SetDataReady(true);
-                    redLTree1->Progress();
-                    bcastLDataTree1->cleanupBuffers();
-                  }
-                  if (blkIdx1!=blkIdx2 && gemmCount[ltidx2]==0){
-                    auto & bcastLDataTree2 = this->bcastLDataTree_[ treeIdx[ltidx2] ];
-                    auto & LUpdateBuf2 = snode.LUpdateBufBlk[treeToBufIdx[ltidx2]];
-                    //Now participate to the reduction of L2
-                    auto & redLTree2 = this->redLTree2_[ treeIdx[ltidx2] ];
-                    assert(redLTree2!=nullptr);
-                    //redLTree2->SetMsgSize( LUpdateBuf2.Size() );
-                    assert(LUpdateBuf2.Size() == redLTree2->GetMsgSize());
-                    redLTree2->SetLocalBuffer(LUpdateBuf2.Data());
-#ifdef _PRINT_STATS_
-                    this->localFlops_+=flops::Axpy<T>(LUpdateBuf2.Size());
-#endif
-                    redLTree2->SetDataReady(true);
-                    redLTree2->Progress();
-                    bcastLDataTree2->cleanupBuffers();
-                  }
-#endif
-#endif
-                }
-
-
-                //              //TODO this is pure debug code
-#if 0
-                for(auto && operation: readySnode){
-                  auto & supidx = std::get<0>(operation);
-                  auto & blkIdx1 = std::get<1>(operation);
-                  auto & blkIdx2 = std::get<2>(operation);
-                  auto & ltidx1 = std::get<3>(operation);
-                  auto & ltidx2 = std::get<4>(operation);
-                  auto & snode = arrSuperNodes[supidx];
-
-                  //assert(gemmCount[ltidx1]==0);
-                  //assert(blkIdx1==blkIdx2 || gemmCount[ltidx2]==0);
-
-#ifdef REDUCE_L
-                  if (gemmCount[ltidx1]==0){
-                    auto & bcastLDataTree1 = this->bcastLDataTree_[snode.Index*numSuper + blkIdx1];
-                    auto & LUpdateBuf1 = snode.LUpdateBufBlk[blkIdx1];
-                    //Now participate to the reduction of L1
-                    auto & redLTree1 = this->redLTree2_[snode.Index*numSuper + blkIdx1];
-                    assert(redLTree1!=nullptr);
-                    assert(LUpdateBuf1.Size() == redLTree1->GetMsgSize());
-                    redLTree1->SetLocalBuffer(LUpdateBuf1.Data());
-#ifdef _PRINT_STATS_
-                    this->localFlops_+=flops::Axpy<T>(LUpdateBuf1.Size());
-#endif
-                    redLTree1->SetDataReady(true);
-                    redLTree1->Progress();
-                    bcastLDataTree1->cleanupBuffers();
-                  }
-                  if (blkIdx1!=blkIdx2 && gemmCount[ltidx2]==0){
-                    auto & bcastLDataTree2 = this->bcastLDataTree_[snode.Index*numSuper + blkIdx2];
-                    auto & LUpdateBuf2 = snode.LUpdateBufBlk[blkIdx2];
-                    //Now participate to the reduction of L2
-                    auto & redLTree2 = this->redLTree2_[snode.Index*numSuper + blkIdx2];
-                    assert(redLTree2!=nullptr);
-                    //redLTree2->SetMsgSize( LUpdateBuf2.Size() );
-                    assert(LUpdateBuf2.Size() == redLTree2->GetMsgSize());
-                    redLTree2->SetLocalBuffer(LUpdateBuf2.Data());
-#ifdef _PRINT_STATS_
-                    this->localFlops_+=flops::Axpy<T>(LUpdateBuf2.Size());
-#endif
-                    redLTree2->SetDataReady(true);
-                    redLTree2->Progress();
-                    bcastLDataTree2->cleanupBuffers();
-                  }
-#endif
-
-
-                }
-#endif
-
-
-              }
-
-              //Progress the reduction trees
-              //        TIMER_START(Progress_all_reductions);
-#ifdef REDUCE_L
-              //        TIMER_START(Progress_all_reductions_L);
-              //            TreeReduce_ProgressAll(superList[lidx],this->redLTree2_);
-              //        TIMER_STOP(Progress_all_reductions_L);
-#endif
-#ifdef REDUCE_U
-              //        TIMER_START(Progress_all_reductions_U);
-              //            TreeReduce_ProgressAll(superList[lidx],this->redUTree2_);
-              //        TIMER_STOP(Progress_all_reductions_U);
-#endif
-              //        TIMER_STOP(Progress_all_reductions);
-            }
-
-
-
-          }
-          TIMER_STOP(Compute_Sinv_LU);
-
-#if 0
-#ifdef REDUCE_L
-          for(int ltidx = 0; ltidx<treeIdx.size();ltidx++){
-            if (gemmCount[ltidx]==0){
-
-              Int tidx = treeIdx[ltidx];
-              Int blkIdx = tidx % numSuper;
-              Int ksup = tidx / numSuper;
-              Int supidx = treeToSupidx[ltidx]; 
-              auto & snode = arrSuperNodes[supidx];
-
-              auto & bcastLDataTree1 = this->bcastLDataTree_[ksup*numSuper + blkIdx];
-              auto & LUpdateBuf1 = snode.LUpdateBufBlk[blkIdx];
-              //Now participate to the reduction of L1
-              auto & redLTree1 = this->redLTree2_[ksup*numSuper + blkIdx];
-              assert(redLTree1!=nullptr);
-              assert(LUpdateBuf1.Size() == redLTree1->GetMsgSize());
-              redLTree1->SetLocalBuffer(LUpdateBuf1.Data());
-#ifdef _PRINT_STATS_
-              this->localFlops_+=flops::Axpy<T>(LUpdateBuf1.Size());
-#endif
-              redLTree1->SetDataReady(true);
-              redLTree1->Progress();
-              bcastLDataTree1->cleanupBuffers();
-            }
-          }
-#endif
-#endif
-
-
-
-
-
-#ifdef REDUCE_L
-#ifdef BLOCK_REDUCE_L
-          TreeReduce_Waitall( treeIdx, this->redLTree2_);
-#endif
-
-          TIMER_START(Reduce_Sinv_L);
-          std::list<int> redLIdx; 
-          std::vector<bool> redLdone(treeIdx.size(),false);
-
-
-
-
-          for(Int ltidx=0;ltidx<treeIdx.size();ltidx++){
-            Int tidx = treeIdx[ltidx];
-            auto & redLTree = this->redLTree2_[tidx];
-            if(redLTree!=nullptr){
-              if(redLTree->IsRoot()){
-                redLTree->AllocRecvBuffers();
-                redLTree->SetDataReady(true);
-                redLTree->Progress();
-              }
-            }
-          }
-
-
-          bool all_doneL = false;
-          while(!(all_doneL = std::all_of(redLdone.begin(), redLdone.end(), [](bool v) { return v; }))){
-            TreeReduce_Testsome( treeIdx, this->redLTree2_, redLIdx, redLdone);
-
-            for(auto ltidx : redLIdx){
-              Int tidx = treeIdx[ltidx];
-              Int supidx = treeToSupidx[ltidx]; 
-              auto & snode = arrSuperNodes[supidx];
-
-              Int offset = tidx - snodeTreeOffset_[snode.Index];  
-              Int blkIdx = snodeTreeToBlkidx_[snode.Index][offset];
-
-              auto & redLTree = this->redLTree2_[tidx];
-
-#if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl << "["<<snode.Index<<"] REDUCE L is done"<<std::endl;
-#endif
-              if(redLTree->IsRoot()){
-
-                //TODO this has to be index by ib instead of blkidx ? or use a map instead....
-                auto & LUpdateBuf = snode.LUpdateBufBlk[treeToBufIdx[ltidx]];
-
-                if( LUpdateBuf.ByteSize() == 0 ){
-                  Int n = SuperSize( snode.Index, this->super_);
-                  Int m = redLTree->GetMsgSize() / n;
-                  LUpdateBuf.Resize(m,n); 
-                  SetValue(LUpdateBuf, ZERO<T>());
-                }
-
-                //copy the buffer from the reduce tree
-                redLTree->SetLocalBuffer(LUpdateBuf.Data());
-
-                //TODO replace this by appropriate function
-#ifdef REDUCE_D
-                {
-                  //---------Computing  Diagonal block, all processors in the column are participating to all pipelined supernodes
-                  if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+                //---------Computing  Diagonal block, all processors in the column are participating to all pipelined supernodes
+                if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
 #if ( _DEBUGlevel_ >= 2 )
-                    statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updating the diagonal block" << std::endl << std::endl; 
+                  statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updating the diagonal block" << std::endl << std::endl; 
 #endif
-                    std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
+                  std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
 
-                    //If this is the first time we are updating that supernode
-                    if(gemmCountDiag[supidx]==0){
-                      //Allocate DiagBuf even if Lcol.size() == 0
-                      snode.DiagBuf.Resize(SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+                  //If this is the first time we are updating that supernode
+                  if(gemmCountDiag[supidx]==0){
+                    //Allocate DiagBuf even if Lcol.size() == 0
+                    snode.DiagBuf.Resize(SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+                    SetValue(snode.DiagBuf, ZERO<T>());
+                  }
+
+                  // Do I own the diagonal block ?
+                  Int startIb = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
+                  Int ib = treeToIb[ltidx];
+                  LBlock<T> & LB = Lcol[ib];
+                  {
+#ifdef GEMM_PROFILE
+                    gemm_stat.push_back(snode.DiagBuf.m());
+                    gemm_stat.push_back(snode.DiagBuf.n());
+                    gemm_stat.push_back(Lcol[ib].numRow);
+#endif
+                    assert(LB.nzval.Size()==LUpdateBuf.Size());
+                    assert(LUpdateBuf.m()>=LB.numRow);
+                    blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), LB.numRow,
+                        MINUS_ONE<T>(), 
+                        LUpdateBuf.Data(), LUpdateBuf.m(),
+                        LB.nzval.Data(), LB.nzval.m(), 
+                        ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
+                    gemmCountDiag[supidx]++;
+#ifdef _PRINT_STATS_
+                    this->localFlops_+=flops::Gemm<T>(snode.DiagBuf.m(), snode.DiagBuf.n(), LB.numRow);
+#endif
+                  }
+#if ( _DEBUGlevel_ >= 1 )
+                  statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updated the diagonal block" << std::endl << std::endl; 
+#endif
+                }
+              }
+
+              if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+                auto & redDTree = this->redDTree2_[snode.Index];
+                if(redDTree!=nullptr){
+                  std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
+                  Int startIb = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
+                  if(gemmCountDiag[supidx]==Lcol.size()-startIb){
+                    //send the data
+                    if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
+                      snode.DiagBuf.Resize( SuperSize( snode.Index, this->super_ ), SuperSize( snode.Index, this->super_ ));
                       SetValue(snode.DiagBuf, ZERO<T>());
                     }
 
-                    // Do I own the diagonal block ?
-                    Int startIb = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
-                    Int ib = treeToIb[ltidx];
-                    LBlock<T> & LB = Lcol[ib];
-                    {
-#ifdef GEMM_PROFILE
-                      gemm_stat.push_back(snode.DiagBuf.m());
-                      gemm_stat.push_back(snode.DiagBuf.n());
-                      gemm_stat.push_back(Lcol[ib].numRow);
-#endif
-                      assert(LB.nzval.Size()==LUpdateBuf.Size());
-                      assert(LUpdateBuf.m()>=LB.numRow);
-                      blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), LB.numRow,
-                          MINUS_ONE<T>(), 
-                          LUpdateBuf.Data(), LUpdateBuf.m(),
-                          LB.nzval.Data(), LB.nzval.m(), 
-                          ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
-                      gemmCountDiag[supidx]++;
-#ifdef _PRINT_STATS_
-                      this->localFlops_+=flops::Gemm<T>(snode.DiagBuf.m(), snode.DiagBuf.n(), LB.numRow);
-#endif
+                    if(!redDTree->IsAllocated()){
+                      redDTree->AllocRecvBuffers();
                     }
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS << std::endl << "["<<snode.Index<<"] "<<   "Updated the diagonal block" << std::endl << std::endl; 
+
+                    //set the buffer and mark as active
+                    redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+#ifdef _PRINT_STATS_
+                    this->localFlops_+=flops::Axpy<T>(snode.DiagBuf.Size());
 #endif
+
+                    redDTree->SetDataReady(true);
+                    redDTree->Progress();
                   }
                 }
-
-                if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                  auto & redDTree = this->redDTree2_[snode.Index];
-                  if(redDTree!=nullptr){
-                    std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
-                    Int startIb = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
-                    if(gemmCountDiag[supidx]==Lcol.size()-startIb){
-                      //send the data
-                      if( redDTree->IsRoot() &&  snode.DiagBuf.Size()==0){
-                        snode.DiagBuf.Resize( SuperSize( snode.Index, this->super_ ), SuperSize( snode.Index, this->super_ ));
-                        SetValue(snode.DiagBuf, ZERO<T>());
-                      }
-
-                      if(!redDTree->IsAllocated()){
-                        redDTree->AllocRecvBuffers();
-                      }
-
-                      //set the buffer and mark as active
-                      redDTree->SetLocalBuffer(snode.DiagBuf.Data());
-#ifdef _PRINT_STATS_
-                      this->localFlops_+=flops::Axpy<T>(snode.DiagBuf.Size());
-#endif
-
-                      redDTree->SetDataReady(true);
-                      redDTree->Progress();
-                    }
-                  }
-                }
-
-
-
-
-#endif
-
-                //Overwrite L with LUpdateBuf
-                TIMER_START(Update_L);
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "
-                  << "Finish updating the L part by filling LUpdateBufReduced"
-                  << " back to L" << std::endl << std::endl; 
-#endif
-
-                auto & Lcol = this->L(LBj(snode.Index,this->grid_));
-                Int ib = treeToIb[ltidx];
-                auto & LB = Lcol[ib];
-
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS << "["<<snode.Index<<"] LB "<<blkIdx<<" rows "<<LB.rows<<std::endl;
-                statusOFS << "["<<snode.Index<<"] LB "<<blkIdx<<" before "<<LB.nzval<<std::endl;
-#endif
-                //Indices follow L order... look at Lrow
-                lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
-                    LUpdateBuf.Data(),
-                    LUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
-
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS << "["<<snode.Index<<"] LB "<<blkIdx<<" after "<<LB.nzval<<std::endl;
-#endif
-                TIMER_STOP(Update_L);
               }
-              redLTree->cleanupBuffers();
-            }
 
-            //Progress U and D reduction trees
-            //        TIMER_START(Progress_all_reductions);
-#ifdef REDUCE_U
-            //        TIMER_START(Progress_all_reductions_U);
-            //          TreeReduce_ProgressAll(superList[lidx],this->redUTree2_);
-            //        TIMER_STOP(Progress_all_reductions_U);
-#endif
-#ifdef REDUCE_D
-            //        TIMER_START(Progress_all_reductions_D);
-            //          TreeReduce_ProgressAll(superList[lidx],this->redDTree2_);
-            //        TIMER_STOP(Progress_all_reductions_D);
-#endif
-            //        TIMER_STOP(Progress_all_reductions);
 
-            //Check if we are done with the reductions of L
-
-          }
-          TIMER_STOP(Reduce_Sinv_L);
+              //Overwrite L with LUpdateBuf
+              TIMER_START(Update_L);
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"All reductions of L are done"<<std::endl;
-#endif
+              statusOFS << std::endl << "["<<snode.Index<<"] "
+                << "Finish updating the L part by filling LUpdateBufReduced"
+                << " back to L" << std::endl << std::endl; 
 #endif
 
-#ifdef REDUCE_D
+              auto & Lcol = this->L(LBj(snode.Index,this->grid_));
+              Int ib = treeToIb[ltidx];
+              auto & LB = Lcol[ib];
 
-          for(auto && snode : arrSuperNodes){
-            auto & redDTree = this->redDTree2_[snode.Index];
-            if(redDTree!=nullptr){
-              if(redDTree->IsRoot()){
-                if( snode.DiagBuf.Size()==0){
-                  snode.DiagBuf.Resize( SuperSize( snode.Index, this->super_ ), SuperSize( snode.Index, this->super_ ));
-                  SetValue(snode.DiagBuf, ZERO<T>());
-                }
-                redDTree->AllocRecvBuffers();
-                redDTree->SetDataReady(true);
-                redDTree->Progress();
-              }
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS << "["<<snode.Index<<"] LB "<<blkIdx<<" rows "<<LB.rows<<std::endl;
+              statusOFS << "["<<snode.Index<<"] LB "<<blkIdx<<" before "<<LB.nzval<<std::endl;
+#endif
+              //Indices follow L order... look at Lrow
+              lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
+                  LUpdateBuf.Data(),
+                  LUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
+
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS << "["<<snode.Index<<"] LB "<<blkIdx<<" after "<<LB.nzval<<std::endl;
+#endif
+              TIMER_STOP(Update_L);
             }
+            redLTree->cleanupBuffers();
           }
 
-#ifdef BLOCK_REDUCE_D
-          TreeReduce_Waitall( superList[lidx], this->redDTree2_);
-#endif
+          //Progress U and D reduction trees
+          //        TIMER_START(Progress_all_reductions);
+          //        TIMER_START(Progress_all_reductions_U);
+          //          TreeReduce_ProgressAll(superList[lidx],this->redUTree2_);
+          //        TIMER_STOP(Progress_all_reductions_U);
+          //        TIMER_START(Progress_all_reductions_D);
+          //          TreeReduce_ProgressAll(superList[lidx],this->redDTree2_);
+          //        TIMER_STOP(Progress_all_reductions_D);
+          //        TIMER_STOP(Progress_all_reductions);
 
-          //Reduce D
-          TIMER_START(Reduce_Diagonal);
-          std::list<int> redDIdx; 
-          std::vector<bool> redDdone(stepSuper,false);
-          bool all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
-          while(!all_doneD){
-            TreeReduce_Testsome( superList[lidx], this->redDTree2_, redDIdx, redDdone);
-
-            for(auto supidx : redDIdx){ 
-              auto & snode = arrSuperNodes[supidx];
-
-
-              auto & redDTree = this->redDTree2_[snode.Index];
-#if ( _DEBUGlevel_ >= 1 )
-              statusOFS << std::endl << "["<<snode.Index<<"] REDUCE D is done"<<std::endl;
-#endif
-              if(redDTree->IsRoot()){
-                //copy the buffer from the reduce tree
-                if( snode.DiagBuf.Size()==0 ){
-                  snode.DiagBuf.Resize( SuperSize( snode.Index, this->super_ ), SuperSize( snode.Index, this->super_ ));
-                  SetValue(snode.DiagBuf, ZERO<T>());
-                }
-                redDTree->SetLocalBuffer(snode.DiagBuf.Data());
-
-                LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) ).front();
-                //Transpose(LB.nzval, LB.nzval);
-                blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-                Symmetrize( LB.nzval );
-
-#ifdef _PRINT_STATS_
-                this->localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
-#endif
-
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"["<<snode.Index<<"] Diag after update:"<<std::endl<<LB.nzval<<std::endl;
-#endif
-              }
-              redDTree->cleanupBuffers();
-            }
-
-            //Check if we are done with the reduction of D
-            all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
-          }
-          TIMER_STOP(Reduce_Diagonal);
-          //--------------------- End of reduce of D -------------------------
-
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"All reductions of D are done"<<std::endl;
-#endif
-
-#endif
-
-          TIMER_START(Barrier);
-          TreeBcast_Waitall( treeIdx,  this->bcastLDataTree_);
-#ifdef REDUCE_L
-          TreeReduce_Waitall( treeIdx, this->redLTree2_);
-#endif
-#ifdef REDUCE_D
-          TreeReduce_Waitall( superList[lidx], this->redDTree2_);
-#endif
-          TIMER_STOP(Barrier);
-
-
-
+          //Check if we are done with the reductions of L
 
         }
+        TIMER_STOP(Reduce_Sinv_L);
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"All reductions of L are done"<<std::endl;
 #endif
+
+
+        for(auto && snode : arrSuperNodes){
+          auto & redDTree = this->redDTree2_[snode.Index];
+          if(redDTree!=nullptr){
+            if(redDTree->IsRoot()){
+              if( snode.DiagBuf.Size()==0){
+                snode.DiagBuf.Resize( SuperSize( snode.Index, this->super_ ), SuperSize( snode.Index, this->super_ ));
+                SetValue(snode.DiagBuf, ZERO<T>());
+              }
+              redDTree->AllocRecvBuffers();
+              redDTree->SetDataReady(true);
+              redDTree->Progress();
+            }
+          }
+        }
+
+#ifdef BLOCK_REDUCE_D
+        TreeReduce_Waitall( superList[lidx], this->redDTree2_);
+#endif
+
+        //Reduce D
+        TIMER_START(Reduce_Diagonal);
+        std::list<int> redDIdx; 
+        std::vector<bool> redDdone(stepSuper,false);
+        bool all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
+        while(!all_doneD){
+          TreeReduce_Testsome( superList[lidx], this->redDTree2_, redDIdx, redDdone);
+
+          for(auto supidx : redDIdx){ 
+            auto & snode = arrSuperNodes[supidx];
+
+
+            auto & redDTree = this->redDTree2_[snode.Index];
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << std::endl << "["<<snode.Index<<"] REDUCE D is done"<<std::endl;
+#endif
+            if(redDTree->IsRoot()){
+              //copy the buffer from the reduce tree
+              if( snode.DiagBuf.Size()==0 ){
+                snode.DiagBuf.Resize( SuperSize( snode.Index, this->super_ ), SuperSize( snode.Index, this->super_ ));
+                SetValue(snode.DiagBuf, ZERO<T>());
+              }
+              redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+
+              LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) ).front();
+              //Transpose(LB.nzval, LB.nzval);
+              blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
+              Symmetrize( LB.nzval );
+
+#ifdef _PRINT_STATS_
+              this->localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
+#endif
+
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<"["<<snode.Index<<"] Diag after update:"<<std::endl<<LB.nzval<<std::endl;
+#endif
+            }
+            redDTree->cleanupBuffers();
+          }
+
+          //Check if we are done with the reduction of D
+          all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
+        }
+        TIMER_STOP(Reduce_Diagonal);
+        //--------------------- End of reduce of D -------------------------
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<"All reductions of D are done"<<std::endl;
+#endif
+
+
+        TIMER_START(Barrier);
+        TreeBcast_Waitall( treeIdx,  this->bcastLDataTree_);
+        TreeReduce_Waitall( treeIdx, this->redLTree2_);
+        TreeReduce_Waitall( superList[lidx], this->redDTree2_);
+        TIMER_STOP(Barrier);
+
+
+
+
+      }
     }
 
   template<typename T>
@@ -5999,1323 +3736,1271 @@ delete [] blockRows;
   template<typename T>
     void PMatrix<T>::ConstructCommunicationPattern_P2p	(  )
     {
-#ifndef _SYM_STORAGE_
+      if (options_->symmetricStorage!=1){
 
 #ifdef COMMUNICATOR_PROFILE
-      CommunicatorStat stats;
-      stats.countSendToBelow_.Resize(numSuper);
-      stats.countSendToRight_.Resize(numSuper);
-      stats.countRecvFromBelow_.Resize( numSuper );
-      SetValue( stats.countSendToBelow_, 0 );
-      SetValue( stats.countSendToRight_, 0 );
-      SetValue( stats.countRecvFromBelow_, 0 );
+        CommunicatorStat stats;
+        stats.countSendToBelow_.Resize(numSuper);
+        stats.countSendToRight_.Resize(numSuper);
+        stats.countRecvFromBelow_.Resize( numSuper );
+        SetValue( stats.countSendToBelow_, 0 );
+        SetValue( stats.countSendToRight_, 0 );
+        SetValue( stats.countRecvFromBelow_, 0 );
 #endif
 
 
 
 
-      Int numSuper = this->NumSuper();
+        Int numSuper = this->NumSuper();
 
-      TIMER_START(Allocate);
+        TIMER_START(Allocate);
 
 
 
-      fwdToBelowTree_.resize(numSuper, NULL );
-      fwdToRightTree_.resize(numSuper, NULL );
-      redToLeftTree_.resize(numSuper, NULL );
-      redToAboveTree_.resize(numSuper, NULL );
+        fwdToBelowTree_.resize(numSuper, NULL );
+        fwdToRightTree_.resize(numSuper, NULL );
+        redToLeftTree_.resize(numSuper, NULL );
+        redToAboveTree_.resize(numSuper, NULL );
 
-      isSendToBelow_.Resize(grid_->numProcRow, numSuper);
-      isSendToRight_.Resize(grid_->numProcCol, numSuper);
-      isSendToDiagonal_.Resize( numSuper );
-      SetValue( isSendToBelow_, false );
-      SetValue( isSendToRight_, false );
-      SetValue( isSendToDiagonal_, false );
+        isSendToBelow_.Resize(grid_->numProcRow, numSuper);
+        isSendToRight_.Resize(grid_->numProcCol, numSuper);
+        isSendToDiagonal_.Resize( numSuper );
+        SetValue( isSendToBelow_, false );
+        SetValue( isSendToRight_, false );
+        SetValue( isSendToDiagonal_, false );
 
-      isSendToCrossDiagonal_.Resize(grid_->numProcCol+1, numSuper );
-      SetValue( isSendToCrossDiagonal_, false );
-      isRecvFromCrossDiagonal_.Resize(grid_->numProcRow+1, numSuper );
-      SetValue( isRecvFromCrossDiagonal_, false );
+        isSendToCrossDiagonal_.Resize(grid_->numProcCol+1, numSuper );
+        SetValue( isSendToCrossDiagonal_, false );
+        isRecvFromCrossDiagonal_.Resize(grid_->numProcRow+1, numSuper );
+        SetValue( isRecvFromCrossDiagonal_, false );
 
-      isRecvFromAbove_.Resize( numSuper );
-      isRecvFromLeft_.Resize( numSuper );
-      isRecvFromBelow_.Resize( grid_->numProcRow, numSuper );
-      SetValue( isRecvFromAbove_, false );
-      SetValue( isRecvFromBelow_, false );
-      SetValue( isRecvFromLeft_, false );
+        isRecvFromAbove_.Resize( numSuper );
+        isRecvFromLeft_.Resize( numSuper );
+        isRecvFromBelow_.Resize( grid_->numProcRow, numSuper );
+        SetValue( isRecvFromAbove_, false );
+        SetValue( isRecvFromBelow_, false );
+        SetValue( isRecvFromLeft_, false );
 
-      TIMER_STOP(Allocate);
+        TIMER_STOP(Allocate);
 
-      TIMER_START(GetEtree);
-      std::vector<Int> snodeEtree(this->NumSuper());
-      GetEtree(snodeEtree);
-      TIMER_STOP(GetEtree);
+        TIMER_START(GetEtree);
+        std::vector<Int> snodeEtree(this->NumSuper());
+        GetEtree(snodeEtree);
+        TIMER_STOP(GetEtree);
 
 
 
 #if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "Local column communication" << std::endl;
+        statusOFS << std::endl << "Local column communication" << std::endl;
 #endif
-      // localColBlockRowIdx stores the nonzero block indices for each local block column.
-      // The nonzero block indices including contribution from both L and U.
-      // Dimension: numLocalBlockCol x numNonzeroBlock
-      std::vector<std::set<Int> >   localColBlockRowIdx;
+        // localColBlockRowIdx stores the nonzero block indices for each local block column.
+        // The nonzero block indices including contribution from both L and U.
+        // Dimension: numLocalBlockCol x numNonzeroBlock
+        std::vector<std::set<Int> >   localColBlockRowIdx;
 
-      localColBlockRowIdx.resize( this->NumLocalBlockCol() );
-
-
-      TIMER_START(Column_communication);
+        localColBlockRowIdx.resize( this->NumLocalBlockCol() );
 
 
-      for( Int ksup = 0; ksup < numSuper; ksup++ ){
-        // All block columns perform independently
-        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-
-
-          // Communication
-          std::vector<Int> tAllBlockRowIdx;
-          std::vector<Int> & colBlockIdx = ColBlockIdx(LBj(ksup, grid_));
-          TIMER_START(Allgatherv_Column_communication);
-          if( grid_ -> mpisize != 1 )
-            mpi::Allgatherv( colBlockIdx, tAllBlockRowIdx, grid_->colComm );
-          else
-            tAllBlockRowIdx = colBlockIdx;
-
-          TIMER_STOP(Allgatherv_Column_communication);
-
-          localColBlockRowIdx[LBj( ksup, grid_ )].insert(
-              tAllBlockRowIdx.begin(), tAllBlockRowIdx.end() );
-
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS 
-            << " Column block " << ksup 
-            << " has the following nonzero block rows" << std::endl;
-          for( std::set<Int>::iterator si = localColBlockRowIdx[LBj( ksup, grid_ )].begin();
-              si != localColBlockRowIdx[LBj( ksup, grid_ )].end();
-              si++ ){
-            statusOFS << *si << "  ";
-          }
-          statusOFS << std::endl; 
-#endif
-
-        } // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
-      } // for(ksup)
-
-
-
-      TIMER_STOP(Column_communication);
-
-      TIMER_START(Row_communication);
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "Local row communication" << std::endl;
-#endif
-      // localRowBlockColIdx stores the nonzero block indices for each local block row.
-      // The nonzero block indices including contribution from both L and U.
-      // Dimension: numLocalBlockRow x numNonzeroBlock
-      std::vector<std::set<Int> >   localRowBlockColIdx;
-
-      localRowBlockColIdx.resize( this->NumLocalBlockRow() );
-
-      for( Int ksup = 0; ksup < numSuper; ksup++ ){
-        // All block columns perform independently
-        if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
-
-          // Communication
-          std::vector<Int> tAllBlockColIdx;
-          std::vector<Int> & rowBlockIdx = RowBlockIdx(LBi(ksup, grid_));
-          TIMER_START(Allgatherv_Row_communication);
-          if( grid_ -> mpisize != 1 )
-            mpi::Allgatherv( rowBlockIdx, tAllBlockColIdx, grid_->rowComm );
-          else
-            tAllBlockColIdx = rowBlockIdx;
-
-          TIMER_STOP(Allgatherv_Row_communication);
-
-          localRowBlockColIdx[LBi( ksup, grid_ )].insert(
-              tAllBlockColIdx.begin(), tAllBlockColIdx.end() );
-
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS 
-            << " Row block " << ksup 
-            << " has the following nonzero block columns" << std::endl;
-          for( std::set<Int>::iterator si = localRowBlockColIdx[LBi( ksup, grid_ )].begin();
-              si != localRowBlockColIdx[LBi( ksup, grid_ )].end();
-              si++ ){
-            statusOFS << *si << "  ";
-          }
-          statusOFS << std::endl; 
-#endif
-
-        } // if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
-      } // for(ksup)
-
-
-      TIMER_STOP(Row_communication);
-
-      TIMER_START(STB_RFA);
-      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
-
-#ifdef COMMUNICATOR_PROFILE
-        std::vector<bool> sTB(grid_->numProcRow,false);
-#endif
-        // Loop over all the supernodes to the right of ksup
-        Int jsup = snodeEtree[ksup];
-        while(jsup<numSuper){
-          Int jsupLocalBlockCol = LBj( jsup, grid_ );
-          Int jsupProcCol = PCOL( jsup, grid_ );
-          if( MYCOL( grid_ ) == jsupProcCol ){
-            // SendToBelow / RecvFromAbove only if (ksup, jsup) is nonzero.
-            if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 ) {
-              for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
-                  si != localColBlockRowIdx[jsupLocalBlockCol].end(); si++	 ){
-                Int isup = *si;
-                Int isupProcRow = PROW( isup, grid_ );
-                if( isup > ksup ){
-                  if( MYROW( grid_ ) == isupProcRow ){
-                    isRecvFromAbove_(ksup) = true;
-                  }
-                  if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
-                    isSendToBelow_( isupProcRow, ksup ) = true;
-                  }
-                } // if( isup > ksup )
-              } // for (si)
-            } // if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 )
-#ifdef COMMUNICATOR_PROFILE
-            sTB[ PROW(ksup,grid_) ] = true;
-            if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 ) {
-              for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
-                  si != localColBlockRowIdx[jsupLocalBlockCol].end(); si++	 ){
-                Int isup = *si;
-                Int isupProcRow = PROW( isup, grid_ );
-                if( isup > ksup ){
-                  sTB[isupProcRow] = true;
-                } // if( isup > ksup )
-              } // for (si)
-            }
-#endif
-
-
-
-          } // if( MYCOL( grid_ ) == PCOL( jsup, grid_ ) )
-          jsup = snodeEtree[jsup];
-        } // for(jsup)
-
-#ifdef COMMUNICATOR_PROFILE
-        Int count= std::count(sTB.begin(), sTB.end(), true);
-        Int color = sTB[MYROW(grid_)];
-        if(count>1){
-          std::vector<Int> & snodeList = stats.maskSendToBelow_[sTB];
-          snodeList.push_back(ksup);
-        }
-        stats.countSendToBelow_(ksup) = count * color;
-#endif
-
-
-      } // for(ksup)
-      TIMER_STOP(STB_RFA);
-
-      TIMER_START(STR_RFL_RFB);
-      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
-
-#ifdef COMMUNICATOR_PROFILE
-        std::vector<bool> sTR(grid_->numProcCol,false);
-        std::vector<bool> rFB(grid_->numProcRow,false);
-#endif
-        // Loop over all the supernodes below ksup
-        Int isup = snodeEtree[ksup];
-        while(isup<numSuper){
-          Int isupLocalBlockRow = LBi( isup, grid_ );
-          Int isupProcRow       = PROW( isup, grid_ );
-          if( MYROW( grid_ ) == isupProcRow ){
-            // SendToRight / RecvFromLeft only if (isup, ksup) is nonzero.
-            if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
-              for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
-                  si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
-                Int jsup = *si;
-                Int jsupProcCol = PCOL( jsup, grid_ );
-                if( jsup > ksup ){
-                  if( MYCOL( grid_ ) == jsupProcCol ){
-                    isRecvFromLeft_(ksup) = true;
-                  }
-                  if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-                    isSendToRight_( jsupProcCol, ksup ) = true;
-                  }
-                }
-              } // for (si)
-            } // if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 )
-
-#ifdef COMMUNICATOR_PROFILE
-            sTR[ PCOL(ksup,grid_) ] = true;
-            if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
-              for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
-                  si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
-                Int jsup = *si;
-                Int jsupProcCol = PCOL( jsup, grid_ );
-                if( jsup > ksup ){
-                  sTR[ jsupProcCol ] = true;
-                } // if( jsup > ksup )
-              } // for (si)
-            }
-#endif
-
-
-          } // if( MYROW( grid_ ) == isupProcRow )
-
-          if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
-            if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){ 
-              isRecvFromBelow_(isupProcRow,ksup) = true;
-            }    
-            else if (MYROW(grid_) == isupProcRow){
-              isSendToDiagonal_(ksup)=true;
-            }    
-          } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
-
-#ifdef COMMUNICATOR_PROFILE
-          rFB[ PROW(ksup,grid_) ] = true;
-          if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
-            rFB[ isupProcRow ] = true;
-          } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
-#endif
-
-
-          isup = snodeEtree[isup];
-        } // for (isup)
-
-#ifdef COMMUNICATOR_PROFILE
-        Int count= std::count(rFB.begin(), rFB.end(), true);
-        Int color = rFB[MYROW(grid_)];
-        if(count>1){
-          std::vector<Int> & snodeList = stats.maskRecvFromBelow_[rFB];
-          snodeList.push_back(ksup);
-        }
-        stats.countRecvFromBelow_(ksup) = count * color;
-
-        count= std::count(sTR.begin(), sTR.end(), true);
-        color = sTR[MYCOL(grid_)];
-        if(count>1){
-          std::vector<Int> & snodeList = stats.maskSendToRight_[sTR];
-          snodeList.push_back(ksup);
-        }
-        stats.countSendToRight_(ksup) = count * color;
-#endif
-
-
-      }	 // for (ksup)
-
-      TIMER_STOP(STR_RFL_RFB);
-
-#ifdef COMMUNICATOR_PROFILE
-      {
-
-
-        //      statusOFS << std::endl << "stats.countSendToBelow:" << stats.countSendToBelow_ << std::endl;
-        stats.maskSendToBelow_.insert(stats.maskRecvFromBelow_.begin(),stats.maskRecvFromBelow_.end());
-        statusOFS << std::endl << "stats.maskSendToBelow_:" << stats.maskSendToBelow_.size() <<std::endl; 
-        //      bitMaskSet::iterator it;
-        //      for(it = stats.maskSendToBelow_.begin(); it != stats.maskSendToBelow_.end(); it++){
-        //        //print the involved processors
-        //        for(int curi = 0; curi < it->first.size(); curi++){
-        //          statusOFS << it->first[curi] << " "; 
-        //        }
-        //
-        //        statusOFS<< "    ( ";
-        //        //print the involved supernode indexes
-        //        for(int curi = 0; curi < it->second.size(); curi++){
-        //          statusOFS<< it->second[curi]<<" ";
-        //        }
-        //
-        //        statusOFS << ")"<< std::endl;
-        //      }
-        //      statusOFS << std::endl << "stats.countRecvFromBelow:" << stats.countRecvFromBelow_ << std::endl;
-        //      statusOFS << std::endl << "stats.maskRecvFromBelow_:" << stats.maskRecvFromBelow_.size() <<std::endl; 
-        //      statusOFS << std::endl << "stats.countSendToRight:" << stats.countSendToRight_ << std::endl;
-        statusOFS << std::endl << "stats.maskSendToRight_:" << stats.maskSendToRight_.size() <<std::endl; 
-      }
-#endif
-
-
-      TIMER_START(BUILD_BCAST_TREES);
-      //Allgather RFL values within column
-      {
-        vector<double> SeedRFL(numSuper,0.0); 
-        vector<Int> aggRFL(numSuper); 
-        vector<Int> globalAggRFL(numSuper*grid_->numProcCol); 
-        for( Int ksup = 0; ksup < numSuper ; ksup++ ){
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"1 "<<ksup<<std::endl;
-#endif
-          if(MYCOL(grid_)==PCOL(ksup,grid_)){
-            std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-            // All blocks except for the diagonal block are to be sent right
-
-            Int totalSize = 0;
-            //one integer holding the number of Lblocks
-            totalSize+=sizeof(Int);
-            for( Int ib = 0; ib < Lcol.size(); ib++ ){
-              if( Lcol[ib].blockIdx > ksup ){
-                //three indices + one IntNumVec
-                totalSize+=3*sizeof(Int);
-                totalSize+= sizeof(Int)+Lcol[ib].rows.ByteSize();
-              }
-            }
-
-
-            aggRFL[ksup]=totalSize;
-            SeedRFL[ksup]=rand();
-
-          }
-          else if(isRecvFromLeft_(ksup)){
-            aggRFL[ksup]=1;
-          }
-          else{
-            aggRFL[ksup]=0;
-          }
-        }
-        //      //allgather
-        MPI_Allgather(&aggRFL[0],numSuper*sizeof(Int),MPI_BYTE,
-            &globalAggRFL[0],numSuper*sizeof(Int),MPI_BYTE,
-            grid_->rowComm);
-        MPI_Allreduce(MPI_IN_PLACE,&SeedRFL[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->rowComm);
+        TIMER_START(Column_communication);
 
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
+          // All block columns perform independently
+          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+
+
+            // Communication
+            std::vector<Int> tAllBlockRowIdx;
+            std::vector<Int> & colBlockIdx = ColBlockIdx(LBj(ksup, grid_));
+            TIMER_START(Allgatherv_Column_communication);
+            if( grid_ -> mpisize != 1 )
+              mpi::Allgatherv( colBlockIdx, tAllBlockRowIdx, grid_->colComm );
+            else
+              tAllBlockRowIdx = colBlockIdx;
+
+            TIMER_STOP(Allgatherv_Column_communication);
+
+            localColBlockRowIdx[LBj( ksup, grid_ )].insert(
+                tAllBlockRowIdx.begin(), tAllBlockRowIdx.end() );
+
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"3 "<<ksup<<std::endl;
+            statusOFS 
+              << " Column block " << ksup 
+              << " has the following nonzero block rows" << std::endl;
+            for( std::set<Int>::iterator si = localColBlockRowIdx[LBj( ksup, grid_ )].begin();
+                si != localColBlockRowIdx[LBj( ksup, grid_ )].end();
+                si++ ){
+              statusOFS << *si << "  ";
+            }
+            statusOFS << std::endl; 
 #endif
-          if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
-            Int msgSize = 0;
-            vector<Int> tree_ranks;
-            Int countRFL= 0;
-            for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
-              if( iProcCol != PCOL( ksup, grid_ ) ){
+
+          } // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
+        } // for(ksup)
+
+
+
+        TIMER_STOP(Column_communication);
+
+        TIMER_START(Row_communication);
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "Local row communication" << std::endl;
+#endif
+        // localRowBlockColIdx stores the nonzero block indices for each local block row.
+        // The nonzero block indices including contribution from both L and U.
+        // Dimension: numLocalBlockRow x numNonzeroBlock
+        std::vector<std::set<Int> >   localRowBlockColIdx;
+
+        localRowBlockColIdx.resize( this->NumLocalBlockRow() );
+
+        for( Int ksup = 0; ksup < numSuper; ksup++ ){
+          // All block columns perform independently
+          if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+
+            // Communication
+            std::vector<Int> tAllBlockColIdx;
+            std::vector<Int> & rowBlockIdx = RowBlockIdx(LBi(ksup, grid_));
+            TIMER_START(Allgatherv_Row_communication);
+            if( grid_ -> mpisize != 1 )
+              mpi::Allgatherv( rowBlockIdx, tAllBlockColIdx, grid_->rowComm );
+            else
+              tAllBlockColIdx = rowBlockIdx;
+
+            TIMER_STOP(Allgatherv_Row_communication);
+
+            localRowBlockColIdx[LBi( ksup, grid_ )].insert(
+                tAllBlockColIdx.begin(), tAllBlockColIdx.end() );
+
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS 
+              << " Row block " << ksup 
+              << " has the following nonzero block columns" << std::endl;
+            for( std::set<Int>::iterator si = localRowBlockColIdx[LBi( ksup, grid_ )].begin();
+                si != localRowBlockColIdx[LBi( ksup, grid_ )].end();
+                si++ ){
+              statusOFS << *si << "  ";
+            }
+            statusOFS << std::endl; 
+#endif
+
+          } // if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+        } // for(ksup)
+
+
+        TIMER_STOP(Row_communication);
+
+        TIMER_START(STB_RFA);
+        for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+
+#ifdef COMMUNICATOR_PROFILE
+          std::vector<bool> sTB(grid_->numProcRow,false);
+#endif
+          // Loop over all the supernodes to the right of ksup
+          Int jsup = snodeEtree[ksup];
+          while(jsup<numSuper){
+            Int jsupLocalBlockCol = LBj( jsup, grid_ );
+            Int jsupProcCol = PCOL( jsup, grid_ );
+            if( MYCOL( grid_ ) == jsupProcCol ){
+              // SendToBelow / RecvFromAbove only if (ksup, jsup) is nonzero.
+              if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 ) {
+                for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
+                    si != localColBlockRowIdx[jsupLocalBlockCol].end(); si++	 ){
+                  Int isup = *si;
+                  Int isupProcRow = PROW( isup, grid_ );
+                  if( isup > ksup ){
+                    if( MYROW( grid_ ) == isupProcRow ){
+                      isRecvFromAbove_(ksup) = true;
+                    }
+                    if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+                      isSendToBelow_( isupProcRow, ksup ) = true;
+                    }
+                  } // if( isup > ksup )
+                } // for (si)
+              } // if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 )
+#ifdef COMMUNICATOR_PROFILE
+              sTB[ PROW(ksup,grid_) ] = true;
+              if( localColBlockRowIdx[jsupLocalBlockCol].count( ksup ) > 0 ) {
+                for( std::set<Int>::iterator si = localColBlockRowIdx[jsupLocalBlockCol].begin();
+                    si != localColBlockRowIdx[jsupLocalBlockCol].end(); si++	 ){
+                  Int isup = *si;
+                  Int isupProcRow = PROW( isup, grid_ );
+                  if( isup > ksup ){
+                    sTB[isupProcRow] = true;
+                  } // if( isup > ksup )
+                } // for (si)
+              }
+#endif
+
+
+
+            } // if( MYCOL( grid_ ) == PCOL( jsup, grid_ ) )
+            jsup = snodeEtree[jsup];
+          } // for(jsup)
+
+#ifdef COMMUNICATOR_PROFILE
+          Int count= std::count(sTB.begin(), sTB.end(), true);
+          Int color = sTB[MYROW(grid_)];
+          if(count>1){
+            std::vector<Int> & snodeList = stats.maskSendToBelow_[sTB];
+            snodeList.push_back(ksup);
+          }
+          stats.countSendToBelow_(ksup) = count * color;
+#endif
+
+
+        } // for(ksup)
+        TIMER_STOP(STB_RFA);
+
+        TIMER_START(STR_RFL_RFB);
+        for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+
+#ifdef COMMUNICATOR_PROFILE
+          std::vector<bool> sTR(grid_->numProcCol,false);
+          std::vector<bool> rFB(grid_->numProcRow,false);
+#endif
+          // Loop over all the supernodes below ksup
+          Int isup = snodeEtree[ksup];
+          while(isup<numSuper){
+            Int isupLocalBlockRow = LBi( isup, grid_ );
+            Int isupProcRow       = PROW( isup, grid_ );
+            if( MYROW( grid_ ) == isupProcRow ){
+              // SendToRight / RecvFromLeft only if (isup, ksup) is nonzero.
+              if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
+                for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
+                    si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
+                  Int jsup = *si;
+                  Int jsupProcCol = PCOL( jsup, grid_ );
+                  if( jsup > ksup ){
+                    if( MYCOL( grid_ ) == jsupProcCol ){
+                      isRecvFromLeft_(ksup) = true;
+                    }
+                    if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+                      isSendToRight_( jsupProcCol, ksup ) = true;
+                    }
+                  }
+                } // for (si)
+              } // if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 )
+
+#ifdef COMMUNICATOR_PROFILE
+              sTR[ PCOL(ksup,grid_) ] = true;
+              if( localRowBlockColIdx[isupLocalBlockRow].count( ksup ) > 0 ){
+                for( std::set<Int>::iterator si = localRowBlockColIdx[isupLocalBlockRow].begin();
+                    si != localRowBlockColIdx[isupLocalBlockRow].end(); si++ ){
+                  Int jsup = *si;
+                  Int jsupProcCol = PCOL( jsup, grid_ );
+                  if( jsup > ksup ){
+                    sTR[ jsupProcCol ] = true;
+                  } // if( jsup > ksup )
+                } // for (si)
+              }
+#endif
+
+
+            } // if( MYROW( grid_ ) == isupProcRow )
+
+            if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
+              if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){ 
+                isRecvFromBelow_(isupProcRow,ksup) = true;
+              }    
+              else if (MYROW(grid_) == isupProcRow){
+                isSendToDiagonal_(ksup)=true;
+              }    
+            } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
+
+#ifdef COMMUNICATOR_PROFILE
+            rFB[ PROW(ksup,grid_) ] = true;
+            if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
+              rFB[ isupProcRow ] = true;
+            } // if( MYCOL( grid_ ) == PCOL(ksup, grid_) )
+#endif
+
+
+            isup = snodeEtree[isup];
+          } // for (isup)
+
+#ifdef COMMUNICATOR_PROFILE
+          Int count= std::count(rFB.begin(), rFB.end(), true);
+          Int color = rFB[MYROW(grid_)];
+          if(count>1){
+            std::vector<Int> & snodeList = stats.maskRecvFromBelow_[rFB];
+            snodeList.push_back(ksup);
+          }
+          stats.countRecvFromBelow_(ksup) = count * color;
+
+          count= std::count(sTR.begin(), sTR.end(), true);
+          color = sTR[MYCOL(grid_)];
+          if(count>1){
+            std::vector<Int> & snodeList = stats.maskSendToRight_[sTR];
+            snodeList.push_back(ksup);
+          }
+          stats.countSendToRight_(ksup) = count * color;
+#endif
+
+
+        }	 // for (ksup)
+
+        TIMER_STOP(STR_RFL_RFB);
+
+#ifdef COMMUNICATOR_PROFILE
+        {
+
+
+          //      statusOFS << std::endl << "stats.countSendToBelow:" << stats.countSendToBelow_ << std::endl;
+          stats.maskSendToBelow_.insert(stats.maskRecvFromBelow_.begin(),stats.maskRecvFromBelow_.end());
+          statusOFS << std::endl << "stats.maskSendToBelow_:" << stats.maskSendToBelow_.size() <<std::endl; 
+          //      bitMaskSet::iterator it;
+          //      for(it = stats.maskSendToBelow_.begin(); it != stats.maskSendToBelow_.end(); it++){
+          //        //print the involved processors
+          //        for(int curi = 0; curi < it->first.size(); curi++){
+          //          statusOFS << it->first[curi] << " "; 
+          //        }
+          //
+          //        statusOFS<< "    ( ";
+          //        //print the involved supernode indexes
+          //        for(int curi = 0; curi < it->second.size(); curi++){
+          //          statusOFS<< it->second[curi]<<" ";
+          //        }
+          //
+          //        statusOFS << ")"<< std::endl;
+          //      }
+          //      statusOFS << std::endl << "stats.countRecvFromBelow:" << stats.countRecvFromBelow_ << std::endl;
+          //      statusOFS << std::endl << "stats.maskRecvFromBelow_:" << stats.maskRecvFromBelow_.size() <<std::endl; 
+          //      statusOFS << std::endl << "stats.countSendToRight:" << stats.countSendToRight_ << std::endl;
+          statusOFS << std::endl << "stats.maskSendToRight_:" << stats.maskSendToRight_.size() <<std::endl; 
+        }
+#endif
+
+
+        TIMER_START(BUILD_BCAST_TREES);
+        //Allgather RFL values within column
+        {
+          vector<double> SeedRFL(numSuper,0.0); 
+          vector<Int> aggRFL(numSuper); 
+          vector<Int> globalAggRFL(numSuper*grid_->numProcCol); 
+          for( Int ksup = 0; ksup < numSuper ; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<"1 "<<ksup<<std::endl;
+#endif
+            if(MYCOL(grid_)==PCOL(ksup,grid_)){
+              std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
+              // All blocks except for the diagonal block are to be sent right
+
+              Int totalSize = 0;
+              //one integer holding the number of Lblocks
+              totalSize+=sizeof(Int);
+              for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                if( Lcol[ib].blockIdx > ksup ){
+                  //three indices + one IntNumVec
+                  totalSize+=3*sizeof(Int);
+                  totalSize+= sizeof(Int)+Lcol[ib].rows.ByteSize();
+                }
+              }
+
+
+              aggRFL[ksup]=totalSize;
+              SeedRFL[ksup]=rand();
+
+            }
+            else if(isRecvFromLeft_(ksup)){
+              aggRFL[ksup]=1;
+            }
+            else{
+              aggRFL[ksup]=0;
+            }
+          }
+          //      //allgather
+          MPI_Allgather(&aggRFL[0],numSuper*sizeof(Int),MPI_BYTE,
+              &globalAggRFL[0],numSuper*sizeof(Int),MPI_BYTE,
+              grid_->rowComm);
+          MPI_Allreduce(MPI_IN_PLACE,&SeedRFL[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->rowComm);
+
+
+          for( Int ksup = 0; ksup < numSuper; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<"3 "<<ksup<<std::endl;
+#endif
+            if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
+              Int msgSize = 0;
+              vector<Int> tree_ranks;
+              Int countRFL= 0;
+              for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
+                if( iProcCol != PCOL( ksup, grid_ ) ){
+                  Int isRFL = globalAggRFL[iProcCol*numSuper + ksup];
+                  if(isRFL>0){
+                    ++countRFL;
+                  }
+                }
+              }
+
+              tree_ranks.reserve(countRFL+1);
+              tree_ranks.push_back(PCOL(ksup,grid_));
+
+              for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
                 Int isRFL = globalAggRFL[iProcCol*numSuper + ksup];
                 if(isRFL>0){
-                  ++countRFL;
-                }
-              }
-            }
-
-            tree_ranks.reserve(countRFL+1);
-            tree_ranks.push_back(PCOL(ksup,grid_));
-
-            for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
-              Int isRFL = globalAggRFL[iProcCol*numSuper + ksup];
-              if(isRFL>0){
-                if( iProcCol != PCOL( ksup, grid_ ) ){
-                  tree_ranks.push_back(iProcCol);
-                }
-                else{
-                  msgSize = isRFL;
-                }
-              }
-            }
-
-            TreeBcast * & BcastLTree = fwdToRightTree_[ksup];
-            if(BcastLTree!=NULL){delete BcastLTree; BcastLTree=NULL;}
-            BcastLTree = TreeBcast::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFL[ksup]);
-#ifdef COMM_PROFILE_BCAST
-            BcastLTree->SetGlobalComm(grid_->comm);
-#endif
-
-          }
-        }
-
-
-
-
-
-      }
-      {
-        vector<double> SeedRFA(numSuper,0.0); 
-        vector<Int> aggRFA(numSuper); 
-        vector<Int> globalAggRFA(numSuper*grid_->numProcRow); 
-        for( Int ksup = 0; ksup < numSuper ; ksup++ ){
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"2 "<<ksup<<std::endl;
-#endif
-          if(MYROW(grid_)==PROW(ksup,grid_)){
-            std::vector<UBlock<T> >&  Urow = this->U( LBi(ksup, grid_) );
-            // All blocks except for the diagonal block are to be sent right
-
-            Int totalSize = 0;
-            //one integer holding the number of Lblocks
-            totalSize+=sizeof(Int);
-            for( Int jb = 0; jb < Urow.size(); jb++ ){
-              if( Urow[jb].blockIdx >= ksup ){
-                //three indices + one IntNumVec + one NumMat<T>
-                totalSize+=3*sizeof(Int);
-                totalSize+= sizeof(Int)+Urow[jb].cols.ByteSize();
-                totalSize+= 2*sizeof(Int)+Urow[jb].nzval.ByteSize();
-              }
-            }
-            aggRFA[ksup]=totalSize;
-            SeedRFA[ksup]=rand();
-          }
-          else if(isRecvFromAbove_(ksup)){
-            aggRFA[ksup]=1;
-          }
-          else{
-            aggRFA[ksup]=0;
-          }
-        }
-
-
-        //allgather
-        MPI_Allgather(&aggRFA[0],numSuper*sizeof(Int),MPI_BYTE,
-            &globalAggRFA[0],numSuper*sizeof(Int),MPI_BYTE,
-            grid_->colComm);
-        MPI_Allreduce(MPI_IN_PLACE,&SeedRFA[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->colComm);
-
-        for( Int ksup = 0; ksup < numSuper; ksup++ ){
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"4 "<<ksup<<std::endl;
-#endif
-          if( isRecvFromAbove_(ksup) || CountSendToBelow(ksup)>0 ){
-            vector<Int> tree_ranks;
-            Int msgSize = 0;
-            Int countRFA= 0;
-            for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
-              if( iProcRow != PROW( ksup, grid_ ) ){
-                Int isRFA = globalAggRFA[iProcRow*numSuper + ksup];
-                if(isRFA>0){
-                  ++countRFA;
-                }
-              }
-            }
-
-            tree_ranks.reserve(countRFA+1);
-            tree_ranks.push_back(PROW(ksup,grid_));
-
-            for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
-              Int isRFA = globalAggRFA[iProcRow*numSuper + ksup];
-              if(isRFA>0){
-                if( iProcRow != PROW( ksup, grid_ ) ){
-                  tree_ranks.push_back(iProcRow);
-                }
-                else{
-                  msgSize = isRFA;
-                }
-              }
-            }
-
-            TreeBcast * & BcastUTree = fwdToBelowTree_[ksup];
-            if(BcastUTree!=NULL){delete BcastUTree; BcastUTree=NULL;}
-            BcastUTree = TreeBcast::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFA[ksup]);
-#ifdef COMM_PROFILE_BCAST
-            BcastUTree->SetGlobalComm(grid_->comm);
-#endif
-          }
-
-        }
-      }
-      //do the same for the other arrays
-      TIMER_STOP(BUILD_BCAST_TREES);
-      TIMER_START(BUILD_REDUCE_D_TREE);
-      {
-        vector<double> SeedSTD(numSuper,0.0); 
-        vector<Int> aggSTD(numSuper); 
-        vector<Int> globalAggSTD(numSuper*grid_->numProcRow); 
-        for( Int ksup = 0; ksup < numSuper; ksup++ ){
-          if( MYCOL( grid_ ) == PCOL(ksup, grid_) &&  MYROW(grid_)==PROW(ksup,grid_)){
-            Int totalSize = sizeof(T)*SuperSize( ksup, super_ )*SuperSize( ksup, super_ );
-            aggSTD[ksup]=totalSize;
-            SeedSTD[ksup]=rand();
-          }
-          else if(isSendToDiagonal_(ksup)){
-            aggSTD[ksup]=1;
-          }
-          else{
-            aggSTD[ksup]=0;
-          }
-        }
-
-
-        //allgather
-        MPI_Allgather(&aggSTD[0],numSuper*sizeof(Int),MPI_BYTE,
-            &globalAggSTD[0],numSuper*sizeof(Int),MPI_BYTE,
-            grid_->colComm);
-        MPI_Allreduce(MPI_IN_PLACE,&SeedSTD[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->colComm);
-
-
-        for( Int ksup = 0; ksup < numSuper; ksup++ ){
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"5 "<<ksup<<std::endl;
-#endif
-          if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
-
-            Int amISTD = globalAggSTD[MYROW(grid_)*numSuper + ksup];
-            //      if( MYCOL( grid_ ) == PCOL(ksup, grid_) &&  MYROW(grid_)==PROW(ksup,grid_)){
-            //        assert(amISTD>0);
-            //      }
-
-            if( amISTD ){
-              vector<Int> tree_ranks;
-              Int msgSize = 0;
-#if 0
-              set<Int> set_ranks;
-              for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
-                Int isSTD = globalAggSTD[iProcRow*numSuper + ksup];
-                if(isSTD>0){
-                  if( iProcRow != PROW( ksup, grid_ ) ){
-                    set_ranks.insert(iProcRow);
+                  if( iProcCol != PCOL( ksup, grid_ ) ){
+                    tree_ranks.push_back(iProcCol);
                   }
                   else{
-                    msgSize = isSTD;
+                    msgSize = isRFL;
                   }
                 }
               }
 
+              TreeBcast * & BcastLTree = fwdToRightTree_[ksup];
+              if(BcastLTree!=NULL){delete BcastLTree; BcastLTree=NULL;}
+              BcastLTree = TreeBcast::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFL[ksup]);
+#ifdef COMM_PROFILE_BCAST
+              BcastLTree->SetGlobalComm(grid_->comm);
+#endif
 
-              tree_ranks.push_back(PROW(ksup,grid_));
-              tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
-#else
-              Int countSTD= 0;
+            }
+          }
+
+
+
+
+
+        }
+        {
+          vector<double> SeedRFA(numSuper,0.0); 
+          vector<Int> aggRFA(numSuper); 
+          vector<Int> globalAggRFA(numSuper*grid_->numProcRow); 
+          for( Int ksup = 0; ksup < numSuper ; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<"2 "<<ksup<<std::endl;
+#endif
+            if(MYROW(grid_)==PROW(ksup,grid_)){
+              std::vector<UBlock<T> >&  Urow = this->U( LBi(ksup, grid_) );
+              // All blocks except for the diagonal block are to be sent right
+
+              Int totalSize = 0;
+              //one integer holding the number of Lblocks
+              totalSize+=sizeof(Int);
+              for( Int jb = 0; jb < Urow.size(); jb++ ){
+                if( Urow[jb].blockIdx >= ksup ){
+                  //three indices + one IntNumVec + one NumMat<T>
+                  totalSize+=3*sizeof(Int);
+                  totalSize+= sizeof(Int)+Urow[jb].cols.ByteSize();
+                  totalSize+= 2*sizeof(Int)+Urow[jb].nzval.ByteSize();
+                }
+              }
+              aggRFA[ksup]=totalSize;
+              SeedRFA[ksup]=rand();
+            }
+            else if(isRecvFromAbove_(ksup)){
+              aggRFA[ksup]=1;
+            }
+            else{
+              aggRFA[ksup]=0;
+            }
+          }
+
+
+          //allgather
+          MPI_Allgather(&aggRFA[0],numSuper*sizeof(Int),MPI_BYTE,
+              &globalAggRFA[0],numSuper*sizeof(Int),MPI_BYTE,
+              grid_->colComm);
+          MPI_Allreduce(MPI_IN_PLACE,&SeedRFA[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->colComm);
+
+          for( Int ksup = 0; ksup < numSuper; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<"4 "<<ksup<<std::endl;
+#endif
+            if( isRecvFromAbove_(ksup) || CountSendToBelow(ksup)>0 ){
+              vector<Int> tree_ranks;
+              Int msgSize = 0;
+              Int countRFA= 0;
               for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
                 if( iProcRow != PROW( ksup, grid_ ) ){
-                  Int isSTD = globalAggSTD[iProcRow*numSuper + ksup];
-                  if(isSTD>0){
-                    ++countSTD;
+                  Int isRFA = globalAggRFA[iProcRow*numSuper + ksup];
+                  if(isRFA>0){
+                    ++countRFA;
                   }
                 }
               }
 
-              tree_ranks.reserve(countSTD+1);
+              tree_ranks.reserve(countRFA+1);
               tree_ranks.push_back(PROW(ksup,grid_));
 
               for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
-                Int isSTD = globalAggSTD[iProcRow*numSuper + ksup];
-                if(isSTD>0){
+                Int isRFA = globalAggRFA[iProcRow*numSuper + ksup];
+                if(isRFA>0){
                   if( iProcRow != PROW( ksup, grid_ ) ){
                     tree_ranks.push_back(iProcRow);
                   }
                   else{
-                    msgSize = isSTD;
+                    msgSize = isRFA;
                   }
                 }
               }
-#endif
-              //assert(set_ranks.find(MYROW(grid_))!= set_ranks.end() || MYROW(grid_)==tree_ranks[0]);
 
-              TreeReduce<T> * & redDTree = redToAboveTree_[ksup];
-
-
-              if(redDTree!=NULL){delete redDTree; redDTree=NULL;}
-              redDTree = TreeReduce<T>::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedSTD[ksup]);
-#ifdef COMM_PROFILE
-              redDTree->SetGlobalComm(grid_->comm);
+              TreeBcast * & BcastUTree = fwdToBelowTree_[ksup];
+              if(BcastUTree!=NULL){delete BcastUTree; BcastUTree=NULL;}
+              BcastUTree = TreeBcast::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRFA[ksup]);
+#ifdef COMM_PROFILE_BCAST
+              BcastUTree->SetGlobalComm(grid_->comm);
 #endif
             }
+
           }
         }
-      }
-      TIMER_STOP(BUILD_REDUCE_D_TREE);
-
-
-
-      TIMER_START(BUILD_REDUCE_L_TREE);
-      {
-        vector<double> SeedRTL(numSuper,0.0); 
-        vector<Int> aggRTL(numSuper); 
-        vector<Int> globalAggRTL(numSuper*grid_->numProcCol); 
-        for( Int ksup = 0; ksup < numSuper ; ksup++ ){
-          if(MYCOL(grid_)==PCOL(ksup,grid_)){
-            std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-            // All blocks except for the diagonal block are to be sent right
-
-            Int totalSize = 0;
-
-            //determine the number of rows in LUpdateBufReduced
-            Int numRowLUpdateBuf = 0;
-            if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
-              for( Int ib = 0; ib < Lcol.size(); ib++ ){
-                numRowLUpdateBuf += Lcol[ib].numRow;
-              }
-            } // I do not own the diagonal block
+        //do the same for the other arrays
+        TIMER_STOP(BUILD_BCAST_TREES);
+        TIMER_START(BUILD_REDUCE_D_TREE);
+        {
+          vector<double> SeedSTD(numSuper,0.0); 
+          vector<Int> aggSTD(numSuper); 
+          vector<Int> globalAggSTD(numSuper*grid_->numProcRow); 
+          for( Int ksup = 0; ksup < numSuper; ksup++ ){
+            if( MYCOL( grid_ ) == PCOL(ksup, grid_) &&  MYROW(grid_)==PROW(ksup,grid_)){
+              Int totalSize = sizeof(T)*SuperSize( ksup, super_ )*SuperSize( ksup, super_ );
+              aggSTD[ksup]=totalSize;
+              SeedSTD[ksup]=rand();
+            }
+            else if(isSendToDiagonal_(ksup)){
+              aggSTD[ksup]=1;
+            }
             else{
-              for( Int ib = 1; ib < Lcol.size(); ib++ ){
-                numRowLUpdateBuf += Lcol[ib].numRow;
-              }
-            } // I own the diagonal block, skip the diagonal block
-
-            //if(ksup==297){gdb_lock();}
-            totalSize = numRowLUpdateBuf*SuperSize( ksup, super_ )*sizeof(T);
-
-            aggRTL[ksup]=totalSize;
-
-            SeedRTL[ksup]=rand();
+              aggSTD[ksup]=0;
+            }
           }
-          else if(isRecvFromLeft_(ksup)){
-            aggRTL[ksup]=1;
-          }
-          else{
-            aggRTL[ksup]=0;
-          }
-        }
-        //      //allgather
-        MPI_Allgather(&aggRTL[0],numSuper*sizeof(Int),MPI_BYTE,
-            &globalAggRTL[0],numSuper*sizeof(Int),MPI_BYTE,
-            grid_->rowComm);
-        MPI_Allreduce(MPI_IN_PLACE,&SeedRTL[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->rowComm);
 
 
-        for( Int ksup = 0; ksup < numSuper ; ksup++ ){
+          //allgather
+          MPI_Allgather(&aggSTD[0],numSuper*sizeof(Int),MPI_BYTE,
+              &globalAggSTD[0],numSuper*sizeof(Int),MPI_BYTE,
+              grid_->colComm);
+          MPI_Allreduce(MPI_IN_PLACE,&SeedSTD[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->colComm);
+
+
+          for( Int ksup = 0; ksup < numSuper; ksup++ ){
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"6 "<<ksup<<std::endl;
+            statusOFS<<"5 "<<ksup<<std::endl;
 #endif
-          if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
-            vector<Int> tree_ranks;
-            Int msgSize = 0;
+            if( MYCOL( grid_ ) == PCOL(ksup, grid_) ){
+
+              Int amISTD = globalAggSTD[MYROW(grid_)*numSuper + ksup];
+              //      if( MYCOL( grid_ ) == PCOL(ksup, grid_) &&  MYROW(grid_)==PROW(ksup,grid_)){
+              //        assert(amISTD>0);
+              //      }
+
+              if( amISTD ){
+                vector<Int> tree_ranks;
+                Int msgSize = 0;
 #if 0
-            set<Int> set_ranks;
-            for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
-              Int isRTL = globalAggRTL[iProcCol*numSuper + ksup];
-              if(isRTL>0){
-                if( iProcCol != PCOL( ksup, grid_ ) ){
-                  set_ranks.insert(iProcCol);
+                set<Int> set_ranks;
+                for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+                  Int isSTD = globalAggSTD[iProcRow*numSuper + ksup];
+                  if(isSTD>0){
+                    if( iProcRow != PROW( ksup, grid_ ) ){
+                      set_ranks.insert(iProcRow);
+                    }
+                    else{
+                      msgSize = isSTD;
+                    }
+                  }
                 }
-                else{
-                  msgSize = isRTL;
+
+
+                tree_ranks.push_back(PROW(ksup,grid_));
+                tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
+#else
+                Int countSTD= 0;
+                for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+                  if( iProcRow != PROW( ksup, grid_ ) ){
+                    Int isSTD = globalAggSTD[iProcRow*numSuper + ksup];
+                    if(isSTD>0){
+                      ++countSTD;
+                    }
+                  }
                 }
+
+                tree_ranks.reserve(countSTD+1);
+                tree_ranks.push_back(PROW(ksup,grid_));
+
+                for( Int iProcRow = 0; iProcRow < grid_->numProcRow; iProcRow++ ){
+                  Int isSTD = globalAggSTD[iProcRow*numSuper + ksup];
+                  if(isSTD>0){
+                    if( iProcRow != PROW( ksup, grid_ ) ){
+                      tree_ranks.push_back(iProcRow);
+                    }
+                    else{
+                      msgSize = isSTD;
+                    }
+                  }
+                }
+#endif
+                //assert(set_ranks.find(MYROW(grid_))!= set_ranks.end() || MYROW(grid_)==tree_ranks[0]);
+
+                TreeReduce<T> * & redDTree = redToAboveTree_[ksup];
+
+
+                if(redDTree!=NULL){delete redDTree; redDTree=NULL;}
+                redDTree = TreeReduce<T>::Create(this->grid_->colComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedSTD[ksup]);
+#ifdef COMM_PROFILE
+                redDTree->SetGlobalComm(grid_->comm);
+#endif
               }
             }
-            tree_ranks.push_back(PCOL(ksup,grid_));
-            tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
-#else
-            Int countRTL= 0;
-            for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
-              if( iProcCol != PCOL( ksup, grid_ ) ){
+          }
+        }
+        TIMER_STOP(BUILD_REDUCE_D_TREE);
+
+
+
+        TIMER_START(BUILD_REDUCE_L_TREE);
+        {
+          vector<double> SeedRTL(numSuper,0.0); 
+          vector<Int> aggRTL(numSuper); 
+          vector<Int> globalAggRTL(numSuper*grid_->numProcCol); 
+          for( Int ksup = 0; ksup < numSuper ; ksup++ ){
+            if(MYCOL(grid_)==PCOL(ksup,grid_)){
+              std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
+              // All blocks except for the diagonal block are to be sent right
+
+              Int totalSize = 0;
+
+              //determine the number of rows in LUpdateBufReduced
+              Int numRowLUpdateBuf = 0;
+              if( MYROW( grid_ ) != PROW( ksup, grid_ ) ){
+                for( Int ib = 0; ib < Lcol.size(); ib++ ){
+                  numRowLUpdateBuf += Lcol[ib].numRow;
+                }
+              } // I do not own the diagonal block
+              else{
+                for( Int ib = 1; ib < Lcol.size(); ib++ ){
+                  numRowLUpdateBuf += Lcol[ib].numRow;
+                }
+              } // I own the diagonal block, skip the diagonal block
+
+              //if(ksup==297){gdb_lock();}
+              totalSize = numRowLUpdateBuf*SuperSize( ksup, super_ )*sizeof(T);
+
+              aggRTL[ksup]=totalSize;
+
+              SeedRTL[ksup]=rand();
+            }
+            else if(isRecvFromLeft_(ksup)){
+              aggRTL[ksup]=1;
+            }
+            else{
+              aggRTL[ksup]=0;
+            }
+          }
+          //      //allgather
+          MPI_Allgather(&aggRTL[0],numSuper*sizeof(Int),MPI_BYTE,
+              &globalAggRTL[0],numSuper*sizeof(Int),MPI_BYTE,
+              grid_->rowComm);
+          MPI_Allreduce(MPI_IN_PLACE,&SeedRTL[0],numSuper,MPI_DOUBLE,MPI_MAX,grid_->rowComm);
+
+
+          for( Int ksup = 0; ksup < numSuper ; ksup++ ){
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<"6 "<<ksup<<std::endl;
+#endif
+            if( isRecvFromLeft_(ksup) || CountSendToRight(ksup)>0 ){
+              vector<Int> tree_ranks;
+              Int msgSize = 0;
+#if 0
+              set<Int> set_ranks;
+              for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
                 Int isRTL = globalAggRTL[iProcCol*numSuper + ksup];
                 if(isRTL>0){
-                  ++countRTL;
+                  if( iProcCol != PCOL( ksup, grid_ ) ){
+                    set_ranks.insert(iProcCol);
+                  }
+                  else{
+                    msgSize = isRTL;
+                  }
                 }
               }
-            }
-
-            tree_ranks.reserve(countRTL+1);
-            tree_ranks.push_back(PCOL(ksup,grid_));
-
-            for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
-              Int isRTL = globalAggRTL[iProcCol*numSuper + ksup];
-              if(isRTL>0){
-                if( iProcCol != PCOL( ksup, grid_ ) ){
-                  tree_ranks.push_back(iProcCol);
-                }
-                else{
-                  msgSize = isRTL;
-                }
-              }
-            }
-
-#endif
-
-
-            TreeReduce<T> * & redLTree = redToLeftTree_[ksup];
-            if(redLTree!=NULL){delete redLTree; redLTree=NULL;}
-            redLTree = TreeReduce<T>::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRTL[ksup]);
-#ifdef COMM_PROFILE
-            redLTree->SetGlobalComm(grid_->comm);
-#endif
-          }
-        }
-      }
-      TIMER_STOP(BUILD_REDUCE_L_TREE);
-
-
-
-
-
-
-
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "isSendToBelow:" << std::endl;
-      for(int j = 0;j< isSendToBelow_.n();j++){
-        statusOFS << "["<<j<<"] ";
-        for(int i =0; i < isSendToBelow_.m();i++){
-          statusOFS<< isSendToBelow_(i,j) << " ";
-        }
-        statusOFS<<std::endl;
-      }
-
-      statusOFS << std::endl << "isRecvFromAbove:" << std::endl;
-      for(int j = 0;j< isRecvFromAbove_.m();j++){
-        statusOFS << "["<<j<<"] "<< isRecvFromAbove_(j)<<std::endl;
-      }
-#endif
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "isSendToRight:" << std::endl;
-      for(int j = 0;j< isSendToRight_.n();j++){
-        statusOFS << "["<<j<<"] ";
-        for(int i =0; i < isSendToRight_.m();i++){
-          statusOFS<< isSendToRight_(i,j) << " ";
-        }
-        statusOFS<<std::endl;
-      }
-
-      statusOFS << std::endl << "isRecvFromLeft:" << std::endl;
-      for(int j = 0;j< isRecvFromLeft_.m();j++){
-        statusOFS << "["<<j<<"] "<< isRecvFromLeft_(j)<<std::endl;
-      }
-
-      statusOFS << std::endl << "isRecvFromBelow:" << std::endl;
-      for(int j = 0;j< isRecvFromBelow_.n();j++){
-        statusOFS << "["<<j<<"] ";
-        for(int i =0; i < isRecvFromBelow_.m();i++){
-          statusOFS<< isRecvFromBelow_(i,j) << " ";
-        }
-        statusOFS<<std::endl;
-      }
-#endif
-
-
-
-
-
-
-
-      TIMER_START(STCD_RFCD);
-
-
-      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
-        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-          for( std::set<Int>::iterator si = localColBlockRowIdx[LBj( ksup, grid_ )].begin();
-              si != localColBlockRowIdx[LBj( ksup, grid_ )].end(); si++ ){
-            Int isup = *si;
-            Int isupProcRow = PROW( isup, grid_ );
-            Int isupProcCol = PCOL( isup, grid_ );
-            if( isup > ksup && MYROW( grid_ ) == isupProcRow ){
-              isSendToCrossDiagonal_(grid_->numProcCol, ksup ) = true;
-              isSendToCrossDiagonal_(isupProcCol, ksup ) = true;
-            }
-          } // for (si)
-        } // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
-      } // for (ksup)
-
-      for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
-        if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
-          for( std::set<Int>::iterator si = localRowBlockColIdx[ LBi(ksup, grid_) ].begin();
-              si != localRowBlockColIdx[ LBi(ksup, grid_) ].end(); si++ ){
-            Int jsup = *si;
-            Int jsupProcCol = PCOL( jsup, grid_ );
-            Int jsupProcRow = PROW( jsup, grid_ );
-            if( jsup > ksup && MYCOL(grid_) == jsupProcCol ){
-              isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) = true;
-              isRecvFromCrossDiagonal_(jsupProcRow, ksup ) = true;
-            }
-          } // for (si)
-        } // if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
-      } // for (ksup)
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "isSendToCrossDiagonal:" << std::endl;
-      for(int j =0; j < isSendToCrossDiagonal_.n();j++){
-        if(isSendToCrossDiagonal_(grid_->numProcCol,j)){
-          statusOFS << "["<<j<<"] ";
-          for(int i =0; i < isSendToCrossDiagonal_.m()-1;i++){
-            if(isSendToCrossDiagonal_(i,j))
-            {
-              statusOFS<< PNUM(PROW(j,grid_),i,grid_)<<" ";
-            }
-          }
-          statusOFS<<std::endl;
-        }
-      }
-
-      statusOFS << std::endl << "isRecvFromCrossDiagonal:" << std::endl;
-      for(int j =0; j < isRecvFromCrossDiagonal_.n();j++){
-        if(isRecvFromCrossDiagonal_(grid_->numProcRow,j)){
-          statusOFS << "["<<j<<"] ";
-          for(int i =0; i < isRecvFromCrossDiagonal_.m()-1;i++){
-            if(isRecvFromCrossDiagonal_(i,j))
-            {
-              statusOFS<< PNUM(i,PCOL(j,grid_),grid_)<<" ";
-            }
-          }
-          statusOFS<<std::endl;
-        }
-      }
-
-
-#endif
-
-
-      TIMER_STOP(STCD_RFCD);
-
-
-      //Build the list of supernodes based on the elimination tree from SuperLU
-      GetWorkSet(snodeEtree,this->WorkingSet());
-
-      return ;
+              tree_ranks.push_back(PCOL(ksup,grid_));
+              tree_ranks.insert(tree_ranks.end(),set_ranks.begin(),set_ranks.end());
 #else
-      TIMER_START(ConstructCommunicationPattern);
-      Int numSuper = this->NumSuper();
+              Int countRTL= 0;
+              for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
+                if( iProcCol != PCOL( ksup, grid_ ) ){
+                  Int isRTL = globalAggRTL[iProcCol*numSuper + ksup];
+                  if(isRTL>0){
+                    ++countRTL;
+                  }
+                }
+              }
 
-      TIMER_START(GetEtree);
-      snodeEtree_.resize(numSuper);
-      GetEtree(snodeEtree_);
-      TIMER_STOP(GetEtree);
+              tree_ranks.reserve(countRTL+1);
+              tree_ranks.push_back(PCOL(ksup,grid_));
 
-      //Build the list of supernodes based on the elimination tree from SuperLU
-      GetWorkSet(snodeEtree_,this->WorkingSet());
+              for( Int iProcCol = 0; iProcCol < grid_->numProcCol; iProcCol++ ){
+                Int isRTL = globalAggRTL[iProcCol*numSuper + ksup];
+                if(isRTL>0){
+                  if( iProcCol != PCOL( ksup, grid_ ) ){
+                    tree_ranks.push_back(iProcCol);
+                  }
+                  else{
+                    msgSize = isRTL;
+                  }
+                }
+              }
 
-
-      //Now we could figure out how many tags we need ?
-      auto & wset = this->WorkingSet();
-
-
-      // THIS IS THE SHAPE OF THE COMMUNICATIONS PERFORMED
-      // _________________
-      // xxx|   ..      ...
-      // xxx|   ..      ...
-      // xxx|   ..      ...
-      // ---|-------------
-      //    |
-      // xxx|-->oo
-      // xxx|<--oo
-      //    |   ^|
-      //    |   ||(1)
-      //    |   |v
-      // xxx|-->oo----->ooo
-      // xxx|   oo  (2) ooo
-      // xxx|<--oo<-----ooo
+#endif
 
 
-      Real timeSta, timeEnd;
-      GetTime( timeSta );
-      //First Gather the row structure of the each supernodal column
-      std::vector<Int> allColBlockIdx;
-      std::vector<int> recvCount(this->grid_->numProcRow,0);
-      std::vector<int> recvDispls(this->grid_->numProcRow+1);
+              TreeReduce<T> * & redLTree = redToLeftTree_[ksup];
+              if(redLTree!=NULL){delete redLTree; redLTree=NULL;}
+              redLTree = TreeReduce<T>::Create(this->grid_->rowComm,&tree_ranks[0],tree_ranks.size(),msgSize,SeedRTL[ksup]);
+#ifdef COMM_PROFILE
+              redLTree->SetGlobalComm(grid_->comm);
+#endif
+            }
+          }
+        }
+        TIMER_STOP(BUILD_REDUCE_L_TREE);
 
-      {
-        int sendCount = 0;
-        std::vector<Int> sendBuffer;
-        std::vector<bool> hasEntries(numSuper,false);
-        for( Int ksup = 0; ksup < numSuper; ksup++ ){
-          // All block columns perform independently
+
+
+
+
+
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "isSendToBelow:" << std::endl;
+        for(int j = 0;j< isSendToBelow_.n();j++){
+          statusOFS << "["<<j<<"] ";
+          for(int i =0; i < isSendToBelow_.m();i++){
+            statusOFS<< isSendToBelow_(i,j) << " ";
+          }
+          statusOFS<<std::endl;
+        }
+
+        statusOFS << std::endl << "isRecvFromAbove:" << std::endl;
+        for(int j = 0;j< isRecvFromAbove_.m();j++){
+          statusOFS << "["<<j<<"] "<< isRecvFromAbove_(j)<<std::endl;
+        }
+#endif
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "isSendToRight:" << std::endl;
+        for(int j = 0;j< isSendToRight_.n();j++){
+          statusOFS << "["<<j<<"] ";
+          for(int i =0; i < isSendToRight_.m();i++){
+            statusOFS<< isSendToRight_(i,j) << " ";
+          }
+          statusOFS<<std::endl;
+        }
+
+        statusOFS << std::endl << "isRecvFromLeft:" << std::endl;
+        for(int j = 0;j< isRecvFromLeft_.m();j++){
+          statusOFS << "["<<j<<"] "<< isRecvFromLeft_(j)<<std::endl;
+        }
+
+        statusOFS << std::endl << "isRecvFromBelow:" << std::endl;
+        for(int j = 0;j< isRecvFromBelow_.n();j++){
+          statusOFS << "["<<j<<"] ";
+          for(int i =0; i < isRecvFromBelow_.m();i++){
+            statusOFS<< isRecvFromBelow_(i,j) << " ";
+          }
+          statusOFS<<std::endl;
+        }
+#endif
+
+
+
+
+
+
+
+        TIMER_START(STCD_RFCD);
+
+
+        for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
           if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-            //std::vector<Int> & colBlockIdx = ColBlockIdx(LBj(ksup, grid_));
+            for( std::set<Int>::iterator si = localColBlockRowIdx[LBj( ksup, grid_ )].begin();
+                si != localColBlockRowIdx[LBj( ksup, grid_ )].end(); si++ ){
+              Int isup = *si;
+              Int isupProcRow = PROW( isup, grid_ );
+              Int isupProcCol = PCOL( isup, grid_ );
+              if( isup > ksup && MYROW( grid_ ) == isupProcRow ){
+                isSendToCrossDiagonal_(grid_->numProcCol, ksup ) = true;
+                isSendToCrossDiagonal_(isupProcCol, ksup ) = true;
+              }
+            } // for (si)
+          } // if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) )
+        } // for (ksup)
 
-            std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-            Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
-
-            //+1 for the supernode index, +1 for the number of blocks
-
-            Int count = 0;
-            count+=Lcol.size()-startIdx;
-            //for(auto && val: colBlockIdx){ if (val > ksup){ count++; } }
-            if (count>0){
-              sendCount += 2 + count;
-              hasEntries[ksup] = true;
-            } 
+        for( Int ksup = 0; ksup < numSuper - 1; ksup++ ){
+          if( MYROW( grid_ ) == PROW( ksup, grid_ ) ){
+            for( std::set<Int>::iterator si = localRowBlockColIdx[ LBi(ksup, grid_) ].begin();
+                si != localRowBlockColIdx[ LBi(ksup, grid_) ].end(); si++ ){
+              Int jsup = *si;
+              Int jsupProcCol = PCOL( jsup, grid_ );
+              Int jsupProcRow = PROW( jsup, grid_ );
+              if( jsup > ksup && MYCOL(grid_) == jsupProcCol ){
+                isRecvFromCrossDiagonal_(grid_->numProcRow, ksup ) = true;
+                isRecvFromCrossDiagonal_(jsupProcRow, ksup ) = true;
+              }
+            } // for (si)
+          } // if( MYROW( grid_ ) == PROW( ksup, grid_ ) )
+        } // for (ksup)
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "isSendToCrossDiagonal:" << std::endl;
+        for(int j =0; j < isSendToCrossDiagonal_.n();j++){
+          if(isSendToCrossDiagonal_(grid_->numProcCol,j)){
+            statusOFS << "["<<j<<"] ";
+            for(int i =0; i < isSendToCrossDiagonal_.m()-1;i++){
+              if(isSendToCrossDiagonal_(i,j))
+              {
+                statusOFS<< PNUM(PROW(j,grid_),i,grid_)<<" ";
+              }
+            }
+            statusOFS<<std::endl;
           }
         }
 
-        MPI_Request request_size = MPI_REQUEST_NULL;
+        statusOFS << std::endl << "isRecvFromCrossDiagonal:" << std::endl;
+        for(int j =0; j < isRecvFromCrossDiagonal_.n();j++){
+          if(isRecvFromCrossDiagonal_(grid_->numProcRow,j)){
+            statusOFS << "["<<j<<"] ";
+            for(int i =0; i < isRecvFromCrossDiagonal_.m()-1;i++){
+              if(isRecvFromCrossDiagonal_(i,j))
+              {
+                statusOFS<< PNUM(i,PCOL(j,grid_),grid_)<<" ";
+              }
+            }
+            statusOFS<<std::endl;
+          }
+        }
 
-        MPI_Iallgather(&sendCount,sizeof(sendCount),MPI_BYTE,
-            recvCount.data(),sizeof(sendCount),MPI_BYTE,
-            this->grid_->colComm, &request_size);
 
-        //PACK
-        sendBuffer.reserve(sendCount);
-        for( Int ksup = 0; ksup < numSuper; ksup++ ){
-          // All block columns perform independently
-          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-            //std::vector<Int> & colBlockIdx = ColBlockIdx(LBj(ksup, grid_));
-            if (hasEntries[ksup]) {
-              sendBuffer.push_back(ksup);
-              //push dummy value
-              sendBuffer.push_back(0);
-              Int & count = sendBuffer.back();
+#endif
+
+
+        TIMER_STOP(STCD_RFCD);
+
+
+        //Build the list of supernodes based on the elimination tree from SuperLU
+        GetWorkSet(snodeEtree,this->WorkingSet());
+
+        return ;
+      }
+      else{
+        TIMER_START(ConstructCommunicationPattern);
+        Int numSuper = this->NumSuper();
+
+        TIMER_START(GetEtree);
+        snodeEtree_.resize(numSuper);
+        GetEtree(snodeEtree_);
+        TIMER_STOP(GetEtree);
+
+        //Build the list of supernodes based on the elimination tree from SuperLU
+        GetWorkSet(snodeEtree_,this->WorkingSet());
+
+
+        //Now we could figure out how many tags we need ?
+        auto & wset = this->WorkingSet();
+
+
+        // THIS IS THE SHAPE OF THE COMMUNICATIONS PERFORMED
+        // _________________
+        // xxx|   ..      ...
+        // xxx|   ..      ...
+        // xxx|   ..      ...
+        // ---|-------------
+        //    |
+        // xxx|-->oo
+        // xxx|<--oo
+        //    |   ^|
+        //    |   ||(1)
+        //    |   |v
+        // xxx|-->oo----->ooo
+        // xxx|   oo  (2) ooo
+        // xxx|<--oo<-----ooo
+
+
+        Real timeSta, timeEnd;
+        GetTime( timeSta );
+        //First Gather the row structure of the each supernodal column
+        std::vector<Int> allColBlockIdx;
+        std::vector<int> recvCount(this->grid_->numProcRow,0);
+        std::vector<int> recvDispls(this->grid_->numProcRow+1);
+
+        {
+          int sendCount = 0;
+          std::vector<Int> sendBuffer;
+          std::vector<bool> hasEntries(numSuper,false);
+          for( Int ksup = 0; ksup < numSuper; ksup++ ){
+            // All block columns perform independently
+            if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+              //std::vector<Int> & colBlockIdx = ColBlockIdx(LBj(ksup, grid_));
 
               std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
               Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
-              for( Int ib = startIdx; ib < Lcol.size(); ib++ ){ 
+
+              //+1 for the supernode index, +1 for the number of blocks
+
+              Int count = 0;
+              count+=Lcol.size()-startIdx;
+              //for(auto && val: colBlockIdx){ if (val > ksup){ count++; } }
+              if (count>0){
+                sendCount += 2 + count;
+                hasEntries[ksup] = true;
+              } 
+            }
+          }
+
+          MPI_Request request_size = MPI_REQUEST_NULL;
+
+          MPI_Iallgather(&sendCount,sizeof(sendCount),MPI_BYTE,
+              recvCount.data(),sizeof(sendCount),MPI_BYTE,
+              this->grid_->colComm, &request_size);
+
+          //PACK
+          sendBuffer.reserve(sendCount);
+          for( Int ksup = 0; ksup < numSuper; ksup++ ){
+            // All block columns perform independently
+            if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
+              //std::vector<Int> & colBlockIdx = ColBlockIdx(LBj(ksup, grid_));
+              if (hasEntries[ksup]) {
+                sendBuffer.push_back(ksup);
+                //push dummy value
+                sendBuffer.push_back(0);
+                Int & count = sendBuffer.back();
+
+                std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
+                Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
+                for( Int ib = startIdx; ib < Lcol.size(); ib++ ){ 
                   sendBuffer.push_back(Lcol[ib].blockIdx);
                   count++;
+                }
+
+                //for(auto && val: colBlockIdx){
+                //  if (val > ksup){
+                //    sendBuffer.push_back(val);
+                //    count++;
+                //  }
+                //}
               }
 
-              //for(auto && val: colBlockIdx){
-              //  if (val > ksup){
-              //    sendBuffer.push_back(val);
-              //    count++;
+              //statusOFS<<std::endl;
+              //std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
+              //for( Int ib = 0; ib < Lcol.size(); ib++ ){
+              //  if( Lcol[ib].blockIdx > ksup ){
+              //    statusOFS<<Lcol[ib].blockIdx<<" ";
               //  }
               //}
+              //statusOFS<<std::endl;
+
+              //sendBuffer.insert(sendBuffer.end(),colBlockIdx.begin(),colBlockIdx.end());
             }
-
-        //statusOFS<<std::endl;
-        //std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-        //for( Int ib = 0; ib < Lcol.size(); ib++ ){
-        //  if( Lcol[ib].blockIdx > ksup ){
-        //    statusOFS<<Lcol[ib].blockIdx<<" ";
-        //  }
-        //}
-        //statusOFS<<std::endl;
-
-            //sendBuffer.insert(sendBuffer.end(),colBlockIdx.begin(),colBlockIdx.end());
           }
+
+          //statusOFS<<"sendBuffer is: ";
+          //for(auto && blk: sendBuffer){statusOFS<<blk<<" ";}
+          //statusOFS<<std::endl;
+
+          assert(sendBuffer.size()==sendCount);
+
+          MPI_Status status;
+          MPI_Wait(&request_size,&status);
+          recvDispls[0] = 0;
+          std::partial_sum(recvCount.begin(),recvCount.end(),&recvDispls[1]);
+          allColBlockIdx.resize(recvDispls.back());
+
+          MPI_Datatype Int_type;
+          MPI_Type_contiguous( sizeof(Int), MPI_BYTE, &Int_type );
+          MPI_Type_commit(&Int_type);
+
+          MPI_Allgatherv(sendBuffer.data(),sendCount,Int_type,
+              allColBlockIdx.data(),recvCount.data(),recvDispls.data(),Int_type,
+              this->grid_->colComm);
+
+          MPI_Type_free(&Int_type);
         }
-  
-        //statusOFS<<"sendBuffer is: ";
-        //for(auto && blk: sendBuffer){statusOFS<<blk<<" ";}
-        //statusOFS<<std::endl;
+        GetTime( timeEnd );
+        statusOFS<<"Column block structure exchange time: "<<timeEnd - timeSta<<std::endl; 
 
-        assert(sendBuffer.size()==sendCount);
+        //Now unpack the allColBlockIdx
 
-        MPI_Status status;
-        MPI_Wait(&request_size,&status);
-        recvDispls[0] = 0;
-        std::partial_sum(recvCount.begin(),recvCount.end(),&recvDispls[1]);
-        allColBlockIdx.resize(recvDispls.back());
+        GetTime( timeSta );
+        std::set<Int> curColStructure;
 
-        MPI_Datatype Int_type;
-        MPI_Type_contiguous( sizeof(Int), MPI_BYTE, &Int_type );
-        MPI_Type_commit(&Int_type);
+        //special case for symmetric implementation ?
+        //this->bcastLDataTree_.resize(numSuper*numSuper);
+        //this->redLTree2_.resize(numSuper*numSuper);
+        this->redDTree2_.resize(numSuper);
 
-        MPI_Allgatherv(sendBuffer.data(),sendCount,Int_type,
-            allColBlockIdx.data(),recvCount.data(),recvDispls.data(),Int_type,
-            this->grid_->colComm);
+        std::vector< std::list< std::vector<Int> > > communicators;
+        communicators.resize(numSuper);
 
-        MPI_Type_free(&Int_type);
-      }
-      GetTime( timeEnd );
-      statusOFS<<"Column block structure exchange time: "<<timeEnd - timeSta<<std::endl; 
+        std::vector< std::vector<Int> > communicatorsD;
+        communicatorsD.resize(numSuper);
 
-      //Now unpack the allColBlockIdx
-
-      GetTime( timeSta );
-      std::set<Int> curColStructure;
-
-      //special case for symmetric implementation ?
-      //this->bcastLDataTree_.resize(numSuper*numSuper);
-      //this->redLTree2_.resize(numSuper*numSuper);
-      this->redDTree2_.resize(numSuper);
-
-      std::vector< std::list< std::vector<Int> > > communicators;
-      communicators.resize(numSuper);
-
-      std::vector< std::vector<Int> > communicatorsD;
-      communicatorsD.resize(numSuper);
-
-      auto processCol = [&] (Int ksup){
-        std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-        Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
-        //communicators[ksup].resize(Lcol.size()-startIdx);
+        auto processCol = [&] (Int ksup){
+          std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
+          Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
+          //communicators[ksup].resize(Lcol.size()-startIdx);
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS<<"["<<ksup<<"] curColStructure: ";for(auto && blk:curColStructure){statusOFS<<blk<<" ";}statusOFS<<std::endl;
+          statusOFS<<"["<<ksup<<"] curColStructure: ";for(auto && blk:curColStructure){statusOFS<<blk<<" ";}statusOFS<<std::endl;
 #endif
 
-        for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
-          if( Lcol[ib].blockIdx > ksup ){
-            Int msgSize = 0;
-            //three indices + one IntNumVec + one numMat
-            msgSize+=3*sizeof(Int);
-            msgSize+= sizeof(Int)+Lcol[ib].rows.ByteSize();
-            msgSize+= 2*sizeof(Int)+ Lcol[ib].nzval.ByteSize();
+          for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
+            if( Lcol[ib].blockIdx > ksup ){
+              Int msgSize = 0;
+              //three indices + one IntNumVec + one numMat
+              msgSize+=3*sizeof(Int);
+              msgSize+= sizeof(Int)+Lcol[ib].rows.ByteSize();
+              msgSize+= 2*sizeof(Int)+ Lcol[ib].nzval.ByteSize();
 
-            Int proot = MYPROC(this->grid_);
-            //now compute list of receiving ranks
-            std::vector<Int> receivers;
+              Int proot = MYPROC(this->grid_);
+              //now compute list of receiving ranks
+              std::vector<Int> receivers;
+              std::vector<bool> mask(this->grid_->mpisize,false);
+              receivers.reserve(this->grid_->mpisize);
+              receivers.push_back(proot);
+              mask[proot] = true;
+              for( auto blkIdx : curColStructure){
+                if(blkIdx>ksup){
+                  Int iproc,jproc,pdest;
+                  if(blkIdx<Lcol[ib].blockIdx){
+                    jproc = PCOL(blkIdx,this->grid_);
+                    iproc = PROW(Lcol[ib].blockIdx,this->grid_); 
+                  }
+                  else if(blkIdx==Lcol[ib].blockIdx){
+                    jproc = PCOL(blkIdx,this->grid_);
+                    iproc = PROW(Lcol[ib].blockIdx,this->grid_); 
+                  }
+                  else{
+                    iproc = PROW(blkIdx,this->grid_);
+                    jproc = PCOL(Lcol[ib].blockIdx,this->grid_); 
+                  }
+                  pdest = PNUM(iproc,jproc,this->grid_);
+
+
+                  assert(pdest < this->grid_->mpisize);
+
+                  if(!mask[pdest]){
+                    receivers.push_back(pdest);
+                    mask[pdest] = true;
+                  }
+                }
+              }
+
+              communicators[ksup].push_back(std::vector<Int>());
+              auto & curList = communicators[ksup].back();//[ib-startIdx];
+              curList.reserve(receivers.size()+1+1+1+1); //+1 for ksup +1 for the blockIdx +1 for the messageSize +1 for the NumMat size
+              //make the rankLists
+              curList.push_back(ksup);
+              curList.push_back(Lcol[ib].blockIdx);
+              curList.push_back(msgSize);
+              curList.push_back(Lcol[ib].nzval.Size());
+              //curList.push_back(proot);
+              curList.insert(curList.end(),receivers.begin(),receivers.end());
+
+              //statusOFS<<"["<<ksup<<"] block "<<Lcol[ib].blockIdx<<" sent from P"<<proot<<" to { ";
+              //for(auto && p:receivers){ statusOFS<<p<<" ";}
+              //statusOFS<<"} msgSize = "<<msgSize<<std::endl; 
+
+              //statusOFS<<"["<<ksup<<"] curList "<<" { ";
+              //for(auto && p:curList){ statusOFS<<p<<" ";}
+              //statusOFS<<"} "<<std::endl; 
+            }
+          }
+
+          if(Lcol.size()>0/*startIdx*/){
+            //Create the Reduce to Diagonal tree
+            std::vector<Int> & senders = communicatorsD[ksup];
+            senders.reserve(this->grid_->numProcRow);
             std::vector<bool> mask(this->grid_->mpisize,false);
-            receivers.reserve(this->grid_->mpisize);
-            receivers.push_back(proot);
+
+            Int proot = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
+            double seed = ( (double)ksup / (double)numSuper);
+            Int supSize = SuperSize(ksup, this->super_);  
+            Int msgSize = supSize * supSize;
+
+            senders.push_back(proot);
             mask[proot] = true;
             for( auto blkIdx : curColStructure){
               if(blkIdx>ksup){
-                Int iproc,jproc,pdest;
-                if(blkIdx<Lcol[ib].blockIdx){
-                  jproc = PCOL(blkIdx,this->grid_);
-                  iproc = PROW(Lcol[ib].blockIdx,this->grid_); 
-                }
-                else if(blkIdx==Lcol[ib].blockIdx){
-                  jproc = PCOL(blkIdx,this->grid_);
-                  iproc = PROW(Lcol[ib].blockIdx,this->grid_); 
-                }
-                else{
-                  iproc = PROW(blkIdx,this->grid_);
-                  jproc = PCOL(Lcol[ib].blockIdx,this->grid_); 
-                }
-                pdest = PNUM(iproc,jproc,this->grid_);
-
-
-                assert(pdest < this->grid_->mpisize);
-
-                if(!mask[pdest]){
-                  receivers.push_back(pdest);
-                  mask[pdest] = true;
+                Int psender = PNUM(PROW(blkIdx,this->grid_),PCOL(ksup,this->grid_),this->grid_);
+                if(!mask[psender]){
+                  senders.push_back(psender);
+                  mask[psender] = true;
                 }
               }
             }
 
-            communicators[ksup].push_back(std::vector<Int>());
-            auto & curList = communicators[ksup].back();//[ib-startIdx];
-            curList.reserve(receivers.size()+1+1+1+1); //+1 for ksup +1 for the blockIdx +1 for the messageSize +1 for the NumMat size
-            //make the rankLists
-            curList.push_back(ksup);
-            curList.push_back(Lcol[ib].blockIdx);
-            curList.push_back(msgSize);
-            curList.push_back(Lcol[ib].nzval.Size());
-            //curList.push_back(proot);
-            curList.insert(curList.end(),receivers.begin(),receivers.end());
-         
-            //statusOFS<<"["<<ksup<<"] block "<<Lcol[ib].blockIdx<<" sent from P"<<proot<<" to { ";
-            //for(auto && p:receivers){ statusOFS<<p<<" ";}
-            //statusOFS<<"} msgSize = "<<msgSize<<std::endl; 
-
-            //statusOFS<<"["<<ksup<<"] curList "<<" { ";
-            //for(auto && p:curList){ statusOFS<<p<<" ";}
-            //statusOFS<<"} "<<std::endl; 
-          }
-        }
-
-        if(Lcol.size()>0/*startIdx*/){
-          //Create the Reduce to Diagonal tree
-          std::vector<Int> & senders = communicatorsD[ksup];
-          senders.reserve(this->grid_->numProcRow);
-          std::vector<bool> mask(this->grid_->mpisize,false);
-
-          Int proot = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
-          double seed = ( (double)ksup / (double)numSuper);
-          Int supSize = SuperSize(ksup, this->super_);  
-          Int msgSize = supSize * supSize;
-
-          senders.push_back(proot);
-          mask[proot] = true;
-          for( auto blkIdx : curColStructure){
-            if(blkIdx>ksup){
-              Int psender = PNUM(PROW(blkIdx,this->grid_),PCOL(ksup,this->grid_),this->grid_);
-              if(!mask[psender]){
-                senders.push_back(psender);
-                mask[psender] = true;
-              }
-            }
-          }
-
-          auto & redDTree = this->redDTree2_[ksup];
-          redDTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,senders.data(),senders.size(),msgSize,seed));
+            auto & redDTree = this->redDTree2_[ksup];
+            redDTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,senders.data(),senders.size(),msgSize,seed));
 #ifdef COMM_PROFILE_BCAST
-          redDTree->SetGlobalComm(this->grid_->comm);
+            redDTree->SetGlobalComm(this->grid_->comm);
 #endif
-        }
-
-   
-      };
-
-      //statusOFS<<"allColBlockIdx: "<<allColBlockIdx<<std::endl;
+          }
 
 
+        };
 
-      std::partial_sum(recvCount.begin(),recvCount.end(),recvCount.begin());
+        //statusOFS<<"allColBlockIdx: "<<allColBlockIdx<<std::endl;
 
-      for( Int ksup = 0; ksup < numSuper; ksup++ ){
-        // All block columns perform independently
-        if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 
-          //loop through the processors and use recvDispls to keep track of the progress
-          bool done = true;
 
-          for(Int p = 0; p < recvCount.size(); p++){
-            int & i = recvDispls[p];
-            if ( i < recvCount[p] ){
+        std::partial_sum(recvCount.begin(),recvCount.end(),recvCount.begin());
 
-              Int cur_ksup = allColBlockIdx[i];
+        for( Int ksup = 0; ksup < numSuper; ksup++ ){
+          // All block columns perform independently
+          if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
 
-              assert(cur_ksup>=ksup);
-              if ( cur_ksup == ksup){
-                ksup = cur_ksup;
-                //advance the pointer
-                i++;
-                Int numIdx = allColBlockIdx[i++];
+            //loop through the processors and use recvDispls to keep track of the progress
+            bool done = true;
+
+            for(Int p = 0; p < recvCount.size(); p++){
+              int & i = recvDispls[p];
+              if ( i < recvCount[p] ){
+
+                Int cur_ksup = allColBlockIdx[i];
+
+                assert(cur_ksup>=ksup);
+                if ( cur_ksup == ksup){
+                  ksup = cur_ksup;
+                  //advance the pointer
+                  i++;
+                  Int numIdx = allColBlockIdx[i++];
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"Processing ["<<ksup<<"]"<<std::endl;
+                  statusOFS<<"Processing ["<<ksup<<"]"<<std::endl;
 #endif
-                curColStructure.insert(&allColBlockIdx[i],&allColBlockIdx[i]+numIdx);
-                i+=numIdx;
+                  curColStructure.insert(&allColBlockIdx[i],&allColBlockIdx[i]+numIdx);
+                  i+=numIdx;
+                }
+
               }
 
+              //i may have changed so do the test again
+              if ( i < recvCount[p] ){
+                done = false;
+              }
             }
 
-            //i may have changed so do the test again
-            if ( i < recvCount[p] ){
-              done = false;
+            //Create the "communicators" based on the content of curColStructure
+            processCol(ksup);
+
+
+
+            curColStructure.clear();
+
+            if(done){
+              break;
             }
+
           }
+        }
 
-          //Create the "communicators" based on the content of curColStructure
-          processCol(ksup);
+        GetTime( timeEnd );
+        statusOFS<<"Tree ranklist creation time: "<<timeEnd - timeSta<<std::endl; 
 
+        //At this point, the roots know how many distinct trees they are involved in. 
+        //Thus we can compute the total number of requireds tags based on that
 
-
-          curColStructure.clear();
-
-          if(done){
-            break;
+        Int numSteps = wset.size();
+        std::vector<int> tagCountPerLevel(numSteps,0);
+        for(Int lidx = 0 ; lidx < numSteps; lidx++){
+          Int stepSuper = wset[lidx].size(); 
+          for (Int esupidx=0; esupidx<stepSuper; esupidx++){
+            Int ksup = wset[lidx][esupidx]; 
+            auto & blockList = communicators[ksup]; 
+            tagCountPerLevel[lidx] += 2*blockList.size()+1; //reduce L + bcastL + reduce D
           }
-
         }
-      }
 
-      GetTime( timeEnd );
-      statusOFS<<"Tree ranklist creation time: "<<timeEnd - timeSta<<std::endl; 
-
-      //At this point, the roots know how many distinct trees they are involved in. 
-      //Thus we can compute the total number of requireds tags based on that
-
-      Int numSteps = wset.size();
-      std::vector<int> tagCountPerLevel(numSteps,0);
-      for(Int lidx = 0 ; lidx < numSteps; lidx++){
-        Int stepSuper = wset[lidx].size(); 
-        for (Int esupidx=0; esupidx<stepSuper; esupidx++){
-          Int ksup = wset[lidx][esupidx]; 
-          auto & blockList = communicators[ksup]; 
-          tagCountPerLevel[lidx] += 2*blockList.size()+1; //reduce L + bcastL + reduce D
-        }
-      }
-
-      std::vector<int> tagCountPerLevelPerRoot(grid_->mpisize*numSteps,0);
-      MPI_Request request_tags = MPI_REQUEST_NULL;
-      MPI_Iallgather(tagCountPerLevel.data(),numSteps,MPI_INT,tagCountPerLevelPerRoot.data(),numSteps,MPI_INT,grid_->comm,&request_tags);
+        std::vector<int> tagCountPerLevelPerRoot(grid_->mpisize*numSteps,0);
+        MPI_Request request_tags = MPI_REQUEST_NULL;
+        MPI_Iallgather(tagCountPerLevel.data(),numSteps,MPI_INT,tagCountPerLevelPerRoot.data(),numSteps,MPI_INT,grid_->comm,&request_tags);
 
         //TODO this can be moved further down
         MPI_Status status;
         MPI_Wait(&request_tags,&status);
 
         //change storage format
-      std::vector<int> tagOffsetPerLevelPerRoot(grid_->mpisize*numSteps+1,0);
-//      for(Int lidx = 0 ; lidx < numSteps; lidx++){
-//        for(Int proot = 0; proot< grid_->mpisize; proot++){
-//          tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot +1] = tagCountPerLevelPerRoot[proot*numSteps+lidx];
-//        }
-//      }
+        std::vector<int> tagOffsetPerLevelPerRoot(grid_->mpisize*numSteps+1,0);
+        //      for(Int lidx = 0 ; lidx < numSteps; lidx++){
+        //        for(Int proot = 0; proot< grid_->mpisize; proot++){
+        //          tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot +1] = tagCountPerLevelPerRoot[proot*numSteps+lidx];
+        //        }
+        //      }
 
-      //do a partial_sum to see from which tag a particular root should start from
-      std::list<Int> syncPoints;
-      int prevTag = 0;
-//      gdb_lock();
-//      maxTag_ = 19;
-      for(Int lidx = 0 ; lidx < numSteps; lidx++){
-        bool needSync = false;
-        int lprevTag = prevTag;
-        tagOffsetPerLevelPerRoot[lidx*grid_->mpisize] = lprevTag;
-        for(Int proot = 0; proot< grid_->mpisize; proot++){
-          int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot+1];
-          double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
-          if(maxTag < (double)this->maxTag_){
-              tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot-1];
-            lprevTag+=tagcnt;
-          }
-          else{
-            needSync = true;
-            break;
-          }
-        }
-
-        if(needSync){
-          prevTag = 0;
-          lprevTag = prevTag;
-          tagOffsetPerLevelPerRoot[lidx*grid_->mpisize] = prevTag;
+        //do a partial_sum to see from which tag a particular root should start from
+        std::list<Int> syncPoints;
+        int prevTag = 0;
+        //      gdb_lock();
+        //      maxTag_ = 19;
+        for(Int lidx = 0 ; lidx < numSteps; lidx++){
+          bool needSync = false;
+          int lprevTag = prevTag;
+          tagOffsetPerLevelPerRoot[lidx*grid_->mpisize] = lprevTag;
           for(Int proot = 0; proot< grid_->mpisize; proot++){
-          int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot+1];
-          double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
-          if(maxTag < (double)this->maxTag_){
-            tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot-1];
-            lprevTag+=tagcnt;
-          }
-          else{
-              abort();
-              //level needs split
+            int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot+1];
+            double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
+            if(maxTag < (double)this->maxTag_){
+              tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot-1];
+              lprevTag+=tagcnt;
+            }
+            else{
+              needSync = true;
               break;
             }
-          } 
-          syncPoints.push_back(lidx);
-        }
-        else{
-          prevTag = lprevTag;//tagOffsetPerLevelPerRoot[(lidx+1)*grid_->mpisize];
-        }
-        
-        tagOffsetPerLevelPerRoot[(lidx+1)*grid_->mpisize] = lprevTag;
-      }
+          }
 
-
-
-
-      //Now, we can organize the Alltoallv to build the ranklists
-      //std::vector< std::vector< std::vector<Int> > > communicators;
-      GetTime( timeSta );
-      {
-        Real timeSta2, timeEnd2;
-        //we need char as we are packing Ints and double (seed)
-        std::vector<Int> sendBuffer;
-        std::vector<int> sendCount(this->grid_->mpisize,0);
-        std::vector<int> sendDispls(this->grid_->mpisize+1);
-        std::vector<Int> recvBuffer;
-        std::vector<int> recvCount(this->grid_->mpisize,0);
-        std::vector<int> recvDispls(this->grid_->mpisize+1);
-
-      GetTime( timeSta2 );
-        for(Int ksup = 0; ksup< communicators.size(); ksup++){
-          //Set tag of diagonal reduce?
-          Int prootD = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
-          if(prootD == grid_->mpirank){
-            auto & redDTree = redDTree2_[ ksup ];
-            if(redDTree!=nullptr){
-              auto & senders = communicatorsD[ksup]; 
-              for(auto&& p:senders){
-                //trick to send diagonal reduce tag: ksup is set to -ksup-1 (to make it <0), next int is the tag
-                sendCount[p] += 2;
+          if(needSync){
+            prevTag = 0;
+            lprevTag = prevTag;
+            tagOffsetPerLevelPerRoot[lidx*grid_->mpisize] = prevTag;
+            for(Int proot = 0; proot< grid_->mpisize; proot++){
+              int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot+1];
+              double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
+              if(maxTag < (double)this->maxTag_){
+                tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot-1];
+                lprevTag+=tagcnt;
               }
-            }
+              else{
+                abort();
+                //level needs split
+                break;
+              }
+            } 
+            syncPoints.push_back(lidx);
+          }
+          else{
+            prevTag = lprevTag;//tagOffsetPerLevelPerRoot[(lidx+1)*grid_->mpisize];
           }
 
-
-          auto & blockList = communicators[ksup]; 
-          if (blockList.size()>0){
-            //std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-            //Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
-            for(auto && ranklist : blockList){
-
-               if(ranklist.size()>0){
-                 //contains ksup + blockIdx + messageSize + blockSize + seed  + rank list size + ranks + tag 
-                 int count = ranklist.size() +1 + sizeof(double)/sizeof(Int) +1; 
-                 //Int ksup = ranklist[0]
-                 //Int blockIdx = ranklist[1]
-                 //Int messageSize = ranklist[2]
-                 //Int blockSize = ranklist[3]
-                 for(Int ip = 4;ip<ranklist.size();ip++){
-                   sendCount[ranklist[ip]] += count;
-                 }
-               }
-            }
-          }
-        } 
-
-        MPI_Request request_size = MPI_REQUEST_NULL;
-        MPI_Ialltoall(sendCount.data(),1,MPI_INT,
-                      recvCount.data(),1,MPI_INT,this->grid_->comm,&request_size);
-
-        sendDispls[0] = 0;
-        std::partial_sum(sendCount.begin(),sendCount.end(),&sendDispls[1]);
-
-        //Pack
-        sendBuffer.resize(sendDispls.back());
+          tagOffsetPerLevelPerRoot[(lidx+1)*grid_->mpisize] = lprevTag;
+        }
 
 
-        for(Int lidx = 0 ; lidx < numSteps; lidx++){
-          Int stepSuper = wset[lidx].size(); 
-          for (Int esupidx=0; esupidx<stepSuper; esupidx++){
-            Int ksup = wset[lidx][esupidx]; 
 
+
+        //Now, we can organize the Alltoallv to build the ranklists
+        //std::vector< std::vector< std::vector<Int> > > communicators;
+        GetTime( timeSta );
+        {
+          Real timeSta2, timeEnd2;
+          //we need char as we are packing Ints and double (seed)
+          std::vector<Int> sendBuffer;
+          std::vector<int> sendCount(this->grid_->mpisize,0);
+          std::vector<int> sendDispls(this->grid_->mpisize+1);
+          std::vector<Int> recvBuffer;
+          std::vector<int> recvCount(this->grid_->mpisize,0);
+          std::vector<int> recvDispls(this->grid_->mpisize+1);
+
+          GetTime( timeSta2 );
+          for(Int ksup = 0; ksup< communicators.size(); ksup++){
             //Set tag of diagonal reduce?
             Int prootD = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
             if(prootD == grid_->mpirank){
               auto & redDTree = redDTree2_[ ksup ];
               if(redDTree!=nullptr){
-                Int tagD = tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + prootD]++;
-                //Loop through all the ranks involved in the reduce
                 auto & senders = communicatorsD[ksup]; 
                 for(auto&& p:senders){
-                  sendBuffer[sendDispls[p]++] = -ksup-1;
-                  sendBuffer[sendDispls[p]++] = tagD;
+                  //trick to send diagonal reduce tag: ksup is set to -ksup-1 (to make it <0), next int is the tag
+                  sendCount[p] += 2;
                 }
               }
             }
@@ -7323,203 +5008,256 @@ delete [] blockRows;
 
             auto & blockList = communicators[ksup]; 
             if (blockList.size()>0){
-
-
-
               //std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-              //            Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
+              //Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
               for(auto && ranklist : blockList){
-                if(ranklist.size()>0){
-                  Int ksup2 = ranklist[0];
-                  assert(ksup==ksup2);
-                  Int blockIdx = ranklist[1];
-                  Int messageSize = ranklist[2];
-                  Int blockSize = ranklist[3];
-                  Int tag = tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + grid_->mpirank];
-                  tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + grid_->mpirank]+=2;
-                  Int ranklistSize = ranklist.size()-4;
-                  double seed = rand();
 
+                if(ranklist.size()>0){
+                  //contains ksup + blockIdx + messageSize + blockSize + seed  + rank list size + ranks + tag 
+                  int count = ranklist.size() +1 + sizeof(double)/sizeof(Int) +1; 
+                  //Int ksup = ranklist[0]
+                  //Int blockIdx = ranklist[1]
+                  //Int messageSize = ranklist[2]
+                  //Int blockSize = ranklist[3]
                   for(Int ip = 4;ip<ranklist.size();ip++){
-                    Int p = ranklist[ip];
-                    sendBuffer[sendDispls[p]++] = ksup;
-                    sendBuffer[sendDispls[p]++] = blockIdx;
-                    sendBuffer[sendDispls[p]++] = messageSize;
-                    sendBuffer[sendDispls[p]++] = blockSize;
-                    sendBuffer[sendDispls[p]++] = tag;
-                    *((double*)&sendBuffer[sendDispls[p]]) = seed;
-                    sendDispls[p]+=sizeof(double)/sizeof(Int);
-                    sendBuffer[sendDispls[p]++] = ranklistSize;
-                    std::copy(&ranklist[4],ranklist.data()+ranklist.size(),&sendBuffer[sendDispls[p]]);
-                    sendDispls[p]+=ranklistSize;
+                    sendCount[ranklist[ip]] += count;
+                  }
+                }
+              }
+            }
+          } 
+
+          MPI_Request request_size = MPI_REQUEST_NULL;
+          MPI_Ialltoall(sendCount.data(),1,MPI_INT,
+              recvCount.data(),1,MPI_INT,this->grid_->comm,&request_size);
+
+          sendDispls[0] = 0;
+          std::partial_sum(sendCount.begin(),sendCount.end(),&sendDispls[1]);
+
+          //Pack
+          sendBuffer.resize(sendDispls.back());
+
+
+          for(Int lidx = 0 ; lidx < numSteps; lidx++){
+            Int stepSuper = wset[lidx].size(); 
+            for (Int esupidx=0; esupidx<stepSuper; esupidx++){
+              Int ksup = wset[lidx][esupidx]; 
+
+              //Set tag of diagonal reduce?
+              Int prootD = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
+              if(prootD == grid_->mpirank){
+                auto & redDTree = redDTree2_[ ksup ];
+                if(redDTree!=nullptr){
+                  Int tagD = tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + prootD]++;
+                  //Loop through all the ranks involved in the reduce
+                  auto & senders = communicatorsD[ksup]; 
+                  for(auto&& p:senders){
+                    sendBuffer[sendDispls[p]++] = -ksup-1;
+                    sendBuffer[sendDispls[p]++] = tagD;
                   }
                 }
               }
 
+
+              auto & blockList = communicators[ksup]; 
+              if (blockList.size()>0){
+
+
+
+                //std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
+                //            Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
+                for(auto && ranklist : blockList){
+                  if(ranklist.size()>0){
+                    Int ksup2 = ranklist[0];
+                    assert(ksup==ksup2);
+                    Int blockIdx = ranklist[1];
+                    Int messageSize = ranklist[2];
+                    Int blockSize = ranklist[3];
+                    Int tag = tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + grid_->mpirank];
+                    tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + grid_->mpirank]+=2;
+                    Int ranklistSize = ranklist.size()-4;
+                    double seed = rand();
+
+                    for(Int ip = 4;ip<ranklist.size();ip++){
+                      Int p = ranklist[ip];
+                      sendBuffer[sendDispls[p]++] = ksup;
+                      sendBuffer[sendDispls[p]++] = blockIdx;
+                      sendBuffer[sendDispls[p]++] = messageSize;
+                      sendBuffer[sendDispls[p]++] = blockSize;
+                      sendBuffer[sendDispls[p]++] = tag;
+                      *((double*)&sendBuffer[sendDispls[p]]) = seed;
+                      sendDispls[p]+=sizeof(double)/sizeof(Int);
+                      sendBuffer[sendDispls[p]++] = ranklistSize;
+                      std::copy(&ranklist[4],ranklist.data()+ranklist.size(),&sendBuffer[sendDispls[p]]);
+                      sendDispls[p]+=ranklistSize;
+                    }
+                  }
+                }
+
+              }
+
             }
-
           }
-        }
 
-        sendDispls[0] = 0;
-        std::partial_sum(sendCount.begin(),sendCount.end(),&sendDispls[1]);
+          sendDispls[0] = 0;
+          std::partial_sum(sendCount.begin(),sendCount.end(),&sendDispls[1]);
 
-        MPI_Status status;
-        MPI_Wait(&request_size,&status);
+          MPI_Status status;
+          MPI_Wait(&request_size,&status);
 
-      GetTime( timeEnd2 );
-      statusOFS<<"Tree structure packing: "<<timeEnd2 - timeSta2<<std::endl; 
-
-
-        recvDispls[0] = 0;
-        std::partial_sum(recvCount.begin(),recvCount.end(),&recvDispls[1]);
-        recvBuffer.resize(recvDispls.back());
-
-        MPI_Datatype Int_type;
-        MPI_Type_contiguous( sizeof(Int), MPI_BYTE, &Int_type );
-        MPI_Type_commit(&Int_type);
-
-        MPI_Alltoallv(sendBuffer.data(),sendCount.data(),sendDispls.data(),Int_type,
-            recvBuffer.data(),recvCount.data(),recvDispls.data(),Int_type,
-            this->grid_->comm);
-
-        MPI_Type_free(&Int_type);
+          GetTime( timeEnd2 );
+          statusOFS<<"Tree structure packing: "<<timeEnd2 - timeSta2<<std::endl; 
 
 
+          recvDispls[0] = 0;
+          std::partial_sum(recvCount.begin(),recvCount.end(),&recvDispls[1]);
+          recvBuffer.resize(recvDispls.back());
 
-        Real timeSta3, timeEnd3;
-        Real tresize = 0;
-        Real tother = 0;
-      GetTime( timeSta2 );
-      GetTime( timeSta3 );
-      snodeTreeOffset_.resize(numSuper+1,0);
-      snodeBlkidxToTree_.resize(numSuper);
-      snodeTreeToBlkidx_.resize(numSuper);
-      GetTime( timeEnd3 );
-      tresize+=timeEnd3 - timeSta3;
+          MPI_Datatype Int_type;
+          MPI_Type_contiguous( sizeof(Int), MPI_BYTE, &Int_type );
+          MPI_Type_commit(&Int_type);
 
-      //counting first
-      GetTime( timeSta3 );
-        size_t i = 0;
-        while(i<recvBuffer.size()){
-          Int ksup = recvBuffer[i++];
-          if(ksup>=0){
-            i+=4;
-            i+=sizeof(double)/sizeof(Int);
-            Int ranklistSize = recvBuffer[i++];
-            i+=ranklistSize;
-            //first do counts only
-            snodeTreeOffset_[ksup+1]++;
-          }
-          else{
-            //skip the tag of the diagonal reduce
-            i++;
-          }
-        }
-      GetTime( timeEnd3 );
-      statusOFS<<"Time to count number of trees: "<<timeEnd3-timeSta3<<std::endl; 
+          MPI_Alltoallv(sendBuffer.data(),sendCount.data(),sendDispls.data(),Int_type,
+              recvBuffer.data(),recvCount.data(),recvDispls.data(),Int_type,
+              this->grid_->comm);
 
-      GetTime( timeSta3 );
-      for(Int ksup = 0; ksup<numSuper; ksup++){
-        Int treeCount = snodeTreeOffset_[ksup+1];
-        snodeTreeToBlkidx_[ksup].resize(treeCount,-1);
-      }
-      GetTime( timeEnd3 );
-      tresize+=timeEnd3 - timeSta3;
+          MPI_Type_free(&Int_type);
 
-      GetTime( timeSta3 );
-        std::vector<Int> heads(numSuper,0);
-        std::partial_sum(snodeTreeOffset_.begin(), snodeTreeOffset_.end(), snodeTreeOffset_.begin());
-      GetTime( timeEnd3 );
-      tother += timeEnd3 - timeSta3;
 
-      GetTime( timeSta3 );
-        this->bcastLDataTree_.resize(snodeTreeOffset_.back(),nullptr);
-        this->redLTree2_.resize(snodeTreeOffset_.back(),nullptr);
-      GetTime( timeEnd3 );
-      tresize+=timeEnd3 - timeSta3;
 
-        Real tblkidx = 0;
-        Real tcreat = 0;
-
-        i = 0;
-        while(i<recvBuffer.size()){
+          Real timeSta3, timeEnd3;
+          Real tresize = 0;
+          Real tother = 0;
+          GetTime( timeSta2 );
           GetTime( timeSta3 );
-          Int ksup = recvBuffer[i++];
-          if(ksup>=0){
-          Int blockIdx = recvBuffer[i++];
-          Int messageSize = recvBuffer[i++];
-          Int blockSize = recvBuffer[i++];
-          Int tag = recvBuffer[i++];
-          double seed = *((double*)&recvBuffer[i]);
-          i+=sizeof(double)/sizeof(Int);
-          Int ranklistSize = recvBuffer[i++];
-          Int * ranklist = &recvBuffer[i];
-          i+=ranklistSize;
+          snodeTreeOffset_.resize(numSuper+1,0);
+          snodeBlkidxToTree_.resize(numSuper);
+          snodeTreeToBlkidx_.resize(numSuper);
+          GetTime( timeEnd3 );
+          tresize+=timeEnd3 - timeSta3;
 
-          Int offset = heads[ksup]++;
-          snodeTreeToBlkidx_[ksup][offset] = blockIdx;
+          //counting first
+          GetTime( timeSta3 );
+          size_t i = 0;
+          while(i<recvBuffer.size()){
+            Int ksup = recvBuffer[i++];
+            if(ksup>=0){
+              i+=4;
+              i+=sizeof(double)/sizeof(Int);
+              Int ranklistSize = recvBuffer[i++];
+              i+=ranklistSize;
+              //first do counts only
+              snodeTreeOffset_[ksup+1]++;
+            }
+            else{
+              //skip the tag of the diagonal reduce
+              i++;
+            }
+          }
+          GetTime( timeEnd3 );
+          statusOFS<<"Time to count number of trees: "<<timeEnd3-timeSta3<<std::endl; 
+
+          GetTime( timeSta3 );
+          for(Int ksup = 0; ksup<numSuper; ksup++){
+            Int treeCount = snodeTreeOffset_[ksup+1];
+            snodeTreeToBlkidx_[ksup].resize(treeCount,-1);
+          }
+          GetTime( timeEnd3 );
+          tresize+=timeEnd3 - timeSta3;
+
+          GetTime( timeSta3 );
+          std::vector<Int> heads(numSuper,0);
+          std::partial_sum(snodeTreeOffset_.begin(), snodeTreeOffset_.end(), snodeTreeOffset_.begin());
           GetTime( timeEnd3 );
           tother += timeEnd3 - timeSta3;
 
           GetTime( timeSta3 );
-          snodeBlkidxToTree_[ksup][blockIdx] = snodeTreeOffset_[ksup] + offset;
+          this->bcastLDataTree_.resize(snodeTreeOffset_.back(),nullptr);
+          this->redLTree2_.resize(snodeTreeOffset_.back(),nullptr);
           GetTime( timeEnd3 );
-          tblkidx += timeEnd3 - timeSta3;
+          tresize+=timeEnd3 - timeSta3;
 
-          GetTime( timeSta3 );
-          auto & bcastLTree = bcastLDataTree_[ snodeTreeOffset_[ksup] + offset ];
-          bcastLTree.reset(TreeBcast_v2<char>::Create(this->grid_->comm,ranklist,ranklistSize,messageSize,seed));
-          bcastLTree->SetTag(tag);
+          Real tblkidx = 0;
+          Real tcreat = 0;
+
+          i = 0;
+          while(i<recvBuffer.size()){
+            GetTime( timeSta3 );
+            Int ksup = recvBuffer[i++];
+            if(ksup>=0){
+              Int blockIdx = recvBuffer[i++];
+              Int messageSize = recvBuffer[i++];
+              Int blockSize = recvBuffer[i++];
+              Int tag = recvBuffer[i++];
+              double seed = *((double*)&recvBuffer[i]);
+              i+=sizeof(double)/sizeof(Int);
+              Int ranklistSize = recvBuffer[i++];
+              Int * ranklist = &recvBuffer[i];
+              i+=ranklistSize;
+
+              Int offset = heads[ksup]++;
+              snodeTreeToBlkidx_[ksup][offset] = blockIdx;
+              GetTime( timeEnd3 );
+              tother += timeEnd3 - timeSta3;
+
+              GetTime( timeSta3 );
+              snodeBlkidxToTree_[ksup][blockIdx] = snodeTreeOffset_[ksup] + offset;
+              GetTime( timeEnd3 );
+              tblkidx += timeEnd3 - timeSta3;
+
+              GetTime( timeSta3 );
+              auto & bcastLTree = bcastLDataTree_[ snodeTreeOffset_[ksup] + offset ];
+              bcastLTree.reset(TreeBcast_v2<char>::Create(this->grid_->comm,ranklist,ranklistSize,messageSize,seed));
+              bcastLTree->SetTag(tag);
 #ifdef COMM_PROFILE_BCAST
-          bcastLTree->SetGlobalComm(this->grid_->comm);
+              bcastLTree->SetGlobalComm(this->grid_->comm);
 #endif
 
 #if ( _DEBUGlevel_ >= 1 )
-                  statusOFS<<"L ["<<ksup<<"] blockIdx "<<blockIdx<<" messageSize "<<bcastLTree->GetMsgSize();
-                  statusOFS<<" tag "<<bcastLTree->GetTag()<<" { ";
-                  for(Int ir=0; ir < ranklistSize; ir++){statusOFS<<ranklist[ir]<<" ";}statusOFS<<"}"<<std::endl;
+              statusOFS<<"L ["<<ksup<<"] blockIdx "<<blockIdx<<" messageSize "<<bcastLTree->GetMsgSize();
+              statusOFS<<" tag "<<bcastLTree->GetTag()<<" { ";
+              for(Int ir=0; ir < ranklistSize; ir++){statusOFS<<ranklist[ir]<<" ";}statusOFS<<"}"<<std::endl;
 #endif
 
-          auto & redLTree = redLTree2_[ snodeTreeOffset_[ksup] + offset ];
-          redLTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,ranklist,ranklistSize,blockSize,seed));
-          redLTree->SetTag(tag+1);
+              auto & redLTree = redLTree2_[ snodeTreeOffset_[ksup] + offset ];
+              redLTree.reset(TreeReduce_v2<T>::Create(this->grid_->comm,ranklist,ranklistSize,blockSize,seed));
+              redLTree->SetTag(tag+1);
 #ifdef COMM_PROFILE_BCAST
-          redLTree->SetGlobalComm(this->grid_->comm);
+              redLTree->SetGlobalComm(this->grid_->comm);
 #endif
 
 #if ( _DEBUGlevel_ >= 1 )
-                  statusOFS<<"RL ["<<ksup<<"] blockIdx "<<blockIdx<<" messageSize "<<redLTree->GetMsgSize();
-                  statusOFS<<" tag "<<redLTree->GetTag()<<" { ";
-                  for(Int ir=0; ir < ranklistSize; ir++){statusOFS<<ranklist[ir]<<" ";}statusOFS<<"}"<<std::endl;
+              statusOFS<<"RL ["<<ksup<<"] blockIdx "<<blockIdx<<" messageSize "<<redLTree->GetMsgSize();
+              statusOFS<<" tag "<<redLTree->GetTag()<<" { ";
+              for(Int ir=0; ir < ranklistSize; ir++){statusOFS<<ranklist[ir]<<" ";}statusOFS<<"}"<<std::endl;
 #endif
-          GetTime( timeEnd3 );
-          tcreat += timeEnd3 - timeSta3;
+              GetTime( timeEnd3 );
+              tcreat += timeEnd3 - timeSta3;
+            }
+            else{
+              ksup = -(ksup+1);
+              Int tag = recvBuffer[i++];
+              //Set tag of diagonal reduce
+              Int prootD = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
+              auto & redDTree = redDTree2_[ ksup ];
+              assert(redDTree!=nullptr);
+              redDTree->SetTag(tag);
+            }
           }
-          else{
-            ksup = -(ksup+1);
-            Int tag = recvBuffer[i++];
-            //Set tag of diagonal reduce
-            Int prootD = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
-            auto & redDTree = redDTree2_[ ksup ];
-            assert(redDTree!=nullptr);
-            redDTree->SetTag(tag);
-          }
-        }
 
 
-      GetTime( timeEnd2 );
+          GetTime( timeEnd2 );
 
-      statusOFS<<"Time to insert Blkidx to Treeidx: "<<tblkidx<<std::endl; 
-      statusOFS<<"Time to create the trees: "<<tcreat<<std::endl; 
-      statusOFS<<"Time to resize the structures: "<<tresize<<std::endl; 
-      statusOFS<<"Time to other: "<<tother<<std::endl; 
+          statusOFS<<"Time to insert Blkidx to Treeidx: "<<tblkidx<<std::endl; 
+          statusOFS<<"Time to create the trees: "<<tcreat<<std::endl; 
+          statusOFS<<"Time to resize the structures: "<<tresize<<std::endl; 
+          statusOFS<<"Time to other: "<<tother<<std::endl; 
 
-      statusOFS<<"Tree structure allocation new: "<<timeEnd2 - timeSta2<<std::endl; 
+          statusOFS<<"Tree structure allocation new: "<<timeEnd2 - timeSta2<<std::endl; 
 
-      } 
-      GetTime( timeEnd );
-      statusOFS<<"Tree structure exchanges and creation time: "<<timeEnd - timeSta<<std::endl; 
+        } 
+        GetTime( timeEnd );
+        statusOFS<<"Tree structure exchanges and creation time: "<<timeEnd - timeSta<<std::endl; 
 
 
         //for(Int lidx = 0 ; lidx < numSteps; lidx++){
@@ -7578,10 +5316,10 @@ delete [] blockRows;
             if(tree){
               {
                 if(tree->GetTag()==-1){
-                 //Set tag of diagonal reduce?
-                 Int prootD = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
-                 Int tagD = tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + prootD]++;
-                 tree->SetTag(tagD);
+                  //Set tag of diagonal reduce?
+                  Int prootD = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
+                  Int tagD = tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + prootD]++;
+                  tree->SetTag(tagD);
                 }
                 statusOFS<<"RD ["<<ksup<<"] messageSize "<<tree->GetMsgSize();
                 statusOFS<<" tag "<<tree->GetTag()<<" { ";
@@ -7593,9 +5331,9 @@ delete [] blockRows;
         }
 #endif
 
-      TIMER_STOP(ConstructCommunicationPattern);
-      return ;
-#endif
+        TIMER_STOP(ConstructCommunicationPattern);
+        return ;
+      }
     } 		// -----  end of method PMatrix::ConstructCommunicationPattern_P2p  ----- 
 
   template<typename T> 
@@ -7623,30 +5361,48 @@ delete [] blockRows;
       }
 #endif
 
-#ifndef _SYM_STORAGE_
-      //reset the trees
-      for(int i = 0 ; i< fwdToBelowTree_.size();++i){
-        if(fwdToBelowTree_[i]!=NULL){
-          fwdToBelowTree_[i]->Reset();
+      if (options_->symmetricStorage!=1){
+        //reset the trees
+        for(int i = 0 ; i< fwdToBelowTree_.size();++i){
+          if(fwdToBelowTree_[i]!=NULL){
+            fwdToBelowTree_[i]->Reset();
+          }
+        }
+        for(int i = 0 ; i< fwdToRightTree_.size();++i){
+          if(fwdToRightTree_[i]!=NULL){
+            fwdToRightTree_[i]->Reset();
+          }
+        }
+        for(int i = 0 ; i< redToLeftTree_.size();++i){
+          if(redToLeftTree_[i]!=NULL){
+            redToLeftTree_[i]->Reset();
+          }
+        }
+        for(int i = 0 ; i< redToAboveTree_.size();++i){
+          if(redToAboveTree_[i]!=NULL){
+            redToAboveTree_[i]->Reset();
+          }
         }
       }
-      for(int i = 0 ; i< fwdToRightTree_.size();++i){
-        if(fwdToRightTree_[i]!=NULL){
-          fwdToRightTree_[i]->Reset();
+      else{
+        for(int i = 0 ; i< bcastLDataTree_.size();++i){
+          if(bcastLDataTree_[i]!=NULL){
+            bcastLDataTree_[i]->Reset();
+          }
+        }
+        for(int i = 0 ; i< redLTree2_.size();++i){
+          if(redLTree2_[i]!=NULL){
+            redLTree2_[i]->Reset();
+          }
+        }
+        for(int i = 0 ; i< redDTree2_.size();++i){
+          if(redDTree2_[i]!=NULL){
+            redDTree2_[i]->Reset();
+          }
         }
       }
-      for(int i = 0 ; i< redToLeftTree_.size();++i){
-        if(redToLeftTree_[i]!=NULL){
-          redToLeftTree_[i]->Reset();
-        }
-      }
-      for(int i = 0 ; i< redToAboveTree_.size();++i){
-        if(redToAboveTree_[i]!=NULL){
-          redToAboveTree_[i]->Reset();
-        }
-      }
-#else
-#endif
+
+
 
 
     } 		// -----  end of method PMatrix::SelInv  ----- 
@@ -7657,10 +5413,6 @@ delete [] blockRows;
     void PMatrix<T>::SelInv_P2p	(  )
     {
       TIMER_START(SelInv_P2p);
-
-#if 1
-      //ndef _SYM_STORAGE_
-
 
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS<<"maxTag value: "<<maxTag_<<std::endl;
@@ -7674,468 +5426,6 @@ delete [] blockRows;
 Int lidx=0;
         Int rank = 0;
 
-#ifdef _OPENMP_TILE_
-        //this->arrArrSuperNodes.resize(numSteps);
-        std::vector<Int> snodeEtree(this->NumSuper());
-        GetEtree(snodeEtree);
-
-        std::vector<SuperNodeBufferType> arrSuperNodes;
-        arrSuperNodes.resize(this->NumSuper());
-
-#pragma omp parallel firstprivate(lidx,rank,numSteps) shared(superList,arrSuperNodes)
-        {
-          #pragma omp single nowait
-            {
-          //  auto pmpointer = this;
-            bool * tdeps = deps;
-            for (lidx=0; lidx<numSteps ; lidx++){
-                    Int lrank = 0;
-                    for (Int plidx=0; plidx<=lidx ; plidx++){ lrank+=superList[plidx].size();}
-                    {
-                      int is_master=0;
-                      MPI_Is_thread_main(&is_master);
-                      Int numSuper = NumSuper(); 
-                      std::vector<std::vector<Int> > & superList = WorkingSet();
-                      Int numSteps = superList.size();
-                      Int stepSuper = superList[lidx].size(); 
-
-                      //this->arrArrSuperNodes[lidx].resize(stepSuper);
-                      //auto & arrSuperNodes = this->arrArrSuperNodes[lidx];
-
-                      //std::vector<SuperNodeBufferType> arrSuperNodes(stepSuper);
-                      Int supidx = 0;
-                      for (Int esupidx=0; esupidx<stepSuper; esupidx++){
-                        Int snodeIdx = superList[lidx][esupidx]; 
-                        TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
-                        TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
-                        TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
-                        TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
-                        bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
-                          || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
-                          || CountSendToRight(snodeIdx) > 0
-                          || CountSendToBelow(snodeIdx) > 0
-                          || CountSendToCrossDiagonal(snodeIdx) > 0
-                          || CountRecvFromCrossDiagonal(snodeIdx) >0
-                          || ( isRecvFromLeft_( snodeIdx ) ) 
-                          || ( isRecvFromAbove_( snodeIdx ) )
-                          || isSendToDiagonal_(snodeIdx)
-                          || (bcastUTree!=NULL)
-                          || (bcastLTree!=NULL)
-                          || (redLTree!=NULL)
-                          || (redDTree!=NULL) ;
-
-                        if(participating){
-                            //SuperNodeBufferType snode;
-                            SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
-
-                            //create a new supernode descriptor
-                            snode.Index = snodeIdx;  
-                            snode.Rank = rank;
-                            Int snodeIdx = snode.Index;
-                            Int parentIdx = snodeEtree[snodeIdx];
-
-
-                            //TODO we can do this cause we are in shared memory 
-                            if(redLTree != NULL){
-                              redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,limIndex_));
-                              //Initialize the tree
-                              redLTree->AllocRecvBuffers();
-                              //Post All Recv requests;
-                              redLTree->PostFirstRecv();
-                            }
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1) + snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                            {
-                              SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
-                              //SuperNodeBufferType & snode = arrArrSuperNodes[lidx][supidx];
-                              std::vector<LBlock<T> > LcolRecv;
-                              std::vector<UBlock<T> > UrowRecv;
-                              // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
-                              // The size will be updated in the Gemm phase and the reduce phase
-#ifdef _OMP_ID_THREAD_
-                              {
-                                int tid = omp_get_thread_num();
-#pragma omp critical
-                                statusOFS<<"Thread "<<tid<<" executing outer task from snode "<<snode.Index<<std::endl;                
-
-                              }
-#endif
-
-                              UnpackData(snode, LcolRecv, UrowRecv);
-
-                              NumMat<T> AinvBuf, UBuf;
-
-                              SelInv_lookup_indexes(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
-
-
-                              TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-                              if(redLTree != NULL){
-                                //send the data
-                                redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-
-                                bool done = redLTree->Progress();
-#ifdef _PRINT_STATS_
-                                localFlops_+=flops::Axpy<T>(snode.LUpdateBuf.Size());
-#endif
-#if ( _DEBUGlevel_ >= 1 )
-                                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-#endif
-                              }
-                            } //  omp task
-
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                            {
-                              SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
-                              TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-                              if(redLTree!=nullptr)
-                              {
-                                //busy poll the reduction tree
-                                while(!redLTree->Progress()){
-#pragma omp taskyield
-                                }
-
-                                if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                                  //determine the number of rows in LUpdateBufReduced
-                                  Int numRowLUpdateBuf;
-                                  std::vector<LBlock<T> >&  Lcol = L( LBj( snode.Index, grid_ ) );
-                                  if( MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
-                                    snode.RowLocalPtr.resize( Lcol.size() + 1 );
-                                    snode.BlockIdxLocal.resize( Lcol.size() );
-                                    snode.RowLocalPtr[0] = 0;
-                                    for( Int ib = 0; ib < Lcol.size(); ib++ ){
-                                      snode.RowLocalPtr[ib+1] = snode.RowLocalPtr[ib] + Lcol[ib].numRow;
-                                      snode.BlockIdxLocal[ib] = Lcol[ib].blockIdx;
-                                    }
-                                  } // I do not own the diagonal block
-                                  else{
-                                    snode.RowLocalPtr.resize( Lcol.size() );
-                                    snode.BlockIdxLocal.resize( Lcol.size() - 1 );
-                                    snode.RowLocalPtr[0] = 0;
-                                    for( Int ib = 1; ib < Lcol.size(); ib++ ){
-                                      snode.RowLocalPtr[ib] = snode.RowLocalPtr[ib-1] + Lcol[ib].numRow;
-                                      snode.BlockIdxLocal[ib-1] = Lcol[ib].blockIdx;
-                                    }
-                                  } // I own the diagonal block, skip the diagonal block
-                                  numRowLUpdateBuf = *snode.RowLocalPtr.rbegin();
-
-                                  if( numRowLUpdateBuf > 0 ){
-                                    if( snode.LUpdateBuf.m() == 0 && snode.LUpdateBuf.n() == 0 ){
-                                      snode.LUpdateBuf.Resize( numRowLUpdateBuf,SuperSize( snode.Index, super_ ) );
-                                      SetValue(snode.LUpdateBuf, ZERO<T>());
-                                    }
-                                  }
-
-                                  //copy the buffer from the reduce tree
-                                  redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-                                }
-                                redLTree->CleanupBuffers();
-                              }
-                            }//end omp task
-
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                            {
-                              SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
-                              ComputeDiagUpdate(snode);
-
-                              //Get the reduction tree
-                              TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-
-                              if(redDTree != NULL){
-                                //send the data
-                                if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-                                  if(snode.DiagBuf.Size()==0){
-                                    snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
-                                    SetValue(snode.DiagBuf, ZERO<T>());
-                                  }
-                                }
-
-                                redDTree->SetLocalBuffer(snode.DiagBuf.Data());
-#ifdef _PRINT_STATS_
-                                localFlops_+=flops::Axpy<T>(snode.DiagBuf.Size());
-#endif
-                                if(!redDTree->IsAllocated()){
-                                  redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,limIndex_));
-                                  redDTree->AllocRecvBuffers();
-                                  //Post All Recv requests;
-                                  redDTree->PostFirstRecv();
-                                }
-
-                                redDTree->SetDataReady(true);
-                                bool done = redDTree->Progress();
-#if ( _DEBUGlevel_ >= 1 )
-                                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
-#endif
-                              }
-
-                            }// end omp task
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                            {
-                              SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
-                              TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-                              if(redDTree!=nullptr){
-                                //busy poll the reduction tree
-                                while(!redDTree->Progress()){
-#pragma omp taskyield
-                                }
-
-                                if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                                  if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-                                    LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
-                                    // Symmetrize LB
-                                    blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-#ifdef _PRINT_STATS_
-                                    localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
-#endif
-                                    Symmetrize( LB.nzval );
-                                  }
-                                }
-                                redDTree->CleanupBuffers();
-                              }
-                            }//end omp task
-
-                            Int sendCount = CountSendToCrossDiagonal(snode.Index);
-                            Int recvCount = CountRecvFromCrossDiagonal(snode.Index);
-#pragma omp task firstprivate(supidx,sendCount,recvCount,parentIdx,snodeIdx,lidx)  shared(arrSuperNodes) depend(in:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx]) 
-                            {
-                              SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
-
-                              std::vector<MPI_Request > arrMpiReqsSendCD(sendCount, MPI_REQUEST_NULL );
-                              std::vector<MPI_Request > arrMpiReqsSizeSendCD(sendCount, MPI_REQUEST_NULL );
-                              std::vector<MPI_Request > arrMpiReqsRecvCD(recvCount, MPI_REQUEST_NULL );
-                              std::vector<MPI_Request > arrMpiReqsSizeRecvCD(recvCount, MPI_REQUEST_NULL );
-                              std::vector<std::vector<char> > arrSstrLcolSendCD(sendCount);
-                              std::vector<int > arrSstrLcolSizeSendCD(sendCount);
-                              std::vector<std::vector<char> > arrSstrLcolRecvCD(recvCount);
-                              std::vector<int > arrSstrLcolSizeRecvCD(recvCount);
-
-
-                              //If I'm a receiver
-                              if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, snode.Index ) ){
-                                Int recvIdx=0;
-                                for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
-                                  if(isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
-                                    Int src = PNUM(srcRow,PCOL(snode.Index,grid_),grid_);
-                                    if( MYPROC( grid_ ) != src ){
-                                      Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
-                                      MPI_Request & mpiReqSizeRecv = arrMpiReqsSizeRecvCD[recvIdx];
-                                      MPI_Irecv( &sstrSize, 1, MPI_INT, src, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_SIZE_CD,limIndex_), grid_->comm, &mpiReqSizeRecv);
-                                      recvIdx++;
-                                    }
-                                  }
-                                }
-                              }//end if I'm a receiver
-
-                              //If I'm a sender
-                              if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) && isSendToCrossDiagonal_(grid_->numProcCol, snode.Index ) ){
-                                Int sendIdx = 0;
-                                for(Int dstCol = 0; dstCol<grid_->numProcCol; dstCol++){
-                                  if(isSendToCrossDiagonal_(dstCol,snode.Index) ){
-                                    Int dest = PNUM(PROW(snode.Index,grid_),dstCol,grid_);
-
-                                    if( MYPROC( grid_ ) != dest	){
-                                      MPI_Request & mpiReqSizeSend = arrMpiReqsSizeSendCD[sendIdx];
-                                      MPI_Request & mpiReqSend = arrMpiReqsSendCD[sendIdx];
-                                      std::vector<char> & sstrLcolSend = arrSstrLcolSendCD[sendIdx];
-                                      Int & sstrSize = arrSstrLcolSizeSendCD[sendIdx];
-
-                                      std::stringstream sstm;
-                                      serialize( snode.RowLocalPtr, sstm, NO_MASK );
-                                      serialize( snode.BlockIdxLocal, sstm, NO_MASK );
-                                      serialize( snode.LUpdateBuf, sstm, NO_MASK );
-
-                                      sstrLcolSend.resize( Size(sstm) );
-                                      sstm.read( &sstrLcolSend[0], sstrLcolSend.size() );
-                                      sstrSize = sstrLcolSend.size();
-
-                                      MPI_Isend( &sstrSize, sizeof(sstrSize), MPI_BYTE, dest, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_SIZE_CD,limIndex_), grid_->comm, &mpiReqSizeSend );
-                                      MPI_Isend( (void*)&sstrLcolSend[0], sstrSize, MPI_BYTE, dest, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_), grid_->comm, &mpiReqSend );
-                                      PROFILE_COMM(MYPROC(grid_),dest,IDX_TO_TAG(snode.Rank,SELINV_TAG_L_SIZE_CD,limIndex_),sizeof(sstrSize));
-                                      PROFILE_COMM(MYPROC(grid_),dest,IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_),sstrSize);
-
-                                      sendIdx++;
-                                    }
-                                  }
-                                }
-                              }//end if I'm a sender
-
-                              //waitall sizes
-                              mpi::Waitall(arrMpiReqsSizeRecvCD);
-
-                              //Allocate content and do Irecv
-                              //If I'm a receiver
-                              if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, snode.Index ) ){
-                                Int recvIdx=0;
-                                for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
-                                  if(isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
-                                    Int src = PNUM(srcRow,PCOL(snode.Index,grid_),grid_);
-                                    if( MYPROC( grid_ ) != src ){
-                                      Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
-                                      std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvIdx];
-                                      MPI_Request & mpiReqRecv = arrMpiReqsRecvCD[recvIdx];
-                                      sstrLcolRecv.resize( sstrSize);
-                                      MPI_Irecv( (void*)&sstrLcolRecv[0], sstrSize, MPI_BYTE, src, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT_CD,limIndex_), grid_->comm, &mpiReqRecv );
-                                      recvIdx++;
-                                    }
-                                  }
-                                }
-                              }//end if I'm a receiver
-
-                              //waitall content
-                              mpi::Waitall(arrMpiReqsRecvCD);
-
-                              // Send LUpdateBufReduced to the cross diagonal blocks. 
-                              // NOTE: This assumes square processor grid
-                                if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) && isRecvFromCrossDiagonal_(grid_->numProcRow, snode.Index ) ){
-                                  std::vector<UBlock<T> >&  Urow = U( LBi( snode.Index, grid_ ) );
-                                  UBlock<T> * UrowP = Urow.data();
-                                  size_t UrowS = Urow.size();
-                                  std::vector<char> isBlockFound(Urow.size(),false);
-
-                                  Int recvIdx=0;
-                                  for(Int srcRow = 0; srcRow<grid_->numProcRow; srcRow++){
-                                    if(isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
-                                      Int src = PNUM(srcRow,PCOL(snode.Index,grid_),grid_);
-
-//#pragma omp task firstprivate(srcRow,src,recvIdx,snodeIdx,pmpointer,UrowP,UrowS) shared(arrSuperNodes)
-                                      {                                      
-                                        SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
-                                        //TIMER_START(Recv_L_CrossDiag);
-                                        std::vector<Int> rowLocalPtrRecv;
-                                        std::vector<Int> blockIdxLocalRecv;
-                                        NumMat<T> UUpdateBuf;
-
-                                        if( MYPROC( grid_ ) != src ){
-                                          std::stringstream sstm;
-                                          Int & sstrSize = arrSstrLcolSizeRecvCD[recvIdx];
-                                          std::vector<char> & sstrLcolRecv = arrSstrLcolRecvCD[recvIdx];
-                                          sstm.write( &sstrLcolRecv[0], sstrSize );
-
-                                          deserialize( rowLocalPtrRecv, sstm, NO_MASK );
-                                          deserialize( blockIdxLocalRecv, sstm, NO_MASK );
-                                          deserialize( UUpdateBuf, sstm, NO_MASK );	
-                                        } // sender is not the same as receiver
-                                        else{
-                                          //TODO do we need to make copies here ?
-                                          rowLocalPtrRecv   = snode.RowLocalPtr;
-                                          blockIdxLocalRecv = snode.BlockIdxLocal;
-                                          UUpdateBuf = snode.LUpdateBuf;
-                                        } // sender is the same as receiver
-                                        //TIMER_STOP(Recv_L_CrossDiag);
-                                        
-                                        auto rowLocalPtr = rowLocalPtrRecv.data();
-                                        auto blockIdxLocal = blockIdxLocalRecv.data();
-                                        auto UUpdateBufP = UUpdateBuf.Data();
-                                        auto UUBm = UUpdateBuf.m();
-
-                                        // Update U
-                                        for( Int ib = 0; ib < blockIdxLocalRecv.size(); ib++ ){
-//#pragma omp task firstprivate(ib,UUBm,UUpdateBufP,blockIdxLocal,rowLocalPtr,snodeIdx,pmpointer,UrowP,UrowS) shared(isBlockFound,arrSuperNodes)
-                                          {
-                                            SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
-                                            for( Int jb = 0; jb < UrowS; jb++ ){
-                                              UBlock<T>& UB = UrowP[jb];
-                                              if( UB.blockIdx == blockIdxLocal[ib] ){
-                                                NumMat<T> Ltmp ( UB.numCol, UB.numRow );
-                                                lapack::Lacpy( 'A', Ltmp.m(), Ltmp.n(), 
-                                                    &UUpdateBufP[rowLocalPtr[ib] ],
-                                                    UUBm, Ltmp.Data(), Ltmp.m() );
-                                                isBlockFound[jb] = true;
-
-                                                Transpose( Ltmp, UB.nzval );
-                                                break;
-                                              }
-                                            }
-                                          }//end omp task
-//#pragma omp taskwait
-                                        }
-//#pragma omp taskwait
-                                      }//end omp task
-
-                                      if( MYPROC( grid_ ) != src ){
-                                        recvIdx++;
-                                      }
-                                    }
-
-                                  }
-
-//#pragma omp taskwait
-
-//#pragma omp task firstprivate(UrowS,UrowP) shared(isBlockFound) //depend(inout:UrowP[0])
-                                  for( Int jb = 0; jb < UrowS; jb++ ){
-                                    UBlock<T>& UB = UrowP[jb];
-                                    if( !isBlockFound[jb] ){
-                                      ErrorHandling( "UBlock cannot find its update. Something is seriously wrong." );
-                                    }
-                                  }
-//#pragma omp taskwait
-
-                                } // receiver
-
-                              mpi::Waitall(arrMpiReqsSizeSendCD);
-                              mpi::Waitall(arrMpiReqsSendCD);
-                            }//end omp task
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx) shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                            {
-                              SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
-
-#if ( _DEBUGlevel_ >= 1 )
-                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
-#endif
-
-                              if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) && snode.LUpdateBuf.m() > 0 ){
-                                std::vector<LBlock<T> >&  Lcol = L( LBj( snode.Index, grid_ ) );
-                                //Need to skip the diagonal block if present
-                                Int startBlock = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
-                                for( Int ib = startBlock; ib < Lcol.size(); ib++ ){
-                                  LBlock<T> & LB = Lcol[ib];
-                                  lapack::Lacpy( 'A', LB.numRow, LB.numCol, &snode.LUpdateBuf( snode.RowLocalPtr[ib-startBlock], 0 ),
-                                      snode.LUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
-                                }
-                              } // Finish updating L	
-                            }//end omp task
-
-#pragma omp task firstprivate(supidx,parentIdx,snodeIdx,lidx)  shared(arrSuperNodes) depend(inout:tdeps[snodeIdx*(numSuper+1)+snodeIdx]) depend(in:tdeps[parentIdx*(numSuper+1)+parentIdx])
-                            {
-                              SuperNodeBufferType & snode = arrSuperNodes[snodeIdx];
-                              TreeReduce<T> * &redLTree = redToLeftTree_[snodeIdx];
-                              if(redLTree != NULL){
-                                redLTree->Wait();
-                                redLTree->CleanupBuffers();
-                              }
-                              TreeReduce<T> * &redDTree = redToAboveTree_[snodeIdx];
-                              if(redDTree != NULL){
-                                redDTree->Wait();
-                                redDTree->CleanupBuffers();
-                              }
-
-
-                              //clear the vector              
-                              {
-                                //std::vector<SuperNodeBufferType> dummy;
-                                //dummy.swap(arrSuperNodes);
-                              }
-
-
-                              //artificially clear resources
-                              arrSuperNodes[snodeIdx] = SuperNodeBufferType();
-                            }//end omp task
-
-//#pragma omp taskwait
-
-                            supidx++;
-                        }
-                        rank++;
-                        //#pragma omp taskwait
-                      }//end for supidx
-                    }
-            }//end for
-          }//end omp single
-        }
-#else
 
         for (lidx=0; lidx<numSteps ; lidx++){
           SelInvIntra_P2p(lidx,rank);
@@ -8161,12 +5451,7 @@ Int lidx=0;
         }
 
           MPI_Barrier(grid_->comm);
-#endif
 
-          //this->DumpLU();
-
-#else
-#endif
       TIMER_STOP(SelInv_P2p);
       return ;
     } 		// -----  end of method PMatrix::SelInv_P2p  ----- 
@@ -8176,7 +5461,7 @@ Int lidx=0;
   template<typename T> 
     void PMatrix<T>::PreSelInv	(  )
     {
-#ifndef _SYM_STORAGE_
+      if (options_->symmetricStorage!=1){
 #ifdef _PRINT_STATS_
       this->localFlops_ = 0.0;
 #endif
@@ -8542,8 +5827,8 @@ Int lidx=0;
 #endif
         } // if I need to inverse the diagonal block
       } // for (ksup)
-
-#else
+      }
+      else{
 
 #ifdef _PRINT_STATS_
         this->localFlops_ = 0.0;
@@ -8611,7 +5896,7 @@ Int lidx=0;
 
           } // if I need to invert the diagonal block
         } // for (ksup)
-#endif
+      }
 
       return ;
     } 		// -----  end of method PMatrix::PreSelInv  ----- 
@@ -9314,609 +6599,608 @@ Int lidx=0;
   template<typename T>
     void PMatrix<T>::PMatrixToDistSparseMatrix ( const DistSparseMatrix<T>& A, DistSparseMatrix<T>& B )
     {
-#ifndef _SYM_STORAGE_
+      if (options_->symmetricStorage!=1){
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
+#endif
+        Int mpirank = grid_->mpirank;
+        Int mpisize = grid_->mpisize;
+
+        std::vector<Int>     rowSend( mpisize );
+        std::vector<Int>     colSend( mpisize );
+        std::vector<T>  valSend( mpisize );
+        std::vector<Int>     sizeSend( mpisize, 0 );
+        std::vector<Int>     displsSend( mpisize, 0 );
+
+        std::vector<Int>     rowRecv( mpisize );
+        std::vector<Int>     colRecv( mpisize );
+        std::vector<T>  valRecv( mpisize );
+        std::vector<Int>     sizeRecv( mpisize, 0 );
+        std::vector<Int>     displsRecv( mpisize, 0 );
+
+        Int numSuper = this->NumSuper();
+        const IntNumVec& perm    = super_->perm;
+        const IntNumVec& permInv = super_->permInv;
+
+        const IntNumVec * pPerm_r;
+        const IntNumVec * pPermInv_r;
+
+        pPerm_r = &super_->perm_r;
+        pPermInv_r = &super_->permInv_r;
+
+        const IntNumVec& perm_r    = *pPerm_r;
+        const IntNumVec& permInv_r = *pPermInv_r;
+
+
+        // Count the sizes from the A matrix first
+        Int numColFirst = this->NumCol() / mpisize;
+        Int firstCol = mpirank * numColFirst;
+        Int numColLocal;
+        if( mpirank == mpisize-1 )
+          numColLocal = this->NumCol() - numColFirst * (mpisize-1);
+        else
+          numColLocal = numColFirst;
+
+
+
+
+
+        Int*     rowPtr = A.rowindLocal.Data();
+        Int*     colPtr = A.colptrLocal.Data();
+
+        for( Int j = 0; j < numColLocal; j++ ){
+          Int ocol = firstCol + j;
+          Int col         = perm[ perm_r[ ocol] ];
+          Int blockColIdx = BlockIdx( col, super_ );
+          Int procCol     = PCOL( blockColIdx, grid_ );
+          for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+            Int orow = rowPtr[i]-1;
+            Int row         = perm[ orow ];
+            Int blockRowIdx = BlockIdx( row, super_ );
+            Int procRow     = PROW( blockRowIdx, grid_ );
+            Int dest = PNUM( procRow, procCol, grid_ );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<")"<< std::endl;
+            statusOFS << "BlockIdx = " << blockRowIdx << ", " <<blockColIdx << std::endl;
+            statusOFS << procRow << ", " << procCol << ", " 
+              << dest << std::endl;
+#endif
+            sizeSend[dest]++;
+          } // for (i)
+        } // for (j)
+
+        // All-to-all exchange of size information
+        MPI_Alltoall( 
+            &sizeSend[0], 1, MPI_INT,
+            &sizeRecv[0], 1, MPI_INT, grid_->comm );
 
 #if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
+        statusOFS << std::endl << "sizeSend: " << sizeSend << std::endl;
+        statusOFS << std::endl << "sizeRecv: " << sizeRecv << std::endl;
 #endif
-      Int mpirank = grid_->mpirank;
-      Int mpisize = grid_->mpisize;
-
-      std::vector<Int>     rowSend( mpisize );
-      std::vector<Int>     colSend( mpisize );
-      std::vector<T>  valSend( mpisize );
-      std::vector<Int>     sizeSend( mpisize, 0 );
-      std::vector<Int>     displsSend( mpisize, 0 );
-
-      std::vector<Int>     rowRecv( mpisize );
-      std::vector<Int>     colRecv( mpisize );
-      std::vector<T>  valRecv( mpisize );
-      std::vector<Int>     sizeRecv( mpisize, 0 );
-      std::vector<Int>     displsRecv( mpisize, 0 );
-
-      Int numSuper = this->NumSuper();
-      const IntNumVec& perm    = super_->perm;
-      const IntNumVec& permInv = super_->permInv;
-
-      const IntNumVec * pPerm_r;
-      const IntNumVec * pPermInv_r;
-
-      pPerm_r = &super_->perm_r;
-      pPermInv_r = &super_->permInv_r;
-
-      const IntNumVec& perm_r    = *pPerm_r;
-      const IntNumVec& permInv_r = *pPermInv_r;
-
-
-      // Count the sizes from the A matrix first
-      Int numColFirst = this->NumCol() / mpisize;
-      Int firstCol = mpirank * numColFirst;
-      Int numColLocal;
-      if( mpirank == mpisize-1 )
-        numColLocal = this->NumCol() - numColFirst * (mpisize-1);
-      else
-        numColLocal = numColFirst;
 
 
 
+        // Reserve the space
+        for( Int ip = 0; ip < mpisize; ip++ ){
+          if( ip == 0 ){
+            displsSend[ip] = 0;
+          }
+          else{
+            displsSend[ip] = displsSend[ip-1] + sizeSend[ip-1];
+          }
+
+          if( ip == 0 ){
+            displsRecv[ip] = 0;
+          }
+          else{
+            displsRecv[ip] = displsRecv[ip-1] + sizeRecv[ip-1];
+          }
+        }
+
+        Int sizeSendTotal = displsSend[mpisize-1] + sizeSend[mpisize-1];
+        Int sizeRecvTotal = displsRecv[mpisize-1] + sizeRecv[mpisize-1];
+
+        rowSend.resize( sizeSendTotal );
+        colSend.resize( sizeSendTotal );
+        valSend.resize( sizeSendTotal );
+
+        rowRecv.resize( sizeRecvTotal );
+        colRecv.resize( sizeRecvTotal );
+        valRecv.resize( sizeRecvTotal );
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << "displsSend = " << displsSend << std::endl;
+        statusOFS << "displsRecv = " << displsRecv << std::endl;
+#endif
+
+        // Put (row, col) to the sending buffer
+        std::vector<Int>   cntSize( mpisize, 0 );
+
+        rowPtr = A.rowindLocal.Data();
+        colPtr = A.colptrLocal.Data();
+
+        for( Int j = 0; j < numColLocal; j++ ){
+
+          Int ocol = firstCol + j;
+          Int col         = perm[ perm_r[ ocol] ];
+          Int blockColIdx = BlockIdx( col, super_ );
+          Int procCol     = PCOL( blockColIdx, grid_ );
+          for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+            Int orow = rowPtr[i]-1;
+            Int row         = perm[ orow ];
+            Int blockRowIdx = BlockIdx( row, super_ );
+            Int procRow     = PROW( blockRowIdx, grid_ );
+            Int dest = PNUM( procRow, procCol, grid_ );
+            rowSend[displsSend[dest] + cntSize[dest]] = row;
+            colSend[displsSend[dest] + cntSize[dest]] = col;
+            cntSize[dest]++;
+          } // for (i)
+        } // for (j)
 
 
-      Int*     rowPtr = A.rowindLocal.Data();
-      Int*     colPtr = A.colptrLocal.Data();
+        // Check sizes match
+        for( Int ip = 0; ip < mpisize; ip++ ){
+          if( cntSize[ip] != sizeSend[ip] ){
+            ErrorHandling( "Sizes of the sending information do not match." );
+          }
+        }
 
-      for( Int j = 0; j < numColLocal; j++ ){
-        Int ocol = firstCol + j;
-        Int col         = perm[ perm_r[ ocol] ];
-        Int blockColIdx = BlockIdx( col, super_ );
-        Int procCol     = PCOL( blockColIdx, grid_ );
-        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int orow = rowPtr[i]-1;
-          Int row         = perm[ orow ];
+        // Alltoallv to exchange information
+        mpi::Alltoallv( 
+            &rowSend[0], &sizeSend[0], &displsSend[0],
+            &rowRecv[0], &sizeRecv[0], &displsRecv[0],
+            grid_->comm );
+        mpi::Alltoallv( 
+            &colSend[0], &sizeSend[0], &displsSend[0],
+            &colRecv[0], &sizeRecv[0], &displsRecv[0],
+            grid_->comm );
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << "Alltoallv communication of nonzero indices finished." << std::endl;
+#endif
+
+
+#if ( _DEBUGlevel_ >= 1 )
+        for( Int ip = 0; ip < mpisize; ip++ ){
+          statusOFS << "rowSend[" << ip << "] = " << rowSend[ip] << std::endl;
+          statusOFS << "rowRecv[" << ip << "] = " << rowRecv[ip] << std::endl;
+          statusOFS << "colSend[" << ip << "] = " << colSend[ip] << std::endl;
+          statusOFS << "colRecv[" << ip << "] = " << colRecv[ip] << std::endl;
+        }
+
+
+        //DumpLU();
+
+
+
+#endif
+
+        // For each (row, col), fill the nonzero values to valRecv locally.
+        for( Int g = 0; g < sizeRecvTotal; g++ ){
+          Int row = rowRecv[g];
+          Int col = colRecv[g];
+
           Int blockRowIdx = BlockIdx( row, super_ );
-          Int procRow     = PROW( blockRowIdx, grid_ );
-          Int dest = PNUM( procRow, procCol, grid_ );
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<")"<< std::endl;
-          statusOFS << "BlockIdx = " << blockRowIdx << ", " <<blockColIdx << std::endl;
-          statusOFS << procRow << ", " << procCol << ", " 
-            << dest << std::endl;
-#endif
-          sizeSend[dest]++;
-        } // for (i)
-      } // for (j)
+          Int blockColIdx = BlockIdx( col, super_ );
 
-      // All-to-all exchange of size information
-      MPI_Alltoall( 
-          &sizeSend[0], 1, MPI_INT,
-          &sizeRecv[0], 1, MPI_INT, grid_->comm );
-
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "sizeSend: " << sizeSend << std::endl;
-      statusOFS << std::endl << "sizeRecv: " << sizeRecv << std::endl;
-#endif
-
-
-
-      // Reserve the space
-      for( Int ip = 0; ip < mpisize; ip++ ){
-        if( ip == 0 ){
-          displsSend[ip] = 0;
-        }
-        else{
-          displsSend[ip] = displsSend[ip-1] + sizeSend[ip-1];
-        }
-
-        if( ip == 0 ){
-          displsRecv[ip] = 0;
-        }
-        else{
-          displsRecv[ip] = displsRecv[ip-1] + sizeRecv[ip-1];
-        }
-      }
-
-      Int sizeSendTotal = displsSend[mpisize-1] + sizeSend[mpisize-1];
-      Int sizeRecvTotal = displsRecv[mpisize-1] + sizeRecv[mpisize-1];
-
-      rowSend.resize( sizeSendTotal );
-      colSend.resize( sizeSendTotal );
-      valSend.resize( sizeSendTotal );
-
-      rowRecv.resize( sizeRecvTotal );
-      colRecv.resize( sizeRecvTotal );
-      valRecv.resize( sizeRecvTotal );
-
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "displsSend = " << displsSend << std::endl;
-      statusOFS << "displsRecv = " << displsRecv << std::endl;
-#endif
-
-      // Put (row, col) to the sending buffer
-      std::vector<Int>   cntSize( mpisize, 0 );
-
-      rowPtr = A.rowindLocal.Data();
-      colPtr = A.colptrLocal.Data();
-
-      for( Int j = 0; j < numColLocal; j++ ){
-
-        Int ocol = firstCol + j;
-        Int col         = perm[ perm_r[ ocol] ];
-        Int blockColIdx = BlockIdx( col, super_ );
-        Int procCol     = PCOL( blockColIdx, grid_ );
-        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int orow = rowPtr[i]-1;
-          Int row         = perm[ orow ];
-          Int blockRowIdx = BlockIdx( row, super_ );
-          Int procRow     = PROW( blockRowIdx, grid_ );
-          Int dest = PNUM( procRow, procCol, grid_ );
-          rowSend[displsSend[dest] + cntSize[dest]] = row;
-          colSend[displsSend[dest] + cntSize[dest]] = col;
-          cntSize[dest]++;
-        } // for (i)
-      } // for (j)
-
-
-      // Check sizes match
-      for( Int ip = 0; ip < mpisize; ip++ ){
-        if( cntSize[ip] != sizeSend[ip] ){
-          ErrorHandling( "Sizes of the sending information do not match." );
-        }
-      }
-
-      // Alltoallv to exchange information
-      mpi::Alltoallv( 
-          &rowSend[0], &sizeSend[0], &displsSend[0],
-          &rowRecv[0], &sizeRecv[0], &displsRecv[0],
-          grid_->comm );
-      mpi::Alltoallv( 
-          &colSend[0], &sizeSend[0], &displsSend[0],
-          &colRecv[0], &sizeRecv[0], &displsRecv[0],
-          grid_->comm );
-
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "Alltoallv communication of nonzero indices finished." << std::endl;
-#endif
-
-
-#if ( _DEBUGlevel_ >= 1 )
-      for( Int ip = 0; ip < mpisize; ip++ ){
-        statusOFS << "rowSend[" << ip << "] = " << rowSend[ip] << std::endl;
-        statusOFS << "rowRecv[" << ip << "] = " << rowRecv[ip] << std::endl;
-        statusOFS << "colSend[" << ip << "] = " << colSend[ip] << std::endl;
-        statusOFS << "colRecv[" << ip << "] = " << colRecv[ip] << std::endl;
-      }
-
-
-      //DumpLU();
-
-
-
-#endif
-
-      // For each (row, col), fill the nonzero values to valRecv locally.
-      for( Int g = 0; g < sizeRecvTotal; g++ ){
-        Int row = rowRecv[g];
-        Int col = colRecv[g];
-
-        Int blockRowIdx = BlockIdx( row, super_ );
-        Int blockColIdx = BlockIdx( col, super_ );
-
-        // Search for the nzval
-        bool isFound = false;
-
-        if( blockColIdx <= blockRowIdx ){
-          // Data on the L side
-
-          std::vector<LBlock<T> >&  Lcol = this->L( LBj( blockColIdx, grid_ ) );
-
-          for( Int ib = 0; ib < Lcol.size(); ib++ ){
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS << "blockRowIdx = " << blockRowIdx << ", Lcol[ib].blockIdx = " << Lcol[ib].blockIdx << ", blockColIdx = " << blockColIdx << std::endl;
-#endif
-            if( Lcol[ib].blockIdx == blockRowIdx ){
-              IntNumVec& rows = Lcol[ib].rows;
-              for( int iloc = 0; iloc < Lcol[ib].numRow; iloc++ ){
-                if( rows[iloc] == row ){
-                  Int jloc = col - FirstBlockCol( blockColIdx, super_ );
-                  valRecv[g] = Lcol[ib].nzval( iloc, jloc );
-                  isFound = true;
-                  break;
-                } // found the corresponding row
-              }
-            }
-            if( isFound == true ) break;  
-          } // for (ib)
-        } 
-        else{
-          // Data on the U side
-
-          std::vector<UBlock<T> >&  Urow = this->U( LBi( blockRowIdx, grid_ ) );
-
-          for( Int jb = 0; jb < Urow.size(); jb++ ){
-            if( Urow[jb].blockIdx == blockColIdx ){
-              IntNumVec& cols = Urow[jb].cols;
-              for( int jloc = 0; jloc < Urow[jb].numCol; jloc++ ){
-                if( cols[jloc] == col ){
-                  Int iloc = row - FirstBlockRow( blockRowIdx, super_ );
-                  valRecv[g] = Urow[jb].nzval( iloc, jloc );
-                  isFound = true;
-                  break;
-                } // found the corresponding col
-              }
-            }
-            if( isFound == true ) break;  
-          } // for (jb)
-        } // if( blockColIdx <= blockRowIdx ) 
-
-        // Did not find the corresponding row, set the value to zero.
-        if( isFound == false ){
-          statusOFS << "In the permutated order, (" << row << ", " << col <<
-            ") is not found in PMatrix." << std::endl;
-          valRecv[g] = ZERO<T>();
-        }
-
-      } // for (g)
-
-
-      // Feed back valRecv to valSend through Alltoallv. NOTE: for the
-      // values, the roles of "send" and "recv" are swapped.
-      mpi::Alltoallv( 
-          &valRecv[0], &sizeRecv[0], &displsRecv[0],
-          &valSend[0], &sizeSend[0], &displsSend[0],
-          grid_->comm );
-
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "Alltoallv communication of nonzero values finished." << std::endl;
-#endif
-
-      // Put the nonzero values from valSend to the matrix B.
-      B.size = A.size;
-      B.nnz  = A.nnz;
-      B.nnzLocal = A.nnzLocal;
-      B.colptrLocal = A.colptrLocal;
-      B.rowindLocal = A.rowindLocal;
-      B.nzvalLocal.Resize( B.nnzLocal );
-      SetValue( B.nzvalLocal, ZERO<T>() );
-      // Make sure that the communicator of A and B are the same.
-      // FIXME Find a better way to compare the communicators
-      //			if( grid_->comm != A.comm ){
-      //ErrorHandling( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
-      //			}
-      B.comm = grid_->comm;
-
-      for( Int i = 0; i < mpisize; i++ )
-        cntSize[i] = 0;
-
-      rowPtr = B.rowindLocal.Data();
-      colPtr = B.colptrLocal.Data();
-      T* valPtr = B.nzvalLocal.Data();
-
-      for( Int j = 0; j < numColLocal; j++ ){
-        Int ocol = firstCol + j;
-        Int col         = perm[ perm_r[ ocol] ];
-        Int blockColIdx = BlockIdx( col, super_ );
-        Int procCol     = PCOL( blockColIdx, grid_ );
-        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int orow = rowPtr[i]-1;
-          Int row         = perm[ orow ];
-          Int blockRowIdx = BlockIdx( row, super_ );
-          Int procRow     = PROW( blockRowIdx, grid_ );
-          Int dest = PNUM( procRow, procCol, grid_ );
-          valPtr[i] = valSend[displsSend[dest] + cntSize[dest]];
-          cntSize[dest]++;
-        } // for (i)
-      } // for (j)
-
-      // Check sizes match
-      for( Int ip = 0; ip < mpisize; ip++ ){
-        if( cntSize[ip] != sizeSend[ip] ){
-          ErrorHandling( "Sizes of the sending information do not match." );
-        }
-      }
-
-
-
-      return ;
-#else
-
-
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
-#endif
-      Int mpirank = grid_->mpirank;
-      Int mpisize = grid_->mpisize;
-
-      std::vector<Int>     rowSend( mpisize );
-      std::vector<Int>     colSend( mpisize );
-      std::vector<T>  valSend( mpisize );
-      std::vector<Int>     sizeSend( mpisize, 0 );
-      std::vector<Int>     displsSend( mpisize, 0 );
-
-      std::vector<Int>     rowRecv( mpisize );
-      std::vector<Int>     colRecv( mpisize );
-      std::vector<T>  valRecv( mpisize );
-      std::vector<Int>     sizeRecv( mpisize, 0 );
-      std::vector<Int>     displsRecv( mpisize, 0 );
-
-      Int numSuper = this->NumSuper();
-      const IntNumVec& perm    = super_->perm;
-      const IntNumVec& permInv = super_->permInv;
-
-      const IntNumVec * pPerm_r;
-      const IntNumVec * pPermInv_r;
-
-      pPerm_r = &super_->perm_r;
-      pPermInv_r = &super_->permInv_r;
-
-      const IntNumVec& perm_r    = *pPerm_r;
-      const IntNumVec& permInv_r = *pPermInv_r;
-
-
-      // Count the sizes from the A matrix first
-      Int numColFirst = this->NumCol() / mpisize;
-      Int firstCol = mpirank * numColFirst;
-      Int numColLocal;
-      if( mpirank == mpisize-1 )
-        numColLocal = this->NumCol() - numColFirst * (mpisize-1);
-      else
-        numColLocal = numColFirst;
-
-
-
-
-
-      Int*     rowPtr = A.rowindLocal.Data();
-      Int*     colPtr = A.colptrLocal.Data();
-
-      for( Int j = 0; j < numColLocal; j++ ){
-        Int ocol = firstCol + j;
-        Int col         = perm[ perm_r[ ocol] ];
-        Int blockColIdx = BlockIdx( col, super_ );
-        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int orow = rowPtr[i]-1;
-          Int row         = perm[ orow ];
-          Int blockRowIdx = BlockIdx( row, super_ );
-          Int procCol     = PCOL( std::min(blockColIdx,blockRowIdx), grid_ );
-          Int procRow     = PROW( std::max(blockColIdx,blockRowIdx), grid_ );
-          Int dest = PNUM( procRow , procCol, grid_ );
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<")"<< std::endl;
-          statusOFS << "BlockIdx = " << blockRowIdx << ", " <<blockColIdx << std::endl;
-          statusOFS << procRow << ", " << procCol << ", " 
-            << dest << std::endl;
-#endif
-          sizeSend[dest]++;
-        } // for (i)
-      } // for (j)
-
-      // All-to-all exchange of size information
-      MPI_Alltoall( 
-          &sizeSend[0], 1, MPI_INT,
-          &sizeRecv[0], 1, MPI_INT, grid_->comm );
-
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << std::endl << "sizeSend: " << sizeSend << std::endl;
-      statusOFS << std::endl << "sizeRecv: " << sizeRecv << std::endl;
-#endif
-
-
-
-      // Reserve the space
-      for( Int ip = 0; ip < mpisize; ip++ ){
-        if( ip == 0 ){
-          displsSend[ip] = 0;
-        }
-        else{
-          displsSend[ip] = displsSend[ip-1] + sizeSend[ip-1];
-        }
-
-        if( ip == 0 ){
-          displsRecv[ip] = 0;
-        }
-        else{
-          displsRecv[ip] = displsRecv[ip-1] + sizeRecv[ip-1];
-        }
-      }
-
-      Int sizeSendTotal = displsSend[mpisize-1] + sizeSend[mpisize-1];
-      Int sizeRecvTotal = displsRecv[mpisize-1] + sizeRecv[mpisize-1];
-
-      rowSend.resize( sizeSendTotal );
-      colSend.resize( sizeSendTotal );
-      valSend.resize( sizeSendTotal );
-
-      rowRecv.resize( sizeRecvTotal );
-      colRecv.resize( sizeRecvTotal );
-      valRecv.resize( sizeRecvTotal );
-
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "displsSend = " << displsSend << std::endl;
-      statusOFS << "displsRecv = " << displsRecv << std::endl;
-#endif
-
-      // Put (row, col) to the sending buffer
-      std::vector<Int>   cntSize( mpisize, 0 );
-
-      rowPtr = A.rowindLocal.Data();
-      colPtr = A.colptrLocal.Data();
-
-      for( Int j = 0; j < numColLocal; j++ ){
-
-        Int ocol = firstCol + j;
-        Int col         = perm[ perm_r[ ocol] ];
-        Int blockColIdx = BlockIdx( col, super_ );
-        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int orow = rowPtr[i]-1;
-          Int row         = perm[ orow ];
-          Int blockRowIdx = BlockIdx( row, super_ );
-          Int procCol     = PCOL( std::min(blockColIdx,blockRowIdx), grid_ );
-          Int procRow     = PROW( std::max(blockColIdx,blockRowIdx), grid_ );
-          Int dest = PNUM( procRow , procCol, grid_ );
-          rowSend[displsSend[dest] + cntSize[dest]] = row;
-          colSend[displsSend[dest] + cntSize[dest]] = col;
-          cntSize[dest]++;
-        } // for (i)
-      } // for (j)
-
-
-      // Check sizes match
-      for( Int ip = 0; ip < mpisize; ip++ ){
-        if( cntSize[ip] != sizeSend[ip] ){
-          ErrorHandling( "Sizes of the sending information do not match." );
-        }
-      }
-
-      // Alltoallv to exchange information
-      mpi::Alltoallv( 
-          &rowSend[0], &sizeSend[0], &displsSend[0],
-          &rowRecv[0], &sizeRecv[0], &displsRecv[0],
-          grid_->comm );
-      mpi::Alltoallv( 
-          &colSend[0], &sizeSend[0], &displsSend[0],
-          &colRecv[0], &sizeRecv[0], &displsRecv[0],
-          grid_->comm );
-
-#if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "Alltoallv communication of nonzero indices finished." << std::endl;
-#endif
-
-
-#if ( _DEBUGlevel_ >= 1 )
-      for( Int ip = 0; ip < mpisize; ip++ ){
-        statusOFS << "rowSend[" << ip << "] = " << rowSend[ip] << std::endl;
-        statusOFS << "rowRecv[" << ip << "] = " << rowRecv[ip] << std::endl;
-        statusOFS << "colSend[" << ip << "] = " << colSend[ip] << std::endl;
-        statusOFS << "colRecv[" << ip << "] = " << colRecv[ip] << std::endl;
-      }
-
-
-      //DumpLU();
-
-
-
-#endif
-
-      // For each (row, col), fill the nonzero values to valRecv locally.
-      for( Int g = 0; g < sizeRecvTotal; g++ ){
-        Int row = rowRecv[g];
-        Int col = colRecv[g];
-
-
-        // Search for the nzval
-
-        auto findBlock = [&] (Int g, Int row,Int col){
-          bool transpose = false;
-          
+          // Search for the nzval
           bool isFound = false;
-
-          Int lrow = std::max(row,col);
-          Int lcol = std::min(row,col);
-
-          Int blockRowIdx = BlockIdx( lrow, super_ );
-          Int blockColIdx = BlockIdx( lcol, super_ );
 
           if( blockColIdx <= blockRowIdx ){
             // Data on the L side
 
             std::vector<LBlock<T> >&  Lcol = this->L( LBj( blockColIdx, grid_ ) );
 
-          for( Int ib = 0; ib < Lcol.size(); ib++ ){
+            for( Int ib = 0; ib < Lcol.size(); ib++ ){
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << "blockRowIdx = " << blockRowIdx << ", Lcol[ib].blockIdx = " << Lcol[ib].blockIdx << ", blockColIdx = " << blockColIdx << std::endl;
+              statusOFS << "blockRowIdx = " << blockRowIdx << ", Lcol[ib].blockIdx = " << Lcol[ib].blockIdx << ", blockColIdx = " << blockColIdx << std::endl;
 #endif
-            if( Lcol[ib].blockIdx == blockRowIdx ){
-              IntNumVec& rows = Lcol[ib].rows;
-              for( int iloc = 0; iloc < Lcol[ib].numRow; iloc++ ){
-                if( rows[iloc] == lrow ){
-                  Int jloc = lcol - FirstBlockCol( blockColIdx, super_ );
-                  valRecv[g] = Lcol[ib].nzval( iloc, jloc );
-                  isFound = true;
-                  break;
-                } // found the corresponding row
+              if( Lcol[ib].blockIdx == blockRowIdx ){
+                IntNumVec& rows = Lcol[ib].rows;
+                for( int iloc = 0; iloc < Lcol[ib].numRow; iloc++ ){
+                  if( rows[iloc] == row ){
+                    Int jloc = col - FirstBlockCol( blockColIdx, super_ );
+                    valRecv[g] = Lcol[ib].nzval( iloc, jloc );
+                    isFound = true;
+                    break;
+                  } // found the corresponding row
+                }
               }
-            }
-            if( isFound == true ) break;  
-          } // for (ib)
+              if( isFound == true ) break;  
+            } // for (ib)
+          } 
+          else{
+            // Data on the U side
 
-        } 
+            std::vector<UBlock<T> >&  Urow = this->U( LBi( blockRowIdx, grid_ ) );
 
-        if( isFound == false ){
-          statusOFS << "In the permutated order, (" << row << ", " << col <<
-            ") is not found in PMatrix." << std::endl;
-          valRecv[g] = ZERO<T>();
-        }
-        };
+            for( Int jb = 0; jb < Urow.size(); jb++ ){
+              if( Urow[jb].blockIdx == blockColIdx ){
+                IntNumVec& cols = Urow[jb].cols;
+                for( int jloc = 0; jloc < Urow[jb].numCol; jloc++ ){
+                  if( cols[jloc] == col ){
+                    Int iloc = row - FirstBlockRow( blockRowIdx, super_ );
+                    valRecv[g] = Urow[jb].nzval( iloc, jloc );
+                    isFound = true;
+                    break;
+                  } // found the corresponding col
+                }
+              }
+              if( isFound == true ) break;  
+            } // for (jb)
+          } // if( blockColIdx <= blockRowIdx ) 
 
-        findBlock(g,row,col);
+          // Did not find the corresponding row, set the value to zero.
+          if( isFound == false ){
+            statusOFS << "In the permutated order, (" << row << ", " << col <<
+              ") is not found in PMatrix." << std::endl;
+            valRecv[g] = ZERO<T>();
+          }
 
-        // Did not find the corresponding row, set the value to zero.
-
-      } // for (g)
+        } // for (g)
 
 
-      // Feed back valRecv to valSend through Alltoallv. NOTE: for the
-      // values, the roles of "send" and "recv" are swapped.
-      mpi::Alltoallv( 
-          &valRecv[0], &sizeRecv[0], &displsRecv[0],
-          &valSend[0], &sizeSend[0], &displsSend[0],
-          grid_->comm );
+        // Feed back valRecv to valSend through Alltoallv. NOTE: for the
+        // values, the roles of "send" and "recv" are swapped.
+        mpi::Alltoallv( 
+            &valRecv[0], &sizeRecv[0], &displsRecv[0],
+            &valSend[0], &sizeSend[0], &displsSend[0],
+            grid_->comm );
 
 #if ( _DEBUGlevel_ >= 1 )
-      statusOFS << "Alltoallv communication of nonzero values finished." << std::endl;
+        statusOFS << "Alltoallv communication of nonzero values finished." << std::endl;
 #endif
 
-      // Put the nonzero values from valSend to the matrix B.
-      B.size = A.size;
-      B.nnz  = A.nnz;
-      B.nnzLocal = A.nnzLocal;
-      B.colptrLocal = A.colptrLocal;
-      B.rowindLocal = A.rowindLocal;
-      B.nzvalLocal.Resize( B.nnzLocal );
-      SetValue( B.nzvalLocal, ZERO<T>() );
-      // Make sure that the communicator of A and B are the same.
-      // FIXME Find a better way to compare the communicators
-      //			if( grid_->comm != A.comm ){
-      //ErrorHandling( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
-      //			}
-      B.comm = grid_->comm;
+        // Put the nonzero values from valSend to the matrix B.
+        B.size = A.size;
+        B.nnz  = A.nnz;
+        B.nnzLocal = A.nnzLocal;
+        B.colptrLocal = A.colptrLocal;
+        B.rowindLocal = A.rowindLocal;
+        B.nzvalLocal.Resize( B.nnzLocal );
+        SetValue( B.nzvalLocal, ZERO<T>() );
+        // Make sure that the communicator of A and B are the same.
+        // FIXME Find a better way to compare the communicators
+        //			if( grid_->comm != A.comm ){
+        //ErrorHandling( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
+        //			}
+        B.comm = grid_->comm;
 
-      for( Int i = 0; i < mpisize; i++ )
-        cntSize[i] = 0;
+        for( Int i = 0; i < mpisize; i++ )
+          cntSize[i] = 0;
 
-      rowPtr = B.rowindLocal.Data();
-      colPtr = B.colptrLocal.Data();
-      T* valPtr = B.nzvalLocal.Data();
+        rowPtr = B.rowindLocal.Data();
+        colPtr = B.colptrLocal.Data();
+        T* valPtr = B.nzvalLocal.Data();
 
-      for( Int j = 0; j < numColLocal; j++ ){
-        Int ocol = firstCol + j;
-        Int col         = perm[ perm_r[ ocol] ];
-        Int blockColIdx = BlockIdx( col, super_ );
-        for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
-          Int orow = rowPtr[i]-1;
-          Int row         = perm[ orow ];
-          Int blockRowIdx = BlockIdx( row, super_ );
-          Int procCol     = PCOL( std::min(blockColIdx,blockRowIdx), grid_ );
-          Int procRow     = PROW( std::max(blockColIdx,blockRowIdx), grid_ );
-          Int dest = PNUM( procRow , procCol, grid_ );
+        for( Int j = 0; j < numColLocal; j++ ){
+          Int ocol = firstCol + j;
+          Int col         = perm[ perm_r[ ocol] ];
+          Int blockColIdx = BlockIdx( col, super_ );
+          Int procCol     = PCOL( blockColIdx, grid_ );
+          for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+            Int orow = rowPtr[i]-1;
+            Int row         = perm[ orow ];
+            Int blockRowIdx = BlockIdx( row, super_ );
+            Int procRow     = PROW( blockRowIdx, grid_ );
+            Int dest = PNUM( procRow, procCol, grid_ );
+            valPtr[i] = valSend[displsSend[dest] + cntSize[dest]];
+            cntSize[dest]++;
+          } // for (i)
+        } // for (j)
 
-          valPtr[i] = valSend[displsSend[dest] + cntSize[dest]];
-          cntSize[dest]++;
-        } // for (i)
-      } // for (j)
-
-      // Check sizes match
-      for( Int ip = 0; ip < mpisize; ip++ ){
-        if( cntSize[ip] != sizeSend[ip] ){
-          ErrorHandling( "Sizes of the sending information do not match." );
+        // Check sizes match
+        for( Int ip = 0; ip < mpisize; ip++ ){
+          if( cntSize[ip] != sizeSend[ip] ){
+            ErrorHandling( "Sizes of the sending information do not match." );
+          }
         }
+
+
+
+        return ;
       }
+      else{
+
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
+#endif
+        Int mpirank = grid_->mpirank;
+        Int mpisize = grid_->mpisize;
+
+        std::vector<Int>     rowSend( mpisize );
+        std::vector<Int>     colSend( mpisize );
+        std::vector<T>  valSend( mpisize );
+        std::vector<Int>     sizeSend( mpisize, 0 );
+        std::vector<Int>     displsSend( mpisize, 0 );
+
+        std::vector<Int>     rowRecv( mpisize );
+        std::vector<Int>     colRecv( mpisize );
+        std::vector<T>  valRecv( mpisize );
+        std::vector<Int>     sizeRecv( mpisize, 0 );
+        std::vector<Int>     displsRecv( mpisize, 0 );
+
+        Int numSuper = this->NumSuper();
+        const IntNumVec& perm    = super_->perm;
+        const IntNumVec& permInv = super_->permInv;
+
+        const IntNumVec * pPerm_r;
+        const IntNumVec * pPermInv_r;
+
+        pPerm_r = &super_->perm_r;
+        pPermInv_r = &super_->permInv_r;
+
+        const IntNumVec& perm_r    = *pPerm_r;
+        const IntNumVec& permInv_r = *pPermInv_r;
+
+
+        // Count the sizes from the A matrix first
+        Int numColFirst = this->NumCol() / mpisize;
+        Int firstCol = mpirank * numColFirst;
+        Int numColLocal;
+        if( mpirank == mpisize-1 )
+          numColLocal = this->NumCol() - numColFirst * (mpisize-1);
+        else
+          numColLocal = numColFirst;
 
 
 
-      return ;
+
+
+        Int*     rowPtr = A.rowindLocal.Data();
+        Int*     colPtr = A.colptrLocal.Data();
+
+        for( Int j = 0; j < numColLocal; j++ ){
+          Int ocol = firstCol + j;
+          Int col         = perm[ perm_r[ ocol] ];
+          Int blockColIdx = BlockIdx( col, super_ );
+          for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+            Int orow = rowPtr[i]-1;
+            Int row         = perm[ orow ];
+            Int blockRowIdx = BlockIdx( row, super_ );
+            Int procCol     = PCOL( std::min(blockColIdx,blockRowIdx), grid_ );
+            Int procRow     = PROW( std::max(blockColIdx,blockRowIdx), grid_ );
+            Int dest = PNUM( procRow , procCol, grid_ );
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<")"<< std::endl;
+            statusOFS << "BlockIdx = " << blockRowIdx << ", " <<blockColIdx << std::endl;
+            statusOFS << procRow << ", " << procCol << ", " 
+              << dest << std::endl;
+#endif
+            sizeSend[dest]++;
+          } // for (i)
+        } // for (j)
+
+        // All-to-all exchange of size information
+        MPI_Alltoall( 
+            &sizeSend[0], 1, MPI_INT,
+            &sizeRecv[0], 1, MPI_INT, grid_->comm );
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << std::endl << "sizeSend: " << sizeSend << std::endl;
+        statusOFS << std::endl << "sizeRecv: " << sizeRecv << std::endl;
+#endif
+
+
+
+        // Reserve the space
+        for( Int ip = 0; ip < mpisize; ip++ ){
+          if( ip == 0 ){
+            displsSend[ip] = 0;
+          }
+          else{
+            displsSend[ip] = displsSend[ip-1] + sizeSend[ip-1];
+          }
+
+          if( ip == 0 ){
+            displsRecv[ip] = 0;
+          }
+          else{
+            displsRecv[ip] = displsRecv[ip-1] + sizeRecv[ip-1];
+          }
+        }
+
+        Int sizeSendTotal = displsSend[mpisize-1] + sizeSend[mpisize-1];
+        Int sizeRecvTotal = displsRecv[mpisize-1] + sizeRecv[mpisize-1];
+
+        rowSend.resize( sizeSendTotal );
+        colSend.resize( sizeSendTotal );
+        valSend.resize( sizeSendTotal );
+
+        rowRecv.resize( sizeRecvTotal );
+        colRecv.resize( sizeRecvTotal );
+        valRecv.resize( sizeRecvTotal );
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << "displsSend = " << displsSend << std::endl;
+        statusOFS << "displsRecv = " << displsRecv << std::endl;
+#endif
+
+        // Put (row, col) to the sending buffer
+        std::vector<Int>   cntSize( mpisize, 0 );
+
+        rowPtr = A.rowindLocal.Data();
+        colPtr = A.colptrLocal.Data();
+
+        for( Int j = 0; j < numColLocal; j++ ){
+
+          Int ocol = firstCol + j;
+          Int col         = perm[ perm_r[ ocol] ];
+          Int blockColIdx = BlockIdx( col, super_ );
+          for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+            Int orow = rowPtr[i]-1;
+            Int row         = perm[ orow ];
+            Int blockRowIdx = BlockIdx( row, super_ );
+            Int procCol     = PCOL( std::min(blockColIdx,blockRowIdx), grid_ );
+            Int procRow     = PROW( std::max(blockColIdx,blockRowIdx), grid_ );
+            Int dest = PNUM( procRow , procCol, grid_ );
+            rowSend[displsSend[dest] + cntSize[dest]] = row;
+            colSend[displsSend[dest] + cntSize[dest]] = col;
+            cntSize[dest]++;
+          } // for (i)
+        } // for (j)
+
+
+        // Check sizes match
+        for( Int ip = 0; ip < mpisize; ip++ ){
+          if( cntSize[ip] != sizeSend[ip] ){
+            ErrorHandling( "Sizes of the sending information do not match." );
+          }
+        }
+
+        // Alltoallv to exchange information
+        mpi::Alltoallv( 
+            &rowSend[0], &sizeSend[0], &displsSend[0],
+            &rowRecv[0], &sizeRecv[0], &displsRecv[0],
+            grid_->comm );
+        mpi::Alltoallv( 
+            &colSend[0], &sizeSend[0], &displsSend[0],
+            &colRecv[0], &sizeRecv[0], &displsRecv[0],
+            grid_->comm );
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << "Alltoallv communication of nonzero indices finished." << std::endl;
+#endif
+
+
+#if ( _DEBUGlevel_ >= 1 )
+        for( Int ip = 0; ip < mpisize; ip++ ){
+          statusOFS << "rowSend[" << ip << "] = " << rowSend[ip] << std::endl;
+          statusOFS << "rowRecv[" << ip << "] = " << rowRecv[ip] << std::endl;
+          statusOFS << "colSend[" << ip << "] = " << colSend[ip] << std::endl;
+          statusOFS << "colRecv[" << ip << "] = " << colRecv[ip] << std::endl;
+        }
+
+
+        //DumpLU();
 
 
 
 #endif
+
+        // For each (row, col), fill the nonzero values to valRecv locally.
+        for( Int g = 0; g < sizeRecvTotal; g++ ){
+          Int row = rowRecv[g];
+          Int col = colRecv[g];
+
+
+          // Search for the nzval
+
+          auto findBlock = [&] (Int g, Int row,Int col){
+            bool transpose = false;
+
+            bool isFound = false;
+
+            Int lrow = std::max(row,col);
+            Int lcol = std::min(row,col);
+
+            Int blockRowIdx = BlockIdx( lrow, super_ );
+            Int blockColIdx = BlockIdx( lcol, super_ );
+
+            if( blockColIdx <= blockRowIdx ){
+              // Data on the L side
+
+              std::vector<LBlock<T> >&  Lcol = this->L( LBj( blockColIdx, grid_ ) );
+
+              for( Int ib = 0; ib < Lcol.size(); ib++ ){
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << "blockRowIdx = " << blockRowIdx << ", Lcol[ib].blockIdx = " << Lcol[ib].blockIdx << ", blockColIdx = " << blockColIdx << std::endl;
+#endif
+                if( Lcol[ib].blockIdx == blockRowIdx ){
+                  IntNumVec& rows = Lcol[ib].rows;
+                  for( int iloc = 0; iloc < Lcol[ib].numRow; iloc++ ){
+                    if( rows[iloc] == lrow ){
+                      Int jloc = lcol - FirstBlockCol( blockColIdx, super_ );
+                      valRecv[g] = Lcol[ib].nzval( iloc, jloc );
+                      isFound = true;
+                      break;
+                    } // found the corresponding row
+                  }
+                }
+                if( isFound == true ) break;  
+              } // for (ib)
+
+            } 
+
+            if( isFound == false ){
+              statusOFS << "In the permutated order, (" << row << ", " << col <<
+                ") is not found in PMatrix." << std::endl;
+              valRecv[g] = ZERO<T>();
+            }
+          };
+
+          findBlock(g,row,col);
+
+          // Did not find the corresponding row, set the value to zero.
+
+        } // for (g)
+
+
+        // Feed back valRecv to valSend through Alltoallv. NOTE: for the
+        // values, the roles of "send" and "recv" are swapped.
+        mpi::Alltoallv( 
+            &valRecv[0], &sizeRecv[0], &displsRecv[0],
+            &valSend[0], &sizeSend[0], &displsSend[0],
+            grid_->comm );
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS << "Alltoallv communication of nonzero values finished." << std::endl;
+#endif
+
+        // Put the nonzero values from valSend to the matrix B.
+        B.size = A.size;
+        B.nnz  = A.nnz;
+        B.nnzLocal = A.nnzLocal;
+        B.colptrLocal = A.colptrLocal;
+        B.rowindLocal = A.rowindLocal;
+        B.nzvalLocal.Resize( B.nnzLocal );
+        SetValue( B.nzvalLocal, ZERO<T>() );
+        // Make sure that the communicator of A and B are the same.
+        // FIXME Find a better way to compare the communicators
+        //			if( grid_->comm != A.comm ){
+        //ErrorHandling( "The DistSparseMatrix providing the pattern has a different communicator from PMatrix." );
+        //			}
+        B.comm = grid_->comm;
+
+        for( Int i = 0; i < mpisize; i++ )
+          cntSize[i] = 0;
+
+        rowPtr = B.rowindLocal.Data();
+        colPtr = B.colptrLocal.Data();
+        T* valPtr = B.nzvalLocal.Data();
+
+        for( Int j = 0; j < numColLocal; j++ ){
+          Int ocol = firstCol + j;
+          Int col         = perm[ perm_r[ ocol] ];
+          Int blockColIdx = BlockIdx( col, super_ );
+          for( Int i = colPtr[j] - 1; i < colPtr[j+1] - 1; i++ ){
+            Int orow = rowPtr[i]-1;
+            Int row         = perm[ orow ];
+            Int blockRowIdx = BlockIdx( row, super_ );
+            Int procCol     = PCOL( std::min(blockColIdx,blockRowIdx), grid_ );
+            Int procRow     = PROW( std::max(blockColIdx,blockRowIdx), grid_ );
+            Int dest = PNUM( procRow , procCol, grid_ );
+
+            valPtr[i] = valSend[displsSend[dest] + cntSize[dest]];
+            cntSize[dest]++;
+          } // for (i)
+        } // for (j)
+
+        // Check sizes match
+        for( Int ip = 0; ip < mpisize; ip++ ){
+          if( cntSize[ip] != sizeSend[ip] ){
+            ErrorHandling( "Sizes of the sending information do not match." );
+          }
+        }
+
+
+
+        return ;
+
+
+      }
     }     // -----  end of method PMatrix::PMatrixToDistSparseMatrix  ----- 
 
 

@@ -266,6 +266,7 @@ void PPEXSISetDefaultOptions(
   options->matrixType            = 0;
   options->isSymbolicFactorize   = 1;
   options->solver                = 0;
+  options->symmetricStorage      = 0;
   options->ordering              = 0;
   options->rowOrdering           = 0;
   options->npSymbFact            = 1;
@@ -467,6 +468,7 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeRealSymmetricMatrix(
           options.solver,
+          options.symmetricStorage,
           colPerm,
           options.npSymbFact,
           options.verbosity );
@@ -612,6 +614,7 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeComplexSymmetricMatrix(
           options.solver,
+          options.symmetricStorage,
           colPerm,
           options.npSymbFact,
           options.verbosity );
@@ -806,7 +809,8 @@ void PPEXSICalculateFermiOperatorReal(
         mu,
         numElectronExact,
         options.numElectronPEXSITolerance,
-          options.solver,
+        options.solver,
+        options.symmetricStorage,
         options.verbosity,
         *numElectronPEXSI,
         *numElectronDrvMuPEXSI );
@@ -845,7 +849,8 @@ void PPEXSICalculateFermiOperatorComplex(
         mu,
         numElectronExact,
         options.numElectronPEXSITolerance,
-          options.solver,
+        options.solver,
+        options.symmetricStorage,
         options.verbosity,
         *numElectronPEXSI,
         *numElectronDrvMuPEXSI );
@@ -876,7 +881,8 @@ void PPEXSISelInvRealSymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvRealSymmetricMatrix(
-          options.solver,
+        options.solver,
+        options.symmetricStorage,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -906,7 +912,7 @@ void PPEXSISelInvRealUnsymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvRealUnsymmetricMatrix(
-          options.solver,
+        options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -936,7 +942,8 @@ void PPEXSISelInvComplexSymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexSymmetricMatrix(
-          options.solver,
+        options.solver,
+        options.symmetricStorage,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -966,7 +973,7 @@ void PPEXSISelInvComplexUnsymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexUnsymmetricMatrix(
-          options.solver,
+        options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -1020,6 +1027,7 @@ void PPEXSIDFTDriver(
         options.matrixType,
         options.isSymbolicFactorize,
         options.solver,
+        options.symmetricStorage,
         options.ordering,
         options.npSymbFact,
         options.verbosity,
@@ -1074,6 +1082,7 @@ void PPEXSIDFTDriver2(
         options.matrixType,
         options.isSymbolicFactorize,
         options.solver,
+        options.symmetricStorage,
         options.ordering,
         options.npSymbFact,
         options.verbosity,

@@ -154,6 +154,21 @@ int main(int argc, char **argv)
         << std::endl << std::endl;
     }
 
+    Int symmetricStorage = 0;
+    if( options.find("-SS") != options.end() ){ 
+      symmetricStorage = atoi(options["-SS"].c_str());
+    }
+    else{
+      statusOFS << "-SS option is not given. " 
+        << "Do not use symmetric storage." 
+        << std::endl << std::endl;
+    }
+
+
+
+
+
+
     Real rshift = 0.0, ishift = 0.0;
     if( options.find("-rshift") != options.end() ){ 
       rshift = atof(options["-rshift"].c_str());
@@ -435,7 +450,8 @@ int main(int argc, char **argv)
         factOpt.Symmetric = 1;
 
         PSelInvOptions selInvOpt;
-        selInvOpt.maxPipelineDepth = -1;
+        selInvOpt.maxPipelineDepth = maxPipelineDepth;
+        selInvOpt.symmetricStorage = symmetricStorage;
 
         GetTime( timeSta );
         symPACKMatrixToSuperNode( *symPACKMat, *superPtr );

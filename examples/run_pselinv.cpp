@@ -216,6 +216,20 @@ int main(int argc, char **argv)
           << std::endl << std::endl;
       }
 
+    Int symmetricStorage = 0;
+    if( options.find("-SS") != options.end() ){ 
+      symmetricStorage = atoi(options["-SS"].c_str());
+    }
+    else{
+      statusOFS << "-SS option is not given. " 
+        << "Do not use symmetric storage." 
+        << std::endl << std::endl;
+    }
+
+
+
+
+
       Int numProcSymbFact;
       if( options.find("-npsymbfact") != options.end() ){ 
         numProcSymbFact = atoi( options["-npsymbfact"].c_str() );
@@ -493,6 +507,7 @@ int main(int argc, char **argv)
 
           PSelInvOptions selInvOpt;
           selInvOpt.maxPipelineDepth = maxPipelineDepth;
+          selInvOpt.symmetricStorage = symmetricStorage;
 
           FactorizationOptions factOpt;
           factOpt.ColPerm = ColPerm;

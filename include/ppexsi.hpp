@@ -250,6 +250,7 @@ public:
   /// - = 2   : Detailed output.
   void SymbolicFactorizeRealSymmetricMatrix(
       Int                            solver,
+    Int               symmetricStorage,
       std::string                    ColPerm,
       Int                            numProcSymbFact,
       Int                            verbosity );
@@ -302,6 +303,7 @@ public:
   /// - = 2   : Detailed output.
   void SymbolicFactorizeComplexSymmetricMatrix(
       Int                            solver,
+    Int               symmetricStorage,
       std::string                    ColPerm,
       Int                            numProcSymbFact,
       Int                            verbosity );
@@ -338,6 +340,7 @@ public:
 
   void SelInvRealSymmetricMatrix(
     Int               solver,
+    Int               symmetricStorage,
       double*           AnzvalLocal,                  
       Int               verbosity,
       double*           AinvnzvalLocal );
@@ -351,6 +354,7 @@ public:
 
   void SelInvComplexSymmetricMatrix(
     Int               solver,
+    Int               symmetricStorage,
       double*           AnzvalLocal,                  
       Int               verbosity,
       double*           AinvnzvalLocal );
@@ -467,6 +471,7 @@ public:
       Real  numElectronExact, 
       Real  numElectronTolerance,
     Int               solver,
+    Int               symmetricStorage,
       Int   verbosity,
       Real& numElectron,
       Real& numElectronDrvMu );
@@ -506,6 +511,7 @@ public:
       Real  numElectronExact, 
       Real  numElectronTolerance,
     Int               solver,
+    Int               symmetricStorage,
       Int   verbosity,
       Real& numElectron,
       Real& numElectronDrvMu );
@@ -531,6 +537,7 @@ public:
       Int        matrixType,
       Int        isSymbolicFactorize,
     Int               solver,
+    Int               symmetricStorage,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
@@ -584,6 +591,7 @@ public:
       Real  muMinPEXSI,
       Real  muMaxPEXSI,
     Int               solver,
+    Int               symmetricStorage,
       Int   verbosity,
       Real& mu,
       Real& numElectron, 
@@ -607,6 +615,7 @@ public:
       Int        matrixType,
       Int        isSymbolicFactorize,
     Int               solver,
+    Int               symmetricStorage,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
