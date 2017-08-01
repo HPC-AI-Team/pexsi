@@ -8511,7 +8511,7 @@ Int lidx=0;
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "L(i,i) <- [L(k,k) * U(k,k)]^{-1}" << std::endl << std::endl; 
 #endif
-
+gdb_lock();
       for( Int ksup3 = 0; ksup3 < numSuper; ksup3++ ){
         Int ksup2 = ksup3;
         if( MYROW( grid_ ) == PROW( ksup3, grid_ ) &&

@@ -214,7 +214,8 @@ namespace PEXSI{
     Int numSuper = PMat.NumSuper();
 
 
-#if 0
+#if 1
+gdb_lock();
     symPACK::Icomm snodeIcomm;
     std::vector<char> buffer;
     for( Int iSuper = 0; iSuper < numSuper; iSuper++ ){
@@ -577,7 +578,34 @@ namespace PEXSI{
       //restore head
       IrecvPtr->setHead(cur_head);
     }
+    //for( Int jb = 0; jb < PMat.NumLocalBlockCol(); jb++ ){
+    //  Int ksup = GBj( jb, g );
+    //  std::vector<LBlock<T> >& Lcol = PMat.L(jb);
+
+    //  Int pcol = ( ksup % npcol );
+    //  Int prow = ( ksup % nprow );
+    //  Int pnum = (ksup % nprow)*npcol + pcol;
+    //  if(pnum==mpirank){
+    //  assert(Lcol.size()>0);
+    //    Symmetrize(Lcol[0].nzval);
+    //  }
+    //}
+
 #endif
+
+    for( Int jb = 0; jb < PMat.NumLocalBlockCol(); jb++ ){
+      Int ksup = GBj( jb, g );
+      std::vector<LBlock<T> >& Lcol = PMat.L(jb);
+
+      Int pcol = ( ksup % npcol );
+      Int prow = ( ksup % nprow );
+      Int pnum = (ksup % nprow)*npcol + pcol;
+      if(pnum==mpirank){
+      assert(Lcol.size()>0);
+statusOFS<<Lcol[0].nzval<<std::endl;
+        //Symmetrize(Lcol[0].nzval);
+      }
+    }
 
 
 
