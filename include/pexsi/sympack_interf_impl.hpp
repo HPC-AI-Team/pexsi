@@ -214,7 +214,7 @@ namespace PEXSI{
     Int numSuper = PMat.NumSuper();
 
 
-#if 1
+#if 0
     symPACK::Icomm snodeIcomm;
     std::vector<char> buffer;
     for( Int iSuper = 0; iSuper < numSuper; iSuper++ ){
@@ -619,7 +619,6 @@ namespace PEXSI{
         if(PMat.Options()!=nullptr){
           if (PMat.Options()->symmetricStorage!=1){
     PMatrixLtoU( PMat );
-    abort();
           }
         }
 
