@@ -706,6 +706,8 @@ public:
 
   void Setup( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::FactorizationOptions * oFact  );
 
+  const PSelInvOptions * Options() const { return options_; }
+
   Int NumCol() const { return super_ -> superIdx.m(); }
 
   Int NumSuper() const { return super_ ->superPtr.m() - 1; }

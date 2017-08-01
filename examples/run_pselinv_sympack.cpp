@@ -189,6 +189,10 @@ int main(int argc, char **argv)
       ColPerm = "MMD";
     }
 
+    Int doSelinv = 1;
+      if( options.find("-Selinv") != options.end() ){ 
+        doSelinv = atoi(options["-Selinv"].c_str());
+      }
 
 
     std::string refinement;
@@ -237,7 +241,8 @@ int main(int argc, char **argv)
 
 //    optionsFact.load_balance_str = "NNZ";
 //    optionsFact.maxIsend = 100;
-//    optionsFact.relax.SetMaxSize(300);
+//    optionsFact.relax.SetMaxSize(0);
+//    optionsFact.relax.SetMaxSize(60);
 
 
     //Initialize UPCXX for symPACK
@@ -412,6 +417,8 @@ int main(int argc, char **argv)
       }
 
       PMatrix<SCALAR> * pMat = NULL; 
+      FactorizationOptions factOpt;
+      PSelInvOptions selInvOpt;
       GridType *gPtr = new GridType( workcomm, nprow, npcol );
       SuperNodeType *superPtr = new SuperNodeType();
       {
@@ -445,129 +452,129 @@ int main(int argc, char **argv)
 
         GetTime( timeTotalSelInvSta );
 
-        FactorizationOptions factOpt;
         factOpt.ColPerm = ColPerm;
         factOpt.Symmetric = 1;
 
-        PSelInvOptions selInvOpt;
         selInvOpt.maxPipelineDepth = maxPipelineDepth;
         selInvOpt.symmetricStorage = symmetricStorage;
 
-        GetTime( timeSta );
-        symPACKMatrixToSuperNode( *symPACKMat, *superPtr );
+        if (doSelinv>0){
+          GetTime( timeSta );
+          symPACKMatrixToSuperNode( *symPACKMat, *superPtr );
 
 
-        pMat = PMatrix<SCALAR>::Create(gPtr,superPtr, &selInvOpt, &factOpt);
-        symPACKMatrixToPMatrix( *symPACKMat, *pMat );
-        GetTime( timeEnd );
+          pMat = PMatrix<SCALAR>::Create(gPtr,superPtr, &selInvOpt, &factOpt);
+          symPACKMatrixToPMatrix( *symPACKMat, *pMat );
+          GetTime( timeEnd );
 
-        if( mpirank == 0 )
-          cout << "Time for converting symPACK matrix to PMatrix is " << timeEnd  - timeSta << endl;
-
+          if( mpirank == 0 )
+            cout << "Time for converting symPACK matrix to PMatrix is " << timeEnd  - timeSta << endl;
+        }
       }
  
-      // Preparation for the selected inversion
-      GetTime( timeSta );
-      pMat->ConstructCommunicationPattern();
-      GetTime( timeEnd );
-      if( mpirank == 0 )
-        cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
+      if (doSelinv>0){
+        // Preparation for the selected inversion
+        GetTime( timeSta );
+        pMat->ConstructCommunicationPattern();
+        GetTime( timeEnd );
+        if( mpirank == 0 )
+          cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
 
-      GetTime( timeSta );
-      pMat->PreSelInv();
-      GetTime( timeEnd );
-      if( mpirank == 0 )
-        cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
-      statusOFS << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
+        GetTime( timeSta );
+        pMat->PreSelInv();
+        GetTime( timeEnd );
+        if( mpirank == 0 )
+          cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
+        statusOFS << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
-      GetTime( timeSta );
-      pMat->SelInv();
-      GetTime( timeEnd );
-      GetTime( timeTotalSelInvEnd );
-      if( mpirank == 0 )
-        cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
-      statusOFS << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
+        GetTime( timeSta );
+        pMat->SelInv();
+        GetTime( timeEnd );
+        GetTime( timeTotalSelInvEnd );
+        if( mpirank == 0 )
+          cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
+        statusOFS << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 
 
-      if( mpirank == 0 )
-        cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
+        if( mpirank == 0 )
+          cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
 #ifdef _PRINT_STATS_
-          double flops = pMat->GetTotalFlops();
-          if( mpirank == 0 )
-            cout << "Total FLOPs for selected inversion is " << flops << endl;
+        double flops = pMat->GetTotalFlops();
+        if( mpirank == 0 )
+          cout << "Total FLOPs for selected inversion is " << flops << endl;
 #endif
 
-      if( doDiag ){
-        NumVec<SCALAR> diag;
+        if( doDiag ){
+          NumVec<SCALAR> diag;
 
-        GetTime( timeSta );
-        pMat->GetDiagonal( diag );
-        GetTime( timeEnd );
+          GetTime( timeSta );
+          pMat->GetDiagonal( diag );
+          GetTime( timeEnd );
 
-        if( mpirank == 0 )
-          cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+          if( mpirank == 0 )
+            cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
 
 
-        if( mpirank == 0 ){
-          statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
-          ofstream ofs("diag");
-          if( !ofs.good() ) 
-            ErrorHandling("file cannot be opened.");
-          serialize( diag, ofs, NO_MASK );
-          ofs.close();
+          if( mpirank == 0 ){
+            statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
+            ofstream ofs("diag");
+            if( !ofs.good() ) 
+              ErrorHandling("file cannot be opened.");
+            serialize( diag, ofs, NO_MASK );
+            ofs.close();
+          }
+        }
+
+        if(doToDist){
+          //Expand AMat to unsymmetric storage
+          GetTime( timeSta );
+          AMat.ExpandSymmetric();
+          AMat.SortGraph();
+          AMat.GetLocalGraph().SetBaseval(1);
+          GetTime( timeEnd );
+
+          if( mpirank == 0 )
+            cout << "Matrix A has been expanded in " << timeEnd  - timeSta << endl;
+
+          DistSparseMatrix<SCALAR> AMatPattern;
+          AMatPattern.size = AMat.size;
+          AMatPattern.nnz = AMat.nnz;
+          AMatPattern.colptrLocal.Resize(AMat.GetLocalGraph().colptr.size());
+          std::copy(AMat.GetLocalGraph().colptr.begin(), AMat.GetLocalGraph().colptr.end(), &AMatPattern.colptrLocal[0]);
+          AMatPattern.rowindLocal.Resize(AMat.GetLocalGraph().rowind.size());
+          std::copy(AMat.GetLocalGraph().rowind.begin(), AMat.GetLocalGraph().rowind.end(), &AMatPattern.rowindLocal[0]);
+          AMatPattern.nnzLocal = AMat.GetLocalGraph().rowind.size();
+
+          // Convert to DistSparseMatrix in the 2nd format and get the diagonal
+          DistSparseMatrix<SCALAR> Ainv;
+
+          GetTime( timeSta );
+          pMat->PMatrixToDistSparseMatrix( AMatPattern, Ainv );
+          GetTime( timeEnd );
+
+
+          if( mpirank == 0 )
+            cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
+
+          SCALAR traceLocal = ZERO<SCALAR>();
+          traceLocal = blas::Dotu( Ainv.nnzLocal, Ainv.nzvalLocal.Data(), 1,
+              AMat.nzvalLocal.data(), 1 );
+
+
+          SCALAR trace = ZERO<SCALAR>();
+          mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, workcomm );
+
+          if( mpirank == 0 ){
+            cout << "A.size = "  << AMat.size << endl;
+            cout << std::endl << "Tr[Ainv * AMat] = " <<  trace << std::endl;
+            statusOFS << std::endl << "Tr[Ainv * AMat] = " << std::endl << trace << std::endl;
+
+            cout << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( SCALAR(AMat.size) - trace ) << std::endl;
+            statusOFS << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( SCALAR(AMat.size) - trace ) << std::endl;
+          }
         }
       }
-
-      if(doToDist){
-        //Expand AMat to unsymmetric storage
-        GetTime( timeSta );
-        AMat.ExpandSymmetric();
-        AMat.SortGraph();
-        AMat.GetLocalGraph().SetBaseval(1);
-        GetTime( timeEnd );
-
-        if( mpirank == 0 )
-          cout << "Matrix A has been expanded in " << timeEnd  - timeSta << endl;
-
-        DistSparseMatrix<SCALAR> AMatPattern;
-        AMatPattern.size = AMat.size;
-        AMatPattern.nnz = AMat.nnz;
-        AMatPattern.colptrLocal.Resize(AMat.GetLocalGraph().colptr.size());
-        std::copy(AMat.GetLocalGraph().colptr.begin(), AMat.GetLocalGraph().colptr.end(), &AMatPattern.colptrLocal[0]);
-        AMatPattern.rowindLocal.Resize(AMat.GetLocalGraph().rowind.size());
-        std::copy(AMat.GetLocalGraph().rowind.begin(), AMat.GetLocalGraph().rowind.end(), &AMatPattern.rowindLocal[0]);
-        AMatPattern.nnzLocal = AMat.GetLocalGraph().rowind.size();
-
-        // Convert to DistSparseMatrix in the 2nd format and get the diagonal
-        DistSparseMatrix<SCALAR> Ainv;
-
-        GetTime( timeSta );
-        pMat->PMatrixToDistSparseMatrix( AMatPattern, Ainv );
-        GetTime( timeEnd );
-
-
-        if( mpirank == 0 )
-          cout << "Time for converting PMatrix to DistSparseMatrix (2nd format) is " << timeEnd  - timeSta << endl;
-
-        SCALAR traceLocal = ZERO<SCALAR>();
-        traceLocal = blas::Dotu( Ainv.nnzLocal, Ainv.nzvalLocal.Data(), 1,
-            AMat.nzvalLocal.data(), 1 );
-
-
-        SCALAR trace = ZERO<SCALAR>();
-        mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, workcomm );
-
-        if( mpirank == 0 ){
-          cout << "A.size = "  << AMat.size << endl;
-          cout << std::endl << "Tr[Ainv * AMat] = " <<  trace << std::endl;
-          statusOFS << std::endl << "Tr[Ainv * AMat] = " << std::endl << trace << std::endl;
-
-          cout << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( SCALAR(AMat.size) - trace ) << std::endl;
-          statusOFS << std::endl << "|N - Tr[Ainv * AMat]| = " << std::abs( SCALAR(AMat.size) - trace ) << std::endl;
-        }
-      }
-
 
       delete pMat;
 

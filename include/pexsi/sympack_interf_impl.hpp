@@ -214,7 +214,7 @@ namespace PEXSI{
     Int numSuper = PMat.NumSuper();
 
 
-#if 0
+#if 1
     symPACK::Icomm snodeIcomm;
     std::vector<char> buffer;
     for( Int iSuper = 0; iSuper < numSuper; iSuper++ ){
@@ -616,9 +616,12 @@ namespace PEXSI{
 
 
 
-#ifndef _SYM_STORAGE_
+        if(PMat.Options()!=nullptr){
+          if (PMat.Options()->symmetricStorage!=1){
     PMatrixLtoU( PMat );
-#endif
+    abort();
+          }
+        }
 
 //    PMat.DumpLU();
 
@@ -635,7 +638,8 @@ namespace PEXSI{
       }
     }
 
-#ifndef _SYM_STORAGE_
+        if(PMat.Options()!=nullptr){
+          if (PMat.Options()->symmetricStorage!=1){
     for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
       Int bnum = GBi( ib, g );
       if( bnum >= numSuper ) continue;
@@ -647,7 +651,8 @@ namespace PEXSI{
         PMat.ColBlockIdx( LBj ).push_back( bnum );
       }
     }
-#endif
+          }
+        }
 
     for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
       std::sort(PMat.RowBlockIdx(ib).begin(),PMat.RowBlockIdx(ib).end(),std::less<Int>());
@@ -680,7 +685,7 @@ namespace PEXSI{
     TIMER_STOP(symPACKtoPMatrix);
   }  // -----  end of symPACKMatrixToPMatrix ----- 
 
-#ifndef _SYM_STORAGE_
+//#ifndef _SYM_STORAGE_
   template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
   {
     TIMER_START(PMatrixLtoU);
@@ -921,7 +926,7 @@ namespace PEXSI{
 
     TIMER_STOP(PMatrixLtoU);
   }  // -----  end of PMatrixLToU ----- 
-#endif
+//#endif
 
 
 }
