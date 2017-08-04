@@ -288,7 +288,7 @@ int main(int argc, char **argv)
   /* Initialize PEXSI */
 
   PPEXSISetDefaultOptions( &options );
-  options.muMin0 = 0.0;
+  options.muMin0 =-0.5;
   options.muMax0 = 0.5;
   options.mu0    = 0.270;
   options.npSymbFact = 1;
@@ -297,11 +297,14 @@ int main(int argc, char **argv)
   options.maxPEXSIIter   = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  options.numPole  = 40;
+  options.numPole  = 20;
   options.temperature  = 0.0019; // 300K
+  options.temperature  = 0.00095;// 300K
   options.muPEXSISafeGuard  = 0.2; 
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;
+  options.method = 2;
+  options.nPoints = 1;
 
   /* Set the outputFileIndex to be the pole index */
   /* The first processor for each pole outputs information */
@@ -313,12 +316,15 @@ int main(int argc, char **argv)
     outputFileIndex = -1;
   }
 
+  printf("PPEXSI Init begin: \n");
   plan = PPEXSIPlanInitialize( 
       MPI_COMM_WORLD, 
       nprow,
       npcol,
       outputFileIndex, 
       &info );
+
+  printf(" PPEXSI Local H and S matrix \n");
 
   PPEXSILoadComplexHSMatrix( 
       plan, 
@@ -335,6 +341,7 @@ int main(int argc, char **argv)
       &info );
 
   /* Symbolic factorization */
+  printf(" PPEXSI begin Symbolic factorization \n");
 
   // No permutation
   options.rowOrdering = 0;
@@ -343,6 +350,7 @@ int main(int argc, char **argv)
       options,
       &info );
 
+  printf(" PPEXSI UnSymmetry symbolic factorization \n");
   // Can change row ordering optionally now.
   // options.rowOrdering = 1;
   PPEXSISymbolicFactorizeComplexUnsymmetricMatrix( 
@@ -350,6 +358,8 @@ int main(int argc, char **argv)
       options,
       HnzvalLocal,
       &info );
+
+  printf(" PPEXSI begin inertia counting \n");
 
   /* Inertia counting */
   numShift = options.numPole;
@@ -388,6 +398,24 @@ int main(int argc, char **argv)
     printf("numElectronDrvMu  = %25.15f\n", numElectronDrvMu);
   }
 
+  PPEXSICalculateEDMCorrectionComplex(
+      plan, 
+      options,
+      &info);
+
+  double * NeVec = (double*) malloc (options.nPoints* sizeof(double));
+
+  
+  // I need to calculate the H*DM and Tr[S*EDM]
+  PPEXSIInterpolateDMComplex(
+     plan,
+     &options,
+     numElectronExact,
+     numElectron,
+     NeVec,
+     &muPEXSI, 
+     &info);
+
   if( info != 0 ){
     if( mpirank == 0 ){
       printf("PEXSI solve routine gives info = %d. Exit now.\n", info );
@@ -395,6 +423,8 @@ int main(int argc, char **argv)
     MPI_Finalize();
     return info;
   }
+
+  free(NeVec);
 
   /* Retrieve matrix and energy */
 

@@ -296,6 +296,22 @@ typedef struct {
      */ 
     int           transpose;
     /** 
+     * @brief  The pole expansion method to be used.
+     * - = 1   : Cauchy Contour Integral method used.
+     * - = 2   : Moussa optimized method.
+     */ 
+    int           method;
+    /** 
+     * @brief  The point parallelizaion of PEXSI.
+     * - = 2  : Recommend two points parallelization
+     */ 
+    int           nPoints;
+    /** 
+     * @brief  The driver version of the PEXSI.
+     * - = 1.0.0 : Latest version is 1.0.0 
+     */ 
+    //char         driverVersion[10] ;//= "1.0.0";
+    /** 
      * @brief  The level of output information.
      * - = 0   : No output.
      * - = 1   : Basic output (default)
@@ -1188,9 +1204,9 @@ void PPEXSIRetrieveRealDFTMatrix2(
  */
 void PPEXSIRetrieveComplexDFTMatrix(
     PPEXSIPlan        plan,
-		double*      DMnzvalLocal,
-		double*     EDMnzvalLocal,
-		double*     FDMnzvalLocal,
+    double*      DMnzvalLocal,
+    double*     EDMnzvalLocal,
+    double*     FDMnzvalLocal,
     double*     totalEnergyH,
     double*     totalEnergyS,
     double*     totalFreeEnergy,
@@ -1269,6 +1285,80 @@ void PPEXSIGetPoleFDM(
     double        gap,
     double        deltaE,
     double        mu );
+
+/**
+ * @brief Pole expansion for correct the complex EDM matrix
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ *
+ */
+void PPEXSICalculateEDMCorrectionComplex( 
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info );
+
+/**
+ * @brief Pole expansion for correct the complex EDM matrix
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ *
+ */
+void PPEXSICalculateEDMCorrectionReal( 
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    int*              info );
+
+/**
+ * @brief interpolate the Density matrix(DM) and Energy Density Matrix EDM
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ *
+ */
+void PPEXSIInterpolateDMReal( 
+    PPEXSIPlan        plan,
+    PPEXSIOptions*    options,
+    double            numElectronExact,
+    double            numElectronPEXSI,
+    double *          NeVec,
+    double *          muPEXSI,
+    int*              info );
+
+/**
+ * @brief interpolate the complex Density matrix(DM) and Energy Density Matrix EDM
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[in] options (global) Other input parameters for the DFT driver.  
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.  
+ * - > 0: unsuccessful.
+ *
+ */
+void PPEXSIInterpolateDMComplex( 
+    PPEXSIPlan        plan,
+    PPEXSIOptions*    options,
+    double            numElectronExact,
+    double            numElectronPEXSI,
+    double *          NeVec,
+    double *          muPEXSI,
+    int*              info );
+
+
 
 #ifdef __cplusplus
 }// extern "C"
