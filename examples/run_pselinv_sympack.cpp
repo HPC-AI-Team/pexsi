@@ -42,9 +42,8 @@ int main(int argc, char **argv)
   int mpisize;
   int mpirank;
 
-  MPI_Init(&argc,&argv);
-
   symPACK_Init(&argc,&argv);
+  //MPI_Init(&argc,&argv);
 
   //Create a communicator with npcol*nprow processors
   MPI_Comm world_comm;
@@ -603,11 +602,9 @@ int main(int argc, char **argv)
       << e.what() << std::endl;
   }
 
-
-
 statusOFS<<"Calling symPACK finalize"<<std::endl;
-    statusOFS.close();
   symPACK_Finalize();
+    statusOFS.close();
 //MPI_Finalize();
 
   return 0;

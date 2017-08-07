@@ -1635,893 +1635,568 @@ namespace PEXSI{
     inline void PMatrix<T>::SelInvIntra_P2p(Int lidx,Int & rank) {
 
       if (options_->symmetricStorage!=1){
-
 #if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
-        Real begin_SendULWaitContentFirst, end_SendULWaitContentFirst, time_SendULWaitContentFirst = 0;
+      Real begin_SendULWaitContentFirst, end_SendULWaitContentFirst, time_SendULWaitContentFirst = 0;
 #endif
-        Int numSuper = this->NumSuper(); 
-        std::vector<std::vector<Int> > & superList = this->WorkingSet();
-        Int numSteps = superList.size();
-        Int stepSuper = superList[lidx].size(); 
+      Int numSuper = this->NumSuper(); 
+      std::vector<std::vector<Int> > & superList = this->WorkingSet();
+      Int numSteps = superList.size();
+      Int stepSuper = superList[lidx].size(); 
 
-        TIMER_START(AllocateBuffer);
 
-        stepSuper = 0;
-        for (Int supidx=0; supidx<superList[lidx].size(); supidx++){
-          Int snodeIdx = superList[lidx][supidx]; 
-          TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
-          TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
-          TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
-          TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
-          bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
-            || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
-            || CountSendToRight(snodeIdx) > 0
-            || CountSendToBelow(snodeIdx) > 0
-            || CountSendToCrossDiagonal(snodeIdx) > 0
-            || CountRecvFromCrossDiagonal(snodeIdx) >0
-            || ( isRecvFromLeft_( snodeIdx ) ) 
-            || ( isRecvFromAbove_( snodeIdx ) )
-            || isSendToDiagonal_(snodeIdx)
-            || (bcastUTree!=NULL)
-            || (bcastLTree!=NULL)
-            || (redLTree!=NULL)
-            || (redDTree!=NULL) ;
-          if(participating){
-            stepSuper++;
-          }
+
+
+      TIMER_START(AllocateBuffer);
+
+      stepSuper = 0;
+      for (Int supidx=0; supidx<superList[lidx].size(); supidx++){
+        Int snodeIdx = superList[lidx][supidx]; 
+        TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
+        TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
+        TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
+        TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
+        bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
+          || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
+          || CountSendToRight(snodeIdx) > 0
+          || CountSendToBelow(snodeIdx) > 0
+          || CountSendToCrossDiagonal(snodeIdx) > 0
+          || CountRecvFromCrossDiagonal(snodeIdx) >0
+          || ( isRecvFromLeft_( snodeIdx ) ) 
+          || ( isRecvFromAbove_( snodeIdx ) )
+          || isSendToDiagonal_(snodeIdx)
+          || (bcastUTree!=NULL)
+          || (bcastLTree!=NULL)
+          || (redLTree!=NULL)
+          || (redDTree!=NULL) ;
+        if(participating){
+          stepSuper++;
         }
+      }
 
 
 
-        //This is required to send the size and content of U/L
-        std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
-        arrMpireqsSendToBelow.resize( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
-        std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
-        arrMpireqsSendToRight.resize(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
+      //This is required to send the size and content of U/L
+      std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
+      arrMpireqsSendToBelow.resize( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
+      std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
+      arrMpireqsSendToRight.resize(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
 
 
-        //This is required to receive the size and content of U/L
-        std::vector<MPI_Request>   arrMpireqsRecvSizeFromAny;
-        arrMpireqsRecvSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
-        std::vector<MPI_Request>   arrMpireqsRecvContentFromAny;
-        arrMpireqsRecvContentFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
+      //This is required to receive the size and content of U/L
+      std::vector<MPI_Request>   arrMpireqsRecvSizeFromAny;
+      arrMpireqsRecvSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
+      std::vector<MPI_Request>   arrMpireqsRecvContentFromAny;
+      arrMpireqsRecvContentFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
 
-        //allocate the buffers for this supernode
-        std::vector<SuperNodeBufferType> arrSuperNodes(stepSuper);
+      //allocate the buffers for this supernode
+      std::vector<SuperNodeBufferType> arrSuperNodes(stepSuper);
+      Int pos = 0;
+      for (Int supidx=0; supidx<superList[lidx].size(); supidx++){ 
+        Int snodeIdx = superList[lidx][supidx]; 
+        TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
+        TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
+        TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
+        TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
+        bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
+          || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
+          || CountSendToRight(snodeIdx) > 0
+          || CountSendToBelow(snodeIdx) > 0
+          || CountSendToCrossDiagonal(snodeIdx) > 0
+          || CountRecvFromCrossDiagonal(snodeIdx) >0
+          || ( isRecvFromLeft_( snodeIdx ) ) 
+          || ( isRecvFromAbove_( snodeIdx ) )
+          || isSendToDiagonal_(snodeIdx)
+          || (bcastUTree!=NULL)
+          || (bcastLTree!=NULL)
+          || (redLTree!=NULL)
+          || (redDTree!=NULL) ;
 
-        Int pos = 0;
-        for (Int supidx=0; supidx<superList[lidx].size(); supidx++){ 
-          Int snodeIdx = superList[lidx][supidx]; 
-          TreeBcast * bcastLTree = fwdToRightTree_[snodeIdx];
-          TreeBcast * bcastUTree = fwdToBelowTree_[snodeIdx];
-          TreeReduce<T> * redLTree = redToLeftTree_[snodeIdx];
-          TreeReduce<T> * redDTree = redToAboveTree_[snodeIdx];
-          bool participating = MYROW( grid_ ) == PROW( snodeIdx, grid_ ) 
-            || MYCOL( grid_ ) == PCOL( snodeIdx, grid_ )
-            || CountSendToRight(snodeIdx) > 0
-            || CountSendToBelow(snodeIdx) > 0
-            || CountSendToCrossDiagonal(snodeIdx) > 0
-            || CountRecvFromCrossDiagonal(snodeIdx) >0
-            || ( isRecvFromLeft_( snodeIdx ) ) 
-            || ( isRecvFromAbove_( snodeIdx ) )
-            || isSendToDiagonal_(snodeIdx)
-            || (bcastUTree!=NULL)
-            || (bcastLTree!=NULL)
-            || (redLTree!=NULL)
-            || (redDTree!=NULL) ;
-
-          if(participating){
-            arrSuperNodes[pos].Index = superList[lidx][supidx];  
-            arrSuperNodes[pos].Rank = rank;
+        if(participating){
+          arrSuperNodes[pos].Index = superList[lidx][supidx];  
+          arrSuperNodes[pos].Rank = rank;
 
 
-            SuperNodeBufferType & snode = arrSuperNodes[pos];
+          SuperNodeBufferType & snode = arrSuperNodes[pos];
 
-            pos++;
-          }
-          rank++;
+          pos++;
         }
+        rank++;
+      }
 
 
 
-        int numSentToLeft = 0;
-        std::vector<int> reqSentToLeft;
+      int numSentToLeft = 0;
+      std::vector<int> reqSentToLeft;
 
 
-        //NumMat<T> AinvBuf[64], UBuf[64];
-        //      std::vector<NumMat<T> > AinvBufs(omp_get_max_threads());
-        //      std::vector<NumMat<T> > UBufs(omp_get_max_threads());
+      NumMat<T> AinvBuf, UBuf;
 
-        TIMER_STOP(AllocateBuffer);
-
-#if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
-#endif
-
-        {
-          //Receivers have to resize their buffers
-          TIMER_START(IRecv_Content_UL);
-
-
-
-          // Receivers (Content)
-          for (Int supidx=0; supidx<stepSuper ; supidx++){
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvContentFromAny[supidx*2];
-            MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvContentFromAny[supidx*2+1];
-
-            if( isRecvFromAbove_( snode.Index ) && 
-                MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
-
-              TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-              if(bcastUTree!=NULL){
-                Int myRoot = bcastUTree->GetRoot();
-                snode.SizeSstrUrowRecv = bcastUTree->GetMsgSize();
-                snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv);
-                MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
-                    myRoot, IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), 
-                    grid_->colComm, mpireqsRecvFromAbove );
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U " << snode.SizeSstrUrowRecv << " BYTES from "<<myRoot<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-#endif
-              }
-            } // if I need to receive from up
-
-            if( isRecvFromLeft_( snode.Index ) &&
-                MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
-
-              TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-              if(bcastLTree!=NULL){
-                Int myRoot = bcastLTree->GetRoot();
-                snode.SizeSstrLcolRecv = bcastLTree->GetMsgSize();
-                snode.SstrLcolRecv.resize(snode.SizeSstrLcolRecv);
-                MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
-                    myRoot, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), 
-                    grid_->rowComm, mpireqsRecvFromLeft );
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L " << snode.SizeSstrLcolRecv << " BYTES from "<<myRoot<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-#endif
-              }
-            } // if I need to receive from left
-          }
-          TIMER_STOP(IRecv_Content_UL);
-
-          // Senders
-          TIMER_START(ISend_Content_UL);
-          for (Int supidx=0; supidx<stepSuper; supidx++){
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+      TIMER_STOP(AllocateBuffer);
 
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl <<  "["<<snode.Index<<"] "
-              << "Communication for the U part." << std::endl << std::endl; 
+      statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
 #endif
-            // Communication for the U part.
+      {
+        //Receivers have to resize their buffers
+        TIMER_START(IRecv_Content_UL);
 
-            if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-              std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, grid_) );
-              // Pack the data in U
-              TIMER_START(Serialize_UL);
-              std::stringstream sstm;
 
-              std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
-              // All blocks are to be sent down.
-              serialize( (Int)Urow.size(), sstm, NO_MASK );
-              for( Int jb = 0; jb < Urow.size(); jb++ ){
-                serialize( Urow[jb], sstm, mask );
-              }
-              snode.SstrUrowSend.resize( Size( sstm ) );
-              sstm.read( &snode.SstrUrowSend[0], snode.SstrUrowSend.size() );
-              snode.SizeSstrUrowSend = snode.SstrUrowSend.size();
-              TIMER_STOP(Serialize_UL);
 
-              TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-              if(bcastUTree!=NULL){
-                bcastUTree->ForwardMessage((char*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, 
-                    IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0]);
-                for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-                  Int iProcRow = bcastUTree->GetDest(idxRecv);
+        // Receivers (Content)
+        for (Int supidx=0; supidx<stepSuper ; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+          MPI_Request * mpireqsRecvFromAbove = &arrMpireqsRecvContentFromAny[supidx*2];
+          MPI_Request * mpireqsRecvFromLeft = &arrMpireqsRecvContentFromAny[supidx*2+1];
+
+          if( isRecvFromAbove_( snode.Index ) && 
+              MYROW( grid_ ) != PROW( snode.Index, grid_ ) ){
+            TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+            if(bcastUTree!=NULL){
+              Int myRoot = bcastUTree->GetRoot();
+              snode.SizeSstrUrowRecv = bcastUTree->GetMsgSize();
+              snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv);
+              MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE, 
+                  myRoot, IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), 
+                  grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
-                  statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_) << std::endl <<  std::endl; 
+              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving U " << snode.SizeSstrUrowRecv << " BYTES from "<<myRoot<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
 #endif
-                }
-              }
+            }
+          } // if I need to receive from up
 
-            } // if I am the sender
-
-
+          if( isRecvFromLeft_( snode.Index ) &&
+              MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) ){
+            TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
+            if(bcastLTree!=NULL){
+              Int myRoot = bcastLTree->GetRoot();
+              snode.SizeSstrLcolRecv = bcastLTree->GetMsgSize();
+              snode.SstrLcolRecv.resize(snode.SizeSstrLcolRecv);
+              MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
+                  myRoot, IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), 
+                  grid_->rowComm, mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
-            statusOFS << std::endl << "["<<snode.Index<<"] "<< "Communication for the L part." << std::endl << std::endl; 
+              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Receiving L " << snode.SizeSstrLcolRecv << " BYTES from "<<myRoot<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
 #endif
-
-
-
-            // Communication for the L part.
-            if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-              std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, grid_) );
-              TIMER_START(Serialize_UL);
-              // Pack the data in L 
-              std::stringstream sstm;
-              std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-              mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
-
-              // All blocks except for the diagonal block are to be sent right
-
-              if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) )
-                serialize( (Int)Lcol.size() - 1, sstm, NO_MASK );
-              else
-                serialize( (Int)Lcol.size(), sstm, NO_MASK );
-
-              for( Int ib = 0; ib < Lcol.size(); ib++ ){
-                if( Lcol[ib].blockIdx > snode.Index ){
-#if ( _DEBUGlevel_ >= 2 )
-                  statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Serializing Block index " << Lcol[ib].blockIdx << std::endl;
-#endif
-                  serialize( Lcol[ib], sstm, mask );
-                }
-              }
-              snode.SstrLcolSend.resize( Size( sstm ) );
-              sstm.read( &snode.SstrLcolSend[0], snode.SstrLcolSend.size() );
-              snode.SizeSstrLcolSend = snode.SstrLcolSend.size();
-              TIMER_STOP(Serialize_UL);
-
-
-              TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-              if(bcastLTree!=NULL){
-                bcastLTree->ForwardMessage((char*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, 
-                    IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
-
-                for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-                  Int iProcCol = bcastLTree->GetDest(idxRecv);
-#if ( _DEBUGlevel_ >= 1 )
-                  statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend << " BYTES on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_) << std::endl <<  std::endl; 
-#endif
-                }
-              }
-            } // if I am the sender
-          } //Senders
-          TIMER_STOP(ISend_Content_UL);
+            }
+          } // if I need to receive from left
         }
+        TIMER_STOP(IRecv_Content_UL);
 
-        vector<char> redLdone(stepSuper,0);
+        // Senders
+        TIMER_START(ISend_Content_UL);
         for (Int supidx=0; supidx<stepSuper; supidx++){
           SuperNodeBufferType & snode = arrSuperNodes[supidx];
-          TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
 
-          if(redLTree != NULL){
-            redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,limIndex_));
-            //Initialize the tree
-            redLTree->AllocRecvBuffers();
-            //Post All Recv requests;
-            redLTree->PostFirstRecv();
-          }
-        }
-
-
-        TIMER_START(Compute_Sinv_LT);
-        {
-          Int msgForwarded = 0;
-          Int msgReduced   = 0;
-          Int msgToReduce  = 0;
-          Int msgToFwd     = 0;
-          Int gemmProcessed= 0;
-          Int gemmToDo     = 0;
-          //      Int toRecvGemm = 0;
-          //copy the list of supernodes we need to process
-          std::list<Int> readySupidx;
-          std::list<Int> reduceSupidx;
-          //find local things to do
-          for(Int supidx = 0;supidx<stepSuper;supidx++){
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-
-            if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
-              gemmToDo++;
-              if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
-                snode.isReady++;
-              }
-
-              if(  MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-                snode.isReady++;
-              }
-
-              if(snode.isReady==2){
-                readySupidx.push_back(supidx);
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<std::endl<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
+          statusOFS << std::endl <<  "["<<snode.Index<<"] "
+            << "Communication for the U part." << std::endl << std::endl; 
+#endif
+          // Communication for the U part.
+
+          if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+            std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, grid_) );
+            // Pack the data in U
+            TIMER_START(Serialize_UL);
+            std::stringstream sstm;
+
+            std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
+            // All blocks are to be sent down.
+            serialize( (Int)Urow.size(), sstm, NO_MASK );
+            for( Int jb = 0; jb < Urow.size(); jb++ ){
+              serialize( Urow[jb], sstm, mask );
+            }
+            snode.SstrUrowSend.resize( Size( sstm ) );
+            sstm.read( &snode.SstrUrowSend[0], snode.SstrUrowSend.size() );
+            snode.SizeSstrUrowSend = snode.SstrUrowSend.size();
+            TIMER_STOP(Serialize_UL);
+
+            TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+            if(bcastUTree!=NULL){
+              bcastUTree->ForwardMessage((char*)&snode.SstrUrowSend[0], snode.SizeSstrUrowSend, 
+                  IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0]);
+              for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+                Int iProcRow = bcastUTree->GetDest(idxRecv);
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_) << std::endl <<  std::endl; 
 #endif
               }
             }
-            else if( (isRecvFromLeft_( snode.Index )  ) && MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) )
-            {
-              //Get the reduction tree
-              TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+          } // if I am the sender
 
-              if(redLTree != NULL){
+
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS << std::endl << "["<<snode.Index<<"] "<< "Communication for the L part." << std::endl << std::endl; 
+#endif
+
+
+
+          // Communication for the L part.
+          if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+            std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, grid_) );
+            TIMER_START(Serialize_UL);
+            // Pack the data in L 
+            std::stringstream sstm;
+            std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+            mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
+
+            // All blocks except for the diagonal block are to be sent right
+
+            if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) )
+              serialize( (Int)Lcol.size() - 1, sstm, NO_MASK );
+            else
+              serialize( (Int)Lcol.size(), sstm, NO_MASK );
+
+            for( Int ib = 0; ib < Lcol.size(); ib++ ){
+              if( Lcol[ib].blockIdx > snode.Index ){
+#if ( _DEBUGlevel_ >= 2 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Serializing Block index " << Lcol[ib].blockIdx << std::endl;
+#endif
+                serialize( Lcol[ib], sstm, mask );
+              }
+            }
+            snode.SstrLcolSend.resize( Size( sstm ) );
+            sstm.read( &snode.SstrLcolSend[0], snode.SstrLcolSend.size() );
+            snode.SizeSstrLcolSend = snode.SstrLcolSend.size();
+            TIMER_STOP(Serialize_UL);
+
+            TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
+            if(bcastLTree!=NULL){
+              bcastLTree->ForwardMessage((char*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, 
+                  IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
+
+              for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+                Int iProcCol = bcastLTree->GetDest(idxRecv);
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending L " << snode.SizeSstrLcolSend << " BYTES on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_) << std::endl <<  std::endl; 
+#endif
+              }
+            }
+          } // if I am the sender
+        } //Senders
+        TIMER_STOP(ISend_Content_UL);
+      }
+
+      vector<char> redLdone(stepSuper,0);
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        SuperNodeBufferType & snode = arrSuperNodes[supidx];
+        TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+
+        if(redLTree != NULL){
+          redLTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_L_REDUCE,limIndex_));
+          //Initialize the tree
+          redLTree->AllocRecvBuffers();
+          //Post All Recv requests;
+          redLTree->PostFirstRecv();
+        }
+      }
+
+
+      TIMER_START(Compute_Sinv_LT);
+      {
+        Int msgForwarded = 0;
+        Int msgToFwd = 0;
+        Int gemmProcessed = 0;
+        Int gemmToDo = 0;
+        //      Int toRecvGemm = 0;
+        //copy the list of supernodes we need to process
+        std::list<Int> readySupidx;
+        //find local things to do
+        for(Int supidx = 0;supidx<stepSuper;supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+
+          if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
+            gemmToDo++;
+            if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
+              snode.isReady++;
+            }
+
+            if(  MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+              snode.isReady++;
+            }
+
+            if(snode.isReady==2){
+              readySupidx.push_back(supidx);
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<std::endl<<"Locally processing ["<<snode.Index<<"]"<<std::endl;
+#endif
+            }
+          }
+          else if( (isRecvFromLeft_( snode.Index )  ) && MYCOL( grid_ ) != PCOL( snode.Index, grid_ ) )
+          {
+            //Get the reduction tree
+            TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+
+            if(redLTree != NULL){
+              TIMER_START(Reduce_Sinv_LT_Isend);
+              //send the data to NULL to ensure 0 byte send
+              redLTree->SetLocalBuffer(NULL);
+              redLTree->SetDataReady(true);
+
+              bool done = redLTree->Progress();
+
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+#endif
+              TIMER_STOP(Reduce_Sinv_LT_Isend);
+            }
+          }// if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ))
+
+          if(MYROW(grid_)!=PROW(snode.Index,grid_)){
+            TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+            if(bcastUTree != NULL){
+              if(bcastUTree->GetDestCount()>0){
+                msgToFwd++;
+              }
+            }
+          }
+
+          if(MYCOL(grid_)!=PCOL(snode.Index,grid_)){
+            TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
+            if(bcastLTree != NULL){
+              if(bcastLTree->GetDestCount()>0){
+                msgToFwd++;
+              }
+            }
+          }
+        }
+
+#if ( _DEBUGlevel_ >= 1 )
+        statusOFS<<std::endl<<"gemmToDo ="<<gemmToDo<<std::endl;
+        statusOFS<<std::endl<<"msgToFwd ="<<msgToFwd<<std::endl;
+#endif
+
+
+#if defined (PROFILE) 
+        end_SendULWaitContentFirst=0;
+        begin_SendULWaitContentFirst=0;
+#endif
+
+        while(gemmProcessed<gemmToDo || msgForwarded < msgToFwd)
+        {
+          Int reqidx = MPI_UNDEFINED;
+          Int supidx = -1;
+
+
+          //while I don't have anything to do, wait for data to arrive 
+          do{
+
+
+
+            //then process with the remote ones
+
+            TIMER_START(WaitContent_UL);
+#if defined(PROFILE)
+            if(begin_SendULWaitContentFirst==0){
+              begin_SendULWaitContentFirst=1;
+              TIMER_START(WaitContent_UL_First);
+            }
+#endif
+
+
+
+
+
+            int reqIndices[arrMpireqsRecvContentFromAny.size()];
+            int numRecv = 0; 
+            numRecv = 0;
+            int err = MPI_Waitsome(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &numRecv, reqIndices, MPI_STATUSES_IGNORE);
+            assert(err==MPI_SUCCESS);
+
+            for(int i =0;i<numRecv;i++){
+              reqidx = reqIndices[i];
+              //I've received something
+              if(reqidx!=MPI_UNDEFINED)
+              {
+                //this stays true
+                supidx = reqidx/2;
+                SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+                //If it's a U block 
+                if(reqidx%2==0){
+
+                  TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
+                  if(bcastUTree != NULL){
+                    if(bcastUTree->GetDestCount()>0){
+
+                      std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+#if ( _DEBUGlevel_ >= 1 )
+                      for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+                        Int iProcRow = bcastUTree->GetDest(idxRecv);
+                        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+                      }
+#endif
+
+                      bcastUTree->ForwardMessage( (char*)&snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, 
+                          IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0] );
+#if ( _DEBUGlevel_ >= 1 )
+                      for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
+                        Int iProcRow = bcastUTree->GetDest(idxRecv);
+                        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+                      }
+#endif
+
+                      msgForwarded++;
+                    }
+                  }
+                }
+                //If it's a L block 
+                else if(reqidx%2==1){
+                  TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
+                  if(bcastLTree != NULL){
+                    if(bcastLTree->GetDestCount()>0){
+
+                      std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+#if ( _DEBUGlevel_ >= 1 )
+                      for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+                        Int iProcCol = bcastLTree->GetDest(idxRecv);
+                        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+                      }
+#endif
+
+                      bcastLTree->ForwardMessage( (char*)&snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, 
+                          IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
+
+                      //                    for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+                      //                      Int iProcCol = bcastLTree->GetDest(idxRecv);
+                      //                      PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolRecv);
+                      //                    }
+#if ( _DEBUGlevel_ >= 1 )
+                      for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
+                        Int iProcCol = bcastLTree->GetDest(idxRecv);
+                        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
+                      }
+#endif
+                      msgForwarded++;
+                    }
+                  }
+                }
+
+
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<<std::endl<<"Received data for ["<<snode.Index<<"] reqidx%2="<<reqidx%2<<" is ready ?"<<snode.isReady<<std::endl;
+#endif
+
+                if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
+                  snode.isReady++;
+
+                  //if we received both L and U, the supernode is ready
+                  if(snode.isReady==2){
+                    readySupidx.push_back(supidx);
+
+#if defined(PROFILE)
+                    if(end_SendULWaitContentFirst==0){
+                      TIMER_STOP(WaitContent_UL_First);
+                      end_SendULWaitContentFirst=1;
+                    }
+#endif
+                  }
+                }
+              }
+
+            }//end for waitsome
+
+            TIMER_STOP(WaitContent_UL);
+
+          } while( (gemmProcessed<gemmToDo && readySupidx.size()==0) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
+
+          //If I have some work to do 
+          if(readySupidx.size()>0)
+          {
+            supidx = readySupidx.back();
+            readySupidx.pop_back();
+            SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+
+            // Only the processors received information participate in the Gemm 
+            if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ) ){
+
+              std::vector<LBlock<T> > LcolRecv;
+              std::vector<UBlock<T> > UrowRecv;
+              // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
+              // The size will be updated in the Gemm phase and the reduce phase
+
+              UnpackData(snode, LcolRecv, UrowRecv);
+              //NumMat<T> AinvBuf, UBuf;
+              SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,AinvBuf,UBuf);
+
+              snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
+
+#ifdef GEMM_PROFILE
+              gemm_stat.push_back(AinvBuf.m());
+              gemm_stat.push_back(UBuf.m());
+              gemm_stat.push_back(AinvBuf.n());
+#endif
+
+              TIMER_START(Compute_Sinv_LT_GEMM);
+              blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
+                  AinvBuf.Data(), AinvBuf.m(), 
+                  UBuf.Data(), UBuf.m(), ZERO<T>(),
+                  snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
+              TIMER_STOP(Compute_Sinv_LT_GEMM);
+
+
+#if ( _DEBUGlevel_ >= 2 )
+              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
+#endif
+            } // if Gemm is to be done locally
+
+            //Get the reduction tree
+            TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+            if(redLTree != NULL){
+              assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
                 TIMER_START(Reduce_Sinv_LT_Isend);
-                //send the data to NULL to ensure 0 byte send
-                redLTree->SetLocalBuffer(NULL);
+                //send the data
+                redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
                 redLTree->SetDataReady(true);
 
+                bool done = redLTree->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
+#endif
+                TIMER_STOP(Reduce_Sinv_LT_Isend);
+            }
+
+            gemmProcessed++;
+
+#if ( _DEBUGlevel_ >= 1 )
+            statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<"/"<<gemmToDo<<std::endl;
+#endif
+
+            //advance reductions
+            for (Int supidx=0; supidx<stepSuper; supidx++){
+              SuperNodeBufferType & snode = arrSuperNodes[supidx];
+              TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+              if(redLTree != NULL && !redLdone[supidx]){
                 bool done = redLTree->Progress();
 
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
 #endif
-                TIMER_STOP(Reduce_Sinv_LT_Isend);
-              }
-            }// if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ))
-
-            if(MYROW(grid_)!=PROW(snode.Index,grid_)){
-              TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-              if(bcastUTree != NULL){
-                if(bcastUTree->GetDestCount()>0){
-                  msgToFwd++;
-                }
-              }
-            }
-
-            if(MYCOL(grid_)!=PCOL(snode.Index,grid_)){
-
-              TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-              if(bcastLTree != NULL){
-                if(bcastLTree->GetDestCount()>0){
-                  msgToFwd++;
-                }
               }
             }
           }
-
-#if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<std::endl<<"gemmToDo ="<<gemmToDo<<std::endl;
-          statusOFS<<std::endl<<"msgToFwd ="<<msgToFwd<<std::endl;
-#endif
-
-
-#if defined (PROFILE) 
-          end_SendULWaitContentFirst=0;
-          begin_SendULWaitContentFirst=0;
-#endif
-
-          msgToReduce = gemmToDo; // CHECK CHECK
-
-
-
-#pragma omp parallel
-          {
-            int nthreads = omp_get_num_threads();
-            int is_master=0;
-            MPI_Is_thread_main(&is_master);
-
-            int tid      = omp_get_thread_num();
-
-
-#ifndef _OMP_MULTIPLE_
-            if(is_master == 1) {
-              while(msgReduced < msgToReduce) // CHECK CHECK
-              {
-                Int reqidx = MPI_UNDEFINED;
-                Int supidx = -1;
-
-
-                // while I don't have anything to do, wait for data to arrive 
-                // not wait for the messages to come, a looping stratergy. 
-                // do{
-
-                // then process with the remote ones
-
-                //TIMER_START(WaitContent_UL);
-#if defined(PROFILE)
-                if(begin_SendULWaitContentFirst==0){
-                  begin_SendULWaitContentFirst=1;
-                  //TIMER_START(WaitContent_UL_First);
-                }
-#endif
-
-
-                int reqIndices[arrMpireqsRecvContentFromAny.size()];
-                int numRecv = 0; 
-                numRecv = 0;
-
-                // CHECK CHECK, use MPI_TESTany to replace the MPI_WaitSome
-                int flag = 0;
-                MPI_Testany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, &flag, MPI_STATUS_IGNORE);
-
-                if( flag == true ){ // get one message. 
-
-                  //int err = MPI_Waitsome(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &numRecv, reqIndices, MPI_STATUSES_IGNORE);
-                  //assert(err==MPI_SUCCESS);
-
-                  //for(int i =0;i<numRecv;i++){
-                  //reqidx = reqIndices[i];
-                  //I've received something
-                  if(reqidx!=MPI_UNDEFINED)
-                  {
-                    //this stays true
-                    supidx = reqidx/2;
-                    SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-                    //If it's a U block 
-                    if(reqidx%2==0){
-
-                      TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-                      if(bcastUTree != NULL){
-                        if(bcastUTree->GetDestCount()>0){
-
-                          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-#if ( _DEBUGlevel_ >= 1 )
-                          for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-                            Int iProcRow = bcastUTree->GetDest(idxRecv);
-                            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-                          }
-#endif
-
-                          bcastUTree->ForwardMessage( (char*)&snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, 
-                              IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0] );
-#if ( _DEBUGlevel_ >= 1 )
-                          for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-                            Int iProcRow = bcastUTree->GetDest(idxRecv);
-                            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-                          }
-#endif
-
-                          msgForwarded++;
-                        }
-                      }
-                    }
-                    //If it's a L block 
-                    else if(reqidx%2==1){
-                      TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-                      if(bcastLTree != NULL){
-                        if(bcastLTree->GetDestCount()>0){
-
-                          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-#if ( _DEBUGlevel_ >= 1 )
-                          for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-                            Int iProcCol = bcastLTree->GetDest(idxRecv);
-                            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-                          }
-#endif
-
-                          bcastLTree->ForwardMessage( (char*)&snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, 
-                              IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
-
-                          //                    for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-                          //                      Int iProcCol = bcastLTree->GetDest(idxRecv);
-                          //                      PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolRecv);
-                          //                    }
-#if ( _DEBUGlevel_ >= 1 )
-                          for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-                            Int iProcCol = bcastLTree->GetDest(idxRecv);
-                            statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-                          }
-#endif
-                          msgForwarded++;
-                        }
-                      }
-                    }
-
-
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<std::endl<<"Received data for ["<<snode.Index<<"] reqidx%2="<<reqidx%2<<" is ready ?"<<snode.isReady<<std::endl;
-#endif
-
-                    if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
-                      snode.isReady++;
-
-                      //if we received both L and U, the supernode is ready
-                      if(snode.isReady==2){
-                        readySupidx.push_back(supidx);
-
-#if defined(PROFILE)
-                        if(end_SendULWaitContentFirst==0){
-                          //TIMER_STOP(WaitContent_UL_First);
-                          end_SendULWaitContentFirst=1;
-                        }
-#endif
-                      }
-                    }
-                  }
-
-                  //}//end for waitsome
-
-                  //TIMER_STOP(WaitContent_UL);
-
-                } // if
-                //} while( (gemmProcessed<gemmToDo && readySupidx.size()==0) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
-
-
-                //If I have some work to do 
-                if(readySupidx.size()>0)
-                {
-                  supidx = readySupidx.back();
-                  readySupidx.pop_back();
-                  SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-
-                  // Only the processors received information participate in the Gemm 
-                  if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ) ){
-
-                    //statusOFS<<std::endl<<" tid 0 create a gemm" <<std::endl;
-#pragma omp task firstprivate(supidx) shared(arrSuperNodes,reduceSupidx) //private(LcolRecv,UrowRecv, AinvBuf, Ubuf) // CHECK CHECK arrSuperNodes using first private is not a good idea, it will duplicate another arraySuperNodes for my run
-                    {
-
-
-                      SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                      std::vector<LBlock<T> > LcolRecv;
-                      std::vector<UBlock<T> > UrowRecv;
-                      // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
-                      // The size will be updated in the Gemm phase and the reduce phase
-#ifdef _OMP_ID_THREAD_
-                      {
-                        int tid = omp_get_thread_num();
-#pragma omp critical
-                        statusOFS<<"Thread "<<tid<<" executing outer task from snode "<<snode.Index<<std::endl;                
-
-                      }
-#endif
-
-                      UnpackData(snode, LcolRecv, UrowRecv);
-
-                      NumMat<T> AinvBuf, UBuf;
-
-                      SelInv_lookup_indexes(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
-
-
-#ifdef GEMM_PROFILE
-                      gemm_stat.push_back(AinvBuf.m());
-                      gemm_stat.push_back(UBuf.m());
-                      gemm_stat.push_back(AinvBuf.n());
-#endif
-
-#ifndef _OMP_ENABLED_
-                      snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
-                      //TIMER_START(Compute_Sinv_LT_GEMM);
-                      blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
-                          AinvBuf.Data(), AinvBuf.m(), 
-                          UBuf.Data(), UBuf.m(), ZERO<T>(),
-                          snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
-
-                      //if(snode.Index==62){
-                      //  statusOFS<<"LUpdateBuf : "<<snode.LUpdateBuf<<std::endl;
-                      //}
-                      //TIMER_STOP(Compute_Sinv_LT_GEMM);
-#endif
-
-#pragma omp critical
-                      {
-                        reduceSupidx.push_back(supidx);
-                      }
-
-#ifdef _PRINT_STATS_  
-                      this->localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
-#endif
-
-#if ( _DEBUGlevel_ >= 2 )
-                      statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
-#endif
-                    } //  omp task
-                  } // if Gemm is to be done locally
-                } // if readySupidx > 0 
-
-                //Get the reduction tree
-                while( reduceSupidx.size() > 0){
-#pragma omp critical
-                  {
-                    supidx = reduceSupidx.back();
-                    reduceSupidx.pop_back();
-                  }
-                  SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                  TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-                  if(redLTree != NULL){
-                    assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
-                    //TIMER_START(Reduce_Sinv_LT_Isend);
-                    //send the data
-                    redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-                    redLTree->SetDataReady(true);
-
-                    bool done = redLTree->Progress();
-#ifdef _PRINT_STATS_
-                    this->localFlops_+=flops::Axpy<T>(snode.LUpdateBuf.Size());
-#endif
-#if ( _DEBUGlevel_ >= 1 )
-                    statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-#endif
-                    //TIMER_STOP(Reduce_Sinv_LT_Isend);
-                  }
-
-                  //gemmProcessed++; 
-                  msgReduced++;
-
-#if ( _DEBUGlevel_ >= 1 )
-                  statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<"/"<<gemmToDo<<std::endl;
-#endif
-
-                  //advance reductions
-                  for (Int supidx=0; supidx<stepSuper; supidx++){
-                    SuperNodeBufferType & snode = arrSuperNodes[supidx];
-                    TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-                    if(redLTree != NULL && !redLdone[supidx]){
-                      bool done = redLTree->Progress();
-
-#if ( _DEBUGlevel_ >= 1 )
-                      statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-#endif
-                    }
-                  }
-                }  // reduction tree 
-              }
-            } // if is_master == 1
-#else
-            /////
-            /////              //launch a task to progress the reductions
-            /////#pragma omp task shared(msgReduced,arrSuperNodes) firstprivate(msgToReduce)
-            /////              {
-            /////                while(msgReduced < msgToReduce) // CHECK CHECK
-            /////                {
-            /////                  //advance reductions
-            /////                  for (Int supidx=0; supidx<stepSuper; supidx++){
-            /////                    SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            /////                    TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-            /////                    if(redLTree != NULL && !redLdone[supidx]){
-            /////                      bool done = redLTree->Progress();
-            /////
-            /////#if ( _DEBUGlevel_ >= 1 )
-            /////                      statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-            /////#endif
-            /////                    }
-            /////                  }
-            /////#pragma omp taskyield
-            /////                }
-            /////              }// end omp task 
-            /////
-            /////#pragma omp single nowait
-            /////              {
-            /////#pragma omp flush(msgReduced)
-            /////                while(msgReduced < msgToReduce) // CHECK CHECK
-            /////                {
-            /////
-            /////                  Int reqidx = MPI_UNDEFINED;
-            /////                  Int supidx = -1;
-            /////
-            /////
-            /////                  // while I don't have anything to do, wait for data to arrive 
-            /////                  // not wait for the messages to come, a looping stratergy. 
-            /////                  // do{
-            /////
-            /////                  // then process with the remote ones
-            /////
-            /////                  //TIMER_START(WaitContent_UL);
-            /////#if defined(PROFILE)
-            /////                  if(begin_SendULWaitContentFirst==0){
-            /////                    begin_SendULWaitContentFirst=1;
-            /////                    //TIMER_START(WaitContent_UL_First);
-            /////                  }
-            /////#endif
-            /////
-            /////
-            /////                  int reqIndices[arrMpireqsRecvContentFromAny.size()];
-            /////                  int numRecv = 0; 
-            /////                  numRecv = 0;
-            /////
-            /////                  // CHECK CHECK, use MPI_TESTany to replace the MPI_WaitSome
-            /////                  int flag = 0;
-            /////                  MPI_Testany(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &reqidx, &flag, MPI_STATUS_IGNORE);
-            /////
-            /////                  if( flag == true ){ // get one message. 
-            /////
-            /////                    //int err = MPI_Waitsome(2*stepSuper, &arrMpireqsRecvContentFromAny[0], &numRecv, reqIndices, MPI_STATUSES_IGNORE);
-            /////                    //assert(err==MPI_SUCCESS);
-            /////
-            /////                    //for(int i =0;i<numRecv;i++){
-            /////                    //reqidx = reqIndices[i];
-            /////                    //I've received something
-            /////                    if(reqidx!=MPI_UNDEFINED)
-            /////                    {
-            /////                      //this stays true
-            /////                      supidx = reqidx/2;
-            /////                      SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            /////
-            /////                      //If it's a U block 
-            /////                      if(reqidx%2==0){
-            /////
-            /////                        TreeBcast * bcastUTree = fwdToBelowTree_[snode.Index];
-            /////                        if(bcastUTree != NULL){
-            /////                          if(bcastUTree->GetDestCount()>0){
-            /////
-            /////                            std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
-            /////#if ( _DEBUGlevel_ >= 1 )
-            /////                            for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-            /////                              Int iProcRow = bcastUTree->GetDest(idxRecv);
-            /////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-            /////                            }
-            /////#endif
-            /////
-            /////                            bcastUTree->ForwardMessage( (char*)&snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, 
-            /////                                IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_), &mpireqsSendToBelow[0] );
-            /////#if ( _DEBUGlevel_ >= 1 )
-            /////                            for( Int idxRecv = 0; idxRecv < bcastUTree->GetDestCount(); ++idxRecv ){
-            /////                              Int iProcRow = bcastUTree->GetDest(idxRecv);
-            /////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded U " << snode.SizeSstrUrowRecv << " BYTES to "<<iProcRow<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_U_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-            /////                            }
-            /////#endif
-            /////
-            /////                            msgForwarded++;
-            /////                          }
-            /////                        }
-            /////                      }
-            /////                      //If it's a L block 
-            /////                      else if(reqidx%2==1){
-            /////                        TreeBcast * bcastLTree = fwdToRightTree_[snode.Index];
-            /////                        if(bcastLTree != NULL){
-            /////                          if(bcastLTree->GetDestCount()>0){
-            /////
-            /////                            std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-            /////#if ( _DEBUGlevel_ >= 1 )
-            /////                            for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-            /////                              Int iProcCol = bcastLTree->GetDest(idxRecv);
-            /////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarding L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-            /////                            }
-            /////#endif
-            /////
-            /////                            bcastLTree->ForwardMessage( (char*)&snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, 
-            /////                                IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_), &mpireqsSendToRight[0]);
-            /////
-            /////                            //                    for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-            /////                            //                      Int iProcCol = bcastLTree->GetDest(idxRecv);
-            /////                            //                      PROFILE_COMM(MYPROC(this->grid_),PNUM(MYROW(this->grid_),iProcCol,this->grid_),IDX_TO_TAG(snode.Index,SELINV_TAG_L_CONTENT),snode.SizeSstrLcolRecv);
-            /////                            //                    }
-            /////#if ( _DEBUGlevel_ >= 1 )
-            /////                            for( Int idxRecv = 0; idxRecv < bcastLTree->GetDestCount(); ++idxRecv ){
-            /////                              Int iProcCol = bcastLTree->GetDest(idxRecv);
-            /////                              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Forwarded L " << snode.SizeSstrLcolRecv << " BYTES to "<<iProcCol<<" on tag "<<IDX_TO_TAG(snode.Rank,SELINV_TAG_L_CONTENT,limIndex_)<< std::endl <<  std::endl; 
-            /////                            }
-            /////#endif
-            /////                            msgForwarded++;
-            /////                          }
-            /////                        }
-            /////                      }
-            /////
-            /////
-            /////#if ( _DEBUGlevel_ >= 1 )
-            /////                      statusOFS<<std::endl<<"Received data for ["<<snode.Index<<"] reqidx%2="<<reqidx%2<<" is ready ?"<<snode.isReady<<std::endl;
-            /////#endif
-            /////
-            /////                      if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index )){
-            /////                        snode.isReady++;
-            /////
-            /////                        //if we received both L and U, the supernode is ready
-            /////                        if(snode.isReady==2){
-            /////#pragma omp critical
-            /////                          {
-            /////                            readySupidx.push_back(supidx);
-            /////                          }
-            /////
-            /////#if defined(PROFILE)
-            /////                          if(end_SendULWaitContentFirst==0){
-            /////                            //TIMER_STOP(WaitContent_UL_First);
-            /////                            end_SendULWaitContentFirst=1;
-            /////                          }
-            /////#endif
-            /////                        }
-            /////                      }
-            /////                    }
-            /////
-            /////                    //}//end for waitsome
-            /////
-            /////                    //TIMER_STOP(WaitContent_UL);
-            /////
-            /////                  } // if
-            /////                  //} while( (gemmProcessed<gemmToDo && readySupidx.size()==0) || (gemmProcessed==gemmToDo && msgForwarded<msgToFwd) );
-            /////
-            /////
-            /////                  //If I have some work to do 
-            /////                  if(readySupidx.size()>0)
-            /////                  {
-            /////
-            /////#pragma omp critical
-            /////                    {
-            /////                      supidx = readySupidx.back();
-            /////                      readySupidx.pop_back();
-            /////                    }
-            /////
-            /////                    SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            /////
-            /////
-            /////                    // Only the processors received information participate in the Gemm 
-            /////                    if( isRecvFromAbove_( snode.Index ) && isRecvFromLeft_( snode.Index ) ){
-            /////
-            /////                      //statusOFS<<std::endl<<" tid 0 create a gemm" <<std::endl;
-            /////#pragma omp task firstprivate(supidx) shared(arrSuperNodes) //private(LcolRecv,UrowRecv, AinvBuf, Ubuf) // CHECK CHECK arrSuperNodes using first private is not a good idea, it will duplicate another arraySuperNodes for my run
-            /////                      {
-            /////
-            /////
-            /////                        SuperNodeBufferType & snode = arrSuperNodes[supidx];
-            /////                        std::vector<LBlock<T> > LcolRecv;
-            /////                        std::vector<UBlock<T> > UrowRecv;
-            /////                        // Save all the data to be updated for { L( isup, snode.Index ) | isup > snode.Index }.
-            /////                        // The size will be updated in the Gemm phase and the reduce phase
-            /////#ifdef _OMP_ID_THREAD_
-            /////                        {
-            /////                          int tid = omp_get_thread_num();
-            /////#pragma omp critical
-            /////                          statusOFS<<"Thread "<<tid<<" executing outer task from snode "<<snode.Index<<std::endl;                
-            /////
-            /////                        }
-            /////#endif
-            /////
-            /////                        UnpackData(snode, LcolRecv, UrowRecv);
-            /////
-            /////                        NumMat<T> AinvBuf, UBuf;
-            /////
-            /////                        SelInv_lookup_indexes(snode,LcolRecv, UrowRecv, AinvBuf, UBuf);
-            /////
-            /////
-            /////                        {
-            /////                          TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
-            /////                          if(redLTree != NULL){
-            /////                            assert( snode.LUpdateBuf.m() != 0 && snode.LUpdateBuf.n() != 0 );
-            /////                            //TIMER_START(Reduce_Sinv_LT_Isend);
-            /////                            //send the data
-            /////                            redLTree->SetLocalBuffer(snode.LUpdateBuf.Data());
-            /////                            redLTree->SetDataReady(true);
-            /////
-            /////                            bool done = redLTree->Progress();
-            /////#ifdef _PRINT_STATS_
-            /////                            this->localFlops_+=flops::Axpy<T>(snode.LUpdateBuf.Size());
-            /////#endif
-            /////#if ( _DEBUGlevel_ >= 1 )
-            /////                            statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce L "<<done<<std::endl;
-            /////#endif
-            /////                            //TIMER_STOP(Reduce_Sinv_LT_Isend);
-            /////#pragma omp atomic
-            /////                            msgReduced++;
-            /////                          }
-            /////                        }
-            /////
-            /////
-            /////#if ( _DEBUGlevel_ >= 1 )
-            /////                        statusOFS<<std::endl<<"gemmProcessed ="<<gemmProcessed<<"/"<<gemmToDo<<std::endl;
-            /////#endif
-            /////
-            /////#ifdef _PRINT_STATS_  
-            /////                        this->localFlops_+=flops::Gemm<T>(AinvBuf.m(),UBuf.m(), AinvBuf.n());
-            /////#endif
-            /////
-            /////#if ( _DEBUGlevel_ >= 2 )
-            /////                        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
-            /////#endif
-            /////                      } //  omp task
-            /////                    } // if Gemm is to be done locally
-            /////                  } // if readySupidx > 0 
-            /////
-            /////
-            /////                }
-            /////              }//end omp single
-            /////
-#endif
-          } // omp parallel
         }
 
-        TIMER_STOP(Compute_Sinv_LT);
+      }
+      TIMER_STOP(Compute_Sinv_LT);
 
-        //Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
+      //Reduce Sinv L^T to the processors in PCOL(ksup,grid_)
 
 
+      TIMER_START(Reduce_Sinv_LT);
+      //blocking wait for the reduction
+      bool all_done = false;
+      while(!all_done)
+      {
+        all_done = true;
 
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
 
-        TIMER_START(Reduce_Sinv_LT);
-        //blocking wait for the reduction
-        bool all_done = false;
-        while(!all_done)
-        {
-          all_done = true;
-
-          for (Int supidx=0; supidx<stepSuper; supidx++){
-            SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-            TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
+          TreeReduce<T> * redLTree = redToLeftTree_[snode.Index];
 
             if(redLTree != NULL && !redLdone[supidx])
             {
@@ -2540,7 +2215,7 @@ namespace PEXSI{
                 statusOFS<<"["<<snode.Index<<"] "<<" DONE reduce L"<<std::endl;
 #endif
 
-                //if(redLTree->GetTag() == 2344 && MYPROC(grid_)==0){gdb_lock();}
+//if(redLTree->GetTag() == 2344 && MYPROC(grid_)==0){gdb_lock();}
                 if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
                   //determine the number of rows in LUpdateBufReduced
                   Int numRowLUpdateBuf;
@@ -2581,81 +2256,78 @@ namespace PEXSI{
 
               all_done = all_done && (done || redLdone[supidx]);
             }
+        }
+      }
+      TIMER_STOP(Reduce_Sinv_LT);
+
+
+
+      //--------------------- End of reduce of LUpdateBuf-------------------------
+
+      TIMER_START(Update_Diagonal);
+
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+        ComputeDiagUpdate(snode);
+
+        //Get the reduction tree
+        TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+
+        if(redDTree != NULL){
+          //send the data
+          if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
+            if(snode.DiagBuf.Size()==0){
+              snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
+              SetValue(snode.DiagBuf, ZERO<T>());
+            }
+          }
+
+
+          redDTree->SetLocalBuffer(snode.DiagBuf.Data());
+          if(!redDTree->IsAllocated()){
+            redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,limIndex_));
+            redDTree->AllocRecvBuffers();
+            //Post All Recv requests;
+            redDTree->PostFirstRecv();
+          }
+
+          redDTree->SetDataReady(true);
+          bool done = redDTree->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+          statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
+#endif
+        }
+
+        //advance reductions
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+          TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
+          if(redDTree != NULL){
+            if(redDTree->IsAllocated())
+            {
+              bool done = redDTree->Progress();
+#if ( _DEBUGlevel_ >= 1 )
+              statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
+#endif
+            }
           }
         }
-        TIMER_STOP(Reduce_Sinv_LT);
+      }
+      TIMER_STOP(Update_Diagonal);
 
-        //--------------------- End of reduce of LUpdateBuf-------------------------
-        TIMER_START(Update_Diagonal);
+      TIMER_START(Reduce_Diagonal);
+      //blocking wait for the reduction
+      {
+        vector<char> is_done(stepSuper,0);
+        bool all_done = false;
+        while(!all_done)
+        {
+          all_done = true;
 
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-
-          SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-
-          ComputeDiagUpdate(snode);
-
-          //Get the reduction tree
-          TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-
-          if(redDTree != NULL){
-
-            //send the data
-            if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
-              if(snode.DiagBuf.Size()==0){
-                snode.DiagBuf.Resize( SuperSize( snode.Index, super_ ), SuperSize( snode.Index, super_ ));
-                SetValue(snode.DiagBuf, ZERO<T>());
-              }
-            }
-
-            redDTree->SetLocalBuffer(snode.DiagBuf.Data());
-#ifdef _PRINT_STATS_
-            this->localFlops_+=flops::Axpy<T>(snode.DiagBuf.Size());
-#endif
-            if(!redDTree->IsAllocated()){
-              redDTree->SetTag(IDX_TO_TAG(snode.Rank,SELINV_TAG_D_REDUCE,limIndex_));
-              redDTree->AllocRecvBuffers();
-              //Post All Recv requests;
-              redDTree->PostFirstRecv();
-            }
-
-            redDTree->SetDataReady(true);
-            bool done = redDTree->Progress();
-#if ( _DEBUGlevel_ >= 1 )
-            statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
-#endif
-          }
-
-          //advance reductions
           for (Int supidx=0; supidx<stepSuper; supidx++){
             SuperNodeBufferType & snode = arrSuperNodes[supidx];
             TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
-            if(redDTree != NULL){
-              if(redDTree->IsAllocated())
-              {
-                bool done = redDTree->Progress();
-#if ( _DEBUGlevel_ >= 1 )
-                statusOFS<<"["<<snode.Index<<"] "<<" trying to progress reduce D "<<done<<std::endl;
-#endif
-              }
-            }
-          }
-        }
-        TIMER_STOP(Update_Diagonal);
-
-        TIMER_START(Reduce_Diagonal);
-        //blocking wait for the reduction
-
-        {
-          vector<char> is_done(stepSuper,0);
-          bool all_done = false;
-          while(!all_done)
-          {
-            all_done = true;
-
-            for (Int supidx=0; supidx<stepSuper; supidx++){
-              SuperNodeBufferType & snode = arrSuperNodes[supidx];
-              TreeReduce<T> * redDTree = redToAboveTree_[snode.Index];
 
               if(redDTree != NULL && !is_done[supidx])
               {
@@ -2673,11 +2345,8 @@ namespace PEXSI{
                   if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) ){
                     if( MYROW( grid_ ) == PROW( snode.Index, grid_ ) ){
                       LBlock<T> &  LB = this->L( LBj( snode.Index, grid_ ) )[0];
-                      blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
-#ifdef _PRINT_STATS_
-                      this->localFlops_+=flops::Axpy<T>(LB.numRow * LB.numCol);
-#endif
                       // Symmetrize LB
+                      blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), snode.DiagBuf.Data(), 1, LB.nzval.Data(), 1 );
                       Symmetrize( LB.nzval );
                     }
                   }
@@ -2687,87 +2356,92 @@ namespace PEXSI{
 
                 all_done = all_done && (done || is_done[supidx]);
               }
-            }
           }
         }
-
-        TIMER_STOP(Reduce_Diagonal);
-
-        SendRecvCD_UpdateU(arrSuperNodes, stepSuper);
+      }
+      TIMER_STOP(Reduce_Diagonal);
 
 
-        TIMER_START(Update_L);
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+
+
+
+      SendRecvCD_UpdateU(arrSuperNodes, stepSuper);
+
+
+
+      TIMER_START(Update_L);
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        SuperNodeBufferType & snode = arrSuperNodes[supidx];
 
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
+        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Finish updating the L part by filling LUpdateBufReduced back to L" << std::endl << std::endl; 
 #endif
 
-          if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) && snode.LUpdateBuf.m() > 0 ){
-            std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
-            //Need to skip the diagonal block if present
-            Int startBlock = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
-            for( Int ib = startBlock; ib < Lcol.size(); ib++ ){
-              LBlock<T> & LB = Lcol[ib];
-              lapack::Lacpy( 'A', LB.numRow, LB.numCol, &snode.LUpdateBuf( snode.RowLocalPtr[ib-startBlock], 0 ),
-                  snode.LUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
-            }
-          } // Finish updating L	
-
-        } // for (snode.Index) : Main loop
-        TIMER_STOP(Update_L);
-
-
-
-        TIMER_START(Barrier);
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          SuperNodeBufferType & snode = arrSuperNodes[supidx];
-
-          TreeReduce<T> * &redLTree = redToLeftTree_[snode.Index];
-
-          if(redLTree != NULL){
-            redLTree->Wait();
-            redLTree->CleanupBuffers();
-            //          delete redLTree;
-            //          redLTree = NULL;
+        if( MYCOL( grid_ ) == PCOL( snode.Index, grid_ ) && snode.LUpdateBuf.m() > 0 ){
+          std::vector<LBlock<T> >&  Lcol = this->L( LBj( snode.Index, grid_ ) );
+          //Need to skip the diagonal block if present
+          Int startBlock = (MYROW( grid_ ) == PROW( snode.Index, grid_ ))?1:0;
+          for( Int ib = startBlock; ib < Lcol.size(); ib++ ){
+            LBlock<T> & LB = Lcol[ib];
+            lapack::Lacpy( 'A', LB.numRow, LB.numCol, &snode.LUpdateBuf( snode.RowLocalPtr[ib-startBlock], 0 ),
+                snode.LUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
           }
+        } // Finish updating L	
+      } // for (snode.Index) : Main loop
+      TIMER_STOP(Update_L);
+
+
+
+      TIMER_START(Barrier);
+
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        SuperNodeBufferType & snode = arrSuperNodes[supidx];
+
+        TreeReduce<T> * &redLTree = redToLeftTree_[snode.Index];
+
+        if(redLTree != NULL){
+          redLTree->Wait();
+          redLTree->CleanupBuffers();
+          //          delete redLTree;
+          //          redLTree = NULL;
         }
+      }
 
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          SuperNodeBufferType & snode = arrSuperNodes[supidx];
-          TreeReduce<T> * &redDTree = redToAboveTree_[snode.Index];
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        SuperNodeBufferType & snode = arrSuperNodes[supidx];
+        TreeReduce<T> * &redDTree = redToAboveTree_[snode.Index];
 
-          if(redDTree != NULL){
-            redDTree->Wait();
-            redDTree->CleanupBuffers();
-            //          delete redDTree;
-            //          redDTree = NULL;
-          }
+        if(redDTree != NULL){
+          redDTree->Wait();
+          redDTree->CleanupBuffers();
+          //          delete redDTree;
+          //          redDTree = NULL;
         }
+      }
 
-        mpi::Waitall(arrMpireqsRecvContentFromAny);
-        for (Int supidx=0; supidx<stepSuper; supidx++){
-          SuperNodeBufferType & snode = arrSuperNodes[supidx];
-          Int ksup = snode.Index;
-          std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
-          std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
+      mpi::Waitall(arrMpireqsRecvContentFromAny);
+      for (Int supidx=0; supidx<stepSuper; supidx++){
+        SuperNodeBufferType & snode = arrSuperNodes[supidx];
+        Int ksup = snode.Index;
+        std::vector<MPI_Request> & mpireqsSendToRight = arrMpireqsSendToRight[supidx];
+        std::vector<MPI_Request> & mpireqsSendToBelow = arrMpireqsSendToBelow[supidx];
 
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"["<<ksup<<"] mpireqsSendToRight"<<std::endl;
+        statusOFS<<"["<<ksup<<"] mpireqsSendToRight"<<std::endl;
 #endif
-          mpi::Waitall( mpireqsSendToRight );
+        mpi::Waitall( mpireqsSendToRight );
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"["<<ksup<<"] mpireqsSendToBelow"<<std::endl;
+        statusOFS<<"["<<ksup<<"] mpireqsSendToBelow"<<std::endl;
 #endif
 
-          mpi::Waitall( mpireqsSendToBelow );
-        }
+        mpi::Waitall( mpireqsSendToBelow );
+      }
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS<<"barrier done"<<std::endl;
+      statusOFS<<"barrier done"<<std::endl;
 #endif
-        TIMER_STOP(Barrier);
+      TIMER_STOP(Barrier);
 
 
 
