@@ -204,6 +204,7 @@ namespace PEXSI{
 
 
 
+void ErrorHandling( const char * msg );
 
 
 
