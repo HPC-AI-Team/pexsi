@@ -2448,12 +2448,7 @@ namespace PEXSI{
       }
       else
       {
-        auto LBlockComparator = [](const LBlock<T> & a, const LBlock<T> & b){
-          return a.blockIdx<b.blockIdx;
-        };
-
         Int numSuper = this->NumSuper();
-
 
         std::vector<std::vector<Int> > & superList = this->WorkingSet();
 
@@ -2487,6 +2482,15 @@ namespace PEXSI{
         treeToSupidx.reserve(totTreeCount);
         std::vector<Int> treeToIb;
         treeToIb.reserve(totTreeCount);
+
+        std::list<int> redDIdx; 
+        std::vector<bool> redDdone(stepSuper,false);
+        bool all_doneD = false;
+        bool all_doneBCastL = false;
+        bool all_doneL = false;
+        std::list<int> redLIdx; 
+        std::vector<bool> redLdone(totTreeCount,false);
+
 
 
 
@@ -2547,6 +2551,8 @@ namespace PEXSI{
           }
 
           TIMER_START(Serialize_LcolL);
+                std::stringstream sstm;
+                std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
           for(Int ltidx=0;ltidx<treeIdx.size();ltidx++){
             Int tidx = treeIdx[ltidx];
             Int supidx = treeToSupidx[ltidx];
@@ -2555,19 +2561,24 @@ namespace PEXSI{
             if(bcastLData != nullptr){
               if(bcastLData->IsRoot()){
                 Int ibFound = treeToIb[ltidx];
-                std::stringstream sstm;
-                std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
                 auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
                 assert(ibFound>=0);
                 auto & LB = Lcol[ibFound];
 
                 // Only LB is to be sent down
-                serialize( LB, sstm, mask );
                 auto & SstrLcolSend = snode.SstrLcolSendBlk[treeToBufIdx[ltidx]];
                 auto & SizeSstrLcolSend = snode.SizeSstrLcolSendBlk[treeToBufIdx[ltidx]];
-                SstrLcolSend.resize( Size( sstm ) );
-                sstm.read( &SstrLcolSend[0], SstrLcolSend.size() );
-                SizeSstrLcolSend = SstrLcolSend.size();
+                //serialize( LB, sstm, mask );
+
+                SizeSstrLcolSend = bcastLData->GetMsgSize();
+                SstrLcolSend.resize( SizeSstrLcolSend );
+                sstm.rdbuf()->pubsetbuf((char*)SstrLcolSend.data(), SizeSstrLcolSend);
+                // Only LB is to be sent down
+                serialize( LB, sstm, mask );
+                //SstrLcolSend.resize( Size( sstm ) );
+                //sstm.read( &SstrLcolSend[0], SstrLcolSend.size() );
+                //SizeSstrLcolSend = SstrLcolSend.size();
+                sstm.rdbuf()->pubsetbuf(nullptr,0);
 
                 assert(bcastLData->GetMsgSize()==SizeSstrLcolSend);
                 bcastLData->SetLocalBuffer(&SstrLcolSend[0]);
@@ -2641,10 +2652,10 @@ namespace PEXSI{
         for (auto && snode : arrSuperNodes){
           auto & redDTree = this->redDTree2_[snode.Index];
           if(redDTree != nullptr){
-            if(redDTree->IsRoot()){
-              auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
-              assert( redDTree->GetMsgSize() == Lcol[0].nzval.Size() );
-            }           
+            //if(redDTree->IsRoot()){
+            //  auto&  Lcol = this->L( LBj(snode.Index, this->grid_) );
+            //  assert( redDTree->GetMsgSize() == Lcol[0].nzval.Size() );
+            //}           
             redDTree->Progress();
           }
         }
@@ -2654,14 +2665,18 @@ namespace PEXSI{
           //list of supidx / blkIdx1 / blkIdx2 / ltidx / ltidx2 
           std::list< std::tuple< Int,Int,Int,Int,Int> > readySnode;
 
-          auto UnpackLBlock = [](const std::shared_ptr<TreeBcast_v2<char>> & tree, LBlock<T> & LB){
-            std::stringstream sstm;
-            sstm.write( tree->GetLocalBuffer(), tree->GetMsgSize() );
-            std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+          std::stringstream sstm;
+          std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
+          auto UnpackLBlock = [&mask,&sstm](const std::shared_ptr<TreeBcast_v2<char>> & tree, LBlock<T> & LB){
+            TIMER_START(UnpackLBlock);
+            //sstm.write( tree->GetLocalBuffer(), tree->GetMsgSize() );
+sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
             deserialize( LB, sstm, mask );
+                sstm.rdbuf()->pubsetbuf(nullptr,0);
+            TIMER_STOP(UnpackLBlock);
           };
 
-          auto getBlocks = [&] (Int ksup, LBlock<T> * pLB, LBlock<T> * pSinvB, Int * blockRows, Int & blockRowsSize){
+          auto getBlocks = [this] (Int ksup, LBlock<T> * pLB, LBlock<T> * pSinvB, Int * blockRows, Int & blockRowsSize){
             TIMER_START(GET_BLOCKS);
             if(pLB->numRow>0){
               Int* rowsSinvBPtr    = pSinvB->rows.Data();
@@ -2718,7 +2733,7 @@ namespace PEXSI{
                 }
               }
               else{
-                Int SinvColsSta = FirstBlockCol( ksup, super_ );
+                Int SinvColsSta = FirstBlockCol( ksup, this->super_ );
 
                 for(Int ii = 0; ii<blockRowsSize;ii+=3){
                   {
@@ -2748,7 +2763,7 @@ namespace PEXSI{
           };
 
 
-          auto ComputeLUpdateBuf = [&](SuperNodeBufferType & snode, LBlock<T> & LB1, LBlock<T> & LB2, NumMat<T> & LUpdateBuf1, NumMat<T> & LUpdateBuf2) {
+          auto ComputeLUpdateBuf = [&getBlocks,this](SuperNodeBufferType & snode, LBlock<T> & LB1, LBlock<T> & LB2, NumMat<T> & LUpdateBuf1, NumMat<T> & LUpdateBuf2) {
             Int superSize = SuperSize( snode.Index, this->super_ );
 
             Int isup = LB1.blockIdx;
@@ -2759,9 +2774,14 @@ namespace PEXSI{
             LBlock<T> * pLB2 = &LB2;
 
             TIMER_START(Compute_Sinv_L_Resize);
+            T beta1 = ONE<T>();
             if(LUpdateBuf1.Size()==0){
               LUpdateBuf1.Resize(pLB1->nzval.m(),SuperSize( snode.Index, this->super_ ));
+#ifdef _OPENMP_BLOCKS_
               SetValue(LUpdateBuf1,ZERO<T>());
+#else
+              beta1 = ZERO<T>();
+#endif
             }
             TIMER_STOP(Compute_Sinv_L_Resize);
 
@@ -2771,11 +2791,16 @@ namespace PEXSI{
 
             T * nzvalLUpd2 =  nullptr;
             size_t ldLUBuf2 = 0;
+            T beta2 = ONE<T>();
             if(pLB1!=pLB2){
               TIMER_START(Compute_Sinv_L_Resize);
               if(LUpdateBuf2.Size()==0){
                 LUpdateBuf2.Resize(pLB2->nzval.m(),SuperSize( snode.Index, this->super_ ));
+#ifdef _OPENMP_BLOCKS_
                 SetValue(LUpdateBuf2,ZERO<T>());
+#else
+                beta2 = ZERO<T>();
+#endif
               }
               TIMER_STOP(Compute_Sinv_L_Resize);
 
@@ -2794,6 +2819,9 @@ namespace PEXSI{
               nzvalLUpd2 =  LUpdateBuf1.Data();
               ldLUBuf1 = LUpdateBuf2.m(); 
               ldLUBuf2 = LUpdateBuf1.m(); 
+              T tmp = beta1;
+              beta1 = beta2;
+              beta2 = tmp;
             }
 
             size_t ldLB1 = pLB1->nzval.m(); 
@@ -2801,15 +2829,38 @@ namespace PEXSI{
             T * nzvalLB1 =  pLB1->nzval.Data();
             T * nzvalLB2 =  pLB2->nzval.Data();
 
+#ifndef _OPENMP_BLOCKS_
+            TIMER_START(Compute_AinvBuf_Resize);
+            NumMat<T> AinvBuf;
+            AinvBuf.Resize(pLB1->numRow,pLB2->numRow);
+            TIMER_STOP(Compute_AinvBuf_Resize);
+            T * nzvalAinv = AinvBuf.Data();
+            size_t ldAinv = AinvBuf.m();
+#endif
+
+
+            std::vector<Int> cblockRows1; 
+            std::vector<Int> cblockRows2;
 
             // Pin down the corresponding block in the part of Sinv.
             {
               std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
               bool isBlockFound = false;
               TIMER_START(PARSING_ROW_BLOCKIDX);
-              for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+              Int ibSinv = 0;
+              for( ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
                 // Found the (isup, jsup) block in Sinv
                 if( LcolSinv[ibSinv].blockIdx == isup ){
+                  isBlockFound = true;
+                  break;
+                }
+              }
+              TIMER_STOP(PARSING_ROW_BLOCKIDX);
+
+              assert(isBlockFound);
+              {
+                {
+                  TIMER_START(PARSING_ROW_STUFF);
 
 
                   Int lastRowIdxSinv = 0;
@@ -2830,13 +2881,12 @@ namespace PEXSI{
                   Int * blockRows1 = nullptr;
                   Int * blockRows2 = nullptr;
 
-                  std::vector<Int> cblockRows1(3*pLB1->numRow); 
+                  cblockRows1.resize(3*pLB1->numRow); 
                   blockRows1 = cblockRows1.data();
 
                   getBlocks(jsup, pLB1, pSinvB, blockRows1, blockRows1Size);
 
 
-                  std::vector<Int> cblockRows2;
                   if(pLB1!=pLB2){
                     cblockRows2.resize(3*pLB2->numRow);
                     blockRows2 = cblockRows2.data();
@@ -2852,29 +2902,31 @@ namespace PEXSI{
                   T* nzvalSinv = pSinvB->nzval.Data();
                   Int ldSinv = pSinvB->numRow;
 
+                  TIMER_STOP(PARSING_ROW_STUFF);
 
+#ifdef _OPENMP_BLOCKS_
                   if(pLB1==pLB2){
                     Int j = 0;
                     for(Int jj = 0; jj<blockRows2Size;jj+=3){
                       auto fc = blockRows2[jj];
                       auto nc = blockRows2[jj+1];
                       Int  ifc = blockRows2[jj+2];
-                      assert(j==ifc);
                       Int offsetJ = j;
                       Int i = 0;
                       for(Int ii = 0; ii<blockRows1Size;ii+=3){
                         auto fr = blockRows1[ii];
                         auto nr = blockRows1[ii+1];
                         Int ifr = blockRows1[ii+2];
-                        assert(i==ifr);
                         Int offsetI = i;
                         if(nr>0 && nc > 0 ){
+            TIMER_START(Compute_Sinv_LT_GEMM);
                           blas::Gemm('N','N',nr, superSize, nc, MINUS_ONE<T>(), 
                               &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-                              &nzvalLB2[j], ldLB2, ONE<T>(),
+                              &nzvalLB2[j], ldLB2, beta1,
                               &nzvalLUpd1[i], ldLUBuf1);
+            TIMER_STOP(Compute_Sinv_LT_GEMM);
 #ifdef _PRINT_STATS_  
-                          localFlops_+=flops::Gemm<T>(nr, superSize, nc);
+                          this->localFlops_+=flops::Gemm<T>(nr, superSize, nc);
 #endif
                         }
 
@@ -2890,33 +2942,35 @@ namespace PEXSI{
                       auto fc = blockRows2[jj];
                       auto nc = blockRows2[jj+1];
                       Int  ifc = blockRows2[jj+2];
-                      assert(j==ifc);
                       Int offsetJ = j;
                       Int i = 0;
                       for(Int ii = 0; ii<blockRows1Size;ii+=3){
                         auto fr = blockRows1[ii];
                         auto nr = blockRows1[ii+1];
                         Int ifr = blockRows1[ii+2];
-                        assert(i==ifr);
                         Int offsetI = i;
                         if(nr>0 && nc > 0 ){
+            TIMER_START(Compute_Sinv_LT_GEMM);
                           blas::Gemm('N','N',nr, superSize, nc, MINUS_ONE<T>(), 
                               &nzvalSinv[fr+fc*ldSinv], ldSinv, 
-                              &nzvalLB2[j], ldLB2, ONE<T>(),
+                              &nzvalLB2[j], ldLB2, beta1,
                               &nzvalLUpd1[i], ldLUBuf1);
+            TIMER_STOP(Compute_Sinv_LT_GEMM);
 
 #ifdef _PRINT_STATS_  
-                          localFlops_+=flops::Gemm<T>(nr, superSize, nc);
+                          this->localFlops_+=flops::Gemm<T>(nr, superSize, nc);
 #endif
                           assert(ldSinv>=nr);
                           assert(ldLB1>=nr);
                           assert(ldLUBuf2>=nc);
+            TIMER_START(Compute_Sinv_LT_GEMM);
                           blas::Gemm('T','N', nc,  superSize , nr , MINUS_ONE<T>(), 
                               &nzvalSinv[fc*ldSinv+fr], ldSinv, 
-                              &nzvalLB1[i], ldLB1, ONE<T>(),
+                              &nzvalLB1[i], ldLB1, beta2,
                               &nzvalLUpd2[j], ldLUBuf2);
+            TIMER_STOP(Compute_Sinv_LT_GEMM);
 #ifdef _PRINT_STATS_  
-                          localFlops_+=flops::Gemm<T>(nc, superSize, nr);
+                          this->localFlops_+=flops::Gemm<T>(nc, superSize, nr);
 #endif
 
                         }
@@ -2927,12 +2981,42 @@ namespace PEXSI{
                       j+=nc;
                     }
                   }
+#endif
+#ifndef _OPENMP_BLOCKS_
+                  TIMER_START(PARSING_ROW_COPY);
+                  //copy data in AinvBuf
+                  Int j = 0;
+                  for(Int jj = 0; jj<blockRows2Size;jj+=3){
+                    auto fc = blockRows2[jj];
+                    auto nc = blockRows2[jj+1];
+                    Int  ifc = blockRows2[jj+2];
+                    Int offsetJ = j;
+                    Int i = 0;
+                    for(Int ii = 0; ii<blockRows1Size;ii+=3){
+                      auto fr = blockRows1[ii];
+                      auto nr = blockRows1[ii+1];
+                      Int ifr = blockRows1[ii+2];
+                      Int offsetI = i;
+                      if(nr>0 && nc > 0 ){
+                        lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+                        //for(Int ii = 0; ii<nr; ii++){
+                        //  for(Int jj = 0; jj<nc; jj++){
+                        //    nzvalAinv[i+ii+(j+jj)*ldAinv] = nzvalSinv[fr+ii+(fc+jj)*ldSinv];
+                        //  }
+                        //}
+                      }
+                      i+=nr;
+                    }
+                    j+=nc;
+                  }
+                  TIMER_STOP(PARSING_ROW_COPY);
+#endif
+                  TIMER_STOP(PARSING_ROW_STUFF);
 
-                  isBlockFound = true;
-                  break;
+                  //isBlockFound = true;
+                  //break;
                 }	
               } // for (ibSinv )
-              TIMER_STOP(PARSING_ROW_BLOCKIDX);
               if( isBlockFound == false ){
                 abort();
                 std::ostringstream msg;
@@ -2941,6 +3025,27 @@ namespace PEXSI{
                 ErrorHandling( msg.str().c_str() );
               }
             } // if (isup, jsup) is in L
+#ifndef _OPENMP_BLOCKS_
+            TIMER_START(Compute_Sinv_LT_GEMM);
+            blas::Gemm('N','N',AinvBuf.m(), superSize,AinvBuf.n(), MINUS_ONE<T>(), 
+                AinvBuf.Data(), AinvBuf.m(), 
+                nzvalLB2, ldLB2, beta1,
+                nzvalLUpd1, ldLUBuf1);
+#ifdef _PRINT_STATS_  
+            this->localFlops_+=flops::Gemm<T>(AinvBuf.m(), superSize,AinvBuf.n());
+#endif
+
+            if(pLB1 != pLB2){
+              blas::Gemm('T','N', AinvBuf.n() ,  superSize, AinvBuf.m() , MINUS_ONE<T>(), 
+                  AinvBuf.Data(), AinvBuf.m(), 
+                  nzvalLB1, ldLB1, beta2,
+                  nzvalLUpd2, ldLUBuf2);
+#ifdef _PRINT_STATS_  
+              this->localFlops_+=flops::Gemm<T>(AinvBuf.n(), superSize,AinvBuf.m());
+#endif
+            }
+            TIMER_STOP(Compute_Sinv_LT_GEMM);
+#endif
 
           };
 
@@ -2950,7 +3055,6 @@ namespace PEXSI{
 
 
 
-          bool all_doneBCastL = false;
           while(!(all_doneBCastL = std::all_of(bcastLDataDone.begin(), bcastLDataDone.end()-1, [](int v) { return v>0; })))//gemmProcessed<gemmToDo)
           {
 
@@ -3146,8 +3250,6 @@ namespace PEXSI{
 #endif
 
         TIMER_START(Reduce_Sinv_L);
-        std::list<int> redLIdx; 
-        std::vector<bool> redLdone(treeIdx.size(),false);
 
 
 
@@ -3165,7 +3267,6 @@ namespace PEXSI{
         }
 
 
-        bool all_doneL = false;
         while(!(all_doneL = std::all_of(redLdone.begin(), redLdone.end(), [](bool v) { return v; }))){
           TreeReduce_Testsome( treeIdx, this->redLTree2_, redLIdx, redLdone);
 
@@ -3338,10 +3439,7 @@ namespace PEXSI{
 
         //Reduce D
         TIMER_START(Reduce_Diagonal);
-        std::list<int> redDIdx; 
-        std::vector<bool> redDdone(stepSuper,false);
-        bool all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
-        while(!all_doneD){
+                while(!(all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; }))){
           TreeReduce_Testsome( superList[lidx], this->redDTree2_, redDIdx, redDdone);
 
           for(auto supidx : redDIdx){ 
@@ -3377,7 +3475,7 @@ namespace PEXSI{
           }
 
           //Check if we are done with the reduction of D
-          all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
+          //all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
         }
         TIMER_STOP(Reduce_Diagonal);
         //--------------------- End of reduce of D -------------------------

@@ -239,7 +239,7 @@ int main(int argc, char **argv)
 
 //  optionsFact.MPIcomm = worldcomm;
   optionsFact.factorization = symPACK::FANBOTH;
-  optionsFact.factorization = symPACK::FANOUT;
+//  optionsFact.factorization = symPACK::FANOUT;
   //symPACK::Multithreading::NumThread = omp_get_max_threads();
   //optionsFact.print_stats=false;
 
