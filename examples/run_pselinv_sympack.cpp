@@ -66,7 +66,7 @@ int main(int argc, char **argv)
   statusOFS.open( ss.str().c_str() );
 
 #if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
-      TAU_PROFILE_SET_CONTEXT(world_comm);
+  TAU_PROFILE_SET_CONTEXT(world_comm);
 #endif
 
   if(argc<3){
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
       Usage();
     }
   }
-    
+
 
   try{
 
@@ -165,12 +165,46 @@ int main(int argc, char **argv)
 
 
 
-      int doFacto = true;
-      if( options.find("-F") != options.end() ){ 
-        doFacto= atoi(options["-F"].c_str());
-      }
+    int doFacto = 1;
+    if( options.find("-F") != options.end() ){ 
+      doFacto= atoi(options["-F"].c_str());
+    }
 
+    int doSymbolic = 1;
+    if( options.find("-Symb") != options.end() ){ 
+      doSymbolic= atoi(options["-Symb"].c_str());
+    }
 
+    int doConvert = 1;
+    if( options.find("-C") != options.end() ){ 
+      doConvert= atoi(options["-C"].c_str());
+    }
+
+    int doDistribute = 1;
+    if( options.find("-D") != options.end() ){ 
+      doDistribute= atoi(options["-D"].c_str());
+    }
+
+    Int doSelinv = 1;
+    if( options.find("-Sinv") != options.end() ){ 
+      doSelinv = atoi(options["-Sinv"].c_str());
+    }
+
+    if(doSelinv){
+      doConvert=1;
+    }
+
+    if(doConvert){
+      doFacto=1;
+    }
+
+    if(doFacto){
+      doDistribute=1;
+    }
+
+    if(doDistribute){
+      doSymbolic = 1;
+    }
 
     Real rshift = 0.0, ishift = 0.0;
     if( options.find("-rshift") != options.end() ){ 
@@ -192,10 +226,6 @@ int main(int argc, char **argv)
       ColPerm = "MMD";
     }
 
-    Int doSelinv = 1;
-      if( options.find("-Selinv") != options.end() ){ 
-        doSelinv = atoi(options["-Selinv"].c_str());
-      }
 
 
     std::string refinement;
@@ -237,16 +267,16 @@ int main(int argc, char **argv)
     optionsFact.verbose=0;
     optionsFact.order_refinement_str = refinement;
 
-//  optionsFact.MPIcomm = worldcomm;
-  optionsFact.factorization = symPACK::FANBOTH;
-//  optionsFact.factorization = symPACK::FANOUT;
-  //symPACK::Multithreading::NumThread = omp_get_max_threads();
-  //optionsFact.print_stats=false;
+    //  optionsFact.MPIcomm = worldcomm;
+    optionsFact.factorization = symPACK::FANBOTH;
+    optionsFact.factorization = symPACK::FANOUT;
+    //symPACK::Multithreading::NumThread = omp_get_max_threads();
+    //optionsFact.print_stats=false;
 
-//    optionsFact.load_balance_str = "NNZ";
-//    optionsFact.maxIsend = 100;
-//    optionsFact.relax.SetMaxSize(0);
-//    optionsFact.relax.SetMaxSize(60);
+    //    optionsFact.load_balance_str = "NNZ";
+    //    optionsFact.maxIsend = 100;
+    //    optionsFact.relax.SetMaxSize(0);
+    //    optionsFact.relax.SetMaxSize(60);
 
 
     //Initialize UPCXX for symPACK
@@ -420,31 +450,35 @@ int main(int argc, char **argv)
           cout << "Time for constructing the matrix A is " << timeEnd - timeSta << endl;
       }
 
-      if(1 || doFacto>0){
+      if(1){
         PMatrix<SCALAR> * pMat = NULL; 
         FactorizationOptions factOpt;
         PSelInvOptions selInvOpt;
         GridType *gPtr = new GridType( workcomm, nprow, npcol );
         SuperNodeType *superPtr = new SuperNodeType();
         {
-          GetTime( timeSta );
           std::shared_ptr<symPACK::symPACKMatrix<SCALAR> > symPACKMat(new symPACK::symPACKMatrix<SCALAR>());
-          symPACKMat->Init(optionsFact);
-          symPACKMat->SymbolicFactorization(AMat);
-          GetTime( timeEnd );
-          if( mpirank == 0 )
-            cout << "Time for performing the symbolic factorization is " << timeEnd - timeSta << endl;
+          if(doSymbolic){
+            GetTime( timeSta );
+            symPACKMat->Init(optionsFact);
+            symPACKMat->SymbolicFactorization(AMat);
+            GetTime( timeEnd );
+            if( mpirank == 0 )
+              cout << "Time for performing the symbolic factorization is " << timeEnd - timeSta << endl;
+          }
 
-          GetTime( timeTotalFactorizationSta );
-          GetTime( timeSta );
-          symPACKMat->DistributeMatrix(AMat);
-          GetTime( timeEnd );
-          if( mpirank == 0 )
-            cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
+          if(doDistribute){
+            GetTime( timeTotalFactorizationSta );
+            GetTime( timeSta );
+            symPACKMat->DistributeMatrix(AMat);
+            GetTime( timeEnd );
+            if( mpirank == 0 )
+              cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
+          }
 
           //MPI_Barrier(workcomm);
 
-          if(1 || doFacto>0){
+          if(doFacto){
             GetTime( timeSta );
             symPACKMat->Factorize();
             GetTime( timeEnd );
@@ -459,26 +493,26 @@ int main(int argc, char **argv)
 
           }
 
-            GetTime( timeTotalSelInvSta );
+          GetTime( timeTotalSelInvSta );
 
-            factOpt.ColPerm = ColPerm;
-            factOpt.Symmetric = 1;
+          factOpt.ColPerm = ColPerm;
+          factOpt.Symmetric = 1;
 
-            selInvOpt.maxPipelineDepth = maxPipelineDepth;
-            selInvOpt.symmetricStorage = symmetricStorage;
+          selInvOpt.maxPipelineDepth = maxPipelineDepth;
+          selInvOpt.symmetricStorage = symmetricStorage;
 
-            if (1 || doSelinv>0){
-              GetTime( timeSta );
-              symPACKMatrixToSuperNode( *symPACKMat, *superPtr );
+          if (doConvert){
+            GetTime( timeSta );
+            symPACKMatrixToSuperNode( *symPACKMat, *superPtr );
 
 
-              pMat = PMatrix<SCALAR>::Create(gPtr,superPtr, &selInvOpt, &factOpt);
-              symPACKMatrixToPMatrix( *symPACKMat, *pMat );
-              GetTime( timeEnd );
+            pMat = PMatrix<SCALAR>::Create(gPtr,superPtr, &selInvOpt, &factOpt);
+            symPACKMatrixToPMatrix( *symPACKMat, *pMat );
+            GetTime( timeEnd );
 
-              if( mpirank == 0 )
-                cout << "Time for converting symPACK matrix to PMatrix is " << timeEnd  - timeSta << endl;
-            }
+            if( mpirank == 0 )
+              cout << "Time for converting symPACK matrix to PMatrix is " << timeEnd  - timeSta << endl;
+          }
 
           //MPI_Barrier(workcomm);
         }
@@ -593,7 +627,7 @@ int main(int argc, char **argv)
         delete gPtr;
       }
     }
-//    delete symPACK::logfileptr;
+    //    delete symPACK::logfileptr;
 
   }
   catch( std::exception& e )
@@ -602,10 +636,10 @@ int main(int argc, char **argv)
       << e.what() << std::endl;
   }
 
-statusOFS<<"Calling symPACK finalize"<<std::endl;
+  statusOFS<<"Calling symPACK finalize"<<std::endl;
   symPACK_Finalize();
-    statusOFS.close();
-//MPI_Finalize();
+  statusOFS.close();
+  //MPI_Finalize();
 
   return 0;
 }
