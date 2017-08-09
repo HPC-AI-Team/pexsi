@@ -1287,7 +1287,7 @@ namespace PEXSI{
         Int maxDepth = options_->maxPipelineDepth;
         maxDepth=maxDepth==-1?std::numeric_limits<Int>::max():maxDepth;
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS<<"MaxDepth is "<<maxDepth<<endl;
+        statusOFS<<"MaxDepth is "<<maxDepth<<std::endl;
 #endif
 
         //find roots in the supernode etree (it must be postordered)
@@ -1373,7 +1373,7 @@ namespace PEXSI{
             splitIdx = maxRank - maxRank%limIndex_ - rank; 
           }
 
-          Int splitPoint = min((Int)WSet[lidx].size()-1,splitIdx>0?min(limit-1,splitIdx):limit-1);
+          Int splitPoint = std::min((Int)WSet[lidx].size()-1,splitIdx>0?std::min(limit-1,splitIdx):limit-1);
 #if ( _DEBUGlevel_ >= 1 )
           if(split){ 
             statusOFS<<"TEST SPLIT at "<<splitIdx<<" "<<std::endl;
@@ -5445,7 +5445,7 @@ statusOFS<<"Content of U"<<std::endl;
 //#pragma omp single 
            {
              if(0)
-               cout << "Thread " << omp_get_thread_num() << " entering the critical region for ksup = " << ksup << endl;
+               std::cout << "Thread " << omp_get_thread_num() << " entering the critical region for ksup = " << ksup << std::endl;
 
              outer_updated_snodes.clear();
              outer_arrRowColPtr.clear();
@@ -5825,7 +5825,7 @@ statusOFS<<"Content of U"<<std::endl;
 	           if( omp_get_thread_num() == 0 ) {
 		   	gettimeofday(&tty, NULL);
 			inner_time += ((tty.tv_sec - ttx.tv_sec) + (tty.tv_usec - ttx.tv_usec)/1000000.0);
-			//cout<<"inner time:"<<inner_time<<endl;
+			//std::cout<<"inner time:"<<inner_time<<std::endl;
 		   }
 #endif
 
@@ -5948,21 +5948,21 @@ statusOFS<<"Content of U"<<std::endl;
            total_time += end_total_time - start_total_time;
        }
          if( omp_get_thread_num() == 0 ){
-           cout<<"-------------------------------------------------------------"<<endl;
-           cout<<"** part timing:    diag part        time: "<<diag_time<<endl;
-           cout<<"** part timing:    outer loop       time: "<<outer_time<<endl;
-           cout<<"** part timing:    inner loop       time: "<<inner_time<<endl;
-           cout<<"** part timing:    diag+out+inner   time: "<<diag_time+outer_time+inner_time<<endl;
-           cout<<"** part timing: Indirect addressing time: "<<indirect_time<<endl;
-           cout<<"** part timing: Gemm time               : "<<gemm_time<<endl;
-           cout<<"** part timing: Gemm +indirect address  : "<<gemm_time+indirect_time<<endl;
-	   cout<<"............................................................."<<endl;
-           cout<<"** BLAS timing for the Diag Part:         "<<blas_time<<endl;
-           cout<<"** Diag part total time:                  "<<single_time<<endl;
-	   cout<<"............................................................."<<endl;
-           cout<<"Total time of outer and inner product   : "<<par_time<<endl;
-           cout<<"Total time for iterating ksup:            "<< total_time <<endl;
-           cout<<"-------------------------------------------------------------"<<endl;
+           std::cout<<"-------------------------------------------------------------"<<std::endl;
+           std::cout<<"** part timing:    diag part        time: "<<diag_time<<std::endl;
+           std::cout<<"** part timing:    outer loop       time: "<<outer_time<<std::endl;
+           std::cout<<"** part timing:    inner loop       time: "<<inner_time<<std::endl;
+           std::cout<<"** part timing:    diag+out+inner   time: "<<diag_time+outer_time+inner_time<<std::endl;
+           std::cout<<"** part timing: Indirect addressing time: "<<indirect_time<<std::endl;
+           std::cout<<"** part timing: Gemm time               : "<<gemm_time<<std::endl;
+           std::cout<<"** part timing: Gemm +indirect address  : "<<gemm_time+indirect_time<<std::endl;
+	   std::cout<<"............................................................."<<std::endl;
+           std::cout<<"** BLAS timing for the Diag Part:         "<<blas_time<<std::endl;
+           std::cout<<"** Diag part total time:                  "<<single_time<<std::endl;
+	   std::cout<<"............................................................."<<std::endl;
+           std::cout<<"Total time of outer and inner product   : "<<par_time<<std::endl;
+           std::cout<<"Total time for iterating ksup:            "<< total_time <<std::endl;
+           std::cout<<"-------------------------------------------------------------"<<std::endl;
          }
  
 
