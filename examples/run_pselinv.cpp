@@ -190,6 +190,17 @@ int main(int argc, char **argv)
         doDistribute= atoi(options["-D"].c_str());
       }
 
+      Int doConstructPattern = 1;
+      if( options.find("-Pattern") != options.end() ){ 
+        doConstructPattern = atoi(options["-Pattern"].c_str());
+      }
+
+      Int doPreSelinv = 1;
+      if( options.find("-PreSelinv") != options.end() ){ 
+        doPreSelinv = atoi(options["-PreSelinv"].c_str());
+      }
+
+
 
       if(doSelInv){
         doConvert=1;
@@ -279,21 +290,6 @@ int main(int argc, char **argv)
         numProcSymbFact = 0;
       }
 
-
-      Int doConstructPattern = 1;
-      if( options.find("-Pattern") != options.end() ){ 
-        doConstructPattern = atoi(options["-Pattern"].c_str());
-      }
-
-      Int doPreSelinv = 1;
-      if( options.find("-PreSelinv") != options.end() ){ 
-        doPreSelinv = atoi(options["-PreSelinv"].c_str());
-      }
-
-      Int doSelinv = 1;
-      if( options.find("-Selinv") != options.end() ){ 
-        doSelinv = atoi(options["-Selinv"].c_str());
-      }
 
       Real rshift = 0.0, ishift = 0.0;
       if( options.find("-rshift") != options.end() ){ 
@@ -689,6 +685,15 @@ int main(int argc, char **argv)
             }
           }
           else if (doSelInv==1) {
+            // Preparation for the selected inversion
+            GetTime( timeSta );
+            PMloc.ConstructCommunicationPattern();
+            GetTime( timeEnd );
+
+
+            if( mpirank == 0 )
+              cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
+
             GetTime( timeSta );
             PMloc.PreSelInv();
             GetTime( timeEnd );
