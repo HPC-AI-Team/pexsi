@@ -579,7 +579,7 @@ namespace PEXSI{
                       //blockRowsC.reserve(3*pLB->numRow);
                       //std::vector<Int > blockColsC;
                       //blockColsC.reserve(2*pUB->numCol);
-  
+
                       Int blockRowsSize = 0; 
                       Int blockColsSize = 0;
                       Int * blockRows = new Int[3*pLB->numRow]; 
@@ -621,7 +621,7 @@ namespace PEXSI{
                               if( fr == rowsSinvBPtr[lastRowIdxSinv] ){
                                 isRowFound = true;
                                 blockRows[ii] = lastRowIdxSinv;
-//#pragma omp flush(blockRows[ii])
+                                //#pragma omp flush(blockRows[ii])
                                 break;
                               }
                             }
@@ -694,7 +694,7 @@ namespace PEXSI{
                                     &nzvalUBuf[(j+colPtr[jb])*ldUBuf], ldUBuf, ONE<T>(),
                                     &nzvalLUpd[i+rowPtr[ib]], ldLUBuf);
 #ifdef _PRINT_STATS_  
-                              localFlops_+=flops::Gemm<T>(nr, ldUBuf, nc);
+                                localFlops_+=flops::Gemm<T>(nr, ldUBuf, nc);
 #endif
                               }
                             }
@@ -702,15 +702,15 @@ namespace PEXSI{
 
                             i+=nr;
                           }
-                          #pragma omp taskwait
+#pragma omp taskwait
                           j+=nc;
                         }
-//#pragma omp taskwait
+                        //#pragma omp taskwait
                       }
 
 #pragma omp taskwait
-delete [] blockCols;
-delete [] blockRows;
+                      delete [] blockCols;
+                      delete [] blockRows;
                     }
 
                     isBlockFound = true;
@@ -846,7 +846,7 @@ delete [] blockRows;
                       // Transfer the values from Sinv to AinvBlock
                       T* nzvalSinv = pSinvB->nzval.Data();
                       Int     ldSinv    = pSinvB->numRow;
-                      
+
 #pragma omp taskwait
 
 #pragma omp task shared(nzvalLUpd,blockRowsSize,blockRows,blockColsSize,blockCols) //depend(inout:blockCols) depend(inout:blockRows) depend(inout:blockColsSize) depend(inout:blockRowsSize) //depend(inout:nzvalLUpd[rowPtr[ib]])
@@ -872,422 +872,408 @@ delete [] blockRows;
                                     &nzvalUBuf[(offsetJ)*ldUBuf], ldUBuf, ONE<T>(),
                                     &nzvalLUpd[offsetI], ldLUBuf );
 #ifdef _PRINT_STATS_  
-                              localFlops_+=flops::Gemm<T>(nr, ldUBuf, nc);
+                                localFlops_+=flops::Gemm<T>(nr, ldUBuf, nc);
 #endif
                               }
                             }
 
                             i+=nr;
                           }
-                          #pragma omp taskwait
+#pragma omp taskwait
                           j+=nc;
                         }
-//#pragma omp taskwait
+                        //#pragma omp taskwait
 
                       }
 
 
 #pragma omp taskwait
-                        delete [] blockCols;
-                        delete [] blockRows;
+                      delete [] blockCols;
+                      delete [] blockRows;
 
                       }
 
 #endif
-                    isBlockFound = true;
-                    break;
+                      isBlockFound = true;
+                      break;
+                    }
+                  } // for (jbSinv)
+                  TIMER_STOP(PARSING_COL_BLOCKIDX);
+                  if( isBlockFound == false ){
+                    std::ostringstream msg;
+                    msg << "Block(" << isup << ", " << jsup 
+                      << ") did not find a matching block in Sinv." << std::endl;
+                    ErrorHandling( msg.str().c_str() );
                   }
-                } // for (jbSinv)
-                TIMER_STOP(PARSING_COL_BLOCKIDX);
-                if( isBlockFound == false ){
-                  std::ostringstream msg;
-                  msg << "Block(" << isup << ", " << jsup 
-                    << ") did not find a matching block in Sinv." << std::endl;
-                  ErrorHandling( msg.str().c_str() );
-                }
-              } // if (isup, jsup) is in U
-            }
-          } // for( ib )
+                } // if (isup, jsup) is in U
+              }
+            } // for( ib )
 #pragma omp taskwait
 
-        } // for ( jb )
+          } // for ( jb )
 
-      }//end omp taskgroup
-//#pragma omp taskwait
+        }//end omp taskgroup
+        //#pragma omp taskwait
 
 
-//if(AinvBuf.m()>0 && UBuf.m()>0 && snode.LUpdateBuf.m()>0){
-//
-//statusOFS<<"["<<snode.Index<<"] Before "<<snode.LUpdateBuf<<std::endl;
-//
-//
-//     blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
-//         AinvBuf.Data(), AinvBuf.m(), 
-//         UBuf.Data(), UBuf.m(), ZERO<T>(),
-//         snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
-//
-//statusOFS<<"["<<snode.Index<<"] After "<<snode.LUpdateBuf<<std::endl;
-//#pragma omp taskgroup
-//{
-//    blas::gemm_omp_task('N','T',AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
-//         AinvBuf.Data(), AinvBuf.m(), 
-//         UBuf.Data(), UBuf.m(), ZERO<T>(),
-//         snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() , 0);
-//}
-//}
+        //if(AinvBuf.m()>0 && UBuf.m()>0 && snode.LUpdateBuf.m()>0){
+        //
+        //statusOFS<<"["<<snode.Index<<"] Before "<<snode.LUpdateBuf<<std::endl;
+        //
+        //
+        //     blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
+        //         AinvBuf.Data(), AinvBuf.m(), 
+        //         UBuf.Data(), UBuf.m(), ZERO<T>(),
+        //         snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
+        //
+        //statusOFS<<"["<<snode.Index<<"] After "<<snode.LUpdateBuf<<std::endl;
+        //#pragma omp taskgroup
+        //{
+        //    blas::gemm_omp_task('N','T',AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
+        //         AinvBuf.Data(), AinvBuf.m(), 
+        //         UBuf.Data(), UBuf.m(), ZERO<T>(),
+        //         snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() , 0);
+        //}
+        //}
 
 
 
 #else
-      size_t LcolRecvS = LcolRecv.size();
-      size_t UrowRecvS = UrowRecv.size();
-      LBlock<T> * LcolRecvP = LcolRecv.data(); 
-      UBlock<T> * UrowRecvP = UrowRecv.data();
-      //TIMER_START(Build_colptr_rowptr);
-      // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
-      // nonzero row in LcolRecv[ib]. The total number of rows in
-      // snode.LUpdateBuf is given by rowPtr[end]-1
-      rowPtrC.resize(LcolRecvS + 1);
-      // colPtr[jb] gives the column index in UBuf for the first
-      // nonzero column in UrowRecv[jb]. The total number of rows in
-      // UBuf is given by colPtr[end]-1
-      colPtrC.resize(UrowRecvS + 1);
+        size_t LcolRecvS = LcolRecv.size();
+        size_t UrowRecvS = UrowRecv.size();
+        LBlock<T> * LcolRecvP = LcolRecv.data(); 
+        UBlock<T> * UrowRecvP = UrowRecv.data();
+        //TIMER_START(Build_colptr_rowptr);
+        // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
+        // nonzero row in LcolRecv[ib]. The total number of rows in
+        // snode.LUpdateBuf is given by rowPtr[end]-1
+        rowPtrC.resize(LcolRecvS + 1);
+        // colPtr[jb] gives the column index in UBuf for the first
+        // nonzero column in UrowRecv[jb]. The total number of rows in
+        // UBuf is given by colPtr[end]-1
+        colPtrC.resize(UrowRecvS + 1);
 
-      Int * rowPtr = rowPtrC.data();
-      Int * colPtr = colPtrC.data();
+        Int * rowPtr = rowPtrC.data();
+        Int * colPtr = colPtrC.data();
 
-      rowPtr[0] = 0;
-      for( Int ib = 0; ib < LcolRecvS; ib++ ){
-        rowPtrC[ib+1] = rowPtrC[ib] + LcolRecvP[ib].numRow;
-      }
-      colPtrC[0] = 0;
-      for( Int jb = 0; jb < UrowRecvS; jb++ ){
-        colPtrC[jb+1] = colPtrC[jb] + UrowRecvP[jb].numCol;
-      }
-
-      Int numRowAinvBuf = rowPtr[LcolRecvS];
-      Int numColAinvBuf = colPtr[UrowRecvS];
-
-
-      //TIMER_STOP(Build_colptr_rowptr);
-
-      //TIMER_START(Allocate_lookup);
-      // Allocate for the computational storage
-      AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
-      UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
-      snode.LUpdateBuf.Resize( numRowAinvBuf, SuperSize( snode.Index, super_ ) );
-      SetValue( snode.LUpdateBuf, ZERO<T>() );
-      //std::cout << " allocation done " << std::endl;
-      //    //TIMER_START(SetValue_lookup);
-      //    SetValue( AinvBuf, ZERO<T>() );
-      //SetValue( snode.LUpdateBuf, ZERO<T>() );
-      //    SetValue( UBuf, ZERO<T>() );
-      //    //TIMER_STOP(SetValue_lookup);
-      //TIMER_STOP(Allocate_lookup);
-
-      //TIMER_START(Fill_UBuf);
-      // Fill UBuf first.  Make the transpose later in the Gemm phase.
-      for( Int jb = 0; jb < UrowRecvS; jb++ ){
-        UBlock<T>& UB = UrowRecvP[jb];
-        if( UB.numRow != SuperSize(snode.Index, super_) ){
-          ErrorHandling( "The size of UB is not right.  Something is seriously wrong." );
+        rowPtr[0] = 0;
+        for( Int ib = 0; ib < LcolRecvS; ib++ ){
+          rowPtrC[ib+1] = rowPtrC[ib] + LcolRecvP[ib].numRow;
         }
-        lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
-            UB.numRow, UBuf.VecData( colPtrC[jb] ), SuperSize( snode.Index, super_ ) );	
-      }
-      //TIMER_STOP(Fill_UBuf);
-
-      // Calculate the relative indices for (isup, jsup)
-      // Fill AinvBuf with the information in L or U block.
-      //TIMER_START(JB_Loop);
-      Real factor = 3.0;
-      Int max_blocks = factor * omp_get_num_threads();
-      Int minimal_block_size = 16;
-
-      Int rowBlock, colBlock, col_num, row_num, kBlock;
-      Real row_col_ratio = Real(numRowAinvBuf)/Real(SuperSize( snode.Index, super_ ));
-      col_num = Int(sqrt( Real(max_blocks) / row_col_ratio) + 0.5); // +0.5 maybe
-      if(col_num > max_blocks) col_num = max_blocks;
-      if(col_num < 1) col_num = 1;
-      //std::cout << "init col_num : " << col_num << " max threads: " << max_blocks<< endl;
-
-      for( ; col_num<= max_blocks; col_num++){
-        if( max_blocks % col_num == 0) {
-          row_num = max_blocks / col_num;
-          break;
+        colPtrC[0] = 0;
+        for( Int jb = 0; jb < UrowRecvS; jb++ ){
+          colPtrC[jb+1] = colPtrC[jb] + UrowRecvP[jb].numCol;
         }
-      }
 
-      rowBlock = (numRowAinvBuf + row_num - 1) / row_num;
-      colBlock = (SuperSize( snode.Index, super_ )+ col_num - 1) / col_num;
-      if(rowBlock > 2*colBlock) { rowBlock /= 2; colBlock*=2; }
-      if(colBlock > 2*rowBlock) { colBlock /= 2; rowBlock*=2; }
-      Int temp = 8;
-      if(rowBlock%temp) rowBlock = (rowBlock/temp+ 1)*temp;
-      if(colBlock%temp) colBlock = (colBlock/temp+ 1)*temp;
+        Int numRowAinvBuf = rowPtr[LcolRecvS];
+        Int numColAinvBuf = colPtr[UrowRecvS];
 
-      if(rowBlock < minimal_block_size ) rowBlock = minimal_block_size;
-      if(colBlock < minimal_block_size ) colBlock = minimal_block_size;
+        // Allocate for the computational storage
+        AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
+        UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
+        snode.LUpdateBuf.Resize( numRowAinvBuf, SuperSize( snode.Index, super_ ) );
+        SetValue( snode.LUpdateBuf, ZERO<T>() );
 
-      Int begin = 0;
-      Int end   = 0;
-      Int row_trunk_size = 0;
-      //std::cout << " before omp task " << std::endl;
+        // Fill UBuf first.  Make the transpose later in the Gemm phase.
+        for( Int jb = 0; jb < UrowRecvS; jb++ ){
+          UBlock<T>& UB = UrowRecvP[jb];
+          if( UB.numRow != SuperSize(snode.Index, super_) ){
+            ErrorHandling( "The size of UB is not right.  Something is seriously wrong." );
+          }
+          lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
+              UB.numRow, UBuf.VecData( colPtrC[jb] ), SuperSize( snode.Index, super_ ) );	
+        }
+
+        // Calculate the relative indices for (isup, jsup)
+        // Fill AinvBuf with the information in L or U block.
+        Real factor = 3.0;
+        Int max_blocks = factor * omp_get_num_threads();
+        Int minimal_block_size = 16;
+
+        Int rowBlock, colBlock, col_num, row_num, kBlock;
+        Real row_col_ratio = Real(numRowAinvBuf)/Real(SuperSize( snode.Index, super_ ));
+        col_num = Int(sqrt( Real(max_blocks) / row_col_ratio) + 0.5); // +0.5 maybe
+        if(col_num > max_blocks) col_num = max_blocks;
+        if(col_num < 1) col_num = 1;
+        //std::cout << "init col_num : " << col_num << " max threads: " << max_blocks<< endl;
+
+        for( ; col_num<= max_blocks; col_num++){
+          if( max_blocks % col_num == 0) {
+            row_num = max_blocks / col_num;
+            break;
+          }
+        }
+
+        rowBlock = (numRowAinvBuf + row_num - 1) / row_num;
+        colBlock = (SuperSize( snode.Index, super_ )+ col_num - 1) / col_num;
+        if(rowBlock > 2*colBlock) { rowBlock /= 2; colBlock*=2; }
+        if(colBlock > 2*rowBlock) { colBlock /= 2; rowBlock*=2; }
+        Int temp = 8;
+        if(rowBlock%temp) rowBlock = (rowBlock/temp+ 1)*temp;
+        if(colBlock%temp) colBlock = (colBlock/temp+ 1)*temp;
+
+        if(rowBlock < minimal_block_size ) rowBlock = minimal_block_size;
+        if(colBlock < minimal_block_size ) colBlock = minimal_block_size;
+
+        Int begin = 0;
+        Int end   = 0;
+        Int row_trunk_size = 0;
+        //std::cout << " before omp task " << std::endl;
 
 #pragma omp taskgroup
-      {
-        for( Int index = 0; index < LcolRecvS; index++){
-          row_trunk_size += rowPtr[index+1] - rowPtr[index];
-          end = index;
-          if((row_trunk_size >= rowBlock) || (index == LcolRecvS-1 )){
+        {
+          for( Int index = 0; index < LcolRecvS; index++){
+            row_trunk_size += rowPtr[index+1] - rowPtr[index];
+            end = index;
+            if((row_trunk_size >= rowBlock) || (index == LcolRecvS-1 )){
 #pragma omp task shared(UrowRecvP,colPtr,UBuf,LcolRecvP,AinvBuf,snode,colBlock,kBlock) firstprivate(begin,end)
-            {
+              {
 
 #ifdef _OMP_ID_THREAD_
-              {
-                int tid = omp_get_thread_num();
-                //std::stringstream sstrtid;
-                //sstrtid<<"Thread "<<tid<<" executing task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
+                {
+                  int tid = omp_get_thread_num();
+                  //std::stringstream sstrtid;
+                  //sstrtid<<"Thread "<<tid<<" executing task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
 #pragma omp critical
-                statusOFS<<"Thread "<<tid<<" executing task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
-                //statusOFS<<sstrtid.str();
+                  statusOFS<<"Thread "<<tid<<" executing task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
+                  //statusOFS<<sstrtid.str();
 
-              }
+                }
 #endif
 
-#pragma omp taskgroup
-              {
-                for( Int ib = begin; ib <= end; ib++ ){
-
-                  Int start = 0; 
-                  Int finish = 0;
-                  Int col_trunk_size = 0;
-
-                  for( Int col_index = 0; col_index < UrowRecvS; col_index++ ){
-                    col_trunk_size += colPtr[col_index +1] - colPtr[col_index];
-                    finish = col_index;
-
-                    if((col_trunk_size >= colBlock) || (col_index == UrowRecvS-1)){
-#pragma omp task shared(UrowRecvP,colPtr,UBuf,LcolRecvP,AinvBuf,snode) firstprivate(start,finish)
-                      {
-                        for( Int jb = start; jb <= finish; jb++ )
-                        {
-                          LBlock<T>& LB = LcolRecvP[ib];
-                          UBlock<T>& UB = UrowRecvP[jb];
-                          Int isup = LB.blockIdx;
-                          Int jsup = UB.blockIdx;
-                          T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
-                          Int  ldAinv  = AinvBuf.m();
-
-                          // Pin down the corresponding block in the part of Sinv.
-                          if( isup >= jsup ){
-                            std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
-                            bool isBlockFound = false;
-                            ////TIMER_START(PARSING_ROW_BLOCKIDX);
-                            for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
-                              // Found the (isup, jsup) block in Sinv
-                              if( LcolSinv[ibSinv].blockIdx == isup ){
-                                LBlock<T> & SinvB = LcolSinv[ibSinv];
-
-                                // Row relative indices
-                                std::vector<Int> relRows( LB.numRow );
-                                Int* rowsLBPtr    = LB.rows.Data();
-                                Int* rowsSinvBPtr = SinvB.rows.Data();
-                                Int i2 = 0; 
-                                for( Int i = 0; i < LB.numRow; i++ ){
-                                  bool isRowFound = false;
-                                  if( rowsLBPtr[i] == rowsSinvBPtr[i2] ){
-                                    isRowFound = true;
-                                    relRows[i] = i2++;
-                                    continue;
-                                  }
-                                  for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
-                                    if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
-                                      isRowFound = true;
-                                      relRows[i] = i1;
-                                      i2 = i1+1;
-                                      break;
-                                    }
-                                  }
-                                  if( isRowFound == false ){
-                                    std::ostringstream msg;
-                                    msg << "Row " << rowsLBPtr[i] << 
-                                      " in LB cannot find the corresponding row in SinvB" << std::endl
-                                      << "LB.rows    = " << LB.rows << std::endl
-                                      << "SinvB.rows = " << SinvB.rows << std::endl;
-                                    throw std::runtime_error( msg.str().c_str() );
-                                  }
-                                }
-
-                                // Column relative indicies
-                                std::vector<Int> relCols( UB.numCol );
-                                Int SinvColsSta = FirstBlockCol( jsup, super_ );
-                                for( Int j = 0; j < UB.numCol; j++ ){
-                                  relCols[j] = UB.cols[j] - SinvColsSta;
-                                }
-
-                                // Transfer the values from Sinv to AinvBlock
-                                //indirect addressing. -- intel . // use omp simd. 
-                                T* nzvalSinv = SinvB.nzval.Data();
-                                Int     ldSinv    = SinvB.numRow;
-                                //#pragma omp simd
-                                for( Int j = 0; j < UB.numCol; j++ ){
-                                  Int offset_Ainv = j*ldAinv;
-                                  Int offset_Sinv = relCols[j] * ldSinv;
-                                  //#pragma omp novector
-                                  for( Int i = 0; i < LB.numRow; i++ ){
-                                    nzvalAinv[i+offset_Ainv] =
-                                      nzvalSinv[relRows[i] + offset_Sinv];
-                                  }
-                                }
-                                isBlockFound = true;
-                                break;
-                              }	
-                            } // for (ibSinv )
-                            ////TIMER_STOP(PARSING_ROW_BLOCKIDX);
-                            if( isBlockFound == false ){
-                              std::ostringstream msg;
-                              msg << "Block(" << isup << ", " << jsup 
-                                << ") did not find a matching block in Sinv." << std::endl;
-                              throw std::runtime_error( msg.str().c_str() );
-                            }
-                          } // if (isup, jsup) is in L
-                          else{
-                            std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
-                            bool isBlockFound = false;
-                            ////TIMER_START(PARSING_COL_BLOCKIDX);
-                            for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
-                              // Found the (isup, jsup) block in Sinv
-                              if( UrowSinv[jbSinv].blockIdx == jsup ){
-                                UBlock<T> & SinvB = UrowSinv[jbSinv];
-
-                                // Row relative indices
-                                std::vector<Int> relRows( LB.numRow );
-                                Int SinvRowsSta = FirstBlockCol( isup, super_ );
-                                for( Int i = 0; i < LB.numRow; i++ ){
-                                  relRows[i] = LB.rows[i] - SinvRowsSta;
-                                }
-
-                                // Column relative indices
-                                std::vector<Int> relCols( UB.numCol );
-                                Int* colsUBPtr    = UB.cols.Data();
-                                Int* colsSinvBPtr = SinvB.cols.Data();
-                                Int j2 = 0;
-                                for( Int j = 0; j < UB.numCol; j++ ){
-                                  bool isColFound = false;
-                                  if( colsUBPtr[j] == colsSinvBPtr[j2] ){
-                                    isColFound = true;
-                                    relCols[j] = j2++;
-                                    continue;
-                                  }
-                                  for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
-                                    if( colsUBPtr[j] == colsSinvBPtr[j1] ){
-                                      isColFound = true;
-                                      relCols[j] = j1;
-                                      j2 = j1 + 1;
-                                      break;
-                                    }
-                                  }
-                                  if( isColFound == false ){
-                                    std::ostringstream msg;
-                                    msg << "Col " << colsUBPtr[j] << 
-                                      " in UB cannot find the corresponding row in SinvB" << std::endl
-                                      << "UB.cols    = " << UB.cols << std::endl
-                                      << "UinvB.cols = " << SinvB.cols << std::endl;
-                                    throw std::runtime_error( msg.str().c_str() );
-                                  }
-                                }
-
-
-                                // Transfer the values from Sinv to AinvBlock
-                                T* nzvalSinv = SinvB.nzval.Data();
-                                Int     ldSinv    = SinvB.numRow;
-                                //indirect addressing. -- intel . // use omp simd. however, not vectorized. mystery. 
-                                //#pragma omp simd
-                                for( Int j = 0; j < UB.numCol; j++ ){
-                                  Int offset_Ainv = j*ldAinv;
-                                  Int offset_Sinv = relCols[j] * ldSinv;
-                                  //#pragma omp novector
-                                  for( Int i = 0; i < LB.numRow; i++ ){
-                                    nzvalAinv[i+offset_Ainv] =
-                                      nzvalSinv[relRows[i] + offset_Sinv];
-                                  }
-                                }
-                                isBlockFound = true;
-                                break;
-                              }
-                            } // for (jbSinv)
-                            ////TIMER_STOP(PARSING_COL_BLOCKIDX);
-                            if( isBlockFound == false ){
-                              std::ostringstream msg;
-                              msg << "Block(" << isup << ", " << jsup 
-                                << ") did not find a matching block in Sinv." << std::endl;
-                              throw std::runtime_error( msg.str().c_str() );
-                            }
-                          } // if (isup, jsup) is in U
-                        } // for jb
-                      } // omp task
-                      col_trunk_size = 0;
-                      start = col_index+1;
-                    } // if statement 
-                  } // for ( col_index )
-                } // for( ib )
-              }// end omp taskgroup
-
-              if(UBuf.m() <= colBlock || omp_get_num_threads()== 1)
-              {
-                blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[begin], UBuf.m(), UBuf.n(), MINUS_ONE<T>(), 
-                    &AinvBuf(rowPtr[begin],0), AinvBuf.m(), 
-                    UBuf.Data(),UBuf.m(), ZERO<T>(),
-                    &snode.LUpdateBuf(rowPtr[begin],0),snode.LUpdateBuf.m() ); 
-              }
-              else{
 #pragma omp taskgroup
                 {
-                  Int njob = (UBuf.m() + colBlock - 1) / colBlock;
-                  for(Int index = 0; index < njob; index++){
-                    Int stride = colBlock;
-                    Int currentCol = index * colBlock;
-                    if( currentCol + stride > UBuf.m()) stride = UBuf.m() - currentCol;
+                  for( Int ib = begin; ib <= end; ib++ ){
+
+                    Int start = 0; 
+                    Int finish = 0;
+                    Int col_trunk_size = 0;
+
+                    for( Int col_index = 0; col_index < UrowRecvS; col_index++ ){
+                      col_trunk_size += colPtr[col_index +1] - colPtr[col_index];
+                      finish = col_index;
+
+                      if((col_trunk_size >= colBlock) || (col_index == UrowRecvS-1)){
+#pragma omp task shared(UrowRecvP,colPtr,UBuf,LcolRecvP,AinvBuf,snode) firstprivate(start,finish)
+                        {
+                          for( Int jb = start; jb <= finish; jb++ )
+                          {
+                            LBlock<T>& LB = LcolRecvP[ib];
+                            UBlock<T>& UB = UrowRecvP[jb];
+                            Int isup = LB.blockIdx;
+                            Int jsup = UB.blockIdx;
+                            T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
+                            Int  ldAinv  = AinvBuf.m();
+
+                            // Pin down the corresponding block in the part of Sinv.
+                            if( isup >= jsup ){
+                              std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
+                              bool isBlockFound = false;
+                              ////TIMER_START(PARSING_ROW_BLOCKIDX);
+                              for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+                                // Found the (isup, jsup) block in Sinv
+                                if( LcolSinv[ibSinv].blockIdx == isup ){
+                                  LBlock<T> & SinvB = LcolSinv[ibSinv];
+
+                                  // Row relative indices
+                                  std::vector<Int> relRows( LB.numRow );
+                                  Int* rowsLBPtr    = LB.rows.Data();
+                                  Int* rowsSinvBPtr = SinvB.rows.Data();
+                                  Int i2 = 0; 
+                                  for( Int i = 0; i < LB.numRow; i++ ){
+                                    bool isRowFound = false;
+                                    if( rowsLBPtr[i] == rowsSinvBPtr[i2] ){
+                                      isRowFound = true;
+                                      relRows[i] = i2++;
+                                      continue;
+                                    }
+                                    for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
+                                      if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
+                                        isRowFound = true;
+                                        relRows[i] = i1;
+                                        i2 = i1+1;
+                                        break;
+                                      }
+                                    }
+                                    if( isRowFound == false ){
+                                      std::ostringstream msg;
+                                      msg << "Row " << rowsLBPtr[i] << 
+                                        " in LB cannot find the corresponding row in SinvB" << std::endl
+                                        << "LB.rows    = " << LB.rows << std::endl
+                                        << "SinvB.rows = " << SinvB.rows << std::endl;
+                                      throw std::runtime_error( msg.str().c_str() );
+                                    }
+                                  }
+
+                                  // Column relative indicies
+                                  std::vector<Int> relCols( UB.numCol );
+                                  Int SinvColsSta = FirstBlockCol( jsup, super_ );
+                                  for( Int j = 0; j < UB.numCol; j++ ){
+                                    relCols[j] = UB.cols[j] - SinvColsSta;
+                                  }
+
+                                  // Transfer the values from Sinv to AinvBlock
+                                  //indirect addressing. -- intel . // use omp simd. 
+                                  T* nzvalSinv = SinvB.nzval.Data();
+                                  Int     ldSinv    = SinvB.numRow;
+                                  //#pragma omp simd
+                                  for( Int j = 0; j < UB.numCol; j++ ){
+                                    Int offset_Ainv = j*ldAinv;
+                                    Int offset_Sinv = relCols[j] * ldSinv;
+                                    //#pragma omp novector
+                                    for( Int i = 0; i < LB.numRow; i++ ){
+                                      nzvalAinv[i+offset_Ainv] =
+                                        nzvalSinv[relRows[i] + offset_Sinv];
+                                    }
+                                  }
+                                  isBlockFound = true;
+                                  break;
+                                }	
+                              } // for (ibSinv )
+                              ////TIMER_STOP(PARSING_ROW_BLOCKIDX);
+                              if( isBlockFound == false ){
+                                std::ostringstream msg;
+                                msg << "Block(" << isup << ", " << jsup 
+                                  << ") did not find a matching block in Sinv." << std::endl;
+                                throw std::runtime_error( msg.str().c_str() );
+                              }
+                            } // if (isup, jsup) is in L
+                            else{
+                              std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
+                              bool isBlockFound = false;
+                              ////TIMER_START(PARSING_COL_BLOCKIDX);
+                              for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
+                                // Found the (isup, jsup) block in Sinv
+                                if( UrowSinv[jbSinv].blockIdx == jsup ){
+                                  UBlock<T> & SinvB = UrowSinv[jbSinv];
+
+                                  // Row relative indices
+                                  std::vector<Int> relRows( LB.numRow );
+                                  Int SinvRowsSta = FirstBlockCol( isup, super_ );
+                                  for( Int i = 0; i < LB.numRow; i++ ){
+                                    relRows[i] = LB.rows[i] - SinvRowsSta;
+                                  }
+
+                                  // Column relative indices
+                                  std::vector<Int> relCols( UB.numCol );
+                                  Int* colsUBPtr    = UB.cols.Data();
+                                  Int* colsSinvBPtr = SinvB.cols.Data();
+                                  Int j2 = 0;
+                                  for( Int j = 0; j < UB.numCol; j++ ){
+                                    bool isColFound = false;
+                                    if( colsUBPtr[j] == colsSinvBPtr[j2] ){
+                                      isColFound = true;
+                                      relCols[j] = j2++;
+                                      continue;
+                                    }
+                                    for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
+                                      if( colsUBPtr[j] == colsSinvBPtr[j1] ){
+                                        isColFound = true;
+                                        relCols[j] = j1;
+                                        j2 = j1 + 1;
+                                        break;
+                                      }
+                                    }
+                                    if( isColFound == false ){
+                                      std::ostringstream msg;
+                                      msg << "Col " << colsUBPtr[j] << 
+                                        " in UB cannot find the corresponding row in SinvB" << std::endl
+                                        << "UB.cols    = " << UB.cols << std::endl
+                                        << "UinvB.cols = " << SinvB.cols << std::endl;
+                                      throw std::runtime_error( msg.str().c_str() );
+                                    }
+                                  }
+
+
+                                  // Transfer the values from Sinv to AinvBlock
+                                  T* nzvalSinv = SinvB.nzval.Data();
+                                  Int     ldSinv    = SinvB.numRow;
+                                  //indirect addressing. -- intel . // use omp simd. however, not vectorized. mystery. 
+                                  //#pragma omp simd
+                                  for( Int j = 0; j < UB.numCol; j++ ){
+                                    Int offset_Ainv = j*ldAinv;
+                                    Int offset_Sinv = relCols[j] * ldSinv;
+                                    //#pragma omp novector
+                                    for( Int i = 0; i < LB.numRow; i++ ){
+                                      nzvalAinv[i+offset_Ainv] =
+                                        nzvalSinv[relRows[i] + offset_Sinv];
+                                    }
+                                  }
+                                  isBlockFound = true;
+                                  break;
+                                }
+                              } // for (jbSinv)
+                              ////TIMER_STOP(PARSING_COL_BLOCKIDX);
+                              if( isBlockFound == false ){
+                                std::ostringstream msg;
+                                msg << "Block(" << isup << ", " << jsup 
+                                  << ") did not find a matching block in Sinv." << std::endl;
+                                throw std::runtime_error( msg.str().c_str() );
+                              }
+                            } // if (isup, jsup) is in U
+                          } // for jb
+                        } // omp task
+                        col_trunk_size = 0;
+                        start = col_index+1;
+                      } // if statement 
+                    } // for ( col_index )
+                  } // for( ib )
+                }// end omp taskgroup
+
+                if(UBuf.m() <= colBlock || omp_get_num_threads()== 1)
+                {
+                  blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[begin], UBuf.m(), UBuf.n(), MINUS_ONE<T>(), 
+                      &AinvBuf(rowPtr[begin],0), AinvBuf.m(), 
+                      UBuf.Data(),UBuf.m(), ZERO<T>(),
+                      &snode.LUpdateBuf(rowPtr[begin],0),snode.LUpdateBuf.m() ); 
+                }
+                else{
+#pragma omp taskgroup
+                  {
+                    Int njob = (UBuf.m() + colBlock - 1) / colBlock;
+                    for(Int index = 0; index < njob; index++){
+                      Int stride = colBlock;
+                      Int currentCol = index * colBlock;
+                      if( currentCol + stride > UBuf.m()) stride = UBuf.m() - currentCol;
 #pragma omp task firstprivate(end,begin,stride, currentCol) shared(rowPtr,UBuf,AinvBuf,snode)
-                    {
+                      {
 
 #ifdef _OMP_ID_THREAD_
-                      {
-                        int tid = omp_get_thread_num();
-                        //std::stringstream sstrtid;
-                        //sstrtid<<"Thread "<<tid<<" executing GEMM task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
+                        {
+                          int tid = omp_get_thread_num();
+                          //std::stringstream sstrtid;
+                          //sstrtid<<"Thread "<<tid<<" executing GEMM task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
 #pragma omp critical
-                        statusOFS<<"Thread "<<tid<<" executing GEMM task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
-                        //statusOFS<<sstrtid.str();
+                          statusOFS<<"Thread "<<tid<<" executing GEMM task "<<begin<<" to "<<end<<" from snode "<<snode.Index<<std::endl;                
+                          //statusOFS<<sstrtid.str();
 
+                        }
+#endif
+                        blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[begin], stride, UBuf.n(), MINUS_ONE<T>(),
+                            &AinvBuf(rowPtr[begin],0), AinvBuf.m(),
+                            &UBuf(currentCol,0), UBuf.m(), ZERO<T>(),
+                            &snode.LUpdateBuf(rowPtr[begin],currentCol), snode.LUpdateBuf.m() );
                       }
-#endif
-                      blas::Gemm( 'N', 'T', rowPtr[end+1]-rowPtr[begin], stride, UBuf.n(), MINUS_ONE<T>(),
-                          &AinvBuf(rowPtr[begin],0), AinvBuf.m(),
-                          &UBuf(currentCol,0), UBuf.m(), ZERO<T>(),
-                          &snode.LUpdateBuf(rowPtr[begin],currentCol), snode.LUpdateBuf.m() );
                     }
-                  }
-                }//end omp taskgroup
-              }
-            } //end omp task 
+                  }//end omp taskgroup
+                }
+              } //end omp task 
 
-            row_trunk_size = 0;
-            begin = index+1;
-          } // end if
-        }
-      }// end omp taskgroup
+              row_trunk_size = 0;
+              begin = index+1;
+            } // end if
+          }
+        }// end omp taskgroup
 
 #endif
 
-      //#pragma omp taskwait
-      //TIMER_STOP(JB_Loop);
+        //#pragma omp taskwait
+        //TIMER_STOP(JB_Loop);
 
 
-      //TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
+        //TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
 
-    }
+      }
 
 
   ///////////// Utility functions ///////////////////
@@ -5764,7 +5750,7 @@ Int lidx=0;
 
 #pragma omp parallel firstprivate(lidx,rank,numSteps) shared(superList,arrSuperNodes)
         {
-#pragma omp taskgroup
+//#pragma omp taskgroup
           {
 #pragma omp single nowait
             {
