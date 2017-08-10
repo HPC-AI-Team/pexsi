@@ -553,16 +553,6 @@ template<typename T>
   void Trsm
   ( char side, char uplo, char trans, char unit, Int m, Int n,
     T alpha, const T* A, Int lda, T* B, Int ldb );
-
-
-
-template<typename scalar> 
-  void gemm_omp_task (const char transa, const char transb, 
-      const int m, const int n, const int k, 
-      const scalar alpha, const scalar* a, const int lda, 
-      const scalar* b, const int ldb, const scalar beta, 
-       scalar* c, const int ldc, int depth = 0) ;
-
 } // namespace blas
 } // namespace PEXSI 
 
@@ -570,7 +560,8 @@ template<typename scalar>
 //implementation
 namespace PEXSI{
   namespace blas{
-    template<typename scalar> inline void gemm_omp_task(const char transa, const char transb, const int m, const int n, const int k, const scalar alpha, const scalar* a, const int lda, const scalar* b, const int ldb, const scalar beta, scalar* c, const int ldc, int depth) {
+#ifdef _OPENMP_GEMM_TASK_
+    template<typename scalar> inline void gemm_omp_task(const char transa, const char transb, const int m, const int n, const int k, const scalar alpha, const scalar* a, const int lda, const scalar* b, const int ldb, const scalar beta, scalar* c, const int ldc, int depth = 0) {
 
 #ifdef _OMP_ENABLED_
       int num_threads = omp_get_num_threads();
@@ -607,7 +598,9 @@ namespace PEXSI{
         }
       }
     }
-
+#else
+#define gemm_omp_task Gemm
+#endif
   }
 }
 
