@@ -493,10 +493,18 @@ namespace PEXSI{
 
       //TIMER_START(Allocate_lookup);
       // Allocate for the computational storage
-      //AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
       UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
       snode.LUpdateBuf.Resize( numRowAinvBuf, SuperSize( snode.Index, super_ ) );
+#ifdef _OPENMP_NO_GEMM_COPY_
       SetValue( snode.LUpdateBuf, ZERO<T>() );
+#else
+      {
+      //NumMat<T> AinvBuf;
+      AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
+      T * nzvalAinv = AinvBuf.Data();
+      size_t ldAinv = AinvBuf.m();
+      //SetValue( AinvBuf, ZERO<T>() );
+#endif
       //std::cout << " allocation done " << std::endl;
       //    //TIMER_START(SetValue_lookup);
       //    SetValue( AinvBuf, ZERO<T>() );
@@ -684,8 +692,8 @@ namespace PEXSI{
                             Int ifr = blockRows[ii+2];
                             assert(i==ifr);
 
-                            //    lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
                             Int offsetI = i+rowPtr[ib];
+#ifdef _OPENMP_NO_GEMM_COPY_
                             if(nr>0 && nc > 0 && ldUBuf>0 ){
 #pragma omp task shared(nzvalLUpd,nzvalSinv,nzvalUBuf) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldUBuf,ldLUBuf,offsetI,offsetJ) //depend(inout:nzvalLUpd[offsetI]) 
                               {
@@ -698,6 +706,14 @@ namespace PEXSI{
 #endif
                               }
                             }
+#else
+                            if(nr>0 && nc > 0 && ldUBuf>0 ){
+#pragma omp task shared(nzvalSinv,nzvalAinv) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldAinv)
+                              {
+                                lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+rowPtr[ib] +(j+colPtr[jb])*ldAinv],ldAinv );
+                              }
+                            }
+#endif
 
 
                             i+=nr;
@@ -863,7 +879,7 @@ namespace PEXSI{
                             auto fr = blockRows[ii];
                             auto nr = blockRows[ii+1];
                             Int offsetI = i+rowPtr[ib];
-                            //lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+j*ldAinv],ldAinv );
+#ifdef _OPENMP_NO_GEMM_COPY_
                             if(nr>0 && nc > 0 && ldUBuf>0 ){
 #pragma omp task shared(nzvalLUpd,nzvalSinv,nzvalUBuf) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldUBuf,ldLUBuf,offsetI,offsetJ) //depend(inout:nzvalLUpd[offsetI]) 
                               {
@@ -876,6 +892,16 @@ namespace PEXSI{
 #endif
                               }
                             }
+#else
+                            if(nr>0 && nc > 0 && ldUBuf>0 ){
+#pragma omp task shared(nzvalAinv,nzvalSinv) firstprivate(fr,fc,nr,nc,ldSinv,i,j,ldAinv) //depend(inout:nzvalLUpd[offsetI]) 
+                              {
+                                lapack::Lacpy( 'A', nr, nc, &nzvalSinv[fr+fc*ldSinv],ldSinv,&nzvalAinv[i+rowPtr[ib]+(j+colPtr[jb])*ldAinv],ldAinv );
+                              }
+                            }
+
+
+#endif
 
                             i+=nr;
                           }
@@ -916,26 +942,28 @@ namespace PEXSI{
         //#pragma omp taskwait
 
 
-        //if(AinvBuf.m()>0 && UBuf.m()>0 && snode.LUpdateBuf.m()>0){
-        //
-        //statusOFS<<"["<<snode.Index<<"] Before "<<snode.LUpdateBuf<<std::endl;
-        //
-        //
-        //     blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
-        //         AinvBuf.Data(), AinvBuf.m(), 
-        //         UBuf.Data(), UBuf.m(), ZERO<T>(),
-        //         snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
-        //
-        //statusOFS<<"["<<snode.Index<<"] After "<<snode.LUpdateBuf<<std::endl;
-        //#pragma omp taskgroup
-        //{
-        //    blas::gemm_omp_task('N','T',AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
-        //         AinvBuf.Data(), AinvBuf.m(), 
-        //         UBuf.Data(), UBuf.m(), ZERO<T>(),
-        //         snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() , 0);
-        //}
-        //}
+#ifndef _OPENMP_NO_GEMM_COPY_
+        if(AinvBuf.m()>0 && UBuf.m()>0 && snode.LUpdateBuf.m()>0){
 
+          //statusOFS<<"["<<snode.Index<<"] Before "<<snode.LUpdateBuf<<std::endl;
+
+
+          //blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
+          //    AinvBuf.Data(), AinvBuf.m(), 
+          //    UBuf.Data(), UBuf.m(), ZERO<T>(),
+          //    snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
+
+          //statusOFS<<"["<<snode.Index<<"] After "<<snode.LUpdateBuf<<std::endl;
+//#pragma omp taskgroup
+          {
+            blas::gemm_omp_task('N','T',ldAinv, ldUBuf, numColAinvBuf, MINUS_ONE<T>(), 
+                nzvalAinv, ldAinv, 
+                nzvalUBuf,ldUBuf, ZERO<T>(),
+                nzvalLUpd, ldLUBuf);
+          }
+        }
+      }
+#endif
 
 
 #else
