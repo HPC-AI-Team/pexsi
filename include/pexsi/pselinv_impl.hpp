@@ -5698,8 +5698,8 @@ statusOFS<<"Content of U"<<std::endl;
              std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
              std::vector<UBlock<T> >&  Urow = this->U( LBi(ksup, grid_));
 
-	     std::list<Int>::iterator it;
-	     for(it = inner_updated_snodes.begin();
+             std::list<Int>::iterator it;
+             for(it = inner_updated_snodes.begin();
                  it!= inner_updated_snodes.end()&&
                  plist!=inner_arrRowColPtr.end();
                  it++,plist++){
@@ -5725,10 +5725,10 @@ statusOFS<<"Content of U"<<std::endl;
 #pragma omp task firstprivate(plist) private(ttx,tty,tt0,tt1)
                {
 #ifdef TIMING
-		if( omp_get_thread_num() == 0 ) {
-		   gettimeofday(&tt0, NULL);
-		   gettimeofday(&ttx, NULL);
-		 }
+                 if( omp_get_thread_num() == 0 ) {
+                   gettimeofday(&tt0, NULL);
+                   gettimeofday(&ttx, NULL);
+                 }
 #endif
                  std::vector<Int>  &rowColPtr= *plist;
                  // Diagonal contribution A_{kk}^{-1}
@@ -5747,28 +5747,28 @@ statusOFS<<"Content of U"<<std::endl;
                      }
                    }
 #ifdef TIMING
-	           if( omp_get_thread_num() == 0 ) {
-		   	gettimeofday(&tt1, NULL);
-			indirect_time += ((tt1.tv_sec - tt0.tv_sec) + (tt1.tv_usec - tt0.tv_usec)/1000000.0);
-		   }
+                   if( omp_get_thread_num() == 0 ) {
+                     gettimeofday(&tt1, NULL);
+                     indirect_time += ((tt1.tv_sec - tt0.tv_sec) + (tt1.tv_usec - tt0.tv_usec)/1000000.0);
+                   }
 #endif
-                   blas::Gemm( 'N', 'N', topLBJ.numRow, topLBJ.numCol, topLBJ.numRow, MINUS_ONE<T>(), 
+                   blas::gemm_omp_task( 'N', 'N', topLBJ.numRow, topLBJ.numCol, topLBJ.numRow, MINUS_ONE<T>(), 
                        AinvBuf.Data(), topLBJ.numRow, topLfactorBJ.nzval.Data(), topLfactorBJ.numRow, 
                        ONE<T>(), topLBJ.nzval.Data(), topLBJ.numRow );
                  }
 #ifdef TIMING
-	           if( omp_get_thread_num() == 0 ) {
-		   	gettimeofday(&tt0, NULL);
-			gemm_time += ((tt0.tv_sec - tt1.tv_sec)+ (tt0.tv_usec - tt1.tv_usec)/1000000.0);
-			diag_time += ((tt0.tv_sec - ttx.tv_sec) + (tt0.tv_usec - ttx.tv_usec)/1000000.0);
-		   	gettimeofday(&ttx, NULL);
-		   }
+                 if( omp_get_thread_num() == 0 ) {
+                   gettimeofday(&tt0, NULL);
+                   gemm_time += ((tt0.tv_sec - tt1.tv_sec)+ (tt0.tv_usec - tt1.tv_usec)/1000000.0);
+                   diag_time += ((tt0.tv_sec - ttx.tv_sec) + (tt0.tv_usec - ttx.tv_usec)/1000000.0);
+                   gettimeofday(&ttx, NULL);
+                 }
 #endif
-		
+
                  // Other parts of the inner product A_{ik}^{-1}
 
 #ifdef TIMING
-	        if( omp_get_thread_num() == 0 ) gettimeofday(&ttx, NULL);
+                 if( omp_get_thread_num() == 0 ) gettimeofday(&ttx, NULL);
 #endif
 
                  if(firstIbJ+1<LcolJ.size()){
@@ -5780,7 +5780,7 @@ statusOFS<<"Content of U"<<std::endl;
                      if(UB.blockIdx == LfactorBJ.blockIdx){
 
 #ifdef TIMING
-	           if( omp_get_thread_num() == 0 ) gettimeofday(&tt0, NULL);
+                       if( omp_get_thread_num() == 0 ) gettimeofday(&tt0, NULL);
 #endif
                        NumMat<T> AinvBuf(topLBJ.numRow,LfactorBJ.numRow);
 
@@ -5801,37 +5801,37 @@ statusOFS<<"Content of U"<<std::endl;
                          }
                        }
 #ifdef TIMING
-	           if( omp_get_thread_num() == 0 ) {
-		        gettimeofday(&tt1, NULL);
-			indirect_time += ((tt1.tv_sec - tt0.tv_sec)+ (tt1.tv_usec - tt0.tv_usec)/1000000.0);
-		   }
+                       if( omp_get_thread_num() == 0 ) {
+                         gettimeofday(&tt1, NULL);
+                         indirect_time += ((tt1.tv_sec - tt0.tv_sec)+ (tt1.tv_usec - tt0.tv_usec)/1000000.0);
+                       }
 #endif
 
-                       blas::Gemm( 'N', 'N', topLBJ.numRow, topLBJ.numCol, LfactorBJ.numRow, MINUS_ONE<T>(), 
+                       blas::gemm_omp_task( 'N', 'N', topLBJ.numRow, topLBJ.numCol, LfactorBJ.numRow, MINUS_ONE<T>(), 
                            AinvBuf.Data(), AinvBuf.m(), LfactorBJ.nzval.Data(), LfactorBJ.numRow, 
                            ONE<T>(), topLBJ.nzval.Data(), topLBJ.numRow );
 
 #ifdef TIMING
-	           if( omp_get_thread_num() == 0 ) {
-		   	gettimeofday(&tt0, NULL);
-			gemm_time += ((tt0.tv_sec - tt1.tv_sec) + (tt0.tv_usec - tt1.tv_usec)/1000000.0);
-		   }
+                       if( omp_get_thread_num() == 0 ) {
+                         gettimeofday(&tt0, NULL);
+                         gemm_time += ((tt0.tv_sec - tt1.tv_sec) + (tt0.tv_usec - tt1.tv_usec)/1000000.0);
+                       }
 #endif
                        ibJ++;
                      }
                    } // for (jb)
                  }
 #ifdef TIMING
-	           if( omp_get_thread_num() == 0 ) {
-		   	gettimeofday(&tty, NULL);
-			inner_time += ((tty.tv_sec - ttx.tv_sec) + (tty.tv_usec - ttx.tv_usec)/1000000.0);
-			//std::cout<<"inner time:"<<inner_time<<std::endl;
-		   }
+                 if( omp_get_thread_num() == 0 ) {
+                   gettimeofday(&tty, NULL);
+                   inner_time += ((tty.tv_sec - ttx.tv_sec) + (tty.tv_usec - ttx.tv_usec)/1000000.0);
+                   //std::cout<<"inner time:"<<inner_time<<std::endl;
+                 }
 #endif
 
-	
+
                }
-	     }//end_for
+             }//end_for
 
              // Start the outer product
 
@@ -5870,10 +5870,10 @@ statusOFS<<"Content of U"<<std::endl;
 #pragma omp task firstprivate(plist,ib,ibJ) 
                  {
 #ifdef TIMING
-	           if( omp_get_thread_num() == 0 ) {
-		   gettimeofday(&tt0, NULL);
-		   gettimeofday(&ttx, NULL);
-		   }
+                   if( omp_get_thread_num() == 0 ) {
+                     gettimeofday(&tt0, NULL);
+                     gettimeofday(&ttx, NULL);
+                   }
 #endif
                    LBlock<T> & LB = Lcol[ib];
                    LBlock<T> &  LBJ = LcolJ[ibJ];
@@ -5901,27 +5901,27 @@ statusOFS<<"Content of U"<<std::endl;
                      statusOFS << "rowPtr    = " << rowPtr << std::endl;
                    }
 
-		   for(irow = 0;irow<LBJ.numRow;irow++){
+                   for(irow = 0;irow<LBJ.numRow;irow++){
                      for(jcol = 0;jcol<topLfactorBJ.numRow;jcol++){
                        AinvBuf(irow,jcol) =LB.nzval(rowPtr[irow],rowColPtr[jcol]);//there is a error or debug here
                      }
                    }
 #ifdef TIMING
-	           if( omp_get_thread_num() == 0 ) {
-		        gettimeofday(&tt1, NULL);
-		        indirect_time += ((tt1.tv_sec - tt0.tv_sec) + (tt1.tv_usec - tt0.tv_usec)/1000000.0);
-			}
+                   if( omp_get_thread_num() == 0 ) {
+                     gettimeofday(&tt1, NULL);
+                     indirect_time += ((tt1.tv_sec - tt0.tv_sec) + (tt1.tv_usec - tt0.tv_usec)/1000000.0);
+                   }
 #endif
-                   blas::Gemm( 'N', 'N', LBJ.numRow, LBJ.numCol, AinvBuf.n(), MINUS_ONE<T>(), 
+                   blas::gemm_omp_task( 'N', 'N', LBJ.numRow, LBJ.numCol, AinvBuf.n(), MINUS_ONE<T>(), 
                        AinvBuf.Data(), AinvBuf.m(), topLfactorBJ.nzval.Data(), topLfactorBJ.numRow, 
                        ONE<T>(), LBJ.nzval.Data(), LBJ.numRow );
 #ifdef TIMING
-	           if( omp_get_thread_num() == 0 ) {
-		        gettimeofday(&tt0, NULL);
-		        gettimeofday(&tty, NULL);
-		        gemm_time += ((tt0.tv_sec - tt1.tv_sec) + (tt0.tv_usec - tt1.tv_usec)/1000000.0);
-			outer_time += ((tty.tv_sec - ttx.tv_sec) + (tty.tv_usec - ttx.tv_usec)/1000000.0);
-			}
+                   if( omp_get_thread_num() == 0 ) {
+                     gettimeofday(&tt0, NULL);
+                     gettimeofday(&tty, NULL);
+                     gemm_time += ((tt0.tv_sec - tt1.tv_sec) + (tt0.tv_usec - tt1.tv_usec)/1000000.0);
+                     outer_time += ((tty.tv_sec - ttx.tv_sec) + (tty.tv_usec - ttx.tv_usec)/1000000.0);
+                   }
 #endif
                  }//end_omp_task 
                  ib=*it_ib; 
@@ -5929,9 +5929,9 @@ statusOFS<<"Content of U"<<std::endl;
                  ibJ=*it_ib; 
                  it_ib++;
                } //while(ib)
-               
-	//       tty =omp_get_wtime();
-        //       outer_time += tty - ttx;
+
+               //       tty =omp_get_wtime();
+               //       outer_time += tty - ttx;
              }//end_for(it)
            }//end omp single nowait
 #pragma omp barrier
