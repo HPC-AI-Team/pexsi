@@ -610,34 +610,14 @@ protected:
   std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastLDataTree_; 
   std::vector<std::shared_ptr<TreeReduce_v2<T> > > redLTree2_; 
 
-#ifndef _SYM_STORAGE_
   std::vector<TreeBcast *> fwdToBelowTree_; 
   std::vector<TreeBcast *> fwdToRightTree_; 
   std::vector<TreeReduce<T> *> redToLeftTree_; 
   std::vector<TreeReduce<T> *> redToAboveTree_; 
 
-#else
-  //std::vector<std::vector<Int> > blocksToRecv_; 
-  std::vector<Int> snodeEtree_;
-
-  std::vector<Int> snodeTreeOffset_;
-//  std::vector<std::vector<Int> > snodeBlkidxToTree_;
-  std::vector<std::map<Int,Int> > snodeBlkidxToTree_;
-  std::vector<std::vector<Int> > snodeTreeToBlkidx_;
-
-  //either use a std::map or a numSuper * numSuper array
-  //std::vector< std::map< Int, std::shared_ptr<TreeBcast_v2<char> > > > symBcastLDataTree_; 
-  //std::vector< std::map< Int, std::shared_ptr<TreeReduce_v2<T> > > > symRedLTree2_; 
-#endif
-
   double localFlops_;
 
   struct SuperNodeBufferType{
-#ifdef _SYM_STORAGE_
-    std::vector<NumMat<T> > LUpdateBufBlk;
-    std::vector< std::vector<char> > SstrLcolSendBlk;
-    std::vector< Int > SizeSstrLcolSendBlk;
-#endif
     NumMat<T>    LUpdateBuf;
     std::vector<char> SstrLcolSend;
     Int               SizeSstrLcolSend;

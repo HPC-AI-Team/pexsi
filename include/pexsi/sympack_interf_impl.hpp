@@ -631,9 +631,7 @@ statusOFS<<Lcol[0].nzval<<std::endl;
 
 
 
-#ifndef _SYM_STORAGE_
     PMatrixLtoU( PMat );
-#endif
 
 //    PMat.DumpLU();
 
@@ -650,7 +648,6 @@ statusOFS<<Lcol[0].nzval<<std::endl;
       }
     }
 
-#ifndef _SYM_STORAGE_
     for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
       Int bnum = GBi( ib, g );
       if( bnum >= numSuper ) continue;
@@ -662,7 +659,6 @@ statusOFS<<Lcol[0].nzval<<std::endl;
         PMat.ColBlockIdx( LBj ).push_back( bnum );
       }
     }
-#endif
 
     for( Int ib = 0; ib < PMat.NumLocalBlockRow(); ib++ ){
       std::sort(PMat.RowBlockIdx(ib).begin(),PMat.RowBlockIdx(ib).end(),std::less<Int>());
@@ -695,7 +691,6 @@ statusOFS<<Lcol[0].nzval<<std::endl;
     TIMER_STOP(symPACKtoPMatrix);
   }  // -----  end of symPACKMatrixToPMatrix ----- 
 
-#ifndef _SYM_STORAGE_
   template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
   {
     TIMER_START(PMatrixLtoU);
@@ -936,7 +931,6 @@ statusOFS<<Lcol[0].nzval<<std::endl;
 
     TIMER_STOP(PMatrixLtoU);
   }  // -----  end of PMatrixLToU ----- 
-#endif
 
 
 }
