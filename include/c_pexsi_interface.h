@@ -977,7 +977,7 @@ void PPEXSIDFTDriver(
 
 /**
  * @brief Simplified driver for solving Kohn-Sham DFT. Version 2. This
- * is still in test phase.
+ * is deprecated.
  * 
  * This function contains both the inertia counting step for estimating
  * the chemical potential, and strategy for updating the chemical
@@ -1055,8 +1055,7 @@ void PPEXSIDFTDriver2_Deprecate(
     int*              info );
 
 /**
- * @brief Simplified driver for solving Kohn-Sham DFT. Version 3. This
- * is still in test phase.
+ * @brief Simplified driver for solving Kohn-Sham DFT. Version 2.
  * 
  * This function contains both the inertia counting step for estimating
  * the chemical potential, and strategy for updating the chemical

@@ -10,7 +10,7 @@ Welcome to PEXSI's documentation!
    :maxdepth: 2
    :caption: Contents:
    
-   Introduction
+   introduction
    download
    install
    tutorial
