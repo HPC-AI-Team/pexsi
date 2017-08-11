@@ -8,7 +8,6 @@ Tutorial
 Using plans and generating log files
 =====================================
 
-
 PEXSI is written in C++, and the subroutines cannot directly interface
 with other programming languages such as C or FORTRAN.  To solve
 this problem, the PEXSI internal data structure is handled using a
@@ -33,13 +32,15 @@ number of poles can be processed in parallel.
 Starting from v1.0, when `PPEXSIDFTDriver2` is used, it is best set
 `mpisize` to be `numPoint*numPole*numProcRow*numProcCol`, where
 `numPoint` is the number of PEXSI evaluations that can be performed in
-parallel.
+parallel. When `mpisize < numPoint*numPole*numProcRow*numProcCol`, 
+`PPEXSIDFTDriver2` will first parallel over the `numProcRow*numProcCol` 
+and `numPoint`.
 
 The output information is controlled by the `outputFileIndex` variable,
-which is a local variable for each processor.
-For instance, if this index is 1, then the corresponding processor will
-output to the file `logPEXSI1`.  If outputFileIndex is negative, then
-this processor does NOT output logPEXSI files.
+which is a local variable for each processor. For instance, if this 
+index is 1, then the corresponding processor will output to the file
+`logPEXSI1`.  If outputFileIndex is negative, then this processor 
+does NOT output logPEXSI files.
 
 **Note** 
 
@@ -84,7 +85,6 @@ be used as follows. This assumes that the mpisize of `MPI_COMM_WORLD` is
       PPEXSIOptions  options;
       PPEXSISetDefaultOptions( &options );
     
-    
       /* Load the matrix into the internal data structure */
       PPEXSILoadRealHSMatrix( 
           plan, 
@@ -125,16 +125,18 @@ be used as follows. This assumes that the mpisize of `MPI_COMM_WORLD` is
 
 This routine computes the selected elements of the matrix 
 :math:`A^{-1}=(H - z S)^{-1}` in parallel.  The input matrix :math:`H`
-follows the :ref:`Distribute CSC format <secDistCSC>`, defined through the variables `colptrLocal`,
-`rowindLocal`, `HnzvalLocal`.  The input matrix :math:`S` can be omitted if it
-is an identity matrix and by setting `isSIdentity=1`. If :math:`S` is not
-an identity matrix, the nonzero sparsity pattern is assumed to be the
-same as the nonzero sparsity pattern of :math:`H`.  Both `HnzvalLocal` and
-`SnzvalLocal` are double precision arrays.  
+follows the :ref:`Distribute CSC format <secDistCSC>`, defined through the 
+variables `colptrLocal`,`rowindLocal`, `HnzvalLocal`.  The input matrix 
+:math:`S` can be omitted if it is an identity matrix and by setting 
+`isSIdentity=1`. If :math:`S` is not an identity matrix, the nonzero 
+sparsity pattern is assumed to be the same as the nonzero sparsity 
+pattern of :math:`H`.  Both `HnzvalLocal` and `SnzvalLocal` are double 
+precision arrays.  
 
 An example is given in `examples/driver_pselinv_real.c`, which evaluates the
 selected elements of the inverse of the matrix saved in
-`examples/lap2dr.matrix`.  See also :ref:`PEXSI Real Symmetric Matrix <PPEXSISelInvRealSymmetricMatrix>`
+`examples/lap2dr.matrix`.  
+See also :ref:`PEXSI Real Symmetric Matrix <PPEXSISelInvRealSymmetricMatrix>`
 for detailed information of its usage.
 
 
@@ -256,7 +258,7 @@ Solving Kohn-Sham density functional theory: I
 
 
 The simplest way to use PEXSI to solve Kohn-Sham density functional
-theory is to use the `PPEXSIDFTDriver` routine. This routine uses
+theory is to use the `PPEXSIDFTDriver2` routine. This routine uses
 built-in heuristics to obtain values of some parameters in PEXSI and
 provides a relatively small set of adjustable parameters for users to
 tune.  This routine estimates the chemical potential self-consistently
@@ -300,10 +302,15 @@ Here is the structure of the code using the simple driver routine. ::
       PPEXSIOptions  options;
       PPEXSISetDefaultOptions( &options );
     
-      options.numPole  = 60;
       options.temperature  = 0.019; // 3000K
       options.muPEXSISafeGuard  = 0.2; 
       options.numElectronPEXSITolerance = 0.001;
+      /* method = 1: Contour integral ; method = 2: Moussa optimized poles; default is 2*/
+      options.method = 2; 
+      /* typically 20-30 poles when using method = 2; 40-80 poles when method = 1 */
+      options.numPole  = 20; 
+      /* 2 points parallelization is set as default. */
+      options.nPoints = 2; 
     
       /* Load the matrix into the internal data structure */
       PPEXSILoadRealHSMatrix( 
@@ -320,22 +327,19 @@ Here is the structure of the code using the simple driver routine. ::
           SnzvalLocal,
           &info );
     
-      /* Call the simple DFT driver using PEXSI */
-      PPEXSIDFTDriver(
+      /* Call the simple DFT driver2 using PEXSI */
+      PPEXSIDFTDriver2(
           plan,
           options,
           numElectronExact,
           &muPEXSI,                   
           &numElectronPEXSI,         
-          &muMinInertia,              
-          &muMaxInertia,             
           &numTotalInertiaIter,   
-          &numTotalPEXSIIter,   
           &info );
     
       /* Retrieve the density matrix and other quantities from the plan */
     
-      PPEXSIRetrieveRealDFTMatrix(
+      PPEXSIRetrieveRealDFTMatrix2(
           plan,
           DMnzvalLocal,
           EDMnzvalLocal,
@@ -359,7 +363,7 @@ Solving Kohn-Sham density functional theory: II
 
 In a DFT calculation, the information of the symbolic factorization can
 be reused for different :math:`(H,S)` matrix pencil if the sparsity pattern does
-not change.  An example routine is given in `examples/driver_ksdft.c`, which solves
+not change.  An example routine is given in `examples/driver2_ksdft.c`, which solves
 a fake DFT problem by taking a Hamiltonian matrix from
 `examples/lap2dr.matrix`.
 
@@ -394,23 +398,20 @@ Here is the structure of the code using the simple driver routine. ::
       options.isInertiaCount = 0;
       // Optional update mu0, muMin0, muMax0 in PPEXSIOptions
     
-      PPEXSIDFTDriver(
+      PPEXSIDFTDriver2(
           plan,
           options,
           numElectronExact,
           &muPEXSI,                   
           &numElectronPEXSI,         
-          &muMinInertia,              
-          &muMaxInertia,             
           &numTotalInertiaIter,   
-          &numTotalPEXSIIter,   
           &info );
-    
+ 
       /* Postprocessing */
       
     } 
 
-**Note:** The built-in heuristics in `PPEXSIDFTDriver` may not be
+**Note:** The built-in heuristics in `PPEXSIDFTDriver2` may not be
 optimal. It handles only one :math:`(H,S)` pair at a time, and does
 not accept multiple matrix pairs :math:`\{(H_l,S_l)\}` as in the case of
 spin-orbit polarized calculations.  For expert users and developers, it
@@ -424,7 +425,7 @@ should be relatively easy to dig into the driver routine, and only use
 functionalities.
 
 **FIXME: The examples above should be updated using PEXSIDFTDriver2 with
-symPACK option**
+symPACK option; Driver2 updated, but not symPACK yet.**
 
 
 Parallel computation of the Fermi operator for complex Hermitian matrices
