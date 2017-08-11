@@ -78,4 +78,5 @@ than a magic number depending on the matrix and the machine.  This may
 to be related to the parallel symbolic factorization routine in
 SuperLU\_DIST.  If this problem happens, try to reduce `npSymbFact` to
 a small number (such as 4 or 16), or even try to use the sequential
-symbolic factorization if feasible.
+symbolic factorization if feasible. This should be more stable when
+symPACK is used for factorization.
