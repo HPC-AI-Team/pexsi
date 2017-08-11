@@ -25,14 +25,15 @@ Given a sparse square matrix :math:`A` and a certain function
 :math:`f(\cdot)`, the basic idea of PEXSI is to
 expand :math:`f(A)` using a small number of rational functions (pole expansion)
 
-.. centered:: :math:`f(A) \approx \sum_{l=1}^{P} \omega_l(A-z_l I)^{-1}`
+.. math::
+  f(A) \approx \sum_{l=1}^{P} \omega_l(A-z_l I)^{-1}
 
 and to efficiently evaluate :math:`f(A)_{i,j}` by evaluating selected
 elements :math:`(A-z_l I)^{-1}_{i,j}` (selected inversion).
 
 The currently supported form of :math:`f(\cdot)` include:
 
- - :math:`- f(z)=z^{-1}`: Matrix inversion.  Since the matrix inversion is
+ - :math:`f(z)=z^{-1}`: Matrix inversion.  Since the matrix inversion is
    already represented as a single term of rational function (pole), no
    pole expansion is needed.  The selected inversion method can be
    significantly faster than directly inverting the matrix and then
@@ -41,16 +42,17 @@ The currently supported form of :math:`f(\cdot)` include:
    elements of :math:`A^{-1}`, see :ref:`Selected Inversion of complex  
    <pagePselinvComplex>` for an example.
 
- - :math:`- f(z)=\frac{2}{1+e^{\beta (z-\mu)}}`: Fermi-Dirac function.  This can be
+ - :math:`f(z)=\frac{2}{1+e^{\beta (z-\mu)}}`: Fermi-Dirac function.  This can be
    used as a "smeared" matrix sign function at :math:`z=\mu`, without
    assuming a spectral gap near :math:`z=\mu`.  This can be used for
    evaluating the electron density for electronic structure calculation.
    See :ref:`Solving Kohn-Sham DFT: I <pageDFT1>` for an example using PEXSI for electronic
    structure calculation. 
 
-.. image:: ./FermiDirac.png
+.. figure:: ./FermiDirac.png
     :align: center
-.. centered:: **Red: Fermi-Dirac function. Black: Matrix sign function**
+
+    Red: Fermi-Dirac function. Black: Matrix sign function
 
 For sparse matrices, the PEXSI method can be more efficient than the widely used
 :ref:`Diagonalization method <diag-anchor>`  for evaluating matrix
@@ -59,31 +61,23 @@ needed to be computed in the diagonalization method.
 PEXSI can also be used to compute the matrix functions associated with
 generalized eigenvalue problems, i.e.
 
-.. centered:: :math:`f(A,B):= V f(\Lambda) V^{-1} \approx \sum_{l=1}^{P} \omega_l(A-z_l B)^{-1}`
-               where :math:`V,\Lambda` are defined through the generalized eigenvalue
-               problem :math:`A V = B V \Lambda`.
+.. math::
+   f(A,B):= V f(\Lambda) V^{-1} \approx \sum_{l=1}^{P} \omega_l(A-z_l B)^{-1}
+
+where :math:`V,\Lambda` are defined through the generalized eigenvalue
+problem :math:`A V = B V \Lambda`.
 
 PEXSI is most advantageous when a large number of processors are
-available, due to the two-level parallelism.  For accurate evaluation,
-the pole expansion usually takes around :math:`P\approx 80` poles.  All
-the :math:`80` matrices can be inverted independently among different
-groups of processors.  The parallel selected inversion method (PSelInv,
-which is included in PEXSI) can scale well to :math:`256\sim 1024` or
-more
-processors depending on the sparsity of the problem, and the system
-size.  Therefore it is most advantageous to use PEXSI when more than
-1000 processors are available.  
-For some problems we have also observed that it can be
-advantageous to use PEXSI using hundreds to thousands of processors.
+available, due to the two-level parallelism.  It is most advantageous to
+use PEXSI when at least 1000 cores are available, and for many problems
+PEXSI can scale to tens of thousands of cores. 
 
 For details of the implementation of parallel selected inversion used in
 PEXSI,  please see
 
-
     M. Jacquelin, L. Lin and C. Yang, PSelInv -- A Distributed Memory
-    Parallel Algorithm for Selected Inversion : the Symmetric Case, to
-    appear in ACM Trans. Math. Software  `link <http://arxiv.org/abs/1404.0447>`_.
-
+    Parallel Algorithm for Selected Inversion : the Symmetric Case, 
+    ACM Trans. Math. Software 43, 21, 2016.
 
 
 .. _diag-anchor:
@@ -110,21 +104,15 @@ PEXSI,  please see
    elements are :math:`\{B_{i,j}\vert A_{j,i}\ne 0\}`.
    
  - A commonly used case in PEXSI is the selected elements of
-   :math:`A^{-1}` with respect to :math:`A`, or simply the selected elements of
+   :math:`A^{-1}` with respect to a symmetric matrix :math:`A`, or simply the selected elements of
    :math:`A^{-1}`, which corresponds to the set :math:`\{A^{-1}_{i,j} \vert A_{i,j}\ne 0\}`.
 
 
-PEXSI used in external package
+PEXSI used in external packages
 =================================
-The PEXSI library has been integrated into the SIESTA package for
-demonstrating efficient and accurate ab initio materials simulation on
-massively parallel machines, and can regularly handle systems with
-10,000 to 100,000 electrons. 
 
-- SIESTA
-
-    - Download link for SIESTA-PEXSI:
-      http://departments.icmab.es/leem/siesta/CodeAccess/Code/siesta-pexsi/siesta-pexsi.html
+Please `let us know <linlin@math.berkeley.edu>`_ if PEXSI is useful for
+your application or software package!
 
 - CP2K
 
@@ -132,9 +120,16 @@ massively parallel machines, and can regularly handle systems with
 
 - BigDFT
 
+- FHI-aims
+
 - Quantumwise ATK
 
     - User manual: http://docs.quantumwise.com/manuals/Types/PEXSISolver/PEXSISolver.html
+
+- SIESTA
+
+    - Download link for SIESTA-PEXSI:
+      http://departments.icmab.es/leem/siesta/CodeAccess/Code/siesta-pexsi/siesta-pexsi.html
 
 - Electronic Structure Infrastructure (ELSI) Project
 
@@ -219,7 +214,8 @@ If you use PEXSI for selected inversion, **please also cite the following paper.
       Author                   = {Jacquelin, M. and Lin, L. and Yang, C.},
       Journal                  = {ACM Trans. Math. Software},
       Year                     = {2016},
-      Volume                   = {in press}
+      Pages                    = {21},
+      Volume                   = {43}
     }
 
 **More references on method development:**
@@ -227,7 +223,7 @@ If you use PEXSI for selected inversion, **please also cite the following paper.
     M. Jacquelin, L. Lin, N. Wichmann and C. Yang,  
     Enhancing the scalability and load balancing of the parallel
     selected inversion algorithm via tree-based asynchronous
-    communication, , IEEE IPDPS, 192, 2016 
+    communication, IEEE IPDPS, 192, 2016 
     `link <http://arxiv.org/abs/1504.04714>`_.
     
     L. Lin, A. Garcia, G. Huhs and C. Yang, SIESTA-PEXSI: Massively parallel
@@ -283,12 +279,36 @@ If you use PEXSI for selected inversion, **please also cite the following paper.
 
 PEXSI version history
 ===============================================
+- v1.0 (8/18/2017)
+    - Introduce PPEXSIDFTDriver2. This reduces the number of
+      user-defined parameters, and improves the robustness over
+      PPEXSIDFTDriver.
+
+    - Compatible with the ELSI software package.
+
+    - symPACK replaces SuperLU_DIST as the default solver for
+      factorizing symmetric matrices.  SuperLU_DIST is still the default
+      solver for factorizing unsymmetric matrices. Currently supported
+      version of SuperLU_DIST is v5.1.3.
+
+    - PT-Scotch replaces ParMETIS as the default matrix ordering
+      package. ParMETIS is still supported. Currently supported version
+      of PT-Scotch is v6.0
+
+    - Support Moussa's optimization based pole expansion.
+
+    - Pole expansion given by src/getPole.cpp generated by a utility
+      file.  This allows types of pole expansions other than
+      discretization of the contour integral to be implemented in the
+      same fashion. 
+
+
+  
 - v0.10.1 (11/8/2016)
     - Bug fix:  matrix pattern for nonzero overlap matrices and missing
       option in fortran interface (contributed by Victor Yu)
 
 - v0.10.0 (11/6/2016) 
-    - **v0.10.0 contains major updates with new functionalities for unsymmetric matrices, integration with SuperLU_DIST v5.1.2 and with symPACK v0.1.0 for factorization. Use with care.**
 
     - Combine LoadRealSymmetricMatrix / LoadRealUnsymmetricMatrix into
       one single function LoadRealMatrix. Similar change for
@@ -416,25 +436,26 @@ PEXSI version history
   - Compute the density of states and local density of states.
 
 
-.. _pageImportantChange:
-
-Important interface changes in v0.10.0
-========================================
-- For C users
-
-  - PPEXSILoadRealSymmetricHSMatrix and PPEXSILoadRealUnsymmetricHSMatrix are combined into PPEXSILoadRealHSMatrix
-
-  - PPEXSIRetrieveRealSymmetricDFTMatrix is now PPEXSIRetrieveRealDFTMatrix
-
-  - For more info see c_pexsi_interface.h
-
-- For FORTRAN users
-
-  - Similar to the C routines, the new routines are f_ppexsi_load_real_hs_matrix and f_ppexsi_retrieve_real_dft_matrix.
-
-  - For more info see f_interface.f90
-
-- Several more "expert user" interface routines added. See c_pexsi_interface.h for more details.
-
-- NOTE: PEXSI v0.10.0 only supports SuperLU_DIST v5.1.2 or higher version. 
-
+..
+  .. _pageImportantChange:
+  
+  Important interface changes in v0.10.0
+  ========================================
+  - For C users
+  
+    - PPEXSILoadRealSymmetricHSMatrix and PPEXSILoadRealUnsymmetricHSMatrix are combined into PPEXSILoadRealHSMatrix
+  
+    - PPEXSIRetrieveRealSymmetricDFTMatrix is now PPEXSIRetrieveRealDFTMatrix
+  
+    - For more info see c_pexsi_interface.h
+  
+  - For FORTRAN users
+  
+    - Similar to the C routines, the new routines are f_ppexsi_load_real_hs_matrix and f_ppexsi_retrieve_real_dft_matrix.
+  
+    - For more info see f_interface.f90
+  
+  - Several more "expert user" interface routines added. See c_pexsi_interface.h for more details.
+  
+  - NOTE: PEXSI v0.10.0 only supports SuperLU_DIST v5.1.2 or higher version. 
+  

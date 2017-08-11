@@ -3,7 +3,6 @@
 Download
 ==============================
 
-PEXSI is Moving **steadily** towards v1.0.0...
 
 **Beta version (v0.10.1)**:
 
