@@ -1,91 +1,34 @@
 Installation
 ----------------
 
-
 Dependencies
 ============
-
 
 PEXSI requires an external parallel :math:`LU` factorization or
 :math:`LDL^T` factorization routine, and an external parallel matrix
 reordering routine to reduce the fill-in of the factorization routine.
 
-Currently we use SuperLU_DIST for the parallel :math:`LU` factorization,
-and ParMETIS for the parallel fill-in reducing reordering.  It is also
-possible to use PT-Scotch for the reordering.  But we recommend to first
-download ParMETIS.
+Starting from v1.0, PEXSI requires both `symPACK` and `SuperLU_DIST`.
+`symPACK` is the default option for the :math:`LDL^T` factorization of
+symmetric matrices, and use `SuperLU_DIST` as the default option for the
+:math:`LU` factorization of unsymmetric matrices.  `SuperLU_DIST` can
+also be used for symmetric matrices, by means of treating the matrix as
+a general matrix but use symmetric reordering.
+
+Starting from v1.0, PEXSI uses the `PT-Scotch` as the default package
+for matrix reordering.  The `ParMETIS` package can also be used.
 
 The installation procedure and dependencies of every version of the PEXSI
-package may be different. Please follow the documentation of the version
+package may be slightly different. Please follow the documentation of the version
 of the PEXSI package you are working with.
 (provided in the :ref:`Download Page <pageDownload>` )
 
-Build ParMETIS
-===============
 
-Download ParMETIS (latest version 4.0.3) from
-
-http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz
-
-Follow the installation step to install ParMETIS.
-
-**After untar the ParMETIS package, in Install.txt**
-
-    Edit the file metis/include/metis.h and specify the width (32 or
-    64 bits) of the elementary data type used in ParMetis (and
-    METIS). This is controled by the IDXTYPEWIDTH constant.
-
-    For now, on a 32 bit architecture you can only specify a width
-    of 32, whereas for a 64 bit architecture you can specify a width
-    of either 32 or 64 bits.
-
-**In our experience for most cases, the following setup work
-fine.**::
-
-    #define IDXTYPEWIDTH 32
-
-
-
-Build SuperLU_DIST
-======================
-
-**SuperLU_DIST v5.1.2 starting from PEXSI v0.10.0**
-
-
-Download SuperLU_DIST (latest version 5.1.2) from
-
-http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_5.1.2.tar.gz
-
-Follow the installation step to install SuperLU_DIST.
-
-Our experience shows that on some machines it may be better
-to build SuperLU_DIST with -O2 option than the more aggresive
-optimization options provided by vendors.
-
- - In SuperLU_DIST v5.1.2, some functions conflict when both real
-   and complex arithmetic factorization is needed. This can be temporarily
-   solved by adding  `-Wl,--allow-multiple-definition` in the linking
-   option.
-
- - In SuperLU_DIST v5.1.2, there could be some excessive outputs.
-   This can be removed by going to the SRC/ directory of superlu, and
-   comment out the line starting with `printf(".. dQuery_Space` in
-   dmemory_dist.c. Do the same thing for the line starting with
-   `printf(".. zQuery_Space..)` in zmemory_dist.c.
-
- - Please note that the number of processors for symbolic
-   factorization cannot be too large when PARMETIS is used together with
-   SuperLU. The exact number of processors for symbolic factorization is
-   unfortunately a **magic parameter**. See :ref:`FAQ page <pageFAQ>`.
-
-
-(Optional) Build PT-Scotch
+Build PT-Scotch
 =============================
 
-On some machines, ParMETIS may only allow to use a relatively small
-number of processors for the matrix permutation. In such circumstance, a
-workaround can be to use PT-Scotch, which can be downloaded from
-(latest version 6.0.0) https://gforge.inria.fr/frs/download.php/31831/scotch_6.0.0.tar.gz
+PT-Scotch can be downloaded from (latest version 6.0.0)
+https://gforge.inria.fr/frs/download.php/31831/scotch_6.0.0.tar.gz
 
 Follow the installation step to install PT-Scotch.
 **In INSTALL.TXT, pay special attention to the following
@@ -101,23 +44,26 @@ INSTALL.TXT for more information.
 
     2.9) MeTiS compatibility library
 
-(Optional) Build symPACK
+**In `src/` directory, you need `make ptscotch` to compile PT-Scotch.
+Just typing `make` will generate the Scotch library but not PT-Scotch.
+Then all libraries will be given in `lib/` directory.**
+
+
+Build symPACK
 =============================
-**symPACK** is a sparse symmetric matrix direct linear solver 
-which can be optionally used with PEXSI. 
-More information can be found at [http://www.sympack.org/](http://www.sympack.org/).
 
-To use **symPACK**, first, download the package as follows::
+**Need to be updated for someone less familiar with cmake..**
 
-    git clone git@bitbucket.org:berkeleylab/sympack.git  /path/to/sympack
+`symPACK` is a sparse symmetric matrix direct linear solver.
+More information can be found at http://www.sympack.org/.
 
+To use `symPACK`, first, download the package as follows::
 
-Several environment variables can be optionally set before configuring the build:
+    git clone git@bitbucket.org:berkeleylab/symPACK.git
+    /path/to/symPACK
+
+Several environment variables can be set before configuring the build:
 ::
-    `METIS_DIR` = Installation directory for **MeTiS**
-
-    `PARMETIS_DIR` = Installation directory for **ParMETIS**
-
     `SCOTCH_DIR` = Installation directory for **SCOTCH** and **PT-SCOTCH**
 
 Then, create a build directory, enter that directory and type:
@@ -151,6 +97,63 @@ The `cmake` command will configure the build process, which can now start by typ
     make install
 
 Additionally, a standalone driver for **symPACK** can be built by typing `make examples`
+
+
+Build SuperLU_DIST
+======================
+
+
+Download SuperLU_DIST (latest version 5.1.3) from
+
+http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_5.1.3.tar.gz
+
+Follow the installation step to install SuperLU_DIST.
+
+Our experience shows that on some machines it may be better
+to build SuperLU_DIST with -O2 option than the more aggresive
+optimization options provided by vendors.
+
+ - In SuperLU_DIST v5.1.3, some functions conflict when both real
+   and complex arithmetic factorization is needed. This can be temporarily
+   solved by adding  `-Wl,--allow-multiple-definition` in the linking
+   option.
+
+ - In SuperLU_DIST v5.1.3, there could be some excessive outputs.
+   This can be removed by going to the SRC/ directory of superlu, and
+   comment out the line starting with `printf(".. dQuery_Space` in
+   dmemory_dist.c. Do the same thing for the line starting with
+   `printf(".. zQuery_Space..)` in zmemory_dist.c.
+
+ - Please note that the number of processors for symbolic
+   factorization cannot be too large when PARMETIS is used together with
+   SuperLU. The exact number of processors for symbolic factorization is
+   unfortunately a **magic parameter**. See :ref:`FAQ page <pageFAQ>`.
+
+
+
+(Optional) Build ParMETIS
+===============
+
+Download ParMETIS (latest version 4.0.3) from
+
+http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz
+
+Follow the installation step to install ParMETIS.
+
+**After untar the ParMETIS package, in Install.txt**
+
+    Edit the file metis/include/metis.h and specify the width (32 or
+    64 bits) of the elementary data type used in ParMetis (and
+    METIS). This is controled by the IDXTYPEWIDTH constant.
+
+    For now, on a 32 bit architecture you can only specify a width
+    of 32, whereas for a 64 bit architecture you can specify a width
+    of either 32 or 64 bits.
+
+**In our experience for most cases, the following setup work
+fine.**::
+
+    #define IDXTYPEWIDTH 32
 
 
 Build PEXSI

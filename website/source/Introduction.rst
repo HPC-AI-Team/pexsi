@@ -436,7 +436,7 @@ PEXSI version history
   - Compute the density of states and local density of states.
 
 
-..
+.. commented
   .. _pageImportantChange:
   
   Important interface changes in v0.10.0

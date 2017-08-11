@@ -32,8 +32,6 @@ For developers,
     set tabstop=2       
     set shiftwidth=2
     set expandtab 
- 
-- For EMACS users or users of other text editors, **to be added**.
 
 
 Data type 
@@ -141,80 +139,80 @@ is `PEXSI::DistSparseMatrix`.
   `Complex`) `NumVec` of dimension `nnzLocal`, stores the nonzero values
   in each column.
 
-
-Pole expansion
-==============
-
-The pole expansion is used to expand Fermi-Dirac functions and other
-derived quantities using a number of Green's functions (poles).
-
-`PEXSI::GetPoleDensity` 
-
-Pole expansion for the Fermi-Dirac operator.
-This is the most commonly used subroutine for the pole expansion,
-and can be used to compute the shifts and weights for calculating
-the density matrix, the total energy, and the Hellman-Feynman
-force.  This routine obtains the expansion
-
-:math:`f_{\beta} (z) = \frac{2}{1+e^{\beta z}} \approx \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{\rho}_l}{z-z_l}`
-
-
-
-`PEXSI::GetPoleDensityDrvMu`
-
-Pole expansion for the derivative of the Fermi-Dirac
-operator with respect to the chemical potential mu.
-This routine can be used to evaluate the derivative of the number
-of electrons with respect to the chemical potential for the
-Newton step for updating the chemical potential.
-
-Note that :math:`f_{\beta}` does not explicitly contain :math:`\mu`,
-so this routine actually computes the expansion
-
-:math:`-\frac{\partial f_{\beta}}{\partial z} (z) = 2\beta \frac{e^{\beta z}}{(1+e^{\beta z})^2} \approx \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{\mu}_l}{z-z_l}`
-
-
-
-`PEXSI::GetPoleDensityDrvT`
-
-Pole expansion for the derivative of the Fermi-Dirac
-operator with respect to the temperature T :math:`(1/\beta)`.
-
-This routine can be used to extrapolate the number of electrons
-from a finite temperature calculation to a zero temperature
-calculation, using the derivative information.  However, this
-functionality is not used anymore in the current version of
-PEXSI.
-                                                                
-                                                                
-:math:`\frac{\partial f_{\beta}}{\partial (1/\beta)} (z) = 2 \beta^2 z \frac{e^{\beta z}}{(1+e^{\beta z})^2} \approx \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{T}_l}{z-z_l}`
-
-
-
-`PEXSI::GetPoleHelmholtz`
-
-Pole expansion for the Helmholtz free energy function.
-
-This routine can be used to compute the (Helmholtz) free energy
-when finite temperature effect exists. This is especially
-important for metallic system and other small gapped systems. 
-This routine expands the free energy function
-
-:math:`f^{\mathcal{F}}_{\beta}(z) = -\frac{2}{\beta} \log (1 + e^{-\beta z}) \approx \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{\mathcal{F}}_l}{z-z_l}`
-
-`PEXSI::GetPoleForce`
-
-This routine can be used to compute the Pulay contribution of the
-atomic force in electronic structure calculations.  This term is
-especially important when basis set is not complete and changes
-with atomic positions.
-This routine expands the function used in the energy density matrix.  
-
-:math:`f^{E}_{\beta}(z) = (z+\mu) f_{\beta}(z) \approx \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{E}_l}{z-z_l}`
-
-Note that when :math:`z=H-\mu I`, :math:`f^{E}_{\beta}(H-\mu I) = H
-f_{\beta}(H-\mu I)`, and therefore the energy density matrix can be
-directly used to compute the band energy without using eigenvalues.
+.. commented
+  Pole expansion
+  ==============
+  
+  The pole expansion is used to expand Fermi-Dirac functions and other
+  derived quantities using a number of Green's functions (poles).
+  
+  `PEXSI::GetPoleDensity` 
+  
+  Pole expansion for the Fermi-Dirac operator.
+  This is the most commonly used subroutine for the pole expansion,
+  and can be used to compute the shifts and weights for calculating
+  the density matrix, the total energy, and the Hellman-Feynman
+  force.  This routine obtains the expansion
+  
+  :math:`f_{\beta} (z) = \frac{2}{1+e^{\beta z}} \approx \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{\rho}_l}{z-z_l}`
+  
+  
+  
+  `PEXSI::GetPoleDensityDrvMu`
+  
+  Pole expansion for the derivative of the Fermi-Dirac
+  operator with respect to the chemical potential mu.
+  This routine can be used to evaluate the derivative of the number
+  of electrons with respect to the chemical potential for the
+  Newton step for updating the chemical potential.
+  
+  Note that :math:`f_{\beta}` does not explicitly contain :math:`\mu`,
+  so this routine actually computes the expansion
+  
+  :math:`-\frac{\partial f_{\beta}}{\partial z} (z) = 2\beta \frac{e^{\beta z}}{(1+e^{\beta z})^2} \approx \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{\mu}_l}{z-z_l}`
+  
+  
+  
+  `PEXSI::GetPoleDensityDrvT`
+  
+  Pole expansion for the derivative of the Fermi-Dirac
+  operator with respect to the temperature T :math:`(1/\beta)`.
+  
+  This routine can be used to extrapolate the number of electrons
+  from a finite temperature calculation to a zero temperature
+  calculation, using the derivative information.  However, this
+  functionality is not used anymore in the current version of
+  PEXSI.
+                                                                  
+                                                                  
+  :math:`\frac{\partial f_{\beta}}{\partial (1/\beta)} (z) = 2 \beta^2 z \frac{e^{\beta z}}{(1+e^{\beta z})^2} \approx \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{T}_l}{z-z_l}`
+  
+  
+  
+  `PEXSI::GetPoleHelmholtz`
+  
+  Pole expansion for the Helmholtz free energy function.
+  
+  This routine can be used to compute the (Helmholtz) free energy
+  when finite temperature effect exists. This is especially
+  important for metallic system and other small gapped systems. 
+  This routine expands the free energy function
+  
+  :math:`f^{\mathcal{F}}_{\beta}(z) = -\frac{2}{\beta} \log (1 + e^{-\beta z}) \approx \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{\mathcal{F}}_l}{z-z_l}`
+  
+  `PEXSI::GetPoleForce`
+  
+  This routine can be used to compute the Pulay contribution of the
+  atomic force in electronic structure calculations.  This term is
+  especially important when basis set is not complete and changes
+  with atomic positions.
+  This routine expands the function used in the energy density matrix.  
+  
+  :math:`f^{E}_{\beta}(z) = (z+\mu) f_{\beta}(z) \approx \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{E}_l}{z-z_l}`
+  
+  Note that when :math:`z=H-\mu I`, :math:`f^{E}_{\beta}(H-\mu I) = H
+  f_{\beta}(H-\mu I)`, and therefore the energy density matrix can be
+  directly used to compute the band energy without using eigenvalues.
 
 
 Options

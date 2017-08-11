@@ -12,24 +12,31 @@ Using plans and generating log files
 PEXSI is written in C++, and the subroutines cannot directly interface
 with other programming languages such as C or FORTRAN.  To solve
 this problem, the PEXSI internal data structure is handled using a
-datatype :ref:`PPEXSI Plan <PPEXSIPlan>`.  The idea and the usage of 
+datatype :ref:`PPEXSIPlan <PPEXSIPlan>`.  The idea and the usage of 
 PPEXSIPlan is similar to `fftw_plan` in the
-FFTW(http://www.fftw.org/~fftw/fftw3_doc/Using-Plans.html)
+FFTW (http://www.fftw.org/~fftw/fftw3_doc/Using-Plans.html)
 package.
 
-In PEXSI, a matrix is generally referred to as a "pole". The 
-factorization and selected inversion procedure for a pole is computed
-in parallel using `numProcRow * numProcCol` processors.
+In PEXSI, a matrix (or more accurately, its inverse) is generally
+referred to as a "pole". The factorization and selected inversion
+procedure for a pole is computed in parallel using `numProcRow *
+numProcCol` processors.
  
 When only selected inversion (PSelInv) is used, it is recommended to
-set the mpisize of the communicator `comm` to be just `numProcRow * numProcCol`.
+set the `mpisize` of the communicator `comm` to be just `numProcRow * numProcCol`.
  
 When PEXSI is used to evaluate a large number of inverse matrices
-such as in the electronic structure calculation, mpisize should be 
-`numPole*numProcRow*numProcCol`, where `numPole` inverse matrices
-can be processed in parallel.
+such as in the electronic structure calculation, it is best to set
+`mpisize` to be `numPole*numProcRow*numProcCol`, where `numPole` is the
+number of poles can be processed in parallel. 
 
-The output information is controlled by the `outputFileIndex` variable.
+Starting from v1.0, when `PPEXSIDFTDriver2` is used, it is best set
+`mpisize` to be `numPoint*numPole*numProcRow*numProcCol`, where
+`numPoint` is the number of PEXSI evaluations that can be performed in
+parallel.
+
+The output information is controlled by the `outputFileIndex` variable,
+which is a local variable for each processor.
 For instance, if this index is 1, then the corresponding processor will
 output to the file `logPEXSI1`.  If outputFileIndex is negative, then
 this processor does NOT output logPEXSI files.
@@ -42,25 +49,7 @@ this processor does NOT output logPEXSI files.
   processors to output the log files. This is because the IO takes time
   and can be the bottleneck on many architecture. A good practice is to
   let the master processor output information (generating `logPEXSI0`) or 
-  to let the master processor of each pole to output the information. ::
-    #include  "c_pexsi_interface.h"
-    ...
-    {
-      PPEXSIPlan   plan;
-    
-      plan = PPEXSIPlanInitialize( 
-          comm, 
-          numProcRow,
-          numProcCol,
-          outputFileIndex, 
-          &info );
-    
-      /* ... Computation using plan ... */
-    
-      PPEXSIPlanFinalize(
-          plan,
-          &info );
-    } 
+  to let the master processor of each pole to output the information. 
 
 .. _PPEXSISelInvRealSymmetricMatrix:
 
@@ -69,8 +58,10 @@ Parallel selected inversion for a real symmetric matrix
 
 
 The parallel selected inversion routine for a real symmetric matrix can
-be used as follows. This assumes that the size of `MPI_COMM_WORLD` is
-`nprow * npcol`. ::
+be used as follows. This assumes that the mpisize of `MPI_COMM_WORLD` is
+`nprow * npcol`. 
+
+::
 
     #include  "c_pexsi_interface.h"
     ...
@@ -141,7 +132,7 @@ an identity matrix, the nonzero sparsity pattern is assumed to be the
 same as the nonzero sparsity pattern of :math:`H`.  Both `HnzvalLocal` and
 `SnzvalLocal` are double precision arrays.  
 
-An example is given in driver_pselinv_real.c, which evaluates the
+An example is given in `examples/driver_pselinv_real.c`, which evaluates the
 selected elements of the inverse of the matrix saved in
 `examples/lap2dr.matrix`.  See also :ref:`PEXSI Real Symmetric Matrix <PPEXSISelInvRealSymmetricMatrix>`
 for detailed information of its usage.
@@ -156,7 +147,8 @@ Parallel selected inversion for a complex symmetric matrix
 
 The parallel selected inversion routine for a complex symmetric matrix
 is very similar to the real symmetric case. An example is given in
-driver_pselinv_complex.c. See also :ref:`PEXSI Real Symmetric Matrix <PPEXSISelInvRealSymmetricMatrix>`
+`examples/driver_pselinv_complex.c`. See also :ref:`PEXSI Real Symmetric
+Matrix <PPEXSISelInvRealSymmetricMatrix>`
 for detailed information of its usage.
 
 .. _pagePselinvRealSymmetricUnsym:
@@ -237,7 +229,7 @@ an identity matrix, the nonzero sparsity pattern is assumed to be the
 same as the nonzero sparsity pattern of :math:`H`.  Both `HnzvalLocal` and
 `SnzvalLocal` are double precision arrays.  
 
-An example is given in driver_pselinv_real_unsym.c, which evaluates the
+An example is given in `examples/driver_pselinv_real_unsym.c`, which evaluates the
 selected elements of the inverse of the matrix saved in
 `examples/big.unsym.matrix`.  See also `PPEXSISelInvRealUnsymmetricMatrix`
 for detailed information of its usage.
@@ -250,7 +242,7 @@ Parallel selected inversion for a complex unsymmetric matrix
 
 The parallel selected inversion routine for a complex unsymmetric matrix
 is very similar to the real unsymmetric case. An example is given in
-driver_pselinv_complex_unsym.c. See also `PPEXSISelInvComplexUnsymmetricMatrix`
+`examples/driver_pselinv_complex_unsym.c`. See also `PPEXSISelInvComplexUnsymmetricMatrix`
 for detailed information of its usage.
 
 
@@ -273,7 +265,7 @@ iteration through PEXSI. Some heuristic approach is also implemented in
 this routine for dynamic adjustment of the chemical potential and some
 stopping criterion.
 
-An example routine is given in driver_ksdft.c, which solves a fake DFT
+An example routine is given in `examples/driver_ksdft.c`, which solves a fake DFT
 problem by taking a Hamiltonian matrix from `examples/lap2dr.matrix`.
 
 Here is the structure of the code using the simple driver routine. ::
@@ -367,7 +359,7 @@ Solving Kohn-Sham density functional theory: II
 
 In a DFT calculation, the information of the symbolic factorization can
 be reused for different :math:`(H,S)` matrix pencil if the sparsity pattern does
-not change.  An example routine is given in driver_ksdft.c, which solves
+not change.  An example routine is given in `examples/driver_ksdft.c`, which solves
 a fake DFT problem by taking a Hamiltonian matrix from
 `examples/lap2dr.matrix`.
 
@@ -431,6 +423,8 @@ should be relatively easy to dig into the driver routine, and only use
 (for one-shot PEXSI calculation) to improve heuristics and extend the
 functionalities.
 
+**FIXME: The examples above should be updated using PEXSIDFTDriver2 with
+symPACK option**
 
 
 Parallel computation of the Fermi operator for complex Hermitian matrices
