@@ -128,7 +128,7 @@ html_sidebars = {
 #html_logo = '_static/PEXSI_logo.png'
 #html_logo = '_static/pexsiLogo.png'
 #html_logo = '_static/pexsiLogo_4cm.png'
-html_logo = '_static/Untitled.png'
+html_logo = '_static/pexsi-logo.png'
 
 
 # -- Options for HTMLHelp output ------------------------------------------
