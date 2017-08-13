@@ -71,7 +71,6 @@ std::deque<int > comm_stat;
 // Error handling
 // *********************************************************************
 void ErrorHandling( const char * msg ){
-  gdb_lock();
 #ifdef _COREDUMPER_
   int mpirank, mpisize;
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
@@ -85,6 +84,8 @@ void ErrorHandling( const char * msg ){
     statusOFS << "failed:  WriteCoreDump to " << filename << std::endl;
   }     
 #endif // #ifdef _COREDUMPER_
+std::cout<<"LOCCCCKED"<<std::endl;
+  gdb_lock();
   throw std::runtime_error( msg );
 }
 
