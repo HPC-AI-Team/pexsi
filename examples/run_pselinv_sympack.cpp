@@ -42,7 +42,7 @@ int main(int argc, char **argv)
   int mpisize;
   int mpirank;
 
-  MPI_Init(&argc,&argv);
+  //MPI_Init(&argc,&argv);
 
   symPACK_Init(&argc,&argv);
 
@@ -396,10 +396,10 @@ int main(int argc, char **argv)
         GetTime( timeEnd );
         if( mpirank == 0 )
           cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
+
         GetTime( timeSta );
         symPACKMat->Factorize();
         GetTime( timeEnd );
-
         if( mpirank == 0 )
           cout << "Time for factorization is " << timeEnd - timeSta << " sec" << endl; 
 
