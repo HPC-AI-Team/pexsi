@@ -276,8 +276,10 @@ int main(int argc, char **argv)
   options.numElectronPEXSITolerance = 0.1E-10;
   options.muInertiaTolerance = 0.05;
   options.isSymbolicFactorize = 1;
-  int method = 2;
-  int npoints = 2;
+  options.method = 2;
+  options.nPoints = 2;
+  int npoints = options.nPoints;
+  int method = options.method;
 
   if( mpisize / ( nprow * npcol* options.numPole) > npoints ) 
   {
@@ -287,6 +289,14 @@ int main(int argc, char **argv)
     int ierr;
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Abort(MPI_COMM_WORLD, ierr);
+  }
+  if ( mpisize / npoints < nprow * npcol ) {
+    if(mpirank == 0)
+    {
+      printf("Error: need more than %d MPIs \n", nprow*npcol*npoints);
+      int ierr;
+      MPI_Abort(MPI_COMM_WORLD, ierr);
+    }
   }
 
   if (mpisize % npoints) {
@@ -336,6 +346,7 @@ int main(int argc, char **argv)
       SnzvalLocal,
       &info );
 
+  
   /* Step 2. PEXSI Solve */
   muMinInertia = -10.0;
   muMaxInertia =  10.0;
@@ -349,12 +360,8 @@ int main(int argc, char **argv)
         plan,
         &options,
         numElectronExact,
-        method,
-	npoints,
         &muPEXSI,                   
         &numElectronPEXSI,         
-        //&muMinInertia,              
-        //&muMaxInertia,             
         &numTotalInertiaIter,   
         &info );
 
@@ -365,17 +372,24 @@ int main(int argc, char **argv)
       MPI_Finalize();
       return info;
     }
-
-
+   
+    //MPI_Barrier(MPI_COMM_WORLD);
+    //printf(" myrank: %d , mpisize: %d \n", mpirank, mpisize);
     if( isProcRead == 1 ){
-      PPEXSIRetrieveRealDFTMatrix2(
+
+      PPEXSIRetrieveRealDM(
           plan,
           DMnzvalLocal,
-          EDMnzvalLocal,
-          FDMnzvalLocal,
           &totalEnergyH,
+          &info );
+
+    //printf(" Retrieve DM okay, myrank: %d , mpisize: %d \n", mpirank, mpisize);
+
+      PPEXSIRetrieveRealEDM(
+          plan,
+          options,
+          EDMnzvalLocal,
           &totalEnergyS,
-          &totalFreeEnergy,
           &info );
 
       if( mpirank == 0 ){

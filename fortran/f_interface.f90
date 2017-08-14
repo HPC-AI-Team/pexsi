@@ -499,12 +499,8 @@ interface
       plan,&
       options,&
       numElectronExact,&
-      method,&
-      npoints,&
       muPEXSI,&
       numElectronPEXSI,&
-      !muMinInertia,&
-      !muMaxInertia,&
       numTotalInertiaIter,&
       info) &
       bind(C, Name="PPEXSIDFTDriver2")
@@ -514,8 +510,6 @@ interface
     integer(c_intptr_t),    value, intent(in)    :: plan
     type(f_ppexsi_options),        intent(inout) :: options
     real(c_double),         value, intent(in)    :: numElectronExact
-    integer(c_int),         value, intent(in)    :: method
-    integer(c_int),         value, intent(in)    :: npoints
     real(c_double),                intent(out)   :: muPEXSI, numElectronPEXSI
     integer(c_int),                intent(out)   :: numTotalInertiaIter
     integer(c_int),                intent(out)   :: info
@@ -538,24 +532,25 @@ interface
     real(c_double), intent(out)   :: totalEnergyH, totalEnergyS, totalFreeEnergy
     integer(c_int), intent(out)            :: info
   end subroutine 
-
-  subroutine f_ppexsi_retrieve_real_dft_matrix2(&
-      plan,&
-      DMnzvalLocal,&
-      EDMnzvalLocal,&
-      FDMnzvalLocal,&
-      totalEnergyH,&
-      totalEnergyS,&
-      totalFreeEnergy,&
-      info) &
-      bind(C, Name="PPEXSIRetrieveRealDFTMatrix2")
-    use, intrinsic :: iso_c_binding
-    implicit none
-    integer(c_intptr_t), value, intent(in)  :: plan
-    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*), FDMnzvalLocal(*)
-    real(c_double),             intent(out) :: totalEnergyH, totalEnergyS, totalFreeEnergy
-    integer(c_int),             intent(out) :: info
-  end subroutine
+!
+!  the interface is commented out by Weile Jia, Aug 10, 2017
+!  subroutine f_ppexsi_retrieve_real_dft_matrix2(&
+!      plan,&
+!      DMnzvalLocal,&
+!      EDMnzvalLocal,&
+!      FDMnzvalLocal,&
+!      totalEnergyH,&
+!      totalEnergyS,&
+!      totalFreeEnergy,&
+!      info) &
+!      bind(C, Name="PPEXSIRetrieveRealDFTMatrix2")
+!    use, intrinsic :: iso_c_binding
+!    implicit none
+!    integer(c_intptr_t), value, intent(in)  :: plan
+!    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*), FDMnzvalLocal(*)
+!    real(c_double),             intent(out) :: totalEnergyH, totalEnergyS, totalFreeEnergy
+!    integer(c_int),             intent(out) :: info
+!  end subroutine
 
   subroutine f_ppexsi_retrieve_complex_dft_matrix(&
       plan,&
@@ -749,31 +744,34 @@ interface
 
   subroutine f_ppexsi_retrieve_real_edm(&
       plan,&
+      options,&
       EDMnzvalLocal,&
       totalEnergyS,&
       info) &
       bind(C, Name="PPEXSIRetrieveRealEDM")
     use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), intent(in)   :: options
     real(c_double), intent(out)   :: EDMnzvalLocal(*)
     real(c_double), intent(out)   :: totalEnergyS
     integer(c_int), intent(out)   :: info
   end subroutine 
 
-  subroutine f_ppexsi_retrieve_real_fdm(&
-      plan,&
-      FDMnzvalLocal,&
-      totalFreeEnergy,&
-      info) &
-      bind(C, Name="PPEXSIRetrieveRealFDM")
-    use, intrinsic :: iso_c_binding
-    implicit none
-    integer(c_intptr_t), intent(in), value :: plan
-    real(c_double), intent(out)   :: FDMnzvalLocal(*)
-    real(c_double), intent(out)   :: totalFreeEnergy
-    integer(c_int), intent(out)   :: info
-  end subroutine 
+!  subroutine f_ppexsi_retrieve_real_fdm(&
+!      plan,&
+!      FDMnzvalLocal,&
+!      totalFreeEnergy,&
+!      info) &
+!      bind(C, Name="PPEXSIRetrieveRealFDM")
+!    use, intrinsic :: iso_c_binding
+!    implicit none
+!    integer(c_intptr_t), intent(in), value :: plan
+!    real(c_double), intent(out)   :: FDMnzvalLocal(*)
+!    real(c_double), intent(out)   :: totalFreeEnergy
+!    integer(c_int), intent(out)   :: info
+!  end subroutine 
 
   subroutine f_ppexsi_retrieve_complex_dm(&
       plan,&
@@ -791,31 +789,34 @@ interface
 
   subroutine f_ppexsi_retrieve_complex_edm(&
       plan,&
+      options,&
       EDMnzvalLocal,&
       totalEnergyS,&
       info) &
       bind(C, Name="PPEXSIRetrieveComplexEDM")
     use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), intent(in)   :: options
     real(c_double), intent(out)   :: EDMnzvalLocal(*)
     real(c_double), intent(out)   :: totalEnergyS
     integer(c_int), intent(out)   :: info
   end subroutine 
 
-  subroutine f_ppexsi_retrieve_complex_fdm(&
-      plan,&
-      FDMnzvalLocal,&
-      totalFreeEnergy,&
-      info) &
-      bind(C, Name="PPEXSIRetrieveComplexFDM")
-    use, intrinsic :: iso_c_binding
-    implicit none
-    integer(c_intptr_t), intent(in), value :: plan
-    real(c_double), intent(out)   :: FDMnzvalLocal(*)
-    real(c_double), intent(out)   :: totalFreeEnergy
-    integer(c_int), intent(out)   :: info
-  end subroutine 
+!  subroutine f_ppexsi_retrieve_complex_fdm(&
+!      plan,&
+!      FDMnzvalLocal,&
+!      totalFreeEnergy,&
+!      info) &
+!      bind(C, Name="PPEXSIRetrieveComplexFDM")
+!    use, intrinsic :: iso_c_binding
+!    implicit none
+!    integer(c_intptr_t), intent(in), value :: plan
+!    real(c_double), intent(out)   :: FDMnzvalLocal(*)
+!    real(c_double), intent(out)   :: totalFreeEnergy
+!    integer(c_int), intent(out)   :: info
+!  end subroutine 
 
 
 

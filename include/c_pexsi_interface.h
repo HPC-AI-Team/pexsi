@@ -1125,8 +1125,8 @@ void PPEXSIDFTDriver2(
     PPEXSIPlan        plan,
     PPEXSIOptions*    options,
     double            numElectronExact,
-    int               method,
-    int               nPoints,
+    //int               method,
+    //int               nPoints,
     double*           muPEXSI,
     double*           numElectronPEXSI,
     int*              numTotalInertiaIter,
@@ -1135,6 +1135,7 @@ void PPEXSIDFTDriver2(
 
 /**
  * @brief Retrieve the output matrices after running PPEXSIDFTDriver for real input matrices.
+ * this is only used for the PEXSI method = 1
  *
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
@@ -1157,35 +1158,11 @@ void PPEXSIRetrieveRealDFTMatrix(
     double*     totalEnergyS,
     double*     totalFreeEnergy,
     int*              info );
-/**
- * @brief Retrieve the output matrices after running PPEXSIDFTDriver for real input matrices.
- *
- * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
- * data structure.
- * @param[out]  DMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero value
- * of density matrix in CSC format.
- * @param[out] EDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
- * value of energy density matrix in CSC format.
- * @param[out] FDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
- * value of free energy density matrix in CSC format.
- * @param[out] info (local) whether the current processor returns the correct information.
- * - = 0: successful exit.  
- * - > 0: unsuccessful.
- */
-void PPEXSIRetrieveRealDFTMatrix2(
-    PPEXSIPlan  plan,
-    double*     DMnzvalLocal,
-    double*     EDMnzvalLocal,
-    double*     FDMnzvalLocal,
-    double*     totalEnergyH,
-    double*     totalEnergyS,
-    double*     totalFreeEnergy,
-    int*              info );
-
 
 
 /**
  * @brief Retrieve the output matrices after running PPEXSIDFTDriver for complex input matrices.
+ * this is only used for the PEXSI method = 1
  *
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
@@ -1357,6 +1334,7 @@ void PPEXSIInterpolateDMComplex(
 
 /**
  * @brief Retrieve the output DM matrices after running PPEXSIDFTDriver for real input matrices.
+ * this is only used for the PEXSI method = 2
  *
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
@@ -1375,6 +1353,8 @@ void PPEXSIRetrieveRealDM(
 
 /**
  * @brief Retrieve the output DM matrices after running PPEXSIDFTDriver for real input matrices.
+ * this is only used for the PEXSI method = 2, S inverse will be computed in this procedure when
+ * it is not identity.
  *
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
@@ -1387,30 +1367,15 @@ void PPEXSIRetrieveRealDM(
  */
 void PPEXSIRetrieveRealEDM(
     PPEXSIPlan  plan,
+    PPEXSIOptions     options,
     double*     EDMnzvalLocal,
     double*     totalEnergyS,
     int*        info );
 
-/**
- * @brief Retrieve the output DM matrices after running PPEXSIDFTDriver for real input matrices.
- *
- * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
- * data structure.
- * @param[out] FDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
- * value of free energy density matrix in CSC format.
- * @param[out]  totalEnergyS(local)  Free Energy 
- * @param[out] info (local) whether the current processor returns the correct information.
- * - = 0: successful exit.  
- * - > 0: unsuccessful.
- */
-void PPEXSIRetrieveRealFDM(
-    PPEXSIPlan  plan,
-    double*     FDMnzvalLocal,
-    double*     totalFreeEnergy,
-    int*        info );
 
 /**
  * @brief Retrieve the output matrices after running PPEXSIDFTDriver for complex input matrices.
+ * this is only used for the PEXSI method = 2
  *
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
@@ -1428,6 +1393,8 @@ void PPEXSIRetrieveComplexDM(
 
 /**
  * @brief Retrieve the output matrices after running PPEXSIDFTDriver for complex input matrices.
+ * this is only used for the PEXSI method = 2, S inverse will be computed in this procedure when
+ * it is not identity.
  *
  * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
  * data structure.
@@ -1439,25 +1406,9 @@ void PPEXSIRetrieveComplexDM(
  */
 void PPEXSIRetrieveComplexEDM(
     PPEXSIPlan        plan,
+    PPEXSIOptions     options,
     double*     EDMnzvalLocal,
     double*     totalEnergyS,
-    int*              info );
-
-/**
- * @brief Retrieve the output matrices after running PPEXSIDFTDriver for complex input matrices.
- *
- * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
- * data structure.
- * @param[out] FDMnzvalLocal (local)  Dimension: 2*nnzLocal.  Nonzero
- * value of free energy density matrix in CSC format.
- * @param[out] info (local) whether the current processor returns the correct information.
- * - = 0: successful exit.  
- * - > 0: unsuccessful.
- */
-void PPEXSIRetrieveComplexFDM(
-    PPEXSIPlan        plan,
-    double*     FDMnzvalLocal,
-    double*     totalFreeEnergy,
     int*              info );
 
 

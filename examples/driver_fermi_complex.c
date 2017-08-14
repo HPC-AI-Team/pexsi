@@ -398,13 +398,7 @@ int main(int argc, char **argv)
     printf("numElectronDrvMu  = %25.15f\n", numElectronDrvMu);
   }
 
-  PPEXSICalculateEDMCorrectionComplex(
-      plan, 
-      options,
-      &info);
-
   double * NeVec = (double*) malloc (options.nPoints* sizeof(double));
-
   
   // I need to calculate the H*DM and Tr[S*EDM]
   PPEXSIInterpolateDMComplex(
@@ -429,6 +423,21 @@ int main(int argc, char **argv)
   /* Retrieve matrix and energy */
 
   if( isProcRead == 1 ){
+
+    /* have to use retrieve DM and EDM for the new drivers */
+    PPEXSIRetrieveComplexDM(
+        plan,
+        DMnzvalLocal,
+        &totalEnergyH,
+        &info );
+
+    PPEXSIRetrieveComplexEDM(
+        plan,
+        options,
+        EDMnzvalLocal,
+        &totalEnergyS,
+        &info );
+    /*
     PPEXSIRetrieveComplexDFTMatrix(
         plan,
         DMnzvalLocal,
@@ -438,6 +447,7 @@ int main(int argc, char **argv)
         &totalEnergyS,
         &totalFreeEnergy,
         &info );
+    */
 
     if( mpirank == 0 ){
       printf("Output from the main program\n");

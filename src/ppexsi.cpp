@@ -5677,11 +5677,12 @@ PPEXSIData::DFTDriver2 (
     }
 
     // correct the coressponding EDM 
+    /*
     CalculateEDMCorrectionReal(
         numPole,
         verbosity,
         nPoints);
-
+    */
     MPI_Allreduce(NeVec_temp, NeVec, numShift, MPI_DOUBLE, MPI_SUM, pointRowComm); 
 
     GetTime( timePEXSIEnd );
@@ -8230,6 +8231,15 @@ void PPEXSIData::CalculateFermiOperatorReal3(
     mpi::Allreduce( &numElecLocal, &numElectron, 1, MPI_SUM, gridPole_->rowComm); 
   }
 
+  if( isEnergyDensityMatrix ){
+    DblNumVec nzvalFrcMatLocal = frcMat.nzvalLocal;
+    SetValue( frcMat.nzvalLocal, 0.0 );
+
+    mpi::Allreduce( nzvalFrcMatLocal.Data(), frcMat.nzvalLocal.Data(),
+        frcMat.nnzLocal, MPI_SUM, pointColComm);
+  }
+
+
   return ;
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal3  ----- 
 
@@ -8239,14 +8249,15 @@ void PPEXSIData::CalculateEDMCorrectionReal(
     Int   nPoints) {
 
   // add the points parallelization.
+  /*
   Int npPerPoint  = gridPole_->mpisize / nPoints;
   Int myPoint     = gridPole_->mpirank / npPerPoint;
   Int myPointRank = gridPole_->mpirank % npPerPoint;
   Int myRowPoint  = myPointRank / gridPole_->numProcCol;
-
   MPI_Comm pointColComm, pointRowComm;
   MPI_Comm_split( gridPole_->colComm, myPoint, myPointRank, &pointColComm);
   MPI_Comm_split( gridPole_->colComm, myPointRank, myPoint, &pointRowComm);
+  */
 
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
@@ -8378,53 +8389,53 @@ void PPEXSIData::CalculateEDMCorrectionReal(
   } 
  
   Int numPoleComputed = 0;
+
   for(Int lidx = 0; lidx < numPole; lidx++){
 
-    if( myRowPoint % numPole == lidx % (gridPole_->numProcRow /nPoints)){
+    Int l = lidx;
+    if( verbosity >= 1 ){
+      statusOFS << "Correction Pole " << lidx << " processing..." << std::endl;
+    }
+    if( verbosity >= 1 ){
+      statusOFS << "Correction zshift           = " << zshift_[l] << std::endl;
+      statusOFS    << " Correction zweightRho       = " << zweightRho_[l] << std::endl;
+    }
 
-      Int l = lidx;
-
-      if( verbosity >= 1 ){
-        statusOFS << "Correction Pole " << lidx << " processing..." << std::endl;
+    // Energy density matrix 
+    if( isEnergyDensityMatrix ){
+       
+      if( SMat.size == 0 )
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          frcMat.nzvalLocal( diagIdxLocal_[i] ) += numSpin*zweightRho_[l].imag();
       }
-      if( verbosity >= 1 ){
-        statusOFS << "Correction zshift           = " << zshift_[l] << std::endl;
-        statusOFS    << " Correction zweightRho       = " << zweightRho_[l] << std::endl;
-      }
-
-      {
-        // Energy density matrix 
-        if( isEnergyDensityMatrix ){
-           
-          if( SMat.size == 0 )
-            for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-              frcMat.nzvalLocal( diagIdxLocal_[i] ) += numSpin*zweightRho_[l].imag();
-          }
-          else{
-
-            for( Int i = 0; i < SMat.nnzLocal; i++ ){
-              frcMat.nzvalLocal(i) +=  numSpin * ( zweightRho_[l] * AinvMat.nzvalLocal(i) ).imag();
-            }
-
-          }
+      else{
+        for( Int i = 0; i < SMat.nnzLocal; i++ ){
+          frcMat.nzvalLocal(i) +=  numSpin * ( zweightRho_[l] * AinvMat.nzvalLocal(i) ).imag();
         }
       }
-
-    } // if I am in charge of this pole
+    }
 
   } // for(lidx)
 
   // Reduce the energy density matrix across the processor rows in gridPole_ 
-  if( isEnergyDensityMatrix ){
-    DblNumVec nzvalFrcMatLocal = frcMat.nzvalLocal;
-    SetValue( frcMat.nzvalLocal, 0.0 );
-
-    mpi::Allreduce( nzvalFrcMatLocal.Data(), frcMat.nzvalLocal.Data(),
-        frcMat.nnzLocal, MPI_SUM, pointColComm);
+  {
+    Real local = 0.0;
+  
+    if( SRealMat_.size != 0 ){
+      local = blas::Dot( SRealMat_.nnzLocal, 
+          SRealMat_.nzvalLocal.Data(),
+          1, energyDensityRealMat_.nzvalLocal.Data(), 1 );
+    }
+    else{
+      DblNumVec& nzval = energyDensityRealMat_.nzvalLocal;
+      for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+        local += nzval(diagIdxLocal_[i]);
+      }
+    }
+    mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
+        gridPole_->rowComm ); 
   }
-
-  MPI_Comm_free(&pointColComm);
-  MPI_Comm_free(&pointRowComm);
+ 
   return ;
 
 }  // ---  PPEXSIData::CalculateEDMCorrectionReal  -----
@@ -8435,6 +8446,7 @@ void PPEXSIData::CalculateEDMCorrectionReal(
     Int   nPoints) {
 
   // add the points parallelization.
+  /*
   Int npPerPoint  = gridPole_->mpisize / nPoints;
   Int myPoint     = gridPole_->mpirank / npPerPoint;
   Int myPointRank = gridPole_->mpirank % npPerPoint;
@@ -8443,7 +8455,7 @@ void PPEXSIData::CalculateEDMCorrectionReal(
   MPI_Comm pointColComm, pointRowComm;
   MPI_Comm_split( gridPole_->colComm, myPoint, myPointRank, &pointColComm);
   MPI_Comm_split( gridPole_->colComm, myPointRank, myPoint, &pointRowComm);
-
+  */
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
@@ -8480,10 +8492,6 @@ void PPEXSIData::CalculateEDMCorrectionReal(
 
   // Copy the pattern
   CopyPattern( PatternMat_, AMat );
-
-
-
-
 
   // for each pole, perform LDLT factoriation and selected inversion
   Real timePoleSta, timePoleEnd;
@@ -8575,50 +8583,54 @@ void PPEXSIData::CalculateEDMCorrectionReal(
   Int numPoleComputed = 0;
   for(Int lidx = 0; lidx < numPole; lidx++){
 
-    if( myRowPoint % numPole == lidx % (gridPole_->numProcRow /nPoints)){
+    //if( myRowPoint % numPole == lidx % (gridPole_->numProcRow /nPoints)){
+    Int l = lidx;
+    if( verbosity >= 1 ){
+      statusOFS << "Correction Pole " << lidx << " processing..." << std::endl;
+    }
+    if( verbosity >= 1 ){
+      statusOFS << "Correction zshift           = " << zshift_[l] << std::endl;
+      statusOFS << "Correction zweightRho       = " << zweightRho_[l] << std::endl;
+    }
 
-      Int l = lidx;
-
-      if( verbosity >= 1 ){
-        statusOFS << "Correction Pole " << lidx << " processing..." << std::endl;
-      }
-      if( verbosity >= 1 ){
-        statusOFS << "Correction zshift           = " << zshift_[l] << std::endl;
-        statusOFS << "Correction zweightRho       = " << zweightRho_[l] << std::endl;
-      }
-
-      {
-        // Energy density matrix 
-        if( isEnergyDensityMatrix ){
-          if( SMat.size == 0 )
-            for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-              frcMat.nzvalLocal( diagIdxLocal_[i] ) += numSpin*zweightRho_[l].imag();
-              //frcMat.nzvalLocal( diagIdxLocal_[i] ) += numSpin*zweightRho_[l];
+    {
+      // Energy density matrix 
+      if( isEnergyDensityMatrix ){
+        if( SMat.size == 0 )
+          for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+            frcMat.nzvalLocal( diagIdxLocal_[i] ) += numSpin*zweightRho_[l].imag();
           }
-          else{
+        else{
 
-            for( Int i = 0; i < SMat.nnzLocal; i++ ){
-              frcMat.nzvalLocal(i) +=  numSpin *  (zweightRho_[l] * AinvMat.nzvalLocal(i)).imag() ;
-            }
+          for( Int i = 0; i < SMat.nnzLocal; i++ ){
+            frcMat.nzvalLocal(i) +=  numSpin *  (zweightRho_[l] * AinvMat.nzvalLocal(i)).imag() ;
           }
         }
       }
+    }
 
-    } // if I am in charge of this pole
+    //} // if I am in charge of this pole
 
   } // for(lidx)
 
-  // Reduce the energy density matrix across the processor rows in gridPole_ 
-  if( isEnergyDensityMatrix ){
-    CpxNumVec nzvalFrcMatLocal = frcMat.nzvalLocal;
-    SetValue( frcMat.nzvalLocal, Z_ZERO );
+  {
+     std::cout << " recalculate the totalEnergyS_ " << std::endl;
+     Real local = 0.0;
+     if( SComplexMat_.size != 0 ){
+       local = (blas::Dotu( SComplexMat_.nnzLocal, 
+           SComplexMat_.nzvalLocal.Data(),
+           1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
+     }
+     else{
+       CpxNumVec& nzval = energyDensityComplexMat_.nzvalLocal;
+       for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+         local += nzval(diagIdxLocal_[i]).real();
+       }
+     }
+     mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
+         gridPole_->rowComm ); 
+   }
 
-    mpi::Allreduce( nzvalFrcMatLocal.Data(), frcMat.nzvalLocal.Data(),
-        frcMat.nnzLocal, MPI_SUM, pointColComm);
-  }
-
-  MPI_Comm_free(&pointColComm);
-  MPI_Comm_free(&pointRowComm);
   return ;
 
 }  // ---  PPEXSIData::CalculateEDMCorrectionComplex  ---

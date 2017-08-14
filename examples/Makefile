@@ -7,11 +7,12 @@ SRCS_CPP  = run_pselinv.cpp run_pselinv_unsym.cpp \
  						run_ksdft.cpp run_fermi.cpp run_fermi_complex.cpp
 SRCS_C    = driver_pselinv_real.c driver_pselinv_complex.c driver_pselinv_real_unsym.c \
 					 	driver_pselinv_complex_unsym.c driver_ksdft.c driver_ksdft_2_deprecate.c \
-						driver_fermi_complex.c driver_ksdft_3.c
+						driver_fermi_complex.c driver_ksdft_2.c
 
 all: driver_pselinv_real driver_pselinv_real_unsym \
 	driver_pselinv_complex driver_pselinv_complex_unsym \
-	driver_ksdft driver_ksdft_2_deprecate driver_fermi_complex
+	driver_ksdft driver_ksdft_2_deprecate driver_fermi_complex \
+	driver_ksdft_2
 
 
 ifeq (${USE_SYMPACK}, 1)
