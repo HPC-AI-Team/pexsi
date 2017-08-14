@@ -338,17 +338,22 @@ Here is the structure of the code using the simple driver routine. ::
           &info );
     
       /* Retrieve the density matrix and other quantities from the plan */
-    
-      PPEXSIRetrieveRealDFTMatrix2(
+      if(mpirank < nprow * npcol ) {
+
+      PPEXSIRetrieveRealDM(
           plan,
           DMnzvalLocal,
-          EDMnzvalLocal,
-          FDMnzvalLocal,
           &totalEnergyH,
-          &totalEnergyS,
-          &totalFreeEnergy,
           &info );
-    
+
+      PPEXSIRetrieveRealEDM(
+          plan,
+          options,
+          EDMnzvalLocal,
+          &totalEnergyS,
+          &info );
+      }
+
       /* Clean up */
       PPEXSIPlanFinalize(
           plan,
