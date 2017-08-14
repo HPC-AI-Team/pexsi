@@ -443,16 +443,22 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
           //Handle symPACK ordering options
           switch (options.ordering){
             case 0:
-              colPerm = "PARMETIS";
+              colPerm = "PTSCOTCH";
               break;
             case 1:
-              colPerm = "METIS";
+              colPerm = "SCOTCH";
               break;
             case 2:
               colPerm = "MMD";
               break;
             case 3:
               colPerm = "AMD";
+              break;
+            case 4:
+              colPerm = "PARMETIS";
+              break;
+            case 5:
+              colPerm = "METIS";
               break;
             default:
               ErrorHandling("Unsupported ordering strategy.");
@@ -587,16 +593,22 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
           //Handle symPACK ordering options
           switch (options.ordering){
             case 0:
-              colPerm = "PARMETIS";
+              colPerm = "PTSCOTCH";
               break;
             case 1:
-              colPerm = "METIS";
+              colPerm = "SCOTCH";
               break;
             case 2:
               colPerm = "MMD";
               break;
             case 3:
               colPerm = "AMD";
+              break;
+            case 4:
+              colPerm = "PARMETIS";
+              break;
+            case 5:
+              colPerm = "METIS";
               break;
             default:
               ErrorHandling("Unsupported ordering strategy.");

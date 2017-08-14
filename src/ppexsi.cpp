@@ -4450,16 +4450,22 @@ PPEXSIData::DFTDriver (
           //Handle symPACK ordering options
           switch (ordering){
             case 0:
-              colPerm = "PARMETIS";
+              colPerm = "PTSCOTCH";
               break;
             case 1:
-              colPerm = "METIS";
+              colPerm = "SCOTCH";
               break;
             case 2:
               colPerm = "MMD";
               break;
             case 3:
               colPerm = "AMD";
+              break;
+            case 4:
+              colPerm = "PARMETIS";
+              break;
+            case 5:
+              colPerm = "METIS";
               break;
             default:
               ErrorHandling("Unsupported ordering strategy.");
@@ -4923,16 +4929,22 @@ PPEXSIData::DFTDriver2_Deprecate (
           //Handle symPACK ordering options
           switch (ordering){
             case 0:
-              colPerm = "PARMETIS";
+              colPerm = "PTSCOTCH";
               break;
             case 1:
-              colPerm = "METIS";
+              colPerm = "SCOTCH";
               break;
             case 2:
               colPerm = "MMD";
               break;
             case 3:
               colPerm = "AMD";
+              break;
+            case 4:
+              colPerm = "PARMETIS";
+              break;
+            case 5:
+              colPerm = "METIS";
               break;
             default:
               ErrorHandling("Unsupported ordering strategy.");
@@ -5400,25 +5412,31 @@ PPEXSIData::DFTDriver2 (
 #ifdef WITH_SYMPACK
     case 1:
       {
-        //Handle symPACK ordering options
-        switch (ordering){
-          case 0:
-            colPerm = "PARMETIS";
-            break;
-          case 1:
-            colPerm = "METIS";
-            break;
-          case 2:
-            colPerm = "MMD";
-            break;
-          case 3:
-            colPerm = "AMD";
-            break;
-          default:
-            ErrorHandling("Unsupported ordering strategy.");
-            break;
+          //Handle symPACK ordering options
+          switch (ordering){
+            case 0:
+              colPerm = "PTSCOTCH";
+              break;
+            case 1:
+              colPerm = "SCOTCH";
+              break;
+            case 2:
+              colPerm = "MMD";
+              break;
+            case 3:
+              colPerm = "AMD";
+              break;
+            case 4:
+              colPerm = "PARMETIS";
+              break;
+            case 5:
+              colPerm = "METIS";
+              break;
+            default:
+              ErrorHandling("Unsupported ordering strategy.");
+              break;
+          }
         }
-      }
       break;
 #endif
     default:

@@ -260,13 +260,20 @@ typedef struct {
 
     /** 
      * @brief  Ordering strategy for factorization and selected
-     * inversion.  
+     * inversion. When SuperLU is used:  
      * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS
      *   option in SuperLU_DIST).
      * - = 1   : Sequential ordering using METIS (METIS_AT_PLUS_A
      *   option in SuperLU_DIST).
      * - = 2   : Multiple minimum degree ordering (MMD_AT_PLUS_A
      *   option in SuperLU_DIST).
+     * When symPACK is used:
+     * - = 0   : Parallel ordering using PT-SCOTCH.
+     * - = 1   : Sequential ordering using SCOTCH.
+     * - = 2   : Multiple minimum degree ordering.
+     * - = 3   : Approximate minimum degree ordering.
+     * - = 4   : Parallel ordering using PARMETIS.
+     * - = 5   : Sequential ordering using METIS.
      */ 
     int           ordering;
     /** 
