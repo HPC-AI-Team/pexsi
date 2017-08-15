@@ -33,7 +33,7 @@ using namespace PEXSI;
 using namespace std;
 
 void Usage(){
-  std::cout << "Usage" << std::endl << "run_pselinv_sympack -H <symmetric Hfile> -S [symmetric Sfile] -inf [H/S file format: CSC,HARWELL_BOEING] -r [nprow] -c [npcol] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag]" << std::endl;
+  std::cout << "Usage" << std::endl << "run_pselinv_sympack -H <symmetric Hfile> -S [symmetric Sfile] -inf [H/S file format: CSC,HARWELL_BOEING] -r [nprow] -c [npcol] -rshift [real shift] -ishift [imaginary shift] -ToDist [doToDist] -Diag [doDiag] -SS [symmetricStorage]" << std::endl;
 }
 
 
