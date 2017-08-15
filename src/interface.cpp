@@ -68,8 +68,8 @@ void ReadDistSparseMatrixFormattedHeadInterface (
     int*     numColLocal,
     MPI_Comm comm )
 {
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   std::ifstream fin;
   if( mpirank == 0 ){
     fin.open(filename);
@@ -158,8 +158,8 @@ void ReadDistSparseMatrixHeadInterface (
     int*     numColLocal,
     MPI_Comm comm )
 {
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   std::ifstream fin;
   if( mpirank == 0 ){
     fin.open(filename);
@@ -266,6 +266,7 @@ void PPEXSISetDefaultOptions(
   options->matrixType            = 0;
   options->isSymbolicFactorize   = 1;
   options->solver                = 0;
+  options->symmetricStorage      = 0;
   options->ordering              = 0;
   options->rowOrdering           = 0;
   options->npSymbFact            = 1;
@@ -285,7 +286,7 @@ PPEXSIPlan PPEXSIPlanInitialize(
     int           outputFileIndex, 
     int*          info ){
 
-  Int mpirank, mpisize;
+  int mpirank, mpisize;
   MPI_Comm_rank( comm, &mpirank );
   MPI_Comm_size( comm, &mpisize );
 
@@ -475,6 +476,7 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeRealSymmetricMatrix(
           options.solver,
+          options.symmetricStorage,
           colPerm,
           options.npSymbFact,
           options.verbosity );
@@ -626,6 +628,7 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeComplexSymmetricMatrix(
           options.solver,
+          options.symmetricStorage,
           colPerm,
           options.npSymbFact,
           options.verbosity );
@@ -820,7 +823,7 @@ void PPEXSICalculateFermiOperatorReal(
         mu,
         numElectronExact,
         options.numElectronPEXSITolerance,
-          options.solver,
+        options.solver,
         options.verbosity,
         *numElectronPEXSI,
         *numElectronDrvMuPEXSI );
@@ -1024,7 +1027,8 @@ void PPEXSISelInvRealSymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvRealSymmetricMatrix(
-          options.solver,
+        options.solver,
+        options.symmetricStorage,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -1054,7 +1058,7 @@ void PPEXSISelInvRealUnsymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvRealUnsymmetricMatrix(
-          options.solver,
+        options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -1084,7 +1088,8 @@ void PPEXSISelInvComplexSymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexSymmetricMatrix(
-          options.solver,
+        options.solver,
+        options.symmetricStorage,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -1114,7 +1119,7 @@ void PPEXSISelInvComplexUnsymmetricMatrix (
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexUnsymmetricMatrix(
-          options.solver,
+        options.solver,
         AnzvalLocal,
         options.verbosity,
         AinvnzvalLocal );
@@ -1168,6 +1173,7 @@ void PPEXSIDFTDriver(
         options.matrixType,
         options.isSymbolicFactorize,
         options.solver,
+        options.symmetricStorage,
         options.ordering,
         options.npSymbFact,
         options.verbosity,
@@ -1222,6 +1228,7 @@ void PPEXSIDFTDriver2_Deprecate(
         options.matrixType,
         options.isSymbolicFactorize,
         options.solver,
+        options.symmetricStorage,
         options.ordering,
         options.npSymbFact,
         options.verbosity,
@@ -1270,6 +1277,7 @@ void PPEXSIDFTDriver2(
         options->matrixType,
         options->isSymbolicFactorize,
         options->solver,
+        options->symmetricStorage,
         options->ordering,
         options->npSymbFact,
         options->verbosity,

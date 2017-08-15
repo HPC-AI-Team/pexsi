@@ -94,25 +94,25 @@ int main(int argc, char **argv)
     // Input parameter
     // *********************************************************************
 
-    if(0){
+    if(1){
       numElectronExact    = 12.0;
       nprow               = 1;
       npcol               = 1;
-      HfileR              = "lap2dc_real.matrix";
-      HfileI              = "lap2dc_imag.matrix";
+      Hfile              = "lap2dc.matrix";
+      //HfileI              = "lap2dc_imag.matrix";
       Sfile               = "";
       isFormatted         = 1;
       isSIdentity         = 1;
       colPerm             = "PARMETIS";
       rowPerm             = "NOROWPERM";
     }
-    if(1){
+    if(0){
       // Si64k matrix from SIESTA
       numElectronExact    = 256.0;
       nprow               = 1;
       npcol               = 1;
-      Hfile               = "/home/lin/ResearchBIN/pexsi/siesta-k/Si64k/Hk.00002.matrix";
-      Sfile               = "/home/lin/ResearchBIN/pexsi/siesta-k/Si64k/Sk.00002.matrix";
+      Hfile               = "/data/matrices/Si64k/Hk.00002.matrix";
+      Sfile               = "/data/matrices/Si64k/Sk.00002.matrix";
       isFormatted         = 1;
       isSIdentity         = 0;
       colPerm             = "PARMETIS";

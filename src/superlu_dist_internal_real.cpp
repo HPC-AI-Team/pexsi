@@ -112,25 +112,7 @@ RealGridData & RealGridData::operator = (const RealGridData & g)
 }
 
 void RealGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
-#ifdef SWAP_ROWS_COLS
-  int * usermap = new int[nprow*npcol];
-  for(int mpirank = 0;mpirank<nprow*npcol;mpirank++){
-    int myrow = mpirank % npcol;
-    int mycol = mpirank / npcol;
-    usermap[myrow*npcol+mycol] = mpirank;
-  }
-  superlu_gridmap(
-      comm, nprow, npcol,
-      usermap, /* usermap(i,j) holds the process
-                  number to be placed in {i,j} of
-                  the process grid.  */
-      npcol, &info_->grid);
-  delete [] usermap;
-#else
   superlu_gridinit(comm, nprow, npcol, &info_->grid);
-#endif
-
-
 }
 
 void RealGridData::GridExit(  ){
@@ -245,6 +227,9 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
   // Necessary to invoke static scheduling of SuperLU
   options.lookahead_etree   = YES;
   options.SymPattern        = YES;
+//#ifdef _PRINT_STATS_
+//  options.PrintStat         = YES;
+//#endif
 
   if(opt.Symmetric == 1){
     options.RowPerm         = NOROWPERM;
@@ -406,8 +391,8 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
   }
   gridinfo_t* grid = ptrData->grid;
 
-  Int mpirank = grid->iam;
-  Int mpisize = grid->nprow * grid->npcol;
+  int mpirank = grid->iam;
+  int mpisize = grid->nprow * grid->npcol;
 
   int_t *colindLocal, *rowptrLocal;
   double *nzvalLocal;
@@ -416,8 +401,7 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
   Int firstRow = mpirank * numRowLocalFirst;
   Int numRowLocal = -1;
   Int nnzLocal = -1;
-
-  if(options.Transpose == 1  || options.Symmetric == 1 ){
+  if(options.Transpose == 1 || options.Symmetric == 1 ){
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
 
@@ -431,7 +415,6 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
         colindLocal );
     std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
         nzvalLocal );
-
   }
   else{
     DistSparseMatrix<Real> sparseB;
@@ -451,7 +434,6 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
     std::copy( sparseB.nzvalLocal.Data(), sparseB.nzvalLocal.Data() + sparseB.nzvalLocal.m(),
         (double*)nzvalLocal );
   }
-
 
 
   // Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
@@ -583,7 +565,13 @@ RealSuperLUData::NumericalFactorize	(  )
   statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;  
   statusOFS<<"Number of tiny pivots: "<<ptrData->stat.TinyPivots<<std::endl;  
   statusOFS<<"Number of look aheads: "<<ptrData->stat.num_look_aheads<<std::endl;  
-  statusOFS<<"Number of FLOPS during factorization: "<<ptrData->stat.ops[FACT]<<std::endl;  
+  
+  float flopcnt = 0;
+  MPI_Allreduce(&ptrData->stat.ops[FACT], &flopcnt, 1, MPI_FLOAT, MPI_SUM, ptrData->grid->comm);
+  statusOFS<<"Number of FLOPS for factorization: "<<flopcnt<<std::endl;  
+  if(!ptrData->grid->iam){
+    std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
+  }
   statusOFS<<"****************************************************"<<std::endl;  
 #endif
 
@@ -890,6 +878,8 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
     }  // if(index)
   } // for(jb)
 
+        if(PMloc.Options()!=nullptr){
+          if (PMloc.Options()->symmetricStorage!=1){
   // U part
 #if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "LUstructToPMatrix::U part" << std::endl;
@@ -969,6 +959,8 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
     } // if( index )
 
   } // for(ib)
+          }
+        }
 
   for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
     std::vector<Int> & rowBlockIdx = PMloc.RowBlockIdx(ib);

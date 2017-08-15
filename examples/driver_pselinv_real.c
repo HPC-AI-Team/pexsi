@@ -147,6 +147,7 @@ int main(int argc, char **argv)
   #ifdef WITH_SYMPACK
   options.solver = 1;
   #endif
+  options.symmetricStorage = 1;
   options.ordering = 0;
   options.verbosity = 1;
 

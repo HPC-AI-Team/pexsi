@@ -72,7 +72,7 @@ void
       Int root,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -113,7 +113,7 @@ void
       Int root,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -155,7 +155,7 @@ void
       std::vector<Int>& allVec,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -306,6 +306,16 @@ void
 
 
 
+void
+  Allreduce ( LongInt* sendbuf, LongInt* recvbuf, int count, MPI_Op op, MPI_Comm comm )
+  {
+    MPI_Allreduce( sendbuf,  recvbuf, count, MPI_LONG_INT, 
+        op, comm );
+
+    return ;
+  }		// -----  end of function Allreduce  ----- 
+
+
 
 
 void
@@ -368,7 +378,7 @@ void
       Complex *bufRecv, Int *sizeRecv, 
       Int *displsRecv, MPI_Comm comm )
   {
-    Int mpisize; 
+    int mpisize; 
     MPI_Comm_size( comm, &mpisize );
     std::vector<Int> dblSizeSend( mpisize );
     std::vector<Int> dblDisplsSend( mpisize ); 

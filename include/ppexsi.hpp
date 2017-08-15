@@ -250,6 +250,7 @@ public:
   /// - = 2   : Detailed output.
   void SymbolicFactorizeRealSymmetricMatrix(
       Int                            solver,
+      Int                            symmetricStorage,
       std::string                    ColPerm,
       Int                            numProcSymbFact,
       Int                            verbosity );
@@ -302,6 +303,7 @@ public:
   /// - = 2   : Detailed output.
   void SymbolicFactorizeComplexSymmetricMatrix(
       Int                            solver,
+      Int                            symmetricStorage,
       std::string                    ColPerm,
       Int                            numProcSymbFact,
       Int                            verbosity );
@@ -337,26 +339,28 @@ public:
 
 
   void SelInvRealSymmetricMatrix(
-    Int               solver,
+      Int               solver,
+      Int               symmetricStorage,
       double*           AnzvalLocal,                  
       Int               verbosity,
       double*           AinvnzvalLocal );
 
   void SelInvRealUnsymmetricMatrix(
-    Int               solver,
+      Int               solver,
       double*           AnzvalLocal,                  
       Int               verbosity,
       double*           AinvnzvalLocal );
 
 
   void SelInvComplexSymmetricMatrix(
-    Int               solver,
+      Int               solver,
+      Int               symmetricStorage,
       double*           AnzvalLocal,                  
       Int               verbosity,
       double*           AinvnzvalLocal );
 
   void SelInvComplexUnsymmetricMatrix(
-    Int               solver,
+      Int               solver,
       double*           AnzvalLocal,                  
       Int               verbosity,
       double*           AinvnzvalLocal );
@@ -466,7 +470,7 @@ public:
       Real  mu,
       Real  numElectronExact, 
       Real  numElectronTolerance,
-    Int               solver,
+      Int               solver,
       Int   verbosity,
       Real& numElectron,
       Real& numElectronDrvMu );
@@ -571,6 +575,7 @@ public:
       Int        matrixType,
       Int        isSymbolicFactorize,
       Int        solver,
+      Int        symmetricStorage,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
@@ -710,6 +715,7 @@ public:
       Int        matrixType,
       Int        isSymbolicFactorize,
       Int        solver,
+      Int        symmetricStorage,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
@@ -737,6 +743,7 @@ public:
       Int        matrixType,
       Int        isSymbolicFactorize,
       Int        solver,
+      Int        symmetricStorage,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,

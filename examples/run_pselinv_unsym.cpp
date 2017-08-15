@@ -373,17 +373,6 @@ int main(int argc, char **argv)
           } // for (j)
         }
 
-        // DEBUG
-        if(0)
-        { 
-          Int numColLocal      = HMat.colptrLocal.m() - 1;
-
-          for( Int j = 0; j < numColLocal; j++ ){
-            statusOFS  << "H("<<j<<","<<j<<")="<<
-              HMat.nzvalLocal(diagIdxLocal[j])<<std::endl;
-          } // for (j)
-        }
-
 
 
         GetTime( timeSta );
@@ -539,12 +528,13 @@ int main(int argc, char **argv)
       luOpt.RowPerm = RowPerm;
       luOpt.Equil = Equil;
       luOpt.numProcSymbFact = numProcSymbFact;
+      luOpt.Symmetric = isSym;
+      luOpt.Transpose = transpose;
 
       FactorizationOptions factOpt;
       factOpt.ColPerm = ColPerm;
       factOpt.RowPerm = RowPerm;
       factOpt.Symmetric = isSym;
-      factOpt.Transpose = transpose;
 
 
       //Initialize SuperLU data structures
@@ -575,6 +565,7 @@ int main(int argc, char **argv)
 
         if( mpirank == 0 )
           cout << "Time for performing the symbolic factorization is " << timeEnd - timeSta << endl;
+
       }
 
       // *********************************************************************
@@ -629,15 +620,11 @@ int main(int argc, char **argv)
           SuperLUMatrix<MYSCALAR> A1( *pLuGrid, luOpt );
           SuperLUMatrix<MYSCALAR> GA( *pLuGrid, luOpt );
 
-
-          //DistSparseMatrix<MYSCALAR> AT;
-          //CSCToCSR(AMat,AT);
-
           A1.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt );
           A1.ConvertNRlocToNC( GA );
 
           int n = A1.n();
-          int nrhs = 5;
+          int nrhs = 1;
           NumMat<MYSCALAR> xTrueGlobal(n, nrhs), bGlobal(n, nrhs);
           NumMat<MYSCALAR> xTrueLocal, bLocal;
           DblNumVec berr;
@@ -647,6 +634,7 @@ int main(int argc, char **argv)
 
           A1.DistributeGlobalMultiVector( xTrueGlobal, xTrueLocal );
           A1.DistributeGlobalMultiVector( bGlobal,     bLocal );
+
           if(mpirank==0){std::cout<<"Starting solve"<<std::endl;}
           pLuMat->SolveDistMultiVector( bLocal, berr );
           pLuMat->CheckErrorDistMultiVector( bLocal, xTrueLocal );
@@ -666,31 +654,23 @@ int main(int argc, char **argv)
           GetTime( timeSta );
           pLuMat->SymbolicToSuperNode( *pSuper );
 
+          if(1){
+            statusOFS<<"superIdx: "<<pSuper->superIdx<<std::endl;
+            statusOFS<<"superPtr: "<<pSuper->superPtr<<std::endl;
+            statusOFS<<"colperm: "<<pSuper->perm<<std::endl;
+            statusOFS<<"rowperm: "<<pSuper->perm_r<<std::endl;
+          }
+
           GetTime( timeTotalSelInvSta );
 
 
           //Initialize PEXSI/PSelInv data structures
-          //PMatrix<MYSCALAR> * pMat;
-          //GridType * pGrid;
-          //PEXSICreator<MYSCALAR>::CreatePMatrix(world_comm, nprow, npcol, luOpt, pSuper, pMat, pGrid);
-
           GridType * pGrid = new GridType(world_comm,nprow,npcol);
-
 
           PSelInvOptions selInvOpt;
           selInvOpt.maxPipelineDepth = maxPipelineDepth;
 
-
           PMatrix<MYSCALAR> * pMat = PMatrix<MYSCALAR>::Create(pGrid,pSuper, &selInvOpt, &factOpt);
-
-          //            {
-          //              SuperLUMatrix<MYSCALAR> * pLuMat2 = new SuperLUMatrix<MYSCALAR>(*pLuGrid, luOpt);
-          //              *pLuMat2 = *pLuMat;
-          //              //PMatrix<MYSCALAR> Mat = PMatrix<MYSCALAR>(pGrid,pSuper, &luOpt);
-          //              //Mat = *pMat2; //should call the copy constructor and the destructor
-          //              MPI_Barrier(world_comm);
-          //              exit(0);
-          //            }
 
           pLuMat->LUstructToPMatrix( *pMat );
           GetTime( timeEnd );
@@ -704,6 +684,15 @@ int main(int argc, char **argv)
           if( mpirank == 0 )
             cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
 
+          if(0){
+            statusOFS.close();
+            stringstream  sslu;
+            sslu << "LUfactDump_" << mpirank<<".m";
+            statusOFS.open( sslu.str().c_str() );
+            pMat->DumpLU();
+            statusOFS.close();
+            statusOFS.open( ss.str().c_str(),std::ofstream::out | std::ofstream::app );
+          }
 
           // Preparation for the selected inversion
           GetTime( timeSta );
@@ -721,6 +710,18 @@ int main(int argc, char **argv)
           if( mpirank == 0 )
             cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
+
+          if(0){
+            statusOFS.close();
+            stringstream  sslu;
+            sslu << "PreLUDump_" << mpirank<<".m";
+            statusOFS.open( sslu.str().c_str() );
+            pMat->DumpLU();
+            statusOFS.close();
+            statusOFS.open( ss.str().c_str(),std::ofstream::out | std::ofstream::app );
+          }
+
+
           // Main subroutine for selected inversion
           GetTime( timeSta );
           pMat->SelInv();
@@ -733,7 +734,34 @@ int main(int argc, char **argv)
           if( mpirank == 0 )
             cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
+#ifdef _PRINT_STATS_
+          double flops = pMat->GetTotalFlops();
+          if( mpirank == 0 )
+            cout << "Total FLOPs for selected inversion is " << flops << endl;
+#endif
 
+          if(0){
+            statusOFS.close();
+            stringstream  sslu;
+            sslu << "LUDump_" << mpirank<<".m";
+            statusOFS.open( sslu.str().c_str() );
+            pMat->DumpLU();
+            statusOFS.close();
+            statusOFS.open( ss.str().c_str(),std::ofstream::out | std::ofstream::app );
+          }
+
+          if(1){
+            DistSparseMatrix<MYSCALAR> Ainv;
+            //pMat->PMatrixToDistSparseMatrix(Ainv );
+            //pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
+            //if( mpirank == 0 )
+            //WriteDistSparseMatrixMatlab("AinvDump",Ainv,world_comm);
+
+            //WriteDistSparseMatrixMatlab("ADump",AMat,world_comm);
+
+            pMat->PMatrixToDistSparseMatrix( AMat, Ainv );
+            WriteDistSparseMatrixMatlab("AinvDump",Ainv,world_comm);
+          }
 
           if(doToDist){
             // Convert to DistSparseMatrix in the 2nd format and get the diagonal
@@ -742,7 +770,10 @@ int main(int argc, char **argv)
 
 
             DistSparseMatrix<MYSCALAR> * Aptr;
-            if(factOpt.Symmetric==0 && factOpt.Transpose==0){
+#ifndef OLD_SELINV
+            Aptr = &AMat;
+#else
+            if(factOpt.Symmetric==0 && 0){
               Aptr = new DistSparseMatrix<MYSCALAR>();
               //compute the transpose
               CSCToCSR(AMat,*Aptr);
@@ -750,18 +781,26 @@ int main(int argc, char **argv)
             else{
               Aptr = &AMat;
             }
-
+#endif
             GetTime( timeSta );
             pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
             GetTime( timeEnd );
 
+#ifndef OLD_SELINV
+            traceLocal = ZERO<MYSCALAR>();
+            traceLocal = blas::Dotu( Aptr->nnzLocal, Aptr->nzvalLocal.Data(), 1,
+                Ainv.nzvalLocal.Data(), 1 );
+#else
             traceLocal = ZERO<MYSCALAR>();
             traceLocal = blas::Dotu( Aptr->nnzLocal, Ainv.nzvalLocal.Data(), 1,
                 Aptr->nzvalLocal.Data(), 1 );
+#endif
 
-            if(factOpt.Symmetric==0 && factOpt.Transpose==0){
+#ifdef OLD_SELINV
+            if(factOpt.Symmetric==0 && 0){//factOpt.Transpose==0){
               delete Aptr;
             }
+#endif
 
 
             if( mpirank == 0 )
@@ -798,7 +837,11 @@ int main(int argc, char **argv)
 
               NumVec<MYSCALAR> diagDistSparse;
               GetTime( timeSta );
+#ifndef OLD_SELINV
               GetDiagonal( Ainv, diagDistSparse );
+#else
+              GetDiagonal( Ainv, diagDistSparse );
+#endif
               GetTime( timeEnd );
               if( mpirank == 0 )
                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
@@ -825,60 +868,60 @@ int main(int argc, char **argv)
             }
 
 
-          }
-          else if( doDiag ){
-            NumVec<MYSCALAR> diag;
-
-            GetTime( timeSta );
-            pMat->GetDiagonal( diag );
-            GetTime( timeEnd );
-
-
-            if( mpirank == 0 )
-              cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
-
-            if( mpirank == 0 ){
-              statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
-              ofstream ofs("diag");
-              if( !ofs.good() ) 
-                ErrorHandling("file cannot be opened.");
-              serialize( diag, ofs, NO_MASK );
-              ofs.close();
             }
+            else if( doDiag ){
+              NumVec<MYSCALAR> diag;
+
+              GetTime( timeSta );
+              pMat->GetDiagonal( diag );
+              GetTime( timeEnd );
+
+
+              if( mpirank == 0 )
+                cout << "Time for getting the diagonal is " << timeEnd  - timeSta << endl;
+
+              if( mpirank == 0 ){
+                statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
+                ofstream ofs("diag");
+                if( !ofs.good() ) 
+                  ErrorHandling("file cannot be opened.");
+                serialize( diag, ofs, NO_MASK );
+                ofs.close();
+              }
+            }
+
+
+            delete pMat;
+            delete pGrid;
+
+            }
+
+
           }
 
+          delete pSuper;
+          delete pLuMat;
+          delete pLuGrid;
 
-          delete pMat;
-          delete pGrid;
-
-        }
-
-
-      }
-
-      delete pSuper;
-      delete pLuMat;
-      delete pLuGrid;
-
-      statusOFS.close();
+          statusOFS.close();
 #ifdef GEMM_PROFILE
-      statOFS.close();
+          statOFS.close();
 #endif
 
 #ifdef COMM_PROFILE
-      commOFS.close();
+          commOFS.close();
 #endif
 
 
+        }
+      }
+      catch( std::exception& e )
+      {
+        std::cerr << "Processor " << mpirank << " caught exception with message: "
+          << e.what() << std::endl;
+      }
+
+      MPI_Finalize();
+
+      return 0;
     }
-  }
-  catch( std::exception& e )
-  {
-    std::cerr << "Processor " << mpirank << " caught exception with message: "
-      << e.what() << std::endl;
-  }
-
-  MPI_Finalize();
-
-  return 0;
-}

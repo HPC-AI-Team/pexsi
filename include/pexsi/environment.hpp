@@ -61,6 +61,8 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include <map>
 #include <stack>
 #include <vector>
+#include <memory>
+#include <numeric>
 
 #include <algorithm>
 #include <cmath>
@@ -76,6 +78,10 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 // MPI
 #include <mpi.h>
+
+#ifdef _OMP_ENABLED_
+#include <omp.h>
+#endif
 
 // Google coredumper for debugging
 #ifdef COREDUMPER
@@ -123,7 +129,9 @@ namespace PEXSI{
 #define BLAS(name) name##_
 #define LAPACK(name) name##_
 #endif
-typedef    int                   Int;
+//typedef    int64_t               Int;
+//typedef    uint64_t               LongInt;
+typedef    int               Int;
 typedef    int64_t               LongInt;
 typedef    double                Real;
 typedef    std::complex<double>  Complex; // Must use elemental form of complex
@@ -213,7 +221,7 @@ namespace PEXSI{
 
   inline void gdb_lock(){
     static volatile int count=0;
-    static volatile int enabled=0;
+    static volatile int enabled=1;
     count++;
       pid_t pid = getpid();
 //      std::cout<<pid<<" is locked "<<count<<std::endl;

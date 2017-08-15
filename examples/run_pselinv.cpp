@@ -39,7 +39,7 @@ Enhancements, then you hereby grant the following license: a non-exclusive,
 royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
- */
+*/
 /// @file run_pselinv.cpp
 /// @brief Test for the interface of SuperLU_DIST and SelInv.
 /// @date 2013-04-15
@@ -47,7 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-//#define _MYCOMPLEX_
+#define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
 #define MYSCALAR Complex
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
-    try{
+  try{
     MPI_Comm world_comm;
 
     // *********************************************************************
@@ -163,20 +163,70 @@ int main(int argc, char **argv)
         checkAccuracy= atoi(options["-E"].c_str());
       }
 
-      int doFacto = true;
-      if( options.find("-F") != options.end() ){ 
-        doFacto= atoi(options["-F"].c_str());
-      }
 
       int doSelInv = 1;
       if( options.find("-Sinv") != options.end() ){ 
         doSelInv= atoi(options["-Sinv"].c_str());
       }
 
-      int doSymbfact = true;
-      if( options.find("-Symb") != options.end() ){ 
-        doSymbfact= atoi(options["-Symb"].c_str());
+
+      int doFacto = 1;
+      if( options.find("-F") != options.end() ){ 
+        doFacto= atoi(options["-F"].c_str());
       }
+
+      int doSymbolic = 1;
+      if( options.find("-Symb") != options.end() ){ 
+        doSymbolic= atoi(options["-Symb"].c_str());
+      }
+
+      int doConvert = 1;
+      if( options.find("-C") != options.end() ){ 
+        doConvert= atoi(options["-C"].c_str());
+      }
+
+      int doDistribute = 1;
+      if( options.find("-D") != options.end() ){ 
+        doDistribute= atoi(options["-D"].c_str());
+      }
+
+      Int doConstructPattern = 1;
+      if( options.find("-Pattern") != options.end() ){ 
+        doConstructPattern = atoi(options["-Pattern"].c_str());
+      }
+
+      Int doPreSelinv = 1;
+      if( options.find("-PreSelinv") != options.end() ){ 
+        doPreSelinv = atoi(options["-PreSelinv"].c_str());
+      }
+
+
+
+      if(doSelInv){
+        doConvert=1;
+      }
+
+      if(doConvert){
+        doFacto=1;
+      }
+
+      if(doFacto){
+        doDistribute=1;
+      }
+
+      if(doDistribute){
+        doSymbolic = 1;
+      }
+
+
+
+
+
+
+
+
+
+
 
       int doToDist = true;
       if( options.find("-ToDist") != options.end() ){ 
@@ -188,7 +238,6 @@ int main(int argc, char **argv)
         doDiag = atoi(options["-Diag"].c_str());
       }
 
-      doFacto = doFacto && doSymbfact;
 
       if( options.find("-H") != options.end() ){ 
         Hfile = options["-H"];
@@ -216,6 +265,20 @@ int main(int argc, char **argv)
           << std::endl << std::endl;
       }
 
+      Int symmetricStorage = 0;
+      if( options.find("-SS") != options.end() ){ 
+        symmetricStorage = atoi(options["-SS"].c_str());
+      }
+      else{
+        statusOFS << "-SS option is not given. " 
+          << "Do not use symmetric storage." 
+          << std::endl << std::endl;
+      }
+
+
+
+
+
       Int numProcSymbFact;
       if( options.find("-npsymbfact") != options.end() ){ 
         numProcSymbFact = atoi( options["-npsymbfact"].c_str() );
@@ -227,21 +290,6 @@ int main(int argc, char **argv)
         numProcSymbFact = 0;
       }
 
-
-      Int doConstructPattern = 1;
-      if( options.find("-Pattern") != options.end() ){ 
-        doConstructPattern = atoi(options["-Pattern"].c_str());
-      }
-
-      Int doPreSelinv = 1;
-      if( options.find("-PreSelinv") != options.end() ){ 
-        doPreSelinv = atoi(options["-PreSelinv"].c_str());
-      }
-
-      Int doSelinv = 1;
-      if( options.find("-Selinv") != options.end() ){ 
-        doSelinv = atoi(options["-Selinv"].c_str());
-      }
 
       Real rshift = 0.0, ishift = 0.0;
       if( options.find("-rshift") != options.end() ){ 
@@ -396,8 +444,7 @@ int main(int argc, char **argv)
       if( mpirank == 0 )
         cout << "Time for converting to SuperLU format is " << timeEnd - timeSta << endl;
 
-
-      if(doSymbfact){
+      if(doSymbolic){
         GetTime( timeSta );
         luMat.SymbolicFactorize();
         luMat.DestroyAOnly();
@@ -411,24 +458,25 @@ int main(int argc, char **argv)
       // Numerical factorization only 
       // *********************************************************************
 
-      if(doFacto){
-        Real timeTotalFactorizationSta, timeTotalFactorizationEnd; 
+      Real timeTotalFactorizationSta, timeTotalFactorizationEnd; 
 
 
-        // Important: the distribution in pzsymbfact is going to mess up the
-        // A matrix.  Recompute the matrix A here.
-        luMat.DistSparseMatrixToSuperMatrixNRloc( AMat ,luOpt);
+      // Important: the distribution in pzsymbfact is going to mess up the
+      // A matrix.  Recompute the matrix A here.
+      luMat.DistSparseMatrixToSuperMatrixNRloc( AMat ,luOpt);
 
-        GetTime( timeTotalFactorizationSta );
+      GetTime( timeTotalFactorizationSta );
 
+      if(doDistribute){
         GetTime( timeSta );
         luMat.Distribute();
         GetTime( timeEnd );
         if( mpirank == 0 )
           cout << "Time for distribution is " << timeEnd - timeSta << " sec" << endl; 
+      }
 
 
-
+      if(doFacto){
         GetTime( timeSta );
         luMat.NumericalFactorize();
         GetTime( timeEnd );
@@ -471,7 +519,7 @@ int main(int argc, char **argv)
         // Selected inversion
         // *********************************************************************
 
-        if(doSelInv>=1)
+        if(doConvert || doSelInv>=1)
         {
           Real timeTotalSelInvSta, timeTotalSelInvEnd;
 
@@ -493,36 +541,41 @@ int main(int argc, char **argv)
 
           PSelInvOptions selInvOpt;
           selInvOpt.maxPipelineDepth = maxPipelineDepth;
+          selInvOpt.symmetricStorage = symmetricStorage;
 
           FactorizationOptions factOpt;
           factOpt.ColPerm = ColPerm;
           PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &selInvOpt, &factOpt  );
           PMatrix<MYSCALAR> & PMloc = *PMlocPtr;
 
-          luMat.LUstructToPMatrix( PMloc );
-          GetTime( timeEnd );
+          if(doConvert){
+            luMat.LUstructToPMatrix( PMloc );
+            GetTime( timeEnd );
+          }
 
           LongInt nnzLU = PMloc.Nnz();
           if( mpirank == 0 ){
             cout << "nonzero in L+U  (PMatrix format) = " << nnzLU << endl;
           }
 
-          if( mpirank == 0 )
-            cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
-
-          // Preparation for the selected inversion
-          GetTime( timeSta );
-          PMloc.ConstructCommunicationPattern();
-          GetTime( timeEnd );
-
-
-          if( mpirank == 0 )
-            cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
-
-          double timeTotalOffsetSta = 0;
-          GetTime( timeTotalOffsetSta );
+          if(doConvert){
+            if( mpirank == 0 )
+              cout << "Time for converting LUstruct to PMatrix is " << timeEnd  - timeSta << endl;
+          }
 
           if(doSelInv>1){
+            // Preparation for the selected inversion
+            GetTime( timeSta );
+            PMloc.ConstructCommunicationPattern();
+            GetTime( timeEnd );
+
+
+            if( mpirank == 0 )
+              cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
+
+            double timeTotalOffsetSta = 0;
+            GetTime( timeTotalOffsetSta );
+
             PMatrix<MYSCALAR> PMlocIt = PMloc;
             for(int i=1; i<= doSelInv; ++i )
             {
@@ -556,31 +609,31 @@ int main(int argc, char **argv)
 
 
 
-                // Convert to DistSparseMatrix and get the diagonal
-                GetTime( timeSta );
-                DistSparseMatrix<MYSCALAR> Ainv;
-                PMlocIt.PMatrixToDistSparseMatrix( Ainv );
-                GetTime( timeEnd );
+                ////// Convert to DistSparseMatrix and get the diagonal
+                ////GetTime( timeSta );
+                ////DistSparseMatrix<MYSCALAR> Ainv;
+                ////PMlocIt.PMatrixToDistSparseMatrix( Ainv );
+                ////GetTime( timeEnd );
 
-                if( mpirank == 0 )
-                  cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
+                ////if( mpirank == 0 )
+                ////  cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-                NumVec<MYSCALAR> diagDistSparse;
-                GetTime( timeSta );
-                GetDiagonal( Ainv, diagDistSparse );
-                GetTime( timeEnd );
-                if( mpirank == 0 )
-                  cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+                ////NumVec<MYSCALAR> diagDistSparse;
+                ////GetTime( timeSta );
+                ////GetDiagonal( Ainv, diagDistSparse );
+                ////GetTime( timeEnd );
+                ////if( mpirank == 0 )
+                ////  cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
-                if( mpirank == 0 ){
-                  statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-                  Real diffNorm = 0.0;;
-                  for( Int i = 0; i < diag.m(); i++ ){
-                    diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
-                  }
-                  diffNorm = std::sqrt( diffNorm );
-                  statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-                }
+                ////if( mpirank == 0 ){
+                ////  statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+                ////  Real diffNorm = 0.0;;
+                ////  for( Int i = 0; i < diag.m(); i++ ){
+                ////    diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+                ////  }
+                ////  diffNorm = std::sqrt( diffNorm );
+                ////  statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+                ////}
 
                 // Convert to DistSparseMatrix in the 2nd format and get the diagonal
                 GetTime( timeSta );
@@ -631,7 +684,16 @@ int main(int argc, char **argv)
 
             }
           }
-          else{
+          else if (doSelInv==1) {
+            // Preparation for the selected inversion
+            GetTime( timeSta );
+            PMloc.ConstructCommunicationPattern();
+            GetTime( timeEnd );
+
+
+            if( mpirank == 0 )
+              cout << "Time for constructing the communication pattern is " << timeEnd  - timeSta << endl;
+
             GetTime( timeSta );
             PMloc.PreSelInv();
             GetTime( timeEnd );
@@ -680,31 +742,31 @@ int main(int argc, char **argv)
 
 
             if(doToDist){
-              // Convert to DistSparseMatrix and get the diagonal
-              GetTime( timeSta );
-              DistSparseMatrix<MYSCALAR> Ainv;
-              PMloc.PMatrixToDistSparseMatrix( Ainv );
-              GetTime( timeEnd );
-
-              if( mpirank == 0 )
-                cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-              NumVec<MYSCALAR> diagDistSparse;
-              GetTime( timeSta );
-              GetDiagonal( Ainv, diagDistSparse );
-              GetTime( timeEnd );
-              if( mpirank == 0 )
-                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
-
-              if( mpirank == 0 ){
-                statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
-                Real diffNorm = 0.0;;
-                for( Int i = 0; i < diag.m(); i++ ){
-                  diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
-                }
-                diffNorm = std::sqrt( diffNorm );
-                statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
-              }
+              /////              // Convert to DistSparseMatrix and get the diagonal
+              /////              GetTime( timeSta );
+              /////              DistSparseMatrix<MYSCALAR> Ainv;
+              /////              PMloc.PMatrixToDistSparseMatrix( Ainv );
+              /////              GetTime( timeEnd );
+              /////
+              /////              if( mpirank == 0 )
+              /////                cout << "Time for converting PMatrix to DistSparseMatrix is " << timeEnd  - timeSta << endl;
+              /////
+              /////              NumVec<MYSCALAR> diagDistSparse;
+              /////              GetTime( timeSta );
+              /////              GetDiagonal( Ainv, diagDistSparse );
+              /////              GetTime( timeEnd );
+              /////              if( mpirank == 0 )
+              /////                cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
+              /////
+              /////              if( mpirank == 0 ){
+              /////                statusOFS << std::endl << "Diagonal of inverse from DistSparseMatrix format : " << std::endl << diagDistSparse << std::endl;
+              /////                Real diffNorm = 0.0;;
+              /////                for( Int i = 0; i < diag.m(); i++ ){
+              /////                  diffNorm += pow( std::abs( diag(i) - diagDistSparse(i) ), 2.0 );
+              /////                }
+              /////                diffNorm = std::sqrt( diffNorm );
+              /////                statusOFS << std::endl << "||diag - diagDistSparse||_2 = " << diffNorm << std::endl;
+              /////              }
 
               // Convert to DistSparseMatrix in the 2nd format and get the diagonal
               GetTime( timeSta );

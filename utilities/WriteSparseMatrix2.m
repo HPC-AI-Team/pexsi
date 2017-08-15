@@ -1,11 +1,16 @@
-function nzval = WriteSparseMatrix2(A, filename, colptr, rowind)
+function nzval = WriteSparseMatrix2(A, filename, B)
 % Write a sparse symmetric matrix A in compressed column storage, for
 % given colptr and rowind
 
 disp('Computing the compressed column storage...');
+
 tic
-N = length(A);	
+[rowind, colind, ~] = find( B );
 nnzAlower = length(rowind);
+[~,colptr,~] = unique( colind, 'first' );
+colptr = [ colptr; nnzAlower+1 ];
+
+N = length(A);	
 nzval = zeros(nnzAlower, 1);
 cnt = 1;
 for i = 1 : nnzAlower
@@ -20,7 +25,7 @@ if(1)
 	disp('Writing the matrix to file (text format)...');
 	tic
 		fid = fopen(filename,'w');
-		fprintf(fid, '%d %d %d', [N, nnzAlower]);
+		fprintf(fid, '%d %d %d %d', [N, N, nnzAlower, 0]);
 		fprintf(fid, '\n');
 		fprintf(fid, '%d ', colptr);
 		fprintf(fid, '\n');

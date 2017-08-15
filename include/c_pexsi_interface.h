@@ -259,6 +259,14 @@ typedef struct {
     int           solver;
 
     /** 
+     * @brief  Storage space used by the Selected Inversion algorithm for symmetric matrices.  
+     * - = 0   : Non symmetric storage.
+     * - = 1   : Symmetric storage (lower memory usage).
+     */ 
+    int           symmetricStorage;
+
+
+    /** 
      * @brief  Ordering strategy for factorization and selected
      * inversion. When SuperLU is used:  
      * - = 0   : Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS

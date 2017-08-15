@@ -1400,7 +1400,7 @@ void inline Convert(const DistSparseMatrix<T>& A, symPACK::DistSparseMatrix<T> &
   BGraph.keepDiag = 1;
   BGraph.sorted = 1;
   BGraph.colptr.resize(BGraph.LocalVertexCount()+1); 
-  symPACK::bassert(A.colptrLocal.m()== BGraph.colptr.size());
+  assert(A.colptrLocal.m()== BGraph.colptr.size());
   std::copy(A.colptrLocal.Data(),A.colptrLocal.Data()+BGraph.LocalVertexCount()+1,BGraph.colptr.data());
 
   //Copy nzval
@@ -1430,7 +1430,7 @@ void inline Convert(symPACK::DistSparseMatrix<T>& B, DistSparseMatrix<T> & A)
         //TODO do we have to redistribute when vertexDist is not balanced ?
         Int colPerProc = B.size / mpisize;
         if(mpirank==mpisize-1){ colPerProc = B.size - mpirank*colPerProc;}
-        symPACK::bassert(B.GetLocalGraph().LocalVertexCount() == colPerProc);
+        assert(B.GetLocalGraph().LocalVertexCount() == colPerProc);
 
         A.comm = B.comm;
         A.size = B.size;
@@ -1659,6 +1659,14 @@ void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Complex>
 
 void ReadDistSparseMatrixFormatted( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm );
 
+template<typename T>
+std::string ToMatlabScalar( T val);
+
+template<typename T>
+std::string ToMatlabScalar( std::complex<T> val);
+
+template<typename T>
+void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & pspmat, MPI_Comm comm);
 
 template <class F1, class F2> 
 void
@@ -1867,7 +1875,6 @@ MonotoneRootFinding (
 
   return root;
 }		// -----  end of function MonotoneRootFinding  ----- 
-
 
 
 

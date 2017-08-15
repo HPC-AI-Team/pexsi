@@ -256,6 +256,10 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
   options.lookahead_etree   = YES;
   options.SymPattern        = YES;
 
+//#ifdef _PRINT_STATS_
+//  options.PrintStat         = YES;
+//#endif
+
   if(opt.Symmetric == 1){
     options.RowPerm         = NOROWPERM;
     options.Equil             = NO; 
@@ -431,7 +435,21 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
   Int firstRow = mpirank * numRowLocalFirst;
   Int numRowLocal = -1;
   Int nnzLocal = -1;
+#if 0
+    numRowLocal = sparseA.colptrLocal.m() - 1;
+    nnzLocal = sparseA.nnzLocal;
 
+    colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal); 
+    nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(sparseA.nnzLocal);
+    rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
+
+    std::copy( sparseA.colptrLocal.Data(), sparseA.colptrLocal.Data() + sparseA.colptrLocal.m(),
+        rowptrLocal );
+    std::copy( sparseA.rowindLocal.Data(), sparseA.rowindLocal.Data() + sparseA.rowindLocal.m(),
+        colindLocal );
+    std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
+        (Complex*)nzvalLocal );
+#else
   if(options.Transpose == 1 || options.Symmetric == 1 ){
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
@@ -449,6 +467,7 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
 
   }
   else{
+    statusOFS<<"CONVERTING TO CSR"<<std::endl;
     DistSparseMatrix<Complex> sparseB;
     CSCToCSR(sparseA,sparseB);
 
@@ -466,6 +485,7 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
     std::copy( sparseB.nzvalLocal.Data(), sparseB.nzvalLocal.Data() + sparseB.nzvalLocal.m(),
         (Complex*)nzvalLocal );
   }
+#endif
 
   // Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
   for(Int i = 0; i < nnzLocal; i++){
@@ -596,15 +616,18 @@ ComplexSuperLUData::NumericalFactorize	(  )
       anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info); 
 
 #ifdef _PRINT_STATS_
-  statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;
-  statusOFS<<"Number of tiny pivots: "<<ptrData->stat.TinyPivots<<std::endl;
-  statusOFS<<"Number of look aheads: "<<ptrData->stat.num_look_aheads<<std::endl;
-  statusOFS<<"Number of FLOPS during factorization: "<<ptrData->stat.ops[FACT]<<std::endl;
-  statusOFS<<"****************************************************"<<std::endl;
+  statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;  
+  statusOFS<<"Number of tiny pivots: "<<ptrData->stat.TinyPivots<<std::endl;  
+  statusOFS<<"Number of look aheads: "<<ptrData->stat.num_look_aheads<<std::endl;  
+  
+  float flopcnt = 0;
+  MPI_Allreduce(&ptrData->stat.ops[FACT], &flopcnt, 1, MPI_FLOAT, MPI_SUM, ptrData->grid->comm);
+  statusOFS<<"Number of FLOPS for factorization: "<<flopcnt<<std::endl;  
+  if(!ptrData->grid->iam){
+    std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
+  }
+  statusOFS<<"****************************************************"<<std::endl;  
 #endif
-
-
-
 
   PStatFree(&ptrData->stat);
   if( ptrData->info != 0 ){
@@ -837,6 +860,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
         cnt += numRow;
         LIndices[iblk] = blockIdx;
       }
+
       //      statusOFS<<"Unsorted blockidx for L are: "<<LIndices<<std::endl;
       //sort the array
       IntNumVec sortedIndices(Lcol.size());
@@ -920,7 +944,8 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 
 
 
-
+        if(PMloc.Options()!=nullptr){
+          if (PMloc.Options()->symmetricStorage!=1){
 
   // U part
 #if ( _DEBUGlevel_ >= 1 )
@@ -1026,12 +1051,22 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
       } // for (jblk)
 
 
+#if ( _DEBUGlevel_ >= 2 )
+      statusOFS<<"Real Sorted blockidx for U are: ";
+      for( Int iblk = 0; iblk < Urow.size(); iblk++ ){
+        statusOFS<<Urow[iblk].blockIdx<<" ";
+      }
+      statusOFS<<std::endl;
+#endif
+
+
 
     } // if( index )
 
   } // for(ib)
 
-
+          }
+        }
 
 
   for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){

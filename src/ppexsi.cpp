@@ -62,7 +62,7 @@ PPEXSIData::PPEXSIData    (
     Int        numProcCol, 
     Int        outputFileIndex ){
 
-  Int mpirank, mpisize;
+  int mpirank, mpisize;
   MPI_Comm_rank( comm, &mpirank );
   MPI_Comm_size( comm, &mpisize );
 
@@ -235,7 +235,7 @@ PPEXSIData::LoadRealMatrix    (
     Real*         HnzvalLocal,                  
     Int           isSIdentity,                  
     Real*         SnzvalLocal,
-    Int               solver,
+    Int           solver,
     Int           verbosity )
 {
   // Clear the previously saved information
@@ -513,7 +513,7 @@ PPEXSIData::LoadComplexMatrix    (
     Complex*      HnzvalLocal,                  
     Int           isSIdentity,                  
     Complex*      SnzvalLocal,
-    Int               solver,
+    Int           solver,
     Int           verbosity )
 {
   // Clear the previously saved information
@@ -785,6 +785,7 @@ switch (solver) {
 void
 PPEXSIData::SymbolicFactorizeRealSymmetricMatrix    (
     Int                            solver,
+    Int                            symmetricStorage,
     std::string                    ColPerm,
     Int                            numProcSymbFact,
     Int                            verbosity )
@@ -810,6 +811,7 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix    (
     PMloc = PMatrix<Real>();
 
     selinvOpt_.maxPipelineDepth = -1;
+    selinvOpt_.symmetricStorage = symmetricStorage;
     factOpt_.ColPerm = ColPerm;
 
     switch (solver) {
@@ -857,7 +859,7 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix    (
           symPACKRealMat_ = new symPACK::symPACKMatrix<Real>();
 
           symPACK::symPACKOptions & optionsFact = symPACKOpt_;
-          optionsFact.decomposition = symPACK::LDL;
+          optionsFact.decomposition = symPACK::DecompositionType::LDL;
           optionsFact.orderingStr = ColPerm;
           optionsFact.MPIcomm = gridPole_->rowComm;
           optionsFact.NpOrdering = numProcSymbFact;
@@ -1156,6 +1158,7 @@ PPEXSIData::SymbolicFactorizeRealUnsymmetricMatrix    (
 void
 PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix    (
     Int                            solver,
+    Int                            symmetricStorage,
     std::string                    ColPerm,
     Int                            numProcSymbFact,
     Int                            verbosity )
@@ -1183,6 +1186,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix    (
 
     factOpt_.ColPerm = ColPerm;
     selinvOpt_.maxPipelineDepth = -1;
+    selinvOpt_.symmetricStorage = symmetricStorage;
 
     switch(solver){
       case 0:
@@ -1228,7 +1232,7 @@ PPEXSIData::SymbolicFactorizeComplexSymmetricMatrix    (
           symPACKComplexMat_ = new symPACK::symPACKMatrix<Complex>();
 
           symPACK::symPACKOptions & optionsFact = symPACKOpt_;
-          optionsFact.decomposition = symPACK::LDL;
+          optionsFact.decomposition = symPACK::DecompositionType::LDL;
           optionsFact.orderingStr = ColPerm;
           optionsFact.MPIcomm = gridPole_->rowComm;
           optionsFact.NpOrdering = numProcSymbFact;
@@ -1522,6 +1526,7 @@ PPEXSIData::SymbolicFactorizeComplexUnsymmetricMatrix    (
 void 
 PPEXSIData::SelInvRealSymmetricMatrix(
     Int               solver,
+    Int               symmetricStorage,
     double*           AnzvalLocal,                  
     Int               verbosity,
     double*           AinvnzvalLocal )
@@ -1817,6 +1822,7 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
 void 
 PPEXSIData::SelInvComplexSymmetricMatrix(
     Int               solver,
+    Int               symmetricStorage,
     double*           AnzvalLocal,                  
     Int               verbosity,
     double*           AinvnzvalLocal )
@@ -2112,7 +2118,7 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
 void PPEXSIData::CalculateNegativeInertiaReal(
     const std::vector<Real>&       shiftVec, 
     std::vector<Real>&             inertiaVec,
-    Int               solver,
+    Int                            solver,
     Int                            verbosity ){
 
   // *********************************************************************
@@ -2259,7 +2265,7 @@ void PPEXSIData::CalculateNegativeInertiaReal(
 void PPEXSIData::CalculateNegativeInertiaComplex(
     const std::vector<Real>&       shiftVec, 
     std::vector<Real>&             inertiaVec,
-    Int               solver,
+    Int                            solver,
     Int                            verbosity ){
 
   // *********************************************************************
@@ -2791,9 +2797,6 @@ void PPEXSIData::CalculateFermiOperatorReal(
         luMat.LUstructToPMatrix( PMloc );
 
 
-        // Collective communication version
-        //          PMloc.ConstructCommunicationPattern_Collectives();
-
         PMloc.PreSelInv();
 
         // Main subroutine for selected inversion
@@ -3057,7 +3060,7 @@ void PPEXSIData::CalculateFermiOperatorComplexDeprecate(
     Real  mu,
     Real  numElectronExact,
     Real  numElectronTolerance,
-    Int               solver,
+    Int   solver,
     Int   verbosity,
     Real& numElectron,
     Real& numElectronDrvMu ){
@@ -4393,6 +4396,7 @@ PPEXSIData::DFTDriver (
     Int        matrixType,
     Int        isSymbolicFactorize,
     Int        solver,
+    Int        symmetricStorage,
     Int        ordering,
     Int        numProcSymbFact,
     Int        verbosity,
@@ -4493,12 +4497,14 @@ PPEXSIData::DFTDriver (
     if( matrixType == 0 ){
       SymbolicFactorizeRealSymmetricMatrix( 
           solver,
+          symmetricStorage,
           colPerm, 
           numProcSymbFact,
           verbosity );
 
       SymbolicFactorizeComplexSymmetricMatrix( 
           solver,
+          symmetricStorage,
           colPerm, 
           numProcSymbFact,
           verbosity );
@@ -4794,7 +4800,6 @@ PPEXSIData::DFTDriver (
         break;
       }
       else{
-
         // Update the chemical potential using Newton's method
         Real deltaMu = 
           -(numElectronPEXSI - numElectronExact) / numElectronDrvMuPEXSI;
@@ -4876,6 +4881,7 @@ PPEXSIData::DFTDriver2_Deprecate (
     Int        matrixType,
     Int        isSymbolicFactorize,
     Int        solver,
+    Int        symmetricStorage,
     Int        ordering,
     Int        numProcSymbFact,
     Int        verbosity,
@@ -4984,12 +4990,14 @@ PPEXSIData::DFTDriver2_Deprecate (
     if( matrixType == 0 ){
       SymbolicFactorizeRealSymmetricMatrix( 
           solver,
+          symmetricStorage,
           colPerm, 
           numProcSymbFact,
           verbosity );
 
       SymbolicFactorizeComplexSymmetricMatrix( 
           solver,
+          symmetricStorage,
           colPerm, 
           numProcSymbFact,
           verbosity );
@@ -5331,6 +5339,7 @@ PPEXSIData::DFTDriver2 (
     Int        matrixType,
     Int        isSymbolicFactorize,
     Int        solver,
+    Int        symmetricStorage,
     Int        ordering,
     Int        numProcSymbFact,
     Int        verbosity,
@@ -5466,12 +5475,14 @@ PPEXSIData::DFTDriver2 (
     if( matrixType == 0 ){
       SymbolicFactorizeRealSymmetricMatrix( 
           solver,
+          symmetricStorage,
           colPerm, 
           numProcSymbFact,
           verbosity );
 
       SymbolicFactorizeComplexSymmetricMatrix( 
           solver,
+          symmetricStorage,
           colPerm, 
           numProcSymbFact,
           verbosity );
@@ -5971,7 +5982,7 @@ void PPEXSIData::CalculateFermiOperatorReal2(
     Real  numElectronTolerance,
     Real  muMinPEXSI, 
     Real  muMaxPEXSI,
-    Int               solver,
+    Int   solver,
     Int   verbosity,
     Real& mu,
     Real& numElectron,
