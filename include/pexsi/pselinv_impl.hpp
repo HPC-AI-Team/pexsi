@@ -3018,7 +3018,6 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
                 }	
               } // for (ibSinv )
               if( isBlockFound == false ){
-                abort();
                 std::ostringstream msg;
                 msg << "Block(" << isup << ", " << jsup 
                   << ") did not find a matching block in Sinv." << std::endl;
@@ -4699,7 +4698,11 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         //      }
 
         //do a partial_sum to see from which tag a particular root should start from
-        std::list<Int> syncPoints;
+        syncPoints_.clear();
+
+        //TODO this is temporary
+        //maxTag_=10;
+
         int prevTag = 0;
         //      gdb_lock();
         //      maxTag_ = 19;
@@ -4710,6 +4713,7 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
           for(Int proot = 0; proot< grid_->mpisize; proot++){
             int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot+1];
             double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
+
             if(maxTag < (double)this->maxTag_){
               tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot-1];
               lprevTag+=tagcnt;
@@ -4719,11 +4723,13 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
               break;
             }
           }
+        
 
           if(needSync){
             prevTag = 0;
             lprevTag = prevTag;
             tagOffsetPerLevelPerRoot[lidx*grid_->mpisize] = prevTag;
+            
             for(Int proot = 0; proot< grid_->mpisize; proot++){
               int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot+1];
               double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
@@ -4732,12 +4738,18 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
                 lprevTag+=tagcnt;
               }
               else{
-                abort();
-                //level needs split
+                ////level needs split
+                //double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
+                //assert(maxTag < (double)this->maxTag_);
+                //tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot-1];
+                //lprevTag+=tagcnt;
                 break;
               }
             } 
-            syncPoints.push_back(lidx);
+            syncPoints_.push_back(lidx);
+
+//split the level here
+
           }
           else{
             prevTag = lprevTag;//tagOffsetPerLevelPerRoot[(lidx+1)*grid_->mpisize];
@@ -5195,34 +5207,52 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
       std::vector<std::vector<Int> > & superList = this->WorkingSet();
       Int numSteps = superList.size();
 
-Int lidx=0;
-        Int rank = 0;
+      Int lidx=0;
+      Int rank = 0;
 
+      //TODO temporary
+      statusOFS<<"syncPoints_: ";
+      for(auto && lidx: syncPoints_){
+        statusOFS<<lidx<<" ";
+      }
+      statusOFS<<std::endl;
 
-        for (lidx=0; lidx<numSteps ; lidx++){
-          SelInvIntra_P2p(lidx,rank);
+      auto itNextSync = syncPoints_.begin();
+      for (lidx=0; lidx<numSteps ; lidx++){
+        SelInvIntra_P2p(lidx,rank);
 
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS<<"OUT "<<lidx<<"/"<<numSteps<<" "<<limIndex_<<std::endl;
+        statusOFS<<"OUT "<<lidx<<"/"<<numSteps<<" "<<limIndex_<<std::endl;
 #endif
 
 #ifdef LIST_BARRIER
 #ifndef ALL_BARRIER
-          if (options_->maxPipelineDepth!=-1)
+        if (options_->maxPipelineDepth!=-1)
 #endif
-          {
-            MPI_Barrier(grid_->comm);
-          }
+        {
+          MPI_Barrier(grid_->comm);
+        }
 #endif
 
 
+        if (options_->symmetricStorage!=1){
           //find max snode.Index
           if(lidx>0 && (rank-1)%limIndex_==0){
             MPI_Barrier(grid_->comm);
           }
         }
-
+        else{
           MPI_Barrier(grid_->comm);
+          //if(itNextSync!=syncPoints_.end()){
+          //  if(*itNextSync == lidx){
+          //    MPI_Barrier(grid_->comm);
+          //    itNextSync++;
+          //  }
+          //}
+        }
+      }
+
+      MPI_Barrier(grid_->comm);
 
       TIMER_STOP(SelInv_P2p);
       return ;

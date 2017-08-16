@@ -623,6 +623,7 @@ protected:
   std::vector<Int> snodeTreeOffset_;
   std::vector<std::map<Int,Int> > snodeBlkidxToTree_;
   std::vector<std::vector<Int> > snodeTreeToBlkidx_;
+  std::list<Int> syncPoints_;
 
   double localFlops_;
 
