@@ -91,7 +91,9 @@ type, bind(C) :: f_ppexsi_options
   integer(c_int)         :: npSymbFact
   integer(c_int)         :: symmetric
   integer(c_int)         :: transpose
+  integer(c_int)         :: method
   integer(c_int)         :: verbosity
+  integer(c_int)         :: nPoints
 end type f_ppexsi_options
 
 
@@ -243,7 +245,7 @@ interface
       nrows, nnz, nnzLocal, numColLocal, isSIdentity
     integer(c_int), intent(in)  :: &
       colptrLocal(*), rowindLocal(*)
-    real(c_double), intent(in)  :: &
+    complex(c_double), intent(in)  :: &
       HnzvalLocal(*), SnzvalLocal(*)
     integer(c_int), intent(out)            :: info
   end subroutine 
@@ -407,8 +409,8 @@ interface
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
     type( f_ppexsi_options ), value, intent(in) :: options
-    real(c_double), intent(in)  :: AnzvalLocal(*)
-    real(c_double), intent(out) :: AinvnzvalLocal(*)
+    complex(c_double), intent(in)  :: AnzvalLocal(*)
+    complex(c_double), intent(out) :: AinvnzvalLocal(*)
     integer(c_int), intent(out)            :: info
   end subroutine 
 
@@ -441,8 +443,8 @@ interface
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
     type( f_ppexsi_options ), value, intent(in) :: options
-    real(c_double), intent(in)  :: AnzvalLocal(*)
-    real(c_double), intent(out) :: AinvnzvalLocal(*)
+    complex(c_double), intent(in)  :: AnzvalLocal(*)
+    complex(c_double), intent(out) :: AinvnzvalLocal(*)
     integer(c_int), intent(out)            :: info
   end subroutine 
 
@@ -565,7 +567,7 @@ interface
     use, intrinsic :: iso_c_binding
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
-    real(c_double), intent(out)   :: DMnzvalLocal(*), EDMnzvalLocal(*), FDMnzvalLocal(*)
+    complex(c_double), intent(out)   :: DMnzvalLocal(*), EDMnzvalLocal(*), FDMnzvalLocal(*)
     real(c_double), intent(out)   :: totalEnergyH, totalEnergyS, totalFreeEnergy
     integer(c_int), intent(out)            :: info
   end subroutine 
@@ -631,7 +633,7 @@ interface
     real(c_double), intent(in), value  :: temp, gap, deltaE, mu
   end subroutine 
 
-  subroutine f_calculate_edm_correction_complex(&
+  subroutine f_ppexsi_calculate_edm_correction_complex(&
       plan,&
       options,&
       info) &
@@ -644,7 +646,7 @@ interface
     integer(c_int), intent(out)        :: info
   end subroutine     
 
-  subroutine f_calculate_edm_correction_real(&
+  subroutine f_ppexsi_calculate_edm_correction_real(&
       plan,&
       options,&
       info) &
@@ -657,7 +659,7 @@ interface
     integer(c_int), intent(out)        :: info
   end subroutine     
 
-  subroutine f_interpolate_dm_real(&
+  subroutine f_ppexsi_interpolate_dm_real(&
       plan,&
       options,&
       numElectronExact,&
@@ -677,7 +679,8 @@ interface
     real(c_double), intent(out)        :: muPEXSI
     integer(c_int), intent(out)        :: info
   end subroutine     
-  subroutine f_interpolate_dm_complex(&
+
+  subroutine f_ppexsi_interpolate_dm_complex(&
       plan,&
       options,&
       numElectronExact,&
@@ -698,35 +701,35 @@ interface
     integer(c_int), intent(out)        :: info
   end subroutine     
 
-  subroutine f_ppexsi_retrieve_real_dm_edm(&
-      plan,&
-      DMnzvalLocal,&
-      EDMnzvalLocal,&
-      nnzLocal,&
-      info) &
-      bind(C, Name="PPEXSIRetrieveRealDMEDM")
-    use, intrinsic :: iso_c_binding
-    implicit none
-    integer(c_intptr_t), value, intent(in)  :: plan
-    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*)
-    integer(c_int),             intent(out) :: nnzLocal
-    integer(c_int),             intent(out) :: info
-  end subroutine
-
-  subroutine f_ppexsi_retrieve_complex_dm_edm(&
-      plan,&
-      DMnzvalLocal,&
-      EDMnzvalLocal,&
-      nnzLocal,&
-      info) &
-      bind(C, Name="PPEXSIRetrieveComplexDFTMatrix")
-    use, intrinsic :: iso_c_binding
-    implicit none
-    integer(c_intptr_t), value, intent(in)  :: plan
-    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*)
-    integer(c_int),             intent(out) :: nnzLocal
-    integer(c_int),             intent(out) :: info
-  end subroutine 
+!  subroutine f_ppexsi_retrieve_real_dm_edm(&
+!      plan,&
+!      DMnzvalLocal,&
+!      EDMnzvalLocal,&
+!      nnzLocal,&
+!      info) &
+!      bind(C, Name="PPEXSIRetrieveRealDMEDM")
+!    use, intrinsic :: iso_c_binding
+!    implicit none
+!    integer(c_intptr_t), value, intent(in)  :: plan
+!    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*)
+!    integer(c_int),             intent(out) :: nnzLocal
+!    integer(c_int),             intent(out) :: info
+!  end subroutine
+!
+!  subroutine f_ppexsi_retrieve_complex_dm_edm(&
+!      plan,&
+!      DMnzvalLocal,&
+!      EDMnzvalLocal,&
+!      nnzLocal,&
+!      info) &
+!      bind(C, Name="PPEXSIRetrieveComplexDFTMatrix")
+!    use, intrinsic :: iso_c_binding
+!    implicit none
+!    integer(c_intptr_t), value, intent(in)  :: plan
+!    real(c_double),             intent(out) :: DMnzvalLocal(*), EDMnzvalLocal(*)
+!    integer(c_int),             intent(out) :: nnzLocal
+!    integer(c_int),             intent(out) :: info
+!  end subroutine 
 
    subroutine f_ppexsi_retrieve_real_dm(&
       plan,&
@@ -782,12 +785,12 @@ interface
     use, intrinsic :: iso_c_binding
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
-    real(c_double), intent(out)   :: DMnzvalLocal(*)
-    real(c_double), intent(out)   :: totalEnergyH
+    complex(c_double), intent(out)   :: DMnzvalLocal(*)
+    real(c_double), intent(out)      :: totalEnergyH
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_ppexsi_retrieve_complex_edm(&
+  subroutine f_ppexsi_retrieve_comp(&
       plan,&
       options,&
       EDMnzvalLocal,&
@@ -799,7 +802,7 @@ interface
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
     type( f_ppexsi_options ), intent(in)   :: options
-    real(c_double), intent(out)   :: EDMnzvalLocal(*)
+    complex(c_double), intent(out):: EDMnzvalLocal(*)
     real(c_double), intent(out)   :: totalEnergyS
     integer(c_int), intent(out)   :: info
   end subroutine 

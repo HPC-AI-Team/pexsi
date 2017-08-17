@@ -22,8 +22,8 @@ run_pselinv_sympack: run_pselinv_sympack.o ${PEXSI_LIB} ../include/pexsi/sympack
 endif
 
 # Below are interfaces open to all users
-driver_ksdft_2: driver_ksdft_2.o ${PEXSI_LIB}
-	($(LOADER) -o $@_${SUFFIX} driver_ksdft_2.o  $(LOADOPTS) )
+driver2_ksdft: driver2_ksdft.o ${PEXSI_LIB}
+	($(LOADER) -o $@_${SUFFIX} driver2_ksdft.o  $(LOADOPTS) )
 
 driver_ksdft_2_deprecate: driver_ksdft_2_deprecate.o ${PEXSI_LIB}
 	($(LOADER) -o $@_${SUFFIX} driver_ksdft_2_deprecate.o  $(LOADOPTS) )
@@ -65,6 +65,7 @@ run_pselinv: run_pselinv.o ${PEXSI_LIB} ../include/pexsi/*.hpp
 
 run_pselinv_unsym: run_pselinv_unsym.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_pselinv_unsym.o  $(LOADOPTS) )
+
 
 run_test_reduce: run_test_reduce.o ${PEXSI_LIB} 
 	($(LOADER) -o $@_${SUFFIX} run_test_reduce.o  $(LOADOPTS) )
