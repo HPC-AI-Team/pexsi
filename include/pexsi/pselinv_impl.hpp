@@ -4669,6 +4669,46 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
 
         //At this point, the roots know how many distinct trees they are involved in. 
         //Thus we can compute the total number of requireds tags based on that
+        std::vector<int> tagCountPerSnode(numSuper,0);
+        for(int ksup = 0; ksup<communicators.size();ksup++){
+          if(communicators[ksup].size()>0){
+            auto & blockList = communicators[ksup]; 
+            tagCountPerSnode[ksup] += 2*blockList.size(); //reduce L + bcastL
+
+            Int prootD = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
+            if(prootD == grid_->mpirank){
+              tagCountPerSnode[ksup]++; //reduce D
+            }
+          }
+        }
+        MPI_Allreduce(MPI_IN_PLACE, tagCountPerSnode.data(),numSuper,MPI_INT,MPI_SUM,grid_->comm);
+
+        //first, check if we do not have levels simply exceeding maxTag_ value by themselves
+        for(Int lidx = 0 ; lidx < wset.size(); lidx++){
+          statusOFS<<wset[lidx]<<std::endl;
+        }
+
+        maxTag_ = *std::max_element(tagCountPerSnode.begin(), tagCountPerSnode.end());
+        for(Int lidx = 0 ; lidx < wset.size(); lidx++){
+          int tagcnt = 0;
+          Int stepSuper = wset[lidx].size(); 
+          for (Int esupidx=0; esupidx<stepSuper; esupidx++){
+            Int ksup = wset[lidx][esupidx]; 
+            if(tagcnt + tagCountPerSnode[ksup] <= maxTag_){
+              tagcnt += tagCountPerSnode[ksup];
+            }
+            else{
+              wset.insert(wset.begin()+lidx+1,std::vector<Int>());
+              wset[lidx+1].insert(wset[lidx+1].begin(),&wset[lidx][esupidx],wset[lidx].data()+stepSuper);
+              //wset.insert(lidx+1,std::vector<Int>(&wset[lidx][esupidx],wset[lidx].data()+stepSuper));
+              wset[lidx].resize(esupidx);
+              break;
+            }
+          }
+        }
+ 
+
+
 
         Int numSteps = wset.size();
         std::vector<int> tagCountPerLevel(numSteps,0);
@@ -4677,7 +4717,14 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
           for (Int esupidx=0; esupidx<stepSuper; esupidx++){
             Int ksup = wset[lidx][esupidx]; 
             auto & blockList = communicators[ksup]; 
-            tagCountPerLevel[lidx] += 2*blockList.size()+1; //reduce L + bcastL + reduce D
+            if(blockList.size()>0){
+              tagCountPerLevel[lidx] += 2*blockList.size(); //reduce L + bcastL 
+            }
+
+            Int prootD = PNUM(PROW(ksup,this->grid_),PCOL(ksup,this->grid_),this->grid_);
+            if(prootD == grid_->mpirank){
+              tagCountPerLevel[lidx]++; //reduce D
+            }
           }
         }
 
@@ -4689,23 +4736,15 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         MPI_Status status;
         MPI_Wait(&request_tags,&status);
 
+
+       
         //change storage format
         std::vector<int> tagOffsetPerLevelPerRoot(grid_->mpisize*numSteps+1,0);
-        //      for(Int lidx = 0 ; lidx < numSteps; lidx++){
-        //        for(Int proot = 0; proot< grid_->mpisize; proot++){
-        //          tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot +1] = tagCountPerLevelPerRoot[proot*numSteps+lidx];
-        //        }
-        //      }
 
         //do a partial_sum to see from which tag a particular root should start from
         syncPoints_.clear();
 
-        //TODO this is temporary
-        //maxTag_=10;
-
         int prevTag = 0;
-        //      gdb_lock();
-        //      maxTag_ = 19;
         for(Int lidx = 0 ; lidx < numSteps; lidx++){
           bool needSync = false;
           int lprevTag = prevTag;
@@ -4714,7 +4753,7 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
             int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot+1];
             double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
 
-            if(maxTag < (double)this->maxTag_){
+            if(maxTag <= (double)this->maxTag_){
               tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot-1];
               lprevTag+=tagcnt;
             }
@@ -4726,39 +4765,40 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         
 
           if(needSync){
+            //we need a barrier at the END of previous level
+            syncPoints_.push_back(lidx);
+
             prevTag = 0;
             lprevTag = prevTag;
-            tagOffsetPerLevelPerRoot[lidx*grid_->mpisize] = prevTag;
+            tagOffsetPerLevelPerRoot[lidx*grid_->mpisize] = lprevTag;
             
             for(Int proot = 0; proot< grid_->mpisize; proot++){
-              int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot+1];
+              int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];
               double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
-              if(maxTag < (double)this->maxTag_){
-                tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot-1];
+              if(maxTag <= (double)this->maxTag_){
+                tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;
                 lprevTag+=tagcnt;
               }
               else{
-                ////level needs split
-                //double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
-                //assert(maxTag < (double)this->maxTag_);
-                //tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot-1];
-                //lprevTag+=tagcnt;
+                //this should not happen anymore
+                abort();
                 break;
               }
             } 
-            syncPoints_.push_back(lidx);
-
-//split the level here
-
           }
-          else{
-            prevTag = lprevTag;//tagOffsetPerLevelPerRoot[(lidx+1)*grid_->mpisize];
-          }
+          //else{
+            prevTag = lprevTag;
+            //tagOffsetPerLevelPerRoot[(lidx+1)*grid_->mpisize];
+          //}
 
           tagOffsetPerLevelPerRoot[(lidx+1)*grid_->mpisize] = lprevTag;
         }
 
-
+        std::for_each(syncPoints_.begin(),syncPoints_.end(), [](int & t){statusOFS<<t<<" ";}); statusOFS<<std::endl;
+        statusOFS<<tagOffsetPerLevelPerRoot<<std::endl;
+        for(auto && syncPt: syncPoints_){
+          assert(tagOffsetPerLevelPerRoot[syncPt*grid_->mpisize]==0);
+        }
 
 
         //Now, we can organize the Alltoallv to build the ranklists
@@ -4821,6 +4861,7 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
           //Pack
           sendBuffer.resize(sendDispls.back());
 
+          //if(grid_->mpirank==0){gdb_lock();}
 
           for(Int lidx = 0 ; lidx < numSteps; lidx++){
             Int stepSuper = wset[lidx].size(); 
@@ -5044,6 +5085,53 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         statusOFS<<"Tree structure exchanges and creation time: "<<timeEnd - timeSta<<std::endl; 
 
 
+        //TODO This is a debug code: check that no same tag is used multiple time in the same window
+        statusOFS<<tagOffsetPerLevelPerRoot<<std::endl;
+
+          //if(grid_->mpirank==0){gdb_lock();}
+        int prevSync = 0;
+        auto itNextSync = syncPoints_.begin();
+        while(itNextSync!=syncPoints_.end()){
+          std::set<int> usedTags;
+          for(Int lidx=prevSync;lidx<*itNextSync;lidx++){
+            Int stepSuper = wset[lidx].size(); 
+            for (Int esupidx=0; esupidx<stepSuper; esupidx++){
+              Int ksup = wset[lidx][esupidx]; 
+              Int treeCount = snodeTreeOffset_[ksup+1] - snodeTreeOffset_[ksup]; 
+
+              for(Int offset = 0; offset<treeCount; offset++){
+                Int treeIdx = snodeTreeOffset_[ksup] + offset;
+                Int blkIdx = snodeTreeToBlkidx_[ksup][offset];
+                {
+                  auto & treeb = bcastLDataTree_[treeIdx]; 
+                  if(treeb){
+                    int tagb = treeb->GetTag();
+                    if(usedTags.count(tagb)>0){gdb_lock();}
+                    usedTags.insert(tagb);
+                  }
+                  
+                  auto & treel = redLTree2_[treeIdx]; 
+                  if(treel){
+                    int tagl = treel->GetTag();
+                    if(usedTags.count(tagl)>0){gdb_lock();}
+                    usedTags.insert(tagl);
+                  }
+                }
+              }
+              auto & treed = redDTree2_[ksup]; 
+              if(treed){
+                int tagd = treed->GetTag();
+                if(usedTags.count(tagd)>0){gdb_lock();}
+                usedTags.insert(tagd);
+              }
+            }
+          }
+          prevSync = *itNextSync;
+          itNextSync++;
+        }
+
+
+
         //for(Int lidx = 0 ; lidx < numSteps; lidx++){
         //  Int stepSuper = wset[lidx].size(); 
         //  for (Int esupidx=0; esupidx<stepSuper; esupidx++){
@@ -5242,13 +5330,13 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
           }
         }
         else{
-          MPI_Barrier(grid_->comm);
-          //if(itNextSync!=syncPoints_.end()){
-          //  if(*itNextSync == lidx){
-          //    MPI_Barrier(grid_->comm);
-          //    itNextSync++;
-          //  }
-          //}
+          //MPI_Barrier(grid_->comm);
+          if(itNextSync!=syncPoints_.end()){
+            if(*itNextSync == lidx+1){
+              MPI_Barrier(grid_->comm);
+              itNextSync++;
+            }
+          }
         }
       }
 
