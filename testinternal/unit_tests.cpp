@@ -62,6 +62,50 @@ such enhancements or derivative works thereof, in binary and source code form.
 using namespace PEXSI;
 using namespace std;
 
+#if 0
+        //TODO This is a debug code: check that no same tag is used multiple time in the same window
+        int prevSync = 0;
+        auto itNextSync = syncPoints_.begin();
+        while(itNextSync!=syncPoints_.end()){
+          std::set<int> usedTags;
+          for(Int lidx=prevSync;lidx<*itNextSync;lidx++){
+            Int stepSuper = wset[lidx].size(); 
+            for (Int esupidx=0; esupidx<stepSuper; esupidx++){
+              Int ksup = wset[lidx][esupidx]; 
+              Int treeCount = snodeTreeOffset_[ksup+1] - snodeTreeOffset_[ksup]; 
+
+              for(Int offset = 0; offset<treeCount; offset++){
+                Int treeIdx = snodeTreeOffset_[ksup] + offset;
+                Int blkIdx = snodeTreeToBlkidx_[ksup][offset];
+                {
+                  auto & treeb = bcastLDataTree_[treeIdx]; 
+                  if(treeb){
+                    int tagb = treeb->GetTag();
+                    if(usedTags.count(tagb)>0){gdb_lock();}
+                    usedTags.insert(tagb);
+                  }
+                  
+                  auto & treel = redLTree2_[treeIdx]; 
+                  if(treel){
+                    int tagl = treel->GetTag();
+                    if(usedTags.count(tagl)>0){gdb_lock();}
+                    usedTags.insert(tagl);
+                  }
+                }
+              }
+              auto & treed = redDTree2_[ksup]; 
+              if(treed){
+                int tagd = treed->GetTag();
+                if(usedTags.count(tagd)>0){gdb_lock();}
+                usedTags.insert(tagd);
+              }
+            }
+          }
+          prevSync = *itNextSync;
+          itNextSync++;
+        }
+#endif
+
 
 
 bool check_broadcasts(MPI_Comm world_comm,

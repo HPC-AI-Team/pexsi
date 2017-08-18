@@ -4401,13 +4401,10 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
           for( Int ksup = 0; ksup < numSuper; ksup++ ){
             // All block columns perform independently
             if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-              //std::vector<Int> & colBlockIdx = ColBlockIdx(LBj(ksup, grid_));
-
               std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
               Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
 
               //+1 for the supernode index, +1 for the number of blocks
-
               Int count = 0;
               count+=Lcol.size()-startIdx;
               //for(auto && val: colBlockIdx){ if (val > ksup){ count++; } }
@@ -4442,31 +4439,9 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
                   sendBuffer.push_back(Lcol[ib].blockIdx);
                   count++;
                 }
-
-                //for(auto && val: colBlockIdx){
-                //  if (val > ksup){
-                //    sendBuffer.push_back(val);
-                //    count++;
-                //  }
-                //}
               }
-
-              //statusOFS<<std::endl;
-              //std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-              //for( Int ib = 0; ib < Lcol.size(); ib++ ){
-              //  if( Lcol[ib].blockIdx > ksup ){
-              //    statusOFS<<Lcol[ib].blockIdx<<" ";
-              //  }
-              //}
-              //statusOFS<<std::endl;
-
-              //sendBuffer.insert(sendBuffer.end(),colBlockIdx.begin(),colBlockIdx.end());
             }
           }
-
-          //statusOFS<<"sendBuffer is: ";
-          //for(auto && blk: sendBuffer){statusOFS<<blk<<" ";}
-          //statusOFS<<std::endl;
 
           assert(sendBuffer.size()==sendCount);
 
@@ -4494,9 +4469,7 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         GetTime( timeSta );
         std::set<Int> curColStructure;
 
-        //special case for symmetric implementation ?
-        //this->bcastLDataTree_.resize(numSuper*numSuper);
-        //this->redLTree2_.resize(numSuper*numSuper);
+        //special case for symmetric implementation
         this->redDTree2_.resize(numSuper);
 
         std::vector< std::list< std::vector<Int> > > communicators;
@@ -4508,8 +4481,6 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         auto processCol = [&] (Int ksup){
           std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
           Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
-          //communicators[ksup].resize(Lcol.size()-startIdx);
-
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS<<"["<<ksup<<"] curColStructure: ";for(auto && blk:curColStructure){statusOFS<<blk<<" ";}statusOFS<<std::endl;
 #endif
@@ -4564,20 +4535,18 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
               curList.push_back(Lcol[ib].blockIdx);
               curList.push_back(msgSize);
               curList.push_back(Lcol[ib].nzval.Size());
-              //curList.push_back(proot);
               curList.insert(curList.end(),receivers.begin(),receivers.end());
 
               //statusOFS<<"["<<ksup<<"] block "<<Lcol[ib].blockIdx<<" sent from P"<<proot<<" to { ";
               //for(auto && p:receivers){ statusOFS<<p<<" ";}
               //statusOFS<<"} msgSize = "<<msgSize<<std::endl; 
-
               //statusOFS<<"["<<ksup<<"] curList "<<" { ";
               //for(auto && p:curList){ statusOFS<<p<<" ";}
               //statusOFS<<"} "<<std::endl; 
             }
           }
 
-          if(Lcol.size()>0/*startIdx*/){
+          if(Lcol.size()>0){
             //Create the Reduce to Diagonal tree
             std::vector<Int> & senders = communicatorsD[ksup];
             senders.reserve(this->grid_->numProcRow);
@@ -4606,27 +4575,19 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
             redDTree->SetGlobalComm(this->grid_->comm);
 #endif
           }
-
-
         };
-
-        //statusOFS<<"allColBlockIdx: "<<allColBlockIdx<<std::endl;
-
-
 
         std::partial_sum(recvCount.begin(),recvCount.end(),recvCount.begin());
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
           // All block columns perform independently
           if( MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
-
             //loop through the processors and use recvDispls to keep track of the progress
             bool done = true;
 
             for(Int p = 0; p < recvCount.size(); p++){
               int & i = recvDispls[p];
               if ( i < recvCount[p] ){
-
                 Int cur_ksup = allColBlockIdx[i];
 
                 assert(cur_ksup>=ksup);
@@ -4653,14 +4614,11 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
             //Create the "communicators" based on the content of curColStructure
             processCol(ksup);
 
-
-
             curColStructure.clear();
 
             if(done){
               break;
             }
-
           }
         }
 
@@ -4684,11 +4642,7 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         MPI_Allreduce(MPI_IN_PLACE, tagCountPerSnode.data(),numSuper,MPI_INT,MPI_SUM,grid_->comm);
 
         //first, check if we do not have levels simply exceeding maxTag_ value by themselves
-        for(Int lidx = 0 ; lidx < wset.size(); lidx++){
-          statusOFS<<wset[lidx]<<std::endl;
-        }
-
-        maxTag_ = *std::max_element(tagCountPerSnode.begin(), tagCountPerSnode.end());
+        //maxTag_ = *std::max_element(tagCountPerSnode.begin(), tagCountPerSnode.end());
         for(Int lidx = 0 ; lidx < wset.size(); lidx++){
           int tagcnt = 0;
           Int stepSuper = wset[lidx].size(); 
@@ -4700,16 +4654,12 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
             else{
               wset.insert(wset.begin()+lidx+1,std::vector<Int>());
               wset[lidx+1].insert(wset[lidx+1].begin(),&wset[lidx][esupidx],wset[lidx].data()+stepSuper);
-              //wset.insert(lidx+1,std::vector<Int>(&wset[lidx][esupidx],wset[lidx].data()+stepSuper));
               wset[lidx].resize(esupidx);
               break;
             }
           }
         }
  
-
-
-
         Int numSteps = wset.size();
         std::vector<int> tagCountPerLevel(numSteps,0);
         for(Int lidx = 0 ; lidx < numSteps; lidx++){
@@ -4735,8 +4685,6 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         //TODO this can be moved further down
         MPI_Status status;
         MPI_Wait(&request_tags,&status);
-
-
        
         //change storage format
         std::vector<int> tagOffsetPerLevelPerRoot(grid_->mpisize*numSteps+1,0);
@@ -4750,11 +4698,11 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
           int lprevTag = prevTag;
           tagOffsetPerLevelPerRoot[lidx*grid_->mpisize] = lprevTag;
           for(Int proot = 0; proot< grid_->mpisize; proot++){
-            int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot+1];
+            int tagcnt = tagCountPerLevelPerRoot[proot*numSteps+lidx];
             double maxTag = (double)lprevTag + (double)tagcnt - 1.0;
 
             if(maxTag <= (double)this->maxTag_){
-              tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;//tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot-1];
+              tagOffsetPerLevelPerRoot[lidx*grid_->mpisize + proot] = lprevTag;
               lprevTag+=tagcnt;
             }
             else{
@@ -4762,7 +4710,6 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
               break;
             }
           }
-        
 
           if(needSync){
             //we need a barrier at the END of previous level
@@ -4782,23 +4729,22 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
               else{
                 //this should not happen anymore
                 abort();
+                //TODO this needs to be turned into an ErrorHandling function
                 break;
               }
             } 
           }
-          //else{
-            prevTag = lprevTag;
-            //tagOffsetPerLevelPerRoot[(lidx+1)*grid_->mpisize];
-          //}
 
+          prevTag = lprevTag;
           tagOffsetPerLevelPerRoot[(lidx+1)*grid_->mpisize] = lprevTag;
         }
 
-        std::for_each(syncPoints_.begin(),syncPoints_.end(), [](int & t){statusOFS<<t<<" ";}); statusOFS<<std::endl;
-        statusOFS<<tagOffsetPerLevelPerRoot<<std::endl;
-        for(auto && syncPt: syncPoints_){
-          assert(tagOffsetPerLevelPerRoot[syncPt*grid_->mpisize]==0);
-        }
+
+        //std::for_each(syncPoints_.begin(),syncPoints_.end(), [](int & t){statusOFS<<t<<" ";}); statusOFS<<std::endl;
+        //statusOFS<<tagOffsetPerLevelPerRoot<<std::endl;
+        //for(auto && syncPt: syncPoints_){
+        //  assert(tagOffsetPerLevelPerRoot[syncPt*grid_->mpisize]==0);
+        //}
 
 
         //Now, we can organize the Alltoallv to build the ranklists
@@ -4861,8 +4807,6 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
           //Pack
           sendBuffer.resize(sendDispls.back());
 
-          //if(grid_->mpirank==0){gdb_lock();}
-
           for(Int lidx = 0 ; lidx < numSteps; lidx++){
             Int stepSuper = wset[lidx].size(); 
             for (Int esupidx=0; esupidx<stepSuper; esupidx++){
@@ -4883,14 +4827,8 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
                 }
               }
 
-
               auto & blockList = communicators[ksup]; 
               if (blockList.size()>0){
-
-
-
-                //std::vector<LBlock<T> >&  Lcol = this->L( LBj(ksup, grid_) );
-                //            Int startIdx = ( MYROW( grid_ ) == PROW( ksup, grid_ ) )?1:0;
                 for(auto && ranklist : blockList){
                   if(ranklist.size()>0){
                     Int ksup2 = ranklist[0];
@@ -4918,9 +4856,7 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
                     }
                   }
                 }
-
               }
-
             }
           }
 
@@ -4932,7 +4868,6 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
 
           GetTime( timeEnd2 );
           statusOFS<<"Tree structure packing: "<<timeEnd2 - timeSta2<<std::endl; 
-
 
           recvDispls[0] = 0;
           std::partial_sum(recvCount.begin(),recvCount.end(),&recvDispls[1]);
@@ -4947,8 +4882,6 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
               this->grid_->comm);
 
           MPI_Type_free(&Int_type);
-
-
 
           Real timeSta3, timeEnd3;
           Real tresize = 0;
@@ -5083,52 +5016,6 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         } 
         GetTime( timeEnd );
         statusOFS<<"Tree structure exchanges and creation time: "<<timeEnd - timeSta<<std::endl; 
-
-
-        //TODO This is a debug code: check that no same tag is used multiple time in the same window
-        statusOFS<<tagOffsetPerLevelPerRoot<<std::endl;
-
-          //if(grid_->mpirank==0){gdb_lock();}
-        int prevSync = 0;
-        auto itNextSync = syncPoints_.begin();
-        while(itNextSync!=syncPoints_.end()){
-          std::set<int> usedTags;
-          for(Int lidx=prevSync;lidx<*itNextSync;lidx++){
-            Int stepSuper = wset[lidx].size(); 
-            for (Int esupidx=0; esupidx<stepSuper; esupidx++){
-              Int ksup = wset[lidx][esupidx]; 
-              Int treeCount = snodeTreeOffset_[ksup+1] - snodeTreeOffset_[ksup]; 
-
-              for(Int offset = 0; offset<treeCount; offset++){
-                Int treeIdx = snodeTreeOffset_[ksup] + offset;
-                Int blkIdx = snodeTreeToBlkidx_[ksup][offset];
-                {
-                  auto & treeb = bcastLDataTree_[treeIdx]; 
-                  if(treeb){
-                    int tagb = treeb->GetTag();
-                    if(usedTags.count(tagb)>0){gdb_lock();}
-                    usedTags.insert(tagb);
-                  }
-                  
-                  auto & treel = redLTree2_[treeIdx]; 
-                  if(treel){
-                    int tagl = treel->GetTag();
-                    if(usedTags.count(tagl)>0){gdb_lock();}
-                    usedTags.insert(tagl);
-                  }
-                }
-              }
-              auto & treed = redDTree2_[ksup]; 
-              if(treed){
-                int tagd = treed->GetTag();
-                if(usedTags.count(tagd)>0){gdb_lock();}
-                usedTags.insert(tagd);
-              }
-            }
-          }
-          prevSync = *itNextSync;
-          itNextSync++;
-        }
 
 
 
@@ -5298,13 +5185,6 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
       Int lidx=0;
       Int rank = 0;
 
-      //TODO temporary
-      statusOFS<<"syncPoints_: ";
-      for(auto && lidx: syncPoints_){
-        statusOFS<<lidx<<" ";
-      }
-      statusOFS<<std::endl;
-
       auto itNextSync = syncPoints_.begin();
       for (lidx=0; lidx<numSteps ; lidx++){
         SelInvIntra_P2p(lidx,rank);
@@ -5330,7 +5210,6 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
           }
         }
         else{
-          //MPI_Barrier(grid_->comm);
           if(itNextSync!=syncPoints_.end()){
             if(*itNextSync == lidx+1){
               MPI_Barrier(grid_->comm);
