@@ -92,8 +92,8 @@ type, bind(C) :: f_ppexsi_options
   integer(c_int)         :: symmetric
   integer(c_int)         :: transpose
   integer(c_int)         :: method
-  integer(c_int)         :: verbosity
   integer(c_int)         :: nPoints
+  integer(c_int)         :: verbosity
 end type f_ppexsi_options
 
 
@@ -280,6 +280,7 @@ interface
   subroutine f_ppexsi_symbolic_factorize_real_unsymmetric_matrix(&
       plan,&
       options,&
+      AnzvalLocal,&
       info) &
       bind(C, Name="PPEXSISymbolicFactorizeRealUnsymmetricMatrix")
     use, intrinsic :: iso_c_binding
@@ -287,12 +288,14 @@ interface
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
     type( f_ppexsi_options ), value, intent(in) :: options
+    real(c_double), intent(inout)          :: AnzvalLocal(*)
     integer(c_int), intent(out)            :: info
   end subroutine 
 
   subroutine f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
       plan,&
       options,&
+      AnzvalLocal,&
       info) &
       bind(C, Name="PPEXSISymbolicFactorizeComplexUnsymmetricMatrix")
     use, intrinsic :: iso_c_binding
@@ -300,6 +303,7 @@ interface
     implicit none
     integer(c_intptr_t), intent(in), value :: plan
     type( f_ppexsi_options ), value, intent(in) :: options
+    complex(c_double), intent(inout)       :: AnzvalLocal(*)
     integer(c_int), intent(out)            :: info
   end subroutine 
 
@@ -322,7 +326,7 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_ppexsi_inertia_count_complx_matrix(&
+  subroutine f_ppexsi_inertia_count_complex_matrix(&
       plan,&
       options,&
       numShift,&
@@ -359,6 +363,27 @@ interface
     real(c_double), intent(out)   :: numElectronPEXSI, numElectronDrvMuPEXSI
     integer(c_int), intent(out)            :: info
   end subroutine 
+
+
+  subroutine f_ppexsi_calculate_fermi_operator_real3(&
+      plan,&
+      options,&
+      mu,&
+      numElectronExact,&
+      numElectronPEXSI,&
+      numElectronDrvMuPEXSI,&
+      info) &
+      bind(C, Name="PPEXSICalculateFermiOperatorReal")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t), intent(in), value :: plan
+    type( f_ppexsi_options ), value, intent(in) :: options
+    real(c_double), value, intent(in)      :: mu, numElectronExact
+    real(c_double), intent(out)   :: numElectronPEXSI, numElectronDrvMuPEXSI
+    integer(c_int), intent(out)            :: info
+  end subroutine 
+
 
 
   subroutine f_ppexsi_calculate_fermi_operator_complex(&
@@ -790,7 +815,7 @@ interface
     integer(c_int), intent(out)            :: info
   end subroutine 
 
-  subroutine f_ppexsi_retrieve_comp(&
+  subroutine f_ppexsi_retrieve_complex_edm(&
       plan,&
       options,&
       EDMnzvalLocal,&

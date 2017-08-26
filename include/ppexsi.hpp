@@ -667,7 +667,6 @@ public:
   /// the chemical potential has converged.
  
   void CalculateFermiOperatorReal3(
-      MPI_Comm pointColComm,
       Int   numPole, 
       Real  temperature,
       Real  gap,

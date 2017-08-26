@@ -5685,7 +5685,6 @@ PPEXSIData::DFTDriver2 (
       if(myPoint == currentPoint){
 
          CalculateFermiOperatorReal3(
-             pointColComm,
              numPole,
              temperature,
              gap,
@@ -7869,7 +7868,6 @@ void PPEXSIData::CalculateFermiOperatorReal2(
 //
 
 void PPEXSIData::CalculateFermiOperatorReal3(
-    MPI_Comm pointColComm,
     Int   numPole, 
     Real  temperature,
     Real  gap,
@@ -7888,6 +7886,10 @@ void PPEXSIData::CalculateFermiOperatorReal3(
   Int myPoint     = gridPole_->mpirank / npPerPoint;
   Int myPointRank = gridPole_->mpirank % npPerPoint;
   Int myRowPoint  = myPointRank / gridPole_->numProcCol;
+
+  MPI_Comm pointColComm, pointRowComm;
+  MPI_Comm_split( gridPole_->colComm, myPoint, myPointRank, &pointColComm);
+  MPI_Comm_split( gridPole_->colComm, myPointRank, myPoint, &pointRowComm);
 
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
@@ -8268,6 +8270,8 @@ void PPEXSIData::CalculateFermiOperatorReal3(
         frcMat.nnzLocal, MPI_SUM, pointColComm);
   }
 
+  MPI_Comm_free(&pointColComm);
+  MPI_Comm_free(&pointRowComm);
 
   return ;
 }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal3  ----- 
