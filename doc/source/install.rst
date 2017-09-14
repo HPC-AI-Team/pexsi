@@ -8,15 +8,15 @@ PEXSI requires an external parallel :math:`LU` factorization or
 :math:`LDL^T` factorization routine, and an external parallel matrix
 reordering routine to reduce the fill-in of the factorization routine.
 
-Starting from v1.0, PEXSI requires both `symPACK` and `SuperLU_DIST`.
-`symPACK` is the default option for the :math:`LDL^T` factorization of
-symmetric matrices, and use `SuperLU_DIST` as the default option for the
-:math:`LU` factorization of unsymmetric matrices.  `SuperLU_DIST` can
+Starting from v1.0, PEXSI requires both symPACK and SuperLU_DIST.
+symPACK is the default option for the :math:`LDL^T` factorization of
+symmetric matrices, and use SuperLU_DIST as the default option for the
+:math:`LU` factorization of unsymmetric matrices.  SuperLU_DIST can
 also be used for symmetric matrices, by means of treating the matrix as
 a general matrix but use symmetric reordering.
 
-Starting from v1.0, PEXSI uses the `PT-Scotch` as the default package
-for matrix reordering.  The `ParMETIS` package can also be used.
+Starting from v1.0, PEXSI uses the PT-Scotch as the default package
+for matrix reordering.  The ParMETIS package can also be used.
 
 The installation procedure and dependencies of every version of the PEXSI
 package may be slightly different. Please follow the documentation of the version
@@ -44,23 +44,27 @@ INSTALL.TXT for more information.
 
     2.9) MeTiS compatibility library
 
-**In `src/` directory, you need `make ptscotch` to compile PT-Scotch.
-Just typing `make` will generate the Scotch library but not PT-Scotch.
+In `src/` directory, you need
+:: 
+    make ptscotch 
+    
+to compile PT-Scotch.
+
+
+**NOTE**: Just typing `make` will generate the Scotch library but not PT-Scotch.
 Then all libraries will be given in `lib/` directory.**
 
 
 Build symPACK
 =============================
 
-**Need to be updated for someone less familiar with cmake..**
 
-`symPACK` is a sparse symmetric matrix direct linear solver.
+symPACK is a sparse symmetric matrix direct linear solver.
 More information can be found at http://www.sympack.org/.
 
-To use `symPACK`, first, download the package as follows::
-
-    git clone git@bitbucket.org:berkeleylab/symPACK.git
-    /path/to/symPACK
+To use symPACK, first, download the package as follows
+::
+    git clone https://github.com/symPACK/symPACK.git  /path/to/sympack
 
 Several environment variables can be set before configuring the build:
 ::
@@ -198,8 +202,8 @@ must be pointing to symPACK's installation directory.
 
 - Starting from PEXSI v0.8.0, `-std=c++11` is required in `CXXFLAGS`. 
 
-- Starting from PEXSI v0.9.2, `-std=c99` is required to be compatible
-  with SuperLU_DIST v4.3.
+- Starting from PEXSI v0.9.2, `-std=c99` is required in `CFLAGS` to be
+  compatible with SuperLU_DIST starting from v4.3.
 
 - For **FORTRAN** users, `CPP_LIB=-lstdc++ -lmpi -lmpi_cxx` is often needed.
   Check this if there is link error.

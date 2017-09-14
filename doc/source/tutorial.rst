@@ -429,8 +429,6 @@ should be relatively easy to dig into the driver routine, and only use
 (for one-shot PEXSI calculation) to improve heuristics and extend the
 functionalities.
 
-**FIXME: The examples above should be updated using PEXSIDFTDriver2 with
-symPACK option; Driver2 updated, but not symPACK yet.**
 
 
 Parallel computation of the Fermi operator for complex Hermitian matrices
