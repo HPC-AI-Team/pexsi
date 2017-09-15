@@ -2147,9 +2147,32 @@ void PPEXSIData::CalculateNegativeInertiaReal(
   DistSparseMatrix<Real>&  SMat     = SRealMat_;
   DistSparseMatrix<Real>& AMat      = shiftRealMat_;  // A = H - \lambda  S
   SuperLUMatrix<Real>&    luMat     = *luRealMat_;
+#ifdef WITH_SYMPACK
+  symPACK::DistSparseMatrix<Real>&  symmHMat     = symmHRealMat_;
+  symPACK::DistSparseMatrix<Real>&  symmSMat     = symmSRealMat_;
+  symPACK::DistSparseMatrix<Real> & AMat     = symmShiftRealMat_;  // A = H - \lambda  S
+  symPACK::symPACKMatrix<Real>& symPACKMat = *symPACKRealMat_ ;
+#endif
   PMatrix<Real>&          PMloc     = *PMRealMat_;
 
-  CopyPattern( PatternMat_, AMat );
+  switch(solver){
+    case 0:
+      {
+        CopyPattern( PatternMat_, AMat );
+      }
+      break;
+#ifdef WITH_SYMPACK
+    case 1:
+      {
+        PEXSI::CopyPattern( symmPatternMat_, AMat );
+      }
+      break;
+#endif
+    default:
+      ErrorHandling("Unsupported solver.");
+      break;
+  }
+
 
   Real timeShiftSta, timeShiftEnd;
 
@@ -2171,73 +2194,154 @@ void PPEXSIData::CalculateNegativeInertiaReal(
           << " processing..." << std::endl;
       }
 
-      if( SMat.size != 0 ){
-        // S is not an identity matrix
-        for( Int i = 0; i < HMat.nnzLocal; i++ ){
-          AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - shiftVec[l] * SMat.nzvalLocal(i);
-        }
+
+
+      switch(solver){
+        case 0:
+          {
+            if( SMat.size != 0 ){
+              // S is not an identity matrix
+              for( Int i = 0; i < HMat.nnzLocal; i++ ){
+                AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - shiftVec[l] * SMat.nzvalLocal(i);
+              }
+            }
+            else{
+              // S is an identity matrix
+              for( Int i = 0; i < HMat.nnzLocal; i++ ){
+                AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+              }
+
+              for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+                AMat.nzvalLocal( diagIdxLocal_[i] ) -= shiftVec[l];
+              }
+            } // if (SMat.size != 0 )
+          }
+          break;
+#ifdef WITH_SYMPACK
+        case 1:
+          {
+            if( symmSMat.size != 0 ){
+              // S is not an identity matrix
+              for( Int i = 0; i < symmHMat.nnzLocal; i++ ){
+                symmAMat.nzvalLocal[i] = symmHMat.nzvalLocal[i] - shiftVec[l] * symmSMat.nzvalLocal[i];
+              }
+            }
+            else{
+              // S is an identity matrix
+              for( Int i = 0; i < symmHMat.nnzLocal; i++ ){
+                symmAMat.nzvalLocal[i] = symmHMat.nzvalLocal[i];
+              }
+
+              for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+                symmAMat.nzvalLocal[ diagIdxLocal_[i] ] -= shiftVec[l];
+              }
+            } // if (symmSMat.size != 0 )
+          }
+          break;
+#endif
+        default:
+          ErrorHandling("Unsupported solver.");
+          break;
       }
-      else{
-        // S is an identity matrix
-        for( Int i = 0; i < HMat.nnzLocal; i++ ){
-          AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
-        }
-
-        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-          AMat.nzvalLocal( diagIdxLocal_[i] ) -= shiftVec[l];
-        }
-      } // if (SMat.size != 0 )
 
 
+
+
+
+      Real timeInertiaSta, timeInertiaEnd;
       // *********************************************************************
       // Factorization
       // *********************************************************************
-      // Important: the distribution in pzsymbfact is going to mess up the
-      // A matrix.  Recompute the matrix A here.
-      if( verbosity >= 2 ){
-        statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+      switch(solver){
+        case 0:
+          {
+            // Important: the distribution in pzsymbfact is going to mess up the
+            // A matrix.  Recompute the matrix A here.
+            if( verbosity >= 2 ){
+              statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+            }
+            luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+            if( verbosity >= 2 ){
+              statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+            }
+
+            Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+            GetTime( timeTotalFactorizationSta );
+
+            // Data redistribution
+            if( verbosity >= 2 ){
+              statusOFS << "Before Distribute." << std::endl;
+            }
+            luMat.Distribute();
+            if( verbosity >= 2 ){
+              statusOFS << "After Distribute." << std::endl;
+            }
+
+            // Numerical factorization
+            if( verbosity >= 2 ){
+              statusOFS << "Before NumericalFactorize." << std::endl;
+            }
+            luMat.NumericalFactorize();
+            if( verbosity >= 2 ){
+              statusOFS << "After NumericalFactorize." << std::endl;
+            }
+            luMat.DestroyAOnly();
+
+            GetTime( timeTotalFactorizationEnd );
+
+            if( verbosity >= 1 ){
+              statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+            }
+
+            // *********************************************************************
+            // Compute inertia
+            // *********************************************************************
+
+            GetTime( timeInertiaSta );
+            luMat.LUstructToPMatrix( PMloc );
+          }
+          break;
+#ifdef WITH_SYMPACK
+        case 1:
+          {
+            Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+            GetTime( timeTotalFactorizationSta );
+            // Data redistribution
+            if( verbosity >= 2 ){
+              statusOFS << "Before Distribute." << std::endl;
+            }
+            symPACKMat.DistributeMatrix(ltAMat);
+            if( verbosity >= 2 ){
+              statusOFS << "After Distribute." << std::endl;
+            }
+
+            // Numerical factorization
+            if( verbosity >= 2 ){
+              statusOFS << "Before NumericalFactorize." << std::endl;
+            }
+            symPACKMat.Factorize();
+            // Numerical factorization
+            if( verbosity >= 2 ){
+              statusOFS << "After NumericalFactorize." << std::endl;
+            }
+
+            GetTime( timeTotalFactorizationEnd );
+
+            if( verbosity >= 1 ){
+              statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+            }
+
+            GetTime( timeInertiaSta );
+            symPACKMatrixToPMatrix( symPACKMat, PMloc );
+          }
+          break;
+#endif
+        default:
+          ErrorHandling("Unsupported solver.");
+          break;
       }
-      luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
-      if( verbosity >= 2 ){
-        statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-      }
-
-      Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
-
-      GetTime( timeTotalFactorizationSta );
-
-      // Data redistribution
-      if( verbosity >= 2 ){
-        statusOFS << "Before Distribute." << std::endl;
-      }
-      luMat.Distribute();
-      if( verbosity >= 2 ){
-        statusOFS << "After Distribute." << std::endl;
-      }
-
-      // Numerical factorization
-      if( verbosity >= 2 ){
-        statusOFS << "Before NumericalFactorize." << std::endl;
-      }
-      luMat.NumericalFactorize();
-      if( verbosity >= 2 ){
-        statusOFS << "After NumericalFactorize." << std::endl;
-      }
-      luMat.DestroyAOnly();
-
-      GetTime( timeTotalFactorizationEnd );
-
-      if( verbosity >= 1 ){
-        statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
-      }
-
-      // *********************************************************************
-      // Compute inertia
-      // *********************************************************************
-      Real timeInertiaSta, timeInertiaEnd;
-      GetTime( timeInertiaSta );
-
-      luMat.LUstructToPMatrix( PMloc );
 
       // Compute the negative inertia of the matrix.
       PMloc.GetNegativeInertia( inertiaVecLocal[l] );

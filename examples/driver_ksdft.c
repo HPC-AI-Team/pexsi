@@ -105,9 +105,12 @@ int main(int argc, char **argv)
   int           info;
   int           outputFileIndex;
 
-
-
+  #ifdef WITH_SYMPACK
+  symPACK_Init(&argc, &argv);
+  #else
   MPI_Init( &argc, &argv );
+  #endif
+
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
@@ -274,6 +277,11 @@ int main(int argc, char **argv)
   options.muPEXSISafeGuard  = 0.2; 
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;
+  #ifdef WITH_SYMPACK
+  //options.solver = 1;
+  #endif
+  options.symmetricStorage = 1;
+
 
   /* Set the outputFileIndex to be the pole index */
   /* The first processor for each pole outputs information */

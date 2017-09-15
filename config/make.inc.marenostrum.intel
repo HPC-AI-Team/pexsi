@@ -88,7 +88,7 @@ ifeq (${USE_SYMPACK}, 1)
   #symPACK related definitions
   SYMPACK_DIR = ${HOME}/sympack_install
   include ${SYMPACK_DIR}/include/sympack.mak
-  INCLUDES += ${SYMPACK_INCLUDE} 
+  CPPFLAG += ${SYMPACK_INCLUDE} 
   LIBS+= ${SYMPACK_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
   COMPILE_DEF  += -DWITH_SYMPACK
   CPPFLAG += -std=c++11

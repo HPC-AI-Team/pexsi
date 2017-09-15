@@ -234,7 +234,7 @@ namespace PEXSI{
         isRecvFromCrossDiagonal_ = C.isRecvFromCrossDiagonal_;
 
 //#ifndef _SYM_STORAGE_
-        if(options_!=nullptr){
+        if(options_!=NULL/*nullptr*/){
           if (options_->symmetricStorage!=1){
             fwdToBelowTree_.resize(C.fwdToBelowTree_.size());
             for(int i = 0 ; i< C.fwdToBelowTree_.size();++i){
