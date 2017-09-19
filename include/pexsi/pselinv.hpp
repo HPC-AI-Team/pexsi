@@ -1001,6 +1001,12 @@ public:
       DistSparseMatrix<T>& B );
 
 
+#ifdef WITH_SYMPACK
+  void PMatrixToDistSparseMatrix( 
+      const symPACK::DistSparseMatrix<T>& A,
+      symPACK::DistSparseMatrix<T>& B );
+#endif
+
   /// @brief NnzLocal computes the number of nonzero elements (L and U)
   /// saved locally.
   Int  NnzLocal();
