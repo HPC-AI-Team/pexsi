@@ -581,9 +581,7 @@ protected:
   // Data variables
 
   const GridType*       grid_;
-
   const SuperNodeType*  super_;
-
   const PSelInvOptions * options_;
   const FactorizationOptions * optionsFact_;
 

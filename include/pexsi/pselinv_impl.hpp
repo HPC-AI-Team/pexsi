@@ -343,6 +343,10 @@ namespace PEXSI{
 
   template<typename T>
     PMatrix<T>::PMatrix ( ){
+      grid_ = nullptr;
+      super_ = nullptr;
+      options_ = nullptr;
+      optionsFact_ = nullptr;
     }
 
   template<typename T>
