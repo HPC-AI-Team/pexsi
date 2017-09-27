@@ -187,6 +187,7 @@ template<typename T>
   class PMatrixUnsym: public PMatrix<T>{
 
   protected:
+    virtual void PMatrixToDistSparseMatrix_( const NumVec<Int> & AcolptrLocal, const NumVec<Int> & ArowindLocal, const Int Asize, const LongInt Annz, const Int AnnzLocal, DistSparseMatrix<T>& B );
 
   std::vector<std::vector<Int> > isSendToCD_;
   std::vector<std::vector<Int> > isRecvFromCD_; 
@@ -520,9 +521,6 @@ template<typename T>
     /// @brief Point-to-point version of the selected inversion.
     void SelInv_P2p( );
 
-    virtual void PMatrixToDistSparseMatrix( 
-      const DistSparseMatrix<T>& A,
-      DistSparseMatrix<T>& B );
   };
 
 

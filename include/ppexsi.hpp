@@ -475,6 +475,7 @@ public:
       Real& numElectron,
       Real& numElectronDrvMu );
 
+#if 0
   /// @brief Compute the Fermi operator for a given chemical
   /// potential for complex Hermitian matrices.
   ///
@@ -512,7 +513,7 @@ public:
       Int   verbosity,
       Real& numElectron,
       Real& numElectronDrvMu );
-
+#endif
 
   /// @brief Compute the Fermi operator for a given chemical
   /// potential for complex Hermitian matrices.
@@ -587,7 +588,7 @@ public:
       Int&       numTotalPEXSIIter );
 
 
-
+#if 0
   /// @brief Compute the Fermi operator and derivied quantities.
   /// 
   /// This routine also updates the chemical potential mu by reusing
@@ -633,6 +634,7 @@ public:
       Real& mu,
       Real& numElectron, 
       bool& isPEXSIConverged );
+#endif
 
   /// @brief Compute the Fermi operator and derivied quantities.
   /// 
@@ -683,6 +685,7 @@ public:
   /// @brief Compute the Correction of the EDM matrix.
   void CalculateEDMCorrectionReal(
       Int   numPole,
+      Int   solver,
       Int   verbosity,
       Int   nPoints);
 
@@ -690,12 +693,13 @@ public:
   /// @brief Compute the Correction of the EDM matrix.
   void CalculateEDMCorrectionComplex(
       Int   numPole,
+      Int   solver,
       Int   verbosity,
       Int   nPoints);
 
 
 
- 
+#if 0 
   /// @brief Updated main driver for DFT. This reuses the pole
   /// expansion and only performs one PEXSI iteration per SCF step.
   void DFTDriver2_Deprecate(
@@ -723,6 +727,7 @@ public:
       Real&      muMinInertia,              
       Real&      muMaxInertia,             
       Int&       numTotalInertiaIter );
+#endif
 
   /// @brief Updated main driver for DFT. This reuses the pole
   /// expansion and only performs one PEXSI iteration per SCF step.

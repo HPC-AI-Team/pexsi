@@ -575,6 +575,9 @@ public:
   std::vector<std::vector<Int> > ColBlockIdx_;
   std::vector<std::vector<Int> > RowBlockIdx_;
 protected:
+
+  void PMatrixToDistSparseMatrix_ ( const NumVec<Int> & AcolptrLocal, const NumVec<Int> & ArowindLocal, const Int Asize, const LongInt Annz, const Int AnnzLocal, DistSparseMatrix<T>& B );
+
   // *********************************************************************
   // Variables
   // *********************************************************************
@@ -994,16 +997,11 @@ public:
   /// @param[in]  A Input sparse matrix to provide the sparsity pattern.
   ///
   /// @param[out] B Output sparse matrix.
+  template<typename T1 = T>
   void PMatrixToDistSparseMatrix( 
-      const DistSparseMatrix<T>& A,
-      DistSparseMatrix<T>& B );
+      const DistSparseMatrix<T1>& A, DistSparseMatrix<T>& B );
 
 
-#ifdef WITH_SYMPACK
-  void PMatrixToDistSparseMatrix( 
-      const symPACK::DistSparseMatrix<T>& A,
-      symPACK::DistSparseMatrix<T>& B );
-#endif
 
   /// @brief NnzLocal computes the number of nonzero elements (L and U)
   /// saved locally.

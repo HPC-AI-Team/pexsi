@@ -240,15 +240,15 @@ namespace PEXSI{
       // Clear the previously saved information
       HRealMat_ = DistSparseMatrix<Real>();
       SRealMat_ = DistSparseMatrix<Real>();
-#ifdef WITH_SYMPACK
-      symmHRealMat_ = symPACK::DistSparseMatrix<Real>();
-      symmSRealMat_ = symPACK::DistSparseMatrix<Real>();
-#endif
+//#ifdef WITH_SYMPACK
+//      symmHRealMat_ = symPACK::DistSparseMatrix<Real>();
+//      symmSRealMat_ = symPACK::DistSparseMatrix<Real>();
+//#endif
 
       // Data communication
-      switch (solver){
-        case 0:
-          {
+//      switch (solver){
+//        case 0:
+//          {
             std::vector<char> sstr;
             Int sizeStm;
             if( MYROW( gridPole_ ) == 0 ){
@@ -351,151 +351,160 @@ namespace PEXSI{
             isMatrixLoaded_ = true;
 
             CopyPattern( HRealMat_, PatternMat_ ); 
-          }
-          break;
+
 #ifdef WITH_SYMPACK
-        case 1:
-          {
-            std::vector<char> sstr;
-            Int sizeStm;
-            if( MYROW( gridPole_ ) == 0 ){
-              std::stringstream sstm;
-
-              symmHRealMat_.comm        = gridPole_->rowComm;
-              symmHRealMat_.size        = nrows;
-              symmHRealMat_.nnz         = nnz;
-              // The first row processor does not need extra copies of the index /
-              // value of the matrix.
-              symPACK::DistSparseMatrixGraph & Hgraph = symmHRealMat_.GetLocalGraph();
-              Hgraph.size    = nrows;
-              Hgraph.nnz    = nnz;
-              Hgraph.SetComm(symmHRealMat_.comm);
-              Hgraph.colptr.resize(numColLocal+1);
-              std::copy(colptrLocal,colptrLocal+numColLocal+1,&Hgraph.colptr[0]);
-              Hgraph.rowind.resize(nnzLocal+1);
-              std::copy(rowindLocal,rowindLocal+nnzLocal,&Hgraph.rowind[0]);
-              Hgraph.SetExpanded(true);
-
-              //          int mpisize,mpirank;
-              //          MPI_Comm_size(symmHRealMat_.comm,&mpisize);
-              //          MPI_Comm_rank(symmHRealMat_.comm,&mpirank);
-              //
-              //symPACK::gdb_lock();
-              //          Int colPerProc = Hgraph.size / mpisize;
-              //          Hgraph.vertexDist.resize(mpisize+1,colPerProc);
-              //          Hgraph.vertexDist[0] = 1;
-              //          std::partial_sum(Hgraph.vertexDist.begin(),Hgraph.vertexDist.end(),Hgraph.vertexDist.begin());
-              //          Hgraph.vertexDist.back() = Hgraph.size+1; 
-              //symPACK::gdb_lock();
-
-              // H value
-              symmHRealMat_.nzvalLocal.resize( nnzLocal);
-              std::copy(HnzvalLocal,HnzvalLocal+nnzLocal,&symmHRealMat_.nzvalLocal[0]);
-              //To Lower Triagular
-              symmHRealMat_.ToLowerTriangular();
-
-              // Serialization will copy the values regardless of the ownership
-              //TODO implement this
-              PEXSI::serialize( symmHRealMat_, sstm, NO_MASK );
-
-              // S value
-              if( isSIdentity ){
-                symmSRealMat_.size = 0;
-                symmSRealMat_.nnz  = 0;
-                symmSRealMat_.GetLocalGraph().nnz = 0;
-                symmSRealMat_.comm = symmHRealMat_.comm; 
-              }
-              else{
-                //CopyPattern( symmPatternMat_, symmSRealMat_ );
-                PEXSI::CopyPattern( symmHRealMat_, symmSRealMat_ );
-                symmSRealMat_.comm = symmHRealMat_.comm; 
-                symmSRealMat_.nzvalLocal.resize( nnzLocal);
-                std::copy(SnzvalLocal,SnzvalLocal+nnzLocal,&symmSRealMat_.nzvalLocal[0]);
-                //To Lower Triagular
-                symmSRealMat_.ToLowerTriangular();
-
-                serialize( symmSRealMat_.nzvalLocal, sstm, NO_MASK );
-              }
-
-              sstr.resize( Size( sstm ) );
-              sstm.read( &sstr[0], sstr.size() );     
-              sizeStm = sstr.size();
+            if(solver == 1){
+              Convert(PatternMat_, symmPatternMat_);
             }
-
-            MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole_->colComm );
-
-            if( verbosity >= 2 ){
-              statusOFS << "sizeStm = " << sizeStm << std::endl;
-            }
-
-            if( MYROW( gridPole_ ) != 0 ) sstr.resize( sizeStm );
-
-            MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole_->colComm );
-
-            if( MYROW( gridPole_ ) != 0 ){
-              std::stringstream sstm;
-              sstm.write( &sstr[0], sizeStm );
-              PEXSI::deserialize( symmHRealMat_, sstm, NO_MASK );
-              // Communicator
-              symmHRealMat_.comm = gridPole_->rowComm;
-              if( isSIdentity ){
-                symmSRealMat_.size = 0;
-                symmSRealMat_.nnz  = 0;
-                symmSRealMat_.GetLocalGraph().nnz = 0;
-                symmSRealMat_.comm = symmHRealMat_.comm; 
-              }
-              else{
-                PEXSI::CopyPattern( symmHRealMat_, symmSRealMat_ );
-                symmSRealMat_.comm = symmHRealMat_.comm;
-                deserialize( symmSRealMat_.nzvalLocal, sstm, NO_MASK );
-              }
-            }
-            sstr.clear();
-
-
-            if( verbosity >= 1 ){
-              statusOFS << "H.size     = " << symmHRealMat_.size     << std::endl;
-              statusOFS << "H.nnzLocal = " << symmHRealMat_.GetLocalGraph().LocalEdgeCount() << std::endl;
-              statusOFS << "S.size     = " << symmSRealMat_.size     << std::endl;
-              statusOFS << "S.nnzLocal = " << symmSRealMat_.GetLocalGraph().LocalEdgeCount() << std::endl;
-              statusOFS << std::endl << std::endl;
-            }
-
-
-            // Record the index for the diagonal elements to handle the case if S
-            // is identity.
-            {
-              const symPACK::DistSparseMatrixGraph & Hgraph = symmHRealMat_.GetLocalGraph();
-              Int numColLocal      = Hgraph.LocalVertexCount();
-              Int firstCol         = Hgraph.LocalFirstVertex();
-
-              diagIdxLocal_.clear();
-              diagIdxLocal_.reserve(symmHRealMat_.size);
-              for( Int j = 0; j < numColLocal; j++ ){
-                Int jcol = firstCol + j + 1;
-                for( Int i = Hgraph.colptr[j]-1; 
-                    i < Hgraph.colptr[j+1]-1; i++ ){
-                  Int irow = Hgraph.rowind[i];
-                  if( irow == jcol ){
-                    diagIdxLocal_.push_back( i );
-                  }
-                }
-              } // for (j)
-            }
-
-            isMatrixLoaded_ = true;
-
-            PEXSI::CopyPattern( symmHRealMat_, symmPatternMat_ ); 
-            Convert(symmPatternMat_,PatternMat_);
-
-
-          }
-          break;
 #endif
-        default:
-          ErrorHandling("Unsupported solver.");
-          break;
-      }
+//          }
+//          break;
+//#ifdef WITH_SYMPACK
+//        case 1:
+//          {
+//            std::vector<char> sstr;
+//            Int sizeStm;
+//            if( MYROW( gridPole_ ) == 0 ){
+//              std::stringstream sstm;
+//
+//              symmHRealMat_.comm        = gridPole_->rowComm;
+//              symmHRealMat_.size        = nrows;
+//              symmHRealMat_.nnz         = nnz;
+//              // The first row processor does not need extra copies of the index /
+//              // value of the matrix.
+//              symPACK::DistSparseMatrixGraph & Hgraph = symmHRealMat_.GetLocalGraph();
+//              Hgraph.size    = nrows;
+//              Hgraph.nnz    = nnz;
+//              Hgraph.SetComm(symmHRealMat_.comm);
+//              Hgraph.colptr.resize(numColLocal+1);
+//              std::copy(colptrLocal,colptrLocal+numColLocal+1,&Hgraph.colptr[0]);
+//              Hgraph.rowind.resize(nnzLocal+1);
+//              std::copy(rowindLocal,rowindLocal+nnzLocal,&Hgraph.rowind[0]);
+//              Hgraph.SetExpanded(true);
+//
+//              //          int mpisize,mpirank;
+//              //          MPI_Comm_size(symmHRealMat_.comm,&mpisize);
+//              //          MPI_Comm_rank(symmHRealMat_.comm,&mpirank);
+//              //
+//              //symPACK::gdb_lock();
+//              //          Int colPerProc = Hgraph.size / mpisize;
+//              //          Hgraph.vertexDist.resize(mpisize+1,colPerProc);
+//              //          Hgraph.vertexDist[0] = 1;
+//              //          std::partial_sum(Hgraph.vertexDist.begin(),Hgraph.vertexDist.end(),Hgraph.vertexDist.begin());
+//              //          Hgraph.vertexDist.back() = Hgraph.size+1; 
+//              //symPACK::gdb_lock();
+//
+//              // H value
+//              symmHRealMat_.nzvalLocal.resize( nnzLocal);
+//              std::copy(HnzvalLocal,HnzvalLocal+nnzLocal,&symmHRealMat_.nzvalLocal[0]);
+//              //To Lower Triagular
+//              symmHRealMat_.ToLowerTriangular();
+//
+//              // Serialization will copy the values regardless of the ownership
+//              //TODO implement this
+//              PEXSI::serialize( symmHRealMat_, sstm, NO_MASK );
+//
+//              // S value
+//              if( isSIdentity ){
+//                symmSRealMat_.size = 0;
+//                symmSRealMat_.nnz  = 0;
+//                symmSRealMat_.GetLocalGraph().nnz = 0;
+//                symmSRealMat_.comm = symmHRealMat_.comm; 
+//              }
+//              else{
+//                //CopyPattern( symmPatternMat_, symmSRealMat_ );
+//                PEXSI::CopyPattern( symmHRealMat_, symmSRealMat_ );
+//                symmSRealMat_.comm = symmHRealMat_.comm; 
+//                symmSRealMat_.nzvalLocal.resize( nnzLocal);
+//                std::copy(SnzvalLocal,SnzvalLocal+nnzLocal,&symmSRealMat_.nzvalLocal[0]);
+//                //To Lower Triagular
+//                symmSRealMat_.ToLowerTriangular();
+//
+//                serialize( symmSRealMat_.nzvalLocal, sstm, NO_MASK );
+//              }
+//
+//              sstr.resize( Size( sstm ) );
+//              sstm.read( &sstr[0], sstr.size() );     
+//              sizeStm = sstr.size();
+//            }
+//
+//            MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole_->colComm );
+//
+//            if( verbosity >= 2 ){
+//              statusOFS << "sizeStm = " << sizeStm << std::endl;
+//            }
+//
+//            if( MYROW( gridPole_ ) != 0 ) sstr.resize( sizeStm );
+//
+//            MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole_->colComm );
+//
+//            if( MYROW( gridPole_ ) != 0 ){
+//              std::stringstream sstm;
+//              sstm.write( &sstr[0], sizeStm );
+//              PEXSI::deserialize( symmHRealMat_, sstm, NO_MASK );
+//              // Communicator
+//              symmHRealMat_.comm = gridPole_->rowComm;
+//              if( isSIdentity ){
+//                symmSRealMat_.size = 0;
+//                symmSRealMat_.nnz  = 0;
+//                symmSRealMat_.GetLocalGraph().nnz = 0;
+//                symmSRealMat_.comm = symmHRealMat_.comm; 
+//              }
+//              else{
+//                PEXSI::CopyPattern( symmHRealMat_, symmSRealMat_ );
+//                symmSRealMat_.comm = symmHRealMat_.comm;
+//                deserialize( symmSRealMat_.nzvalLocal, sstm, NO_MASK );
+//              }
+//            }
+//            sstr.clear();
+//
+//
+//            if( verbosity >= 1 ){
+//              statusOFS << "H.size     = " << symmHRealMat_.size     << std::endl;
+//              statusOFS << "H.nnzLocal = " << symmHRealMat_.GetLocalGraph().LocalEdgeCount() << std::endl;
+//              statusOFS << "S.size     = " << symmSRealMat_.size     << std::endl;
+//              statusOFS << "S.nnzLocal = " << symmSRealMat_.GetLocalGraph().LocalEdgeCount() << std::endl;
+//              statusOFS << std::endl << std::endl;
+//            }
+//
+//
+//            // Record the index for the diagonal elements to handle the case if S
+//            // is identity.
+//            {
+//              const symPACK::DistSparseMatrixGraph & Hgraph = symmHRealMat_.GetLocalGraph();
+//              Int numColLocal      = Hgraph.LocalVertexCount();
+//              Int firstCol         = Hgraph.LocalFirstVertex();
+//
+//              diagIdxLocal_.clear();
+//              diagIdxLocal_.reserve(symmHRealMat_.size);
+//              for( Int j = 0; j < numColLocal; j++ ){
+//                Int jcol = firstCol + j + 1;
+//                for( Int i = Hgraph.colptr[j]-1; 
+//                    i < Hgraph.colptr[j+1]-1; i++ ){
+//                  Int irow = Hgraph.rowind[i];
+//                  if( irow == jcol ){
+//                    diagIdxLocal_.push_back( i );
+//                  }
+//                }
+//              } // for (j)
+//            }
+//
+//            isMatrixLoaded_ = true;
+//
+//            PEXSI::CopyPattern( symmHRealMat_, symmPatternMat_ ); 
+//            Convert(symmPatternMat_,PatternMat_);
+//
+//            Convert(symmSRealMat_,SRealMat_);
+//            Convert(symmHRealMat_,HRealMat_);
+//
+//
+//          }
+//          break;
+//#endif
+//        default:
+//          ErrorHandling("Unsupported solver.");
+//          break;
+//      }
       return ;
     }        // -----  end of method PPEXSIData::LoadRealMatrix  ----- 
 
@@ -516,15 +525,15 @@ namespace PEXSI{
       // Clear the previously saved information
       HComplexMat_ = DistSparseMatrix<Complex>();
       SComplexMat_ = DistSparseMatrix<Complex>();
-#ifdef WITH_SYMPACK
-      symmHComplexMat_ = symPACK::DistSparseMatrix<Complex>();
-      symmSComplexMat_ = symPACK::DistSparseMatrix<Complex>();
-#endif
-
-      // Data communication
-      switch (solver) {
-        case 0:
-          {
+//#ifdef WITH_SYMPACK
+//      symmHComplexMat_ = symPACK::DistSparseMatrix<Complex>();
+//      symmSComplexMat_ = symPACK::DistSparseMatrix<Complex>();
+//#endif
+//
+//      // Data communication
+//      switch (solver) {
+//        case 0:
+//          {
             std::vector<char> sstr;
             Int sizeStm;
             if( MYROW( gridPole_ ) == 0 ){
@@ -627,150 +636,159 @@ namespace PEXSI{
             isMatrixLoaded_ = true;
 
             CopyPattern( HComplexMat_, PatternMat_ ); 
-          }
-          break;
+
 #ifdef WITH_SYMPACK
-        case 1:
-          {
-            std::vector<char> sstr;
-            Int sizeStm;
-            if( MYROW( gridPole_ ) == 0 ){
-              std::stringstream sstm;
-
-              symmHComplexMat_.comm        = gridPole_->rowComm;
-              symmHComplexMat_.size        = nrows;
-              symmHComplexMat_.nnz         = nnz;
-              // The first row processor does not need extra copies of the index /
-              // value of the matrix.
-              symPACK::DistSparseMatrixGraph & Hgraph = symmHComplexMat_.GetLocalGraph();
-              Hgraph.size    = nrows;
-              Hgraph.nnz    = nnz;
-              Hgraph.SetComm(symmHComplexMat_.comm);
-              Hgraph.colptr.resize(numColLocal+1);
-              std::copy(colptrLocal,colptrLocal+numColLocal+1,&Hgraph.colptr[0]);
-              Hgraph.rowind.resize(nnzLocal+1);
-              std::copy(rowindLocal,rowindLocal+nnzLocal,&Hgraph.rowind[0]);
-              Hgraph.SetExpanded(true);
-
-              //          int mpisize,mpirank;
-              //          MPI_Comm_size(symmHComplexMat_.comm,&mpisize);
-              //          MPI_Comm_rank(symmHComplexMat_.comm,&mpirank);
-              //
-              //          Int colPerProc = Hgraph.size / mpisize;
-              //          Hgraph.vertexDist.resize(mpisize+1,colPerProc);
-              //          Hgraph.vertexDist[0] = 1;
-              //          std::partial_sum(Hgraph.vertexDist.begin(),Hgraph.vertexDist.end(),Hgraph.vertexDist.begin());
-              //          Hgraph.vertexDist.back() = Hgraph.size+1;
-              //
-              //
-
-              // H value
-              symmHComplexMat_.nzvalLocal.resize( nnzLocal);
-              std::copy(HnzvalLocal,HnzvalLocal+nnzLocal,&symmHComplexMat_.nzvalLocal[0]);
-              //To Lower Triagular
-              symmHComplexMat_.ToLowerTriangular();
-
-              // Serialization will copy the values regardless of the ownership
-              //TODO implement this
-              PEXSI::serialize( symmHComplexMat_, sstm, NO_MASK );
-
-              // S value
-              if( isSIdentity ){
-                symmSComplexMat_.size = 0;
-                symmSComplexMat_.nnz  = 0;
-                symmSComplexMat_.GetLocalGraph().nnz = 0;
-                symmSComplexMat_.comm = symmHComplexMat_.comm; 
-              }
-              else{
-                //CopyPattern( symmPatternMat_, symmSComplexMat_ );
-                PEXSI::CopyPattern( symmHComplexMat_, symmSComplexMat_ );
-                symmSComplexMat_.comm = symmHComplexMat_.comm; 
-                symmSComplexMat_.nzvalLocal.resize( nnzLocal);
-                std::copy(SnzvalLocal,SnzvalLocal+nnzLocal,&symmSComplexMat_.nzvalLocal[0]);
-                //To Lower Triagular
-                symmSComplexMat_.ToLowerTriangular();
-
-                serialize( symmSComplexMat_.nzvalLocal, sstm, NO_MASK );
-              }
-
-              sstr.resize( Size( sstm ) );
-              sstm.read( &sstr[0], sstr.size() );     
-              sizeStm = sstr.size();
+            if(solver == 1){
+              Convert(PatternMat_, symmPatternMat_);
             }
-
-            MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole_->colComm );
-
-            if( verbosity >= 2 ){
-              statusOFS << "sizeStm = " << sizeStm << std::endl;
-            }
-
-            if( MYROW( gridPole_ ) != 0 ) sstr.resize( sizeStm );
-
-            MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole_->colComm );
-
-            if( MYROW( gridPole_ ) != 0 ){
-              std::stringstream sstm;
-              sstm.write( &sstr[0], sizeStm );
-              PEXSI::deserialize( symmHComplexMat_, sstm, NO_MASK );
-              // Communicator
-              symmHComplexMat_.comm = gridPole_->rowComm;
-              if( isSIdentity ){
-                symmSComplexMat_.size = 0;
-                symmSComplexMat_.nnz  = 0;
-                symmSComplexMat_.GetLocalGraph().nnz = 0;
-                symmSComplexMat_.comm = symmHComplexMat_.comm; 
-              }
-              else{
-                PEXSI::CopyPattern( symmHComplexMat_, symmSComplexMat_ );
-                symmSComplexMat_.comm = symmHComplexMat_.comm;
-                deserialize( symmSComplexMat_.nzvalLocal, sstm, NO_MASK );
-              }
-            }
-            sstr.clear();
-
-
-            if( verbosity >= 1 ){
-              statusOFS << "H.size     = " << symmHComplexMat_.size     << std::endl;
-              statusOFS << "H.nnzLocal = " << symmHComplexMat_.GetLocalGraph().LocalEdgeCount() << std::endl;
-              statusOFS << "S.size     = " << symmSComplexMat_.size     << std::endl;
-              statusOFS << "S.nnzLocal = " << symmSComplexMat_.GetLocalGraph().LocalEdgeCount() << std::endl;
-              statusOFS << std::endl << std::endl;
-            }
-
-
-            // Record the index for the diagonal elements to handle the case if S
-            // is identity.
-            {
-              const symPACK::DistSparseMatrixGraph & Hgraph = symmHComplexMat_.GetLocalGraph();
-              Int numColLocal      = Hgraph.LocalVertexCount();
-              Int firstCol         = Hgraph.LocalFirstVertex();
-
-              diagIdxLocal_.clear();
-              diagIdxLocal_.reserve(symmHComplexMat_.size);
-              for( Int j = 0; j < numColLocal; j++ ){
-                Int jcol = firstCol + j + 1;
-                for( Int i = Hgraph.colptr[j]-1; 
-                    i < Hgraph.colptr[j+1]-1; i++ ){
-                  Int irow = Hgraph.rowind[i];
-                  if( irow == jcol ){
-                    diagIdxLocal_.push_back( i );
-                  }
-                }
-              } // for (j)
-            }
-
-            isMatrixLoaded_ = true;
-
-            PEXSI::CopyPattern( symmHComplexMat_, symmPatternMat_ ); 
-            Convert(symmPatternMat_,PatternMat_);
-
-          }
-          break;
 #endif
-        default:
-          ErrorHandling("Unsupported solver.");
-          break;
-      }
+
+//          }
+//          break;
+//#ifdef WITH_SYMPACK
+//        case 1:
+//          {
+//            std::vector<char> sstr;
+//            Int sizeStm;
+//            if( MYROW( gridPole_ ) == 0 ){
+//              std::stringstream sstm;
+//
+//              symmHComplexMat_.comm        = gridPole_->rowComm;
+//              symmHComplexMat_.size        = nrows;
+//              symmHComplexMat_.nnz         = nnz;
+//              // The first row processor does not need extra copies of the index /
+//              // value of the matrix.
+//              symPACK::DistSparseMatrixGraph & Hgraph = symmHComplexMat_.GetLocalGraph();
+//              Hgraph.size    = nrows;
+//              Hgraph.nnz    = nnz;
+//              Hgraph.SetComm(symmHComplexMat_.comm);
+//              Hgraph.colptr.resize(numColLocal+1);
+//              std::copy(colptrLocal,colptrLocal+numColLocal+1,&Hgraph.colptr[0]);
+//              Hgraph.rowind.resize(nnzLocal+1);
+//              std::copy(rowindLocal,rowindLocal+nnzLocal,&Hgraph.rowind[0]);
+//              Hgraph.SetExpanded(true);
+//
+//              //          int mpisize,mpirank;
+//              //          MPI_Comm_size(symmHComplexMat_.comm,&mpisize);
+//              //          MPI_Comm_rank(symmHComplexMat_.comm,&mpirank);
+//              //
+//              //          Int colPerProc = Hgraph.size / mpisize;
+//              //          Hgraph.vertexDist.resize(mpisize+1,colPerProc);
+//              //          Hgraph.vertexDist[0] = 1;
+//              //          std::partial_sum(Hgraph.vertexDist.begin(),Hgraph.vertexDist.end(),Hgraph.vertexDist.begin());
+//              //          Hgraph.vertexDist.back() = Hgraph.size+1;
+//              //
+//              //
+//
+//              // H value
+//              symmHComplexMat_.nzvalLocal.resize( nnzLocal);
+//              std::copy(HnzvalLocal,HnzvalLocal+nnzLocal,&symmHComplexMat_.nzvalLocal[0]);
+//              //To Lower Triagular
+//              symmHComplexMat_.ToLowerTriangular();
+//
+//              // Serialization will copy the values regardless of the ownership
+//              //TODO implement this
+//              PEXSI::serialize( symmHComplexMat_, sstm, NO_MASK );
+//
+//              // S value
+//              if( isSIdentity ){
+//                symmSComplexMat_.size = 0;
+//                symmSComplexMat_.nnz  = 0;
+//                symmSComplexMat_.GetLocalGraph().nnz = 0;
+//                symmSComplexMat_.comm = symmHComplexMat_.comm; 
+//              }
+//              else{
+//                //CopyPattern( symmPatternMat_, symmSComplexMat_ );
+//                PEXSI::CopyPattern( symmHComplexMat_, symmSComplexMat_ );
+//                symmSComplexMat_.comm = symmHComplexMat_.comm; 
+//                symmSComplexMat_.nzvalLocal.resize( nnzLocal);
+//                std::copy(SnzvalLocal,SnzvalLocal+nnzLocal,&symmSComplexMat_.nzvalLocal[0]);
+//                //To Lower Triagular
+//                symmSComplexMat_.ToLowerTriangular();
+//
+//                serialize( symmSComplexMat_.nzvalLocal, sstm, NO_MASK );
+//              }
+//
+//              sstr.resize( Size( sstm ) );
+//              sstm.read( &sstr[0], sstr.size() );     
+//              sizeStm = sstr.size();
+//            }
+//
+//            MPI_Bcast( &sizeStm, 1, MPI_INT, 0, gridPole_->colComm );
+//
+//            if( verbosity >= 2 ){
+//              statusOFS << "sizeStm = " << sizeStm << std::endl;
+//            }
+//
+//            if( MYROW( gridPole_ ) != 0 ) sstr.resize( sizeStm );
+//
+//            MPI_Bcast( (void*)&sstr[0], sizeStm, MPI_BYTE, 0, gridPole_->colComm );
+//
+//            if( MYROW( gridPole_ ) != 0 ){
+//              std::stringstream sstm;
+//              sstm.write( &sstr[0], sizeStm );
+//              PEXSI::deserialize( symmHComplexMat_, sstm, NO_MASK );
+//              // Communicator
+//              symmHComplexMat_.comm = gridPole_->rowComm;
+//              if( isSIdentity ){
+//                symmSComplexMat_.size = 0;
+//                symmSComplexMat_.nnz  = 0;
+//                symmSComplexMat_.GetLocalGraph().nnz = 0;
+//                symmSComplexMat_.comm = symmHComplexMat_.comm; 
+//              }
+//              else{
+//                PEXSI::CopyPattern( symmHComplexMat_, symmSComplexMat_ );
+//                symmSComplexMat_.comm = symmHComplexMat_.comm;
+//                deserialize( symmSComplexMat_.nzvalLocal, sstm, NO_MASK );
+//              }
+//            }
+//            sstr.clear();
+//
+//
+//            if( verbosity >= 1 ){
+//              statusOFS << "H.size     = " << symmHComplexMat_.size     << std::endl;
+//              statusOFS << "H.nnzLocal = " << symmHComplexMat_.GetLocalGraph().LocalEdgeCount() << std::endl;
+//              statusOFS << "S.size     = " << symmSComplexMat_.size     << std::endl;
+//              statusOFS << "S.nnzLocal = " << symmSComplexMat_.GetLocalGraph().LocalEdgeCount() << std::endl;
+//              statusOFS << std::endl << std::endl;
+//            }
+//
+//
+//            // Record the index for the diagonal elements to handle the case if S
+//            // is identity.
+//            {
+//              const symPACK::DistSparseMatrixGraph & Hgraph = symmHComplexMat_.GetLocalGraph();
+//              Int numColLocal      = Hgraph.LocalVertexCount();
+//              Int firstCol         = Hgraph.LocalFirstVertex();
+//
+//              diagIdxLocal_.clear();
+//              diagIdxLocal_.reserve(symmHComplexMat_.size);
+//              for( Int j = 0; j < numColLocal; j++ ){
+//                Int jcol = firstCol + j + 1;
+//                for( Int i = Hgraph.colptr[j]-1; 
+//                    i < Hgraph.colptr[j+1]-1; i++ ){
+//                  Int irow = Hgraph.rowind[i];
+//                  if( irow == jcol ){
+//                    diagIdxLocal_.push_back( i );
+//                  }
+//                }
+//              } // for (j)
+//            }
+//
+//            isMatrixLoaded_ = true;
+//
+//            PEXSI::CopyPattern( symmHComplexMat_, symmPatternMat_ ); 
+//            Convert(symmPatternMat_,PatternMat_);
+//
+//            Convert(symmSComplexMat_,SComplexMat_);
+//            Convert(symmHComplexMat_,HComplexMat_);
+//          }
+//          break;
+//#endif
+//        default:
+//          ErrorHandling("Unsupported solver.");
+//          break;
+//      }
 
       return ;
     }        // -----  end of method PPEXSIData::LoadComplexMatrix  ----- 
@@ -1780,7 +1798,7 @@ namespace PEXSI{
 
         GetTime( timePostProcessingSta );
 
-        PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+        PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
         GetTime( timePostProcessingEnd );
 
@@ -1955,7 +1973,7 @@ namespace PEXSI{
         GetTime( timePostProcessingSta );
 
         //TODO convert to symmAinvMat too
-        PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+        PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
         GetTime( timePostProcessingEnd );
 
@@ -2077,7 +2095,7 @@ namespace PEXSI{
 
         GetTime( timePostProcessingSta );
 
-        PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+        PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
         GetTime( timePostProcessingEnd );
 
@@ -2129,32 +2147,9 @@ namespace PEXSI{
     DistSparseMatrix<Real>&  SMat     = SRealMat_;
     DistSparseMatrix<Real>& AMat      = shiftRealMat_;  // A = H - \lambda  S
     SuperLUMatrix<Real>&    luMat     = *luRealMat_;
-#ifdef WITH_SYMPACK
-    symPACK::DistSparseMatrix<Real>&  symmHMat     = symmHRealMat_;
-    symPACK::DistSparseMatrix<Real>&  symmSMat     = symmSRealMat_;
-    symPACK::DistSparseMatrix<Real> & symmAMat     = symmShiftRealMat_;  // A = H - \lambda  S
-    symPACK::symPACKMatrix<Real>& symPACKMat = *symPACKRealMat_ ;
-#endif
     PMatrix<Real>&          PMloc     = *PMRealMat_;
 
-    switch(solver){
-      case 0:
-        {
-          CopyPattern( PatternMat_, AMat );
-        }
-        break;
-#ifdef WITH_SYMPACK
-      case 1:
-        {
-          PEXSI::CopyPattern( symmPatternMat_, symmAMat );
-        }
-        break;
-#endif
-      default:
-        ErrorHandling("Unsupported solver.");
-        break;
-    }
-
+    CopyPattern( PatternMat_, AMat );
 
     Real timeShiftSta, timeShiftEnd;
 
@@ -2176,55 +2171,22 @@ namespace PEXSI{
             << " processing..." << std::endl;
         }
 
-        switch(solver){
-          case 0:
-            {
-              if( SMat.size != 0 ){
-                // S is not an identity matrix
-                for( Int i = 0; i < HMat.nnzLocal; i++ ){
-                  AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - shiftVec[l] * SMat.nzvalLocal(i);
-                }
-              }
-              else{
-                // S is an identity matrix
-                for( Int i = 0; i < HMat.nnzLocal; i++ ){
-                  AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
-                }
-
-                for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-                  AMat.nzvalLocal( diagIdxLocal_[i] ) -= shiftVec[l];
-                }
-              } // if (SMat.size != 0 )
-            }
-            break;
-#ifdef WITH_SYMPACK
-          case 1:
-            {
-              if( symmSMat.size != 0 ){
-                // S is not an identity matrix
-                auto nnzLocal = symmHMat.nzvalLocal.size();
-                for( Int i = 0; i < nnzLocal; i++ ){
-                  symmAMat.nzvalLocal[i] = symmHMat.nzvalLocal[i] - shiftVec[l] * symmSMat.nzvalLocal[i];
-                }
-              }
-              else{
-                auto nnzLocal = symmHMat.nzvalLocal.size();
-                // S is an identity matrix
-                for( Int i = 0; i < nnzLocal; i++ ){
-                  symmAMat.nzvalLocal[i] = symmHMat.nzvalLocal[i];
-                }
-
-                for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-                  symmAMat.nzvalLocal[ diagIdxLocal_[i] ] -= shiftVec[l];
-                }
-              } // if (symmSMat.size != 0 )
-            }
-            break;
-#endif
-          default:
-            ErrorHandling("Unsupported solver.");
-            break;
+        if( SMat.size != 0 ){
+          // S is not an identity matrix
+          for( Int i = 0; i < HMat.nnzLocal; i++ ){
+            AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - shiftVec[l] * SMat.nzvalLocal(i);
+          }
         }
+        else{
+          // S is an identity matrix
+          for( Int i = 0; i < HMat.nnzLocal; i++ ){
+            AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+          }
+
+          for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+            AMat.nzvalLocal( diagIdxLocal_[i] ) -= shiftVec[l];
+          }
+        } // if (SMat.size != 0 )
 
         Real timeInertiaSta, timeInertiaEnd;
         // *********************************************************************
@@ -2284,13 +2246,24 @@ namespace PEXSI{
           case 1:
             {
               Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+              symPACK::symPACKMatrix<Real>& symPACKMat = *symPACKRealMat_ ;
+              symPACK::DistSparseMatrix<Real> ltAMat;
+              if( verbosity >= 2 ){
+                statusOFS << "Before ToLowerTriangular." << std::endl;
+              }
+              Convert(AMat,ltAMat);
+              ltAMat.ToLowerTriangular();
+              if( verbosity >= 2 ){
+                statusOFS << "After ToLowerTriangular." << std::endl;
+              }
+
 
               GetTime( timeTotalFactorizationSta );
               // Data redistribution
               if( verbosity >= 2 ){
                 statusOFS << "Before Distribute." << std::endl;
               }
-              symPACKMat.DistributeMatrix(symmAMat);
+              symPACKMat.DistributeMatrix(ltAMat);
               if( verbosity >= 2 ){
                 statusOFS << "After Distribute." << std::endl;
               }
@@ -2378,31 +2351,9 @@ namespace PEXSI{
     DistSparseMatrix<Complex>&  SMat     = SComplexMat_;
     DistSparseMatrix<Complex>&  AMat     = shiftComplexMat_;  // A = H - \lambda  S
     SuperLUMatrix<Complex>&    luMat     = *luComplexMat_;
-#ifdef WITH_SYMPACK
-    symPACK::DistSparseMatrix<Complex>&  symmHMat     = symmHComplexMat_;
-    symPACK::DistSparseMatrix<Complex>&  symmSMat     = symmSComplexMat_;
-    symPACK::DistSparseMatrix<Complex> & symmAMat     = symmShiftComplexMat_;  // A = H - \lambda  S
-    symPACK::symPACKMatrix<Complex>& symPACKMat = *symPACKComplexMat_ ;
-#endif
     PMatrix<Complex>&          PMloc     = *PMComplexMat_;
 
-    switch(solver){
-      case 0:
-        {
-          CopyPattern( PatternMat_, AMat );
-        }
-        break;
-#ifdef WITH_SYMPACK
-      case 1:
-        {
-          PEXSI::CopyPattern( symmPatternMat_, symmAMat );
-        }
-        break;
-#endif
-      default:
-        ErrorHandling("Unsupported solver.");
-        break;
-    }
+    CopyPattern( PatternMat_, AMat );
 
     Real timeShiftSta, timeShiftEnd;
 
@@ -2424,55 +2375,22 @@ namespace PEXSI{
             << " processing..." << std::endl;
         }
 
-        switch(solver){
-          case 0:
-            {
-              if( SMat.size != 0 ){
-                // S is not an identity matrix
-                for( Int i = 0; i < HMat.nnzLocal; i++ ){
-                  AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - shiftVec[l] * SMat.nzvalLocal(i);
-                }
-              }
-              else{
-                // S is an identity matrix
-                for( Int i = 0; i < HMat.nnzLocal; i++ ){
-                  AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
-                }
-
-                for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-                  AMat.nzvalLocal( diagIdxLocal_[i] ) -= shiftVec[l];
-                }
-              } // if (SMat.size != 0 )
-            }
-            break;
-#ifdef WITH_SYMPACK
-          case 1:
-            {
-              if( symmSMat.size != 0 ){
-                // S is not an identity matrix
-                auto nnzLocal = symmHMat.nzvalLocal.size();
-                for( Int i = 0; i < nnzLocal; i++ ){
-                  symmAMat.nzvalLocal[i] = symmHMat.nzvalLocal[i] - shiftVec[l] * symmSMat.nzvalLocal[i];
-                }
-              }
-              else{
-                auto nnzLocal = symmHMat.nzvalLocal.size();
-                // S is an identity matrix
-                for( Int i = 0; i < nnzLocal; i++ ){
-                  symmAMat.nzvalLocal[i] = symmHMat.nzvalLocal[i];
-                }
-
-                for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-                  symmAMat.nzvalLocal[ diagIdxLocal_[i] ] -= shiftVec[l];
-                }
-              } // if (symmSMat.size != 0 )
-            }
-            break;
-#endif
-          default:
-            ErrorHandling("Unsupported solver.");
-            break;
+        if( SMat.size != 0 ){
+          // S is not an identity matrix
+          for( Int i = 0; i < HMat.nnzLocal; i++ ){
+            AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - shiftVec[l] * SMat.nzvalLocal(i);
+          }
         }
+        else{
+          // S is an identity matrix
+          for( Int i = 0; i < HMat.nnzLocal; i++ ){
+            AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+          }
+
+          for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+            AMat.nzvalLocal( diagIdxLocal_[i] ) -= shiftVec[l];
+          }
+        } // if (SMat.size != 0 )
 
         Real timeInertiaSta, timeInertiaEnd;
         // *********************************************************************
@@ -2531,6 +2449,18 @@ namespace PEXSI{
 #ifdef WITH_SYMPACK
           case 1:
             {
+              symPACK::symPACKMatrix<Complex>& symPACKMat = *symPACKComplexMat_ ;
+              symPACK::DistSparseMatrix<Complex> ltAMat;
+              if( verbosity >= 2 ){
+                statusOFS << "Before ToLowerTriangular." << std::endl;
+              }
+              Convert(AMat,ltAMat);
+              ltAMat.ToLowerTriangular();
+              if( verbosity >= 2 ){
+                statusOFS << "After ToLowerTriangular." << std::endl;
+              }
+
+
               Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
 
               GetTime( timeTotalFactorizationSta );
@@ -2538,7 +2468,7 @@ namespace PEXSI{
               if( verbosity >= 2 ){
                 statusOFS << "Before Distribute." << std::endl;
               }
-              symPACKMat.DistributeMatrix(symmAMat);
+              symPACKMat.DistributeMatrix(ltAMat);
               if( verbosity >= 2 ){
                 statusOFS << "After Distribute." << std::endl;
               }
@@ -2645,16 +2575,6 @@ namespace PEXSI{
 
     // The symbolic information should have already been there.
     SuperLUMatrix<Complex>& luMat        = *luComplexMat_;
-
-#ifdef WITH_SYMPACK
-    symPACK::DistSparseMatrix<Real>&  symmHMat        = symmHRealMat_;
-    symPACK::DistSparseMatrix<Real>&  symmSMat        = symmSRealMat_;
-    symPACK::DistSparseMatrix<Complex>& symmAMat      = symmShiftComplexMat_;
-    symPACK::DistSparseMatrix<Complex>& symmAinvMat   = symmShiftInvComplexMat_;
-    symPACK::symPACKMatrix<Complex>& symPACKMat        = *symPACKComplexMat_;
-#endif
-
-
     PMatrix<Complex>&       PMloc        = *PMComplexMat_;
 
     // 
@@ -2663,23 +2583,7 @@ namespace PEXSI{
     bool isDerivativeTMatrix       = false;
 
     // Copy the pattern
-    switch(solver){
-      case 0:
-        {
-          CopyPattern( PatternMat_, AMat );
-        }
-        break;
-#ifdef WITH_SYMPACK
-      case 1:
-        {
-          PEXSI::CopyPattern( symmPatternMat_, symmAMat );
-        }
-        break;
-#endif
-      default:
-        ErrorHandling("Unsupported solver.");
-        break;
-    }
+    CopyPattern( PatternMat_, AMat );
 
     CopyPattern( PatternMat_, rhoMat );
     CopyPattern( PatternMat_, rhoDrvMuMat );
@@ -2938,55 +2842,26 @@ namespace PEXSI{
           numPoleComputed++;
 
 
-          switch(solver){
-            case 0:
-              {
-                if( SMat.size != 0 ){
-                  // S is not an identity matrix
-                  for( Int i = 0; i < HMat.nnzLocal; i++ ){
-                    AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
-                  }
-                }
-                else{
-                  // S is an identity matrix
-                  for( Int i = 0; i < HMat.nnzLocal; i++ ){
-                    AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
-                  }
-
-                  for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-                    AMat.nzvalLocal( diagIdxLocal_[i] ) -= zshift_[l];
-                  }
-                } // if (SMat.size != 0 )
-              }
-              break;
-#ifdef WITH_SYMPACK
-            case 1:
-              {
-                if( symmSMat.size != 0 ){
-                  // S is not an identity matrix
-                  auto nnzLocal = symmHMat.nzvalLocal.size();
-                  for( Int i = 0; i < nnzLocal; i++ ){
-                    symmAMat.nzvalLocal[i] = symmHMat.nzvalLocal[i] - zshift_[l] * symmSMat.nzvalLocal[i];
-                  }
-                }
-                else{
-                  auto nnzLocal = symmHMat.nzvalLocal.size();
-                  // S is an identity matrix
-                  for( Int i = 0; i < nnzLocal; i++ ){
-                    symmAMat.nzvalLocal[i] = symmHMat.nzvalLocal[i];
-                  }
-
-                  for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-                    symmAMat.nzvalLocal[ diagIdxLocal_[i] ] -= zshift_[l];
-                  }
-                } // if (symmSMat.size != 0 )
-              }
-              break;
-#endif
-            default:
-              ErrorHandling("Unsupported solver.");
-              break;
+          if( SMat.size != 0 ){
+            // S is not an identity matrix
+            for( Int i = 0; i < HMat.nnzLocal; i++ ){
+              AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
+            }
           }
+          else{
+            // S is an identity matrix
+            for( Int i = 0; i < HMat.nnzLocal; i++ ){
+              AMat.nzvalLocal(i) = HMat.nzvalLocal(i);
+            }
+
+            for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+              AMat.nzvalLocal( diagIdxLocal_[i] ) -= zshift_[l];
+            }
+          } // if (SMat.size != 0 )
+
+
+
+
 
           Real timeTotalSelInvSta, timeTotalSelInvEnd;
           // *********************************************************************
@@ -3045,6 +2920,17 @@ namespace PEXSI{
 #ifdef WITH_SYMPACK
             case 1:
               {
+                symPACK::symPACKMatrix<Complex>& symPACKMat = *symPACKComplexMat_ ;
+                symPACK::DistSparseMatrix<Complex> ltAMat;
+                if( verbosity >= 2 ){
+                  statusOFS << "Before ToLowerTriangular." << std::endl;
+                }
+                Convert(AMat,ltAMat);
+                ltAMat.ToLowerTriangular();
+                if( verbosity >= 2 ){
+                  statusOFS << "After ToLowerTriangular." << std::endl;
+                }
+
                 Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
 
                 GetTime( timeTotalFactorizationSta );
@@ -3052,7 +2938,7 @@ namespace PEXSI{
                 if( verbosity >= 2 ){
                   statusOFS << "Before Distribute." << std::endl;
                 }
-                symPACKMat.DistributeMatrix(symmAMat);
+                symPACKMat.DistributeMatrix(ltAMat);
                 if( verbosity >= 2 ){
                   statusOFS << "After Distribute." << std::endl;
                 }
@@ -3111,7 +2997,7 @@ namespace PEXSI{
           GetTime( timePostProcessingSta );
 
           //TODO convert to symmAinvMat too
-          PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+          PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
           if( verbosity >= 2 ){
             statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
@@ -3340,6 +3226,7 @@ namespace PEXSI{
   }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal  ----- 
 
 
+#if 0
   // Main subroutine for the electronic structure calculation with Hermitian Hamiltonian
   void PPEXSIData::CalculateFermiOperatorComplexDeprecate(
       Int   numPole, 
@@ -3760,7 +3647,7 @@ namespace PEXSI{
           GetTime( timePostProcessingSta );
 
           //TODO convert to symmAinvMat too
-          PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+          PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
           if( verbosity >= 2 ){
             statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
@@ -4052,6 +3939,7 @@ namespace PEXSI{
 
     return ;
   }    // -----  end of method PPEXSIData::CalculateFermiOperatorComplexDeprecate  ----- 
+#endif
 
   // Main subroutine for the electronic structure calculation with Hermitian Hamiltonian
   void PPEXSIData::CalculateFermiOperatorComplex(
@@ -4292,52 +4180,112 @@ namespace PEXSI{
           // *********************************************************************
           // Factorization
           // *********************************************************************
-          // Important: the distribution in pzsymbfact is going to mess up the
-          // A matrix.  Recompute the matrix A here.
-          if( verbosity >= 2 ){
-            statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-          }
-          luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
-          if( verbosity >= 2 ){
-            statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-          }
 
-          Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
-
-          GetTime( timeTotalFactorizationSta );
-
-          // Data redistribution
-          if( verbosity >= 2 ){
-            statusOFS << "Before Distribute." << std::endl;
-          }
-          luMat.Distribute();
-          if( verbosity >= 2 ){
-            statusOFS << "After Distribute." << std::endl;
-          }
-
-          // Numerical factorization
-          if( verbosity >= 2 ){
-            statusOFS << "Before NumericalFactorize." << std::endl;
-          }
-          luMat.NumericalFactorize();
-          if( verbosity >= 2 ){
-            statusOFS << "After NumericalFactorize." << std::endl;
-          }
-          luMat.DestroyAOnly();
-
-          GetTime( timeTotalFactorizationEnd );
-
-          if( verbosity >= 1 ){
-            statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
-          }
-
-          // *********************************************************************
-          // Selected inversion
-          // *********************************************************************
           Real timeTotalSelInvSta, timeTotalSelInvEnd;
-          GetTime( timeTotalSelInvSta );
+          switch (solver) {
+            case 0:
+              {
+                // Important: the distribution in pzsymbfact is going to mess up the
+                // A matrix.  Recompute the matrix A here.
+                if( verbosity >= 2 ){
+                  statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+                }
+                luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+                if( verbosity >= 2 ){
+                  statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+                }
 
-          luMat.LUstructToPMatrix( PMloc );
+                Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+                GetTime( timeTotalFactorizationSta );
+
+                // Data redistribution
+                if( verbosity >= 2 ){
+                  statusOFS << "Before Distribute." << std::endl;
+                }
+                luMat.Distribute();
+                if( verbosity >= 2 ){
+                  statusOFS << "After Distribute." << std::endl;
+                }
+
+                // Numerical factorization
+                if( verbosity >= 2 ){
+                  statusOFS << "Before NumericalFactorize." << std::endl;
+                }
+                luMat.NumericalFactorize();
+                if( verbosity >= 2 ){
+                  statusOFS << "After NumericalFactorize." << std::endl;
+                }
+                luMat.DestroyAOnly();
+
+                GetTime( timeTotalFactorizationEnd );
+
+                if( verbosity >= 1 ){
+                  statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+                }
+
+                // *********************************************************************
+                // Selected inversion
+                // *********************************************************************
+                GetTime( timeTotalSelInvSta );
+
+                luMat.LUstructToPMatrix( PMloc );
+              }
+              break;
+#ifdef WITH_SYMPACK
+            case 1:
+              {
+                symPACK::symPACKMatrix<Complex>& symPACKMat = *symPACKComplexMat_ ;
+                symPACK::DistSparseMatrix<Complex> ltAMat;
+                if( verbosity >= 2 ){
+                  statusOFS << "Before ToLowerTriangular." << std::endl;
+                }
+                Convert(AMat,ltAMat);
+                ltAMat.ToLowerTriangular();
+                if( verbosity >= 2 ){
+                  statusOFS << "After ToLowerTriangular." << std::endl;
+                }
+
+
+                Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+                GetTime( timeTotalFactorizationSta );
+
+                // Data redistribution
+                if( verbosity >= 2 ){
+                  statusOFS << "Before Distribute." << std::endl;
+                }
+                symPACKMat.DistributeMatrix(ltAMat);
+                if( verbosity >= 2 ){
+                  statusOFS << "After Distribute." << std::endl;
+                }
+
+                // Numerical factorization
+                if( verbosity >= 2 ){
+                  statusOFS << "Before NumericalFactorize." << std::endl;
+                }
+                symPACKMat.Factorize();
+                // Numerical factorization
+                if( verbosity >= 2 ){
+                  statusOFS << "After NumericalFactorize." << std::endl;
+                }
+
+                GetTime( timeTotalFactorizationEnd );
+
+                if( verbosity >= 1 ){
+                  statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+                }
+
+                //make a symmetric matrix out of that....
+                GetTime( timeTotalSelInvSta );
+                symPACKMatrixToPMatrix( symPACKMat, PMloc );
+              }
+              break;
+#endif
+            default:
+              ErrorHandling("Unsupported solver.");
+              break;
+          }
 
 
           // Collective communication version
@@ -4369,7 +4317,7 @@ namespace PEXSI{
           GetTime( timePostProcessingSta );
 
           //TODO convert to symmAinvMat too
-          PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+          PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
           if( verbosity >= 2 ){
             statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
@@ -5155,6 +5103,7 @@ namespace PEXSI{
           return ;
         }         // -----  end of method PPEXSIData::DFTDriver  ----- 
 
+#if 0
   void
     PPEXSIData::DFTDriver2_Deprecate (
         Real       numElectronExact,
@@ -5616,7 +5565,7 @@ namespace PEXSI{
 
           return ;
         }         // -----  end of method PPEXSIData::DFTDriver2_Deprecate  ----- 
-
+#endif
 
   void
     PPEXSIData::DFTDriver2 (
@@ -6057,7 +6006,7 @@ namespace PEXSI{
           return ;
         }         // -----  end of method PPEXSIData::DFTDriver2  ----- 
 
-
+#if 0
   // Main subroutine for the electronic structure calculation
   // Use the same Green's functions at multiple mu so that PEXSI is only
   // calculated once per SCF.
@@ -6475,7 +6424,7 @@ namespace PEXSI{
           GetTime( timeConvertingSta );
 
           //TODO convert to symmAinvMat too
-          PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+          PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
           // Compute Tr[Ainv*S]. 
           //
@@ -6761,6 +6710,7 @@ namespace PEXSI{
 
     return ;
   }    // -----  end of method PPEXSIData::CalculateFermiOperatorReal2  ----- 
+#endif
 
   //void PPEXSIData::CalculateFermiOperatorReal3(
   //    Int   numPole, 
@@ -8186,52 +8136,111 @@ void PPEXSIData::CalculateFermiOperatorReal3(
         // *********************************************************************
         // Factorization
         // *********************************************************************
-        // Important: the distribution in pzsymbfact is going to mess up the
-        // A matrix.  Recompute the matrix A here.
-        if( verbosity >= 2 ){
-          statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-        }
-        luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
-        if( verbosity >= 2 ){
-          statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-        }
-
-        Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
-
-        GetTime( timeTotalFactorizationSta );
-
-        // Data redistribution
-        if( verbosity >= 2 ){
-          statusOFS << "Before Distribute." << std::endl;
-        }
-        luMat.Distribute();
-        if( verbosity >= 2 ){
-          statusOFS << "After Distribute." << std::endl;
-        }
-
-        // Numerical factorization
-        if( verbosity >= 2 ){
-          statusOFS << "Before NumericalFactorize." << std::endl;
-        }
-        luMat.NumericalFactorize();
-        if( verbosity >= 2 ){
-          statusOFS << "After NumericalFactorize." << std::endl;
-        }
-        luMat.DestroyAOnly();
-
-        GetTime( timeTotalFactorizationEnd );
-
-        if( verbosity >= 1 ){
-          statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
-        }
-
-        // *********************************************************************
-        // Selected inversion
-        // *********************************************************************
         Real timeTotalSelInvSta, timeTotalSelInvEnd;
-        GetTime( timeTotalSelInvSta );
+        switch (solver) {
+          case 0:
+            {
+              // Important: the distribution in pzsymbfact is going to mess up the
+              // A matrix.  Recompute the matrix A here.
+              if( verbosity >= 2 ){
+                statusOFS << "Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+              }
+              luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+              if( verbosity >= 2 ){
+                statusOFS << "After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+              }
 
-        luMat.LUstructToPMatrix( PMloc );
+              Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+              GetTime( timeTotalFactorizationSta );
+
+              // Data redistribution
+              if( verbosity >= 2 ){
+                statusOFS << "Before Distribute." << std::endl;
+              }
+              luMat.Distribute();
+              if( verbosity >= 2 ){
+                statusOFS << "After Distribute." << std::endl;
+              }
+
+              // Numerical factorization
+              if( verbosity >= 2 ){
+                statusOFS << "Before NumericalFactorize." << std::endl;
+              }
+              luMat.NumericalFactorize();
+              if( verbosity >= 2 ){
+                statusOFS << "After NumericalFactorize." << std::endl;
+              }
+              luMat.DestroyAOnly();
+
+              GetTime( timeTotalFactorizationEnd );
+
+              if( verbosity >= 1 ){
+                statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+              }
+
+              // *********************************************************************
+              // Selected inversion
+              // *********************************************************************
+              GetTime( timeTotalSelInvSta );
+
+              luMat.LUstructToPMatrix( PMloc );
+            }
+            break;
+#ifdef WITH_SYMPACK
+          case 1:
+            {
+              symPACK::symPACKMatrix<Complex>& symPACKMat = *symPACKComplexMat_ ;
+              symPACK::DistSparseMatrix<Complex> ltAMat;
+              if( verbosity >= 2 ){
+                statusOFS << "Before ToLowerTriangular." << std::endl;
+              }
+              Convert(AMat,ltAMat);
+              ltAMat.ToLowerTriangular();
+              if( verbosity >= 2 ){
+                statusOFS << "After ToLowerTriangular." << std::endl;
+              }
+
+
+              Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+              GetTime( timeTotalFactorizationSta );
+
+              // Data redistribution
+              if( verbosity >= 2 ){
+                statusOFS << "Before Distribute." << std::endl;
+              }
+              symPACKMat.DistributeMatrix(ltAMat);
+              if( verbosity >= 2 ){
+                statusOFS << "After Distribute." << std::endl;
+              }
+
+              // Numerical factorization
+              if( verbosity >= 2 ){
+                statusOFS << "Before NumericalFactorize." << std::endl;
+              }
+              symPACKMat.Factorize();
+              // Numerical factorization
+              if( verbosity >= 2 ){
+                statusOFS << "After NumericalFactorize." << std::endl;
+              }
+
+              GetTime( timeTotalFactorizationEnd );
+
+              if( verbosity >= 1 ){
+                statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+              }
+
+              //make a symmetric matrix out of that....
+              GetTime( timeTotalSelInvSta );
+              symPACKMatrixToPMatrix( symPACKMat, PMloc );
+            }
+            break;
+#endif
+          default:
+            ErrorHandling("Unsupported solver.");
+            break;
+        }
 
 
         // Collective communication version
@@ -8254,6 +8263,7 @@ void PPEXSIData::CalculateFermiOperatorReal3(
             timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
         }
 
+
         // *********************************************************************
         // Postprocessing
         // *********************************************************************
@@ -8263,7 +8273,7 @@ void PPEXSIData::CalculateFermiOperatorReal3(
         GetTime( timePostProcessingSta );
 
         //TODO convert to symmAinvMat too
-        PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+        PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
         if( verbosity >= 2 ){
           statusOFS << "rhoMat.nnzLocal = " << rhoMat.nnzLocal << std::endl;
@@ -8369,6 +8379,7 @@ void PPEXSIData::CalculateFermiOperatorReal3(
 
 void PPEXSIData::CalculateEDMCorrectionReal(
     Int   numPole,
+    Int   solver,
     Int   verbosity,
     Int   nPoints) {
 
@@ -8433,50 +8444,126 @@ void PPEXSIData::CalculateEDMCorrectionReal(
       //AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
       AMat.nzvalLocal(i) =  SMat.nzvalLocal(i);
     }
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-    }
-    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-    }
 
-    Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
-
-    GetTime( timeTotalFactorizationSta );
-
-    // Data redistribution
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv Before Distribute." << std::endl;
-    }
-    luMat.Distribute();
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv After Distribute." << std::endl;
-    }
-
-    // Numerical factorization
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv Before NumericalFactorize." << std::endl;
-    }
-    luMat.NumericalFactorize();
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv After NumericalFactorize." << std::endl;
-    }
-    luMat.DestroyAOnly();
-
-    GetTime( timeTotalFactorizationEnd );
-
-    if( verbosity >= 1 ){
-      statusOFS << "Sinv Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
-    }
-
-    // *********************************************************************
-    // Selected inversion
-    // *********************************************************************
     Real timeTotalSelInvSta, timeTotalSelInvEnd;
-    GetTime( timeTotalSelInvSta );
 
-    luMat.LUstructToPMatrix( PMloc );
+
+    switch (solver) {
+      case 0:
+        {
+
+
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+          }
+          luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+          }
+
+          Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+          GetTime( timeTotalFactorizationSta );
+
+          // Data redistribution
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv Before Distribute." << std::endl;
+          }
+          luMat.Distribute();
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv After Distribute." << std::endl;
+          }
+
+          // Numerical factorization
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv Before NumericalFactorize." << std::endl;
+          }
+          luMat.NumericalFactorize();
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv After NumericalFactorize." << std::endl;
+          }
+          luMat.DestroyAOnly();
+
+          GetTime( timeTotalFactorizationEnd );
+
+          if( verbosity >= 1 ){
+            statusOFS << "Sinv Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+          }
+
+          // *********************************************************************
+          // Selected inversion
+          // *********************************************************************
+          GetTime( timeTotalSelInvSta );
+
+          luMat.LUstructToPMatrix( PMloc );
+
+
+        }
+        break;
+#ifdef WITH_SYMPACK
+      case 1:
+        {
+          symPACK::symPACKMatrix<Complex>& symPACKMat = *symPACKComplexMat_ ;
+          symPACK::DistSparseMatrix<Complex> ltAMat;
+          if( verbosity >= 2 ){
+            statusOFS << "Before ToLowerTriangular." << std::endl;
+          }
+          Convert(AMat,ltAMat);
+          ltAMat.ToLowerTriangular();
+          if( verbosity >= 2 ){
+            statusOFS << "After ToLowerTriangular." << std::endl;
+          }
+
+
+          Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+          GetTime( timeTotalFactorizationSta );
+
+          // Data redistribution
+          if( verbosity >= 2 ){
+            statusOFS << "Before Distribute." << std::endl;
+          }
+          symPACKMat.DistributeMatrix(ltAMat);
+          if( verbosity >= 2 ){
+            statusOFS << "After Distribute." << std::endl;
+          }
+
+          // Numerical factorization
+          if( verbosity >= 2 ){
+            statusOFS << "Before NumericalFactorize." << std::endl;
+          }
+          symPACKMat.Factorize();
+          // Numerical factorization
+          if( verbosity >= 2 ){
+            statusOFS << "After NumericalFactorize." << std::endl;
+          }
+
+          GetTime( timeTotalFactorizationEnd );
+
+          if( verbosity >= 1 ){
+            statusOFS << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+          }
+
+          //make a symmetric matrix out of that....
+          GetTime( timeTotalSelInvSta );
+          symPACKMatrixToPMatrix( symPACKMat, PMloc );
+        }
+        break;
+#endif
+      default:
+        ErrorHandling("Unsupported solver.");
+        break;
+    }
+
+
+
+
+
+
+
+
+
+
 
 
     // Collective communication version
@@ -8504,7 +8591,7 @@ void PPEXSIData::CalculateEDMCorrectionReal(
     // *********************************************************************
 
     //TODO convert to symmAinvMat too
-    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+    PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
     if( verbosity >= 1 ){
       statusOFS << "frcMat.nnzLocal = " << frcMat.nnzLocal << std::endl;
@@ -8567,8 +8654,17 @@ void PPEXSIData::CalculateEDMCorrectionReal(
 
 void PPEXSIData::CalculateEDMCorrectionComplex(
     Int   numPole,
+    Int   solver,
     Int   verbosity,
     Int   nPoints) {
+
+  if(solver==1){
+    std::ostringstream msg;
+    msg  << std::endl
+      << "Solver not supported in this routine." << std::endl;
+    ErrorHandling( msg.str().c_str() );
+  }
+
 
   // add the points parallelization.
   /*
@@ -8626,50 +8722,61 @@ void PPEXSIData::CalculateEDMCorrectionComplex(
       //AMat.nzvalLocal(i) = HMat.nzvalLocal(i) - zshift_[l] * SMat.nzvalLocal(i);
       AMat.nzvalLocal(i) =  SMat.nzvalLocal(i);
     }
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-    }
-    luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
-    }
 
-    Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
-
-    GetTime( timeTotalFactorizationSta );
-
-    // Data redistribution
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv Before Distribute." << std::endl;
-    }
-    luMat.Distribute();
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv After Distribute." << std::endl;
-    }
-
-    // Numerical factorization
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv Before NumericalFactorize." << std::endl;
-    }
-    luMat.NumericalFactorize();
-    if( verbosity >= 2 ){
-      statusOFS << "Sinv After NumericalFactorize." << std::endl;
-    }
-    luMat.DestroyAOnly();
-
-    GetTime( timeTotalFactorizationEnd );
-
-    if( verbosity >= 1 ){
-      statusOFS << "Sinv Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
-    }
-
-    // *********************************************************************
-    // Selected inversion
-    // *********************************************************************
     Real timeTotalSelInvSta, timeTotalSelInvEnd;
-    GetTime( timeTotalSelInvSta );
+    switch (solver) {
+      case 0:
+        {
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv Before DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+          }
+          luMat.DistSparseMatrixToSuperMatrixNRloc( AMat, luOpt_ );
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv After DistSparseMatrixToSuperMatrixNRloc." << std::endl;
+          }
 
-    luMat.LUstructToPMatrix( PMloc );
+          Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
+
+          GetTime( timeTotalFactorizationSta );
+
+          // Data redistribution
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv Before Distribute." << std::endl;
+          }
+          luMat.Distribute();
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv After Distribute." << std::endl;
+          }
+
+          // Numerical factorization
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv Before NumericalFactorize." << std::endl;
+          }
+          luMat.NumericalFactorize();
+          if( verbosity >= 2 ){
+            statusOFS << "Sinv After NumericalFactorize." << std::endl;
+          }
+          luMat.DestroyAOnly();
+
+          GetTime( timeTotalFactorizationEnd );
+
+          if( verbosity >= 1 ){
+            statusOFS << "Sinv Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " [s]" << std::endl; 
+          }
+
+          // *********************************************************************
+          // Selected inversion
+          // *********************************************************************
+          GetTime( timeTotalSelInvSta );
+
+          luMat.LUstructToPMatrix( PMloc );
+        }
+        break;
+      default:
+        ErrorHandling("Unsupported solver.");
+        break;
+    }
+
 
 
     // Collective communication version
@@ -8697,7 +8804,7 @@ void PPEXSIData::CalculateEDMCorrectionComplex(
     // *********************************************************************
 
     //TODO convert to symmAinvMat too
-    PMloc.PMatrixToDistSparseMatrix( AMat, AinvMat );
+    PMloc.PMatrixToDistSparseMatrix( PatternMat_, AinvMat );
 
     if( verbosity >= 1 ){
       statusOFS << "frcMat.nnzLocal = " << frcMat.nnzLocal << std::endl;

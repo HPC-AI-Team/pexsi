@@ -935,6 +935,7 @@ void PPEXSICalculateEDMCorrectionReal(
   try{
     reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionReal(
         options.numPole,
+        options.solver,
         options.verbosity,
         options.nPoints);
   }
@@ -962,6 +963,7 @@ void PPEXSICalculateEDMCorrectionComplex(
   try{
     reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionComplex(
         options.numPole,
+        options.solver,
         options.verbosity,
         options.nPoints);
   }
@@ -1236,6 +1238,7 @@ void PPEXSIDFTDriver(
   return;
 }   // -----  end of function PPEXSIDFTDriver  ----- 
 
+#if 0
 extern "C"
 void PPEXSIDFTDriver2_Deprecate(
     /* Input parameters */
@@ -1289,6 +1292,7 @@ void PPEXSIDFTDriver2_Deprecate(
   }
   return;
 }   // -----  end of function PPEXSIDFTDriver2_Deprecate  ----- 
+#endif
 
 extern "C"
 void PPEXSIDFTDriver2(
@@ -1827,6 +1831,7 @@ void PPEXSIRetrieveRealEDM(
 
     reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionReal(
         options.numPole,
+        options.solver,
         options.verbosity,
         options.nPoints);
 
@@ -1893,6 +1898,7 @@ void PPEXSIRetrieveComplexEDM(
 
     reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionComplex(
         options.numPole,
+        options.solver,
         options.verbosity,
         options.nPoints);
 

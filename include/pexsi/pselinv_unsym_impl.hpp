@@ -6568,7 +6568,7 @@ namespace PEXSI{
       } // End of method PMatrixUnsym<T>::ComputeDiagUpdate_New 
 
     template<typename T>
-      void PMatrixUnsym<T>::PMatrixToDistSparseMatrix ( const DistSparseMatrix<T>& A, DistSparseMatrix<T>& B )
+      void PMatrixUnsym<T>::PMatrixToDistSparseMatrix_ ( const NumVec<Int> & AcolptrLocal, const NumVec<Int> & ArowindLocal, const Int Asize, const LongInt Annz, const Int AnnzLocal, DistSparseMatrix<T>& B )
       {
         //TODO THIS HAS TO BE DONE
 
@@ -6617,8 +6617,8 @@ namespace PEXSI{
         else
           numColLocal = numColFirst;
 
-        Int*     rowPtr = A.rowindLocal.Data();
-        Int*     colPtr = A.colptrLocal.Data();
+        Int*     rowPtr = ArowindLocal.Data();
+        Int*     colPtr = AcolptrLocal.Data();
 
         for( Int j = 0; j < numColLocal; j++ ){
           Int ocol = firstCol + j;
@@ -6689,8 +6689,8 @@ namespace PEXSI{
         // Put (row, col) to the sending buffer
         std::vector<Int>   cntSize( mpisize, 0 );
 
-        rowPtr = A.rowindLocal.Data();
-        colPtr = A.colptrLocal.Data();
+        rowPtr = ArowindLocal.Data();
+        colPtr = AcolptrLocal.Data();
 
         for( Int j = 0; j < numColLocal; j++ ){
 
@@ -6825,11 +6825,11 @@ namespace PEXSI{
 #endif
 
         // Put the nonzero values from valSend to the matrix B.
-        B.size = A.size;
-        B.nnz  = A.nnz;
-        B.nnzLocal = A.nnzLocal;
-        B.colptrLocal = A.colptrLocal;
-        B.rowindLocal = A.rowindLocal;
+        B.size = Asize;
+        B.nnz  = Annz;
+        B.nnzLocal = AnnzLocal;
+        B.colptrLocal = AcolptrLocal;
+        B.rowindLocal = ArowindLocal;
         B.nzvalLocal.Resize( B.nnzLocal );
         SetValue( B.nzvalLocal, ZERO<T>() );
         // Make sure that the communicator of A and B are the same.

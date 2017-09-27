@@ -278,7 +278,7 @@ int main(int argc, char **argv)
   options.numElectronPEXSITolerance = 0.001;
   options.isSymbolicFactorize = 1;
   #ifdef WITH_SYMPACK
-  //options.solver = 1;
+  options.solver = 1;
   #endif
   options.symmetricStorage = 1;
 
