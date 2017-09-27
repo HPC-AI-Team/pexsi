@@ -2188,6 +2188,8 @@ namespace PEXSI{
           }
         } // if (SMat.size != 0 )
 
+        
+
         Real timeInertiaSta, timeInertiaEnd;
         // *********************************************************************
         // Factorization

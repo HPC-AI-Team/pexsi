@@ -1321,7 +1321,7 @@ Int inline serialize(const symPACK::DistSparseMatrixGraph & val, std::ostream& o
 {
   serialize( val.size,        os, mask );
   serialize( val.nnz,         os, mask );
-  serialize( val.bIsExpanded, os, mask );
+  serialize( val.IsExpanded(), os, mask );
   serialize( val.mpirank,     os, mask );
   serialize( val.mpisize,     os, mask );
   serialize( val.baseval,     os, mask );
@@ -1338,7 +1338,7 @@ Int inline deserialize(symPACK::DistSparseMatrixGraph& val, std::istream& is, co
 {
   deserialize( val.size,        is, mask );
   deserialize( val.nnz,         is, mask );
-  deserialize( val.bIsExpanded, is, mask );
+  deserialize( val.IsExpanded(), is, mask );
   deserialize( val.mpirank,     is, mask );
   deserialize( val.mpisize,     is, mask );
   deserialize( val.baseval,     is, mask );
@@ -1395,7 +1395,7 @@ void inline Convert(const DistSparseMatrix<T>& A, symPACK::DistSparseMatrix<T> &
     BGraph.size = B.size;       
     BGraph.nnz = B.nnz;
     BGraph.SetComm(B.comm);
-    BGraph.bIsExpanded = true;
+    BGraph.SetExpanded(true);
     BGraph.baseval = 1;
     BGraph.keepDiag = 1;
     BGraph.sorted = 1;
@@ -1419,7 +1419,7 @@ void inline Convert(symPACK::DistSparseMatrix<T>& B, DistSparseMatrix<T> & A)
         int mpisize,mpirank;
         MPI_Comm_size(comm,&mpisize);
         MPI_Comm_rank(comm,&mpirank);
-        bool wasExpanded = B.GetLocalGraph().bIsExpanded;
+        bool wasExpanded = B.GetLocalGraph().IsExpanded();
         if(!wasExpanded && B.nnz>0){
           B.ExpandSymmetric();
           B.SortGraph();
