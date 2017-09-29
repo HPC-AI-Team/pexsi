@@ -121,8 +121,8 @@ int main(int argc, char **argv)
 
 #if 1
   numElectronExact    = 12.0;
-  nprow               = 1;//2;
-  npcol               = 1;//2;
+  nprow               = 2;
+  npcol               = 2;
   Hfile               = "H.csc";
   Sfile               = "";
   isFormatted         = 0;
@@ -283,7 +283,7 @@ int main(int argc, char **argv)
   options.muInertiaTolerance = 0.05;
   options.isSymbolicFactorize = 1;
   options.method = 2;
-  options.nPoints = 1;//2;
+  options.nPoints = 2;
   int npoints = options.nPoints;
   int method = options.method;
   #ifdef WITH_SYMPACK
@@ -504,7 +504,12 @@ int main(int argc, char **argv)
 
 
   MPI_Comm_free( &readComm );
+  #ifdef WITH_SYMPACK
+  symPACK_Finalize();
+  #else
   MPI_Finalize();
+  #endif
+
 
   return 0;
 }
