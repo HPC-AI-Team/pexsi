@@ -514,8 +514,6 @@ inline Int deserialize(T& val, std::istream& is, const std::vector<Int>& mask)
   return 0;
 }
 
-
-
 //bool
 inline Int serialize(const bool& val, std::ostream& os, const std::vector<Int>& mask)
 {
@@ -1338,7 +1336,7 @@ Int inline deserialize(symPACK::DistSparseMatrixGraph& val, std::istream& is, co
 {
   deserialize( val.size,        is, mask );
   deserialize( val.nnz,         is, mask );
-  deserialize( val.IsExpanded(), is, mask );
+  deserialize( val.expanded, is, mask );
   deserialize( val.mpirank,     is, mask );
   deserialize( val.mpisize,     is, mask );
   deserialize( val.baseval,     is, mask );

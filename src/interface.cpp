@@ -39,7 +39,7 @@ Enhancements, then you hereby grant the following license: a non-exclusive,
 royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
- */
+*/
 /// @file interface.cpp
 /// @brief Interface subroutines of PPEXSI that can be called by both C and FORTRAN.
 ///
@@ -59,7 +59,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 using namespace PEXSI;
 
-extern "C"
+  extern "C"
 void ReadDistSparseMatrixFormattedHeadInterface (
     char*    filename,
     int*     size,
@@ -116,7 +116,7 @@ void ReadDistSparseMatrixFormattedHeadInterface (
 // -----  end of function ReadDistSparseMatrixFormattedHeadInterface
 
 
-extern "C"
+  extern "C"
 void ReadDistSparseMatrixFormattedInterface(
     char*     filename,
     int       size,
@@ -149,7 +149,7 @@ void ReadDistSparseMatrixFormattedInterface(
 // -----  end of function ReadDistSparseMatrixFormattedInterface  
 
 
-extern "C"
+  extern "C"
 void ReadDistSparseMatrixHeadInterface (
     char*    filename,
     int*     size,
@@ -210,7 +210,7 @@ void ReadDistSparseMatrixHeadInterface (
 }  
 // -----  end of function ReadDistSparseMatrixHeadInterface
 
-extern "C"
+  extern "C"
 void ParaReadDistSparseMatrixInterface(
     char*     filename,
     int       size,
@@ -432,6 +432,9 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
             case 2:
               colPerm = "MMD_AT_PLUS_A";
               break;
+            case 3:
+              colPerm = "NATURAL";
+              break;
             default:
               ErrorHandling("Unsupported ordering strategy.");
               break;
@@ -453,12 +456,15 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
               colPerm = "MMD";
               break;
             case 3:
-              colPerm = "AMD";
+              colPerm = "NATURAL";
               break;
             case 4:
-              colPerm = "PARMETIS";
+              colPerm = "AMD";
               break;
             case 5:
+              colPerm = "PARMETIS";
+              break;
+            case 6:
               colPerm = "METIS";
               break;
             default:
@@ -514,6 +520,9 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
         break;
       case 2:
         colPerm = "MMD_AT_PLUS_A";
+        break;
+      case 3:
+        colPerm = "NATURAL";
         break;
       default:
         ErrorHandling("Unsupported ordering strategy.");
@@ -583,6 +592,9 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
             case 2:
               colPerm = "MMD_AT_PLUS_A";
               break;
+            case 3:
+              colPerm = "NATURAL";
+              break;
             default:
               ErrorHandling("Unsupported ordering strategy.");
               break;
@@ -604,12 +616,15 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
               colPerm = "MMD";
               break;
             case 3:
-              colPerm = "AMD";
+              colPerm = "NATURAL";
               break;
             case 4:
-              colPerm = "PARMETIS";
+              colPerm = "AMD";
               break;
             case 5:
+              colPerm = "PARMETIS";
+              break;
+            case 6:
               colPerm = "METIS";
               break;
             default:
@@ -666,6 +681,9 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
         break;
       case 2:
         colPerm = "MMD_AT_PLUS_A";
+        break;
+      case 3:
+        colPerm = "NATURAL";
         break;
       default:
         ErrorHandling("Unsupported ordering strategy.");
@@ -800,7 +818,7 @@ void PPEXSIInertiaCountComplexMatrix(
 
 
 
-extern "C"
+  extern "C"
 void PPEXSICalculateFermiOperatorReal(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -840,7 +858,7 @@ void PPEXSICalculateFermiOperatorReal(
 }		// -----  end of function PPEXSICalculateFermiOperatorReal  ----- 
 
 
-extern "C"
+  extern "C"
 void PPEXSICalculateFermiOperatorReal3(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -866,8 +884,8 @@ void PPEXSICalculateFermiOperatorReal3(
         options.verbosity,
         *numElectronPEXSI,
         *numElectronDrvMuPEXSI,
-	options.method,
-	options.nPoints);
+        options.method,
+        options.nPoints);
   }
   catch( std::exception& e )
   {
@@ -881,7 +899,7 @@ void PPEXSICalculateFermiOperatorReal3(
 }		// -----  end of function PPEXSICalculateFermiOperatorReal3  ----- 
 
 
-extern "C"
+  extern "C"
 void PPEXSICalculateFermiOperatorComplex(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -908,8 +926,8 @@ void PPEXSICalculateFermiOperatorComplex(
         options.verbosity,
         *numElectronPEXSI,
         *numElectronDrvMuPEXSI,
-         options.method,
-         options.nPoints);
+        options.method,
+        options.nPoints);
   }
   catch( std::exception& e )
   {
@@ -922,7 +940,7 @@ void PPEXSICalculateFermiOperatorComplex(
   return ;
 }		// -----  end of function PPEXSICalculateFermiOperatorComplex   ----- 
 
-extern "C"
+  extern "C"
 void PPEXSICalculateEDMCorrectionReal(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -950,7 +968,7 @@ void PPEXSICalculateEDMCorrectionReal(
   return ;
 }		// -----  end of function PPEXSICalculateEDMCorrectionReal  ----- 
 
-extern "C"
+  extern "C"
 void PPEXSICalculateEDMCorrectionComplex(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -978,7 +996,7 @@ void PPEXSICalculateEDMCorrectionComplex(
   return ;
 }		// -----  end of function PPEXSICalculateEDMCorrectionComplex  ----- 
 
-extern "C"
+  extern "C"
 void PPEXSIInterpolateDMReal(
     PPEXSIPlan        plan,
     PPEXSIOptions*    options,
@@ -995,14 +1013,14 @@ void PPEXSIInterpolateDMReal(
   try{
     reinterpret_cast<PPEXSIData*>(plan)->InterpolateDMReal(
         numElectronExact,
-	numElectronPEXSI,
-	options->numElectronPEXSITolerance,
-	options->nPoints,
-	NeVec,
-	options->muMin0,
-	options->muMax0,
-	*muPEXSI, 
-	options->verbosity);
+        numElectronPEXSI,
+        options->numElectronPEXSITolerance,
+        options->nPoints,
+        NeVec,
+        options->muMin0,
+        options->muMax0,
+        *muPEXSI, 
+        options->verbosity);
 
   }
   catch( std::exception& e )
@@ -1017,7 +1035,7 @@ void PPEXSIInterpolateDMReal(
 }		// -----  end of function PEXSIInterpolateDMReal  ----- 
 
 
-extern "C"
+  extern "C"
 void PPEXSIInterpolateDMComplex(
     PPEXSIPlan        plan,
     PPEXSIOptions*    options,
@@ -1034,14 +1052,14 @@ void PPEXSIInterpolateDMComplex(
   try{
     reinterpret_cast<PPEXSIData*>(plan)->InterpolateDMComplex(
         numElectronExact,
-	numElectronPEXSI,
-	options->numElectronPEXSITolerance,
-	options->nPoints,
-	NeVec,
-	options->muMin0,
-	options->muMax0,
-	*muPEXSI, 
-	options->verbosity);
+        numElectronPEXSI,
+        options->numElectronPEXSITolerance,
+        options->nPoints,
+        NeVec,
+        options->muMin0,
+        options->muMax0,
+        *muPEXSI, 
+        options->verbosity);
 
   }
   catch( std::exception& e )
@@ -1057,7 +1075,7 @@ void PPEXSIInterpolateDMComplex(
 
 
 
-extern "C"
+  extern "C"
 void PPEXSISelInvRealSymmetricMatrix (
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -1088,7 +1106,7 @@ void PPEXSISelInvRealSymmetricMatrix (
   return ;
 }		// -----  end of function PPEXSISelInvRealSymmetricMatrix  ----- 
 
-extern "C"
+  extern "C"
 void PPEXSISelInvRealUnsymmetricMatrix (
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -1118,7 +1136,7 @@ void PPEXSISelInvRealUnsymmetricMatrix (
   return ;
 }		// -----  end of function PPEXSISelInvRealUnsymmetricMatrix  ----- 
 
-extern "C"
+  extern "C"
 void PPEXSISelInvComplexSymmetricMatrix (
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -1149,7 +1167,7 @@ void PPEXSISelInvComplexSymmetricMatrix (
   return ;
 }		// -----  end of function PPEXSISelInvComplexSymmetricMatrix  ----- 
 
-extern "C"
+  extern "C"
 void PPEXSISelInvComplexUnsymmetricMatrix (
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
@@ -1309,7 +1327,7 @@ void PPEXSIDFTDriver2(
     int*              info ){
   *info = 0;
   const GridType* gridPole = 
-  reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->DFTDriver2(
@@ -1332,8 +1350,8 @@ void PPEXSIDFTDriver2(
         options->muMin0,
         options->muMax0,
         *numTotalInertiaIter,
-         options->method,
-         options->nPoints);
+        options->method,
+        options->nPoints);
   }
   catch( std::exception& e )
   {
@@ -1346,48 +1364,48 @@ void PPEXSIDFTDriver2(
 }   // -----  end of function PPEXSIDFTDriver2  ----- 
 
 /*
-extern "C"
-void PPEXSIRetrieveRealDFTMatrix2(
-    PPEXSIPlan        plan,
-    double*      DMnzvalLocal,
-    double*     EDMnzvalLocal,
-    double*     FDMnzvalLocal,
-    double*     totalEnergyH,
-    double*     totalEnergyS,
-    double*     totalFreeEnergy,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+   extern "C"
+   void PPEXSIRetrieveRealDFTMatrix2(
+   PPEXSIPlan        plan,
+   double*      DMnzvalLocal,
+   double*     EDMnzvalLocal,
+   double*     FDMnzvalLocal,
+   double*     totalEnergyH,
+   double*     totalEnergyS,
+   double*     totalFreeEnergy,
+   int*              info ){
+ *info = 0;
+ const GridType* gridPole = 
+ reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+ PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
 
-  try{
-    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
+ try{
+ Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
 
-    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
-        DMnzvalLocal, 1 );
+ blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
+ DMnzvalLocal, 1 );
 #if 0
-    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
-        EDMnzvalLocal, 1 );
+blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
+EDMnzvalLocal, 1 );
 
-    blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
-        FDMnzvalLocal, 1 );
+blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
+FDMnzvalLocal, 1 );
 #endif
-    *totalEnergyH = ptrData->TotalEnergyH();
+ *totalEnergyH = ptrData->TotalEnergyH();
 
-    *totalEnergyS = ptrData->TotalEnergyS();
+ *totalEnergyS = ptrData->TotalEnergyS();
 
-    *totalFreeEnergy = ptrData->TotalFreeEnergy();
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveRealDFTMatrix2  ----- 
-*/
+ *totalFreeEnergy = ptrData->TotalFreeEnergy();
+ }
+ catch( std::exception& e ) {
+ statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+ << " caught exception with message: "
+ << std::endl << e.what() << std::endl;
+ *info = 1;
+ }
+ return;
+ }   // -----  end of function PPEXSIRetrieveRealDFTMatrix2  ----- 
+ */
 
 extern "C"
 void PPEXSIRetrieveRealDFTMatrix(
@@ -1597,7 +1615,7 @@ void PPEXSIGetPoleFDM(
 // *********************************************************************
 
 /// @brief Internal subroutine to convert FORTRAN communicator to C
-extern "C" 
+  extern "C" 
 MPI_Comm f2c_comm(MPI_Fint* Fcomm)
 {
   return MPI_Comm_f2c((*Fcomm));
@@ -1605,7 +1623,7 @@ MPI_Comm f2c_comm(MPI_Fint* Fcomm)
 
 
 /// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedHeadInterface.
-extern "C"
+  extern "C"
 void f_read_distsparsematrix_formatted_head (
     char*    filename,
     int*     size,
@@ -1627,7 +1645,7 @@ void f_read_distsparsematrix_formatted_head (
 
 
 /// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedInterface.
-extern "C"
+  extern "C"
 void f_read_distsparsematrix_formatted (
     char*    filename,
     int      size,
@@ -1653,7 +1671,7 @@ void f_read_distsparsematrix_formatted (
 } // -----  end of function f_read_distsparsematrix_formatted  ----- 
 
 /// @brief FORTRAN interface for @ref ReadDistSparseMatrixHeadInterface.
-extern "C"
+  extern "C"
 void f_read_distsparsematrix_head (
     char*    filename,
     int*     size,
@@ -1675,7 +1693,7 @@ void f_read_distsparsematrix_head (
 
 
 /// @brief FORTRAN interface for @ref ParaReadDistSparseMatrixInterface.
-extern "C"
+  extern "C"
 void f_para_read_distsparsematrix (
     char*    filename,
     int      size,
@@ -1827,7 +1845,7 @@ void PPEXSIRetrieveRealEDM(
   try{
 
     statusOFS << std::endl << " Warning, EDM correction before retrieve" 
-             << gridPole->mpirank << std::endl;
+      << gridPole->mpirank << std::endl;
 
     reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionReal(
         options.numPole,
@@ -1894,7 +1912,7 @@ void PPEXSIRetrieveComplexEDM(
 
   try{
     statusOFS << std::endl << " Warning, EDM correction before retrieve" 
-             << gridPole->mpirank << std::endl;
+      << gridPole->mpirank << std::endl;
 
     reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionComplex(
         options.numPole,

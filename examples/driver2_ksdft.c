@@ -107,7 +107,13 @@ int main(int argc, char **argv)
 
 
 
+  #ifdef WITH_SYMPACK
+  symPACK_Init(&argc, &argv);
+  #else
   MPI_Init( &argc, &argv );
+  #endif
+
+
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
   MPI_Comm_size( MPI_COMM_WORLD, &mpisize );
 
@@ -115,8 +121,8 @@ int main(int argc, char **argv)
 
 #if 1
   numElectronExact    = 12.0;
-  nprow               = 2;
-  npcol               = 2;
+  nprow               = 1;//2;
+  npcol               = 1;//2;
   Hfile               = "H.csc";
   Sfile               = "";
   isFormatted         = 0;
@@ -267,7 +273,7 @@ int main(int argc, char **argv)
   options.muMax0 = 10.0;
   options.mu0    = 0.0;
   options.npSymbFact = 1;
-  options.ordering = 0;
+  options.ordering = 3;//0;
   options.isInertiaCount = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
@@ -277,9 +283,13 @@ int main(int argc, char **argv)
   options.muInertiaTolerance = 0.05;
   options.isSymbolicFactorize = 1;
   options.method = 2;
-  options.nPoints = 2;
+  options.nPoints = 1;//2;
   int npoints = options.nPoints;
   int method = options.method;
+  #ifdef WITH_SYMPACK
+  options.solver = 1;
+  #endif
+  options.symmetricStorage = 0;
 
   if( mpisize / ( nprow * npcol* options.numPole) > npoints ) 
   {
