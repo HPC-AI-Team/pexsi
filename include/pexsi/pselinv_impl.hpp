@@ -7048,8 +7048,11 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
             MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
           LBlock<Real> & LB = this->L( LBj( ksup, grid_ ) )[0];
           for( Int i = 0; i < LB.numRow; i++ ){
-            if( LB.nzval(i, i) < 0 )
+            if( LB.nzval(i, i) < 0 ){
+              Int fc = FirstBlockCol( ksup, this->super_ );
+              statusOFS<<"Neg L("<<fc+i<<", "<<fc+i<<") = "<< LB.nzval(i, i)<<std::endl;
               inertiaLocal++;
+            }
           }
         }
       }
@@ -7076,8 +7079,11 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
             MYCOL( grid_ ) == PCOL( ksup, grid_ ) ){
           LBlock<Complex> & LB = this->L( LBj( ksup, grid_ ) )[0];
           for( Int i = 0; i < LB.numRow; i++ ){
-            if( LB.nzval(i, i).real() < 0 )
+            if( LB.nzval(i, i).real() < 0 ){
+              Int fc = FirstBlockCol( ksup, this->super_ );
+              statusOFS<<"Neg L("<<fc+i<<", "<<fc+i<<") = "<< LB.nzval(i, i)<<std::endl;
               inertiaLocal++;
+            }
           }
         }
       }
@@ -7157,11 +7163,17 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         if(Lcol.size()>0){
           Int blockColIdx = GBj( j, this->grid_ );
           Int fc = FirstBlockCol( blockColIdx, this->super_ );
-          for( Int ib = 0; ib < Lcol.size(); ib++ ){
-            for(Int ir = 0; ir< Lcol[ib].rows.m(); ++ir){
-              Int row = Lcol[ib].rows[ir];
-              for(Int col = fc; col<fc+Lcol[ib].numCol;col++){
+          Int numCol = Lcol[0].numCol ;
+
+          for(Int col = fc; col<fc+numCol;col++){
+            for( Int ib = 0; ib < Lcol.size(); ib++ ){
+              for(Int ir = 0; ir< Lcol[ib].rows.m(); ++ir){
+               
+                Int row = Lcol[ib].rows[ir];
                 Int ocol = permInv_r[permInv[col]];
+
+                if(row!=col){ continue;}
+
                 Int orow = permInv[row];
                 Int jloc = col - FirstBlockCol( blockColIdx, this->super_ );
                 Int iloc = ir;
@@ -7170,6 +7182,20 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
               }
             }
           }
+
+//          for( Int ib = 0; ib < Lcol.size(); ib++ ){
+//            for(Int ir = 0; ir< Lcol[ib].rows.m(); ++ir){
+//              Int row = Lcol[ib].rows[ir];
+//              for(Int col = fc; col<fc+Lcol[ib].numCol;col++){
+//                Int ocol = permInv_r[permInv[col]];
+//                Int orow = permInv[row];
+//                Int jloc = col - FirstBlockCol( blockColIdx, this->super_ );
+//                Int iloc = ir;
+//                T val = Lcol[ib].nzval( iloc, jloc );
+//                statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<") = "<<val<< std::endl;
+//              }
+//            }
+//          }
         }
       }
 

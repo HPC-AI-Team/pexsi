@@ -356,8 +356,8 @@ namespace PEXSI{
             if(solver == 1){
               Convert(PatternMat_, symmPatternMat_);
               symmPatternMat_.ToLowerTriangular();
-              symmPatternMat_.GetLocalGraph().SetSorted(false);
-              symmPatternMat_.SortGraph();
+              //symmPatternMat_.GetLocalGraph().SetSorted(false);
+              //symmPatternMat_.SortGraph();
             }
 #endif
 //          }
@@ -644,8 +644,8 @@ namespace PEXSI{
             if(solver == 1){
               Convert(PatternMat_, symmPatternMat_);
               symmPatternMat_.ToLowerTriangular();
-              symmPatternMat_.GetLocalGraph().SetSorted(false);
-              symmPatternMat_.SortGraph();
+              //symmPatternMat_.GetLocalGraph().SetSorted(false);
+              //symmPatternMat_.SortGraph();
             }
 #endif
 
@@ -884,16 +884,17 @@ namespace PEXSI{
               symPACK::symPACKMatrix<Real>& symPACKMat = *symPACKRealMat_ ;
               symPACKMat.Init(optionsFact);
 
-              symPACK::DistSparseMatrix<Real> AMat;
-
-              PEXSI::CopyPattern( symmPatternMat_, AMat );
-
               //AMat.nzvalLocal.assign(AMat.nzvalLocal.size(), D_ZERO );          // Symbolic factorization does not need value
+              symPACK::DistSparseMatrix<Real> ltAMat;
+              Convert(PatternMat_, ltAMat);
+              ltAMat.ToLowerTriangular();
+//              SetValue( AMat.nzvalLocal, D_ZERO );          // Symbolic factorization does not need value
+              //ltAMat.nzvalLocal.assign(AMat.nzvalLocal.size(), D_ZERO );          // Symbolic factorization does not need value
 
               GetTime( timeSta );
                     
 
-              symPACKMat.SymbolicFactorization(AMat);
+              symPACKMat.SymbolicFactorization(ltAMat);
               GetTime( timeEnd );
               if( verbosity >= 1 ){
                 statusOFS 
@@ -1248,14 +1249,15 @@ namespace PEXSI{
               symPACK::symPACKMatrix<Complex>& symPACKMat = *symPACKComplexMat_ ;
               symPACKMat.Init(optionsFact);
 
-              symPACK::DistSparseMatrix<Complex> AMat;
-
-              PEXSI::CopyPattern( symmPatternMat_, AMat );
-
-              //AMat.nzvalLocal.assign(AMat.nzvalLocal.size(), Z_ZERO );          // Symbolic factorization does not need value
+              DistSparseMatrix<Complex> AMat;
+              CopyPattern(PatternMat_, AMat);
+              symPACK::DistSparseMatrix<Complex> ltAMat;
+              Convert(AMat, ltAMat);
+              ltAMat.ToLowerTriangular();
+              //SetValue( AMat.nzvalLocal, Z_ZERO );          // Symbolic factorization does not need value
 
               GetTime( timeSta );
-              symPACKMat.SymbolicFactorization(AMat);
+              symPACKMat.SymbolicFactorization(ltAMat);
               GetTime( timeEnd );
               if( verbosity >= 1 ){
                 statusOFS 
@@ -2200,9 +2202,6 @@ namespace PEXSI{
           }
         } // if (SMat.size != 0 )
 
-statusOFS<<"AMat.colptr "<< AMat.colptrLocal<<std::endl;       
-statusOFS<<"AMat.rowind "<< AMat.rowindLocal<<std::endl;       
-statusOFS<<"AMat.nzval "<< AMat.nzvalLocal<<std::endl;       
 
         Real timeInertiaSta, timeInertiaEnd;
         // *********************************************************************
@@ -2264,45 +2263,20 @@ statusOFS<<"AMat.nzval "<< AMat.nzvalLocal<<std::endl;
               Real timeTotalFactorizationSta, timeTotalFactorizationEnd;
               symPACK::symPACKMatrix<Real>& symPACKMat = *symPACKRealMat_ ;
 
+
+
+
+
               symPACK::DistSparseMatrix<Real> ltAMat;
               if( verbosity >= 2 ){
                 statusOFS << "Before ToLowerTriangular." << std::endl;
               }
               Convert(AMat,ltAMat);
               ltAMat.ToLowerTriangular();
-              //ltAMat.GetLocalGraph().SetSorted(false);
-              //ltAMat.SortGraph();
               if( verbosity >= 2 ){
                 statusOFS << "After ToLowerTriangular." << std::endl;
               }
 
-statusOFS<<"ltAMat.colptr "<< ltAMat.GetLocalGraph().colptr<<std::endl;       
-statusOFS<<"ltAMat.rowind "<< ltAMat.GetLocalGraph().rowind<<std::endl;       
-statusOFS<<"ltAMat.nzval "<< ltAMat.nzvalLocal<<std::endl;
-
-{ 
-  auto toto =  ltAMat;
-
-  toto.ExpandSymmetric();
-
-  {
-    auto & vec1 = AMat.colptrLocal; auto & vec2 = toto.GetLocalGraph().colptr;
-    symPACK::bassert(vec1.m() == vec2.size() );
-    for(int i = 0 ; i < vec2.size(); i++ ){ symPACK::bassert( symPACK::Ptr(vec1[i]) == vec2[i]); }
-  }
-  {
-    auto & vec1 = AMat.rowindLocal; auto & vec2 = toto.GetLocalGraph().rowind;
-    symPACK::bassert(vec1.m() == vec2.size() );
-    for(int i = 0 ; i < vec2.size(); i++ ){ symPACK::bassert( symPACK::Idx(vec1[i]) == vec2[i]); }
-  }
-  {
-    auto & vec1 = AMat.nzvalLocal; auto & vec2 = toto.nzvalLocal;
-    symPACK::bassert(vec1.m() == vec2.size() );
-    for(int i = 0 ; i < vec2.size(); i++ ){ symPACK::bassert( vec1[i] == vec2[i]); }
-  }
-
-
-}
               GetTime( timeTotalFactorizationSta );
               // Data redistribution
               if( verbosity >= 2 ){
@@ -2331,10 +2305,6 @@ statusOFS<<"ltAMat.nzval "<< ltAMat.nzvalLocal<<std::endl;
 
               GetTime( timeInertiaSta );
               symPACKMatrixToPMatrix( symPACKMat, PMloc );
-
-              //statusOFS<<"----------------------------"<<std::endl;
-              //symPACKMat.Dump();
-              //statusOFS<<"----------------------------"<<std::endl;
             }
             break;
 #endif
@@ -2343,20 +2313,8 @@ statusOFS<<"ltAMat.nzval "<< ltAMat.nzvalLocal<<std::endl;
             break;
         }
 
-{
-  DistSparseMatrix<Real> AFactor;
-  PMloc.PMatrixToDistSparseMatrix(PatternMat_,AFactor);
-
-  statusOFS<<"AFactor.colptr "<< AFactor.colptrLocal<<std::endl;       
-  statusOFS<<"AFactor.rowind "<< AFactor.rowindLocal<<std::endl;       
-  statusOFS<<"AFactor.nzval "<< AFactor.nzvalLocal<<std::endl;       
-}
-
-
         // Compute the negative inertia of the matrix.
         PMloc.GetNegativeInertia( inertiaVecLocal[l] );
-
-        statusOFS<< "l="<<l<<" " << inertiaVecLocal[l] << std::endl;
 
         GetTime( timeInertiaEnd );
 
@@ -2364,8 +2322,6 @@ statusOFS<<"ltAMat.nzval "<< ltAMat.nzvalLocal<<std::endl;
           statusOFS << "Time for computing the inertia is " <<
             timeInertiaEnd  - timeInertiaSta << " [s]" << std::endl;
         }
-
-
       } // if I am in charge of this shift
     } // for(l)
 
@@ -2373,9 +2329,7 @@ statusOFS<<"ltAMat.nzval "<< ltAMat.nzvalLocal<<std::endl;
     mpi::Allreduce( &inertiaVecLocal[0], &inertiaVec[0], numShift, 
         MPI_SUM, gridPole_->colComm );
 
-        statusOFS<<"inertiaVecLocal "<<inertiaVecLocal<<std::endl;
-
-//        abort();
+    //statusOFS<<"inertiaVecLocal "<<inertiaVecLocal<<std::endl;
 
     return ;
   }         // -----  end of method PPEXSIData::CalculateNegativeInertiaReal ----- 
@@ -8278,8 +8232,6 @@ void PPEXSIData::CalculateFermiOperatorReal3(
               }
               Convert(AMat,ltAMat);
               ltAMat.ToLowerTriangular();
-              ltAMat.GetLocalGraph().SetSorted(false);
-              ltAMat.SortGraph();
               if( verbosity >= 2 ){
                 statusOFS << "After ToLowerTriangular." << std::endl;
               }
@@ -8325,19 +8277,10 @@ void PPEXSIData::CalculateFermiOperatorReal3(
             break;
         }
 
-
-        // Collective communication version
-        //          PMloc.ConstructCommunicationPattern_Collectives();
-
         PMloc.PreSelInv();
 
         // Main subroutine for selected inversion
-        //
-        // P2p communication version
         PMloc.SelInv();
-
-        // Collective communication version
-        //          PMloc.SelInv_Collectives();
 
         GetTime( timeTotalSelInvEnd );
 

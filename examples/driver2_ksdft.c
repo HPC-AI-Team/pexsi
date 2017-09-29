@@ -289,7 +289,7 @@ int main(int argc, char **argv)
   #ifdef WITH_SYMPACK
   options.solver = 1;
   #endif
-  options.symmetricStorage = 0;
+  options.symmetricStorage = 1;
 
   if( mpisize / ( nprow * npcol* options.numPole) > npoints ) 
   {
