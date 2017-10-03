@@ -7049,8 +7049,8 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
           LBlock<Real> & LB = this->L( LBj( ksup, grid_ ) )[0];
           for( Int i = 0; i < LB.numRow; i++ ){
             if( LB.nzval(i, i) < 0 ){
-              Int fc = FirstBlockCol( ksup, this->super_ );
-              statusOFS<<"Neg L("<<fc+i<<", "<<fc+i<<") = "<< LB.nzval(i, i)<<std::endl;
+//              Int fc = FirstBlockCol( ksup, this->super_ );
+//              statusOFS<<"Neg L("<<fc+i<<", "<<fc+i<<") = "<< LB.nzval(i, i)<<std::endl;
               inertiaLocal++;
             }
           }
@@ -7080,8 +7080,8 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
           LBlock<Complex> & LB = this->L( LBj( ksup, grid_ ) )[0];
           for( Int i = 0; i < LB.numRow; i++ ){
             if( LB.nzval(i, i).real() < 0 ){
-              Int fc = FirstBlockCol( ksup, this->super_ );
-              statusOFS<<"Neg L("<<fc+i<<", "<<fc+i<<") = "<< LB.nzval(i, i)<<std::endl;
+//              Int fc = FirstBlockCol( ksup, this->super_ );
+//              statusOFS<<"Neg L("<<fc+i<<", "<<fc+i<<") = "<< LB.nzval(i, i)<<std::endl;
               inertiaLocal++;
             }
           }
