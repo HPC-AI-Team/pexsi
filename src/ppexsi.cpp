@@ -131,9 +131,8 @@ namespace PEXSI{
     luComplexMat_ = new SuperLUMatrix<Complex>;
 
 #ifdef WITH_SYMPACK
+    symPACKOpt_.verbose=0;
     if( outputFileIndex >= 0 ){
-      symPACKOpt_.verbose=0;
-
       if(symPACK::logfileptr==NULL){
         //Initialize symPACK logfile
         std::stringstream suffix;
@@ -1197,7 +1196,7 @@ namespace PEXSI{
         selinvOpt_.maxPipelineDepth = -1;
         selinvOpt_.symmetricStorage = symmetricStorage;
 
-        switch(solver){
+        switch (solver) {
           case 0:
             {
               SuperLUMatrix<Complex>&    luMat     = *luComplexMat_;

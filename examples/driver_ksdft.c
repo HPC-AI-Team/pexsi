@@ -450,7 +450,12 @@ int main(int argc, char **argv)
 
   
   MPI_Comm_free( &readComm );
-  MPI_Finalize();
+  #ifdef WITH_SYMPACK
+  symPACK_Init(&argc, &argv);
+  #else
+  MPI_Init( &argc, &argv );
+  #endif
+
 
   return 0;
 }

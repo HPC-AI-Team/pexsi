@@ -119,21 +119,21 @@ int main(int argc, char **argv)
 
   /* Below is the data used for the toy matrix */
 
-#if 1
+#if 0
   numElectronExact    = 12.0;
-  nprow               = 1;
-  npcol               = 1;
+  nprow               = 4;
+  npcol               = 4;
   Hfile               = "H.csc";
   Sfile               = "";
   isFormatted         = 0;
   isSIdentity         = 1;
 
 #else
-#if 1
+#if 0
   numElectronExact    = 7000.0;
   nprow               = 8;
   npcol               = 8;
-  Hfile               = "/project/projectdirs/m1027/PEXSI/LU_C_BN_C_1by1/H_LU.csc";
+  Hfile               = "/project/projectdirs/m1027/PEXSI/LU_C_BN_C_1by1/H.csc";
   Sfile               = "";
   isFormatted         = 0;
 
@@ -144,7 +144,8 @@ int main(int argc, char **argv)
   numElectronExact    = 70000.0;
   nprow               = 8;
   npcol               = 8;
-  Hfile               = "/project/projectdirs/m1027/PEXSI/DG_Phosphorene_14000/H.csc";
+  //Hfile               = "/project/projectdirs/m1027/PEXSI/DG_Phosphorene_14000/H.csc";
+  Hfile               = "/project/projectdirs/m1027/PEXSI/DNA_715_64cell/H.csc";
   Sfile               = "";
   isFormatted         = 0;
 
@@ -270,15 +271,18 @@ int main(int argc, char **argv)
   options.muMin0 = -10.0;
   options.muMax0 = 10.0;
   options.mu0    = 0.0;
-  options.npSymbFact = 1;
+  options.npSymbFact = 4;
   options.ordering = 0;
+#ifdef WITH_SYMPACK
+  options.ordering = 4;
+#endif
   options.isInertiaCount = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  options.numPole  = 15;
+  options.numPole  = 20;
   options.temperature  = 0.0095; // 3000K
-  //options.numElectronPEXSITolerance = 0.1E-10;
-  options.numElectronPEXSITolerance = 0.001;
+  options.numElectronPEXSITolerance = 0.1E-10;
+  //options.numElectronPEXSITolerance = 0.001;
   options.muInertiaTolerance = 0.05;
   options.isSymbolicFactorize = 1;
   options.method = 2;
