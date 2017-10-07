@@ -576,7 +576,7 @@ public:
   std::vector<std::vector<Int> > RowBlockIdx_;
 protected:
 
-  void PMatrixToDistSparseMatrix_ ( const NumVec<Int> & AcolptrLocal, const NumVec<Int> & ArowindLocal, const Int Asize, const LongInt Annz, const Int AnnzLocal, DistSparseMatrix<T>& B );
+  virtual void PMatrixToDistSparseMatrix_ ( const NumVec<Int> & AcolptrLocal, const NumVec<Int> & ArowindLocal, const Int Asize, const LongInt Annz, const Int AnnzLocal, DistSparseMatrix<T>& B );
 
   // *********************************************************************
   // Variables

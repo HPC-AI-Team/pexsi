@@ -6570,8 +6570,6 @@ namespace PEXSI{
     template<typename T>
       void PMatrixUnsym<T>::PMatrixToDistSparseMatrix_ ( const NumVec<Int> & AcolptrLocal, const NumVec<Int> & ArowindLocal, const Int Asize, const LongInt Annz, const Int AnnzLocal, DistSparseMatrix<T>& B )
       {
-        //TODO THIS HAS TO BE DONE
-
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "Converting PMatrix to DistSparseMatrix (2nd format)." << std::endl;
 #endif
