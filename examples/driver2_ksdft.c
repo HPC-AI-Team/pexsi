@@ -119,10 +119,10 @@ int main(int argc, char **argv)
 
   /* Below is the data used for the toy matrix */
 
-#if 0
+#if 1
   numElectronExact    = 12.0;
-  nprow               = 4;
-  npcol               = 4;
+  nprow               = 2;
+  npcol               = 2;
   Hfile               = "H.csc";
   Sfile               = "";
   isFormatted         = 0;

@@ -118,8 +118,8 @@ int main(int argc, char **argv)
 
 #if 1
   numElectronExact    = 12.0;
-  nprow               = 1;
-  npcol               = 1;
+  nprow               = 2;
+  npcol               = 2;
   //Hfile               = "lap2dr.matrix";
   Hfile               = "H.csc";
   Sfile               = "";
