@@ -451,9 +451,9 @@ int main(int argc, char **argv)
   
   MPI_Comm_free( &readComm );
   #ifdef WITH_SYMPACK
-  symPACK_Init(&argc, &argv);
+  symPACK_Finalize();
   #else
-  MPI_Init( &argc, &argv );
+  MPI_Finalize();
   #endif
 
 
