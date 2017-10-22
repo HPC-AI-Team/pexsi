@@ -11,7 +11,7 @@ Download
 
 **Older version of PEXSI**:
 
-**NOTE: Due to insufficient manpower (as there will never be in science), older version of PEXSI is no longer
+**NOTE: Due to insufficient manpower (as there will never be in science!), older version of PEXSI is no longer
 supported**
 
 **v0.10.2**:

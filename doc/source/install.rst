@@ -89,7 +89,7 @@ The `...OPTIONS...` can be one of the following:
 Some platforms have preconfigured toolchain files which can be used by adding the following option to the `cmake` command:
 ::
     -DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/toolchains/edison.cmake     
-    (To build on NERSC Edison for instance)
+    (To build on NERSC Edison machine for instance)
 
 
 A sample toolchain file can be found in `/path/to/sympack/toolchains/build_config.cmake` and customized for the target platform.
@@ -102,14 +102,17 @@ The `cmake` command will configure the build process, which can now start by typ
 
 Additionally, a standalone driver for **symPACK** can be built by typing `make examples`
 
+**Note** Since cmake also compiles UPCxx and GASNET, the compilation
+time may be long especially on certain clusters.
+
 
 Build SuperLU_DIST
 ======================
 
 
-Download SuperLU_DIST (latest version 5.1.3) from
+Download SuperLU_DIST (latest version 5.2.1) from
 
-http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_5.1.3.tar.gz
+http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_5.2.1.tar.gz
 
 Follow the installation step to install SuperLU_DIST.
 
@@ -198,7 +201,7 @@ PEXSI. It is set to 0 by default. When set to 1, the `SYMPACK_DIR` variable
 must be pointing to symPACK's installation directory.
 
 
-**note**
+**Note**
 
 - Starting from PEXSI v0.8.0, `-std=c++11` is required in `CXXFLAGS`. 
 

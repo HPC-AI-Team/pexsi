@@ -229,8 +229,6 @@ int main(int argc, char **argv)
       plan,
       &info );
   
-  
-  
   /* Deallocate memory */
   free( colptrLocal );
   free( rowindLocal );

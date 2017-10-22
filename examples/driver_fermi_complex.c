@@ -463,9 +463,9 @@ int main(int argc, char **argv)
       plan,
       &info );
   
-  if( mpirank == 0 ){ 
-    printf("\nAll calculation is finished. Exit the program.\n");
-  }
+//  if( mpirank == 0 ){ 
+//    printf("\nAll calculation is finished. Exit the program.\n");
+//  }
 
 
   if( isProcRead == 1 ){
