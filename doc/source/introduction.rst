@@ -295,6 +295,9 @@ PEXSI version history
 
     - Compatible with the ELSI software package.
 
+    - Migrate from doxygen to sphinx for documentation. The original
+      doxygen format is still kept for the purpose of developers.
+
     - symPACK replaces SuperLU_DIST as the default solver for
       factorizing symmetric matrices.  SuperLU_DIST is still the default
       solver for factorizing unsymmetric matrices. Currently supported
