@@ -7,7 +7,7 @@ USE_SYMPACK      = 0
 
 # Different compiling and linking options.
 # Marenostrum machine in Barcelona. IBM machine
-SUFFIX       = mn_v0.10.0
+SUFFIX       = mn_v1.0
 
 # Compiler and tools
 ################################################################
@@ -34,7 +34,7 @@ PEXSI_DIR     = $(HOME)/pexsi
 PEXSI_BUILD_DIR = $(PEXSI_DIR)/build
 
 # Required libraries directories
-DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_5.1.2
+DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_5.2.1
 PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.2/build/Linux-x86_64
 SCOTCH_DIR    = $(HOME)/Software/scotch_6.0.0
 
@@ -51,7 +51,7 @@ SCALAPACK_LIB    =-Wl,-rpath,/apps/INTEL/mkl/lib/intel64/ -L/apps/INTEL/mkl/lib/
 METIS_LIB        = -L${PARMETIS_DIR}/libmetis -lmetis
 PARMETIS_LIB     = -L${PARMETIS_DIR}/libparmetis -lparmetis
 SCOTCH_LIB       = -L${SCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_5.1.2.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/lib/libsuperlu_dist_5.2.1.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
 # Different compiling and linking options.

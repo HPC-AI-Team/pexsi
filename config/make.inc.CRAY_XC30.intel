@@ -3,11 +3,11 @@ COMPILE_MODE     = release
 USE_PROFILE      = 0
 PAR_ND_LIBRARY   = ptscotch
 SEQ_ND_LIBRARY   = scotch
-USE_SYMPACK      = 0
+USE_SYMPACK      = 1
 
 # Different compiling and linking options.
 # Edison is a CRAY XC30 machine
-SUFFIX       = edison_v0.10.0
+SUFFIX       = edison_v1.0
 
 # Compiler and tools
 ################################################################
@@ -34,7 +34,7 @@ PEXSI_DIR     = /global/homes/l/linlin/project/pexsi_edison
 PEXSI_BUILD_DIR = $(PEXSI_DIR)/build
 
 # Required libraries directories
-DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_5.1.2_edison
+DSUPERLU_DIR  = /global/homes/l/linlin/software/SuperLU_DIST_5.2.1_edison
 PARMETIS_DIR  = /project/projectdirs/m1027/PEXSI/libpexsi_edison
 PTSCOTCH_DIR  = /project/projectdirs/m1027/PEXSI/libpexsi_edison
 
@@ -45,7 +45,7 @@ DSUPERLU_INCLUDE = -I${DSUPERLU_DIR}/SRC
 INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} 
 
 # Libraries
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/build_release/lib/libsuperlu_dist_5.1.2.a
+DSUPERLU_LIB     = ${DSUPERLU_DIR}/SRC/libsuperlu_dist_5.2.1.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 #MKL_LIB          = -Wl,--start-group  ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a -Wl,--end-group -lpthread -lm
 #MKL_LIB          = -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_intel_sequential.a -Wl,--end-group -lpthread -lm
@@ -89,14 +89,13 @@ CPPFLAG = -std=c++11
 
 ifeq (${USE_SYMPACK}, 1)
   #symPACK related definitions
-  SYMPACK_DIR = ${HOME}/sympack_install
+  SYMPACK_DIR = /home/lin/Projects/sympack/release
   include ${SYMPACK_DIR}/include/sympack.mak
   CPPFLAG += ${SYMPACK_INCLUDE} 
   LIBS+= ${SYMPACK_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${GFORTRAN_LIB}
   COMPILE_DEF  += -DWITH_SYMPACK
   CPPFLAG += -std=c++11
 endif
-
 
 
 
@@ -109,7 +108,7 @@ LOADOPTS     = ${PROFILE_FLAG} ${LIBS} -no-ipo -Wl,--allow-multiple-definition
 FLOADOPTS    = ${LIBS} -no-ipo -lstdc++ -Wl,--allow-multiple-definition
 
 
-# Generate auto-dependencies 
+nc.CRAY_XC30.intel0 Generate auto-dependencies 
 %.d: %.c
 	@set -e; rm -f $@; \
 	$(CC) -M $(CCDEFS) $(CFLAGS) $< > $@.$$$$; \
