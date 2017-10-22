@@ -51,6 +51,7 @@
  * @date 2014-04-01  Compatible with v0.7.0 new interface.
  * @date 2015-05-14  Compatible with v0.8.0 new interface.
  * @date 2016-09-10  Compatible with the interface at version 0.10.0
+ * @date 2017-09-20  Compatible with the interface at version 1.0
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -118,15 +119,15 @@ int main(int argc, char **argv)
 
 #if 1
   numElectronExact    = 12.0;
-  nprow               = 2;
-  npcol               = 2;
-  //Hfile               = "lap2dr.matrix";
-  Hfile               = "H.csc";
+  nprow               = 1;
+  npcol               = 1;
+  Hfile               = "lap2dr.matrix";
+//  Hfile               = "H.csc";
   Sfile               = "";
-  isFormatted         = 0;
+  isFormatted         = 1;
   isSIdentity         = 1;
 #else
-#if 1
+#if 0
   numElectronExact    = 7000.0;
   nprow               = 8;
   npcol               = 8;
@@ -272,10 +273,10 @@ int main(int argc, char **argv)
   options.maxPEXSIIter   = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  options.numPole  = 40;
-  options.temperature  = 0.0019; // 300K
+  options.numPole  = 80;
+  options.temperature  = 0.00095; // 300K
   options.muPEXSISafeGuard  = 0.2; 
-  options.numElectronPEXSITolerance = 0.001;
+  options.numElectronPEXSITolerance = 0.0001;
   options.isSymbolicFactorize = 1;
   #ifdef WITH_SYMPACK
   options.solver = 1;

@@ -52,6 +52,7 @@
  * such procedure, such as to be developed in the ELSI interface.
  *
  * @date 2016-09-10  Original version.
+ * @date 2017-09-20  Compatible with the interface at version 1.0
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -131,7 +132,7 @@ int main(int argc, char **argv)
   isFormatted         = 1;
   isSIdentity         = 1;
 #else
-#if 1
+#if 0
   numElectronExact    = 7000.0;
   nprow               = 8;
   npcol               = 8;
@@ -298,10 +299,9 @@ int main(int argc, char **argv)
   options.verbosity = 1;
   options.deltaE   = 20.0;
   options.numPole  = 20;
-  options.temperature  = 0.0019; // 300K
   options.temperature  = 0.00095;// 300K
   options.muPEXSISafeGuard  = 0.2; 
-  options.numElectronPEXSITolerance = 0.001;
+  options.numElectronPEXSITolerance = 0.00001;
   options.isSymbolicFactorize = 1;
   options.method = 2;
   options.nPoints = 1;

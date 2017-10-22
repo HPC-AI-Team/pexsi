@@ -3981,6 +3981,7 @@ namespace PEXSI{
     Int npPerPoint  = gridPole_->mpisize / nPoints;
     if(npPerPoint < 1) {
       statusOFS << " Error, Point parallelization error, npPerPoint < 1 " << std::endl;
+      statusOFS << " mpisize should be at least equal to " << nPoints << std::endl;
     }
     Int myPoint     = gridPole_->mpirank / npPerPoint;
     Int myPointRank = gridPole_->mpirank % npPerPoint;

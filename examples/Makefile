@@ -6,12 +6,12 @@ include ../make.inc
 SRCS_CPP  = run_pselinv.cpp run_pselinv_unsym.cpp \
  						run_ksdft.cpp run_fermi.cpp run_fermi_complex.cpp
 SRCS_C    = driver_pselinv_real.c driver_pselinv_complex.c driver_pselinv_real_unsym.c \
-					 	driver_pselinv_complex_unsym.c driver_ksdft.c driver_ksdft_2_deprecate.c \
+					 	driver_pselinv_complex_unsym.c driver_ksdft.c \
 						driver_fermi_complex.c driver2_ksdft.c
 
 all: driver_pselinv_real driver_pselinv_real_unsym \
 	driver_pselinv_complex driver_pselinv_complex_unsym \
-	driver_ksdft driver_ksdft_2_deprecate driver_fermi_complex \
+	driver_ksdft driver_fermi_complex \
 	driver2_ksdft
 
 
@@ -24,8 +24,6 @@ endif
 driver2_ksdft: driver2_ksdft.o ${PEXSI_LIB}
 	($(LOADER) -o $@_${SUFFIX} driver2_ksdft.o  $(LOADOPTS) )
 
-driver_ksdft_2_deprecate: driver_ksdft_2_deprecate.o ${PEXSI_LIB}
-	($(LOADER) -o $@_${SUFFIX} driver_ksdft_2_deprecate.o  $(LOADOPTS) )
 
 driver_ksdft: driver_ksdft.o ${PEXSI_LIB}
 	($(LOADER) -o $@_${SUFFIX} driver_ksdft.o  $(LOADOPTS) )
