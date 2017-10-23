@@ -129,7 +129,7 @@ your application or software package!
 - SIESTA
 
     - Download link for SIESTA-PEXSI:
-      http://departments.icmab.es/leem/siesta/CodeAccess/Code/siesta-pexsi/siesta-pexsi.html
+      https://launchpad.net/siesta
 
 - Electronic Structure Infrastructure (ELSI) Project
 
