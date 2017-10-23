@@ -153,6 +153,8 @@ private:
 
   symPACK::DistSparseMatrix<Real>     symmShiftInvRealMat_;
   symPACK::DistSparseMatrix<Complex>  symmShiftInvComplexMat_;
+
+  Int outputFileIndex_;
 #endif
 
   SuperLUOptions             luOpt_;

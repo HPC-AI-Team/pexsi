@@ -131,20 +131,23 @@ namespace PEXSI{
     luComplexMat_ = new SuperLUMatrix<Complex>;
 
 #ifdef WITH_SYMPACK
+    outputFileIndex_ = outputFileIndex;
+    symPACKRealMat_ = nullptr;
+    symPACKComplexMat_ = nullptr;
     symPACKOpt_.verbose=0;
-    if( outputFileIndex >= 0 ){
-      if(symPACK::logfileptr==NULL){
-        //Initialize symPACK logfile
-        std::stringstream suffix;
-        suffix<<mpirank;
-        symPACK::logfileptr = new symPACK::LogFile("status",suffix.str().c_str());
-        symPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<std::endl;
-        symPACK::logfileptr->OFS()<<"**********************************"<<std::endl;
-      }
-    }
-
-    symPACKRealMat_ = new symPACK::symPACKMatrix<Real>;
-    symPACKComplexMat_ = new symPACK::symPACKMatrix<Complex>;
+//    if( outputFileIndex >= 0 ){
+//      if(symPACK::logfileptr==NULL){
+//        //Initialize symPACK logfile
+//        std::stringstream suffix;
+//        suffix<<mpirank;
+//        symPACK::logfileptr = new symPACK::LogFile("status",suffix.str().c_str());
+//        symPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<std::endl;
+//        symPACK::logfileptr->OFS()<<"**********************************"<<std::endl;
+//      }
+//    }
+//
+//    symPACKRealMat_ = new symPACK::symPACKMatrix<Real>;
+//    symPACKComplexMat_ = new symPACK::symPACKMatrix<Complex>;
 #endif
 
     PMRealMat_ = new PMatrix<Real>;
@@ -871,7 +874,23 @@ namespace PEXSI{
 #ifdef WITH_SYMPACK
           case 1:
             {
-              delete symPACKRealMat_;
+              if(symPACKRealMat_!=nullptr){
+                delete symPACKRealMat_;
+              }
+
+    if( outputFileIndex_ >= 0 ){
+      if(symPACK::logfileptr==NULL){
+        auto mpirank = gridSelInv_->mpirank;
+        //Initialize symPACK logfile
+        std::stringstream suffix;
+        suffix<<mpirank;
+        symPACK::logfileptr = new symPACK::LogFile("status",suffix.str().c_str());
+        symPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<std::endl;
+        symPACK::logfileptr->OFS()<<"**********************************"<<std::endl;
+      }
+    }
+
+
               symPACKRealMat_ = new symPACK::symPACKMatrix<Real>();
 
               symPACK::symPACKOptions & optionsFact = symPACKOpt_;
@@ -1236,7 +1255,22 @@ namespace PEXSI{
 #ifdef WITH_SYMPACK
           case 1:
             {
-              delete symPACKComplexMat_;
+              if(symPACKComplexMat_!=nullptr){
+                delete symPACKComplexMat_;
+              }
+    if( outputFileIndex_ >= 0 ){
+      if(symPACK::logfileptr==NULL){
+        //Initialize symPACK logfile
+        auto mpirank = gridSelInv_->mpirank;
+        std::stringstream suffix;
+        suffix<<mpirank;
+        symPACK::logfileptr = new symPACK::LogFile("status",suffix.str().c_str());
+        symPACK::logfileptr->OFS()<<"********* LOGFILE OF P"<<mpirank<<" *********"<<std::endl;
+        symPACK::logfileptr->OFS()<<"**********************************"<<std::endl;
+      }
+    }
+
+
               symPACKComplexMat_ = new symPACK::symPACKMatrix<Complex>();
 
               symPACK::symPACKOptions & optionsFact = symPACKOpt_;
