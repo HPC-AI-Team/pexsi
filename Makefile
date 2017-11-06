@@ -31,3 +31,4 @@ clean:
 cleanall:
 	cd src && ${MAKE} cleanall
 	cd examples && ${MAKE} cleanall
+	cd fortran && ${MAKE} cleanall

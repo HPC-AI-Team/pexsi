@@ -179,6 +179,10 @@ typedef intptr_t  PPEXSIPlan;
  */
 typedef struct {
     /** 
+     * @brief  NumSpin, default is 2.0
+     */ 
+    double        spin;  
+    /** 
      * @brief  Temperature, in the same unit as H 
      */ 
     double        temperature;  
@@ -782,10 +786,9 @@ void PPEXSICalculateFermiOperatorReal(
 void PPEXSICalculateFermiOperatorReal3(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
-    double            mu,
     double            numElectronExact,
+    double*           mu,
     double*           numElectronPEXSI,
-    double*           numElectronDrvMuPEXSI,
     int*              info );
 
 

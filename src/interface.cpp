@@ -250,6 +250,7 @@ void ParaReadDistSparseMatrixInterface(
 extern "C"
 void PPEXSISetDefaultOptions(
     PPEXSIOptions*   options ){
+  options->spin                  = 2.0;
   options->temperature           = 0.0019;   // 300K 
   options->gap                   = 0.0;      // no gap 
   options->deltaE                = 10.0; 
@@ -862,10 +863,9 @@ void PPEXSICalculateFermiOperatorReal(
 void PPEXSICalculateFermiOperatorReal3(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
-    double            mu,
     double            numElectronExact,
+    double*           mu,
     double*           numElectronPEXSI,
-    double*           numElectronDrvMuPEXSI,
     int*              info )
 {
   *info = 0;
@@ -882,10 +882,11 @@ void PPEXSICalculateFermiOperatorReal3(
         options.numElectronPEXSITolerance,
         options.solver,
         options.verbosity,
+        *mu,
         *numElectronPEXSI,
-        *numElectronDrvMuPEXSI,
         options.method,
-        options.nPoints);
+        options.nPoints,
+        options.spin);
   }
   catch( std::exception& e )
   {
@@ -927,7 +928,8 @@ void PPEXSICalculateFermiOperatorComplex(
         *numElectronPEXSI,
         *numElectronDrvMuPEXSI,
         options.method,
-        options.nPoints);
+        options.nPoints,
+        options.spin);
   }
   catch( std::exception& e )
   {
@@ -955,7 +957,8 @@ void PPEXSICalculateEDMCorrectionReal(
         options.numPole,
         options.solver,
         options.verbosity,
-        options.nPoints);
+        options.nPoints,
+        options.spin);
   }
   catch( std::exception& e )
   {
@@ -983,7 +986,8 @@ void PPEXSICalculateEDMCorrectionComplex(
         options.numPole,
         options.solver,
         options.verbosity,
-        options.nPoints);
+        options.nPoints,
+        options.spin);
   }
   catch( std::exception& e )
   {
@@ -1351,7 +1355,8 @@ void PPEXSIDFTDriver2(
         options->muMax0,
         *numTotalInertiaIter,
         options->method,
-        options->nPoints);
+        options->nPoints,
+        options->spin);
   }
   catch( std::exception& e )
   {
@@ -1851,7 +1856,8 @@ void PPEXSIRetrieveRealEDM(
         options.numPole,
         options.solver,
         options.verbosity,
-        options.nPoints);
+        options.nPoints,
+        options.spin);
 
     Int nnzLocal = ptrData->EnergyDensityRealMat().nnzLocal;
 
@@ -1918,7 +1924,8 @@ void PPEXSIRetrieveComplexEDM(
         options.numPole,
         options.solver,
         options.verbosity,
-        options.nPoints);
+        options.nPoints,
+        options.spin);
 
     Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
 

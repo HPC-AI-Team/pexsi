@@ -555,7 +555,8 @@ public:
       Real& numElectron,
       Real& numElectronDrvMu,
       Int   method,
-      Int   nPoints );
+      Int   nPoints,
+      Real  spin );
 
 
 
@@ -682,14 +683,16 @@ public:
       Real& mu,
       Real& numElectron,
       Int   method,
-      Int   nPoints);
+      Int   nPoints, 
+      Real  spin);
 
   /// @brief Compute the Correction of the EDM matrix.
   void CalculateEDMCorrectionReal(
       Int   numPole,
       Int   solver,
       Int   verbosity,
-      Int   nPoints);
+      Int   nPoints, 
+      Real  spin);
 
 
   /// @brief Compute the Correction of the EDM matrix.
@@ -697,7 +700,8 @@ public:
       Int   numPole,
       Int   solver,
       Int   verbosity,
-      Int   nPoints);
+      Int   nPoints, 
+      Real  spin);
 
 
 
@@ -759,7 +763,8 @@ public:
       Real&      muMaxInertia,             
       Int&       numTotalInertiaIter,
       Int        method,
-      Int        nPoints);
+      Int        nPoints,
+      Real       spin);
 
   /// @brief Interpolate the DM and get the total Energy
   void InterpolateDMReal(

@@ -5266,7 +5266,9 @@ namespace PEXSI{
 
         elapsed += MPI_Wtime();
         if(MYPROC(this->grid_)==0){
+#if ( _DEBUGlevel_ >= 2 )
           std::cout<<"Elapsed time in new comm pattern: "<<elapsed<<std::endl;
+#endif
         }
 
 
