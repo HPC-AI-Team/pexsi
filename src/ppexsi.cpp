@@ -6007,7 +6007,8 @@ namespace PEXSI{
                     muPEXSI, 
                     numElectronPEXSI, 
                     method,
-                    nPoints);
+                    nPoints,
+                    spin);
 
                 // exact numElectron for the correspoding muPEXSI
                 NeVec_temp[l] = numElectronPEXSI;

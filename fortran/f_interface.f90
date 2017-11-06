@@ -70,6 +70,7 @@ use, intrinsic :: iso_c_binding
 ! NOTE: The order and the type of the parameters must be strictly the same as in
 ! PPEXSIOptions in c_pexsi_interface.h
 type, bind(C) :: f_ppexsi_options
+  real(c_double) :: spin
   real(c_double) :: temperature
   real(c_double) :: gap
   real(c_double) :: deltaE
