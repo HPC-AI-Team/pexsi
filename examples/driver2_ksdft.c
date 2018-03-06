@@ -41,7 +41,7 @@
    such enhancements or derivative works thereof, in binary and source code form.
 */
 /**
- * @file driver_ksdft_3.c
+ * @file driver2_ksdft.c
  * @brief Example for using the new driver interface for performing KSDFT
  * calculations.
  *

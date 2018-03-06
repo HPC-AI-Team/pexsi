@@ -1339,6 +1339,11 @@ namespace PEXSI{
     {
       Int nsupers = this->NumSuper();
 
+#ifndef _RELEASE_
+      double begin =  MPI_Wtime( );
+#endif
+
+
       if( optionsFact_->ColPerm != "PARMETIS" ) {
         /* Use the etree computed from serial symb. fact., and turn it
            into supernodal tree.  */
@@ -1409,7 +1414,7 @@ namespace PEXSI{
         Int maxDepth = options_->maxPipelineDepth;
         maxDepth=maxDepth==-1?std::numeric_limits<Int>::max():maxDepth;
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS<<"MaxDepth is "<<maxDepth<<endl;
+        statusOFS<<"MaxDepth is "<<maxDepth<<std::endl;
 #endif
 
         //find roots in the supernode etree (it must be postordered)
@@ -3090,18 +3095,18 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
                     Int blkIdx2 = snodeTreeToBlkidx_[snode.Index][offset2];
                     if(blkIdx2<blkIdx){
                       if(MYROW(this->grid_)==PROW(blkIdx,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx2,this->grid_)){
-#if ( _DEBUGlevel_ >= 1 )
-                        statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
-#endif
+//#if ( _DEBUGlevel_ >= 1 )
+//                        statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
+//#endif
                         readySnode.push_back(std::make_tuple(supidx,blkIdx2,blkIdx,ltidx2,ltidx));
                       }
                     }
                     else{
                       if(MYROW(this->grid_)==PROW(blkIdx2,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx,this->grid_)){
                         if ( bcastLDataDone[ltidx2] < bcastLDataDone[ltidx] ){
-#if ( _DEBUGlevel_ >= 1 )
-                          statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
-#endif
+//#if ( _DEBUGlevel_ >= 1 )
+//                          statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
+//#endif
                           readySnode.push_back(std::make_tuple(supidx,blkIdx,blkIdx2,ltidx,ltidx2));
                         }
                       }
@@ -3122,18 +3127,18 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
                     if(blkIdx2>blkIdx){
                       if(MYROW(this->grid_)==PROW(blkIdx2,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx,this->grid_)){
                         if ( bcastLDataDone[ltidx2] < bcastLDataDone[ltidx] ){
-#if ( _DEBUGlevel_ >= 1 )
-                          statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
-#endif
+//#if ( _DEBUGlevel_ >= 1 )
+//                          statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
+//#endif
                           readySnode.push_back(std::make_tuple(supidx,blkIdx,blkIdx2,ltidx,ltidx2));
                         }
                       }
                     }
                     else {
                       if(MYROW(this->grid_)==PROW(blkIdx,this->grid_) && MYCOL(this->grid_)==PCOL(blkIdx2,this->grid_)){
-#if ( _DEBUGlevel_ >= 1 )
-                        statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
-#endif
+//#if ( _DEBUGlevel_ >= 1 )
+//                        statusOFS<<"["<<ksup<<"] Tree "<<blkIdx<<" and Tree "<<blkIdx2<<" are both done"<<std::endl;
+//#endif
                         readySnode.push_back(std::make_tuple(supidx,blkIdx2,blkIdx,ltidx2,ltidx));
                       }
                     }
