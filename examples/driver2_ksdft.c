@@ -2,7 +2,7 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-   Authors: Lin Lin and Weile
+   Authors: Lin Lin and Weile Jia
 
    This file is part of PEXSI. All rights reserved.
 

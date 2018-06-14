@@ -147,20 +147,18 @@ int main(int argc, char **argv)
         printf("numColLocal = %d\n", numColLocal );
       }
 
-
       if( isSIdentity == 0 ){
+        if( isFormatted == 1 ){
           ReadDistSparseMatrixFormatted( Sfile, SMat, readComm ); 
+        }
+//        else{
+//          ReadDistSparseMatrix( Sfile, SMat, readComm ); 
+//        }
       }
 
       if( mpirank == 0 ){ 
         printf("Finish reading the matrix.\n");
       }
-
-//      if( mpirank == 0 ){ 
-//        for( Int g = 0; g < HMat.nnzLocal; g++ ){
-//          std::cout << HMat.nzvalLocal[g] << "  ";
-//        }
-//      }
     } // Read the matrix
 
 
@@ -187,39 +185,21 @@ int main(int argc, char **argv)
     /* Step 1. Initialize PEXSI */
 
     PPEXSISetDefaultOptions( &options );
-    if(0){
-      options.muMin0 = 0.0;
-      options.muMax0 = 0.5;
-      options.mu0    = +0.270;
-      options.npSymbFact = 1;
-      options.ordering = 0;
-      options.isInertiaCount = 1;
-      options.maxPEXSIIter   = 1;
-      options.verbosity = 1;
-      options.deltaE   = 20.0;
-      options.numPole  = 40;
-      options.temperature  = 0.0019; // 300K
-      options.muPEXSISafeGuard  = 0.2; 
-      options.numElectronPEXSITolerance = 0.001;
-      options.isSymbolicFactorize = 1;
-    }
-
-    if(1){
-      options.muMin0 = -1.0;
-      options.muMax0 =  1.0;
-      options.mu0    = +0.300;
-      options.npSymbFact = 1;
-      options.ordering = 0;
-      options.isInertiaCount = 1;
-      options.maxPEXSIIter   = 1;
-      options.verbosity = 1;
-      options.deltaE   = 10.0;
-      options.numPole  = 80;
-      options.temperature  = 0.0019; // 300K
-      options.muPEXSISafeGuard  = 0.2; 
-      options.numElectronPEXSITolerance = 0.001;
-      options.isSymbolicFactorize = 1;
-    }
+    options.muMin0 = -1.0;
+    options.muMax0 =  1.0;
+    options.mu0    = +0.300;
+    options.npSymbFact = 1;
+    options.ordering = 0;
+    options.isInertiaCount = 1;
+    options.verbosity = 1;
+    options.deltaE   = 10.0;
+    options.numPole  = 20;
+    options.temperature  = 0.00095; // 300K
+    options.numElectronPEXSITolerance = 0.00001;
+    options.isSymbolicFactorize = 1;
+    options.method = 2;
+    options.nPoints = 1;
+    options.spin = 2.0;
 
 
     pexsi.LoadComplexMatrix(
@@ -232,7 +212,7 @@ int main(int argc, char **argv)
         HMat.nzvalLocal.Data(),
         isSIdentity,
         SMat.nzvalLocal.Data(),
-        0,
+        options.solver,
         options.verbosity );
 
     if( mpirank == 0 ){
@@ -243,18 +223,19 @@ int main(int argc, char **argv)
 
       // No permutation
       pexsi.SymbolicFactorizeComplexSymmetricMatrix( 
-          0,
+          options.solver,
+          options.symmetricStorage,
           colPerm, 
           options.npSymbFact,
           options.verbosity );
 
       // Can have permutation
       pexsi.SymbolicFactorizeComplexUnsymmetricMatrix( 
-          0,
+          options.solver,
           colPerm, 
           rowPerm,
           options.npSymbFact,
-          0,
+          options.transpose,
           reinterpret_cast<double*>(HMat.nzvalLocal.Data()),
           options.verbosity );
     }
@@ -270,7 +251,7 @@ int main(int argc, char **argv)
     pexsi.CalculateNegativeInertiaComplex(
         shiftVec,
         inertiaVec,
-        0,
+        options.solver,
         options.verbosity );
 
     if( mpirank == 0 ){
@@ -289,10 +270,13 @@ int main(int argc, char **argv)
         options.mu0,
         numElectronExact, 
         options.numElectronPEXSITolerance,
-        0,
+        options.solver,
         options.verbosity,
         numElectron,
-        numElectronDrvMu );
+        numElectronDrvMu,
+        options.method,
+        options.nPoints,
+        options.spin );
 
     if( mpirank == 0 ){
       printf("numElectron       = %25.15f\n", numElectron);
