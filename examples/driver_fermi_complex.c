@@ -53,6 +53,7 @@
  *
  * @date 2016-09-10  Original version.
  * @date 2017-09-20  Compatible with the interface at version 1.0
+ * @date 2018-06-14  Update parameters
  */
 #include  <stdio.h>
 #include  <stdlib.h>
@@ -207,10 +208,6 @@ int main(int argc, char **argv)
     EDMnzvalLocal           = (double*) malloc( sizeof(double) * nnzLocal * 2 );
     FDMnzvalLocal           = (double*) malloc( sizeof(double) * nnzLocal * 2 );
 
-    numShift = options.numPole;
-    shiftVec                = (double*) malloc( sizeof(double) * numShift );
-    inertiaVec              = (double*) malloc( sizeof(double) * numShift );
-
     /* Actually read the matrix */
     if( isFormatted == 1 ){
       ReadDistSparseMatrixFormattedInterface(
@@ -294,17 +291,22 @@ int main(int argc, char **argv)
   options.mu0    = 0.270;
   options.npSymbFact = 1;
   options.ordering = 0;
+  options.solver = 0;
   options.isInertiaCount = 1;
-  options.maxPEXSIIter   = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
   options.numPole  = 20;
   options.temperature  = 0.00095;// 300K
-  options.muPEXSISafeGuard  = 0.2; 
   options.numElectronPEXSITolerance = 0.00001;
   options.isSymbolicFactorize = 1;
   options.method = 2;
   options.nPoints = 1;
+  options.spin = 2.0;
+
+  numShift = options.numPole;
+  shiftVec                = (double*) malloc( sizeof(double) * numShift );
+  inertiaVec              = (double*) malloc( sizeof(double) * numShift );
+
 
   /* Set the outputFileIndex to be the pole index */
   /* The first processor for each pole outputs information */
@@ -395,10 +397,11 @@ int main(int argc, char **argv)
 
   if( mpirank == 0 ){
     printf("numElectron       = %25.15f\n", numElectron);
-    printf("numElectronDrvMu  = %25.15f\n", numElectronDrvMu);
+//    printf("numElectronDrvMu  = %25.15f\n", numElectronDrvMu);
   }
 
   double * NeVec = (double*) malloc (options.nPoints* sizeof(double));
+  NeVec[0] = numElectron;
   
   // I need to calculate the H*DM and Tr[S*EDM]
   PPEXSIInterpolateDMComplex(
@@ -463,9 +466,9 @@ int main(int argc, char **argv)
       plan,
       &info );
   
-//  if( mpirank == 0 ){ 
-//    printf("\nAll calculation is finished. Exit the program.\n");
-//  }
+  if( mpirank == 0 ){ 
+    printf("\nAll calculation is finished. Exit the program.\n");
+  }
 
 
   if( isProcRead == 1 ){
