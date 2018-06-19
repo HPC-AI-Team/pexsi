@@ -242,6 +242,7 @@ namespace PEXSI{
       // Clear the previously saved information
       HRealMat_ = DistSparseMatrix<Real>();
       SRealMat_ = DistSparseMatrix<Real>();
+      DistSparseMatrix<Real>&  SMat    = SRealMat_;
 //#ifdef WITH_SYMPACK
 //      symmHRealMat_ = symPACK::DistSparseMatrix<Real>();
 //      symmSRealMat_ = symPACK::DistSparseMatrix<Real>();
@@ -272,16 +273,16 @@ namespace PEXSI{
 
               // S value
               if( isSIdentity ){
-                SRealMat_.size = 0;
-                SRealMat_.nnz  = 0;
-                SRealMat_.nnzLocal = 0;
-                SRealMat_.comm = HRealMat_.comm; 
+                SMat.size = 0;
+                SMat.nnz  = 0;
+                SMat.nnzLocal = 0;
+                SMat.comm = HRealMat_.comm; 
               }
               else{
-                CopyPattern( HRealMat_, SRealMat_ );
-                SRealMat_.comm = HRealMat_.comm; 
-                SRealMat_.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
-                serialize( SRealMat_.nzvalLocal, sstm, NO_MASK );
+                CopyPattern( HRealMat_, SMat );
+                SMat.comm = HRealMat_.comm; 
+                SMat.nzvalLocal  = DblNumVec( nnzLocal,      false, SnzvalLocal );
+                serialize( SMat.nzvalLocal, sstm, NO_MASK );
               }
 
               sstr.resize( Size( sstm ) );
@@ -306,15 +307,15 @@ namespace PEXSI{
               // Communicator
               HRealMat_.comm = gridPole_->rowComm;
               if( isSIdentity ){
-                SRealMat_.size = 0;    // Means S is an identity matrix
-                SRealMat_.nnz  = 0;
-                SRealMat_.nnzLocal = 0;
-                SRealMat_.comm = HRealMat_.comm;
+                SMat.size = 0;    // Means S is an identity matrix
+                SMat.nnz  = 0;
+                SMat.nnzLocal = 0;
+                SMat.comm = HRealMat_.comm;
               }
               else{
-                CopyPattern( HRealMat_, SRealMat_ );
-                SRealMat_.comm = HRealMat_.comm;
-                deserialize( SRealMat_.nzvalLocal, sstm, NO_MASK );
+                CopyPattern( HRealMat_, SMat );
+                SMat.comm = HRealMat_.comm;
+                deserialize( SMat.nzvalLocal, sstm, NO_MASK );
               }
             }
             sstr.clear();
@@ -323,8 +324,8 @@ namespace PEXSI{
             if( verbosity >= 1 ){
               statusOFS << "H.size     = " << HRealMat_.size     << std::endl;
               statusOFS << "H.nnzLocal = " << HRealMat_.nnzLocal << std::endl;
-              statusOFS << "S.size     = " << SRealMat_.size     << std::endl;
-              statusOFS << "S.nnzLocal = " << SRealMat_.nnzLocal << std::endl;
+              statusOFS << "S.size     = " << SMat.size     << std::endl;
+              statusOFS << "S.nnzLocal = " << SMat.nnzLocal << std::endl;
               statusOFS << std::endl << std::endl;
             }
 
@@ -530,6 +531,7 @@ namespace PEXSI{
       // Clear the previously saved information
       HComplexMat_ = DistSparseMatrix<Complex>();
       SComplexMat_ = DistSparseMatrix<Complex>();
+      DistSparseMatrix<Complex>&  SMat  = SComplexMat_;
 //#ifdef WITH_SYMPACK
 //      symmHComplexMat_ = symPACK::DistSparseMatrix<Complex>();
 //      symmSComplexMat_ = symPACK::DistSparseMatrix<Complex>();
@@ -560,16 +562,16 @@ namespace PEXSI{
 
               // S value
               if( isSIdentity ){
-                SComplexMat_.size = 0;
-                SComplexMat_.nnz  = 0;
-                SComplexMat_.nnzLocal = 0;
-                SComplexMat_.comm = HComplexMat_.comm; 
+                SMat.size = 0;
+                SMat.nnz  = 0;
+                SMat.nnzLocal = 0;
+                SMat.comm = HComplexMat_.comm; 
               }
               else{
-                PEXSI::CopyPattern( HComplexMat_, SComplexMat_ );
-                SComplexMat_.comm = HComplexMat_.comm; 
-                SComplexMat_.nzvalLocal  = CpxNumVec( nnzLocal,      false, SnzvalLocal );
-                serialize( SComplexMat_.nzvalLocal, sstm, NO_MASK );
+                PEXSI::CopyPattern( HComplexMat_, SMat );
+                SMat.comm = HComplexMat_.comm; 
+                SMat.nzvalLocal  = CpxNumVec( nnzLocal,      false, SnzvalLocal );
+                serialize( SMat.nzvalLocal, sstm, NO_MASK );
               }
 
               sstr.resize( Size( sstm ) );
@@ -594,15 +596,15 @@ namespace PEXSI{
               // Communicator
               HComplexMat_.comm = gridPole_->rowComm;
               if( isSIdentity ){
-                SComplexMat_.size = 0;    // Means S is an identity matrix
-                SComplexMat_.nnz  = 0;
-                SComplexMat_.nnzLocal = 0;
-                SComplexMat_.comm = HComplexMat_.comm;
+                SMat.size = 0;    // Means S is an identity matrix
+                SMat.nnz  = 0;
+                SMat.nnzLocal = 0;
+                SMat.comm = HComplexMat_.comm;
               }
               else{
-                CopyPattern( HComplexMat_, SComplexMat_ );
-                SComplexMat_.comm = HComplexMat_.comm;
-                deserialize( SComplexMat_.nzvalLocal, sstm, NO_MASK );
+                CopyPattern( HComplexMat_, SMat );
+                SMat.comm = HComplexMat_.comm;
+                deserialize( SMat.nzvalLocal, sstm, NO_MASK );
               }
             }
             sstr.clear();
@@ -611,8 +613,8 @@ namespace PEXSI{
             if( verbosity >= 1 ){
               statusOFS << "H.size     = " << HComplexMat_.size     << std::endl;
               statusOFS << "H.nnzLocal = " << HComplexMat_.nnzLocal << std::endl;
-              statusOFS << "S.size     = " << SComplexMat_.size     << std::endl;
-              statusOFS << "S.nnzLocal = " << SComplexMat_.nnzLocal << std::endl;
+              statusOFS << "S.size     = " << SMat.size     << std::endl;
+              statusOFS << "S.nnzLocal = " << SMat.nnzLocal << std::endl;
               statusOFS << std::endl << std::endl;
             }
 
@@ -3913,8 +3915,8 @@ namespace PEXSI{
       {
         Real local = 0.0;
         if( SMat.size != 0 ){
-          local = (blas::Dotu( SComplexMat_.nnzLocal, 
-                SComplexMat_.nzvalLocal.Data(),
+          local = (blas::Dotu( SMat.nnzLocal, 
+                SMat.nzvalLocal.Data(),
                 1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
         }
         else{
@@ -3933,9 +3935,9 @@ namespace PEXSI{
       //    if( isFreeEnergyDensityMatrix )
       //    {
       //      Real local = 0.0;
-      //      if( SComplexMat_.size != 0 ){
-      //        local = (blas::Dotu( SComplexMat_.nnzLocal, 
-      //            SComplexMat_.nzvalLocal.Data(),
+      //      if( SMat.size != 0 ){
+      //        local = (blas::Dotu( SMat.nnzLocal, 
+      //            SMat.nzvalLocal.Data(),
       //            1, freeEnergyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
       //      }
       //      else{
@@ -5624,8 +5626,8 @@ void PPEXSIData::CalculateEDMCorrectionReal(
     Real local = 0.0;
 
     if( SMat.size != 0 ){
-      local = blas::Dot( SRealMat_.nnzLocal, 
-          SRealMat_.nzvalLocal.Data(),
+      local = blas::Dot( SMat.nnzLocal, 
+          SMat.nzvalLocal.Data(),
           1, energyDensityRealMat_.nzvalLocal.Data(), 1 );
     }
     else{
@@ -5841,8 +5843,8 @@ void PPEXSIData::CalculateEDMCorrectionComplex(
   {
     Real local = 0.0;
     if( SMat.size != 0 ){
-      local = (blas::Dotu( SComplexMat_.nnzLocal, 
-            SComplexMat_.nzvalLocal.Data(),
+      local = (blas::Dotu( SMat.nnzLocal, 
+            SMat.nzvalLocal.Data(),
             1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
     }
     else{
