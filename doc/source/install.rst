@@ -30,6 +30,9 @@ Build PT-Scotch
 PT-Scotch can be downloaded from (latest version 6.0.0)
 https://gforge.inria.fr/frs/download.php/31831/scotch_6.0.0.tar.gz
 
+**PT-Scotch 6.0.5 seems to be incompatible with PEXSI. For the moment
+please use 6.0.0 (contributed by Victor Yu, 6/20/2018) **
+
 Follow the installation step to install PT-Scotch.
 **In INSTALL.TXT, pay special attention to the following
 sections in order to compile PT-Scotch correctly.**

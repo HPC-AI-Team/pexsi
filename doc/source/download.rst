@@ -4,15 +4,22 @@ Download
 ==============================
 
 
+**v1.0.1**:
+
+- Code: `pexsi_v1.0.1.tar.gz <https://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v1.0.1.tar.gz>`_.
+
+
+
+**Older version of PEXSI, as well as snapshots of documentation for
+major releases**:
+
+**NOTE: Due to insufficient manpower (as there will never be in science!), older version of PEXSI is no longer
+supported**
+
 **v1.0**:
 
 - Code: `pexsi_v1.0.tar.gz <https://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v1.0.tar.gz>`_.
 
-
-**Older version of PEXSI**:
-
-**NOTE: Due to insufficient manpower (as there will never be in science!), older version of PEXSI is no longer
-supported**
 
 **v0.10.2**:
 
