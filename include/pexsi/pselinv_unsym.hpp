@@ -125,62 +125,19 @@ template<typename T>
 /// @brief PMatrixUnsym contains the main data structure and the
 /// computational routine for the parallel selected inversion.  
 /// 
-/// **NOTE** The following is a bit obsolete.
+/// **NOTE** 
 ///
-/// Procedure for Selected Inversion 
-/// --------------------------------
-///
-/// After factorizing a SuperLUMatrix luMat (See SuperLUMatrix for
-/// information on how to perform factorization), perform the following
-/// steps for parallel selected inversion.
-/// 
-/// - Conversion from SuperLU_DIST.
-///   
-///   Symbolic information
-///
-///       SuperNodeType super; 
-///       PMatrix PMloc;
-///       luMat.SymbolicToSuperNode( super );  
-///   
-///   Numerical information, both L and U.
-///
-///       luMat.LUstructToPMatrix( PMloc ); 
-///
-/// - Preparation.
-///
-///   Construct the communication pattern for SelInv.
-///
-///       PMloc.ConstructCommunicationPattern(); 
-///       or PMloc.ConstructCommunicationPattern_P2p(); 
-///       or PMloc.ConstructCommunicationPattern_Collectives(); 
-///   
-///   Numerical preparation so that SelInv only involves Gemm.
-///
-///       PMloc.PreSelInv();  
-///
-/// - Selected inversion.
-///
-///       PMloc.SelInv();
-///       or PMloc.SelInv_P2p();
-///       or PMloc.SelInv_Collectives();
-///
-/// - Postprocessing.
-///
-///   Get the information in DistSparseMatrix format 
-///
-///       DistSparseMatrix<Scalar> Ainv;
-///       PMloc.PMatrixToDistSparseMatrix( Ainv );  
-///
-/// Note
-/// ----
-///
-/// - All major operations of PMatrix, including the selected inversion
-/// are defined directly as the member function of PMatrix.
-///
-/// - In the current version of PMatrix, square grid is assumed.  This
-/// assumption is only used when sending the information to
-/// cross-diagonal blocks, i.e. from L(isup, ksup) to U(ksup, isup).
-/// This assumption can be relaxed later.
+///  For general non-symmetric matrices, the selected elements are
+///  :math:`\{B_{i,j}\vert A_{j,i}\ne 0\}`.  This means that the matrix
+///  elements computed corresponding to the sparsity pattern of
+///  :math:`A^T` (for more detailed explanation of the mathematical
+///  reason, please see the paper :ref:`PC2018 <citeNonSymPSelInv>`
+///  in the PEXSI documentation).  However, storing the matrix elements
+///  :math:`\{A^{-1}_{i,j}\vert A_{j,i}\ne 0\}` is practically
+///  cumbersome, especially in the context of distributed computing.
+///  Hence we choose to store the selected elements for :math:`A^{-T}`,
+///  i.e. :math:`\{A^{-T}_{i,j}\vert A_{i,j}\ne 0\}`.  These are the
+///  values obtained from the non-symmetric version of PSelInv.
 
 
 template<typename T>
@@ -188,6 +145,7 @@ template<typename T>
 
   protected:
     virtual void PMatrixToDistSparseMatrix_( const NumVec<Int> & AcolptrLocal, const NumVec<Int> & ArowindLocal, const Int Asize, const LongInt Annz, const Int AnnzLocal, DistSparseMatrix<T>& B );
+    // NOTE: By default the returned matrix should store the transpose of the inverse matrix.
 
   std::vector<std::vector<Int> > isSendToCD_;
   std::vector<std::vector<Int> > isRecvFromCD_; 

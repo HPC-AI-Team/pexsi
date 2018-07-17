@@ -21,7 +21,7 @@ used as a general tool for evaluating certain :ref:`selected elements <defSelect
 of a matrix function, and therefore has application
 beyond electronic structure calculation as well.
 
-Given a sparse square matrix :math:`A` and a certain function
+Given a sparse Hermitian matrix :math:`A` and a certain function
 :math:`f(\cdot)`, the basic idea of PEXSI is to
 expand :math:`f(A)` using a small number of rational functions (pole expansion)
 
@@ -73,11 +73,7 @@ use PEXSI when at least 1000 cores are available, and for many problems
 PEXSI can scale to tens of thousands of cores. 
 
 For details of the implementation of parallel selected inversion used in
-PEXSI,  please see
-
-    M. Jacquelin, L. Lin and C. Yang, PSelInv -- A Distributed Memory
-    Parallel Algorithm for Selected Inversion : the Symmetric Case, 
-    ACM Trans. Math. Software 43, 21, 2016.
+PEXSI,  please see :ref:`TOMS2016 <citeSymPSelInv>` below.
 
 
 .. _diag-anchor:
@@ -97,15 +93,36 @@ PEXSI,  please see
 
 **Selected elements** 
 
- - For structurally symmetric matrices (i.e. :math:`A_{i,j}\ne 0` implies
-   :math:`A_{j,i}\ne 0`), we define the selected
-   elements of a matrix :math:`B` with respect to a matrix :math:`A` as the set
-   :math:`\{B_{i,j}\vert A_{i,j}\ne 0\}`. For general matrices, the selected
-   elements are :math:`\{B_{i,j}\vert A_{j,i}\ne 0\}`.
+ - For (real or complex) symmetric matrices (i.e. :math:`A_{i,j}\ne 0` implies
+   :math:`A_{j,i}\ne 0`), we define the selected elements of a matrix
+   :math:`B` with respect to a matrix :math:`A` as the set
+   :math:`\{B_{i,j}\vert A_{i,j}\ne 0\}`. 
    
  - A commonly used case in PEXSI is the selected elements of
-   :math:`A^{-1}` with respect to a symmetric matrix :math:`A`, or simply the selected elements of
-   :math:`A^{-1}`, which corresponds to the set :math:`\{A^{-1}_{i,j} \vert A_{i,j}\ne 0\}`.
+   :math:`A^{-1}` with respect to a (real or complex) symmetric matrix :math:`A`, or simply the selected elements of
+   :math:`A^{-1}`, which corresponds to the set :math:`\{A^{-1}_{i,j} \vert A_{i,j}\ne 0\}`. 
+   
+ - For general non-symmetric matrices, the selected elements are :math:`\{B_{i,j}\vert A_{j,i}\ne 0\}`. 
+   **NOTE**: this means that the matrix elements computed corresponding to the sparsity
+   pattern of :math:`A^T` (for more detailed explanation of the
+   mathematical reason, please see the paper :ref:`PC2018 <citeNonSymPSelInv>` below).
+   However, storing the matrix elements :math:`\{A^{-1}_{i,j}\vert A_{j,i}\ne 0\}` is practically cumbersome,
+   especially in the context of distributed computing. Hence we choose
+   to store the selected elements for :math:`A^{-T}`, i.e. :math:`\{A^{-T}_{i,j}\vert A_{i,j}\ne 0\}`. 
+   These are the values obtained from the non-symmetric version of
+   PSelInv.
+ 
+ - One particular problem arising from electronic structure theory is
+   when the Hamiltonian matrix and the overlap matrix :math:`H,S` are
+   Hermitian matrices, and the matrix to be inverted are of the form
+   :math:`(H-zS)^{-1}`.  This matrix is only structurally symmetric, and
+   we need to call the non-symmetric version of PSelInv. From the
+   discussion above, the computed matrix entries are actually
+   :math:`\{(H-zS)^{-T}_{i,j}\vert A_{i,j}\ne 0\}`. Combining with the
+   pole expansion, we obtain  :math:`P^T`, which is the transpose of the
+   density matrix. Since the density matrix Hermitian, we have
+   :math:`P=P^*=\overline{P^T}`. Hence we perform an extra conjugation as a
+   post-processing step to obtain the correct density matrix.
 
 
 PEXSI used in external packages
@@ -192,7 +209,6 @@ royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
 
-
 Citing PEXSI
 ==============
 If you use PEXSI for electronic structure calculation in general,
@@ -215,7 +231,9 @@ If you use PEXSI for electronic structure calculation in general,
       Volume                   = {25}
     }
 
-If you use PEXSI for selected inversion, **please also cite the following paper.**::
+.. _citeSymPSelInv:
+    
+If you use PEXSI for selected inversion (PSelInv), **please also cite the following paper.**::
 
     @Article{TOMS2016,
       Title                    = {{PSelInv}--A distributed memory parallel algorithm for selected inversion: the symmetric case},
@@ -225,6 +243,21 @@ If you use PEXSI for selected inversion, **please also cite the following paper.
       Pages                    = {21},
       Volume                   = {43}
     }
+
+.. _citeNonSymPSelInv:
+
+
+If you use the non-symmetric version of PSelInv, **please also cite the following paper.**::
+
+    @Article{PC2018,
+      Title                    = {{PSelInv}--A distributed memory parallel algorithm for selected inversion: the non-symmetric case},
+      Author                   = {Jacquelin, M. and Lin, L. and Yang, C.},
+      Journal                  = {Parallel Comput.},
+      Year                     = {2018},
+      Pages                    = {74},
+      Volume                   = {84}
+    }
+
 
 **More references on method development:**
 
@@ -295,6 +328,19 @@ documentation generated by doxygen.  To obtain this document, type
 
 PEXSI version history
 ===============================================
+
+- v1.0.2 (7/17/2018)
+    - When H and S are Hermitian matrices, return the proper density
+      matrix and energy density matrix from
+      CalculateFermiOperatorComplex, instead of its transpose. This is
+      done by transposing the e.g. density matrix due to the Hermitian
+      property. (contributed by Victor Yu)
+
+    - Clarify the documentation for the treatment of selected elements
+      of non-symmetric matrices.
+
+    - Fix the naming of SRealMat and SComplexMat in ppexsi.cpp.
+
 
 - v1.0.1 (6/20/2018)
     - Bug fix: initialization error in  driver_fermi_complex, and

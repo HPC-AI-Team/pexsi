@@ -784,6 +784,18 @@ int main(int argc, char **argv)
 #endif
             GetTime( timeSta );
             pMat->PMatrixToDistSparseMatrix( *Aptr, Ainv );
+            // Note: At this point, the matrix Ainv actually stores the
+            // selected elements of A^{-T}. 
+            // According to the rules of selected inversion, the set of selected
+            // elements being computed are
+            // A^{-T}_{ij} such that A_{ij} \ne 0.
+            // 
+            // This is why the computation of the trace is computed as
+            //
+            // Tr[AA^{-1}] = \sum_{ij} A_{ij} A^{-1}_{ji}
+            //             = \sum_{ij} A_{ij} A^{-T}{ij},
+            // 
+            // and is implemented using dotu below
             GetTime( timeEnd );
 
 #ifndef OLD_SELINV
