@@ -62,7 +62,7 @@ PPEXSIData::PPEXSIData    (
     Int        numProcCol, 
     Int        outputFileIndex ){
 
-  int mpirank, mpisize;
+  Int mpirank, mpisize;
   MPI_Comm_rank( comm, &mpirank );
   MPI_Comm_size( comm, &mpisize );
 
@@ -3283,7 +3283,8 @@ void PPEXSIData::CalculateFermiOperatorReal(
 
 
 
-// Main subroutine for the electronic structure calculation with Hermitian Hamiltonian
+// Main subroutine for the electronic structure calculation with Hermitian Hamiltonian 
+// and overlap matrices
 void PPEXSIData::CalculateFermiOperatorComplex(
     Int   numPole, 
     Real  temperature,
@@ -3672,9 +3673,6 @@ void PPEXSIData::CalculateFermiOperatorComplex(
 
 
         // Update the density matrix. 
-        // NOTE: All physical quantities X must be post-processed by
-        // X <- 1/(2i) (X - X^*)
-        // where X^* is the Hermitian transpose
         blas::Axpy( rhoMat.nnzLocal, numSpin*zweightRho_[l], AinvMat.nzvalLocal.Data(), 1,
             rhoMat.nzvalLocal.Data(), 1 );
 
@@ -3728,17 +3726,26 @@ void PPEXSIData::CalculateFermiOperatorComplex(
         //rhoMat.nnzLocal, MPI_SUM, gridPole_->colComm );
       rhoMat.nnzLocal, MPI_SUM, pointColComm);
 
-    // Post-processing via transpose. 
+    // NOTE: All physical quantities X must be post-processed by
+    // 
+    //   X <- 1/(2i) (X - X^*)
+    // 
+    // Since the non-symmetric version of PSelInv returns the selected
+    // elements of the transposed matrix, it should be
+    // 
+    //   X <- conj(1/(2i) (X - X^*)) = i/2 (conj(X) - X^T)
+    //
+    // Here X can be density matrix, energy density matrix etc.
     DistSparseMatrix<Complex>& regMat       = rhoMat;
     DistSparseMatrix<Complex>  transMat;
 
     CSCToCSR( regMat, transMat );
     Complex* ptrReg   = regMat.nzvalLocal.Data();
     Complex* ptrTrans = transMat.nzvalLocal.Data();
-    // fac = 1/(2i)
-    Complex  fac = Complex( 0.0, -0.5 );
+    // fac = i/2
+    Complex  fac = Complex( 0.0, 0.5 );
     for( Int g = 0; g < regMat.nnzLocal; g++ ){
-      ptrReg[g] = fac * ( ptrReg[g] - std::conj( ptrTrans[g] ) );
+      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
     }
   }
 
@@ -3751,18 +3758,17 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     //    mpi::Allreduce( nzvalRhoDrvMuMatLocal.Data(), rhoDrvMuMat.nzvalLocal.Data(),
     //        rhoDrvMuMat.nnzLocal, MPI_SUM, gridPole_->colComm );
     //
-    //    // Post-processing via transpose. 
     //    DistSparseMatrix<Complex>& regMat       = rhoDrvMuMat;
     //    DistSparseMatrix<Complex>  transMat;
     //
     //    CSCToCSR( regMat, transMat );
     //    Complex* ptrReg   = regMat.nzvalLocal.Data();
     //    Complex* ptrTrans = transMat.nzvalLocal.Data();
-    //    // fac = 1/(2i)
-    //    Complex  fac = Complex( 0.0, -0.5 );
-    //    for( Int g = 0; g < regMat.nnzLocal; g++ ){
-    //      ptrReg[g] = fac * ( ptrReg[g] - std::conj( ptrTrans[g] ) );
-    //    }
+//    // fac = i/2
+//    Complex  fac = Complex( 0.0, 0.5 );
+//    for( Int g = 0; g < regMat.nnzLocal; g++ ){
+//      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
+//    }
   }
 
   // Reduce the free energy density matrix across the processor rows in gridPole_ 
@@ -3773,18 +3779,17 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     //    mpi::Allreduce( nzvalHmzMatLocal.Data(), hmzMat.nzvalLocal.Data(),
     //        hmzMat.nnzLocal, MPI_SUM, gridPole_->colComm );
     //
-    //    // Post-processing via transpose. 
     //    DistSparseMatrix<Complex>& regMat       = hmzMat;
     //    DistSparseMatrix<Complex>  transMat;
     //
     //    CSCToCSR( regMat, transMat );
     //    Complex* ptrReg   = regMat.nzvalLocal.Data();
     //    Complex* ptrTrans = transMat.nzvalLocal.Data();
-    //    // fac = 1/(2i)
-    //    Complex  fac = Complex( 0.0, -0.5 );
-    //    for( Int g = 0; g < regMat.nnzLocal; g++ ){
-    //      ptrReg[g] = fac * ( ptrReg[g] - std::conj( ptrTrans[g] ) );
-    //    }
+//    // fac = i/2
+//    Complex  fac = Complex( 0.0, 0.5 );
+//    for( Int g = 0; g < regMat.nnzLocal; g++ ){
+//      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
+//    }
   }
 
   // Reduce the energy density matrix across the processor rows in gridPole_ 
@@ -3797,19 +3802,17 @@ void PPEXSIData::CalculateFermiOperatorComplex(
         //frcMat.nnzLocal, MPI_SUM, gridPole_->colComm );
       frcMat.nnzLocal, MPI_SUM, pointColComm);
 
-    // Post-processing via transpose. 
     DistSparseMatrix<Complex>& regMat       = frcMat;
     DistSparseMatrix<Complex>  transMat;
 
     CSCToCSR( regMat, transMat );
     Complex* ptrReg   = regMat.nzvalLocal.Data();
     Complex* ptrTrans = transMat.nzvalLocal.Data();
-    // fac = 1/(2i)
-    Complex  fac = Complex( 0.0, -0.5 );
+    // fac = i/2
+    Complex  fac = Complex( 0.0, 0.5 );
     for( Int g = 0; g < regMat.nnzLocal; g++ ){
-      ptrReg[g] = fac * ( ptrReg[g] - std::conj( ptrTrans[g] ) );
+      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
     }
-
   }
 
   // Reduce the derivative of density matrix with respect to T across
@@ -3821,25 +3824,18 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     //    mpi::Allreduce( nzvalRhoDrvTMatLocal.Data(), rhoDrvTMat.nzvalLocal.Data(),
     //        rhoDrvTMat.nnzLocal, MPI_SUM, gridPole_->colComm );
     //
-    //    // Post-processing via transpose. 
     //    DistSparseMatrix<Complex>& regMat       = rhoDrvTMat;
     //    DistSparseMatrix<Complex>  transMat;
     //
     //    CSCToCSR( regMat, transMat );
     //    Complex* ptrReg   = regMat.nzvalLocal.Data();
     //    Complex* ptrTrans = transMat.nzvalLocal.Data();
-    //    // fac = 1/(2i)
-    //    Complex  fac = Complex( 0.0, -0.5 );
-    //    for( Int g = 0; g < regMat.nnzLocal; g++ ){
-    //      ptrReg[g] = fac * ( ptrReg[g] - std::conj( ptrTrans[g] ) );
-    //    }
-
+//    // fac = i/2
+//    Complex  fac = Complex( 0.0, 0.5 );
+//    for( Int g = 0; g < regMat.nnzLocal; g++ ){
+//      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
+//    }
   }
-
-  // LL: 11/30/2016 Be careful about all the Dotu below. There might be
-  // some happy coincidence, depending on whether the matrix is transposed!
-  // Rule of thumb: always test the matrix for some nontrivial complex
-  // Hermitian H and S matrices
 
   // Compute the number of electrons
   // The number of electrons is computed by Tr[DM*S]
@@ -3848,7 +3844,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
 
     if( SMat.size != 0 ){
       // S is not an identity matrix
-      numElecLocal = blas::Dotu( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+      numElecLocal = blas::Dotc( SMat.nnzLocal, SMat.nzvalLocal.Data(),
           1, rhoMat.nzvalLocal.Data(), 1 );
     }
     else{
@@ -3876,7 +3872,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     //    Complex numElecDrvLocal = Z_ZERO;
     //    if( SMat.size != 0 ){
     //      // S is not an identity matrix
-    //      numElecDrvLocal = blas::Dotu( SMat.nnzLocal, SMat.nzvalLocal.Data(),
+    //      numElecDrvLocal = blas::Dotc( SMat.nnzLocal, SMat.nzvalLocal.Data(),
     //          1, rhoDrvMuMat.nzvalLocal.Data(), 1 );
     //    }
     //    else{
@@ -3900,22 +3896,22 @@ void PPEXSIData::CalculateFermiOperatorComplex(
 
   // Compute the energy, and free energy
   {
-    //    // Energy computed from Tr[H*DM]
-    //    {
-    //      Real local = 0.0;
-    //      local = (blas::Dotu( HComplexMat_.nnzLocal, 
-    //          HComplexMat_.nzvalLocal.Data(),
-    //          1, rhoComplexMat_.nzvalLocal.Data(), 1 )).real();
-    //      mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
-    //          gridPole_->rowComm ); 
-    //    }
-    //
-    //    // Energy computed from Tr[S*EDM]
+    // Energy computed from Tr[H*DM]
+    {
+      Real local = 0.0;
+      local = (blas::Dotc( HComplexMat_.nnzLocal, 
+            HComplexMat_.nzvalLocal.Data(),
+            1, rhoComplexMat_.nzvalLocal.Data(), 1 )).real();
+      mpi::Allreduce( &local, &totalEnergyH_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+    }
+    
+    // Energy computed from Tr[S*EDM]
     if( isEnergyDensityMatrix )
     {
       Real local = 0.0;
       if( SMat.size != 0 ){
-        local = (blas::Dotu( SMat.nnzLocal, 
+        local = (blas::Dotc( SMat.nnzLocal, 
               SMat.nzvalLocal.Data(),
               1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
       }
@@ -3936,7 +3932,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     //    {
     //      Real local = 0.0;
     //      if( SMat.size != 0 ){
-    //        local = (blas::Dotu( SMat.nnzLocal, 
+    //        local = (blas::Dotc( SMat.nnzLocal, 
     //            SMat.nzvalLocal.Data(),
     //            1, freeEnergyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
     //      }
@@ -5843,7 +5839,7 @@ void PPEXSIData::CalculateEDMCorrectionComplex(
   {
     Real local = 0.0;
     if( SMat.size != 0 ){
-      local = (blas::Dotu( SMat.nnzLocal, 
+      local = (blas::Dotc( SMat.nnzLocal, 
             SMat.nzvalLocal.Data(),
             1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
     }
@@ -6160,7 +6156,7 @@ void PPEXSIData::InterpolateDMComplex(
     // calculate the total Energy  - check check
     {
       Real local = 0.0;
-      local = (blas::Dotu( HComplexMat_.nnzLocal, 
+      local = (blas::Dotc( HComplexMat_.nnzLocal, 
             HComplexMat_.nzvalLocal.Data(),
             1, rhoComplexMat_.nzvalLocal.Data(), 1 )).real();
 
@@ -6174,7 +6170,7 @@ void PPEXSIData::InterpolateDMComplex(
       Real local = 0.0;
 
       if( SMat.size != 0 ){
-        local = (blas::Dotu( SMat.nnzLocal, 
+        local = (blas::Dotc( SMat.nnzLocal, 
               SMat.nzvalLocal.Data(),
               1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
       }
@@ -6278,7 +6274,7 @@ void PPEXSIData::InterpolateDMComplex(
     // calculate the totalEnergyH_
     {
       Real local = 0.0;
-      local = (blas::Dotu( HComplexMat_.nnzLocal, 
+      local = (blas::Dotc( HComplexMat_.nnzLocal, 
             HComplexMat_.nzvalLocal.Data(),
             1, rhoComplexMat_.nzvalLocal.Data(), 1 )).real();
 
@@ -6291,7 +6287,7 @@ void PPEXSIData::InterpolateDMComplex(
 
       Real local = 0.0;
       if( SMat.size != 0 ){
-        local = (blas::Dotu( SMat.nnzLocal, 
+        local = (blas::Dotc( SMat.nnzLocal, 
               SMat.nzvalLocal.Data(),
               1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
       }
