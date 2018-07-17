@@ -231,6 +231,18 @@ an identity matrix, the nonzero sparsity pattern is assumed to be the
 same as the nonzero sparsity pattern of :math:`H`.  Both `HnzvalLocal` and
 `SnzvalLocal` are double precision arrays.  
 
+**NOTE**: As discussed in :ref:`selected elements <defSelectedElem>`,
+for general non-symmetric matrices, the selected elements are the
+elements such that :math:`\{A_{j,i}\ne 0\}`.  This means that the matrix
+elements computed corresponding to the sparsity pattern of :math:`A^T`.
+However, storing the matrix elements :math:`\{A^{-1}_{i,j}\vert
+A_{j,i}\ne 0\}` is practically cumbersome, especially in the context of
+distributed computing. Hence we choose to store the selected elements
+for :math:`A^{-T}`, i.e. :math:`\{A^{-T}_{i,j}\vert A_{i,j}\ne 0\}`.
+These are the values obtained from the non-symmetric version of PSelInv.
+
+
+
 An example is given in `examples/driver_pselinv_real_unsym.c`, which evaluates the
 selected elements of the inverse of the matrix saved in
 `examples/big.unsym.matrix`.  See also `PPEXSISelInvRealUnsymmetricMatrix`
@@ -247,7 +259,9 @@ is very similar to the real unsymmetric case. An example is given in
 `examples/driver_pselinv_complex_unsym.c`. See also `PPEXSISelInvComplexUnsymmetricMatrix`
 for detailed information of its usage.
 
-
+Similar to the case of real unsymmetric matrices, the values
+:math:`\{A^{-T}_{i,j}\vert A_{i,j}\ne 0\}` are the values obtained from
+the non-symmetric version of PSelInv.
 
 
 
