@@ -141,7 +141,7 @@ call f_ppexsi_load_real_hs_matrix(&
       numColLocal,&
       colptrLocal,& 
       rowindLocal,&
-      HnzvalLocal,&
+      AnzvalLocal,&
       1,&
       SnzvalLocal,&
       info ) 
@@ -159,6 +159,7 @@ endif
 call f_ppexsi_symbolic_factorize_real_unsymmetric_matrix(&
   plan,&
   options,&
+  AnzvalLocal,&
   info)
 
 if( info .ne. 0 ) then

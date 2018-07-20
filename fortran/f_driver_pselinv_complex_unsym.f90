@@ -53,7 +53,9 @@ include 'mpif.h'
 integer(c_int) :: nrows, nnz, nnzLocal, numColLocal
 integer(c_int), allocatable, dimension(:) ::  colptrLocal, rowindLocal
 real(c_double), allocatable, dimension(:) ::  &
-  SnzvalLocal, RnzvalLocal, InzvalLocal, AnzvalLocal, AinvnzvalLocal
+  RnzvalLocal, InzvalLocal
+complex(c_double), allocatable, dimension(:) ::  &
+  SnzvalLocal, AnzvalLocal, AinvnzvalLocal
 integer(c_int):: nprow, npcol, npSymbFact, outputFileIndex
 integer :: mpirank, mpisize, ierr
 double precision:: timeSta, timeEnd
@@ -99,8 +101,8 @@ allocate( colptrLocal( numColLocal + 1 ) )
 allocate( rowindLocal( nnzLocal ) )
 allocate( RnzvalLocal( nnzLocal ) )
 allocate( InzvalLocal( nnzLocal ) )
-allocate( AnzvalLocal( 2*nnzLocal ) )
-allocate( AinvnzvalLocal( 2*nnzLocal ) )
+allocate( AnzvalLocal( nnzLocal ) )
+allocate( AinvnzvalLocal( nnzLocal ) )
 
 ! Read the real part of the matrix
 call f_read_distsparsematrix_formatted (&
@@ -128,8 +130,8 @@ call f_read_distsparsematrix_formatted (&
 
 ! Form the matrix
 do i = 1, nnzLocal
-  AnzvalLocal(2*i-1) = RnzvalLocal(i)
-  AnzvalLocal(2*i) = 0.0;
+  AnzvalLocal(i) = dcmplx( RnzvalLocal(i), 0.d0)
+  ! AnzvalLocal(2*i) = 0.0;
   ! AnzvalLocal(2*i)   = InzvalLocal(i)
 enddo
 
@@ -180,6 +182,7 @@ endif
 call f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
   plan,&
   options,&
+  AnzvalLocal,&
   info)
 
 if( info .ne. 0 ) then
@@ -220,8 +223,7 @@ if( mpirank == 0 ) then
       irow = rowindLocal(i)
       if( irow == jcol ) then
         write(*,"(A,2I5,A,F15.10,A,F15.10,A)") &
-          "Ainv[", irow, irow, "]= ", AinvnzvalLocal(2*i-1), &
-          " + ", AinvnzvalLocal(2*i), " i"
+          "Ainv[", irow, irow, "]= ", AinvnzvalLocal(i)
       endif
     enddo
   enddo
