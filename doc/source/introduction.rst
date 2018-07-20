@@ -261,11 +261,40 @@ If you use the non-symmetric version of PSelInv, **please also cite the followin
 
 **More references on method development:**
 
+
+    M. Jacquelin, L. Lin and C. Yang, PSelInv – A distributed memory
+    parallel algorithm for selected inversion: the non-symmetric case,
+    Parallel Comput. 74, 84, 2018
+    `link <https://doi.org/10.1016/j.parco.2017.11.009>`_.
+
+    M. Jacquelin, L. Lin, W. Jia, Y. Zhao and C. Yang, A left-looking
+    selected inversion algorithm and task parallelism on shared memory
+    systems, HPC Asia, 54, 2018
+
+    V. Wen-zhe Yu, F. Corsetti, A. Garcia, W. Huhn, M. Jacquelin, W.
+    Jia, B. Lange, L. Lin, J. Lu, W. Mi, A. Seifitokaldani, A.
+    Vazquez-Mayagoitia, C. Yang, H. Yang and V. Blum, ELSI: A Unified
+    Software Interface for Kohn-Sham Electronic Structure Solvers,
+    Commun. Phys. Comput. 222, 267, 2018
+    `link <https://doi.org/10.1016/j.cpc.2017.09.007>`_.
+
+    W. Jia and L. Lin, Robust Determination of the Chemical Potential in
+    the Pole Expansion and Selected Inversion Method for Solving
+    Kohn-Sham density functional theory, J. Chem. Phys. 147, 144107,
+    2017
+    `link <https://doi.org/10.1063/1.5000255>`_.
+
     M. Jacquelin, L. Lin, N. Wichmann and C. Yang,  
     Enhancing the scalability and load balancing of the parallel
     selected inversion algorithm via tree-based asynchronous
     communication, IEEE IPDPS, 192, 2016 
-    `link <http://arxiv.org/abs/1504.04714>`_.
+    `link <http://http://dx.doi.org/10.1109/IPDPS.2016.38>`_.
+
+    M. Jacquelin, L. Lin and C. Yang, PSelInv – A distributed memory
+    parallel algorithm for selected inversion : the symmetric case, ACM
+    Trans. Math. Software 43, 21, 2016 
+    `link <http://dx.doi.org/10.1145/2786977>`_.
+
     
     L. Lin, A. Garcia, G. Huhs and C. Yang, SIESTA-PEXSI: Massively parallel
     method for efficient and accurate ab initio materials simulation without
