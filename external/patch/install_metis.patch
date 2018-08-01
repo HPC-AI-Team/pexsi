@@ -1,0 +1,10 @@
+--- CMakeLists.txt	2018-06-22 16:18:47.932617461 -0700
++++ CMakeLists.txt.new	2018-06-22 16:17:59.746330744 -0700
+@@ -34,6 +34,7 @@
+ 
+ # List of directories that cmake will look for CMakeLists.txt
+ add_subdirectory(${METIS_PATH}/libmetis ${CMAKE_BINARY_DIR}/libmetis)
++add_subdirectory(${METIS_PATH}/include)
+ add_subdirectory(include)
+ add_subdirectory(libparmetis)
+ add_subdirectory(programs)

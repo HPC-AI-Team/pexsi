@@ -1,0 +1,11 @@
+--- SRC/dmemory_dist.c	2018-07-27 16:22:00.617455605 -0700
++++ SRC/dmemory_dist.c.new	2018-07-27 16:21:51.795401334 -0700
+@@ -129,7 +129,7 @@
+     mem_usage->total += (float)(2 * k * iword);
+ #else
+     /*mem_usage->total += stat->current_buffer;*/
+-    printf(".. dQuery_Space: peak_buffer %.2f (MB)\n", stat->peak_buffer * 1.0e-6);
++    //printf(".. dQuery_Space: peak_buffer %.2f (MB)\n", stat->peak_buffer * 1.0e-6);
+     mem_usage->total += stat->peak_buffer;
+ #endif
+ 

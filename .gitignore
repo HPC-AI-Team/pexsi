@@ -4,3 +4,4 @@
 *.mod
 logPEXSI*
 *.out
+external/*

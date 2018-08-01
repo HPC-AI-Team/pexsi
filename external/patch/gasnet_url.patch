@@ -1,0 +1,11 @@
+--- cmake/gasnet.cmake	2018-07-27 15:27:16.587786896 -0700
++++ cmake/gasnet.cmake.new	2018-07-27 15:36:12.902284505 -0700
+@@ -25,7 +25,7 @@
+ else()
+ 
+   set(GASNET_NAME gasnet)
+-  set(GASNET_URL https://gasnet.lbl.gov/)
++  set(GASNET_URL https://gasnet.lbl.gov/download/)
+   set(GASNET_GZ  GASNet-1.26.3.tar.gz)
+   set(GASNET_MD5 "93ab985881ca19de319bb73583c385d2")
+   set(GASNET_CFLAGS "${CMAKE_C_FLAGS} -DGASNETI_PSHM_BARRIER_HIER=0")

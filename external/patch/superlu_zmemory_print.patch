@@ -1,0 +1,11 @@
+--- SRC/zmemory_dist.c	2018-07-27 16:22:04.313478341 -0700
++++ SRC/zmemory_dist.c.new	2018-07-27 16:21:54.134415722 -0700
+@@ -128,7 +128,7 @@
+     mem_usage->total += (float)(2 * k * iword);
+ #else
+     /*mem_usage->total += stat->current_buffer;*/
+-    printf(".. zQuery_Space: peak_buffer %.2f (MB)\n", stat->peak_buffer * 1.0e-6);
++    //printf(".. zQuery_Space: peak_buffer %.2f (MB)\n", stat->peak_buffer * 1.0e-6);
+     mem_usage->total += stat->peak_buffer;
+ #endif
+ 
