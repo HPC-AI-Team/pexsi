@@ -41,20 +41,45 @@
 #
 
 
-# BLAS / LAPACK
-include( PEXSIHandleLinAlg )
+# Get TPL Vars
+include( TPLMacros )
 
-# METIS / ParMETIS
-include( PEXSIHandleParMETIS )
-
-# SCOTCH / PT-SCOTCH
-include( PEXSIHandlePTSCOTCH )
+InitTPLVars( PTSCOTCH )
 
 
-## symPACK
-#if( PEXSI_ENABLE_SYMPACK )
-#  include( PEXSIHandleSYMPACK )
-#endif( PEXSI_ENABLE_SYMPACK )
-#
-## SuperLU_Dist
-#include( PEXSIHandleSuperLU )
+# Convert vars (if defined) to be consistent with FindPTSCOTCH
+if( PTSCOTCH_PREFIX )
+  set( PTSCOTCH_DIR ${PTSCOTCH_PREFIX} )
+endif()
+
+if( PTSCOTCH_INCLUDE_DIRS )
+  set( PTSCOTCH_INCLUDE_DIR ${PTSCOTCH_INCLUDE_DIRS} )
+endif()
+
+if( PTSCOTCH_LIBRARY_DIRS )
+  set( PTSCOTCH_LIB_DIR ${PTSCOTCH_LIBRARY_DIRS} )
+endif()
+
+find_package( PTSCOTCH QUIET )
+
+if( PTSCOTCH_FOUND )
+  # If we found PT_SCOTCH, set vars
+
+  message( STATUS "Found and installation of SCOTCH/PT-SCOTCH" )
+
+  set( PTSCOTCH_INCLUDE_DIRS ${PTSCOTCH_INCLUDE_DIR} )
+  set( PTSCOTCH_LIBRARY_DIRS ${PTSCOTCH_LIB_DIR}     )
+else()
+
+  # TODO: Setup SCOTCH/PT-SCOTCH build
+
+endif()
+
+message( STATUS " --> PTSCOTCH_INCLUDE_DIRS = ${PTSCOTCH_INCLUDE_DIRS}" )
+message( STATUS " --> PTSCOTCH_LIBRARIES    = ${PTSCOTCH_LIBRARIES}" )
+
+
+# Link everything together
+include_directories( ${PTSCOTCH_INCLUDE_DIRS} )
+link_directories(    ${PTSCOTCH_LIBRARY_DIRS} )
+list(APPEND PEXSI_EXT_LINK ${PTSCOTCH_LIBRARIES} )
