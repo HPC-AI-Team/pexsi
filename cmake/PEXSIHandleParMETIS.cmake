@@ -39,31 +39,90 @@
 #   works, incorporate into other computer software, distribute, and sublicense
 #   such enhancements or derivative works thereof, in binary and source code form.
 #
-cmake_minimum_required( VERSION 3.0 ) # Require CMake 3.0+
-
-# Set up project definition + version information
-project( PEXSI CXX C Fortran )
-set( PEXSI_VERSION_MAJOR 1 )
-set( PEXSI_VERSION_MINOR 0 )
-set( PEXSI_VERSION_PATCH 3 )
 
 
-# PEXSI Options
-option( PEXSI_ENABLE_PROFILE "Enable Performance Profiling" OFF )
-option( PEXSI_ENABLE_SYMPACK "Enable interface to symPACK"  OFF )
-option( PEXSI_ENABLE_OPENMP  "Enable OpenMP Bindings"       ON  )
-option( PEXSI_USE_SYSTEM_LINALG 
-          "Use system defaults for BLAS/LAPACK" ON )
+
+# Get TPL Vars
+include( TPLMacros )
+
+InitTPLVars( PARMETIS )
+InitTPLVars( METIS    )
+
+# Convert vars (if defined) to be consistent with FindParMETIS
+if( PARMETIS_PREFIX )
+  set( PARMETIS_DIR ${PARMETIS_PREFIX} )
+endif()
+
+if( METIS_PREFIX )
+  set( METIS_DIR ${METIS_PREFIX} )
+endif()
+
+if( PARMETIS_INCLUDE_DIRS )
+  set( PARMETIS_INCLUDE_DIR ${PARMETIS_INCLUDE_DIRS} )
+endif()
+
+if( METIS_INCLUDE_DIRS )
+  set( METIS_INCLUDE_DIR ${METIS_INCLUDE_DIRS} )
+endif()
+
+if( PARMETIS_LIBRARY_DIRS )
+  set( PARMETIS_LIB_DIR ${PARMETIS_LIBRARY_DIRS} )
+endif()
+
+if( METIS_LIBRARY_DIRS )
+  set( METIS_LIB_DIR ${METIS_LIBRARY_DIRS} )
+endif()
+
+# FIXME: Turn off tests for now
+set( PARMETIS_TEST_RUNS TRUE )
+
+# Try to find METIS / ParMETIS
+find_package( ParMETIS QUIET )
+
+if( PARMETIS_FOUND )
+  # If we found METIS/ParMETIS, set vars
+
+  message( STATUS "Found and installation of METIS/ParMETIS: ${PARMETIS_VERSION_STRING}" )
+
+  set( PARMETIS_INCLUDE_DIRS ${PARMETIS_INCLUDE_DIR} )
+  set( PARMETIS_LIBRARY_DIRS ${PARMETIS_LIB_DIR}     )
+  set( METIS_INCLUDE_DIRS    ${METIS_INCLUDE_DIR}    )
+  set( METIS_LIBRARY_DIRS    ${METIS_LIB_DIR}        )
+else()
+  # If not, create a target
+
+  include(ExternalProject)
+
+  message( STATUS "Opting to build METIS/ParMETIS" )
+
+  set( PARMETIS_PREFIX        ${PROJECT_BINARY_DIR}/external/parmetis )
+  set( PARMETIS_INCLUDE_DIRS  ${PARMETIS_PREFIX}/include              )
+  set( PARMETIS_LIBRARY_DIRS  ${PARMETIS_PREFIX}/lib                  )
+  set( PARMETIS_LIBRARIES     ${PARMETIS_LIBRARY_DIRS}/libparmetis.a;${PARMETIS_LIBRARY_DIRS}/libmetis.a )
 
 
-# Append local cmake directory to find CMAKE Modules
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+  ExternalProject_Add(parmetis
+    PREFIX ${PARMETIS_PREFIX}
+    URL http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz
+    PATCH_COMMAND patch < ${PEXSI_PATCH_PATH}/install_metis.patch
+    CMAKE_ARGS
+      -D GKLIB_PATH=${PARMETIS_PREFIX}/src/parmetis/metis/GKlib
+      -D METIS_PATH=${PARMETIS_PREFIX}/src/parmetis/metis
+      -D CMAKE_INSTALL_PREFIX=${PARMETIS_PREFIX}
+      -D CMAKE_C_COMPILER=${MPI_C_COMPILER}
+      -D CMAKE_CXX_COMPILER=${MPI_CXX_COMPILER}
+      -D METIS_INSTALL=ON
+  )
+  
+  list(APPEND PEXSI_EXT_DEP parmetis)
 
-# Global config variables
-set( PEXSI_PATCH_PATH ${PROJECT_SOURCE_DIR}/external/patch )
+endif()
+
+message( STATUS " --> PARMETIS_INCLUDE_DIRS = ${PARMETIS_INCLUDE_DIRS}" )
+message( STATUS " --> PARMETIS_LIBRARIES    = ${PARMETIS_LIBRARIES}" )
 
 
-include( PEXSICompileFlags ) # Compile Flags
-include( PEXSIBasicDepends ) # Basic Dependencies
-include( PEXSITPLDepends   ) # TPL Dependencies
-
+# Link everything together
+include_directories( ${PARMETIS_INCLUDE_DIRS} )
+link_directories(    ${PARMETIS_LIBRARY_DIRS} )
+list(APPEND PEXSI_EXT_LINK ${PARMETIS_LIBRARIES} )

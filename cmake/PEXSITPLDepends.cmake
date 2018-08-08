@@ -44,9 +44,9 @@
 # BLAS / LAPACK
 include( PEXSIHandleLinAlg )
 
-## METIS / ParMETIS
-#include( PEXSIHandleParMETIS )
-#
+# METIS / ParMETIS
+include( PEXSIHandleParMETIS )
+
 ## SCOTCH / PT-SCOTCH
 #include( PEXSIHandlePTSCOTCH )
 #

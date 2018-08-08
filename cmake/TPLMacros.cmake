@@ -39,31 +39,37 @@
 #   works, incorporate into other computer software, distribute, and sublicense
 #   such enhancements or derivative works thereof, in binary and source code form.
 #
-cmake_minimum_required( VERSION 3.0 ) # Require CMake 3.0+
-
-# Set up project definition + version information
-project( PEXSI CXX C Fortran )
-set( PEXSI_VERSION_MAJOR 1 )
-set( PEXSI_VERSION_MINOR 0 )
-set( PEXSI_VERSION_PATCH 3 )
 
 
-# PEXSI Options
-option( PEXSI_ENABLE_PROFILE "Enable Performance Profiling" OFF )
-option( PEXSI_ENABLE_SYMPACK "Enable interface to symPACK"  OFF )
-option( PEXSI_ENABLE_OPENMP  "Enable OpenMP Bindings"       ON  )
-option( PEXSI_USE_SYSTEM_LINALG 
-          "Use system defaults for BLAS/LAPACK" ON )
 
+function( InitTPLVars Name )
 
-# Append local cmake directory to find CMAKE Modules
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+  if( TPL_${Name}_PREFIX )
+    set( ${Name}_PREFIX ${TPL_${Name}_PREFIX} )
 
-# Global config variables
-set( PEXSI_PATCH_PATH ${PROJECT_SOURCE_DIR}/external/patch )
+    set( ${Name}_INCLUDE_DIRS ${${Name}_PREFIX}/include PARENT_SCOPE )
+    set( ${Name}_LIBRARY_DIRS ${${Name}_PREFIX}/lib     PARENT_SCOPE )
 
+    if( TPL_${Name}_INCLUDE_DIRS )
+      message(STATUS "Warning: Ignoring TPL_${Name}_INCLUDE_DIRS")
+    endif()
 
-include( PEXSICompileFlags ) # Compile Flags
-include( PEXSIBasicDepends ) # Basic Dependencies
-include( PEXSITPLDepends   ) # TPL Dependencies
+    if( TPL_${Name}_LIBRARY_DIRS )
+      message(STATUS "Warning: Ignoring TPL_${Name}_LIBRARY_DIRS")
+    endif()
+
+    return()
+  endif()
+
+  if( TPL_${Name}_INCLUDE_DIRS )
+    set( ${Name}_INCLUDE_DIRS ${TPL_${Name}_INCLUDE_DIRS} 
+         PARENT_SCOPE )
+  endif()
+
+  if( TPL_${Name}_LIBRARY_DIRS )
+    set( ${Name}_LIBRARY_DIRS ${TPL_${Name}_LIBRARY_DIRS} 
+         PARENT_SCOPE )
+  endif()
+
+endfunction()
 

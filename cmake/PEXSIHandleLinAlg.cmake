@@ -41,42 +41,6 @@
 #
 
 
-
-function( InitTPLVars Name )
-
-  if( TPL_${Name}_PREFIX )
-    set( ${Name}_PREFIX ${TPL_${Name}_PREFIX} )
-
-    set( ${Name}_INCLUDE_DIRS ${{Name}_PREFIX}/include PARENT_SCOPE )
-    set( ${Name}_LIBRARY_DIRS ${{Name}_PREFIX}/lib     PARENT_SCOPE )
-
-    if( TPL_${Name}_INCLUDE_DIRS )
-      message(STATUS "Warning: Ignoring TPL_${Name}_INCLUDE_DIRS")
-    endif()
-
-    if( TPL_${Name}_LIBRARY_DIRS )
-      message(STATUS "Warning: Ignoring TPL_${Name}_LIBRARY_DIRS")
-    endif()
-
-    return()
-  endif()
-
-  if( TPL_${Name}_INCLUDE_DIRS )
-    set( ${Name}_INCLUDE_DIRS ${TPL_${Name}_INCLUDE_DIRS} 
-         PARENT_SCOPE )
-  endif()
-
-  if( TPL_${Name}_LIBRARY_DIRS )
-    set( ${Name}_LIBRARY_DIRS ${TPL_${Name}_LIBRARY_DIRS} 
-         PARENT_SCOPE )
-  endif()
-
-endfunction()
-
-#InitTPLVars( BLAS   )
-#InitTPLVars( LAPACK )
-
-
 # Turn off system search if TPL linear algebra has
 # been specified.
 if( TPL_BLAS_LIBRARIES OR TPL_LAPACK_LIBRARIES )
