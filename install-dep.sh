@@ -104,41 +104,41 @@ fi
 
 
 # SymPACK
-# sympackdir=$depdir
-# 
-# if [ ! -f $depdir/include/sympack.hpp ]
-# then
-# 
-#   echo "Building SymPACK"
-#   
-#   cd $sympackdir
-#   git clone https://github.com/symPACK/symPACK.git
-#   cd symPACK
-#   
-#   # Patch
-#   cp $patchdir/gasnet_url.patch .
-#   patch -p0 < gasnet_url.patch
-#   
-#   # Configure / Point SymPACK to SCOTCH/PT-SCOTCH
-#   mkdir build && cd build
-#   cmake \
-#     -DCMAKE_BUILD_TYPE=Release \
-#     -DCMAKE_INSTALL_PREFIX=$depdir \
-#     -DSCOTCH_DIR=$depdir \
-#     -DENABLE_SCOTCH=ON \
-#     -DCMAKE_C_COMPILER=$MPIC \
-#     -DCMAKE_CXX_COMPILER=$MPICXX \
-#     -DCMAKE_Fortran_COMPILER=$MPIFC \
-#     ..
-#   
-#   make -j4
-#   make install
-# 
-# else
-# 
-#   echo "Found SymPACK Installation"
-# 
-# fi
+ sympackdir=$depdir
+ 
+ if [ ! -f $depdir/include/sympack.hpp ]
+ then
+ 
+   echo "Building SymPACK"
+   
+   cd $sympackdir
+   git clone https://github.com/symPACK/symPACK.git
+   cd symPACK
+   
+   # Patch
+   cp $patchdir/gasnet_url.patch .
+   patch -p0 < gasnet_url.patch
+   
+   # Configure / Point SymPACK to SCOTCH/PT-SCOTCH
+   mkdir build && cd build
+   cmake \
+     -DCMAKE_BUILD_TYPE=Release \
+     -DCMAKE_INSTALL_PREFIX=$depdir \
+     -DSCOTCH_DIR=$depdir \
+     -DENABLE_SCOTCH=ON \
+     -DCMAKE_C_COMPILER=$MPIC \
+     -DCMAKE_CXX_COMPILER=$MPICXX \
+     -DCMAKE_Fortran_COMPILER=$MPIFC \
+     ..
+   
+   make -j4
+   make install
+ 
+ else
+ 
+   echo "Found SymPACK Installation"
+ 
+ fi
 
 
 
