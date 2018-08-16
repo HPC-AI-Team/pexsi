@@ -447,10 +447,10 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
         {
           //Handle symPACK ordering options
           switch (options.ordering){
-            case 0:
+            case 5:
               colPerm = "PTSCOTCH";
               break;
-            case 1:
+            case 6:
               colPerm = "SCOTCH";
               break;
             case 2:
@@ -462,10 +462,10 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
             case 4:
               colPerm = "AMD";
               break;
-            case 5:
+            case 0:
               colPerm = "PARMETIS";
               break;
-            case 6:
+            case 1:
               colPerm = "METIS";
               break;
             default:
@@ -607,10 +607,10 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
         {
           //Handle symPACK ordering options
           switch (options.ordering){
-            case 0:
+            case 5:
               colPerm = "PTSCOTCH";
               break;
-            case 1:
+            case 6:
               colPerm = "SCOTCH";
               break;
             case 2:
@@ -622,10 +622,10 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
             case 4:
               colPerm = "AMD";
               break;
-            case 5:
+            case 0:
               colPerm = "PARMETIS";
               break;
-            case 6:
+            case 1:
               colPerm = "METIS";
               break;
             default:
