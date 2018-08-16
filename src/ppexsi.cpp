@@ -811,8 +811,6 @@ PPEXSIData::SymbolicFactorizeRealSymmetricMatrix    (
     Int                            numProcSymbFact,
     Int                            verbosity )
 {
-  std::cout<<"DEBUG CALL SymbolicFactorizeRealSymmetricMatrix"<<std::endl;
-
   if( isMatrixLoaded_ == false ){
     std::ostringstream msg;
     msg  << std::endl
