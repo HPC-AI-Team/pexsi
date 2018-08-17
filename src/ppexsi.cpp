@@ -4037,10 +4037,10 @@ PPEXSIData::DFTDriver (
       {
         //Handle symPACK ordering options
         switch (ordering){
-          case 0:
+          case 5:
             colPerm = "PTSCOTCH";
             break;
-          case 1:
+          case 6:
             colPerm = "SCOTCH";
             break;
           case 2:
@@ -4052,10 +4052,10 @@ PPEXSIData::DFTDriver (
           case 4:
             colPerm = "AMD";
             break;
-          case 5:
+          case 0:
             colPerm = "PARMETIS";
             break;
-          case 6:
+          case 1:
             colPerm = "METIS";
             break;
           default:
@@ -4552,10 +4552,10 @@ PPEXSIData::DFTDriver2 (
       {
         //Handle symPACK ordering options
         switch (ordering){
-          case 0:
+          case 5:
             colPerm = "PTSCOTCH";
             break;
-          case 1:
+          case 6:
             colPerm = "SCOTCH";
             break;
           case 2:
@@ -4567,10 +4567,10 @@ PPEXSIData::DFTDriver2 (
           case 4:
             colPerm = "AMD";
             break;
-          case 5:
+          case 0:
             colPerm = "PARMETIS";
             break;
-          case 6:
+          case 1:
             colPerm = "METIS";
             break;
           default:

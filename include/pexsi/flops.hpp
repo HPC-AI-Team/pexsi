@@ -70,8 +70,8 @@ namespace flops{
 
 
   template<typename T> bool is_complex(){ return false; }
-  template<>  bool is_complex<std::complex<float> >(){ return true;  }
-  template<>  bool is_complex<std::complex<double> >(){ return true;  }
+  template<>  inline bool is_complex<std::complex<float> >(){ return true;  }
+  template<>  inline bool is_complex<std::complex<double> >(){ return true;  }
 
   template<typename T>
   double Gemm(int m_, int n_, int k_){
