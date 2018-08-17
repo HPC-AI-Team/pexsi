@@ -116,8 +116,8 @@ fi
    cd symPACK
    
    # Patch
-   cp $patchdir/gasnet_url.patch .
-   patch -p0 < gasnet_url.patch
+   #cp $patchdir/gasnet_url.patch .
+   #patch -p0 < gasnet_url.patch
    
    # Configure / Point SymPACK to SCOTCH/PT-SCOTCH
    mkdir build && cd build
