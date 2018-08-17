@@ -65,13 +65,14 @@ find_package( PTSCOTCH QUIET )
 if( PTSCOTCH_FOUND )
   # If we found PT_SCOTCH, set vars
 
-  message( STATUS "Found and installation of SCOTCH/PT-SCOTCH" )
+  message( STATUS "Found an installation of SCOTCH/PT-SCOTCH" )
 
   set( PTSCOTCH_INCLUDE_DIRS ${PTSCOTCH_INCLUDE_DIR} )
   set( PTSCOTCH_LIBRARY_DIRS ${PTSCOTCH_LIB_DIR}     )
 else()
 
   # TODO: Setup SCOTCH/PT-SCOTCH build
+  message( FATAL_ERROR "Could not find an installation of SCOTCH/PT-SCOTCH. Try defining TPL_PTSCOTCH_PREFIX in your CMake invocation" )
 
 endif()
 
