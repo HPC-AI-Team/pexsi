@@ -42,17 +42,13 @@
 cmake_minimum_required( VERSION 3.10 ) # Require CMake 3.10+
 
 # Set up project definition + version information
-project( PEXSI CXX C Fortran )
-set( PEXSI_VERSION_MAJOR 1 )
-set( PEXSI_VERSION_MINOR 0 )
-set( PEXSI_VERSION_PATCH 3 )
+project( PEXSI VERSION 1.0.3 LANGUAGES CXX C Fortran )
 
 
 # PEXSI Options
 option( PEXSI_ENABLE_PROFILE    "Enable Performance Profiling"        OFF )
 option( PEXSI_ENABLE_SYMPACK    "Enable interface to symPACK"         OFF )
 option( PEXSI_ENABLE_OPENMP     "Enable OpenMP Bindings"              ON  )
-option( PEXSI_USE_SYSTEM_LINALG "Use system defaults for BLAS/LAPACK" ON  )
 
 
 # Append local cmake directory to find CMAKE Modules

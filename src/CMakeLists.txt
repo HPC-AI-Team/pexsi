@@ -41,6 +41,8 @@
 #
 
 
+# Compile
+
 set( PEXSI_SRC_C   pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c )
 set( PEXSI_SRC_CXX interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp
                    superlu_dist_internal_complex.cpp 
@@ -51,6 +53,11 @@ set( PEXSI_SRC_CXX interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp
 add_library( pexsi STATIC ${PEXSI_SRC_C} ${PEXSI_SRC_CXX} )
 add_library( PEXSI::pexsi ALIAS pexsi )
 
+
+
+
+
+# TARGET properties
 
 target_link_libraries( pexsi
   PUBLIC
@@ -64,4 +71,64 @@ target_include_directories( pexsi
   PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+)
+
+
+
+# INSTALL rules
+
+include( GNUInstallDirs )
+set( INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/PEXSI )
+
+# Targets
+install(TARGETS pexsi
+    EXPORT pexsi-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+set_target_properties( pexsi PROPERTIES EXPORT_NAME PEXSI )
+
+# Install Headers
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} )
+
+# Export target to script
+install(EXPORT pexsi-targets
+  FILE
+    PEXSITargets.cmake
+  NAMESPACE
+    PEXSI::
+  DESTINATION
+    ${INSTALL_CONFIGDIR}
+)
+
+
+#Create a ConfigVersion.cmake file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/PEXSIConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+# Setup PEXSIConfig.cmake
+configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/PEXSIConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/PEXSIConfig.cmake
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+#Install the config, configversion and custom find modules
+install(FILES
+    ${PROJECT_SOURCE_DIR}/cmake/PEXSICompileFlags.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/PEXSIBasicDepends.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/PEXSITPLDepends.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/PEXSIHandleLinAlg.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/PEXSIHandleSuperLU.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/FindLinAlg.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/FindMETIS.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/FindParMETIS.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/FindSuperLUDist.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/PEXSIConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/PEXSIConfigVersion.cmake
+    DESTINATION ${INSTALL_CONFIGDIR}
 )

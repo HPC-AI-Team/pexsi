@@ -1,0 +1,20 @@
+get_filename_component(PEXSI_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_MODULE_PATH ${PEXSI_CMAKE_DIR})
+
+set( PEXSI_ENABLE_PROFILE @PEXSI_ENABLE_PROFILE@ )
+set( PEXSI_ENABLE_SYMPACK @PEXSI_ENABLE_SYMPACK@ )
+set( PEXSI_ENABLE_OPENMP  @PEXSI_ENABLE_OPENMP@  )
+
+include( PEXSICompileFlags )
+include( PEXSIBasicDepends )
+include( PEXSITPLDepends   )
+
+list(REMOVE_AT CMAKE_MODULE_PATH -1)
+
+if(NOT TARGET PEXSI::PEXSI)
+    include("${PEXSI_CMAKE_DIR}/PEXSITargets.cmake")
+endif()
+
+set(PEXSI_LIBRARIES PEXSI::PEXSI)
