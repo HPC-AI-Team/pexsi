@@ -39,37 +39,30 @@
 #   works, incorporate into other computer software, distribute, and sublicense
 #   such enhancements or derivative works thereof, in binary and source code form.
 #
-cmake_minimum_required( VERSION 3.10 ) # Require CMake 3.10+
 
-# Set up project definition + version information
-project( PEXSI CXX C Fortran )
-set( PEXSI_VERSION_MAJOR 1 )
-set( PEXSI_VERSION_MINOR 0 )
-set( PEXSI_VERSION_PATCH 3 )
+macro( add_pexsi_example_exe _name _ext)
 
+  add_executable( ${_name} ${_name}${_ext} )
+  target_link_libraries( ${_name} PRIVATE pexsi )
 
-# PEXSI Options
-option( PEXSI_ENABLE_PROFILE    "Enable Performance Profiling"        OFF )
-option( PEXSI_ENABLE_SYMPACK    "Enable interface to symPACK"         OFF )
-option( PEXSI_ENABLE_OPENMP     "Enable OpenMP Bindings"              ON  )
-option( PEXSI_USE_SYSTEM_LINALG "Use system defaults for BLAS/LAPACK" ON  )
+endmacro()
 
 
-# Append local cmake directory to find CMAKE Modules
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+# Example test cases
 
-# Global config variables
-set( PEXSI_PATCH_PATH ${PROJECT_SOURCE_DIR}/external/patch )
+# C Examples
+add_pexsi_example_exe( driver_ksdft                 .c )
+add_pexsi_example_exe( driver2_ksdft                .c )
+add_pexsi_example_exe( driver_pselinv_real          .c )
+add_pexsi_example_exe( driver_pselinv_complex       .c )
+add_pexsi_example_exe( driver_pselinv_real_unsym    .c )
+add_pexsi_example_exe( driver_pselinv_complex_unsym .c )
 
+# CXX Examples
+add_pexsi_example_exe( run_fermi         .cpp )
+add_pexsi_example_exe( run_fermi_complex .cpp )
+#add_pexsi_example_exe( run_ksdft         .cpp )
+#add_pexsi_example_exe( run_inertia       .cpp )
+add_pexsi_example_exe( run_pselinv       .cpp )
+add_pexsi_example_exe( run_pselinv_unsym .cpp )
 
-include( PEXSICompileFlags ) # Compile Flags
-include( PEXSIBasicDepends ) # Basic Dependencies
-include( PEXSITPLDepends   ) # TPL Dependencies
-
-
-# libPEXSI
-add_subdirectory( src )
-
-
-# examples
-add_subdirectory( examples )
