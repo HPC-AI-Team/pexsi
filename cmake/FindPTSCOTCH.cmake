@@ -1,28 +1,56 @@
-# - Try to find PTSCOTCH
-# Once done this will define
+#   FindPTSCOTCH.cmake
 #
-#  PTSCOTCH_FOUND        - system has PTSCOTCH
-#  PTSCOTCH_INCLUDE_DIRS - include directories for PTSCOTCH
-#  PTSCOTCH_LIBRARIES    - libraries for PTSCOTCH
+#   Finds the PTSCOTCH library.
 #
-# Variables used by this module. They can change the default behaviour and
-# need to be set before calling find_package:
+#   This module will define the following variables:
+#   
+#     PTSCOTCH_FOUND         - System has found PTSCOTCH installation
+#     PTSCOTCH_INCLUDE_DIR   - Location of PTSCOTCH headers
+#     PTSCOTCH_LIBRARIES     - PTSCOTCH libraries
+#     PTSCOTCH_USES_ILP64    - Whether PTSCOTCH was configured with ILP64
+#     PTSCOTCH_USES_PTHREADS - Whether PTSCOTCH was configured with PThreads
 #
-#  PTSCOTCH_DIR          - Prefix directory of the PTSCOTCH installation
-#  PTSCOTCH_INCLUDE_DIR  - Include directory of the PTSCOTCH installation
-#                          (set only if different from ${PTSCOTCH_DIR}/include)
-#  PTSCOTCH_LIB_DIR      - Library directory of the PTSCOTCH installation
-#                          (set only if different from ${PTSCOTCH_DIR}/lib)
-#  PTSCOTCH_LIB_SUFFIX   - Also search for non-standard library names with the
-#                          given suffix appended
+#   This module can handle the following COMPONENTS
+#
+#     ilp64    - 64-bit index integers
+#     pthreads - SMP parallelism via PThreads
+#     parmetis - Has ParMETIS compatibility layer
+#
+#   This module will export the following targets if PTSCOTCH_FOUND
+#
+#     PTSCOTCH::ptscotch
+#
+#
+#
+#
+#   Proper usage:
+#
+#     project( TEST_FIND_PTSCOTCH C )
+#     find_package( PTSCOTCH )
+#
+#     if( PTSCOTCH_FOUND )
+#       add_executable( test test.cxx )
+#       target_link_libraries( test PTSCOTCH::ptscotch )
+#     endif()
+#
+#
+#
+#
+#   This module will use the following variables to change
+#   default behaviour if set
+#
+#     ptscotch_PREFIX
+#     ptscotch_INCLUDE_DIR
+#     ptscotch_LIBRARY_DIR
+#     ptscotch_LIBRARIES
 
-#=============================================================================
+#==================================================================
 #   Copyright (c) 2018 The Regents of the University of California,
 #   through Lawrence Berkeley National Laboratory.  
 #
 #   Author: David Williams-Young
 #   
-#   This file is part of PEXSI. All rights reserved.
+#   This file is part of cmake-modules. All rights reserved.
 #   
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions are met:
@@ -58,89 +86,157 @@
 #   works, incorporate into other computer software, distribute, and sublicense
 #   such enhancements or derivative works thereof, in binary and source code form.
 #
-#=============================================================================
+#==================================================================
 
-if(NOT PTSCOTCH_INCLUDE_DIR)
-  find_path(PTSCOTCH_INCLUDE_DIR ptscotch.h
-    HINTS ${PTSCOTCH_INCLUDE_DIR} ENV PTSCOTCH_INCLUDE_DIR ${PTSCOTCH_DIR} ENV PTSCOTCH_DIR
-    PATH_SUFFIXES include
-    DOC "Directory where the PTSCOTCH header files are located"
-  )
-endif()
+cmake_minimum_required( VERSION 3.11 ) # Require CMake 3.11+
+# Set up some auxillary vars if hints have been set
 
-if(NOT SCOTCH_INCLUDE_DIR)
-  find_path(SCOTCH_INCLUDE_DIR scotch.h
-    HINTS ${SCOTCH_INCLUDE_DIR} ENV SCOTCH_INCLUDE_DIR ${SCOTCH_DIR} ENV SCOTCH_DIR
-    PATH_SUFFIXES include
-    DOC "Directory where the SCOTCH header files are located"
-  )
-endif()
-
-if(PTSCOTCH_LIBRARIES)
-  set(PTSCOTCH_LIBRARY ${PTSCOTCH_LIBRARIES})
-endif()
-if(NOT PTSCOTCH_LIBRARY)
-  find_library(PTSCOTCH_LIBRARY
-    NAMES ptscotch ptscotch${PTSCOTCH_LIB_SUFFIX}
-    HINTS ${PTSCOTCH_LIB_DIR} ENV PTSCOTCH_LIB_DIR ${PTSCOTCH_DIR} ENV PTSCOTCH_DIR
-    PATH_SUFFIXES lib
-    DOC "Directory where the PTSCOTCH library is located"
-  )
-  find_library(PTSCOTCHPARMETIS_LIBRARY
-    NAMES ptscotchparmetis ptscotchparmetis${PTSCOTCH_LIB_SUFFIX}
-    HINTS ${PTSCOTCH_LIB_DIR} ENV PTSCOTCH_LIB_DIR ${PTSCOTCH_DIR} ENV PTSCOTCH_DIR
-    PATH_SUFFIXES lib
-    DOC "Directory where the PTSCOTCH library is located"
-  )
-  find_library(PTSCOTCHERR_LIBRARY
-    NAMES ptscotcherr ptscotcherr${PTSCOTCH_LIB_SUFFIX}
-    HINTS ${PTSCOTCH_LIB_DIR} ENV PTSCOTCH_LIB_DIR ${PTSCOTCH_DIR} ENV PTSCOTCH_DIR
-    PATH_SUFFIXES lib
-    DOC "Directory where the PTSCOTCH library is located"
-  )
-
-  set( PTSCOTCH_LIBRARY ${PTSCOTCHPARMETIS_LIBRARY} ${PTSCOTCH_LIBRARY} ${PTSCOTCHERR_LIBRARY} )
-endif()
-
-if(SCOTCH_LIBRARIES)
-  set(SCOTCH_LIBRARY ${SCOTCH_LIBRARIES})
-endif()
-if(NOT SCOTCH_LIBRARY)
-  find_library(SCOTCH_LIBRARY
-    NAMES scotch scotch${PTSCOTCH_LIB_SUFFIX}
-    HINTS ${PTSCOTCH_LIB_DIR} ENV PTSCOTCH_LIB_DIR ${PTSCOTCH_DIR} ENV PTSCOTCH_DIR
-    PATH_SUFFIXES lib
-    DOC "Directory where the SCOTCH library is located"
-  )
-  find_library(SCOTCHERR_LIBRARY
-    NAMES scotcherr scotcherr${PTSCOTCH_LIB_SUFFIX}
-    HINTS ${PTSCOTCH_LIB_DIR} ENV PTSCOTCH_LIB_DIR ${PTSCOTCH_DIR} ENV PTSCOTCH_DIR
-    PATH_SUFFIXES lib
-    DOC "Directory where the SCOTCH library is located"
-  )
-
-  set( SCOTCH_LIBRARY ${SCOTCH_LIBRARY} ${SCOTCHERR_LIBRARY} )
+if( ptscotch_PREFIX AND NOT ptscotch_INCLUDE_DIR )
+  set( ptscotch_INCLUDE_DIR ${ptscotch_PREFIX}/include )
 endif()
 
 
-# Standard package handling
+if( ptscotch_PREFIX AND NOT ptscotch_LIBRARY_DIR )
+  set( ptscotch_LIBRARY_DIR 
+    ${ptscotch_PREFIX}/lib 
+    ${ptscotch_PREFIX}/lib32 
+    ${ptscotch_PREFIX}/lib64 
+  )
+endif()
+
+# Pass ptscotch vars as scotch vars if they exist
+if( ptscotch_PREFIX AND NOT scotch_PREFIX )
+  set( scotch_PREFIX ${ptscotch_PREFIX} )
+endif()
+
+if( ptscotch_INCLUDE_DIR AND NOT scotch_INCLUDE_DIR )
+  set( scotch_INCLUDE_DIR ${ptscotch_INCLUDE_DIR} )
+endif()
+
+if( ptscotch_LIBRARY_DIR AND NOT scotch_LIBRARY_DIR )
+  set( scotch_LIBRARY_DIR ${ptscotch_LIBRARY_DIR} )
+endif()
+
+
+# DEPENDENCIES
+# Make sure C is enabled
+get_property( PTSCOTCH_languages GLOBAL PROPERTY ENABLED_LANGUAGES )
+if( NOT "C" IN_LIST PTSCOTCH_languages )
+  message( FATAL_ERROR "C Language Must Be Enabled for PTSCOTCH Linkage" )
+endif()
+
+
+# SCOTCH
+if( NOT TARGET SCOTCH::scotch )
+  find_dependency( SCOTCH REQUIRED )
+endif()
+
+
+# MPI
+if( NOT TARGET MPI::MPI_C )
+  find_dependency( MPI REQUIRED )
+endif()
+
+
+# Try to find the header
+find_path( PTSCOTCH_INCLUDE_DIR 
+  NAMES ptscotch.h
+  HINTS ${ptscotch_PREFIX}
+  PATHS ${ptscotch_INCLUDE_DIR}
+  PATH_SUFFIXES include
+  DOC "Location of PTSCOTCH header"
+)
+
+# Try to find libraries if not already set
+if( NOT ptscotch_LIBRARIES )
+
+  find_library( PTSCOTCH_LIBRARY
+    NAMES ptscotch 
+    HINTS ${ptscotch_PREFIX}
+    PATHS ${ptscotch_LIBRARY_DIR}
+    PATH_SUFFIXES lib lib64 lib32
+    DOC "PTSCOTCH Library"
+  )
+
+  find_library( PTSCOTCH_ERR_LIBRARY
+    NAMES ptscotcherr
+    HINTS ${ptscotch_PREFIX}
+    PATHS ${ptscotch_LIBRARY_DIR}
+    PATH_SUFFIXES lib lib64 lib32
+    DOC "PTSCOTCH Error Libraries"
+  )
+
+  find_library( PTSCOTCH_ERREXIT_LIBRARY
+    NAMES ptscotcherrexit
+    HINTS ${ptscotch_PREFIX}
+    PATHS ${ptscotch_LIBRARY_DIR}
+    PATH_SUFFIXES lib lib64 lib32
+    DOC "PTSCOTCH Error-Exit Libraries"
+  )
+
+  find_library( PTSCOTCH_PARMETIS_LIBRARY
+    NAMES ptscotchparmetis
+    HINTS ${ptscotch_PREFIX}
+    PATHS ${ptscotch_LIBRARY_DIR}
+    PATH_SUFFIXES lib lib64 lib32
+    DOC "PTSCOTCH-ParMETIS compatibility Libraries"
+  )
+
+
+  set( PTSCOTCH_LIBRARIES 
+       ${PTSCOTCH_LIBRARY} 
+       ${PTSCOTCH_ERR_LIBRARY}
+       ${PTSCOTCH_ERREXIT_LIBRARY} )
+
+  if( PTSCOTCH_PARMETIS_LIBRARY )
+    list( APPEND PTSCOTCH_LIBRARIES ${PTSCOTCH_PARMETIS_LIBRARY} )
+    set( PTSCOTCH_parmetis_FOUND TRUE )
+  endif()
+
+else()
+
+  # FIXME: Check if files exists at least?
+  set( PTSCOTCH_LIBRARIES ${ptscotch_LIBRARIES} )
+
+endif()
+
+# Check version
+if( SCOTCH_FOUND )
+
+  set( PTSCOTCH_VERSION_STRING ${SCOTCH_VERSION_STRING} )
+  set( PTSCOTCH_USES_ILP64     ${SCOTCH_USES_ILP64} )
+  set( PTSCOTCH_USES_PTHREADS  ${SCOTCH_USES_PTHREADS} )
+  
+endif()
+
+
+
+# Handle components
+if( PTSCOTCH_USES_ILP64 )
+  set( PTSCOTCH_ilp64_FOUND TRUE )
+endif()
+
+if( PTSCOTCH_USES_PTHREADS )
+  set( PTSCOTCH_pthreads_FOUND TRUE )
+endif()
+
+# Determine if we've found PTSCOTCH
+mark_as_advanced( PTSCOTCH_FOUND PTSCOTCH_INCLUDE_DIR PTSCOTCH_LIBRARIES )
+
 include(FindPackageHandleStandardArgs)
-if(CMAKE_VERSION VERSION_GREATER 2.8.2)
-  find_package_handle_standard_args(PTSCOTCH
-    REQUIRED_VARS PTSCOTCH_LIBRARY PTSCOTCH_INCLUDE_DIR 
-    VERSION_VAR PTSCOTCH_VERSION_STRING)
-else()
-  find_package_handle_standard_args(PTSCOTCH
-    REQUIRED_VARS PTSCOTCH_LIBRARY PTSCOTCH_INCLUDE_DIR)
-endif()
+find_package_handle_standard_args( PTSCOTCH
+  REQUIRED_VARS PTSCOTCH_LIBRARIES PTSCOTCH_INCLUDE_DIR
+  VERSION_VAR PTSCOTCH_VERSION_STRING
+  HANDLE_COMPONENTS
+)
 
-if(PTSCOTCH_FOUND)
-  set(PTSCOTCH_LIBRARIES ${PTSCOTCH_LIBRARY} ${SCOTCH_LIBRARY})
-  set(PTSCOTCH_INCLUDE_DIRS ${PTSCOTCH_INCLUDE_DIR} ${SCOTCH_INCLUDE_DIR})
-else()
-  unset(SCOTCH_LIBRARY CACHE)
-  unset(SCOTCH_INCLUDE_DIR CACHE)
-endif()
+# Export target
+if( PTSCOTCH_FOUND AND NOT TARGET PTSCOTCH::ptscotch )
 
-mark_as_advanced(PTSCOTCH_INCLUDE_DIR SCOTCH_INCLUDE_DIR
-  PTSCOTCH_LIBRARY SCOTCH_LIBRARY)
+  add_library( PTSCOTCH::ptscotch INTERFACE IMPORTED )
+  set_target_properties( PTSCOTCH::ptscotch PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${PTSCOTCH_INCLUDE_DIR}"
+    INTERFACE_LINK_LIBRARIES      "${PTSCOTCH_LIBRARIES};SCOTCH::scotch;MPI::MPI_C" 
+  )
+
+endif()

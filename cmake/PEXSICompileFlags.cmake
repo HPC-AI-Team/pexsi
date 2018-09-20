@@ -43,61 +43,32 @@
 
 
 
+add_library( PEXSI::compile_definitions INTERFACE IMPORTED )
+
 # C++11
-set( CMAKE_CXX_STANDARD_REQUIRED ON )
-set( CMAKE_CXX_STANDARD 11 )
-
-# Intel C++11
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
-endif()
-
-
-
+target_compile_features( PEXSI::compile_definitions INTERFACE cxx_std_11 )
 
 
 
 # Performance Profiling
 if( PEXSI_ENABLE_PROFILE )
-  set( CMAKE_CXX_FLAGS     "${CMAKE_CXX_FLAGS}     -g -pg" )
-  set( CMAKE_C_FLAGS       "${CMAKE_C_FLAGS}       -g -pg" )
-  set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -g -pg" )
+  target_compile_options( PEXSI::compile_definitions INTERFACE -g -pg )
 endif( PEXSI_ENABLE_PROFILE )
 
 
-# Handle DEBUG / RELEASEE flags
-
-# FIXME: -g will impede performance
-if( NOT PEXSI_RELEASE_FLAGS )
-  set( PEXSI_RELEASE_FLAGS "-O3 -w -g" )
-endif( NOT PEXSI_RELEASE_FLAGS )
-
-# FIXME: This is not typical for debug,
-# should -O0 -w, otherwise -g means nothing
-if( NOT PEXSI_DEBUG_FLAGS )
-  set( PEXSI_DEBUG_FLAGS "-O2 -w" )
-endif( NOT PEXSI_DEBUG_FLAGS )
-
-
-set( CMAKE_CXX_FLAGS_DEBUG     "${CMAKE_CXX_FLAGS_DEBUG}     ${PEXSI_DEBUG_FLAGS}" )
-set( CMAKE_C_FLAGS_DEBUG       "${CMAKE_C_FLAGS_DEBUG}       ${PEXSI_DEBUG_FLAGS}" )
-set( CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${PEXSI_DEBUG_FLAGS}" )
-
-
-set( CMAKE_CXX_FLAGS_RELEASE     "${CMAKE_CXX_FLAGS_RELEASE}     ${PEXSI_RELEASE_FLAGS}" )
-set( CMAKE_C_FLAGS_RELEASE       "${CMAKE_C_FLAGS_RELEASE}       ${PEXSI_RELEASE_FLAGS}" )
-set( CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} ${PEXSI_RELEASE_FLAGS}" )
-
-
-
-
-
+# Handle DEBUG / RELEASE flags
 if( CMAKE_BUILD_TYPE MATCHES Release )
-  add_definitions( "-D RELEASE" )
+
+  target_compile_options( PEXSI::compile_definitions INTERFACE -O3 -w )
+  target_compile_definitions( PEXSI::compile_definitions INTERFACE "-D RELEASE" )
+
 else()
+
   if( NOT PEXSI_DEBUG_LEVEL )
-    set( PEXSI_DEBUG_LEVEL 1)
+    set( PEXSI_DEBUG_LEVEL 1 )
   endif( NOT PEXSI_DEBUG_LEVEL )
-  
-  add_definitions( "-D DEBUG=${PEXSI_DEBUG_LEVEL}" )
+
+  target_compile_options( PEXSI::compile_definitions INTERFACE -O0 -w )
+  target_compile_definitions( PEXSI::compile_definitions INTERFACE "-D DEBUG=${PEXSI_DEBUG_LEVEL}" )
+
 endif()

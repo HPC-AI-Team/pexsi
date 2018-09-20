@@ -41,20 +41,19 @@
 #
 
 
+
 # BLAS / LAPACK
 include( PEXSIHandleLinAlg )
 
-# METIS / ParMETIS
-include( PEXSIHandleParMETIS )
+# SuperLU_Dist (Handles ParMETIS)
+include( PEXSIHandleSuperLU )
 
-# SCOTCH / PT-SCOTCH
-include( PEXSIHandlePTSCOTCH )
-
-
-## symPACK
+## symPACK (Should Handle PT-SCOTCH)
 #if( PEXSI_ENABLE_SYMPACK )
 #  include( PEXSIHandleSYMPACK )
 #endif( PEXSI_ENABLE_SYMPACK )
 #
-## SuperLU_Dist
-#include( PEXSIHandleSuperLU )
+
+add_library( PEXSI::tpl_depends INTERFACE IMPORTED )
+target_link_libraries( PEXSI::tpl_depends INTERFACE PEXSI::superlu)
+target_link_libraries( PEXSI::tpl_depends INTERFACE PEXSI::linalg )

@@ -41,44 +41,25 @@
 #
 
 
-# Handle MPI
+# Handle MPI 
 find_package( MPI REQUIRED )
 
-include_directories( ${MPI_CXX_INCLUDE_PATH}    )
-include_directories( ${MPI_C_INCLUDE_PATH}      )
-include_directories( ${MPI_Fortan_INCLUDE_PATH} )
+add_library( PEXSI::parallel_cxx     INTERFACE IMPORTED )
+add_library( PEXSI::parallel_c       INTERFACE IMPORTED )
+add_library( PEXSI::parallel_fortran INTERFACE IMPORTED )
 
-list( APPEND PEXSI_EXT_LINK ${MPI_CXX_LIBRARIES}     )
-list( APPEND PEXSI_EXT_LINK ${MPI_C_LIBRARIES}       )
-list( APPEND PEXSI_EXT_LINK ${MPI_Fortran_LIBRARIES} )
-
-
-if( MPI_CXX_COMPILE_FLAGS )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
-endif( MPI_CXX_COMPILE_FLAGS )
-
-if( MPI_C_COMPILE_FLAGS )
-  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MPI_C_COMPILE_FLAGS}")
-endif( MPI_C_COMPILE_FLAGS )
-
-if( MPI_Fortran_COMPILE_FLAGS )
-  set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${MPI_Fortran_COMPILE_FLAGS}")
-endif( MPI_Fortran_COMPILE_FLAGS )
-
-
-
-
-
+target_link_libraries( PEXSI::parallel_cxx     INTERFACE MPI::MPI_CXX     )
+target_link_libraries( PEXSI::parallel_c       INTERFACE MPI::MPI_C       )
+target_link_libraries( PEXSI::parallel_fortran INTERFACE MPI::MPI_Fortran )
 
 # Handle OpenMP
 if( PEXSI_ENABLE_OPENMP )
 
   find_package( OpenMP REQUIRED )
 
-  add_definitions( "-D OPENMP" ) # FIXME: Redundant with _OPENMP
+  target_link_libraries( PEXSI::parallel_cxx     INTERFACE OpenMP::OpenMP_CXX     )
+  target_link_libraries( PEXSI::parallel_c       INTERFACE OpenMP::OpenMP_C       )
+  target_link_libraries( PEXSI::parallel_fortran INTERFACE OpenMP::OpenMP_Fortran )
 
-  set( CMAKE_CXX_FLAGS     "${CMAKE_CXX_FLAGS}     ${OpenMP_CXX_FLAGS}"     )
-  set( CMAKE_C_FLAGS       "${CMAKE_C_FLAGS}       ${OpenMP_C_FLAGS}"       )
-  set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}" )
+endif()
 
-endif( PEXSI_ENABLE_OPENMP )

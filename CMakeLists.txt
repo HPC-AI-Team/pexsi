@@ -39,7 +39,7 @@
 #   works, incorporate into other computer software, distribute, and sublicense
 #   such enhancements or derivative works thereof, in binary and source code form.
 #
-cmake_minimum_required( VERSION 3.0 ) # Require CMake 3.0+
+cmake_minimum_required( VERSION 3.10 ) # Require CMake 3.10+
 
 # Set up project definition + version information
 project( PEXSI CXX C Fortran )
@@ -49,11 +49,10 @@ set( PEXSI_VERSION_PATCH 3 )
 
 
 # PEXSI Options
-option( PEXSI_ENABLE_PROFILE "Enable Performance Profiling" OFF )
-option( PEXSI_ENABLE_SYMPACK "Enable interface to symPACK"  OFF )
-option( PEXSI_ENABLE_OPENMP  "Enable OpenMP Bindings"       ON  )
-option( PEXSI_USE_SYSTEM_LINALG 
-          "Use system defaults for BLAS/LAPACK" ON )
+option( PEXSI_ENABLE_PROFILE    "Enable Performance Profiling"        OFF )
+option( PEXSI_ENABLE_SYMPACK    "Enable interface to symPACK"         OFF )
+option( PEXSI_ENABLE_OPENMP     "Enable OpenMP Bindings"              ON  )
+option( PEXSI_USE_SYSTEM_LINALG "Use system defaults for BLAS/LAPACK" ON  )
 
 
 # Append local cmake directory to find CMAKE Modules
@@ -67,3 +66,9 @@ include( PEXSICompileFlags ) # Compile Flags
 include( PEXSIBasicDepends ) # Basic Dependencies
 include( PEXSITPLDepends   ) # TPL Dependencies
 
+
+# TEST
+add_executable( test_interface test.cxx )
+target_link_libraries( test_interface PEXSI::compile_definitions )
+target_link_libraries( test_interface PEXSI::parallel_cxx )
+target_link_libraries( test_interface PEXSI::tpl_depends )

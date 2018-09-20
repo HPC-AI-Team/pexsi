@@ -41,40 +41,8 @@
 #
 
 
+add_library( PEXSI::parmetis INTERFACE IMPORTED )
 
-# Get TPL Vars
-include( TPLMacros )
-
-InitTPLVars( PARMETIS )
-InitTPLVars( METIS    )
-
-# Convert vars (if defined) to be consistent with FindParMETIS
-if( PARMETIS_PREFIX )
-  set( PARMETIS_DIR ${PARMETIS_PREFIX} )
-endif()
-
-if( METIS_PREFIX )
-  set( METIS_DIR ${METIS_PREFIX} )
-endif()
-
-if( PARMETIS_INCLUDE_DIRS )
-  set( PARMETIS_INCLUDE_DIR ${PARMETIS_INCLUDE_DIRS} )
-endif()
-
-if( METIS_INCLUDE_DIRS )
-  set( METIS_INCLUDE_DIR ${METIS_INCLUDE_DIRS} )
-endif()
-
-if( PARMETIS_LIBRARY_DIRS )
-  set( PARMETIS_LIB_DIR ${PARMETIS_LIBRARY_DIRS} )
-endif()
-
-if( METIS_LIBRARY_DIRS )
-  set( METIS_LIB_DIR ${METIS_LIBRARY_DIRS} )
-endif()
-
-# FIXME: Turn off tests for now
-set( PARMETIS_TEST_RUNS TRUE )
 
 # Try to find METIS / ParMETIS
 find_package( ParMETIS QUIET )
@@ -82,12 +50,8 @@ find_package( ParMETIS QUIET )
 if( PARMETIS_FOUND )
   # If we found METIS/ParMETIS, set vars
 
-  message( STATUS "Found and installation of METIS/ParMETIS: ${PARMETIS_VERSION_STRING}" )
+  target_link_libraries( PEXSI::parmetis INTERFACE ParMETIS::parmetis )
 
-  set( PARMETIS_INCLUDE_DIRS ${PARMETIS_INCLUDE_DIR} )
-  set( PARMETIS_LIBRARY_DIRS ${PARMETIS_LIB_DIR}     )
-  set( METIS_INCLUDE_DIRS    ${METIS_INCLUDE_DIR}    )
-  set( METIS_LIBRARY_DIRS    ${METIS_LIB_DIR}        )
 else()
   # If not, create a target
 
@@ -100,6 +64,7 @@ else()
   set( PARMETIS_LIBRARY_DIRS  ${PARMETIS_PREFIX}/lib                  )
   set( PARMETIS_LIBRARIES     ${PARMETIS_LIBRARY_DIRS}/libparmetis.a;${PARMETIS_LIBRARY_DIRS}/libmetis.a )
 
+  file( MAKE_DIRECTORY ${PARMETIS_INCLUDE_DIRS} ) # Passify TARGET import
 
   ExternalProject_Add(parmetis
     PREFIX ${PARMETIS_PREFIX}
@@ -114,15 +79,11 @@ else()
       -D METIS_INSTALL=ON
   )
   
-  list(APPEND PEXSI_EXT_DEP parmetis)
+  add_dependencies( PEXSI::parmetis parmetis )
+  set_target_properties( PEXSI::parmetis PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${PARMETIS_INCLUDE_DIRS}"
+    INTERFACE_LINK_LIBRARIES      "${PARMETIS_LIBRARIES}"
+  )
+  
 
 endif()
-
-message( STATUS " --> PARMETIS_INCLUDE_DIRS = ${PARMETIS_INCLUDE_DIRS}" )
-message( STATUS " --> PARMETIS_LIBRARIES    = ${PARMETIS_LIBRARIES}" )
-
-
-# Link everything together
-include_directories( ${PARMETIS_INCLUDE_DIRS} )
-link_directories(    ${PARMETIS_LIBRARY_DIRS} )
-list(APPEND PEXSI_EXT_LINK ${PARMETIS_LIBRARIES} )

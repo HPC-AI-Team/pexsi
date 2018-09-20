@@ -40,96 +40,13 @@
 #   such enhancements or derivative works thereof, in binary and source code form.
 #
 
+# Find Linear Algebra libs (See FindLinAlg.cmake)
+find_package( LinAlg REQUIRED COMPONENTS BLAS LAPACK )
 
-# Turn off system search if TPL linear algebra has
-# been specified.
-if( TPL_BLAS_LIBRARIES OR TPL_LAPACK_LIBRARIES )
-  set( PEXSI_USE_SYSTEM_LINALG OFF )
+add_library( PEXSI::linalg INTERFACE IMPORTED )
+target_link_libraries( PEXSI::linalg INTERFACE LinAlg::LAPACK )
+
+if( LinAlg_BLAS_USES_UNDERSCORE )
+  target_compile_definitions( PEXSI::linalg INTERFACE "-D Add_" )
 endif()
 
-
-
-if( PEXSI_USE_SYSTEM_LINALG )
-
-  # Use default CMake system to find BLAS/LAPACK
-  find_package( BLAS    REQUIRED )
-  find_package( LAPACK  REQUIRED )
-
-else()
-
-  # Use user-specified TPL_BLAS_LIBRARIES
-  if( TPL_BLAS_LIBRARIES )
-    set( BLAS_LIBRARIES ${TPL_BLAS_LIBRARIES} )
-  endif()
-
-  # Use user-specified TPL_LAPACK_LIBRARIES
-  if( TPL_LAPACK_LIBRARIES )
-    set( LAPACK_LIBRARIES ${TPL_LAPACK_LIBRARIES} )
-  endif()
-
-endif()
-
-# Link to the libraries if specified
-if( BLAS_LIBRARIES )
-  message( STATUS "Using BLAS_LIBRARIES = ${BLAS_LIBRARIES}" )
-  list( APPEND PEXSI_EXT_LINK ${BLAS_LIBRARIES} )
-endif()
-
-if( LAPACK_LIBRARIES )
-  message( STATUS "Using LAPACK_LIBRARIES = ${LAPACK_LIBRARIES}" )
-  list( APPEND PEXSI_EXT_LINK ${LAPACK_LIBRARIES} )
-endif()
-
-
-file( WRITE ${CMAKE_CURRENT_BINARY_DIR}/linalg_underscore.c 
-  "void dgemm_(); int main() { dgemm_(); return 0; }" )
-file( WRITE ${CMAKE_CURRENT_BINARY_DIR}/linalg_no_underscore.c 
-  "void dgemm(); int main() { dgemm(); return 0; }" )
-
-
-
-
-message( STATUS "Perfoming Test BLAS_USE_UNDERSCORE" )
-
-try_compile(
-  BLAS_USE_UNDERSCORE
-  ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR}/linalg_underscore.c
-  LINK_LIBRARIES ${PEXSI_EXT_LINK}
-)
-
-if( BLAS_USE_UNDERSCORE )
-  message( STATUS "Perfoming Test BLAS_USE_UNDERSCORE -- Yes" )
-  add_definitions( "-DAdd_" )
-else()
-  message( STATUS "Perfoming Test BLAS_USE_UNDERSCORE -- No" )
-endif()
-
-
-
-
-message( STATUS "Perfoming Test BLAS_NO_UNDERSCORE" )
-
-try_compile(
-  BLAS_NO_UNDERSCORE
-  ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR}/linalg_no_underscore.c
-  LINK_LIBRARIES ${PEXSI_EXT_LINK}
-)
-
-if( BLAS_NO_UNDERSCORE )
-  message( STATUS "Perfoming Test BLAS_NO_UNDERSCORE -- Yes" )
-else()
-  message( STATUS "Perfoming Test BLAS_NO_UNDERSCORE -- No" )
-endif()
-
-
-if( (NOT BLAS_USE_UNDERSCORE) AND (NOT BLAS_NO_UNDERSCORE) )
-  message( FATAL_ERROR "No Suitible BLAS library found" )
-endif()
-
-
-
-
-file( REMOVE ${CMAKE_CURRENT_BINARY_DIR}/linalg_underscore.c    )
-file( REMOVE ${CMAKE_CURRENT_BINARY_DIR}/linalg_no_underscore.c )
