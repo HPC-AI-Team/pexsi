@@ -39,39 +39,29 @@
 #   works, incorporate into other computer software, distribute, and sublicense
 #   such enhancements or derivative works thereof, in binary and source code form.
 #
-cmake_minimum_required( VERSION 3.10 ) # Require CMake 3.10+
-
-# Set up project definition + version information
-project( PEXSI CXX C Fortran )
-set( PEXSI_VERSION_MAJOR 1 )
-set( PEXSI_VERSION_MINOR 0 )
-set( PEXSI_VERSION_PATCH 3 )
 
 
-# PEXSI Options
-option( PEXSI_ENABLE_PROFILE    "Enable Performance Profiling"        OFF )
-option( PEXSI_ENABLE_SYMPACK    "Enable interface to symPACK"         OFF )
-option( PEXSI_ENABLE_OPENMP     "Enable OpenMP Bindings"              ON  )
-option( PEXSI_USE_SYSTEM_LINALG "Use system defaults for BLAS/LAPACK" ON  )
+set( PEXSI_SRC_C   pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c )
+set( PEXSI_SRC_CXX interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp
+                   superlu_dist_internal_complex.cpp 
+                   superlu_dist_internal_real.cpp 
+                   mpi_interf.cpp lapack.cpp blas.cpp utility.cpp 
+                   global.cpp timer.cpp getPole.cpp )
+
+add_library( pexsi STATIC ${PEXSI_SRC_C} ${PEXSI_SRC_CXX} )
+add_library( PEXSI::pexsi ALIAS pexsi )
 
 
-# Append local cmake directory to find CMAKE Modules
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+target_link_libraries( pexsi
+  PUBLIC
+    PEXSI::compile_definitions
+    PEXSI::parallel_cxx
+    PEXSI::parallel_c
+    PEXSI::tpl_depends
+)
 
-# Global config variables
-set( PEXSI_PATCH_PATH ${PROJECT_SOURCE_DIR}/external/patch )
-
-
-include( PEXSICompileFlags ) # Compile Flags
-include( PEXSIBasicDepends ) # Basic Dependencies
-include( PEXSITPLDepends   ) # TPL Dependencies
-
-
-# libPEXSI
-add_subdirectory( src )
-
-# TEST
-add_executable( test_interface test.cxx )
-target_link_libraries( test_interface PEXSI::compile_definitions )
-target_link_libraries( test_interface PEXSI::parallel_cxx )
-target_link_libraries( test_interface PEXSI::tpl_depends )
+target_include_directories( pexsi  
+  PUBLIC
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+)

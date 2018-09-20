@@ -48,8 +48,6 @@ add_library( PEXSI::compile_definitions INTERFACE IMPORTED )
 # C++11
 target_compile_features( PEXSI::compile_definitions INTERFACE cxx_std_11 )
 
-
-
 # Performance Profiling
 if( PEXSI_ENABLE_PROFILE )
   target_compile_options( PEXSI::compile_definitions INTERFACE -g -pg )
