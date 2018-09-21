@@ -118,16 +118,13 @@ configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/PEXSIConfig.cmake.in
 )
 
 #Install the config, configversion and custom find modules
+install(DIRECTORY 
+  ${PROJECT_SOURCE_DIR}/cmake/ 
+  DESTINATION ${INSTALL_CONFIGDIR} 
+  FILES_MATCHING PATTERN "*.cmake"
+)
+
 install(FILES
-    ${PROJECT_SOURCE_DIR}/cmake/PEXSICompileFlags.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/PEXSIBasicDepends.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/PEXSITPLDepends.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/PEXSIHandleLinAlg.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/PEXSIHandleSuperLU.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/FindLinAlg.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/FindMETIS.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/FindParMETIS.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/FindSuperLUDist.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/PEXSIConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/PEXSIConfigVersion.cmake
     DESTINATION ${INSTALL_CONFIGDIR}

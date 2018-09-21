@@ -52,7 +52,12 @@ option( PEXSI_ENABLE_OPENMP     "Enable OpenMP Bindings"              ON  )
 
 
 # Append local cmake directory to find CMAKE Modules
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+if( CMAKE_MODULE_PATH )
+  list( APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+else()
+  set( CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+endif()
+list( APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 # Global config variables
 set( PEXSI_PATCH_PATH ${PROJECT_SOURCE_DIR}/external/patch )
