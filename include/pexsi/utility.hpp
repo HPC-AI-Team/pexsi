@@ -497,6 +497,29 @@ template <class F> inline std::ostream& operator<<( std::ostream& os, const NumT
 // *********************************************************************
 
 
+//-------------------
+template <typename retval_t, typename T>
+inline retval_t serialize(const T& val, std::ostream& os, const std::vector<T>& mask)
+{
+  os.write((char*)&val, sizeof(T));
+  return 0;
+}
+
+template <typename retval_t, typename T>
+inline retval_t deserialize(T& val, std::ostream& os, const std::vector<T>& mask)
+{
+  os.write((char*)&val, sizeof(T));
+  return 0;
+}
+
+template <typename retval_t, typename T>
+inline retval_t combine(T& val, T& ext)
+{
+  val += ext;
+  return 0;
+}
+
+
 
 
 //template
@@ -545,45 +568,45 @@ inline Int combine(char& val, char& ext)
   ErrorHandling( "Combine operation not implemented." );
 }
 
-//-------------------
-//Int
-inline Int serialize(const Int& val, std::ostream& os, const std::vector<Int>& mask)
-{
-  os.write((char*)&val, sizeof(Int));
-  return 0;
-}
 
-inline Int deserialize(Int& val, std::istream& is, const std::vector<Int>& mask)
-{
-  is.read((char*)&val, sizeof(Int));
-  return 0;
-}
-
-inline Int combine(Int& val, Int& ext)
-{
-  val += ext;
-  return 0;
-}
-
-//-------------------
-//LongInt
-inline Int serialize(const LongInt& val, std::ostream& os, const std::vector<Int>& mask)
-{
-  os.write((char*)&val, sizeof(LongInt));
-  return 0;
-}
-
-inline Int deserialize(LongInt& val, std::istream& is, const std::vector<Int>& mask)
-{
-  is.read((char*)&val, sizeof(LongInt));
-  return 0;
-}
-
-inline Int combine(LongInt& val, LongInt& ext)
-{
-  val += ext;
-  return 0;
-}
+////Int
+//inline Int serialize(const Int& val, std::ostream& os, const std::vector<Int>& mask)
+//{
+//  os.write((char*)&val, sizeof(Int));
+//  return 0;
+//}
+//
+//inline Int deserialize(Int& val, std::istream& is, const std::vector<Int>& mask)
+//{
+//  is.read((char*)&val, sizeof(Int));
+//  return 0;
+//}
+//
+//inline Int combine(Int& val, Int& ext)
+//{
+//  val += ext;
+//  return 0;
+//}
+//
+////-------------------
+////LongInt
+//inline Int serialize(const LongInt& val, std::ostream& os, const std::vector<Int>& mask)
+//{
+//  os.write((char*)&val, sizeof(LongInt));
+//  return 0;
+//}
+//
+//inline Int deserialize(LongInt& val, std::istream& is, const std::vector<Int>& mask)
+//{
+//  is.read((char*)&val, sizeof(LongInt));
+//  return 0;
+//}
+//
+//inline Int combine(LongInt& val, LongInt& ext)
+//{
+//  val += ext;
+//  return 0;
+//}
 
 
 //-------------------

@@ -266,6 +266,13 @@ extern "C" {
   void LAPACK(zgetri)
     ( const Int* n, dcomplex* A, const Int* lda, const Int* ipiv, dcomplex* work,
       const Int* lwork, Int* info );
+  void LAPACK(sgetri)
+    ( const Int* n, float* A, const Int* lda, const Int* ipiv, float* work,
+      const Int* lwork, Int* info );
+  void LAPACK(cgetri)
+    ( const Int* n, scomplex* A, const Int* lda, const Int* ipiv, scomplex* work,
+      const Int* lwork, Int* info );
+
 
 } // extern "C"
 
@@ -1300,6 +1307,36 @@ void Lacpy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
 // Inverting a factorized matrix: Getri
 // *********************************************************************
 void
+Getri ( Int n, float* A, Int lda, const Int* ipiv )
+{
+  Int lwork = -1, info;
+  float dummyWork;
+
+  LAPACK(sgetri)( &n, A, &lda, ipiv, &dummyWork, &lwork, &info );
+
+  lwork = dummyWork;
+  std::vector<float> work(lwork);
+
+  LAPACK(sgetri)( &n, A, &lda, ipiv, &work[0], &lwork, &info );
+
+  if( info < 0 )
+  {
+    std::ostringstream msg;
+    msg << "Argument " << -info << " had illegal value";
+    ErrorHandling( msg.str().c_str() );
+  }
+  else if( info > 0 )
+  {
+    std::ostringstream msg;
+    msg << "U(" << info << ", " << info << ") = 0. The matrix is singular and cannot be inverted.";
+    ErrorHandling( msg.str().c_str() );
+  }
+
+
+  return ;
+}		// -----  end of function Getri  ----- 
+
+void
 Getri ( Int n, double* A, Int lda, const Int* ipiv )
 {
   Int lwork = -1, info;
@@ -1311,6 +1348,37 @@ Getri ( Int n, double* A, Int lda, const Int* ipiv )
   std::vector<double> work(lwork);
 
   LAPACK(dgetri)( &n, A, &lda, ipiv, &work[0], &lwork, &info );
+
+  if( info < 0 )
+  {
+    std::ostringstream msg;
+    msg << "Argument " << -info << " had illegal value";
+    ErrorHandling( msg.str().c_str() );
+  }
+  else if( info > 0 )
+  {
+    std::ostringstream msg;
+    msg << "U(" << info << ", " << info << ") = 0. The matrix is singular and cannot be inverted.";
+    ErrorHandling( msg.str().c_str() );
+  }
+
+
+  return ;
+}		// -----  end of function Getri  ----- 
+
+
+void
+Getri ( Int n, scomplex* A, Int lda, const Int* ipiv )
+{
+  Int lwork = -1, info;
+  scomplex dummyWork;
+
+  LAPACK(cgetri)( &n, A, &lda, ipiv, &dummyWork, &lwork, &info );
+
+  lwork = dummyWork.real();
+  std::vector<scomplex> work(lwork);
+
+  LAPACK(cgetri)( &n, A, &lda, ipiv, &work[0], &lwork, &info );
 
   if( info < 0 )
   {

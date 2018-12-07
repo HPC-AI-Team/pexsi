@@ -62,6 +62,11 @@ typedef  std::complex<double>   dcomplex;
 // *********************************************************************
 // Level 1 BLAS                                                   //
 // *********************************************************************
+template<typename int_t, typename T,typename int3_t, typename int2_t, typename T2 >
+void Copy( int_t n, const T* x, int3_t incx, T2* y, int2_t incy ){
+for(int_t i = 0; i < n; i++) { *y = *x; x+=incx; y+=incy; }
+}
+
 void Axpy
   ( Int n, float alpha, const float* x, Int incx, float* y, Int incy );
 void Axpy
@@ -73,13 +78,7 @@ void Axpy
 template<typename T>
   void Axpy( Int n, T alpha, const T* x, Int incx, T* y, Int incy );
 
-void Copy( Int n, const int* x, Int incx, int* y, Int incy );
-void Copy( Int n, const float* x, Int incx, float* y, Int incy );
-void Copy( Int n, const double* x, Int incx, double* y, Int incy );
-void Copy( Int n, const scomplex* x, Int incx, scomplex* y, Int incy );
-void Copy( Int n, const dcomplex* x, Int incx, dcomplex* y, Int incy );
-template<typename T>
-  void Copy( Int n, const T* x, Int incx, T* y, Int incy );
+
 
 float Dot( Int n, const float* x, Int incx, const float* y, Int incy );
 double Dot( Int n, const double* x, Int incx, const double* y, Int incy );

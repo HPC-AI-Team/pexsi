@@ -1258,7 +1258,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
 
     /* Allgatherv for colptr */
     // Compute the number of columns on each processor
-    Int numColFirst = std::max(1,sparseA.size / mpisize);
+    Int numColFirst = std::max((Int)1,sparseA.size / mpisize);
     SetValue( rcounts, numColFirst );
     rcounts[mpisize-1] = sparseA.size - numColFirst * (mpisize-1);  // Modify the last entry     
 
@@ -1414,7 +1414,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
           for(Int i=colbeg;i<=colend;++i){
             Int row = rowindGlobal[i-1];  
             //determine where it should be packed ?
-            Int p_dest = std::min(mpisize-1,(row-1)/(numRowLocalFirst));
+            Int p_dest = std::min((Int)mpisize-1,(row-1)/(numRowLocalFirst));
             bufsizes[p_dest]+=sizeof(T);
           }
         }
@@ -1441,7 +1441,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
           for(Int i=colbeg;i<=colend;++i){
             Int row = sparseA.rowindLocal[i-1];  
             //determine where it should be packed ?
-            Int p_dest = std::min(mpisize-1,(row-1)/(numRowLocalFirst));
+            Int p_dest = std::min((Int)mpisize-1,(row-1)/(numRowLocalFirst));
             Int p_displs = displs[p_dest];
             Int p_bufpos = bufpos[p_dest];
             *((T *)&send_buffer.at( displs[p_dest] + bufpos[p_dest] )) = sparseA.nzvalLocal[i-1];
@@ -1468,7 +1468,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
           Int colend = colptrGlobal[col]-1;
           for(Int i=colbeg;i<=colend;++i){
             Int row = rowindGlobal[i-1];  
-            Int p_dest = std::min(mpisize-1,(row-1)/(numRowLocalFirst));
+            Int p_dest = std::min((Int)mpisize-1,(row-1)/(numRowLocalFirst));
             if(p_dest==mpirank){
               //compute local CSR coordinates
               Int local_row = row - mpirank*numRowLocalFirst;

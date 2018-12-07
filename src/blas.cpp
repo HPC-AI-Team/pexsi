@@ -70,19 +70,6 @@ extern "C" {
       const dcomplex* x, const Int* incx,
       dcomplex* y, const Int* incy );
 
-  void BLAS(scopy)
-    ( const Int* n, const float* x, const Int* incx,
-      float* y, const Int* incy );
-  void BLAS(dcopy)
-    ( const Int* n, const double* x, const Int* incx,
-      double* y, const Int* incy );
-  void BLAS(ccopy)
-    ( const Int* n, const scomplex* x, const Int* incx,
-      scomplex* y, const Int* incy );
-  void BLAS(zcopy)
-    ( const Int* n, const dcomplex* x, const Int* incx,
-      dcomplex* y, const Int* incy );
-
   float BLAS(sdot)
     ( const Int* n, const float* x, const Int* incx,
       const float* y, const Int* incy );
@@ -533,21 +520,6 @@ void Axpy
 ( Int n, dcomplex alpha, const dcomplex* x, Int incx, dcomplex* y, Int incy )
 { BLAS(zaxpy)( &n, &alpha, x, &incx, y, &incy ); }
 
-
-void Copy( Int n, const int* x, Int incx, int* y, Int incy )
-{ for(int i = 0; i < n; i++) { *y = *x; x+=incx; y+=incy; } }
-
-void Copy( Int n, const float* x, Int incx, float* y, Int incy )
-{ BLAS(scopy)( &n, x, &incx, y, &incy ); }
-
-void Copy( Int n, const double* x, Int incx, double* y, Int incy )
-{ BLAS(dcopy)( &n, x, &incx, y, &incy ); }
-
-void Copy( Int n, const scomplex* x, Int incx, scomplex* y, Int incy )
-{ BLAS(ccopy)( &n, x, &incx, y, &incy ); }
-
-void Copy( Int n, const dcomplex* x, Int incx, dcomplex* y, Int incy )
-{ BLAS(zcopy)( &n, x, &incx, y, &incy ); }
 
 float Dot( Int n, const float* x, Int incx, const float* y, Int incy )
 { return BLAS(sdot)( &n, x, &incx, y, &incy ); }

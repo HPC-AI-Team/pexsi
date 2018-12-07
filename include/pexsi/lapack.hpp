@@ -222,8 +222,9 @@ void Lacpy( char uplo, Int m, Int n, const dcomplex* A, Int lda,
 // *********************************************************************
 
 
+void Getri ( Int n, float* A, Int lda, const Int* ipiv );
 void Getri ( Int n, double* A, Int lda, const Int* ipiv );
-
+void Getri ( Int n, scomplex* A, Int lda, const Int* ipiv );
 void Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv );
 
 

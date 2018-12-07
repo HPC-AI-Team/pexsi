@@ -5587,7 +5587,7 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
         Int ksup2 = ksup3;
         if( MYROW( grid_ ) == PROW( ksup3, grid_ ) &&
             MYCOL( grid_ ) == PCOL( ksup3, grid_ )	){
-          IntNumVec ipiv( SuperSize( ksup3, super_ ) );
+          NumVec<int> ipiv( SuperSize( ksup3, super_ ) );
           // Note that the pivoting vector ipiv should follow the FORTRAN
           // notation by adding the +1
           for(Int i = 0; i < SuperSize( ksup3, super_ ); i++){
@@ -5663,7 +5663,7 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
           if( MYPROC( this->grid_ ) == PNUM( PROW(ksup,this->grid_),PCOL(ksup,this->grid_), this->grid_ ) ){
-            IntNumVec ipiv( SuperSize( ksup, this->super_ ) );
+            NumVec<int> ipiv( SuperSize( ksup, this->super_ ) );
             // Note that the pivoting vector ipiv should follow the FORTRAN
             // notation by adding the +1
           //  std::iota(ipiv.Data(),ipiv.Data()+ipiv.m(),1);

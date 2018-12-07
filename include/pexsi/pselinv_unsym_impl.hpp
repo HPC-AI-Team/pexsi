@@ -5376,7 +5376,7 @@ namespace PEXSI{
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
           if( MYPROC( this->grid_ ) == PNUM( PROW(ksup,this->grid_),PCOL(ksup,this->grid_), this->grid_ ) ){
-            IntNumVec ipiv( SuperSize( ksup, this->super_ ) );
+            NumVec<int> ipiv( SuperSize( ksup, this->super_ ) );
             // Note that the pivoting vector ipiv should follow the FORTRAN
             // notation by adding the +1
             std::iota(ipiv.Data(),ipiv.Data()+ipiv.m(),1);

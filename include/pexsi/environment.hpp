@@ -129,9 +129,9 @@ namespace PEXSI{
 #define BLAS(name) name##_
 #define LAPACK(name) name##_
 #endif
-//typedef    int64_t               Int;
+typedef    int64_t               Int;
 //typedef    uint64_t               LongInt;
-typedef    int               Int;
+//typedef    int               Int;
 typedef    int64_t               LongInt;
 typedef    double                Real;
 typedef    std::complex<double>  Complex; // Must use elemental form of complex

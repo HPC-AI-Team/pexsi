@@ -752,7 +752,7 @@ public:
 
   /// @brief WorkingSet returns the ordered list of supernodes which could
   /// be done in parallel.
-  std::vector<std::vector<int> >& WorkingSet( ) { return workingSet_; } 	
+  std::vector<std::vector<Int> >& WorkingSet( ) { return workingSet_; } 	
   //void WorkingSet(const std::vector<std::vector<int> > * pWSet,const std::vector<std::vector<int> > * pWRanks) { pWSet = &workingSet_; pWRanks = &workingRanks_; } 	
 
   /// @brief CountSendToRight returns the number of processors 

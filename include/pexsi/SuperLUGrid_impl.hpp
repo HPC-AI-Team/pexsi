@@ -53,7 +53,7 @@ namespace PEXSI{
 
 
 
-inline SuperLUGrid<Real>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
+inline SuperLUGrid<Real>::SuperLUGrid	( MPI_Comm comm, int nprow, int npcol )
 {
   ptrData = new RealGridData;
   if( ptrData == NULL ){
@@ -131,7 +131,7 @@ inline SuperLUGrid<Real> & SuperLUGrid<Real>::operator = (const SuperLUGrid<Real
 
 
 
-inline SuperLUGrid<Complex>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
+inline SuperLUGrid<Complex>::SuperLUGrid	( MPI_Comm comm, int nprow, int npcol )
 {
   ptrData = new ComplexGridData;
   if( ptrData == NULL ){

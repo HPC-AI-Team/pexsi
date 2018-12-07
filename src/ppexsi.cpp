@@ -4133,11 +4133,11 @@ PPEXSIData::DFTDriver (
       // independent groups to minimize the cost
       // However, the minimum number of shifts is 10 to accelerate
       // convergence.
-      Int numShift = std::max( gridPole_->numProcRow, 10 );
+      Int numShift = std::max( gridPole_->numProcRow, (Int)10 );
       std::vector<Real>  shiftVec( numShift );
       std::vector<Real>  inertiaVec( numShift );   // Zero temperature
       std::vector<Real>  inertiaFTVec( numShift ); // Finite temperature
-      Int maxInertiaIter = std::max( 1, (Int)std::ceil( 
+      Int maxInertiaIter = std::max( (Int)1, (Int)std::ceil( 
             std::log( (muMax0 - muMin0) / muInertiaTolerance ) /
             std::log( static_cast<Real>(numShift) ) ) ); 
 
@@ -4658,7 +4658,7 @@ PPEXSIData::DFTDriver2 (
       // independent groups to minimize the cost
       // However, the minimum number of shifts is 10 to accelerate
       // convergence.
-      Int numShift = std::max( gridPole_->numProcRow, 10 );
+      Int numShift = std::max( gridPole_->numProcRow, (Int)10 );
       std::vector<Real>  shiftVec( numShift );
       std::vector<Real>  inertiaVec( numShift );   // Zero temperature
 
