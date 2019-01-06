@@ -142,6 +142,10 @@ your application or software package!
 - DFTB+
 
     - https://www.dftbplus.org/
+    
+- ESL Bundle
+
+    - https://github.com/ElectronicStructureLibrary/esl-bundle
 
 - FHI-aims
 
@@ -262,7 +266,7 @@ If you use the non-symmetric version of PSelInv, **please also cite the followin
 **More references on method development:**
 
 
-    M. Jacquelin, L. Lin and C. Yang, PSelInv â€“ A distributed memory
+    M. Jacquelin, L. Lin and C. Yang, PSelInv – A distributed memory
     parallel algorithm for selected inversion: the non-symmetric case,
     Parallel Comput. 74, 84, 2018
     `link <https://doi.org/10.1016/j.parco.2017.11.009>`_.
@@ -290,7 +294,7 @@ If you use the non-symmetric version of PSelInv, **please also cite the followin
     communication, IEEE IPDPS, 192, 2016 
     `link <http://http://dx.doi.org/10.1109/IPDPS.2016.38>`_.
 
-    M. Jacquelin, L. Lin and C. Yang, PSelInv â€“ A distributed memory
+    M. Jacquelin, L. Lin and C. Yang, PSelInv – A distributed memory
     parallel algorithm for selected inversion : the symmetric case, ACM
     Trans. Math. Software 43, 21, 2016 
     `link <http://dx.doi.org/10.1145/2786977>`_.
