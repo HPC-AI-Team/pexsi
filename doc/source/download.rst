@@ -6,7 +6,7 @@ Download
 
 **v1.0.3**:
 
-- Code: `pexsi_v1.0.3.tar.gz <https://math.berkeley.edu/~linlin/pexsi/download/download.php?file=pexsi_v1.0.3.tar.gz>`_.
+- Code: `pexsi_v1.0.3.tar.gz <https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_v1.0.3.zip>`_.
 
 
 
