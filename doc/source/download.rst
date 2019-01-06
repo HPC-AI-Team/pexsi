@@ -6,8 +6,9 @@ Download
 
 **v1.0.3**:
 
-- Code: `pexsi_v1.0.3.tar.gz <https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_v1.0.3.tar.gz>`_.
+- `Code (tar.gz) <https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_v1.0.3.tar.gz>`_.
 
+- `Documentation (pdf) <https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_doc_v1.0.3.pdf>`_.
 
 
 
