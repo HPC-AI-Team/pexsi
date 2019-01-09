@@ -49,7 +49,7 @@ The currently supported form of :math:`f(\cdot)` include:
    See :ref:`Solving Kohn-Sham DFT: I <pageDFT1>` for an example using PEXSI for electronic
    structure calculation. 
 
-.. figure:: ./FermiDirac.png
+.. figure:: _static/FermiDirac.png
     :align: center
 
     Red: Fermi-Dirac function. Black: Matrix sign function
