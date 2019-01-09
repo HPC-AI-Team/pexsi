@@ -50,10 +50,23 @@ set( PEXSI_SRC_CXX interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp
                    mpi_interf.cpp lapack.cpp blas.cpp utility.cpp 
                    global.cpp timer.cpp getPole.cpp )
 
-add_library( pexsi STATIC ${PEXSI_SRC_C} ${PEXSI_SRC_CXX} )
+
+if( PEXSI_ENABLE_FORTRAN )
+  message( STATUS "PEXSI Will Enable FORTRAN Bindings" )
+  set( PEXSI_SRC_F90 f_interface.f90 )
+endif()
+
+add_library( pexsi STATIC ${PEXSI_SRC_C} ${PEXSI_SRC_CXX} ${PEXSI_SRC_F90})
 add_library( PEXSI::pexsi ALIAS pexsi )
 
-
+# Set up Fortran module directory
+if( PEXSI_ENABLE_FORTRAN )
+  set_property(
+    TARGET pexsi
+    PROPERTY Fortran_MODULE_DIRECTORY
+    ${PROJECT_BINARY_DIR}/include
+  )
+endif()
 
 
 
@@ -67,10 +80,15 @@ target_link_libraries( pexsi
     PEXSI::tpl_depends
 )
 
+if( PEXSI_ENABLE_FORTRAN )
+  target_link_libraries( pexsi PUBLIC PEXSI::parallel_fortran )
+endif()
+
 target_include_directories( pexsi  
   PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
 )
 
 
@@ -91,6 +109,10 @@ set_target_properties( pexsi PROPERTIES EXPORT_NAME PEXSI )
 
 # Install Headers
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} )
+
+if( PEXSI_ENABLE_FORTRAN )
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} )
+endif()
 
 # Export target to script
 install(EXPORT pexsi-targets

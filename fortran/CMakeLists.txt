@@ -39,42 +39,17 @@
 #   works, incorporate into other computer software, distribute, and sublicense
 #   such enhancements or derivative works thereof, in binary and source code form.
 #
-cmake_minimum_required( VERSION 3.10 ) # Require CMake 3.10+
 
-# Set up project definition + version information
-project( PEXSI VERSION 1.0.3 LANGUAGES CXX C Fortran )
+macro( add_pexsi_f_example_exe _name )
 
+  add_executable( ${_name} ${_name}.f90 )
+  target_link_libraries(  ${_name} PRIVATE pexsi )
 
-# PEXSI Options
-option( PEXSI_ENABLE_PROFILE    "Enable Performance Profiling"        OFF )
-#option( PEXSI_ENABLE_SYMPACK    "Enable interface to symPACK"         OFF )
-option( PEXSI_ENABLE_OPENMP     "Enable OpenMP Bindings"              ON  )
-option( PEXSI_ENABLE_FORTRAN    "Enable Fortran Bindings"             OFF )
+endmacro()
 
 
-# Append local cmake directory to find CMAKE Modules
-if( CMAKE_MODULE_PATH )
-  list( APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-else()
-  set( CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-endif()
-list( APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
-
-# Global config variables
-set( PEXSI_PATCH_PATH ${PROJECT_SOURCE_DIR}/external/patch )
-
-
-include( PEXSICompileFlags ) # Compile Flags
-include( PEXSIBasicDepends ) # Basic Dependencies
-include( PEXSITPLDepends   ) # TPL Dependencies
-
-
-# libPEXSI
-add_subdirectory( src )
-
-if( PEXSI_ENABLE_FORTRAN )
-  add_subdirectory( fortran )
-endif()
-
-# examples
-add_subdirectory( examples )
+add_pexsi_f_example_exe( f_driver_ksdft                 )
+add_pexsi_f_example_exe( f_driver_pselinv_real          )
+add_pexsi_f_example_exe( f_driver_pselinv_complex       )
+add_pexsi_f_example_exe( f_driver_pselinv_real_unsym    )
+add_pexsi_f_example_exe( f_driver_pselinv_complex_unsym )
