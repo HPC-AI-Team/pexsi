@@ -53,11 +53,22 @@ if( PEXSI_ENABLE_PROFILE )
   target_compile_options( PEXSI::compile_definitions INTERFACE -g -pg )
 endif( PEXSI_ENABLE_PROFILE )
 
+# Override RELEASE and DEBUG flags
+get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+foreach( lang ${languages} )
+
+  # Replace -O2 -> -O3
+  String( REPLACE "-O2" "-O3" CMAKE_${lang}_FLAGS_RELEASE ${CMAKE_${lang}_FLAGS_RELEASE} )
+
+  # Add -Og to Debug flags
+  set( CMAKE_${lang}_FLAGS_DEBUG "${CMAKE_${lang}_FLAGS_DEBUG} -Og" )
+
+endforeach()
+
 
 # Handle DEBUG / RELEASE flags
 if( CMAKE_BUILD_TYPE MATCHES Release )
 
-  target_compile_options( PEXSI::compile_definitions INTERFACE -O3 -w )
   target_compile_definitions( PEXSI::compile_definitions INTERFACE "-D RELEASE" )
 
 else()
@@ -66,7 +77,6 @@ else()
     set( PEXSI_DEBUG_LEVEL 1 )
   endif( NOT PEXSI_DEBUG_LEVEL )
 
-  target_compile_options( PEXSI::compile_definitions INTERFACE -O0 -w )
   target_compile_definitions( PEXSI::compile_definitions INTERFACE "-D DEBUG=${PEXSI_DEBUG_LEVEL}" )
 
 endif()

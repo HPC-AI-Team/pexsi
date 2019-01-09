@@ -43,7 +43,12 @@
 macro( add_pexsi_example_exe _name _ext)
 
   add_executable( ${_name} ${_name}${_ext} )
-  target_link_libraries( ${_name} PRIVATE pexsi )
+  target_link_libraries(  ${_name} PRIVATE pexsi )
+  target_compile_options( ${_name} PRIVATE "-Wno-write-strings"  )
+
+  if( NOT ${_ext} MATCHES ".cpp" )
+    target_compile_options( ${_name} PRIVATE "-Wno-discarded-qualifiers"  )
+  endif()
 
 endmacro()
 

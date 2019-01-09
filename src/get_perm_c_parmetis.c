@@ -21,6 +21,7 @@
 /* limits.h:  the largest positive integer (INT_MAX) */
 #include <limits.h>
 #include <math.h>
+#include "parmetis.h"
 #include "superlu_ddefs.h"
 #define PRNTlevel 0
 

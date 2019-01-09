@@ -11,6 +11,10 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
 
+// Passify implicit definitions
+int lsame_(char *a, char *b);
+
+
 /// @brief pzsymbfact performs symbolic factorization that can be
 /// reused.
 ///
@@ -18,8 +22,8 @@
 /// from SuperLU_DIST. For its use see SuperLUMatrix for more
 /// information.
 void
-#ifdef SLU_MAJOR_VERSION
-#if SLU_MAJOR_VERSION < 5 
+#ifdef SUPERLU_DIST_MAJOR_VERSION
+#if SUPERLU_DIST_MAJOR_VERSION < 5 
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, 
@@ -78,8 +82,8 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
   float    GA_mem_use;    /* memory usage by global A */
   float    dist_mem_use; /* memory usage during distribution */
   //mem_usage_t num_mem_usage, symb_mem_usage;
-#ifdef SLU_MAJOR_VERSION
-#if SLU_MAJOR_VERSION < 5
+#ifdef SUPERLU_DIST_MAJOR_VERSION
+#if SUPERLU_DIST_MAJOR_VERSION < 5
   mem_usage_t num_mem_usage, symb_mem_usage;
 #else
   superlu_dist_mem_usage_t num_mem_usage, symb_mem_usage;
@@ -292,7 +296,15 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     if ( Fact != SamePattern_SameRowPerm &&
         (parSymbFact == NO || options->RowPerm != NO) ) {
 
-      need_value = (options->RowPerm == LargeDiag);
+#ifdef SUPERLU_DIST_MAJOR_VERSION
+#  if SUPERLU_DIST_MAJOR_VERSION < 6 
+			need_value = (options->RowPerm == LargeDiag);
+#  else
+			need_value = (options->RowPerm == LargeDiag_MC64);
+#  endif
+#else
+			need_value = (options->RowPerm == LargeDiag);
+#endif
 
       pzCompRow_loc_to_CompCol_global(need_value, A, grid, &GA);
 

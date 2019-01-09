@@ -543,6 +543,7 @@ inline Int deserialize(char& val, std::istream& is, const std::vector<Int>& mask
 inline Int combine(char& val, char& ext)
 {
   ErrorHandling( "Combine operation not implemented." );
+  return 0;
 }
 
 //-------------------
@@ -683,6 +684,7 @@ inline Int deserialize(Index3& val, std::istream& is, const std::vector<Int>& ma
 inline Int combine(Index3& val, Index3& ext)
 {
   ErrorHandling( "Combine operation not implemented." );
+  return 0;
 }
 
 //-------------------
@@ -702,6 +704,7 @@ inline Int deserialize(Point3& val, std::istream& is, const std::vector<Int>& ma
 inline Int combine(Point3& val, Point3& ext)
 {
   ErrorHandling( "Combine operation not implemented." );
+  return 0;
 }
 
 //-------------------
