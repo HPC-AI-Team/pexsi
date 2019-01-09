@@ -70,52 +70,51 @@ To use symPACK, first, download the package as follows
     git clone https://github.com/symPACK/symPACK.git  /path/to/sympack
 
 Several environment variables can be set before configuring the build:
-::
-    `SCOTCH_DIR` = Installation directory for **SCOTCH** and **PT-SCOTCH**
 
-Then, create a build directory, enter that directory and type:
-::
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/path/to/install/sympack
-    ...OPTIONS... /path/to/sympack
+``SCOTCH_DIR`` = Installation directory for SCOTCH and PT-SCOTCH
+
+Then, create a build directory, enter that directory and type::
+
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/path/to/install/sympack ...OPTIONS... /path/to/sympack
 
 
-The `...OPTIONS...` can be one of the following:
-::
-    * `-DENABLE_METIS=ON|OFF`   to make **MeTiS** ordering available in **symPACK** (`METIS_DIR` must be set in the environment)
+The ``...OPTIONS...`` can be one of the following:
 
-    * `-DENABLE_PARMETIS=ON|OFF`   to make **ParMETIS** ordering available in **symPACK** (`PARMETIS_DIR` must be set in the environment, `METIS_DIR` is required as well)
-
-    * `-DENABLE_SCOTCH=ON|OFF`   to make **SCOTCH** / **PT-SCOTCH** orderings available in **symPACK** (`SCOTCH_DIR` must be set in the environment)
+- ``-DENABLE_METIS=ON|OFF``   to make METIS ordering available in symPACK (``METIS_DIR`` must be set in the environment)
+- ``-DENABLE_PARMETIS=ON|OFF``   to make ParMETIS ordering available in symPACK (``PARMETIS_DIR`` must be set in the environment, ``METIS_DIR`` is required as well)
+- ``-DENABLE_SCOTCH=ON|OFF``   to make SCOTCH / PT-SCOTCH orderings available in symPACK (``SCOTCH_DIR`` must be set in the environment)
 
 
 
-Some platforms have preconfigured toolchain files which can be used by adding the following option to the `cmake` command:
-::
+Some platforms have preconfigured toolchain files which can be used by
+adding the following option to the `cmake` command (To build on NERSC
+Edison machine for instance)::
+
     -DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/toolchains/edison.cmake     
-    (To build on NERSC Edison machine for instance)
+    
 
 
 A sample toolchain file can be found in `/path/to/sympack/toolchains/build_config.cmake` and customized for the target platform.
 
 
-The `cmake` command will configure the build process, which can now start by typing:
-::
+The `cmake` command will configure the build process, which can now start by typing::
+
     make
     make install
 
-Additionally, a standalone driver for **symPACK** can be built by typing `make examples`
+Additionally, a standalone driver for symPACK can be built by typing `make examples`
 
 **Note** Since cmake also compiles UPCxx and GASNET, the compilation
 time may be long especially on certain clusters.
 
 
 Build SuperLU_DIST
-======================
+==================
 
 
-Download SuperLU_DIST (latest version 5.2.1) from
+Download SuperLU_DIST (latest version 6.1.0) from
 
-http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_5.2.1.tar.gz
+http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_6.1.0.tar.gz
 
 Follow the installation step to install SuperLU_DIST.
 
@@ -123,12 +122,12 @@ Our experience shows that on some machines it may be better
 to build SuperLU_DIST with -O2 option than the more aggresive
 optimization options provided by vendors.
 
- - In SuperLU_DIST v5.1.3, some functions conflict when both real
+ - In SuperLU_DIST, some functions conflict when both real
    and complex arithmetic factorization is needed. This can be temporarily
    solved by adding  `-Wl,--allow-multiple-definition` in the linking
    option.
 
- - In SuperLU_DIST v5.1.3, there could be some excessive outputs.
+ - In SuperLU_DIST, there could be some excessive outputs.
    This can be removed by going to the SRC/ directory of superlu, and
    comment out the line starting with `printf(".. dQuery_Space` in
    dmemory_dist.c. Do the same thing for the line starting with
@@ -142,7 +141,7 @@ optimization options provided by vendors.
 
 
 (Optional) Build ParMETIS
-===============
+=========================
 
 Download ParMETIS (latest version 4.0.3) from
 
@@ -169,16 +168,70 @@ fine.**::
 Build PEXSI
 ===========
 
+There are two ways to build PEXSI: 1) Using CMake 2) Using the standard
+makefile system.
+
+Build option 1: Use CMake
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Note: PEXSI requires CMake version 3.10+** (latest CMake can be
+downloaded at https://cmake.org/download/)
+
+Configuration of the compilation is controlled by the options of
+cmake. A few examples of the configuration options are given in the
+``config/`` directory.
+
+
+Find ``build.sh`` with the most similar architecture, and copy to the main
+PEXSI directory (using Cori for example at NERSC, a CRAY X40 machine).
+``${PEXSI_DIR}`` stands for the main directory of PEXSI. ::
+
+    cd ${PEXSI_DIR}
+    cp config/build.sh.CRAY_XC40.intel ./build.sh
+    mkdir build; cd build;
+
+Edit the variables in ``build.sh``  ::
+   
+    PEXSI_INSTALL_DIR=Directory to install PEXSI
+    DSUPERLU_DIR=Directory for SuperLU_DIST
+    PARMETIS_DIR=Directory for ParMETIS 
+    PTSCOTCH_DIR=Directory for PT-Scotch
+
+Edit the compiler options, for instance ::
+
+    CC=cc
+    CXX=CC
+    FC=ftn
+
+Modify locations for other libraries if needed.  Then ::
+    
+    ../build.sh
+
+should prepare the ``build/`` directory.  If the configuration does not
+generate error messages, then ::
+    
+    make 
+    make install
+
+should install PEXSI in ``PEXSI_INSTALL_DIR``.
+
+**NOTE:** If error messages occur, after debugging the compilation file,
+it is recommended to remove all files under ``build/`` first and then
+rerun ``build.sh``.
+
+
+Build option 2: Use standard Makefile system
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Edit make.inc
-=============================
+"""""""""""""
 
-Configuration of PEXSI is controlled by a single `make.inc` file.
-Examples of the `make.inc` file are given under the `config/` directory.
+Configuration of PEXSI is controlled by a single ``make.inc`` file.
+Examples of the ``make.inc`` file are given under the ``config/`` directory.
 
-Find `make.inc` with the most similar architecture, and copy to the main
-PEXSI directory (using Edison for example, the latest Intel computer
-at NERSC, a CRAY X30 machine).  `${PEXSI_DIR}` stands for the main
+Find ``make.inc`` with the most similar architecture, and copy to the main
+PEXSI directory (using Edison at NERSC for example, a CRAY X30 machine).
+``${PEXSI_DIR}`` stands for the main
 directory of PEXSI. ::
 
     cd ${PEXSI_DIR}
@@ -199,32 +252,32 @@ Edit the compiler options, for instance ::
     LOADER       = CC
 
 
-The `USE_SYMPACK` option can be set to use the symPACK solver in
-PEXSI. It is set to 0 by default. When set to 1, the `SYMPACK_DIR` variable
+The ``USE_SYMPACK`` option can be set to use the symPACK solver in
+PEXSI. It is set to 0 by default. When set to 1, the ``SYMPACK_DIR`` variable
 must be pointing to symPACK's installation directory.
 
 
 **Note**
 
-- Starting from PEXSI v0.8.0, `-std=c++11` is required in `CXXFLAGS`. 
+- Starting from PEXSI v0.8.0, ``-std=c++11`` is required in ``CXXFLAGS``. 
 
-- Starting from PEXSI v0.9.2, `-std=c99` is required in `CFLAGS` to be
+- Starting from PEXSI v0.9.2, ``-std=c99`` is required in ``CFLAGS`` to be
   compatible with SuperLU_DIST starting from v4.3.
 
-- For **FORTRAN** users, `CPP_LIB=-lstdc++ -lmpi -lmpi_cxx` is often needed.
+- For **FORTRAN** users, ``CPP_LIB=-lstdc++ -lmpi -lmpi_cxx`` is often needed.
   Check this if there is link error.
 
-- PEXSI can be compiled using `debug` or `release` mode in
-  by the variable `COMPILE_MODE` in `make.inc`.  This variable mainly controls the
-  compiling flag `-DRELEASE`.  The `debug` mode introduces tracing of call
+- PEXSI can be compiled using ``debug`` or ``release`` mode in
+  by the variable ``COMPILE_MODE`` in ``make.inc``.  This variable mainly controls the
+  compiling flag ``-DRELEASE``.  The ``debug`` mode introduces tracing of call
   stacks at all levels of functions, and may significantly slow down the
-  code.  For production runs, use `release` mode.
+  code.  For production runs, use ``release`` mode.
 
-- The `USE_PROFILE` option is for internal test purpose. Usually set this to 0.
+- The ``USE_PROFILE`` option is for internal test purpose. Usually set this to 0.
 
 
 Build the PEXSI library
-=============================
+"""""""""""""""""""""""
 
 The installation procedure and dependencies of every version of the PEXSI
 package may be different. Please follow the documentation of the version

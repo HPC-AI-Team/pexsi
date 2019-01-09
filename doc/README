@@ -6,6 +6,6 @@ In order to create the website, first install the Sphinx-doc from :
 
 Then, run the following command to make the website:
 
-   sphinx-build -b html source build
+   sphinx-build -b html . doc_html
 
 The html pages will be built from the source files. 
