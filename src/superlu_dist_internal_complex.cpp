@@ -232,7 +232,7 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
   // The default value of ColPerm uses the default value from SuperLUOptions
   options.Fact              = DOFACT;
   if(opt.RowPerm == "LargeDiag"){
-    options.RowPerm         = LargeDiag;
+    options.RowPerm         = LargeDiag_MC64;
   }
   else{
     options.RowPerm         = NOROWPERM;

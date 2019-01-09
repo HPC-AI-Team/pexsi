@@ -292,7 +292,7 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     if ( Fact != SamePattern_SameRowPerm &&
         (parSymbFact == NO || options->RowPerm != NO) ) {
 
-      need_value = (options->RowPerm == LargeDiag);
+      need_value = (options->RowPerm == LargeDiag_MC64);
 
       pzCompRow_loc_to_CompCol_global(need_value, A, grid, &GA);
 
