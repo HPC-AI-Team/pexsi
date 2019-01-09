@@ -55,6 +55,7 @@ master_doc = 'index'
 project = u'PEXSI'
 copyright = u'2019 Lawrence Berkeley National Laboratory'
 author = u'Lin Lin, Mathias Jacquelin, Weile Jia, David Williams-Young, Chao Yang'
+author_latex=u'Lin Lin\\and Mathias Jacquelin\\and Weile Jia\\and David Williams-Young\\and Chao Yang'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -162,7 +163,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'PEXSI.tex', u'PEXSI Documentation',
-     [author], 'manual'),
+     author_latex, 'manual'),
 ]
 
 
