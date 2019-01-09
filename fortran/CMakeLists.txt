@@ -53,3 +53,14 @@ add_pexsi_f_example_exe( f_driver_pselinv_real          )
 add_pexsi_f_example_exe( f_driver_pselinv_complex       )
 add_pexsi_f_example_exe( f_driver_pselinv_real_unsym    )
 add_pexsi_f_example_exe( f_driver_pselinv_complex_unsym )
+
+
+
+file( 
+  COPY
+    big.unsym.matrix
+    lap2di.matrix
+    lap2dr.matrix
+  DESTINATION
+    ${PROJECT_BINARY_DIR}/fortran
+)
