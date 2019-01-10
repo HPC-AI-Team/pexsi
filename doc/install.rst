@@ -213,18 +213,41 @@ generate error messages, then ::
     make 
     make install
 
-should install PEXSI in ``PEXSI_INSTALL_DIR``.
+should install PEXSI in ``PEXSI_INSTALL_DIR``. The examples files 
+are also compiled in ``build/examples/``. 
+
+
+
+Tests
+"""""
+
+In the ``examples/`` folder::
+
+    examples$ mpirun -n 1 ./driver_pselinv_complex_(suffix)
+
+should return the diagonal of the matrix
+:math:`(A + i I)^{-1}`
+saved on the 0-th processor, where :math:`A` is the five-point
+discretization of a Laplacian operator on a 2D domain.  The result can
+be compared with `examples/driver_pselinv_complex.out` to check the
+correctness of the result. 
+
+
+The FORTRAN examples are given in ``build/fortran/``.  For more
+information on the examples, see :ref:`Tutorial Page <pageTutorial>`.
+
 
 **NOTE:** If error messages occur, after debugging the compilation file,
 it is recommended to remove all files under ``build/`` first and then
 rerun ``build.sh``.
 
 
+
+
+
 Build option 2: Use standard Makefile system
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Edit make.inc
-"""""""""""""
 
 Configuration of PEXSI is controlled by a single ``make.inc`` file.
 Examples of the ``make.inc`` file are given under the ``config/`` directory.
@@ -276,9 +299,6 @@ must be pointing to symPACK's installation directory.
 - The ``USE_PROFILE`` option is for internal test purpose. Usually set this to 0.
 
 
-Build the PEXSI library
-"""""""""""""""""""""""
-
 The installation procedure and dependencies of every version of the PEXSI
 package may be different. Please follow the documentation of the version
 of the PEXSI package you are working with 
@@ -304,21 +324,6 @@ which will generate C examples in `examples/` directory and FORTRAN examples in
 
     make all
 
-will make the library and the examples.
+will make the library and the examples. 
 
-For more information on the examples, see :ref:`Tutorial Page <pageTutorial>`.
-
-Tests
-======
-
-After example files are compiled, go to the `examples/` directory, and::
-
-    examples$ mpirun -n 1 ./driver_pselinv_complex_(suffix)
-
-should return the diagonal of the matrix
-:math:`(A + i I)^{-1}`
-saved on the 0-th processor, where :math:`A` is the five-point
-discretization of a Laplacian operator on a 2D domain.  The result can
-be compared with `examples/driver_pselinv_complex.out` to check the
-correctness of the result. For more examples see :ref:`Tutorial Page <pageTutorial>`.
 
