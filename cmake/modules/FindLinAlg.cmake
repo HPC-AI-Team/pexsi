@@ -115,7 +115,7 @@ fill_out_prefix( linalg_LAPACK )
 
 # Thing like MKL can get handled by compile flag
 if( linalg_FLAGS )
-  set( LinAlg_FLAGS ${linalg_COMPILE_FLAGS} )
+  set( LinAlg_FLAGS "${linalg_FLAGS}" )
 endif()
 
 
@@ -151,6 +151,7 @@ cmake_push_check_state( RESET )
 if( LinAlg_BLAS_LIBRARIES )
   set( CMAKE_REQUIRED_LIBRARIES ${LinAlg_BLAS_LIBRARIES} )
 endif()
+
 if( LinAlg_FLAGS )
   set( CMAKE_REQUIRED_FLAGS ${LinAlg_FLAGS} )
 endif()
