@@ -71,3 +71,14 @@ add_pexsi_example_exe( run_fermi_complex .cpp )
 add_pexsi_example_exe( run_pselinv       .cpp )
 add_pexsi_example_exe( run_pselinv_unsym .cpp )
 
+file( 
+  COPY
+    big.unsym.matrix
+    lap2dc.matrix
+    lap2dc_real.matrix
+    lap2dc_imag.matrix
+    lap2di.matrix
+    lap2dr.matrix
+  DESTINATION
+    ${PROJECT_BINARY_DIR}/examples
+)
