@@ -578,26 +578,3 @@ PEXSI version history
   - Compute the density of states and local density of states.
 
 
-.. commented
-  .. _pageImportantChange:
-  
-  Important interface changes in v0.10.0
-  ========================================
-  - For C users
-  
-    - PPEXSILoadRealSymmetricHSMatrix and PPEXSILoadRealUnsymmetricHSMatrix are combined into PPEXSILoadRealHSMatrix
-  
-    - PPEXSIRetrieveRealSymmetricDFTMatrix is now PPEXSIRetrieveRealDFTMatrix
-  
-    - For more info see c_pexsi_interface.h
-  
-  - For FORTRAN users
-  
-    - Similar to the C routines, the new routines are f_ppexsi_load_real_hs_matrix and f_ppexsi_retrieve_real_dft_matrix.
-  
-    - For more info see f_interface.f90
-  
-  - Several more "expert user" interface routines added. See c_pexsi_interface.h for more details.
-  
-  - NOTE: PEXSI v0.10.0 only supports SuperLU_DIST v5.1.2 or higher version. 
-  

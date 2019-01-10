@@ -42,15 +42,15 @@ index is 1, then the corresponding processor will output to the file
 `logPEXSI1`.  If outputFileIndex is negative, then this processor 
 does NOT output logPEXSI files.
 
-**Note** 
+.. note::
 
-- Each processor must output to a **different** file if outputFileIndex
-  is non-negative.  
-- When many processors are used, it is **not recommended** for all
-  processors to output the log files. This is because the IO takes time
-  and can be the bottleneck on many architecture. A good practice is to
-  let the master processor output information (generating `logPEXSI0`) or 
-  to let the master processor of each pole to output the information. 
+  - Each processor must output to a **different** file if outputFileIndex
+    is non-negative.  
+  - When many processors are used, it is **not recommended** for all
+    processors to output the log files. This is because the IO takes time
+    and can be the bottleneck on many architecture. A good practice is to
+    let the master processor output information (generating `logPEXSI0`) or 
+    to let the master processor of each pole to output the information. 
 
 .. _PPEXSISelInvRealSymmetricMatrix:
 
@@ -231,16 +231,18 @@ an identity matrix, the nonzero sparsity pattern is assumed to be the
 same as the nonzero sparsity pattern of :math:`H`.  Both `HnzvalLocal` and
 `SnzvalLocal` are double precision arrays.  
 
-**NOTE**: As discussed in :ref:`selected elements <defSelectedElem>`,
-for general non-symmetric matrices, the selected elements are the
-elements such that :math:`\{A_{j,i}\ne 0\}`.  This means that the matrix
-elements computed corresponding to the sparsity pattern of :math:`A^T`.
-However, storing the matrix elements :math:`\{A^{-1}_{i,j}\vert
-A_{j,i}\ne 0\}` is practically cumbersome, especially in the context of
-distributed computing. Hence we choose to store the selected elements
-for :math:`A^{-T}`, i.e. :math:`\{A^{-T}_{i,j}\vert A_{i,j}\ne 0\}`.
-These are the values obtained from the non-symmetric version of PSelInv.
+.. note:: 
 
+  As discussed in :ref:`selected elements <defSelectedElem>`,
+  for general non-symmetric matrices, the selected elements are the
+  elements such that :math:`\{A_{j,i}\ne 0\}`.  This means that the matrix
+  elements computed corresponding to the sparsity pattern of :math:`A^T`.
+  However, storing the matrix elements :math:`\{A^{-1}_{i,j}\vert
+  A_{j,i}\ne 0\}` is practically cumbersome, especially in the context of
+  distributed computing. Hence we choose to store the selected elements
+  for :math:`A^{-T}`, i.e. :math:`\{A^{-T}_{i,j}\vert A_{i,j}\ne 0\}`.
+  These are the values obtained from the non-symmetric version of PSelInv.
+  
 
 
 An example is given in `examples/driver_pselinv_real_unsym.c`, which evaluates the
@@ -426,22 +428,22 @@ Here is the structure of the code using the simple driver routine. ::
           &numTotalInertiaIter,   
           &info );
  
-      /* Postprocessing */
-      
     } 
 
-**Note:** The built-in heuristics in `PPEXSIDFTDriver2` may not be
-optimal. It handles only one :math:`(H,S)` pair at a time, and does
-not accept multiple matrix pairs :math:`\{(H_l,S_l)\}` as in the case of
-spin-orbit polarized calculations.  For expert users and developers, it
-should be relatively easy to dig into the driver routine, and only use
-`PEXSI::PPEXSIData::SymbolicFactorizeRealSymmetricMatrix` 
-(for symbolic factorization), 
-`PEXSI::PPEXSIData::CalculateNegativeInertiaReal` 
-(for inertia counting), and
-`PEXSI::PPEXSIData::CalculateFermiOperatorReal` 
-(for one-shot PEXSI calculation) to improve heuristics and extend the
-functionalities.
+.. note:: 
+
+  The built-in heuristics in `PPEXSIDFTDriver2` may not be
+  optimal. It handles only one :math:`(H,S)` pair at a time, and does
+  not accept multiple matrix pairs :math:`\{(H_l,S_l)\}` as in the case of
+  spin-orbit polarized calculations.  For expert users and developers, it
+  should be relatively easy to dig into the driver routine, and only use
+  `PEXSI::PPEXSIData::SymbolicFactorizeRealSymmetricMatrix` 
+  (for symbolic factorization), 
+  `PEXSI::PPEXSIData::CalculateNegativeInertiaReal` 
+  (for inertia counting), and
+  `PEXSI::PPEXSIData::CalculateFermiOperatorReal` 
+  (for one-shot PEXSI calculation) to improve heuristics and extend the
+  functionalities.
 
 
 

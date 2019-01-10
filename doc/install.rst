@@ -54,8 +54,10 @@ In `src/` directory, you need
 to compile PT-Scotch.
 
 
-**NOTE**: Just typing `make` will generate the Scotch library but not PT-Scotch.
-Then all libraries will be given in `lib/` directory.**
+.. note::  
+
+  Just typing ``make`` will generate the Scotch library but not PT-Scotch.  
+  Then all libraries will be given in ``lib/`` directory.**
 
 
 Build symPACK
@@ -104,8 +106,10 @@ The `cmake` command will configure the build process, which can now start by typ
 
 Additionally, a standalone driver for symPACK can be built by typing `make examples`
 
-**Note** Since cmake also compiles UPCxx and GASNET, the compilation
-time may be long especially on certain clusters.
+.. note:: 
+
+  Since cmake also compiles UPCxx and GASNET, the compilation
+  time may be long especially on certain clusters.
 
 
 Build SuperLU_DIST
@@ -174,8 +178,10 @@ makefile system.
 Build option 1: Use CMake
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Note: PEXSI requires CMake version 3.10+** (latest CMake can be
-downloaded at https://cmake.org/download/)
+.. note:: 
+
+  PEXSI requires CMake version 3.10+** (latest CMake can be
+  downloaded at https://cmake.org/download/)
 
 Configuration of the compilation is controlled by the options of
 cmake. A few examples of the configuration options are given in the
@@ -237,9 +243,11 @@ The FORTRAN examples are given in ``build/fortran/``.  For more
 information on the examples, see :ref:`Tutorial Page <pageTutorial>`.
 
 
-**NOTE:** If error messages occur, after debugging the compilation file,
-it is recommended to remove all files under ``build/`` first and then
-rerun ``build.sh``.
+.. note:: 
+
+  If error messages occur, after debugging the compilation file,
+  it is recommended to remove all files under ``build/`` first and then
+  rerun ``build.sh``.
 
 
 
@@ -280,23 +288,23 @@ PEXSI. It is set to 0 by default. When set to 1, the ``SYMPACK_DIR`` variable
 must be pointing to symPACK's installation directory.
 
 
-**Note**
+.. note::
 
-- Starting from PEXSI v0.8.0, ``-std=c++11`` is required in ``CXXFLAGS``. 
-
-- Starting from PEXSI v0.9.2, ``-std=c99`` is required in ``CFLAGS`` to be
-  compatible with SuperLU_DIST starting from v4.3.
-
-- For **FORTRAN** users, ``CPP_LIB=-lstdc++ -lmpi -lmpi_cxx`` is often needed.
-  Check this if there is link error.
-
-- PEXSI can be compiled using ``debug`` or ``release`` mode in
-  by the variable ``COMPILE_MODE`` in ``make.inc``.  This variable mainly controls the
-  compiling flag ``-DRELEASE``.  The ``debug`` mode introduces tracing of call
-  stacks at all levels of functions, and may significantly slow down the
-  code.  For production runs, use ``release`` mode.
-
-- The ``USE_PROFILE`` option is for internal test purpose. Usually set this to 0.
+  - Starting from PEXSI v0.8.0, ``-std=c++11`` is required in ``CXXFLAGS``. 
+  
+  - Starting from PEXSI v0.9.2, ``-std=c99`` is required in ``CFLAGS`` to be
+    compatible with SuperLU_DIST starting from v4.3.
+  
+  - For **FORTRAN** users, ``CPP_LIB=-lstdc++ -lmpi -lmpi_cxx`` is often needed.
+    Check this if there is link error.
+  
+  - PEXSI can be compiled using ``debug`` or ``release`` mode in
+    by the variable ``COMPILE_MODE`` in ``make.inc``.  This variable mainly controls the
+    compiling flag ``-DRELEASE``.  The ``debug`` mode introduces tracing of call
+    stacks at all levels of functions, and may significantly slow down the
+    code.  For production runs, use ``release`` mode.
+  
+  - The ``USE_PROFILE`` option is for internal test purpose. Usually set this to 0.
 
 
 The installation procedure and dependencies of every version of the PEXSI
