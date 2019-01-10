@@ -11,9 +11,8 @@ cmake \
   -DCMAKE_C_COMPILER=$CC \
   -DCMAKE_CXX_COMPILER=$CXX \
   -DCMAKE_Fortran_COMPILER=$FC \
-  -DCMAKE_C_FLAGS="-mkl" \
-  -DCMAKE_CXX_FLAGS="-mkl" \
-  -Dlinalg_LIBRARIES="-mkl" \
+  -Dlinalg_FLAGS="-mkl" \
+  -Dlinalg_IMPLICIT=ON \
   -Dsuperlu_dist_INCLUDE_DIR=$DSUPERLU_DIR/include \
   -Dsuperlu_dist_LIBRARIES=$DSUPERLU_DIR/lib64/libsuperlu_dist.a \
   -Dmetis_INCLUDE_DIR=$METIS_DIR/include \
