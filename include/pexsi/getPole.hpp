@@ -65,13 +65,19 @@ class poleClass {
 
 	// @brief zweight vector
         std::vector< std::vector< std::complex<double> > >  zweight;
+
+ 	// @brief FDMweight vector
+        std::vector< std::vector< std::complex<double> > >  fweight;
+
+	// @brief EDMweight2 vector
+        std::vector< std::vector< std::complex<double> > >  eweight;
     
     public:
         poleClass();
         ~poleClass();
 
-        // @brief given a set of parameter, return a set of zweight and zshift.
-        bool getPole ( int inputMethod, int inputPole, double inputBeta,  std::vector< std::complex<double> > &out_zshift, std::vector < std::complex<double> > &out_zweight );
+        // @brief given a set of parameter, return a set of zweight and zshift for method = 3
+        bool getPole ( int inputMethod, int inputPole, double inputBeta,  std::vector< std::complex<double> > &out_zshift, std::vector < std::complex<double> > &out_zweight, std::vector < std::complex<double> > &out_fweight, std::vector < std::complex<double> > &out_eweight );
         
 };
 

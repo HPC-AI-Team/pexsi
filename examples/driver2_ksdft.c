@@ -193,6 +193,7 @@ int main(int argc, char **argv)
       printf("nnz         = %d\n", nnz );
       printf("nnzLocal    = %d\n", nnzLocal );
       printf("numColLocal = %d\n", numColLocal );
+      fflush(stdout);
     }
 
 
@@ -261,6 +262,7 @@ int main(int argc, char **argv)
 
     if( mpirank == 0 ){ 
       printf("Finish reading the matrix.\n");
+      fflush(stdout);
     }
   }
 
@@ -280,15 +282,31 @@ int main(int argc, char **argv)
   options.isInertiaCount = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  options.numPole  = 20;
+  int method = 1;
+  options.numPole  = 40;
   options.temperature  = 0.00095; // 300K
+
+/*
+  FILE * fp;
+  fp = fopen("input.txt", "r");
+  int temp;
+  double temp1;
+  rewind(fp);
+  fscanf(fp, "%d %d %lf", &temp, &method, &temp1);
+  if(mpirank == 0) 
+    printf(" PoleNum: %d method: %d temperature: %lf\n", temp, method, temp1);
+  fflush(stdout);
+  options.numPole  = temp;
+  options.temperature  = temp1;
+  fclose(fp);
+*/
+ 
   options.numElectronPEXSITolerance = 0.00001;
   options.muInertiaTolerance = 0.05;
   options.isSymbolicFactorize = 1;
-  options.method = 2;
+  options.method = method;
   options.nPoints = 2;
   int npoints = options.nPoints;
-  int method = options.method;
   #ifdef WITH_SYMPACK
   options.solver = 1;
   #endif
@@ -299,6 +317,7 @@ int main(int argc, char **argv)
     npoints = mpisize / ( nprow * npcol* options.numPole);  
     if( mpirank == 0)
     printf(" Error, Npoints should be set to %d\n", npoints); 
+    fflush(stdout);
     int ierr;
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Abort(MPI_COMM_WORLD, ierr);
@@ -307,6 +326,7 @@ int main(int argc, char **argv)
     if(mpirank == 0)
     {
       printf("Error: need more than %d MPIs \n", nprow*npcol*npoints);
+      fflush(stdout);
       int ierr;
       MPI_Abort(MPI_COMM_WORLD, ierr);
     }
@@ -317,6 +337,7 @@ int main(int argc, char **argv)
       printf(" ------------------   ERROR  -------------------- \n"); 
       printf(" nprocessor %d can not be distributed nppoints %d \n", mpisize, npoints);
       printf(" ------------------   ERROR  -------------------- \n"); 
+      fflush(stdout);
     }
     int ierr;
     MPI_Barrier(MPI_COMM_WORLD);
@@ -364,7 +385,8 @@ int main(int argc, char **argv)
   muMinInertia = -10.0;
   muMaxInertia =  10.0;
   int iter = 0;
-  while (iter < 40 ) {
+
+  while (iter < 20 ) {
     if( iter > 0 ){
       options.isSymbolicFactorize = 0;
     }
@@ -396,8 +418,6 @@ int main(int argc, char **argv)
           &totalEnergyH,
           &info );
 
-    //printf(" Retrieve DM okay, myrank: %d , mpisize: %d \n", mpirank, mpisize);
-
       PPEXSIRetrieveRealEDM(
           plan,
           options,
@@ -405,11 +425,19 @@ int main(int argc, char **argv)
           &totalEnergyS,
           &info );
 
+      PPEXSIRetrieveRealFDM(
+          plan,
+          options,
+          FDMnzvalLocal,
+          &totalFreeEnergy,
+          &info );
+
       if( mpirank == 0 ){
         printf("Output from the main program\n");
         printf("Total energy (H*DM)         = %15.5f\n", totalEnergyH);
         printf("Total energy (S*EDM)        = %15.5f\n", totalEnergyS);
         printf("Total free energy           = %15.5f\n", totalFreeEnergy);
+        fflush(stdout);
       }
     }
     iter++;

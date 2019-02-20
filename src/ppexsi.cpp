@@ -2,7 +2,7 @@
    Copyright (c) 2012 The Regents of the University of California,
    through Lawrence Berkeley National Laboratory.  
 
-Author: Lin Lin
+Author: Lin Lin and Weile Jia
 
 This file is part of PEXSI. All rights reserved.
 
@@ -3438,15 +3438,29 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     Int poleIter = 0;
     /// test the getPole function. actually, NumPole should be get from here.
     {
+      zweightFDM_.resize(numPole);
+      zweightEDM_.resize(numPole);
+
       // first get the real numPole
       poleClass pole;
-      bool result = pole.getPole(method, numPole,deltaE/temperature, zshift_, zweightRho_);
+      bool result;
+      if(method == 1 || method == 2 || method == 3) 
+        result = pole.getPole(method, numPole,deltaE/temperature, zshift_, zweightRho_, zweightFDM_, zweightEDM_);
+      else{
+        statusOFS << " Error, method must be chosen from [ 1, 2, 3] " << std::endl;
+        statusOFS << " Error, Current method is: " << method << std::endl;
+        ErrorHandling("getPole error.");
+      }
 
       for(int i = 0; i < zshift_.size(); i++)
       {
         zshift_[i] *= temperature;
         zweightRho_[i] *= temperature;
         zshift_[i] += mu;
+        if( method == 3) {
+          zweightFDM_[i] *= temperature * temperature;
+          zweightEDM_[i] *= temperature * temperature;
+        }
       }
 
       if(verbosity >= 2){
@@ -3460,6 +3474,8 @@ void PPEXSIData::CalculateFermiOperatorComplex(
       {
         statusOFS << " Eroror getPole wrong method: " << method 
           <<" " <<numPole << " " << deltaE/temperature << std::endl;   
+        statusOFS << " numPoles should be chosen from [ 10, 15, 20, 25, 30, 35, 40] " << std::endl;
+        statusOFS << " Please check the temperature setting, if it is too high or too low, there is also potential problem " << std::endl;
         ErrorHandling("getPole error.");
       }
       if(numPole != zshift_.size()){
@@ -3678,16 +3694,25 @@ void PPEXSIData::CalculateFermiOperatorComplex(
 
         // Free energy density matrix
         if( isFreeEnergyDensityMatrix ){
-          //          blas::Axpy( hmzMat.nnzLocal, zweightHelmholtz_[l], 
-          //              AinvMat.nzvalLocal.Data(), 1,
-          //              hmzMat.nzvalLocal.Data(), 1 );
+          if( method != 2){
+            blas::Axpy( hmzMat.nnzLocal, numSpin*zweightFDM_[l], 
+              AinvMat.nzvalLocal.Data(), 1,
+              hmzMat.nzvalLocal.Data(), 1 );
+          }
         }
 
         // Energy density matrix
         if( isEnergyDensityMatrix ){
-          blas::Axpy( frcMat.nnzLocal, zweightRho_[l]*zshift_[l]*numSpin,
-              AinvMat.nzvalLocal.Data(), 1,
-              frcMat.nzvalLocal.Data(), 1 );
+          if( method != 2){
+            blas::Axpy( frcMat.nnzLocal, zweightEDM_[l]*numSpin,
+                AinvMat.nzvalLocal.Data(), 1,
+                frcMat.nzvalLocal.Data(), 1 );
+          }
+          else{
+            blas::Axpy( frcMat.nnzLocal, zweightRho_[l]*zshift_[l]*numSpin,
+                AinvMat.nzvalLocal.Data(), 1,
+                frcMat.nzvalLocal.Data(), 1 );
+          }
         }
 
         // Derivative of the Fermi-Dirac with respect to T
@@ -3773,23 +3798,23 @@ void PPEXSIData::CalculateFermiOperatorComplex(
 
   // Reduce the free energy density matrix across the processor rows in gridPole_ 
   if( isFreeEnergyDensityMatrix ){
-    //    CpxNumVec nzvalHmzMatLocal = hmzMat.nzvalLocal;
-    //    SetValue( hmzMat.nzvalLocal, Z_ZERO );
-    //
-    //    mpi::Allreduce( nzvalHmzMatLocal.Data(), hmzMat.nzvalLocal.Data(),
-    //        hmzMat.nnzLocal, MPI_SUM, gridPole_->colComm );
-    //
-    //    DistSparseMatrix<Complex>& regMat       = hmzMat;
-    //    DistSparseMatrix<Complex>  transMat;
-    //
-    //    CSCToCSR( regMat, transMat );
-    //    Complex* ptrReg   = regMat.nzvalLocal.Data();
-    //    Complex* ptrTrans = transMat.nzvalLocal.Data();
-//    // fac = i/2
-//    Complex  fac = Complex( 0.0, 0.5 );
-//    for( Int g = 0; g < regMat.nnzLocal; g++ ){
-//      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
-//    }
+    CpxNumVec nzvalHmzMatLocal = hmzMat.nzvalLocal;
+    SetValue( hmzMat.nzvalLocal, Z_ZERO );
+    
+    mpi::Allreduce( nzvalHmzMatLocal.Data(), hmzMat.nzvalLocal.Data(),
+      hmzMat.nnzLocal, MPI_SUM, gridPole_->colComm );
+    
+    DistSparseMatrix<Complex>& regMat       = hmzMat;
+    DistSparseMatrix<Complex>  transMat;
+    
+    CSCToCSR( regMat, transMat );
+    Complex* ptrReg   = regMat.nzvalLocal.Data();
+    Complex* ptrTrans = transMat.nzvalLocal.Data();
+    //fac = i/2
+    Complex  fac = Complex( 0.0, 0.5 );
+    for( Int g = 0; g < regMat.nnzLocal; g++ ){
+      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
+    }
   }
 
   // Reduce the energy density matrix across the processor rows in gridPole_ 
@@ -3801,6 +3826,13 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     mpi::Allreduce( nzvalFrcMatLocal.Data(), frcMat.nzvalLocal.Data(),
         //frcMat.nnzLocal, MPI_SUM, gridPole_->colComm );
       frcMat.nnzLocal, MPI_SUM, pointColComm);
+
+    if( method != 2 ){
+      // FIXME
+      // EDM correction: add mu * DM for method == 3/1
+      blas::Axpy( rhoMat.nnzLocal, mu, rhoMat.nzvalLocal.Data(), 1, 
+        frcMat.nzvalLocal.Data(), 1 );
+    }
 
     DistSparseMatrix<Complex>& regMat       = frcMat;
     DistSparseMatrix<Complex>  transMat;
@@ -3906,49 +3938,51 @@ void PPEXSIData::CalculateFermiOperatorComplex(
           gridPole_->rowComm ); 
     }
     
-    // Energy computed from Tr[S*EDM]
-    if( isEnergyDensityMatrix )
+    if( method != 2) 
     {
-      Real local = 0.0;
-      if( SMat.size != 0 ){
-        local = (blas::Dotc( SMat.nnzLocal, 
-              SMat.nzvalLocal.Data(),
-              1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
-      }
-      else{
-        CpxNumVec& nzval = energyDensityComplexMat_.nzvalLocal;
-        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-          local += nzval(diagIdxLocal_[i]).real();
+      // Energy computed from Tr[S*EDM]
+      if( isEnergyDensityMatrix )
+      {
+        Real local = 0.0;
+        if( SMat.size != 0 ){
+          local = (blas::Dotc( SMat.nnzLocal, 
+                SMat.nzvalLocal.Data(),
+                1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
         }
+        else{
+          CpxNumVec& nzval = energyDensityComplexMat_.nzvalLocal;
+          for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+            local += nzval(diagIdxLocal_[i]).real();
+          }
+        }
+  
+        mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
+            gridPole_->rowComm ); 
       }
-
-      mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
-          gridPole_->rowComm ); 
-    }
-    //
-    //
-    //    // Free energy 
-    //    if( isFreeEnergyDensityMatrix )
-    //    {
-    //      Real local = 0.0;
-    //      if( SMat.size != 0 ){
-    //        local = (blas::Dotc( SMat.nnzLocal, 
-    //            SMat.nzvalLocal.Data(),
-    //            1, freeEnergyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
-    //      }
-    //      else{
-    //        CpxNumVec& nzval = freeEnergyDensityComplexMat_.nzvalLocal;
-    //        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-    //          local += nzval(diagIdxLocal_[i]).real();
-    //        }
-    //      }
-    //
-    //      mpi::Allreduce( &local, &totalFreeEnergy_, 1, MPI_SUM, 
-    //          gridPole_->rowComm ); 
-    //
-    //      // Correction
-    //      totalFreeEnergy_ += mu * numElectron;
-    //    }
+    
+      // Free energy 
+      if( isFreeEnergyDensityMatrix )
+      {
+        Real local = 0.0;
+        if( SMat.size != 0 ){
+          local = (blas::Dotc( SMat.nnzLocal, 
+                SMat.nzvalLocal.Data(),
+                1, freeEnergyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
+          }
+          else{
+            CpxNumVec& nzval = freeEnergyDensityComplexMat_.nzvalLocal;
+            for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+              local += nzval(diagIdxLocal_[i]).real();
+            }
+          }
+    
+          mpi::Allreduce( &local, &totalFreeEnergy_, 1, MPI_SUM, 
+              gridPole_->rowComm ); 
+    
+          // Correction
+          totalFreeEnergy_ += mu * numElectron;
+      }
+    } 
   } 
   MPI_Comm_free(&pointColComm);
   MPI_Comm_free(&pointRowComm);
@@ -4841,17 +4875,24 @@ PPEXSIData::DFTDriver2 (
     /*
        CalculateEDMCorrectionReal(
        numPole,
+       solver,
        verbosity,
-       nPoints);
-     */
+       nPoints,
+       spin);
+    */
+
     MPI_Allreduce(NeVec_temp, NeVec, numShift, MPI_DOUBLE, MPI_SUM, pointRowComm); 
 
     GetTime( timePEXSIEnd );
     timePEXSI = timePEXSIEnd - timePEXSISta;
 
     if( verbosity >= 1 ) {
-      for(int i = 0; i < numShift; i++)
+      for(int i = 0; i < numShift; i++){
         statusOFS << " MuPEXSI from Point :" << i << " is  " << shiftVec[i]<< " numElectron " << NeVec[i] << std::endl;
+        if( (i < numShift-1 )&& (NeVec[i] > NeVec[i+1]) ) {
+          statusOFS << " number of poles is not enough for the calculation, try increase the number of poles. " << std::endl;
+        }
+      }
     }
 
     InterpolateDMReal(
@@ -4863,6 +4904,7 @@ PPEXSIData::DFTDriver2 (
         muMinInertia,
         muMaxInertia,
         muPEXSI, 
+        method, 
         verbosity);
 
     MPI_Comm_free(&pointColComm);
@@ -4971,6 +5013,8 @@ void PPEXSIData::CalculateFermiOperatorReal3(
   bool isFreeEnergyDensityMatrix = true;
   bool isEnergyDensityMatrix     = true;
   bool isDerivativeTMatrix       = false;
+
+  // only calculate FDM and EDM within the EnergyDensity when method == 3
   Real numSpin = spin;  
 
   // Copy the pattern
@@ -4979,20 +5023,18 @@ void PPEXSIData::CalculateFermiOperatorReal3(
 
   if( isEnergyDensityMatrix )
     CopyPattern( PatternMat_, frcMat );
-#if 1
+
   if( isFreeEnergyDensityMatrix )
     CopyPattern( PatternMat_, hmzMat );
-#endif
 
   // Reinitialize the variables
   SetValue( rhoMat.nzvalLocal, 0.0 );
 
   if( isEnergyDensityMatrix )
     SetValue( frcMat.nzvalLocal, 0.0 );
-#if 1
+
   if( isFreeEnergyDensityMatrix )
     SetValue( hmzMat.nzvalLocal, 0.0 );
-#endif
 
   // FIXME
 
@@ -5045,13 +5087,27 @@ void PPEXSIData::CalculateFermiOperatorReal3(
     {
       // first get the real numPole
       poleClass pole;
-      bool result = pole.getPole(method, numPole,deltaE/temperature, zshift_, zweightRho_);
+      bool result;
+      zweightFDM_.resize(numPole);
+      zweightEDM_.resize(numPole);
+
+      if( method == 1 || method == 2 || method == 3)
+        result = pole.getPole(method, numPole,deltaE/temperature, zshift_, zweightRho_, zweightFDM_, zweightEDM_);
+      else{
+        statusOFS << " Error, method must be chosen from [ 1, 2, 3] " << std::endl;
+        statusOFS << " Error, Current method is: " << method << std::endl;
+        ErrorHandling("getPole error.");
+      }
 
       for(int i = 0; i < zshift_.size(); i++)
       {
         zshift_[i] *= temperature;
         zweightRho_[i] *= temperature;
         zshift_[i] += mu;
+        if( method != 2) {
+          zweightFDM_[i] *= temperature * temperature;
+          zweightEDM_[i] *= temperature * temperature;
+        }
       }
 
       if(verbosity >= 2){
@@ -5065,6 +5121,8 @@ void PPEXSIData::CalculateFermiOperatorReal3(
       {
         statusOFS << " Eroror getPole wrong method: " << method 
           <<" " <<numPole << " " << deltaE/temperature << std::endl;   
+        statusOFS << " numPoles should be chosen from [ 10, 15, 20, 25, 30, 35, 40] " << std::endl;
+        statusOFS << " Please check the temperature setting, if it is too high or too low, there is also potential problem " << std::endl;
         ErrorHandling("getPole error.");
       }
       if(numPole != zshift_.size()){
@@ -5282,17 +5340,35 @@ void PPEXSIData::CalculateFermiOperatorReal3(
         blas::Axpy( rhoMat.nnzLocal, numSpin*zweightRho_[l].imag(), AinvMatRealPtr, 2,
             rhoMat.nzvalLocal.Data(), 1 );
 
+        // Free energy density matrix
+        if( isFreeEnergyDensityMatrix ){
+          if( method != 2){
+            blas::Axpy( hmzMat.nnzLocal, numSpin*zweightFDM_[l].real(), AinvMatImagPtr, 2,
+                hmzMat.nzvalLocal.Data(), 1 );
+            blas::Axpy( hmzMat.nnzLocal, numSpin*zweightFDM_[l].imag(), AinvMatRealPtr, 2,
+                hmzMat.nzvalLocal.Data(), 1 );
+          }
+        }
 
-        // Energy density matrix check check (zshift - mu )?
+
+        // Energy density matrix 
         if( isEnergyDensityMatrix ){
-          Real wzReal = numSpin*(zweightRho_[l].real() * zshift_[l].real() 
-              - zweightRho_[l].imag() * zshift_[l].imag());
-          Real wzImag = numSpin*(zweightRho_[l].real() * zshift_[l].imag() 
-              + zweightRho_[l].imag() * zshift_[l].real() );
-          blas::Axpy( frcMat.nnzLocal, wzReal, AinvMatImagPtr, 2,
-              frcMat.nzvalLocal.Data(), 1 );
-          blas::Axpy( frcMat.nnzLocal, wzImag, AinvMatRealPtr, 2, 
-              frcMat.nzvalLocal.Data(), 1 );
+          if( method != 2 ){
+            blas::Axpy( frcMat.nnzLocal, numSpin*zweightEDM_[l].real(), AinvMatImagPtr, 2, 
+                frcMat.nzvalLocal.Data(), 1 );
+            blas::Axpy( frcMat.nnzLocal, numSpin*zweightEDM_[l].imag(), AinvMatRealPtr, 2,
+                frcMat.nzvalLocal.Data(), 1 );
+          }
+          else{
+            Real wzReal = numSpin*(zweightRho_[l].real() * zshift_[l].real()
+                - zweightRho_[l].imag() * zshift_[l].imag());
+            Real wzImag = numSpin*(zweightRho_[l].real() * zshift_[l].imag()
+                + zweightRho_[l].imag() * zshift_[l].real() );
+            blas::Axpy( frcMat.nnzLocal, wzReal, AinvMatImagPtr, 2,
+                frcMat.nzvalLocal.Data(), 1 );
+            blas::Axpy( frcMat.nnzLocal, wzImag, AinvMatRealPtr, 2,
+                frcMat.nzvalLocal.Data(), 1 );
+          }
         }
 
         GetTime( timePostProcessingEnd );
@@ -5325,6 +5401,32 @@ void PPEXSIData::CalculateFermiOperatorReal3(
 
   }
 
+  // Reduce the free energy density matrix across the processor rows in gridPole_ 
+  if( isFreeEnergyDensityMatrix ){
+    DblNumVec nzvalHmzMatLocal = hmzMat.nzvalLocal;
+    SetValue( hmzMat.nzvalLocal, 0.0 );
+
+    mpi::Allreduce( nzvalHmzMatLocal.Data(), hmzMat.nzvalLocal.Data(),
+        hmzMat.nnzLocal, MPI_SUM, pointColComm);
+
+  }
+
+
+  if( isEnergyDensityMatrix ){
+    DblNumVec nzvalFrcMatLocal = frcMat.nzvalLocal;
+    SetValue( frcMat.nzvalLocal, 0.0 );
+  
+    mpi::Allreduce( nzvalFrcMatLocal.Data(), frcMat.nzvalLocal.Data(),
+         frcMat.nnzLocal, MPI_SUM, pointColComm);
+  
+    if( method != 2 ){
+      // FIXME
+      // EDM correction: add mu * DM for method == 3/1
+      blas::Axpy( rhoMat.nnzLocal, mu, rhoMat.nzvalLocal.Data(), 1, 
+        frcMat.nzvalLocal.Data(), 1 );
+    }
+  }
+
   // Compute the number of electrons
   // The number of electrons is computed by Tr[DM*S]
   {
@@ -5348,14 +5450,57 @@ void PPEXSIData::CalculateFermiOperatorReal3(
     mpi::Allreduce( &numElecLocal, &numElectron, 1, MPI_SUM, gridPole_->rowComm); 
   }
 
-  if( isEnergyDensityMatrix ){
-    DblNumVec nzvalFrcMatLocal = frcMat.nzvalLocal;
-    SetValue( frcMat.nzvalLocal, 0.0 );
+  if( method != 2) 
+  {
+    // Energy computed from Tr[S*EDM]
+    if( isEnergyDensityMatrix )
+    {
+      Real local = 0.0;
+      if( SMat.size != 0 ){
+        local = blas::Dot( SMat.nnzLocal, 
+            SMat.nzvalLocal.Data(),
+            1, energyDensityRealMat_.nzvalLocal.Data(), 1 );
+      }
+      else{
+        DblNumVec& nzval = energyDensityRealMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]);
+        }
+      }
 
-    mpi::Allreduce( nzvalFrcMatLocal.Data(), frcMat.nzvalLocal.Data(),
-        frcMat.nnzLocal, MPI_SUM, pointColComm);
+      mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+      //std::cout << " Energy Density Tr[S*FDM] " << totalEnergyS_ << std::endl;
+    }
+
+
+    // Free energy 
+    if( isFreeEnergyDensityMatrix )
+    {
+      Real local = 0.0;
+      if( SMat.size != 0 ){
+        local = blas::Dot( SMat.nnzLocal, 
+            SMat.nzvalLocal.Data(),
+            1, freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
+      }
+      else{
+        DblNumVec& nzval = freeEnergyDensityRealMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]);
+        }
+      }
+
+
+      mpi::Allreduce( &local, &totalFreeEnergy_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+
+      // Correction
+      totalFreeEnergy_ += mu * numElectronExact;
+
+      //std::cout << " Free  Energy S Tr[S*FDM] " << totalFreeEnergy_ << std::endl;
+    }
   }
-
+ 
   MPI_Comm_free(&pointColComm);
   MPI_Comm_free(&pointRowComm);
 
@@ -5867,6 +6012,7 @@ void PPEXSIData::InterpolateDMReal(
     Real              & muMin,
     Real              & muMax,
     Real              & muPEXSI,
+    Int                 method,
     Int                 verbosity){
 
   DistSparseMatrix<Real>&  SMat        = SRealMat_;
@@ -6046,6 +6192,7 @@ void PPEXSIData::InterpolateDMReal(
     }
 
     //if( isEnergyDensityMatrix )
+    if(method == 2) 
     {
 
       Real local = 0.0;
@@ -6069,6 +6216,7 @@ void PPEXSIData::InterpolateDMReal(
 
   // FIXME A placeholder for the FDM -- check check
   // if( isFreeEnergyDensityMatrix )
+  if(method == 2) 
   {
     DistSparseMatrix<Real>& hmzMat  = freeEnergyDensityRealMat_;
     totalFreeEnergy_                = totalEnergyH_;
@@ -6103,6 +6251,7 @@ void PPEXSIData::InterpolateDMComplex(
     Real              & muMin,
     Real              & muMax,
     Real              & muPEXSI,
+    Int                 method,
     Int                 verbosity){
 
   DistSparseMatrix<Complex>&  SMat        = SComplexMat_;
@@ -6283,6 +6432,7 @@ void PPEXSIData::InterpolateDMComplex(
     }
 
     //if( isEnergyDensityMatrix )
+    if(method == 2) 
     {
 
       Real local = 0.0;
@@ -6305,6 +6455,7 @@ void PPEXSIData::InterpolateDMComplex(
 
   // FIXME A placeholder for the FDM -- check check
   // if( isFreeEnergyDensityMatrix )
+  if(method == 2) 
   {
     DistSparseMatrix<Complex>& hmzMat  = freeEnergyDensityComplexMat_;
     totalFreeEnergy_                   = totalEnergyH_;

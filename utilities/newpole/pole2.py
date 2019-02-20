@@ -2,7 +2,7 @@
 
 import sys;
 
-""" this program read in the data from PoleData.dat and then convert them into a .cpp file 
+""" this program read in the data from PoleData2.dat and then convert them into a .cpp file 
     note that this the last line is for test purpose, if you do not want to test this program
     just comment it out. """
 
@@ -93,9 +93,9 @@ CPP_TEST_CODE = \
 "}  " 
 
 def readnumbers():
-    """ read the PoleData.dat and split them into list data """
+    """ read the PoleData2.dat and split them into list data """
     try:
-        with open("PoleData.dat", "r") as infile:
+        with open("PoleData2.dat", "r") as infile:
             for line in infile:
                 data.append(filter(None, line.strip('\n').split(' ')))
     except:
@@ -136,6 +136,13 @@ def constructPoleCPP():
                 zweightStr +=  type_convert + '(' + str(zx[j]) + ' , ' + str(zy[j]) + '), \n' + tab3
             zweightStr += '}' + semicolon + newline
             zweightStr += tab3+'std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));' + newline
+            zweightStr += tab3+'std::vector< std::complex<double> >wvec2;' + newline
+            zweightStr += tab3+'std::vector< std::complex<double> >wvec3;' + newline
+            zweightStr += tab3+'wvec2.push_back(NULL);' + newline
+            zweightStr += tab3+'wvec3.push_back(NULL);' + newline
+            zweightStr += tab3+'fweight.push_back(wvec2);' + newline
+            zweightStr += tab3+'eweight.push_back(wvec3);' + newline
+
             print tab2+"{", newline,numPoleStr, methodStr, betaStr, zshiftStr, zweightStr, push_operations+ tab2+"}",newline
     
     print CPP_CONTENT_REST 

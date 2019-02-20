@@ -273,7 +273,7 @@ void PPEXSISetDefaultOptions(
   options->npSymbFact            = 1;
   options->symmetric             = 1;
   options->transpose             = 0;
-  options->method                = 2;
+  options->method                = 3;
   options->verbosity             = 1;
   options->nPoints               = 2;
 }   // -----  end of function PPEXSISetDefaultOptions  ----- 
@@ -1024,6 +1024,7 @@ void PPEXSIInterpolateDMReal(
         options->muMin0,
         options->muMax0,
         *muPEXSI, 
+        options->method,
         options->verbosity);
 
   }
@@ -1063,6 +1064,7 @@ void PPEXSIInterpolateDMComplex(
         options->muMin0,
         options->muMax0,
         *muPEXSI, 
+        options->method,
         options->verbosity);
 
   }
@@ -1849,15 +1851,18 @@ void PPEXSIRetrieveRealEDM(
 
   try{
 
-    statusOFS << std::endl << " Warning, EDM correction before retrieve" 
-      << gridPole->mpirank << std::endl;
+    //FIXME method == 2
+    if( options.method == 2){
 
-    reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionReal(
-        options.numPole,
-        options.solver,
-        options.verbosity,
-        options.nPoints,
-        options.spin);
+      statusOFS << std::endl << " Warning, EDM correction before retrieve" 
+        << gridPole->mpirank << std::endl;
+      reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionReal(
+          options.numPole,
+          options.solver,
+          options.verbosity,
+          options.nPoints,
+          options.spin);
+    }
 
     Int nnzLocal = ptrData->EnergyDensityRealMat().nnzLocal;
 
@@ -1874,6 +1879,41 @@ void PPEXSIRetrieveRealEDM(
   }
   return;
 }   // -----  end of function PPEXSIRetrieveRealEDM   ----- 
+
+extern "C"
+void PPEXSIRetrieveRealFDM(
+    PPEXSIPlan  plan,
+    PPEXSIOptions     options,
+    double*     FDMnzvalLocal,
+    double*     totalEnergyF,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole = 
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->FreeEnergyDensityRealMat().nnzLocal;
+
+    if( options.method == 2){
+      blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
+          FDMnzvalLocal, 1 );
+    }
+    else{
+      blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
+          FDMnzvalLocal, 1 );
+    }
+    *totalEnergyF = ptrData->TotalFreeEnergy();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveRealFDM  ----- 
+
 
 extern "C"
 void PPEXSIRetrieveComplexDM(
@@ -1917,15 +1957,18 @@ void PPEXSIRetrieveComplexEDM(
   PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
 
   try{
-    statusOFS << std::endl << " Warning, EDM correction before retrieve" 
-      << gridPole->mpirank << std::endl;
+    //FIXME method == 2
+    if( options.method == 2){
 
-    reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionComplex(
-        options.numPole,
-        options.solver,
-        options.verbosity,
-        options.nPoints,
-        options.spin);
+      statusOFS << std::endl << " Warning, EDM correction before retrieve" 
+        << gridPole->mpirank << std::endl;
+      reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionComplex(
+          options.numPole,
+          options.solver,
+          options.verbosity,
+          options.nPoints,
+          options.spin);
+    }
 
     Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
 

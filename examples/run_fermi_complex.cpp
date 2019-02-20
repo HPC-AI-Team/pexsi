@@ -195,14 +195,32 @@ int main(int argc, char **argv)
     options.isInertiaCount = 1;
     options.verbosity = 1;
     options.deltaE   = 10.0;
-    options.numPole  = 20;
-    options.temperature  = 0.00095; // 300K
     options.numElectronPEXSITolerance = 0.00001;
     options.isSymbolicFactorize = 1;
-    options.method = 1;
-    options.nPoints = 1;
+    options.nPoints = 2;
     options.spin = 2.0;
 
+    options.method = 1;
+    options.numPole  = 40;
+    options.temperature  = 0.00095; // 300K
+
+    /*
+    FILE * fp;
+    fp = fopen("input.txt", "r");
+    int temp;
+    double temp1;
+    int method;
+    rewind(fp);
+    fscanf(fp, "%d %d %lf", &temp, &method, &temp1);
+    if(mpirank == 0) 
+      printf(" PoleNum: %d method: %d temperature: %lf\n", temp, method, temp1);
+    fflush(stdout);
+    options.numPole  = temp;
+    options.temperature  = temp1;
+    options.method = method;
+  
+    fclose(fp);
+    */
 
     pexsi.LoadComplexMatrix(
         HMat.size,                        
