@@ -48,6 +48,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #define _PEXSI_GETPOLE_HPP_
 
 #include "pexsi/environment.hpp"
+
 class poleClass { 
     private:
 

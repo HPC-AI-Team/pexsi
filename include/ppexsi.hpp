@@ -194,6 +194,8 @@ private:
   // Free energy 
   Real                       totalFreeEnergy_;
 
+  Int isEDMCorrection_;
+
 
   // *********************************************************************
   // Saved variables for nonlinear iterations

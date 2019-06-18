@@ -20526,120 +20526,21 @@
         { 
             int np = 5;
             int m = 2;
-            double b = 4.754276176478917e+06;
+            double b = 1.209274548499165e+01;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-1.946861030831248e+06 , 3.466755326606405e+06), 
-             std::complex<double> (-3.194821559260857e+03 , 1.610341217030958e+05), 
-             std::complex<double> (-4.297502137712511e+00 , 5.907285762749364e+03), 
-             std::complex<double> (-5.778795889148681e-03 , 2.166148672731455e+02), 
-             std::complex<double> (-7.536111765206299e-06 , 7.656827074796709e+00), 
+             std::complex<double> (-2.554090010277767e+01 , 8.638640679328239e+00), 
+             std::complex<double> (-1.246440939244841e+01 , 1.609925983411248e+01), 
+             std::complex<double> (-2.525722116114511e+00 , 1.336080612620282e+01), 
+             std::complex<double> (1.081718564305512e-01 , 9.270389934959379e+00), 
+             std::complex<double> (9.225429531107947e-05 , 3.141649048770424e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (3.318064098884963e+06 , -2.022541739446533e+06), 
-             std::complex<double> (6.653510807494008e+03 , -1.676182108199611e+05), 
-             std::complex<double> (8.952581631955500e+00 , -6.153043298116445e+03), 
-             std::complex<double> (1.203899544460975e-02 , -2.256483267707010e+02), 
-             std::complex<double> (1.613855688985912e-05 , -8.578097024537158e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 5;
-            int m = 2;
-            double b = 1.929359655736823e+05;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.166555857792123e+05 , 1.643367718523635e+05), 
-             std::complex<double> (-7.514143203926686e+02 , 1.615703144671552e+04), 
-             std::complex<double> (-3.735604646002479e+00 , 1.140431725572104e+03), 
-             std::complex<double> (-1.853137934183301e-02 , 8.033020123555853e+01), 
-             std::complex<double> (-8.235334290060451e-05 , 5.300406238408231e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.505030088371715e+05 , -5.259160857469719e+04), 
-             std::complex<double> (1.264161757745586e+03 , -1.356170840398750e+04), 
-             std::complex<double> (6.293858648115211e+00 , -9.607057064381456e+02), 
-             std::complex<double> (3.124454004433670e-02 , -6.770929837956629e+01), 
-             std::complex<double> (1.517929579459690e-04 , -5.110489998965694e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 5;
-            int m = 2;
-            double b = 2.352699225192334e+04;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.862211631189100e+04 , 2.163767382592681e+04), 
-             std::complex<double> (-3.034717531824400e+02 , 3.631659031140577e+03), 
-             std::complex<double> (-3.608328744822498e+00 , 3.973734595337082e+02), 
-             std::complex<double> (-4.255372563255384e-02 , 4.321103903220411e+01), 
-             std::complex<double> (-3.938722873497464e-04 , 4.296822012346186e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.878579439536142e+04 , -2.830082326877334e+03), 
-             std::complex<double> (4.264339341259439e+02 , -2.533758290280452e+03), 
-             std::complex<double> (5.092612048899103e+00 , -2.803844017083945e+02), 
-             std::complex<double> (6.029749726793857e-02 , -3.053576668190605e+01), 
-             std::complex<double> (6.694655782523798e-04 , -3.701416529003495e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 5;
-            int m = 2;
-            double b = 1.765915008963304e+03;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.947377806674931e+03 , 1.674466524728663e+03), 
-             std::complex<double> (-1.047929084361665e+02 , 5.865023929298897e+02), 
-             std::complex<double> (-3.762497415441033e+00 , 1.128940039023474e+02), 
-             std::complex<double> (-1.288451256862734e-01 , 2.122897595164211e+01), 
-             std::complex<double> (-2.382903724382977e-03 , 3.517696741585170e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.288627566572213e+03 , 1.953118537029985e+02), 
-             std::complex<double> (1.095143820548338e+02 , -2.966666335909262e+02), 
-             std::complex<double> (4.006000061451483e+00 , -5.996285636016435e+01), 
-             std::complex<double> (1.415274613924904e-01 , -1.130840867511528e+01), 
-             std::complex<double> (3.931476553003528e-03 , -2.604882313795629e+00), 
+             std::complex<double> (3.033611448442282e+00 , 4.764487587422160e+00), 
+             std::complex<double> (4.183144608690097e+00 , 1.482503127170896e-01), 
+             std::complex<double> (2.076676551343867e+00 , -1.223030987690861e+00), 
+             std::complex<double> (-5.341903753127276e-02 , -1.689775951588069e+00), 
+             std::complex<double> (-3.135698211663160e-04 , -2.000162109432435e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -20691,21 +20592,120 @@
         { 
             int np = 5;
             int m = 2;
-            double b = 1.209274548499165e+01;
+            double b = 1.765915008963304e+03;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-2.554090010277767e+01 , 8.638640679328239e+00), 
-             std::complex<double> (-1.246440939244841e+01 , 1.609925983411248e+01), 
-             std::complex<double> (-2.525722116114511e+00 , 1.336080612620282e+01), 
-             std::complex<double> (1.081718564305512e-01 , 9.270389934959379e+00), 
-             std::complex<double> (9.225429531107947e-05 , 3.141649048770424e+00), 
+             std::complex<double> (-1.947377806674931e+03 , 1.674466524728663e+03), 
+             std::complex<double> (-1.047929084361665e+02 , 5.865023929298897e+02), 
+             std::complex<double> (-3.762497415441033e+00 , 1.128940039023474e+02), 
+             std::complex<double> (-1.288451256862734e-01 , 2.122897595164211e+01), 
+             std::complex<double> (-2.382903724382977e-03 , 3.517696741585170e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (3.033611448442282e+00 , 4.764487587422160e+00), 
-             std::complex<double> (4.183144608690097e+00 , 1.482503127170896e-01), 
-             std::complex<double> (2.076676551343867e+00 , -1.223030987690861e+00), 
-             std::complex<double> (-5.341903753127276e-02 , -1.689775951588069e+00), 
-             std::complex<double> (-3.135698211663160e-04 , -2.000162109432435e+00), 
+             std::complex<double> (1.288627566572213e+03 , 1.953118537029985e+02), 
+             std::complex<double> (1.095143820548338e+02 , -2.966666335909262e+02), 
+             std::complex<double> (4.006000061451483e+00 , -5.996285636016435e+01), 
+             std::complex<double> (1.415274613924904e-01 , -1.130840867511528e+01), 
+             std::complex<double> (3.931476553003528e-03 , -2.604882313795629e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 5;
+            int m = 2;
+            double b = 2.352699225192334e+04;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.862211631189100e+04 , 2.163767382592681e+04), 
+             std::complex<double> (-3.034717531824400e+02 , 3.631659031140577e+03), 
+             std::complex<double> (-3.608328744822498e+00 , 3.973734595337082e+02), 
+             std::complex<double> (-4.255372563255384e-02 , 4.321103903220411e+01), 
+             std::complex<double> (-3.938722873497464e-04 , 4.296822012346186e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.878579439536142e+04 , -2.830082326877334e+03), 
+             std::complex<double> (4.264339341259439e+02 , -2.533758290280452e+03), 
+             std::complex<double> (5.092612048899103e+00 , -2.803844017083945e+02), 
+             std::complex<double> (6.029749726793857e-02 , -3.053576668190605e+01), 
+             std::complex<double> (6.694655782523798e-04 , -3.701416529003495e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 5;
+            int m = 2;
+            double b = 1.929359655736823e+05;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.166555857792123e+05 , 1.643367718523635e+05), 
+             std::complex<double> (-7.514143203926686e+02 , 1.615703144671552e+04), 
+             std::complex<double> (-3.735604646002479e+00 , 1.140431725572104e+03), 
+             std::complex<double> (-1.853137934183301e-02 , 8.033020123555853e+01), 
+             std::complex<double> (-8.235334290060451e-05 , 5.300406238408231e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.505030088371715e+05 , -5.259160857469719e+04), 
+             std::complex<double> (1.264161757745586e+03 , -1.356170840398750e+04), 
+             std::complex<double> (6.293858648115211e+00 , -9.607057064381456e+02), 
+             std::complex<double> (3.124454004433670e-02 , -6.770929837956629e+01), 
+             std::complex<double> (1.517929579459690e-04 , -5.110489998965694e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 5;
+            int m = 2;
+            double b = 4.754276176478917e+06;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.946861030831248e+06 , 3.466755326606405e+06), 
+             std::complex<double> (-3.194821559260857e+03 , 1.610341217030958e+05), 
+             std::complex<double> (-4.297502137712511e+00 , 5.907285762749364e+03), 
+             std::complex<double> (-5.778795889148681e-03 , 2.166148672731455e+02), 
+             std::complex<double> (-7.536111765206299e-06 , 7.656827074796709e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (3.318064098884963e+06 , -2.022541739446533e+06), 
+             std::complex<double> (6.653510807494008e+03 , -1.676182108199611e+05), 
+             std::complex<double> (8.952581631955500e+00 , -6.153043298116445e+03), 
+             std::complex<double> (1.203899544460975e-02 , -2.256483267707010e+02), 
+             std::complex<double> (1.613855688985912e-05 , -8.578097024537158e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -20724,117 +20724,31 @@
         { 
             int np = 10;
             int m = 2;
-            double b = 1.290985308157311e+06;
+            double b = 3.172305323816737e+02;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-1.580972615908010e+06 , 1.203561258897960e+06), 
-             std::complex<double> (-1.278275496987531e+05 , 5.503393895202582e+05), 
-             std::complex<double> (-6.698848876743868e+03 , 1.291650688368753e+05), 
-             std::complex<double> (-3.418913221857892e+02 , 2.921746870195993e+04), 
-             std::complex<double> (-1.742544928216568e+01 , 6.596580351519240e+03), 
-             std::complex<double> (-8.880680791697854e-01 , 1.489201251999560e+03), 
-             std::complex<double> (-4.525215306773906e-02 , 3.361928044929759e+02), 
-             std::complex<double> (-2.298812720870707e-03 , 7.590558678879101e+01), 
-             std::complex<double> (-1.100909893889450e-04 , 1.716220242977646e+01), 
-             std::complex<double> (-2.289831112613212e-06 , 3.360647540251634e+00), 
+             std::complex<double> (-5.809205613865953e+02 , 1.712116651384128e+02), 
+             std::complex<double> (-3.192914878221479e+02 , 3.157981973922744e+02), 
+             std::complex<double> (-1.228707736463758e+02 , 2.502456547118489e+02), 
+             std::complex<double> (-4.073432649941893e+01 , 1.556500960342447e+02), 
+             std::complex<double> (-1.273734591445475e+01 , 8.975596322505282e+01), 
+             std::complex<double> (-3.813186932424677e+00 , 5.072137998496303e+01), 
+             std::complex<double> (-1.027939809349396e+00 , 2.878927093668447e+01), 
+             std::complex<double> (-1.846368604191310e-01 , 1.676449656605937e+01), 
+             std::complex<double> (-8.323591044985035e-03 , 9.459938671536779e+00), 
+             std::complex<double> (-1.505288530203722e-05 , 3.141645614487579e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (8.701120180884706e+05 , 2.402813672182368e+05), 
-             std::complex<double> (1.175901570695602e+05 , -2.394756773944366e+05), 
-             std::complex<double> (6.337463238907602e+03 , -6.093413403216130e+04), 
-             std::complex<double> (3.239120631959876e+02 , -1.383859994824320e+04), 
-             std::complex<double> (1.651030185618987e+01 , -3.125047689860075e+03), 
-             std::complex<double> (8.414388270961817e-01 , -7.054973718325768e+02), 
-             std::complex<double> (4.288318148496536e-02 , -1.592667565848489e+02), 
-             std::complex<double> (2.185485516150124e-03 , -3.595060328223087e+01), 
-             std::complex<double> (1.110150185677044e-04 , -8.117993876151560e+00), 
-             std::complex<double> (3.870864037752220e-06 , -2.371501741456056e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 10;
-            int m = 2;
-            double b = 1.011393241376369e+05;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.428603078252365e+05 , 8.854625242936362e+04), 
-             std::complex<double> (-2.096982075063316e+04 , 6.088418821626271e+04), 
-             std::complex<double> (-1.928152539915390e+03 , 1.943088566651270e+04), 
-             std::complex<double> (-1.686646753695693e+02 , 5.772668827112795e+03), 
-             std::complex<double> (-1.468849355918116e+01 , 1.704216565544883e+03), 
-             std::complex<double> (-1.278554065937448e+00 , 5.028496502931816e+02), 
-             std::complex<double> (-1.111599977344547e-01 , 1.483790496092092e+02), 
-             std::complex<double> (-9.537726369604812e-03 , 4.383014383939805e+01), 
-             std::complex<double> (-7.037281719416144e-04 , 1.305469865817097e+01), 
-             std::complex<double> (-1.421408210600723e-05 , 3.215478433048512e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (5.660149505805381e+04 , 2.811926983163520e+04), 
-             std::complex<double> (1.533514053977184e+04 , -1.962129774604957e+04), 
-             std::complex<double> (1.490363817974273e+03 , -7.435596941967240e+03), 
-             std::complex<double> (1.310048542130718e+02 , -2.239951076563770e+03), 
-             std::complex<double> (1.141375733465775e+01 , -6.620771714240800e+02), 
-             std::complex<double> (9.936511611577747e-01 , -1.953707146259180e+02), 
-             std::complex<double> (8.649872984867023e-02 , -5.763767097170560e+01), 
-             std::complex<double> (7.529090987797448e-03 , -1.698662423589999e+01), 
-             std::complex<double> (6.439158240058465e-04 , -5.009045346064647e+00), 
-             std::complex<double> (2.611935108885642e-05 , -2.139547045657126e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 10;
-            int m = 2;
-            double b = 1.770766131099239e+04;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-2.735487926298620e+04 , 1.430831195405075e+04), 
-             std::complex<double> (-6.052868944139718e+03 , 1.319995629014940e+04), 
-             std::complex<double> (-8.332473897685190e+02 , 5.323088658739502e+03), 
-             std::complex<double> (-1.064222880882963e+02 , 1.922595865092381e+03), 
-             std::complex<double> (-1.345888836775062e+01 , 6.846647159118429e+02), 
-             std::complex<double> (-1.699046933802864e+00 , 2.433981937143934e+02), 
-             std::complex<double> (-2.135110433905035e-01 , 8.654964106249528e+01), 
-             std::complex<double> (-2.589746005590427e-02 , 3.088642287785381e+01), 
-             std::complex<double> (-2.357685107190892e-03 , 1.120947014647582e+01), 
-             std::complex<double> (-3.704363969261008e-05 , 3.165754611818758e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (8.137790793302991e+03 , 5.650698761644630e+03), 
-             std::complex<double> (3.603512235862979e+03 , -3.103027570633254e+03), 
-             std::complex<double> (5.417765597007763e+02 , -1.688126686747975e+03), 
-             std::complex<double> (6.997870141348011e+01 , -6.301622624525596e+02), 
-             std::complex<double> (8.863287854229052e+00 , -2.253290314681059e+02), 
-             std::complex<double> (1.119811581063546e+00 , -8.013481424618158e+01), 
-             std::complex<double> (1.414348171048943e-01 , -2.846599076368053e+01), 
-             std::complex<double> (1.785365037973103e-02 , -1.007802731807097e+01), 
-             std::complex<double> (2.124014496053039e-03 , -3.602552308819546e+00), 
-             std::complex<double> (7.498359129652677e-05 , -2.050381159183316e+00), 
+             std::complex<double> (6.077593094379878e+01 , 9.420513079285334e+01), 
+             std::complex<double> (8.348916402748404e+01 , 9.929637216513899e-01), 
+             std::complex<double> (4.119366193170025e+01 , -3.171509381847607e+01), 
+             std::complex<double> (1.479181796837569e+01 , -2.611492948096926e+01), 
+             std::complex<double> (4.792005490178411e+00 , -1.616552764687287e+01), 
+             std::complex<double> (1.503225379305250e+00 , -9.235793010792859e+00), 
+             std::complex<double> (4.660631616769804e-01 , -5.101101538909798e+00), 
+             std::complex<double> (1.274852078225833e-01 , -2.818387233161705e+00), 
+             std::complex<double> (1.149867943559144e-02 , -2.051749410099756e+00), 
+             std::complex<double> (4.246018475094892e-05 , -2.000150776505864e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -20896,31 +20810,117 @@
         { 
             int np = 10;
             int m = 2;
-            double b = 3.172305323816737e+02;
+            double b = 1.770766131099239e+04;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-5.809205613865953e+02 , 1.712116651384128e+02), 
-             std::complex<double> (-3.192914878221479e+02 , 3.157981973922744e+02), 
-             std::complex<double> (-1.228707736463758e+02 , 2.502456547118489e+02), 
-             std::complex<double> (-4.073432649941893e+01 , 1.556500960342447e+02), 
-             std::complex<double> (-1.273734591445475e+01 , 8.975596322505282e+01), 
-             std::complex<double> (-3.813186932424677e+00 , 5.072137998496303e+01), 
-             std::complex<double> (-1.027939809349396e+00 , 2.878927093668447e+01), 
-             std::complex<double> (-1.846368604191310e-01 , 1.676449656605937e+01), 
-             std::complex<double> (-8.323591044985035e-03 , 9.459938671536779e+00), 
-             std::complex<double> (-1.505288530203722e-05 , 3.141645614487579e+00), 
+             std::complex<double> (-2.735487926298620e+04 , 1.430831195405075e+04), 
+             std::complex<double> (-6.052868944139718e+03 , 1.319995629014940e+04), 
+             std::complex<double> (-8.332473897685190e+02 , 5.323088658739502e+03), 
+             std::complex<double> (-1.064222880882963e+02 , 1.922595865092381e+03), 
+             std::complex<double> (-1.345888836775062e+01 , 6.846647159118429e+02), 
+             std::complex<double> (-1.699046933802864e+00 , 2.433981937143934e+02), 
+             std::complex<double> (-2.135110433905035e-01 , 8.654964106249528e+01), 
+             std::complex<double> (-2.589746005590427e-02 , 3.088642287785381e+01), 
+             std::complex<double> (-2.357685107190892e-03 , 1.120947014647582e+01), 
+             std::complex<double> (-3.704363969261008e-05 , 3.165754611818758e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (6.077593094379878e+01 , 9.420513079285334e+01), 
-             std::complex<double> (8.348916402748404e+01 , 9.929637216513899e-01), 
-             std::complex<double> (4.119366193170025e+01 , -3.171509381847607e+01), 
-             std::complex<double> (1.479181796837569e+01 , -2.611492948096926e+01), 
-             std::complex<double> (4.792005490178411e+00 , -1.616552764687287e+01), 
-             std::complex<double> (1.503225379305250e+00 , -9.235793010792859e+00), 
-             std::complex<double> (4.660631616769804e-01 , -5.101101538909798e+00), 
-             std::complex<double> (1.274852078225833e-01 , -2.818387233161705e+00), 
-             std::complex<double> (1.149867943559144e-02 , -2.051749410099756e+00), 
-             std::complex<double> (4.246018475094892e-05 , -2.000150776505864e+00), 
+             std::complex<double> (8.137790793302991e+03 , 5.650698761644630e+03), 
+             std::complex<double> (3.603512235862979e+03 , -3.103027570633254e+03), 
+             std::complex<double> (5.417765597007763e+02 , -1.688126686747975e+03), 
+             std::complex<double> (6.997870141348011e+01 , -6.301622624525596e+02), 
+             std::complex<double> (8.863287854229052e+00 , -2.253290314681059e+02), 
+             std::complex<double> (1.119811581063546e+00 , -8.013481424618158e+01), 
+             std::complex<double> (1.414348171048943e-01 , -2.846599076368053e+01), 
+             std::complex<double> (1.785365037973103e-02 , -1.007802731807097e+01), 
+             std::complex<double> (2.124014496053039e-03 , -3.602552308819546e+00), 
+             std::complex<double> (7.498359129652677e-05 , -2.050381159183316e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 10;
+            int m = 2;
+            double b = 1.011393241376369e+05;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.428603078252365e+05 , 8.854625242936362e+04), 
+             std::complex<double> (-2.096982075063316e+04 , 6.088418821626271e+04), 
+             std::complex<double> (-1.928152539915390e+03 , 1.943088566651270e+04), 
+             std::complex<double> (-1.686646753695693e+02 , 5.772668827112795e+03), 
+             std::complex<double> (-1.468849355918116e+01 , 1.704216565544883e+03), 
+             std::complex<double> (-1.278554065937448e+00 , 5.028496502931816e+02), 
+             std::complex<double> (-1.111599977344547e-01 , 1.483790496092092e+02), 
+             std::complex<double> (-9.537726369604812e-03 , 4.383014383939805e+01), 
+             std::complex<double> (-7.037281719416144e-04 , 1.305469865817097e+01), 
+             std::complex<double> (-1.421408210600723e-05 , 3.215478433048512e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (5.660149505805381e+04 , 2.811926983163520e+04), 
+             std::complex<double> (1.533514053977184e+04 , -1.962129774604957e+04), 
+             std::complex<double> (1.490363817974273e+03 , -7.435596941967240e+03), 
+             std::complex<double> (1.310048542130718e+02 , -2.239951076563770e+03), 
+             std::complex<double> (1.141375733465775e+01 , -6.620771714240800e+02), 
+             std::complex<double> (9.936511611577747e-01 , -1.953707146259180e+02), 
+             std::complex<double> (8.649872984867023e-02 , -5.763767097170560e+01), 
+             std::complex<double> (7.529090987797448e-03 , -1.698662423589999e+01), 
+             std::complex<double> (6.439158240058465e-04 , -5.009045346064647e+00), 
+             std::complex<double> (2.611935108885642e-05 , -2.139547045657126e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 10;
+            int m = 2;
+            double b = 1.290985308157311e+06;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.580972615908010e+06 , 1.203561258897960e+06), 
+             std::complex<double> (-1.278275496987531e+05 , 5.503393895202582e+05), 
+             std::complex<double> (-6.698848876743868e+03 , 1.291650688368753e+05), 
+             std::complex<double> (-3.418913221857892e+02 , 2.921746870195993e+04), 
+             std::complex<double> (-1.742544928216568e+01 , 6.596580351519240e+03), 
+             std::complex<double> (-8.880680791697854e-01 , 1.489201251999560e+03), 
+             std::complex<double> (-4.525215306773906e-02 , 3.361928044929759e+02), 
+             std::complex<double> (-2.298812720870707e-03 , 7.590558678879101e+01), 
+             std::complex<double> (-1.100909893889450e-04 , 1.716220242977646e+01), 
+             std::complex<double> (-2.289831112613212e-06 , 3.360647540251634e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (8.701120180884706e+05 , 2.402813672182368e+05), 
+             std::complex<double> (1.175901570695602e+05 , -2.394756773944366e+05), 
+             std::complex<double> (6.337463238907602e+03 , -6.093413403216130e+04), 
+             std::complex<double> (3.239120631959876e+02 , -1.383859994824320e+04), 
+             std::complex<double> (1.651030185618987e+01 , -3.125047689860075e+03), 
+             std::complex<double> (8.414388270961817e-01 , -7.054973718325768e+02), 
+             std::complex<double> (4.288318148496536e-02 , -1.592667565848489e+02), 
+             std::complex<double> (2.185485516150124e-03 , -3.595060328223087e+01), 
+             std::complex<double> (1.110150185677044e-04 , -8.117993876151560e+00), 
+             std::complex<double> (3.870864037752220e-06 , -2.371501741456056e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -20939,94 +20939,41 @@
         { 
             int np = 15;
             int m = 2;
-            double b = 2.166546948895497e+06;
+            double b = 2.635002559079762e+02;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-3.385879641866369e+06 , 1.726210205061707e+06), 
-             std::complex<double> (-7.922212469180174e+05 , 1.658903021713648e+06), 
-             std::complex<double> (-1.154176033095820e+05 , 6.921301461044513e+05), 
-             std::complex<double> (-1.553772831992236e+04 , 2.569858018791626e+05), 
-             std::complex<double> (-2.069069447518909e+03 , 9.392688282197727e+04), 
-             std::complex<double> (-2.751255803032834e+02 , 3.425777964848087e+04), 
-             std::complex<double> (-3.657655141499721e+01 , 1.249129065893094e+04), 
-             std::complex<double> (-4.862534038900822e+00 , 4.554486110796908e+03), 
-             std::complex<double> (-6.464213496231945e-01 , 1.660618643218002e+03), 
-             std::complex<double> (-8.592669116100400e-02 , 6.054867959546815e+02), 
-             std::complex<double> (-1.141395426989474e-02 , 2.207869595142982e+02), 
-             std::complex<double> (-1.508164195324225e-03 , 8.055575273372025e+01), 
-             std::complex<double> (-1.913738517796651e-04 , 2.951522815522122e+01), 
-             std::complex<double> (-1.774919765884570e-05 , 1.101184090070446e+01), 
-             std::complex<double> (-2.636634171792006e-07 , 3.161572777755021e+00), 
+             std::complex<double> (-5.114065966622117e+02 , 8.936507958623726e+01), 
+             std::complex<double> (-4.062268650550005e+02 , 2.217612088065892e+02), 
+             std::complex<double> (-2.679562277212592e+02 , 2.639459577395004e+02), 
+             std::complex<double> (-1.558649586430436e+02 , 2.412763662304596e+02), 
+             std::complex<double> (-8.403314427814890e+01 , 1.940707686957161e+02), 
+             std::complex<double> (-4.332772177203707e+01 , 1.464156872544164e+02), 
+             std::complex<double> (-2.168279729232532e+01 , 1.070573072146486e+02), 
+             std::complex<double> (-1.053793311572390e+01 , 7.721260254532646e+01), 
+             std::complex<double> (-4.887168088158905e+00 , 5.553087645137526e+01), 
+             std::complex<double> (-2.038222987249636e+00 , 4.020387551153076e+01), 
+             std::complex<double> (-6.288661726578217e-01 , 2.961642336847731e+01), 
+             std::complex<double> (-8.439255346704523e-02 , 2.211157840630456e+01), 
+             std::complex<double> (-2.315587080161116e-03 , 1.571023862887294e+01), 
+             std::complex<double> (-7.859026601898820e-06 , 9.424784108720845e+00), 
+             std::complex<double> (-1.309314700314198e-09 , 3.141592654510955e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (9.635623239800008e+05 , 6.993662871740375e+05), 
-             std::complex<double> (4.565627974088923e+05 , -3.690014177845073e+05), 
-             std::complex<double> (7.306277918570081e+04 , -2.129776265811492e+05), 
-             std::complex<double> (9.960607732572666e+03 , -8.207047339297933e+04), 
-             std::complex<double> (1.328624427353701e+03 , -3.014229259682151e+04), 
-             std::complex<double> (1.767075335463783e+02 , -1.100082553212721e+04), 
-             std::complex<double> (2.349307381994124e+01 , -4.011534460335000e+03), 
-             std::complex<double> (3.123217856103624e+00 , -1.462673362452836e+03), 
-             std::complex<double> (4.152042060442371e-01 , -5.333068338400971e+02), 
-             std::complex<double> (5.519767866959679e-02 , -1.944471431488452e+02), 
-             std::complex<double> (7.338035018694221e-03 , -7.089113145949230e+01), 
-             std::complex<double> (9.755186371577616e-04 , -2.583037302487413e+01), 
-             std::complex<double> (1.296002154544079e-04 , -9.376270006378212e+00), 
-             std::complex<double> (1.604941909550027e-05 , -3.446970226546104e+00), 
-             std::complex<double> (5.421813582989691e-07 , -2.042299222653249e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 15;
-            int m = 2;
-            double b = 1.601767940704642e+05;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-2.703524319835728e+05 , 1.123075595283472e+05), 
-             std::complex<double> (-9.356434578914900e+04 , 1.445897671219019e+05), 
-             std::complex<double> (-2.065312922187001e+04 , 7.823439465627717e+04), 
-             std::complex<double> (-4.079526205677131e+03 , 3.572944274484625e+04), 
-             std::complex<double> (-7.878027820667667e+02 , 1.578346927723723e+04), 
-             std::complex<double> (-1.514669122122054e+02 , 6.927706044029221e+03), 
-             std::complex<double> (-2.909703958808262e+01 , 3.036969796221203e+03), 
-             std::complex<double> (-5.588538408212697e+00 , 1.331036389659291e+03), 
-             std::complex<double> (-1.073189797099922e+00 , 5.833472157869685e+02), 
-             std::complex<double> (-2.059454462438908e-01 , 2.556817422155146e+02), 
-             std::complex<double> (-3.937860304792234e-02 , 1.121179493277981e+02), 
-             std::complex<double> (-7.387205093537825e-03 , 4.928300299709128e+01), 
-             std::complex<double> (-1.246295164609699e-03 , 2.191396271182843e+01), 
-             std::complex<double> (-1.159700831130521e-04 , 9.965604514487502e+00), 
-             std::complex<double> (-9.355796827656802e-07 , 3.145038541211152e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (5.350042922869226e+04 , 5.328211658562325e+04), 
-             std::complex<double> (4.100212181764019e+04 , -1.841505731653905e+04), 
-             std::complex<double> (1.047334334363492e+04 , -1.845416745864924e+04), 
-             std::complex<double> (2.128119871225179e+03 , -9.197792120560949e+03), 
-             std::complex<double> (4.132087648398298e+02 , -4.128963256574471e+03), 
-             std::complex<double> (7.952887758707516e+01 , -1.817850196095971e+03), 
-             std::complex<double> (1.528079074130672e+01 , -7.973766736195694e+02), 
-             std::complex<double> (2.935119059861098e+00 , -3.495090168341490e+02), 
-             std::complex<double> (5.637395684940451e-01 , -1.531744583664404e+02), 
-             std::complex<double> (1.082744804936059e-01 , -6.712182572379126e+01), 
-             std::complex<double> (2.079565354768343e-02 , -2.939924269841751e+01), 
-             std::complex<double> (3.993955855684405e-03 , -1.284649312230424e+01), 
-             std::complex<double> (7.634114708543606e-04 , -5.562647550836926e+00), 
-             std::complex<double> (1.146407092880542e-04 , -2.572673341944408e+00), 
-             std::complex<double> (2.184467006656409e-06 , -2.008216560524396e+00), 
+             std::complex<double> (1.945281468416921e+01 , 5.407265327360384e+01), 
+             std::complex<double> (4.306123267366677e+01 , 2.781158521875630e+01), 
+             std::complex<double> (4.168085348003856e+01 , 7.827216221003346e-01), 
+             std::complex<double> (2.910231099008997e+01 , -1.292226320855806e+01), 
+             std::complex<double> (1.722113834643294e+01 , -1.588039862394899e+01), 
+             std::complex<double> (9.359133482356702e+00 , -1.404048337348538e+01), 
+             std::complex<double> (4.871289478653694e+00 , -1.097661233897070e+01), 
+             std::complex<double> (2.481899557929571e+00 , -8.104760341445957e+00), 
+             std::complex<double> (1.253008775579792e+00 , -5.797195381904102e+00), 
+             std::complex<double> (6.305089163750802e-01 , -4.045004019026272e+00), 
+             std::complex<double> (2.940170968520652e-01 , -2.777421793167176e+00), 
+             std::complex<double> (7.221298359039841e-02 , -2.119243333659646e+00), 
+             std::complex<double> (3.370262932733660e-03 , -2.003530196218343e+00), 
+             std::complex<double> (1.731008268421628e-05 , -2.000013858491859e+00), 
+             std::complex<double> (4.615440311858388e-09 , -2.000000003262454e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -21098,41 +21045,94 @@
         { 
             int np = 15;
             int m = 2;
-            double b = 2.635002559079762e+02;
+            double b = 1.601767940704642e+05;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-5.114065966622117e+02 , 8.936507958623726e+01), 
-             std::complex<double> (-4.062268650550005e+02 , 2.217612088065892e+02), 
-             std::complex<double> (-2.679562277212592e+02 , 2.639459577395004e+02), 
-             std::complex<double> (-1.558649586430436e+02 , 2.412763662304596e+02), 
-             std::complex<double> (-8.403314427814890e+01 , 1.940707686957161e+02), 
-             std::complex<double> (-4.332772177203707e+01 , 1.464156872544164e+02), 
-             std::complex<double> (-2.168279729232532e+01 , 1.070573072146486e+02), 
-             std::complex<double> (-1.053793311572390e+01 , 7.721260254532646e+01), 
-             std::complex<double> (-4.887168088158905e+00 , 5.553087645137526e+01), 
-             std::complex<double> (-2.038222987249636e+00 , 4.020387551153076e+01), 
-             std::complex<double> (-6.288661726578217e-01 , 2.961642336847731e+01), 
-             std::complex<double> (-8.439255346704523e-02 , 2.211157840630456e+01), 
-             std::complex<double> (-2.315587080161116e-03 , 1.571023862887294e+01), 
-             std::complex<double> (-7.859026601898820e-06 , 9.424784108720845e+00), 
-             std::complex<double> (-1.309314700314198e-09 , 3.141592654510955e+00), 
+             std::complex<double> (-2.703524319835728e+05 , 1.123075595283472e+05), 
+             std::complex<double> (-9.356434578914900e+04 , 1.445897671219019e+05), 
+             std::complex<double> (-2.065312922187001e+04 , 7.823439465627717e+04), 
+             std::complex<double> (-4.079526205677131e+03 , 3.572944274484625e+04), 
+             std::complex<double> (-7.878027820667667e+02 , 1.578346927723723e+04), 
+             std::complex<double> (-1.514669122122054e+02 , 6.927706044029221e+03), 
+             std::complex<double> (-2.909703958808262e+01 , 3.036969796221203e+03), 
+             std::complex<double> (-5.588538408212697e+00 , 1.331036389659291e+03), 
+             std::complex<double> (-1.073189797099922e+00 , 5.833472157869685e+02), 
+             std::complex<double> (-2.059454462438908e-01 , 2.556817422155146e+02), 
+             std::complex<double> (-3.937860304792234e-02 , 1.121179493277981e+02), 
+             std::complex<double> (-7.387205093537825e-03 , 4.928300299709128e+01), 
+             std::complex<double> (-1.246295164609699e-03 , 2.191396271182843e+01), 
+             std::complex<double> (-1.159700831130521e-04 , 9.965604514487502e+00), 
+             std::complex<double> (-9.355796827656802e-07 , 3.145038541211152e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (1.945281468416921e+01 , 5.407265327360384e+01), 
-             std::complex<double> (4.306123267366677e+01 , 2.781158521875630e+01), 
-             std::complex<double> (4.168085348003856e+01 , 7.827216221003346e-01), 
-             std::complex<double> (2.910231099008997e+01 , -1.292226320855806e+01), 
-             std::complex<double> (1.722113834643294e+01 , -1.588039862394899e+01), 
-             std::complex<double> (9.359133482356702e+00 , -1.404048337348538e+01), 
-             std::complex<double> (4.871289478653694e+00 , -1.097661233897070e+01), 
-             std::complex<double> (2.481899557929571e+00 , -8.104760341445957e+00), 
-             std::complex<double> (1.253008775579792e+00 , -5.797195381904102e+00), 
-             std::complex<double> (6.305089163750802e-01 , -4.045004019026272e+00), 
-             std::complex<double> (2.940170968520652e-01 , -2.777421793167176e+00), 
-             std::complex<double> (7.221298359039841e-02 , -2.119243333659646e+00), 
-             std::complex<double> (3.370262932733660e-03 , -2.003530196218343e+00), 
-             std::complex<double> (1.731008268421628e-05 , -2.000013858491859e+00), 
-             std::complex<double> (4.615440311858388e-09 , -2.000000003262454e+00), 
+             std::complex<double> (5.350042922869226e+04 , 5.328211658562325e+04), 
+             std::complex<double> (4.100212181764019e+04 , -1.841505731653905e+04), 
+             std::complex<double> (1.047334334363492e+04 , -1.845416745864924e+04), 
+             std::complex<double> (2.128119871225179e+03 , -9.197792120560949e+03), 
+             std::complex<double> (4.132087648398298e+02 , -4.128963256574471e+03), 
+             std::complex<double> (7.952887758707516e+01 , -1.817850196095971e+03), 
+             std::complex<double> (1.528079074130672e+01 , -7.973766736195694e+02), 
+             std::complex<double> (2.935119059861098e+00 , -3.495090168341490e+02), 
+             std::complex<double> (5.637395684940451e-01 , -1.531744583664404e+02), 
+             std::complex<double> (1.082744804936059e-01 , -6.712182572379126e+01), 
+             std::complex<double> (2.079565354768343e-02 , -2.939924269841751e+01), 
+             std::complex<double> (3.993955855684405e-03 , -1.284649312230424e+01), 
+             std::complex<double> (7.634114708543606e-04 , -5.562647550836926e+00), 
+             std::complex<double> (1.146407092880542e-04 , -2.572673341944408e+00), 
+             std::complex<double> (2.184467006656409e-06 , -2.008216560524396e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 15;
+            int m = 2;
+            double b = 2.166546948895497e+06;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-3.385879641866369e+06 , 1.726210205061707e+06), 
+             std::complex<double> (-7.922212469180174e+05 , 1.658903021713648e+06), 
+             std::complex<double> (-1.154176033095820e+05 , 6.921301461044513e+05), 
+             std::complex<double> (-1.553772831992236e+04 , 2.569858018791626e+05), 
+             std::complex<double> (-2.069069447518909e+03 , 9.392688282197727e+04), 
+             std::complex<double> (-2.751255803032834e+02 , 3.425777964848087e+04), 
+             std::complex<double> (-3.657655141499721e+01 , 1.249129065893094e+04), 
+             std::complex<double> (-4.862534038900822e+00 , 4.554486110796908e+03), 
+             std::complex<double> (-6.464213496231945e-01 , 1.660618643218002e+03), 
+             std::complex<double> (-8.592669116100400e-02 , 6.054867959546815e+02), 
+             std::complex<double> (-1.141395426989474e-02 , 2.207869595142982e+02), 
+             std::complex<double> (-1.508164195324225e-03 , 8.055575273372025e+01), 
+             std::complex<double> (-1.913738517796651e-04 , 2.951522815522122e+01), 
+             std::complex<double> (-1.774919765884570e-05 , 1.101184090070446e+01), 
+             std::complex<double> (-2.636634171792006e-07 , 3.161572777755021e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (9.635623239800008e+05 , 6.993662871740375e+05), 
+             std::complex<double> (4.565627974088923e+05 , -3.690014177845073e+05), 
+             std::complex<double> (7.306277918570081e+04 , -2.129776265811492e+05), 
+             std::complex<double> (9.960607732572666e+03 , -8.207047339297933e+04), 
+             std::complex<double> (1.328624427353701e+03 , -3.014229259682151e+04), 
+             std::complex<double> (1.767075335463783e+02 , -1.100082553212721e+04), 
+             std::complex<double> (2.349307381994124e+01 , -4.011534460335000e+03), 
+             std::complex<double> (3.123217856103624e+00 , -1.462673362452836e+03), 
+             std::complex<double> (4.152042060442371e-01 , -5.333068338400971e+02), 
+             std::complex<double> (5.519767866959679e-02 , -1.944471431488452e+02), 
+             std::complex<double> (7.338035018694221e-03 , -7.089113145949230e+01), 
+             std::complex<double> (9.755186371577616e-04 , -2.583037302487413e+01), 
+             std::complex<double> (1.296002154544079e-04 , -9.376270006378212e+00), 
+             std::complex<double> (1.604941909550027e-05 , -3.446970226546104e+00), 
+             std::complex<double> (5.421813582989691e-07 , -2.042299222653249e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -21151,177 +21151,51 @@
         { 
             int np = 20;
             int m = 2;
-            double b = 1.094344975543047e+07;
+            double b = 1.510880363666204e+03;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-1.843340376824855e+07 , 7.706592728737802e+06), 
-             std::complex<double> (-6.310869391131245e+06 , 9.840582271795252e+06), 
-             std::complex<double> (-1.376419175767611e+06 , 5.283211086231250e+06), 
-             std::complex<double> (-2.688884224216870e+05 , 2.398035423845490e+06), 
-             std::complex<double> (-5.137710500981526e+04 , 1.053541628178468e+06), 
-             std::complex<double> (-9.775012002737843e+03 , 4.599845946876111e+05), 
-             std::complex<double> (-1.858286238681387e+03 , 2.005951131898834e+05), 
-             std::complex<double> (-3.532164486406742e+02 , 8.745801132727422e+04), 
-             std::complex<double> (-6.713615726438483e+01 , 3.812942507138038e+04), 
-             std::complex<double> (-1.276055454167964e+01 , 1.662330568924942e+04), 
-             std::complex<double> (-2.425391136915597e+00 , 7.247261002033346e+03), 
-             std::complex<double> (-4.609905141385088e-01 , 3.159588607322258e+03), 
-             std::complex<double> (-8.761771661289432e-02 , 1.377490100893101e+03), 
-             std::complex<double> (-1.665091004308733e-02 , 6.005559175283905e+02), 
-             std::complex<double> (-3.162279819539571e-03 , 2.618516648008789e+02), 
-             std::complex<double> (-5.985018100927118e-04 , 1.142223461855365e+02), 
-             std::complex<double> (-1.112076804732382e-04 , 4.994066120095570e+01), 
-             std::complex<double> (-1.863718554027241e-05 , 2.208159867595298e+01), 
-             std::complex<double> (-1.741486416532828e-06 , 9.986633955836457e+00), 
-             std::complex<double> (-1.437803566715412e-08 , 3.145258673585706e+00), 
+             std::complex<double> (-2.927141208542207e+03 , 5.106538085828216e+02), 
+             std::complex<double> (-2.325981028895545e+03 , 1.267125509004393e+03), 
+             std::complex<double> (-1.535688008522509e+03 , 1.507944389415590e+03), 
+             std::complex<double> (-8.950254109695736e+02 , 1.378003992149494e+03), 
+             std::complex<double> (-4.844699425090780e+02 , 1.107700097778699e+03), 
+             std::complex<double> (-2.518230561807228e+02 , 8.346384901737318e+02), 
+             std::complex<double> (-1.281252156642089e+02 , 6.087211109238522e+02), 
+             std::complex<double> (-6.445609392413515e+01 , 4.367766010645107e+02), 
+             std::complex<double> (-3.221675285006782e+01 , 3.108944876292850e+02), 
+             std::complex<double> (-1.602547749921077e+01 , 2.204618540587877e+02), 
+             std::complex<double> (-7.927018945924983e+00 , 1.561190466467564e+02), 
+             std::complex<double> (-3.884381939842143e+00 , 1.105899675614983e+02), 
+             std::complex<double> (-1.867880188187992e+00 , 7.850932135841815e+01), 
+             std::complex<double> (-8.615654932368548e-01 , 5.602289474000054e+01), 
+             std::complex<double> (-3.582812215974934e-01 , 4.040488905038147e+01), 
+             std::complex<double> (-1.106217794879829e-01 , 2.970136723593025e+01), 
+             std::complex<double> (-1.512926250933984e-02 , 2.213131238487415e+01), 
+             std::complex<double> (-4.354708159150232e-04 , 1.571106968396146e+01), 
+             std::complex<double> (-1.546488206167689e-06 , 9.424787610884120e+00), 
+             std::complex<double> (-2.653887044152492e-10 , 3.141592655157290e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (3.690251956475755e+06 , 3.641952140790702e+06), 
-             std::complex<double> (2.790426848799685e+06 , -1.280800826922408e+06), 
-             std::complex<double> (7.030168549697653e+05 , -1.257643244584517e+06), 
-             std::complex<double> (1.411886485631274e+05 , -6.216677669302863e+05), 
-             std::complex<double> (2.711976968446797e+04 , -2.773984519972565e+05), 
-             std::complex<double> (5.164982872229454e+03 , -1.214699096563232e+05), 
-             std::complex<double> (9.820801364308887e+02 , -5.300140666708574e+04), 
-             std::complex<double> (1.866770648156537e+02 , -2.311067112948131e+04), 
-             std::complex<double> (3.548211742885658e+01 , -1.007585568270761e+04), 
-             std::complex<double> (6.744088373584011e+00 , -4.392792697917959e+03), 
-             std::complex<double> (1.281846600307488e+00 , -1.915126280273689e+03), 
-             std::complex<double> (2.436400520924584e-01 , -8.349365756215076e+02), 
-             std::complex<double> (4.630856000365761e-02 , -3.640056707263396e+02), 
-             std::complex<double> (8.801847957688942e-03 , -1.586922720759284e+02), 
-             std::complex<double> (1.672963434280613e-03 , -6.917776119705825e+01), 
-             std::complex<double> (3.179793311526134e-04 , -3.014283286278016e+01), 
-             std::complex<double> (6.043608081467732e-05 , -1.310436867180438e+01), 
-             std::complex<double> (1.143526225643599e-05 , -5.646412859723841e+00), 
-             std::complex<double> (1.714068815178379e-06 , -2.591754571863651e+00), 
-             std::complex<double> (3.344087840258191e-08 , -2.008710099030617e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 20;
-            int m = 2;
-            double b = 2.017713616400269e+06;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-3.513344352983811e+06 , 1.309314866250858e+06), 
-             std::complex<double> (-1.441997872322787e+06 , 1.921064125313279e+06), 
-             std::complex<double> (-3.866462132480044e+05 , 1.182195672718637e+06), 
-             std::complex<double> (-9.140064554676184e+04 , 5.978009732383400e+05), 
-             std::complex<double> (-2.095264501593017e+04 , 2.887879885537566e+05), 
-             std::complex<double> (-4.769195697278365e+03 , 1.380585697064890e+05), 
-             std::complex<double> (-1.083797998470479e+03 , 6.584383610131998e+04), 
-             std::complex<double> (-2.462020598654694e+02 , 3.138573301310041e+04), 
-             std::complex<double> (-5.592404878843604e+01 , 1.495877903690297e+04), 
-             std::complex<double> (-1.270272338377913e+01 , 7.129317781697649e+03), 
-             std::complex<double> (-2.885301920713309e+00 , 3.397796128974548e+03), 
-             std::complex<double> (-6.553551740698245e-01 , 1.619374189762830e+03), 
-             std::complex<double> (-1.488416738066650e-01 , 7.717953298672829e+02), 
-             std::complex<double> (-3.379145712496281e-02 , 3.678576953499330e+02), 
-             std::complex<double> (-7.658782225027643e-03 , 1.753710201919258e+02), 
-             std::complex<double> (-1.722960623943232e-03 , 8.369042250538658e+01), 
-             std::complex<double> (-3.746827891786966e-04 , 4.011401309500958e+01), 
-             std::complex<double> (-6.898404003858887e-05 , 1.955789105661458e+01), 
-             std::complex<double> (-5.700188323553038e-06 , 9.692098428416061e+00), 
-             std::complex<double> (-3.004041861052978e-08 , 3.142707342514222e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (5.702461395212540e+05 , 6.588271925886495e+05), 
-             std::complex<double> (5.407969321635104e+05 , -1.572635932487692e+05), 
-             std::complex<double> (1.730983776389920e+05 , -2.363231333492580e+05), 
-             std::complex<double> (4.261051037490748e+04 , -1.360884057135358e+05), 
-             std::complex<double> (9.858535159363310e+03 , -6.758191296856185e+04), 
-             std::complex<double> (2.248688258417920e+03 , -3.250864819868572e+04), 
-             std::complex<double> (5.112570644978483e+02 , -1.552595825450053e+04), 
-             std::complex<double> (1.161527984543761e+02 , -7.403098068133852e+03), 
-             std::complex<double> (2.638441102246710e+01 , -3.528650667788154e+03), 
-             std::complex<double> (5.993060094777460e+00 , -1.681773289946056e+03), 
-             std::complex<double> (1.361275769354281e+00 , -8.015261931489052e+02), 
-             std::complex<double> (3.092023205184201e-01 , -3.820013851445188e+02), 
-             std::complex<double> (7.023267030014961e-02 , -1.820566517998944e+02), 
-             std::complex<double> (1.595275082353307e-02 , -8.676114496760820e+01), 
-             std::complex<double> (3.623532170723744e-03 , -4.133745880859607e+01), 
-             std::complex<double> (8.230585301372153e-04 , -1.967543159501197e+01), 
-             std::complex<double> (1.869399833383931e-04 , -9.325199391087438e+00), 
-             std::complex<double> (4.186515468561719e-05 , -4.370117040865639e+00), 
-             std::complex<double> (6.147897251077524e-06 , -2.311820447484295e+00), 
-             std::complex<double> (7.477918316363095e-08 , -2.002820348497667e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 20;
-            int m = 2;
-            double b = 1.069717540448873e+05;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.959655367138746e+05 , 5.745751043909320e+04), 
-             std::complex<double> (-1.082740367096186e+05 , 1.063897037408112e+05), 
-             std::complex<double> (-4.198433931434520e+04 , 8.468822249692281e+04), 
-             std::complex<double> (-1.405697423969717e+04 , 5.285732932751087e+04), 
-             std::complex<double> (-4.473794332008163e+03 , 3.052971270797111e+04), 
-             std::complex<double> (-1.400791782253232e+03 , 1.720882170413647e+04), 
-             std::complex<double> (-4.363590151123119e+02 , 9.626645027053943e+03), 
-             std::complex<double> (-1.357121813956949e+02 , 5.372427007557712e+03), 
-             std::complex<double> (-4.218658961763070e+01 , 2.996034573285604e+03), 
-             std::complex<double> (-1.311150263458092e+01 , 1.670418439345865e+03), 
-             std::complex<double> (-4.074518391506804e+00 , 9.312747116316690e+02), 
-             std::complex<double> (-1.265861664979148e+00 , 5.192024495356003e+02), 
-             std::complex<double> (-3.929599751562658e-01 , 2.894970264151671e+02), 
-             std::complex<double> (-1.216724824424809e-01 , 1.614789660905933e+02), 
-             std::complex<double> (-3.735891695711960e-02 , 9.018175810892765e+01), 
-             std::complex<double> (-1.115298673243625e-02 , 5.056121144817830e+01), 
-             std::complex<double> (-3.007072028933906e-03 , 2.869171048694175e+01), 
-             std::complex<double> (-5.376108560072794e-04 , 1.674248149639425e+01), 
-             std::complex<double> (-2.390396050194380e-05 , 9.459017768247080e+00), 
-             std::complex<double> (-4.255114254655321e-08 , 3.141643914629745e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (2.031064741891039e+04 , 3.165835297690931e+04), 
-             std::complex<double> (2.807761526179717e+04 , 4.929726536221493e+02), 
-             std::complex<double> (1.396364875411875e+04 , -1.062205355878130e+04), 
-             std::complex<double> (5.049921187189751e+03 , -8.822916548341604e+03), 
-             std::complex<double> (1.646266432090366e+03 , -5.496538220861484e+03), 
-             std::complex<double> (5.193299461116089e+02 , -3.168863148169208e+03), 
-             std::complex<double> (1.621523465312370e+02 , -1.784966835870925e+03), 
-             std::complex<double> (5.046766447557334e+01 , -9.982859239650902e+02), 
-             std::complex<double> (1.569173429813937e+01 , -5.570811086742511e+02), 
-             std::complex<double> (4.877466861761349e+00 , -3.106576535387721e+02), 
-             std::complex<double> (1.515918844363814e+00 , -1.732000574990181e+02), 
-             std::complex<double> (4.711341767433641e-01 , -9.655376524215987e+01), 
-             std::complex<double> (1.464230204445247e-01 , -5.381830214752993e+01), 
-             std::complex<double> (4.550657708728133e-02 , -2.998626717088552e+01), 
-             std::complex<double> (1.414331365119132e-02 , -1.668711427648223e+01), 
-             std::complex<double> (4.396627657958475e-03 , -9.249929343129404e+00), 
-             std::complex<double> (1.364269292114220e-03 , -5.070294118840708e+00), 
-             std::complex<double> (3.728103157060478e-04 , -2.803521036589960e+00), 
-             std::complex<double> (3.314797149644424e-05 , -2.050438868294707e+00), 
-             std::complex<double> (1.202303182951202e-07 , -2.000146100753941e+00), 
+             std::complex<double> (1.111834864143358e+02 , 3.089808067753514e+02), 
+             std::complex<double> (2.461187480730546e+02 , 1.588750617806762e+02), 
+             std::complex<double> (2.382290027542898e+02 , 4.370527897657581e+00), 
+             std::complex<double> (1.663352309506400e+02 , -7.399339617669277e+01), 
+             std::complex<double> (9.842684359488585e+01 , -9.094989637795143e+01), 
+             std::complex<double> (5.348939252118156e+01 , -8.050606806339782e+01), 
+             std::complex<double> (2.783550262120055e+01 , -6.309981344466345e+01), 
+             std::complex<double> (1.417228302507842e+01 , -4.684001710946127e+01), 
+             std::complex<double> (7.137129022089970e+00 , -3.387951906643313e+01), 
+             std::complex<double> (3.574647928315040e+00 , -2.419122532916500e+01), 
+             std::complex<double> (1.785548941189774e+00 , -1.715527650070549e+01), 
+             std::complex<double> (8.907943095958681e-01 , -1.211180272374532e+01), 
+             std::complex<double> (4.443369402086432e-01 , -8.513795443379966e+00), 
+             std::complex<double> (2.219619650623886e-01 , -5.944411863209304e+00), 
+             std::complex<double> (1.110522843950140e-01 , -4.099195632842489e+00), 
+             std::complex<double> (5.151317985913287e-02 , -2.803878435380058e+00), 
+             std::complex<double> (1.277456133110521e-02 , -2.132757003019982e+00), 
+             std::complex<double> (6.266086797201381e-04 , -2.004658545693135e+00), 
+             std::complex<double> (3.387774389032928e-06 , -2.000021408739579e+00), 
+             std::complex<double> (9.336869462210888e-10 , -2.000000005527582e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -21403,51 +21277,177 @@
         { 
             int np = 20;
             int m = 2;
-            double b = 1.510880363666204e+03;
+            double b = 1.069717540448873e+05;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-2.927141208542207e+03 , 5.106538085828216e+02), 
-             std::complex<double> (-2.325981028895545e+03 , 1.267125509004393e+03), 
-             std::complex<double> (-1.535688008522509e+03 , 1.507944389415590e+03), 
-             std::complex<double> (-8.950254109695736e+02 , 1.378003992149494e+03), 
-             std::complex<double> (-4.844699425090780e+02 , 1.107700097778699e+03), 
-             std::complex<double> (-2.518230561807228e+02 , 8.346384901737318e+02), 
-             std::complex<double> (-1.281252156642089e+02 , 6.087211109238522e+02), 
-             std::complex<double> (-6.445609392413515e+01 , 4.367766010645107e+02), 
-             std::complex<double> (-3.221675285006782e+01 , 3.108944876292850e+02), 
-             std::complex<double> (-1.602547749921077e+01 , 2.204618540587877e+02), 
-             std::complex<double> (-7.927018945924983e+00 , 1.561190466467564e+02), 
-             std::complex<double> (-3.884381939842143e+00 , 1.105899675614983e+02), 
-             std::complex<double> (-1.867880188187992e+00 , 7.850932135841815e+01), 
-             std::complex<double> (-8.615654932368548e-01 , 5.602289474000054e+01), 
-             std::complex<double> (-3.582812215974934e-01 , 4.040488905038147e+01), 
-             std::complex<double> (-1.106217794879829e-01 , 2.970136723593025e+01), 
-             std::complex<double> (-1.512926250933984e-02 , 2.213131238487415e+01), 
-             std::complex<double> (-4.354708159150232e-04 , 1.571106968396146e+01), 
-             std::complex<double> (-1.546488206167689e-06 , 9.424787610884120e+00), 
-             std::complex<double> (-2.653887044152492e-10 , 3.141592655157290e+00), 
+             std::complex<double> (-1.959655367138746e+05 , 5.745751043909320e+04), 
+             std::complex<double> (-1.082740367096186e+05 , 1.063897037408112e+05), 
+             std::complex<double> (-4.198433931434520e+04 , 8.468822249692281e+04), 
+             std::complex<double> (-1.405697423969717e+04 , 5.285732932751087e+04), 
+             std::complex<double> (-4.473794332008163e+03 , 3.052971270797111e+04), 
+             std::complex<double> (-1.400791782253232e+03 , 1.720882170413647e+04), 
+             std::complex<double> (-4.363590151123119e+02 , 9.626645027053943e+03), 
+             std::complex<double> (-1.357121813956949e+02 , 5.372427007557712e+03), 
+             std::complex<double> (-4.218658961763070e+01 , 2.996034573285604e+03), 
+             std::complex<double> (-1.311150263458092e+01 , 1.670418439345865e+03), 
+             std::complex<double> (-4.074518391506804e+00 , 9.312747116316690e+02), 
+             std::complex<double> (-1.265861664979148e+00 , 5.192024495356003e+02), 
+             std::complex<double> (-3.929599751562658e-01 , 2.894970264151671e+02), 
+             std::complex<double> (-1.216724824424809e-01 , 1.614789660905933e+02), 
+             std::complex<double> (-3.735891695711960e-02 , 9.018175810892765e+01), 
+             std::complex<double> (-1.115298673243625e-02 , 5.056121144817830e+01), 
+             std::complex<double> (-3.007072028933906e-03 , 2.869171048694175e+01), 
+             std::complex<double> (-5.376108560072794e-04 , 1.674248149639425e+01), 
+             std::complex<double> (-2.390396050194380e-05 , 9.459017768247080e+00), 
+             std::complex<double> (-4.255114254655321e-08 , 3.141643914629745e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (1.111834864143358e+02 , 3.089808067753514e+02), 
-             std::complex<double> (2.461187480730546e+02 , 1.588750617806762e+02), 
-             std::complex<double> (2.382290027542898e+02 , 4.370527897657581e+00), 
-             std::complex<double> (1.663352309506400e+02 , -7.399339617669277e+01), 
-             std::complex<double> (9.842684359488585e+01 , -9.094989637795143e+01), 
-             std::complex<double> (5.348939252118156e+01 , -8.050606806339782e+01), 
-             std::complex<double> (2.783550262120055e+01 , -6.309981344466345e+01), 
-             std::complex<double> (1.417228302507842e+01 , -4.684001710946127e+01), 
-             std::complex<double> (7.137129022089970e+00 , -3.387951906643313e+01), 
-             std::complex<double> (3.574647928315040e+00 , -2.419122532916500e+01), 
-             std::complex<double> (1.785548941189774e+00 , -1.715527650070549e+01), 
-             std::complex<double> (8.907943095958681e-01 , -1.211180272374532e+01), 
-             std::complex<double> (4.443369402086432e-01 , -8.513795443379966e+00), 
-             std::complex<double> (2.219619650623886e-01 , -5.944411863209304e+00), 
-             std::complex<double> (1.110522843950140e-01 , -4.099195632842489e+00), 
-             std::complex<double> (5.151317985913287e-02 , -2.803878435380058e+00), 
-             std::complex<double> (1.277456133110521e-02 , -2.132757003019982e+00), 
-             std::complex<double> (6.266086797201381e-04 , -2.004658545693135e+00), 
-             std::complex<double> (3.387774389032928e-06 , -2.000021408739579e+00), 
-             std::complex<double> (9.336869462210888e-10 , -2.000000005527582e+00), 
+             std::complex<double> (2.031064741891039e+04 , 3.165835297690931e+04), 
+             std::complex<double> (2.807761526179717e+04 , 4.929726536221493e+02), 
+             std::complex<double> (1.396364875411875e+04 , -1.062205355878130e+04), 
+             std::complex<double> (5.049921187189751e+03 , -8.822916548341604e+03), 
+             std::complex<double> (1.646266432090366e+03 , -5.496538220861484e+03), 
+             std::complex<double> (5.193299461116089e+02 , -3.168863148169208e+03), 
+             std::complex<double> (1.621523465312370e+02 , -1.784966835870925e+03), 
+             std::complex<double> (5.046766447557334e+01 , -9.982859239650902e+02), 
+             std::complex<double> (1.569173429813937e+01 , -5.570811086742511e+02), 
+             std::complex<double> (4.877466861761349e+00 , -3.106576535387721e+02), 
+             std::complex<double> (1.515918844363814e+00 , -1.732000574990181e+02), 
+             std::complex<double> (4.711341767433641e-01 , -9.655376524215987e+01), 
+             std::complex<double> (1.464230204445247e-01 , -5.381830214752993e+01), 
+             std::complex<double> (4.550657708728133e-02 , -2.998626717088552e+01), 
+             std::complex<double> (1.414331365119132e-02 , -1.668711427648223e+01), 
+             std::complex<double> (4.396627657958475e-03 , -9.249929343129404e+00), 
+             std::complex<double> (1.364269292114220e-03 , -5.070294118840708e+00), 
+             std::complex<double> (3.728103157060478e-04 , -2.803521036589960e+00), 
+             std::complex<double> (3.314797149644424e-05 , -2.050438868294707e+00), 
+             std::complex<double> (1.202303182951202e-07 , -2.000146100753941e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 20;
+            int m = 2;
+            double b = 2.017713616400269e+06;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-3.513344352983811e+06 , 1.309314866250858e+06), 
+             std::complex<double> (-1.441997872322787e+06 , 1.921064125313279e+06), 
+             std::complex<double> (-3.866462132480044e+05 , 1.182195672718637e+06), 
+             std::complex<double> (-9.140064554676184e+04 , 5.978009732383400e+05), 
+             std::complex<double> (-2.095264501593017e+04 , 2.887879885537566e+05), 
+             std::complex<double> (-4.769195697278365e+03 , 1.380585697064890e+05), 
+             std::complex<double> (-1.083797998470479e+03 , 6.584383610131998e+04), 
+             std::complex<double> (-2.462020598654694e+02 , 3.138573301310041e+04), 
+             std::complex<double> (-5.592404878843604e+01 , 1.495877903690297e+04), 
+             std::complex<double> (-1.270272338377913e+01 , 7.129317781697649e+03), 
+             std::complex<double> (-2.885301920713309e+00 , 3.397796128974548e+03), 
+             std::complex<double> (-6.553551740698245e-01 , 1.619374189762830e+03), 
+             std::complex<double> (-1.488416738066650e-01 , 7.717953298672829e+02), 
+             std::complex<double> (-3.379145712496281e-02 , 3.678576953499330e+02), 
+             std::complex<double> (-7.658782225027643e-03 , 1.753710201919258e+02), 
+             std::complex<double> (-1.722960623943232e-03 , 8.369042250538658e+01), 
+             std::complex<double> (-3.746827891786966e-04 , 4.011401309500958e+01), 
+             std::complex<double> (-6.898404003858887e-05 , 1.955789105661458e+01), 
+             std::complex<double> (-5.700188323553038e-06 , 9.692098428416061e+00), 
+             std::complex<double> (-3.004041861052978e-08 , 3.142707342514222e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (5.702461395212540e+05 , 6.588271925886495e+05), 
+             std::complex<double> (5.407969321635104e+05 , -1.572635932487692e+05), 
+             std::complex<double> (1.730983776389920e+05 , -2.363231333492580e+05), 
+             std::complex<double> (4.261051037490748e+04 , -1.360884057135358e+05), 
+             std::complex<double> (9.858535159363310e+03 , -6.758191296856185e+04), 
+             std::complex<double> (2.248688258417920e+03 , -3.250864819868572e+04), 
+             std::complex<double> (5.112570644978483e+02 , -1.552595825450053e+04), 
+             std::complex<double> (1.161527984543761e+02 , -7.403098068133852e+03), 
+             std::complex<double> (2.638441102246710e+01 , -3.528650667788154e+03), 
+             std::complex<double> (5.993060094777460e+00 , -1.681773289946056e+03), 
+             std::complex<double> (1.361275769354281e+00 , -8.015261931489052e+02), 
+             std::complex<double> (3.092023205184201e-01 , -3.820013851445188e+02), 
+             std::complex<double> (7.023267030014961e-02 , -1.820566517998944e+02), 
+             std::complex<double> (1.595275082353307e-02 , -8.676114496760820e+01), 
+             std::complex<double> (3.623532170723744e-03 , -4.133745880859607e+01), 
+             std::complex<double> (8.230585301372153e-04 , -1.967543159501197e+01), 
+             std::complex<double> (1.869399833383931e-04 , -9.325199391087438e+00), 
+             std::complex<double> (4.186515468561719e-05 , -4.370117040865639e+00), 
+             std::complex<double> (6.147897251077524e-06 , -2.311820447484295e+00), 
+             std::complex<double> (7.477918316363095e-08 , -2.002820348497667e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 20;
+            int m = 2;
+            double b = 1.094344975543047e+07;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.843340376824855e+07 , 7.706592728737802e+06), 
+             std::complex<double> (-6.310869391131245e+06 , 9.840582271795252e+06), 
+             std::complex<double> (-1.376419175767611e+06 , 5.283211086231250e+06), 
+             std::complex<double> (-2.688884224216870e+05 , 2.398035423845490e+06), 
+             std::complex<double> (-5.137710500981526e+04 , 1.053541628178468e+06), 
+             std::complex<double> (-9.775012002737843e+03 , 4.599845946876111e+05), 
+             std::complex<double> (-1.858286238681387e+03 , 2.005951131898834e+05), 
+             std::complex<double> (-3.532164486406742e+02 , 8.745801132727422e+04), 
+             std::complex<double> (-6.713615726438483e+01 , 3.812942507138038e+04), 
+             std::complex<double> (-1.276055454167964e+01 , 1.662330568924942e+04), 
+             std::complex<double> (-2.425391136915597e+00 , 7.247261002033346e+03), 
+             std::complex<double> (-4.609905141385088e-01 , 3.159588607322258e+03), 
+             std::complex<double> (-8.761771661289432e-02 , 1.377490100893101e+03), 
+             std::complex<double> (-1.665091004308733e-02 , 6.005559175283905e+02), 
+             std::complex<double> (-3.162279819539571e-03 , 2.618516648008789e+02), 
+             std::complex<double> (-5.985018100927118e-04 , 1.142223461855365e+02), 
+             std::complex<double> (-1.112076804732382e-04 , 4.994066120095570e+01), 
+             std::complex<double> (-1.863718554027241e-05 , 2.208159867595298e+01), 
+             std::complex<double> (-1.741486416532828e-06 , 9.986633955836457e+00), 
+             std::complex<double> (-1.437803566715412e-08 , 3.145258673585706e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (3.690251956475755e+06 , 3.641952140790702e+06), 
+             std::complex<double> (2.790426848799685e+06 , -1.280800826922408e+06), 
+             std::complex<double> (7.030168549697653e+05 , -1.257643244584517e+06), 
+             std::complex<double> (1.411886485631274e+05 , -6.216677669302863e+05), 
+             std::complex<double> (2.711976968446797e+04 , -2.773984519972565e+05), 
+             std::complex<double> (5.164982872229454e+03 , -1.214699096563232e+05), 
+             std::complex<double> (9.820801364308887e+02 , -5.300140666708574e+04), 
+             std::complex<double> (1.866770648156537e+02 , -2.311067112948131e+04), 
+             std::complex<double> (3.548211742885658e+01 , -1.007585568270761e+04), 
+             std::complex<double> (6.744088373584011e+00 , -4.392792697917959e+03), 
+             std::complex<double> (1.281846600307488e+00 , -1.915126280273689e+03), 
+             std::complex<double> (2.436400520924584e-01 , -8.349365756215076e+02), 
+             std::complex<double> (4.630856000365761e-02 , -3.640056707263396e+02), 
+             std::complex<double> (8.801847957688942e-03 , -1.586922720759284e+02), 
+             std::complex<double> (1.672963434280613e-03 , -6.917776119705825e+01), 
+             std::complex<double> (3.179793311526134e-04 , -3.014283286278016e+01), 
+             std::complex<double> (6.043608081467732e-05 , -1.310436867180438e+01), 
+             std::complex<double> (1.143526225643599e-05 , -5.646412859723841e+00), 
+             std::complex<double> (1.714068815178379e-06 , -2.591754571863651e+00), 
+             std::complex<double> (3.344087840258191e-08 , -2.008710099030617e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -21466,1010 +21466,61 @@
         { 
             int np = 25;
             int m = 2;
-            double b = 3.867378956616377e+10;
+            double b = 3.769320093606350e+03;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-6.077320369364378e+10 , 3.059678380237500e+10), 
-             std::complex<double> (-1.460591138411945e+10 , 2.998846283807779e+10), 
-             std::complex<double> (-2.187022290547302e+09 , 1.272079536885996e+10), 
-             std::complex<double> (-3.019947565476583e+08 , 4.786854771686548e+09), 
-             std::complex<double> (-4.122599256073815e+07 , 1.771663032000535e+09), 
-             std::complex<double> (-5.619031450880168e+06 , 6.542260379070795e+08), 
-             std::complex<double> (-7.657004317265709e+05 , 2.415129232401696e+08), 
-             std::complex<double> (-1.043382765859096e+05 , 8.915272935196063e+07), 
-             std::complex<double> (-1.421761338798866e+04 , 3.290988926955791e+07), 
-             std::complex<double> (-1.937356333725410e+03 , 1.214836576612728e+07), 
-             std::complex<double> (-2.639929209504956e+02 , 4.484450672581832e+06), 
-             std::complex<double> (-3.597286697153279e+01 , 1.655391180191916e+06), 
-             std::complex<double> (-4.901825221181357e+00 , 6.110714899422112e+05), 
-             std::complex<double> (-6.679448315017542e-01 , 2.255710736027956e+05), 
-             std::complex<double> (-9.101717711898168e-02 , 8.326735923839128e+04), 
-             std::complex<double> (-1.240240937633931e-02 , 3.073733272919445e+04), 
-             std::complex<double> (-1.690006930054038e-03 , 1.134638663765282e+04), 
-             std::complex<double> (-2.302872728253521e-04 , 4.188408922003046e+03), 
-             std::complex<double> (-3.137932262441905e-05 , 1.546113204863072e+03), 
-             std::complex<double> (-4.275322047103569e-06 , 5.707405828619054e+02), 
-             std::complex<double> (-5.820414759643836e-07 , 2.107049456895719e+02), 
-             std::complex<double> (-7.878369771534275e-08 , 7.783799434035748e+01), 
-             std::complex<double> (-1.021345387634282e-08 , 2.888503208043884e+01), 
-             std::complex<double> (-9.547142584879242e-10 , 1.092131801702088e+01), 
-             std::complex<double> (-1.377894061757376e-11 , 3.159754212802467e+00), 
+             std::complex<double> (-7.349137635536470e+03 , 1.144610275291591e+03), 
+             std::complex<double> (-6.106209195403381e+03 , 2.945908606179457e+03), 
+             std::complex<double> (-4.343272122031992e+03 , 3.718881760554523e+03), 
+             std::complex<double> (-2.761819916629966e+03 , 3.627997699062357e+03), 
+             std::complex<double> (-1.633929200490645e+03 , 3.103261322358168e+03), 
+             std::complex<double> (-9.258825245736423e+02 , 2.472428695538470e+03), 
+             std::complex<double> (-5.119239934276529e+02 , 1.895259411566562e+03), 
+             std::complex<double> (-2.792039689110888e+02 , 1.422779869783170e+03), 
+             std::complex<double> (-1.511368189771692e+02 , 1.056118878267329e+03), 
+             std::complex<double> (-8.147004939085437e+01 , 7.792226459025721e+02), 
+             std::complex<double> (-4.380725551985272e+01 , 5.730792947877991e+02), 
+             std::complex<double> (-2.351419103912193e+01 , 4.207738280011841e+02), 
+             std::complex<double> (-1.259973001923183e+01 , 3.087117708799910e+02), 
+             std::complex<double> (-6.735100629379208e+00 , 2.264570621414299e+02), 
+             std::complex<double> (-3.585382823343307e+00 , 1.661789241917392e+02), 
+             std::complex<double> (-1.894006887673428e+00 , 1.220721982555267e+02), 
+             std::complex<double> (-9.855586380914142e-01 , 8.986395348198425e+01), 
+             std::complex<double> (-4.971788166440539e-01 , 6.642625967767339e+01), 
+             std::complex<double> (-2.339369550657568e-01 , 4.948374102186163e+01), 
+             std::complex<double> (-9.198207201044944e-02 , 3.738249144648803e+01), 
+             std::complex<double> (-2.195370938567570e-02 , 2.876801835231873e+01), 
+             std::complex<double> (-1.726212578816507e-03 , 2.201951166967633e+01), 
+             std::complex<double> (-2.604155477773438e-05 , 1.570831479203366e+01), 
+             std::complex<double> (-5.376690136381725e-08 , 9.424778617555379e+00), 
+             std::complex<double> (-5.719436824667930e-12 , 3.141592653656703e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (1.692123827916010e+10 , 1.254542897972015e+10), 
-             std::complex<double> (8.283262825530298e+09 , -6.486299976716513e+09), 
-             std::complex<double> (1.366304795103021e+09 , -3.856098788856364e+09), 
-             std::complex<double> (1.911953096040010e+08 , -1.509267032556283e+09), 
-             std::complex<double> (2.614798773212380e+07 , -5.615430484522009e+08), 
-             std::complex<double> (3.564808418811441e+06 , -2.075107131353775e+08), 
-             std::complex<double> (4.857896789660904e+05 , -7.661175394573624e+07), 
-             std::complex<double> (6.619650313517894e+04 , -2.828104430008595e+07), 
-             std::complex<double> (9.020245589203836e+03 , -1.043969968781972e+07), 
-             std::complex<double> (1.229139584856770e+03 , -3.853714624625777e+06), 
-             std::complex<double> (1.674881111582609e+02 , -1.422561194960687e+06), 
-             std::complex<double> (2.282268602571365e+01 , -5.251245778205775e+05), 
-             std::complex<double> (3.109922208626706e+00 , -1.938446103894729e+05), 
-             std::complex<double> (4.237720376404838e-01 , -7.155584509053650e+04), 
-             std::complex<double> (5.774509134515964e-02 , -2.641414147579403e+04), 
-             std::complex<double> (7.868606908817414e-03 , -9.750522352166572e+03), 
-             std::complex<double> (1.072211537678262e-03 , -3.599309987712317e+03), 
-             std::complex<double> (1.461043361598581e-04 , -1.328649790290224e+03), 
-             std::complex<double> (1.990881361665280e-05 , -4.904571604462841e+02), 
-             std::complex<double> (2.712842261234037e-06 , -1.810449373218616e+02), 
-             std::complex<double> (3.696608362272592e-07 , -6.682411872254279e+01), 
-             std::complex<double> (5.037080204457085e-08 , -2.464917947356721e+01), 
-             std::complex<double> (6.858622512117156e-09 , -9.055590449803987e+00), 
-             std::complex<double> (8.653130651466150e-10 , -3.375077256324674e+00), 
-             std::complex<double> (2.855449324229107e-11 , -2.038736577872309e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 1.767980261388775e+09;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-2.932655679354784e+09 , 1.284247920399536e+09), 
-             std::complex<double> (-9.259043230571325e+08 , 1.542328752657431e+09), 
-             std::complex<double> (-1.847767716302595e+08 , 7.820873231726789e+08), 
-             std::complex<double> (-3.326166069214310e+07 , 3.393297005108014e+08), 
-             std::complex<double> (-5.874197308565493e+06 , 1.431645022532985e+08), 
-             std::complex<double> (-1.033905861368113e+06 , 6.010389351872045e+07), 
-             std::complex<double> (-1.818670887732783e+05 , 2.521111837568082e+07), 
-             std::complex<double> (-3.198759615877932e+04 , 1.057341233012433e+07), 
-             std::complex<double> (-5.626017366237886e+03 , 4.434314977046109e+06), 
-             std::complex<double> (-9.895075693209335e+02 , 1.859669861954770e+06), 
-             std::complex<double> (-1.740351310589180e+02 , 7.799105689244438e+05), 
-             std::complex<double> (-3.060939068999734e+01 , 3.270797784793235e+05), 
-             std::complex<double> (-5.383595692458747e+00 , 1.371710847732878e+05), 
-             std::complex<double> (-9.468696199055263e-01 , 5.752696339250897e+04), 
-             std::complex<double> (-1.665359069650703e-01 , 2.412572263571203e+04), 
-             std::complex<double> (-2.929040576991615e-02 , 1.011787323094865e+04), 
-             std::complex<double> (-5.151596472610081e-03 , 4.243246538712087e+03), 
-             std::complex<double> (-9.060506689300735e-04 , 1.779541127851121e+03), 
-             std::complex<double> (-1.593420252114536e-04 , 7.463146315166932e+02), 
-             std::complex<double> (-2.801054687150691e-05 , 3.130109576506529e+02), 
-             std::complex<double> (-4.911889095193575e-06 , 1.313201614183852e+02), 
-             std::complex<double> (-8.492918922036244e-07 , 5.518980769577839e+01), 
-             std::complex<double> (-1.349971143507167e-07 , 2.340886474914185e+01), 
-             std::complex<double> (-1.288850676466663e-08 , 1.015828114798678e+01), 
-             std::complex<double> (-1.249074556375340e-10 , 3.147253059075107e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (6.381758991990042e+08 , 5.889233575065727e+08), 
-             std::complex<double> (4.364889293543850e+08 , -2.325231407979714e+08), 
-             std::complex<double> (9.936060296953343e+07 , -1.985396356749212e+08), 
-             std::complex<double> (1.830882242995034e+07 , -9.249438682146960e+07), 
-             std::complex<double> (3.246788914719936e+06 , -3.949836359824469e+07), 
-             std::complex<double> (5.718752561212354e+05 , -1.661745031779712e+07), 
-             std::complex<double> (1.006073689724109e+05 , -6.972928181302273e+06), 
-             std::complex<double> (1.769567036288116e+04 , -2.924600926924957e+06), 
-             std::complex<double> (3.112348327917191e+03 , -1.226543546410261e+06), 
-             std::complex<double> (5.474022145395021e+02 , -5.143907655510101e+05), 
-             std::complex<double> (9.627741187995788e+01 , -2.157258905768880e+05), 
-             std::complex<double> (1.693332237101915e+01 , -9.047137417366235e+04), 
-             std::complex<double> (2.978241635773591e+00 , -3.794198688127947e+04), 
-             std::complex<double> (5.238147035808129e-01 , -1.591215298501723e+04), 
-             std::complex<double> (9.212880486985725e-02 , -6.673256476615108e+03), 
-             std::complex<double> (1.620366190585845e-02 , -2.798637601312119e+03), 
-             std::complex<double> (2.849908244862314e-03 , -1.173695350699257e+03), 
-             std::complex<double> (5.012432452484116e-04 , -4.922246643761710e+02), 
-             std::complex<double> (8.815890249401233e-05 , -2.064273307158491e+02), 
-             std::complex<double> (1.550543416014607e-05 , -8.656600503326850e+01), 
-             std::complex<double> (2.727106346110066e-06 , -3.629056062550842e+01), 
-             std::complex<double> (4.796333355889154e-07 , -1.518793607690816e+01), 
-             std::complex<double> (8.411667129933547e-08 , -6.308038107375014e+00), 
-             std::complex<double> (1.232839497736220e-08 , -2.743980107230492e+00), 
-             std::complex<double> (2.823699846137673e-10 , -2.013099043213079e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 1.652235747470210e+08;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-2.846723006826614e+08 , 1.103262119615021e+08), 
-             std::complex<double> (-1.101745521898821e+08 , 1.547126323552420e+08), 
-             std::complex<double> (-2.759500506014759e+07 , 9.096121385542513e+07), 
-             std::complex<double> (-6.124478582229281e+06 , 4.436020178283665e+07), 
-             std::complex<double> (-1.322174627952584e+06 , 2.076466267252767e+07), 
-             std::complex<double> (-2.837234202331722e+05 , 9.634261835367033e+06), 
-             std::complex<double> (-6.080508321988305e+04 , 4.461580259382267e+06), 
-             std::complex<double> (-1.302759281475449e+04 , 2.065297138332049e+06), 
-             std::complex<double> (-2.791018174257961e+03 , 9.559574815322031e+05), 
-             std::complex<double> (-5.979372718073802e+02 , 4.424727314750738e+05), 
-             std::complex<double> (-1.280994903758838e+02 , 2.048013010982928e+05), 
-             std::complex<double> (-2.744346359050791e+01 , 9.479349591996644e+04), 
-             std::complex<double> (-5.879364366324149e+00 , 4.387572346506749e+04), 
-             std::complex<double> (-1.259568422780648e+00 , 2.030813450210310e+04), 
-             std::complex<double> (-2.698440906799862e-01 , 9.399739127143552e+03), 
-             std::complex<double> (-5.780999785020665e-02 , 4.350725892187787e+03), 
-             std::complex<double> (-1.238476568295157e-02 , 2.013763002010345e+03), 
-             std::complex<double> (-2.653066622690015e-03 , 9.320910185761129e+02), 
-             std::complex<double> (-5.681904106493250e-04 , 4.314434038509463e+02), 
-             std::complex<double> (-1.215356407006027e-04 , 1.997385331683443e+02), 
-             std::complex<double> (-2.584618280724964e-05 , 9.254166528875541e+01), 
-             std::complex<double> (-5.346081594905893e-06 , 4.302918264823252e+01), 
-             std::complex<double> (-9.593790903523458e-07 , 2.030895866732791e+01), 
-             std::complex<double> (-8.363793627475115e-08 , 9.774042277543659e+00), 
-             std::complex<double> (-5.174431041864318e-10 , 3.143296733062278e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (4.964920095470116e+07 , 5.443346978302167e+07), 
-             std::complex<double> (4.374305791163472e+07 , -1.513786104680932e+07), 
-             std::complex<double> (1.293038487943203e+07 , -1.934981401840410e+07), 
-             std::complex<double> (2.974296942773023e+06 , -1.056624352272299e+07), 
-             std::complex<double> (6.470544838033246e+05 , -5.060372986848258e+06), 
-             std::complex<double> (1.390793096384244e+05 , -2.359277228624903e+06), 
-             std::complex<double> (2.981676289467578e+04 , -1.093701092857774e+06), 
-             std::complex<double> (6.388775336217243e+03 , -5.063941820539886e+05), 
-             std::complex<double> (1.368746870901357e+03 , -2.344041809567730e+05), 
-             std::complex<double> (2.932362166060562e+02 , -1.084969936728278e+05), 
-             std::complex<double> (6.282170332442647e+01 , -5.021862881884091e+04), 
-             std::complex<double> (1.345864382797343e+01 , -2.324400076133422e+04), 
-             std::complex<double> (2.883319596899132e+00 , -1.075862254797321e+04), 
-             std::complex<double> (6.177094454714178e-01 , -4.979691095708837e+03), 
-             std::complex<double> (1.323352954808784e-01 , -2.304878789278241e+03), 
-             std::complex<double> (2.835091912773195e-02 , -1.066826080659305e+03), 
-             std::complex<double> (6.073773969700597e-03 , -4.937856256796169e+02), 
-             std::complex<double> (1.301218416290769e-03 , -2.285493189900311e+02), 
-             std::complex<double> (2.787673121752139e-04 , -1.057805639168893e+02), 
-             std::complex<double> (5.972191203728079e-05 , -4.895075262854895e+01), 
-             std::complex<double> (1.279459692542021e-05 , -2.263481099893045e+01), 
-             std::complex<double> (2.740932652981146e-06 , -1.043002305859359e+01), 
-             std::complex<double> (5.816028935902000e-07 , -4.754756830176578e+00), 
-             std::complex<double> (8.717280879770618e-08 , -2.392986873161238e+00), 
-             std::complex<double> (1.259211474614584e-09 , -2.004221935414873e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 2.532690578681951e+07;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-4.485855251667663e+07 , 1.559434905817375e+07), 
-             std::complex<double> (-2.028458634865906e+07 , 2.466653547890673e+07), 
-             std::complex<double> (-6.104811399024409e+06 , 1.642191258320905e+07), 
-             std::complex<double> (-1.606919213769642e+06 , 8.843821967464814e+06), 
-             std::complex<double> (-4.078531531727845e+05 , 4.510031034102946e+06), 
-             std::complex<double> (-1.025568407292848e+05 , 2.268481154538866e+06), 
-             std::complex<double> (-2.572793816316750e+04 , 1.137070996325078e+06), 
-             std::complex<double> (-6.450437731618684e+03 , 5.694596620402246e+05), 
-             std::complex<double> (-1.616996804271129e+03 , 2.851306011235656e+05), 
-             std::complex<double> (-4.053339989421064e+02 , 1.427581789642742e+05), 
-             std::complex<double> (-1.016044815887522e+02 , 7.147468177687380e+04), 
-             std::complex<double> (-2.546898656996068e+01 , 3.578507859020046e+04), 
-             std::complex<double> (-6.384253677279625e+00 , 1.791642507496807e+04), 
-             std::complex<double> (-1.600325198837434e+00 , 8.970170319483859e+03), 
-             std::complex<double> (-4.011484683363307e-01 , 4.491073548820071e+03), 
-             std::complex<double> (-1.005535105564264e-01 , 2.248538451018544e+03), 
-             std::complex<double> (-2.520404389470724e-02 , 1.125779086195757e+03), 
-             std::complex<double> (-6.316361410832303e-03 , 5.636595074497301e+02), 
-             std::complex<double> (-1.581827818295049e-03 , 2.822432614005124e+02), 
-             std::complex<double> (-3.950322996892122e-04 , 1.413845708842510e+02), 
-             std::complex<double> (-9.753921979638200e-05 , 7.093527042948136e+01), 
-             std::complex<double> (-2.296503065539771e-05 , 3.580815253088542e+01), 
-             std::complex<double> (-4.344331102989828e-06 , 1.845658665179792e+01), 
-             std::complex<double> (-3.161894954300827e-07 , 9.584244111689816e+00), 
-             std::complex<double> (-1.234329793473086e-09 , 3.142091104567090e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (6.401851326497968e+06 , 8.095001615585194e+06), 
-             std::complex<double> (6.859297924436153e+06 , -1.350153746361203e+06), 
-             std::complex<double> (2.515696021573704e+06 , -2.916002603762225e+06), 
-             std::complex<double> (6.959952505782511e+05 , -1.852004657654446e+06), 
-             std::complex<double> (1.788762416841343e+05 , -9.809166290685949e+05), 
-             std::complex<double> (4.512086164736761e+04 , -4.980000304495365e+05), 
-             std::complex<double> (1.132816840318087e+04 , -2.502014959046308e+05), 
-             std::complex<double> (2.840727818641510e+03 , -1.253769441634810e+05), 
-             std::complex<double> (7.121493584734540e+02 , -6.278585196461254e+04), 
-             std::complex<double> (1.785173153859296e+02 , -3.143654533669901e+04), 
-             std::complex<double> (4.474881452506213e+01 , -1.573946684005197e+04), 
-             std::complex<double> (1.121710276388816e+01 , -7.880263701584214e+03), 
-             std::complex<double> (2.811767162341049e+00 , -3.945393768471392e+03), 
-             std::complex<double> (7.048194552619181e-01 , -1.975329886139517e+03), 
-             std::complex<double> (1.766755228405779e-01 , -9.889826534762695e+02), 
-             std::complex<double> (4.428685900994399e-02 , -4.951502668855513e+02), 
-             std::complex<double> (1.110128792356559e-02 , -2.479034941959124e+02), 
-             std::complex<double> (2.782735147080057e-03 , -1.241130577412773e+02), 
-             std::complex<double> (6.975421393125956e-04 , -6.213112608684230e+01), 
-             std::complex<double> (1.748516072984516e-04 , -3.109062229748772e+01), 
-             std::complex<double> (4.383054944900958e-05 , -1.553354716832274e+01), 
-             std::complex<double> (1.098585293879195e-05 , -7.715176851384284e+00), 
-             std::complex<double> (2.677994895564640e-06 , -3.790763970489791e+00), 
-             std::complex<double> (3.647200633727070e-07 , -2.198773295698555e+00), 
-             std::complex<double> (3.194386060452414e-09 , -2.001307672244279e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 5.544898076864207e+06;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.002609980890299e+07 , 3.160209167152561e+06), 
-             std::complex<double> (-5.118501562828318e+06 , 5.497094676223950e+06), 
-             std::complex<double> (-1.791213622776857e+06 , 4.066282654151815e+06), 
-             std::complex<double> (-5.435137692224783e+05 , 2.386484029672952e+06), 
-             std::complex<double> (-1.577144567287188e+05 , 1.309001607657194e+06), 
-             std::complex<double> (-4.516940853951985e+04 , 7.041488679300844e+05), 
-             std::complex<double> (-1.288793394445529e+04 , 3.766791560520380e+05), 
-             std::complex<double> (-3.673292998230233e+03 , 2.011821279192351e+05), 
-             std::complex<double> (-1.046633925383539e+03 , 1.074016062626152e+05), 
-             std::complex<double> (-2.981920970195383e+02 , 5.732924080867106e+04), 
-             std::complex<double> (-8.495454567140933e+01 , 3.060029856596788e+04), 
-             std::complex<double> (-2.420326393147524e+01 , 1.633317477328620e+04), 
-             std::complex<double> (-6.895408857120517e+00 , 8.717948761504394e+03), 
-             std::complex<double> (-1.964466472173925e+00 , 4.653265450619026e+03), 
-             std::complex<double> (-5.596606841221657e-01 , 2.483715664955833e+03), 
-             std::complex<double> (-1.594372003932122e-01 , 1.325708780904054e+03), 
-             std::complex<double> (-4.541515286271827e-02 , 7.076234812664014e+02), 
-             std::complex<double> (-1.293073336466620e-02 , 3.777321098518221e+02), 
-             std::complex<double> (-3.676052262374842e-03 , 2.016797505364832e+02), 
-             std::complex<double> (-1.039423624394977e-03 , 1.077654749677000e+02), 
-             std::complex<double> (-2.882349530758460e-04 , 5.774033972624650e+01), 
-             std::complex<double> (-7.419907923414202e-05 , 3.122497845084447e+01), 
-             std::complex<double> (-1.391940971779196e-05 , 1.732451124662663e+01), 
-             std::complex<double> (-7.878771461676014e-07 , 9.494141891643114e+00), 
-             std::complex<double> (-1.968299363710694e-09 , 3.141735081105699e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.191295470326250e+06 , 1.702008686015660e+06), 
-             std::complex<double> (1.488761670258951e+06 , -1.063252048076552e+05), 
-             std::complex<double> (6.538718188084075e+05 , -5.981695165057027e+05), 
-             std::complex<double> (2.116812714528147e+05 , -4.406248411379426e+05), 
-             std::complex<double> (6.257183716366295e+04 , -2.558980243186552e+05), 
-             std::complex<double> (1.801537927643874e+04 , -1.398436426457292e+05), 
-             std::complex<double> (5.147962518016867e+03 , -7.514238353250042e+04), 
-             std::complex<double> (1.467890702366131e+03 , -4.018396083541004e+04), 
-             std::complex<double> (4.182981776172394e+02 , -2.146004827387551e+04), 
-             std::complex<double> (1.191797331436746e+02 , -1.145620308633133e+04), 
-             std::complex<double> (3.395449253052530e+01 , -6.115090245261643e+03), 
-             std::complex<double> (9.673550997198095e+00 , -3.264009351838906e+03), 
-             std::complex<double> (2.755959642223176e+00 , -1.742191874164765e+03), 
-             std::complex<double> (7.851620173567884e-01 , -9.299065042716626e+02), 
-             std::complex<double> (2.236894886488015e-01 , -4.963426948200848e+02), 
-             std::complex<double> (6.372822832602859e-02 , -2.649242145839163e+02), 
-             std::complex<double> (1.815591390779050e-02 , -1.414014281589783e+02), 
-             std::complex<double> (5.172546489847683e-03 , -7.546722122474711e+01), 
-             std::complex<double> (1.473638615976540e-03 , -4.026856729391694e+01), 
-             std::complex<double> (4.198379092446877e-04 , -2.147014017536402e+01), 
-             std::complex<double> (1.196216715652353e-04 , -1.141623593004148e+01), 
-             std::complex<double> (3.406515196956009e-05 , -6.017089152924379e+00), 
-             std::complex<double> (9.055559978888164e-06 , -3.158204500196164e+00), 
-             std::complex<double> (1.008667249298538e-06 , -2.095194761862561e+00), 
-             std::complex<double> (5.364430684081745e-09 , -2.000392276848490e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 1.582461574498143e+06;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-2.907075804495280e+06 , 8.381603087091710e+05), 
-             std::complex<double> (-1.634001450709266e+06 , 1.573236096829913e+06), 
-             std::complex<double> (-6.481945111191381e+05 , 1.273120040012515e+06), 
-             std::complex<double> (-2.218708611921907e+05 , 8.058443946504710e+05), 
-             std::complex<double> (-7.209133440994893e+04 , 4.709555467668507e+05), 
-             std::complex<double> (-2.302688958308514e+04 , 2.682820629772965e+05), 
-             std::complex<double> (-7.314845380342371e+03 , 1.515881939634075e+05), 
-             std::complex<double> (-2.319622523760162e+03 , 8.543119507728654e+04), 
-             std::complex<double> (-7.351722443070878e+02 , 4.810738041933499e+04), 
-             std::complex<double> (-2.329617693710550e+02 , 2.708283752806788e+04), 
-             std::complex<double> (-7.381692305476086e+01 , 1.524547298648565e+04), 
-             std::complex<double> (-2.338940469058382e+01 , 8.581760254172368e+03), 
-             std::complex<double> (-7.411032334520423e+00 , 4.830682043602524e+03), 
-             std::complex<double> (-2.348191402667750e+00 , 2.719192705117721e+03), 
-             std::complex<double> (-7.440043386251874e-01 , 1.530639923271575e+03), 
-             std::complex<double> (-2.357098428814943e-01 , 8.616123131971789e+02), 
-             std::complex<double> (-7.465429905341259e-02 , 4.850309094440976e+02), 
-             std::complex<double> (-2.362308303327609e-02 , 2.730774972363135e+02), 
-             std::complex<double> (-7.453581931343394e-03 , 1.538113815158709e+02), 
-             std::complex<double> (-2.330131387467641e-03 , 8.675151319314284e+01), 
-             std::complex<double> (-7.065596889720038e-04 , 4.913607539352810e+01), 
-             std::complex<double> (-1.920346812872231e-04 , 2.818825776481373e+01), 
-             std::complex<double> (-3.375259119311689e-05 , 1.663323083821144e+01), 
-             std::complex<double> (-1.409585250856134e-06 , 9.453485964587877e+00), 
-             std::complex<double> (-2.318360528765509e-09 , 3.141632582666794e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (2.918468413235057e+05 , 4.640486451952496e+05), 
-             std::complex<double> (4.124144637368025e+05 , 1.563308582704653e+04), 
-             std::complex<double> (2.108774597166502e+05 , -1.534094808921258e+05), 
-             std::complex<double> (7.820053129700478e+04 , -1.312484603393439e+05), 
-             std::complex<double> (2.606395510247544e+04 , -8.313994584891268e+04), 
-             std::complex<double> (8.392610243572997e+03 , -4.853020778726826e+04), 
-             std::complex<double> (2.672869743497869e+03 , -2.763093504184038e+04), 
-             std::complex<double> (8.482854084470169e+02 , -1.560956719215150e+04), 
-             std::complex<double> (2.689213901738477e+02 , -8.796633267121466e+03), 
-             std::complex<double> (8.522289937459077e+01 , -4.953401931742339e+03), 
-             std::complex<double> (2.700467611974488e+01 , -2.788581904704634e+03), 
-             std::complex<double> (8.556700659832833e+00 , -1.569745363752446e+03), 
-             std::complex<double> (2.711245565153868e+00 , -8.836169965353700e+02), 
-             std::complex<double> (8.590725216115385e-01 , -4.973875470068554e+02), 
-             std::complex<double> (2.722013705589704e-01 , -2.799772843202516e+02), 
-             std::complex<double> (8.624831424832065e-02 , -1.575957201401409e+02), 
-             std::complex<double> (2.732818868427299e-02 , -8.870482331686209e+01), 
-             std::complex<double> (8.659068302080705e-03 , -4.992188767746226e+01), 
-             std::complex<double> (2.743678002597711e-03 , -2.808331858458761e+01), 
-             std::complex<double> (8.693829062662288e-04 , -1.577675282365806e+01), 
-             std::complex<double> (2.755491967777021e-04 , -8.825588828273037e+00), 
-             std::complex<double> (8.712583276945072e-05 , -4.879445916639436e+00), 
-             std::complex<double> (2.382112992949155e-05 , -2.733110063500346e+00), 
-             std::complex<double> (1.991169224268951e-06 , -2.042980526108393e+00), 
-             std::complex<double> (6.604165683614133e-09 , -2.000114689334854e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 5.529312911523790e+05;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.028457075629534e+06 , 2.732333550270321e+05), 
-             std::complex<double> (-6.246229036149400e+05 , 5.455143588873432e+05), 
-             std::complex<double> (-2.752861261270817e+05 , 4.767816465223085e+05), 
-             std::complex<double> (-1.044963637691675e+05 , 3.227011061322295e+05), 
-             std::complex<double> (-3.741725402929212e+04 , 1.994947001897425e+05), 
-             std::complex<double> (-1.311770258749830e+04 , 1.194618935099800e+05), 
-             std::complex<double> (-4.564670354209729e+03 , 7.074662103802926e+04), 
-             std::complex<double> (-1.584286960719915e+03 , 4.173566801395968e+04), 
-             std::complex<double> (-5.493723380910128e+02 , 2.458828259375870e+04), 
-             std::complex<double> (-1.904424740662533e+02 , 1.447930359221225e+04), 
-             std::complex<double> (-6.601054802528526e+01 , 8.525059485958051e+03), 
-             std::complex<double> (-2.287943459110757e+01 , 5.019068928868332e+03), 
-             std::complex<double> (-7.929904384581426e+00 , 2.954888306892509e+03), 
-             std::complex<double> (-2.748388835547903e+00 , 1.739633121128664e+03), 
-             std::complex<double> (-9.524835500011295e-01 , 1.024183703311025e+03), 
-             std::complex<double> (-3.300268534112832e-01 , 6.029912142102426e+02), 
-             std::complex<double> (-1.142849079392104e-01 , 3.550440967071883e+02), 
-             std::complex<double> (-3.950925499188210e-02 , 2.091048331996693e+02), 
-             std::complex<double> (-1.359205755669124e-02 , 1.232436185417129e+02), 
-             std::complex<double> (-4.608809447029173e-03 , 7.279170914924730e+01), 
-             std::complex<double> (-1.494287338736338e-03 , 4.325330552367545e+01), 
-             std::complex<double> (-4.150752378264587e-04 , 2.612498895502299e+01), 
-             std::complex<double> (-6.480508493301116e-05 , 1.621892036804682e+01), 
-             std::complex<double> (-1.930211477569133e-06 , 9.436111337543549e+00), 
-             std::complex<double> (-2.161926391177454e-09 , 3.141603672944558e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (8.834185860184884e+04 , 1.545254388405145e+05), 
-             std::complex<double> (1.378967644343935e+05 , 1.873096685692346e+04), 
-             std::complex<double> (8.023313843775926e+04 , -4.631720082688536e+04), 
-             std::complex<double> (3.350263245523042e+04 , -4.630630848492371e+04), 
-             std::complex<double> (1.240009051827291e+04 , -3.189342364562411e+04), 
-             std::complex<double> (4.397430173681727e+03 , -1.978209290945825e+04), 
-             std::complex<double> (1.536315230053567e+03 , -1.185590895556145e+04), 
-             std::complex<double> (5.339547064627275e+02 , -7.022983247186423e+03), 
-             std::complex<double> (1.852444829473326e+02 , -4.143426839519464e+03), 
-             std::complex<double> (6.422654810531527e+01 , -2.441140859295768e+03), 
-             std::complex<double> (2.226331046526604e+01 , -1.437528444693137e+03), 
-             std::complex<double> (7.716711670362090e+00 , -8.463836611376719e+02), 
-             std::complex<double> (2.674628657586064e+00 , -4.983017178630948e+02), 
-             std::complex<double> (9.270236104038946e-01 , -2.933642462223322e+02), 
-             std::complex<double> (3.213044496598842e-01 , -1.727087563285458e+02), 
-             std::complex<double> (1.113633368968346e-01 , -1.016733660592169e+02), 
-             std::complex<double> (3.859825603485854e-02 , -5.984961410423781e+01), 
-             std::complex<double> (1.337808218583708e-02 , -3.522124589742737e+01), 
-             std::complex<double> (4.636885710842437e-03 , -2.071229067722778e+01), 
-             std::complex<double> (1.607337056359469e-03 , -1.215416610136053e+01), 
-             std::complex<double> (5.574786128188092e-04 , -7.088712673039149e+00), 
-             std::complex<double> (1.917176710114599e-04 , -4.077236896870208e+00), 
-             std::complex<double> (5.048304262468848e-05 , -2.448381222044735e+00), 
-             std::complex<double> (2.977085698122081e-06 , -2.018319335412383e+00), 
-             std::complex<double> (6.399651460136722e-09 , -2.000032837341610e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 2.262579246114125e+05;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-4.250278840434309e+05 , 1.046991821961638e+05), 
-             std::complex<double> (-2.749692977014305e+05 , 2.198937319220287e+05), 
-             std::complex<double> (-1.324816420703487e+05 , 2.053627241878025e+05), 
-             std::complex<double> (-5.500604547661055e+04 , 1.475537274352964e+05), 
-             std::complex<double> (-2.143354576121021e+04 , 9.593358031575846e+04), 
-             std::complex<double> (-8.145192267487366e+03 , 6.004717384277641e+04), 
-             std::complex<double> (-3.065878231628334e+03 , 3.705073070384436e+04), 
-             std::complex<double> (-1.149851975217563e+03 , 2.273880295524879e+04), 
-             std::complex<double> (-4.306662823203903e+02 , 1.392721470208671e+04), 
-             std::complex<double> (-1.612200603286548e+02 , 8.523809485780688e+03), 
-             std::complex<double> (-6.034114922252016e+01 , 5.215319157728231e+03), 
-             std::complex<double> (-2.258259667377936e+01 , 3.190676062332682e+03), 
-             std::complex<double> (-8.451109563895010e+00 , 1.951950280404210e+03), 
-             std::complex<double> (-3.162463355414173e+00 , 1.194131162884469e+03), 
-             std::complex<double> (-1.183238066346120e+00 , 7.305378177479554e+02), 
-             std::complex<double> (-4.425356580765495e-01 , 4.469496912064553e+02), 
-             std::complex<double> (-1.653367020516970e-01 , 2.734917055359470e+02), 
-             std::complex<double> (-6.159816695603971e-02 , 1.674234687829023e+02), 
-             std::complex<double> (-2.277458586423954e-02 , 1.026094240217175e+02), 
-             std::complex<double> (-8.243505325082634e-03 , 6.307942377555342e+01), 
-             std::complex<double> (-2.801784616164576e-03 , 3.909277773998902e+01), 
-             std::complex<double> (-7.702577450462051e-04 , 2.470837545197407e+01), 
-             std::complex<double> (-1.016831791651275e-04 , 1.597850209907064e+01), 
-             std::complex<double> (-2.126044768331737e-06 , 9.429065404364550e+00), 
-             std::complex<double> (-1.676847370376560e-09 , 3.141595654835235e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (3.158012519779156e+04 , 6.021035094222407e+04), 
-             std::complex<double> (5.348223949869934e+04 , 1.205387040242063e+04), 
-             std::complex<double> (3.475255070549959e+04 , -1.572573157493599e+04), 
-             std::complex<double> (1.611024014908957e+04 , -1.860502037792518e+04), 
-             std::complex<double> (6.541935250285595e+03 , -1.390959549700811e+04), 
-             std::complex<double> (2.524803124283017e+03 , -9.135309727606527e+03), 
-             std::complex<double> (9.558617553771969e+02 , -5.736182094660154e+03), 
-             std::complex<double> (3.592719005135438e+02 , -3.543290313118555e+03), 
-             std::complex<double> (1.346711796639663e+02 , -2.175464519777428e+03), 
-             std::complex<double> (5.042958889873542e+01 , -1.332640875597609e+03), 
-             std::complex<double> (1.887692486229664e+01 , -8.156545332838579e+02), 
-             std::complex<double> (7.065051487895920e+00 , -4.990697908073975e+02), 
-             std::complex<double> (2.644090428874665e+00 , -3.053257688940086e+02), 
-             std::complex<double> (9.895292385658513e-01 , -1.867853055062293e+02), 
-             std::complex<double> (3.703204905796083e-01 , -1.142628232787177e+02), 
-             std::complex<double> (1.385880245092619e-01 , -6.989374582520954e+01), 
-             std::complex<double> (5.186490403733011e-02 , -4.274651011803243e+01), 
-             std::complex<double> (1.940993003412860e-02 , -2.613215361251221e+01), 
-             std::complex<double> (7.264284944960565e-03 , -1.595682199862547e+01), 
-             std::complex<double> (2.719436843847922e-03 , -9.713170234848066e+00), 
-             std::complex<double> (1.018948105117762e-03 , -5.863917929860847e+00), 
-             std::complex<double> (3.726987936631255e-04 , -3.490959588854945e+00), 
-             std::complex<double> (8.815876853901260e-05 , -2.262430555805313e+00), 
-             std::complex<double> (3.538735057081614e-06 , -2.007407588959979e+00), 
-             std::complex<double> (5.134642880935755e-09 , -2.000009240486565e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 1.049710280230338e+05;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.987758394264543e+05 , 4.564419809295447e+04), 
-             std::complex<double> (-1.354791919315292e+05 , 9.997675741657047e+04), 
-             std::complex<double> (-7.043025946631936e+04 , 9.888175008457511e+04), 
-             std::complex<double> (-3.162454821989473e+04 , 7.495028302932758e+04), 
-             std::complex<double> (-1.327371560704787e+04 , 5.100417721974160e+04), 
-             std::complex<double> (-5.413907310483050e+03 , 3.322029011027178e+04), 
-             std::complex<double> (-2.182346466919670e+03 , 2.125814778972344e+04), 
-             std::complex<double> (-8.755356163477635e+02 , 1.350724469410716e+04), 
-             std::complex<double> (-3.505865208112791e+02 , 8.558040642074013e+03), 
-             std::complex<double> (-1.402760814830147e+02 , 5.416121288105456e+03), 
-             std::complex<double> (-5.610947706435270e+01 , 3.426142291814335e+03), 
-             std::complex<double> (-2.244026990193558e+01 , 2.166928646346737e+03), 
-             std::complex<double> (-8.973866202946223e+00 , 1.370424814824114e+03), 
-             std::complex<double> (-3.588184836570763e+00 , 8.666837062014156e+02), 
-             std::complex<double> (-1.434323093537390e+00 , 5.481250153406387e+02), 
-             std::complex<double> (-5.729519807994330e-01 , 3.466914784102993e+02), 
-             std::complex<double> (-2.284741091552447e-01 , 2.193422825966488e+02), 
-             std::complex<double> (-9.071046018459382e-02 , 1.388648734448946e+02), 
-             std::complex<double> (-3.561363968411716e-02 , 8.806231837551802e+01), 
-             std::complex<double> (-1.357289977969387e-02 , 5.607940011105132e+01), 
-             std::complex<double> (-4.747585681149294e-03 , 3.608119185272472e+01), 
-             std::complex<double> (-1.249881330185700e-03 , 2.373799408458941e+01), 
-             std::complex<double> (-1.335253116894805e-04 , 1.584477848305304e+01), 
-             std::complex<double> (-1.959678836597898e-06 , 9.426340414736684e+00), 
-             std::complex<double> (-1.121976751108328e-09 , 3.141593461907410e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.289761855145293e+04 , 2.660309123228703e+04), 
-             std::complex<double> (2.336904946328959e+04 , 7.211194817318362e+03), 
-             std::complex<double> (1.669880474023177e+04 , -5.775275663001779e+03), 
-             std::complex<double> (8.491817123598381e+03 , -8.271296545240717e+03), 
-             std::complex<double> (3.745978686507347e+03 , -6.709509100954338e+03), 
-             std::complex<double> (1.558577228923486e+03 , -4.654792886904642e+03), 
-             std::complex<double> (6.332868269242400e+02 , -3.051902086783011e+03), 
-             std::complex<double> (2.548793282070340e+02 , -1.957799765977790e+03), 
-             std::complex<double> (1.021904363963120e+02 , -1.245168595520624e+03), 
-             std::complex<double> (4.090929850393462e+01 , -7.892251533517771e+02), 
-             std::complex<double> (1.636696782933405e+01 , -4.995509498307842e+02), 
-             std::complex<double> (6.546485417272803e+00 , -3.160242072720284e+02), 
-             std::complex<double> (2.618217456092200e+00 , -1.998771448259560e+02), 
-             std::complex<double> (1.047095426852841e+00 , -1.264039274095929e+02), 
-             std::complex<double> (4.187550492392016e-01 , -7.993264903249630e+01), 
-             std::complex<double> (1.674677929130239e-01 , -5.053999047797362e+01), 
-             std::complex<double> (6.697344397118465e-02 , -3.194676559831449e+01), 
-             std::complex<double> (2.678435552835270e-02 , -2.018015331077571e+01), 
-             std::complex<double> (1.071287196743573e-02 , -1.272570342076817e+01), 
-             std::complex<double> (4.287233251765175e-03 , -7.990246897928382e+00), 
-             std::complex<double> (1.717175574411375e-03 , -4.964257722358515e+00), 
-             std::complex<double> (6.496138615619556e-04 , -3.053742926962065e+00), 
-             std::complex<double> (1.289543417402177e-04 , -2.145995594158197e+00), 
-             std::complex<double> (3.482077749431756e-06 , -2.002860123765703e+00), 
-             std::complex<double> (3.540894197991953e-09 , -2.000002562706204e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 5.389957740118304e+04;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.027391706743321e+05 , 2.209351949384508e+04), 
-             std::complex<double> (-7.313579536359299e+04 , 5.012525996047722e+04), 
-             std::complex<double> (-4.058515250369693e+04 , 5.210906364146554e+04), 
-             std::complex<double> (-1.952197754199242e+04 , 4.144050304126611e+04), 
-             std::complex<double> (-8.752276757708827e+03 , 2.939698228470431e+04), 
-             std::complex<double> (-3.800571723523838e+03 , 1.985146042081549e+04), 
-             std::complex<double> (-1.627494289324524e+03 , 1.312598239096218e+04), 
-             std::complex<double> (-6.927700715173618e+02 , 8.601538346432042e+03), 
-             std::complex<double> (-2.941368607868795e+02 , 5.615218831326496e+03), 
-             std::complex<double> (-1.247487674279758e+02 , 3.659790063981623e+03), 
-             std::complex<double> (-5.288308085242623e+01 , 2.383687443241005e+03), 
-             std::complex<double> (-2.241284078970750e+01 , 1.552096987346185e+03), 
-             std::complex<double> (-9.497388851328285e+00 , 1.010510416394529e+03), 
-             std::complex<double> (-4.023546713750131e+00 , 6.578907970458954e+02), 
-             std::complex<double> (-1.703731528204116e+00 , 4.283409589698261e+02), 
-             std::complex<double> (-7.206134749316105e-01 , 2.789316027054076e+02), 
-             std::complex<double> (-3.039785999502871e-01 , 1.817123282844690e+02), 
-             std::complex<double> (-1.274105386236773e-01 , 1.184938493189041e+02), 
-             std::complex<double> (-5.257432696984863e-02 , 7.744813580840386e+01), 
-             std::complex<double> (-2.084014127549728e-02 , 5.089673808011091e+01), 
-             std::complex<double> (-7.366966547123454e-03 , 3.386996174024080e+01), 
-             std::complex<double> (-1.794771689024560e-03 , 2.308235626019172e+01), 
-             std::complex<double> (-1.496019498419593e-04 , 1.577395512479946e+01), 
-             std::complex<double> (-1.559461779785682e-06 , 9.425329234877381e+00), 
-             std::complex<double> (-6.653414111055195e-10 , 3.141592869201194e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (5.870416131556249e+03 , 1.301808911719944e+04), 
-             std::complex<double> (1.125505273438091e+04 , 4.353951520513552e+03), 
-             std::complex<double> (8.731299298615784e+03 , -2.205061951201345e+03), 
-             std::complex<double> (4.821218547607376e+03 , -3.981546898712687e+03), 
-             std::complex<double> (2.291301388881804e+03 , -3.506897132566718e+03), 
-             std::complex<double> (1.019882951187834e+03 , -2.565937506878220e+03), 
-             std::complex<double> (4.413420115415439e+02 , -1.752379631729090e+03), 
-             std::complex<double> (1.887019051369650e+02 , -1.163871180943330e+03), 
-             std::complex<double> (8.027067541448241e+01 , -7.640927517247154e+02), 
-             std::complex<double> (3.407182450864039e+01 , -4.991938238083632e+02), 
-             std::complex<double> (1.444888609352675e+01 , -3.254593517450245e+02), 
-             std::complex<double> (6.124970336280453e+00 , -2.120036162859004e+02), 
-             std::complex<double> (2.595982967402665e+00 , -1.380459364857038e+02), 
-             std::complex<double> (1.100194160756966e+00 , -8.987156986420281e+01), 
-             std::complex<double> (4.662556779406380e-01 , -5.850053510951644e+01), 
-             std::complex<double> (1.975941883547968e-01 , -3.807225347093418e+01), 
-             std::complex<double> (8.373855338311331e-02 , -2.476685751773691e+01), 
-             std::complex<double> (3.548908858908655e-02 , -1.609534320390479e+01), 
-             std::complex<double> (1.504403602114764e-02 , -1.043510050380000e+01), 
-             std::complex<double> (6.383863441956811e-03 , -6.726701937056735e+00), 
-             std::complex<double> (2.706983850738468e-03 , -4.281317986782434e+00), 
-             std::complex<double> (1.021562492111798e-03 , -2.726418339001828e+00), 
-             std::complex<double> (1.601653948149719e-04 , -2.076920072659586e+00), 
-             std::complex<double> (2.931097181302017e-06 , -2.001061326872212e+00), 
-             std::complex<double> (2.157737582301619e-09 , -2.000000701952047e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 3.007317109997245e+04;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-5.763716124685593e+04 , 1.165465401139088e+04), 
-             std::complex<double> (-4.255967779642986e+04 , 2.723952035457892e+04), 
-             std::complex<double> (-2.498789059908102e+04 , 2.957574180477994e+04), 
-             std::complex<double> (-1.277306086810044e+04 , 2.455919200828622e+04), 
-             std::complex<double> (-6.073676156877335e+03 , 1.809679059392678e+04), 
-             std::complex<double> (-2.789292151987068e+03 , 1.263172610312310e+04), 
-             std::complex<double> (-1.260530761537012e+03 , 8.604388028934538e+03), 
-             std::complex<double> (-5.655193133145067e+02 , 5.797260802748918e+03), 
-             std::complex<double> (-2.528817125539699e+02 , 3.886872101133649e+03), 
-             std::complex<double> (-1.129134377699256e+02 , 2.600335518344097e+03), 
-             std::complex<double> (-5.038216018327863e+01 , 1.737949060749353e+03), 
-             std::complex<double> (-2.247252983584780e+01 , 1.161075313340091e+03), 
-             std::complex<double> (-1.002085979433980e+01 , 7.755501031922179e+02), 
-             std::complex<double> (-4.466686434856854e+00 , 5.180182421633351e+02), 
-             std::complex<double> (-1.989406893927575e+00 , 3.460315999056143e+02), 
-             std::complex<double> (-8.845260760434258e-01 , 2.312044701234011e+02), 
-             std::complex<double> (-3.917461292853863e-01 , 1.545739527782731e+02), 
-             std::complex<double> (-1.719568022575579e-01 , 1.034820169382285e+02), 
-             std::complex<double> (-7.390638162734330e-02 , 6.948909605202205e+01), 
-             std::complex<double> (-3.012597162166876e-02 , 4.698179659354058e+01), 
-             std::complex<double> (-1.056161738205788e-02 , 3.223629250475251e+01), 
-             std::complex<double> (-2.299040172398579e-03 , 2.264983681159068e+01), 
-             std::complex<double> (-1.455146710255502e-04 , 1.573834944559516e+01), 
-             std::complex<double> (-1.098170565241017e-06 , 9.424967099354957e+00), 
-             std::complex<double> (-3.570426412894763e-10 , 3.141592710620479e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (2.921769481203409e+03 , 6.929288266620085e+03), 
-             std::complex<double> (5.875580712897955e+03 , 2.709797573361160e+03), 
-             std::complex<double> (4.895531659638326e+03 , -8.291183275307773e+02), 
-             std::complex<double> (2.909442602462147e+03 , -2.040449365425031e+03), 
-             std::complex<double> (1.479181319064367e+03 , -1.955418251667207e+03), 
-             std::complex<double> (6.998810798998495e+02 , -1.507481565713051e+03), 
-             std::complex<double> (3.205291865534780e+02 , -1.070482525760811e+03), 
-             std::complex<double> (1.446583778196000e+02 , -7.343979805786191e+02), 
-             std::complex<double> (6.485881886834673e+01 , -4.963276725193895e+02), 
-             std::complex<double> (2.899485769148739e+01 , -3.332193030241388e+02), 
-             std::complex<double> (1.294507424770513e+01 , -2.230559374174589e+02), 
-             std::complex<double> (5.776098444013410e+00 , -1.491162266744689e+02), 
-             std::complex<double> (2.576627275451514e+00 , -9.962597495123035e+01), 
-             std::complex<double> (1.149259954268274e+00 , -6.654020323158292e+01), 
-             std::complex<double> (5.125815541291086e-01 , -4.443170541123320e+01), 
-             std::complex<double> (2.286124573766687e-01 , -2.965935315958090e+01), 
-             std::complex<double> (1.019627235328294e-01 , -1.978585973333206e+01), 
-             std::complex<double> (4.548023999730320e-02 , -1.318079363563392e+01), 
-             std::complex<double> (2.029550000422393e-02 , -8.752759537532944e+00), 
-             std::complex<double> (9.071864751949677e-03 , -5.769832343111419e+00), 
-             std::complex<double> (4.030059683252116e-03 , -3.749466414165739e+00), 
-             std::complex<double> (1.451229555743454e-03 , -2.484390839322632e+00), 
-             std::complex<double> (1.712183038289819e-04 , -2.038362296781771e+00), 
-             std::complex<double> (2.167261351065470e-06 , -2.000380680168940e+00), 
-             std::complex<double> (1.186949757225600e-09 , -2.000000190218532e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 1.797557536969104e+04;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-3.460969817815411e+04 , 6.604163400620757e+03), 
-             std::complex<double> (-2.636328557160672e+04 , 1.583115477760520e+04), 
-             std::complex<double> (-1.625596855227097e+04 , 1.785618883079884e+04), 
-             std::complex<double> (-8.770309253532130e+03 , 1.541661301167759e+04), 
-             std::complex<double> (-4.396596187464927e+03 , 1.176331902232053e+04), 
-             std::complex<double> (-2.123446863653772e+03 , 8.465172035237203e+03), 
-             std::complex<double> (-1.007174471780252e+03 , 5.925641920122363e+03), 
-             std::complex<double> (-4.736156401012078e+02 , 4.094465565486505e+03), 
-             std::complex<double> (-2.218099685058050e+02 , 2.812033428867710e+03), 
-             std::complex<double> (-1.036810929452091e+02 , 1.925803269574458e+03), 
-             std::complex<double> (-4.841816111632444e+01 , 1.317137284141384e+03), 
-             std::complex<double> (-2.259881773345828e+01 , 9.003042660478659e+02), 
-             std::complex<double> (-1.054313304823508e+01 , 6.152326156680514e+02), 
-             std::complex<double> (-4.915640162738932e+00 , 4.204050159381569e+02), 
-             std::complex<double> (-2.289122786420149e+00 , 2.873085503224958e+02), 
-             std::complex<double> (-1.063322073021556e+00 , 1.964204880644473e+02), 
-             std::complex<double> (-4.912446948332309e-01 , 1.343953711152879e+02), 
-             std::complex<double> (-2.242385078438374e-01 , 9.212186543170240e+01), 
-             std::complex<double> (-9.957086303861180e-02 , 6.339017821090112e+01), 
-             std::complex<double> (-4.127886824448182e-02 , 4.398191818846385e+01), 
-             std::complex<double> (-1.406327199444138e-02 , 3.103112718030820e+01), 
-             std::complex<double> (-2.641842790454905e-03 , 2.237366989291479e+01), 
-             std::complex<double> (-1.248859612469691e-04 , 1.572135530159720e+01), 
-             std::complex<double> (-6.977813433560928e-07 , 9.424841295061135e+00), 
-             std::complex<double> (-1.762399828940226e-10 , 3.141592668563918e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.566848292974774e+03 , 3.956111564469049e+03), 
-             std::complex<double> (3.281529879093910e+03 , 1.747052473007945e+03), 
-             std::complex<double> (2.910141801015012e+03 , -2.736333912391690e+02), 
-             std::complex<double> (1.847249415583363e+03 , -1.098124351410455e+03), 
-             std::complex<double> (9.985198464134793e+02 , -1.149191098232400e+03), 
-             std::complex<double> (4.995162872032331e+02 , -9.330104659811948e+02), 
-             std::complex<double> (2.408478215764314e+02 , -6.880287253681282e+02), 
-             std::complex<double> (1.141289969083505e+02 , -4.867158044793719e+02), 
-             std::complex<double> (5.364310472868186e+01 , -3.379000044651108e+02), 
-             std::complex<double> (2.511760104178017e+01 , -2.325668424800111e+02), 
-             std::complex<double> (1.174004682124476e+01 , -1.594279395120610e+02), 
-             std::complex<double> (5.482779020623415e+00 , -1.090846942380697e+02), 
-             std::complex<double> (2.559547471449550e+00 , -7.457079969126342e+01), 
-             std::complex<double> (1.194666971096660e+00 , -5.095194700777535e+01), 
-             std::complex<double> (5.575631164482663e-01 , -3.480094155426643e+01), 
-             std::complex<double> (2.602120672346646e-01 , -2.375808120660787e+01), 
-             std::complex<double> (1.214423721937116e-01 , -1.620477599368805e+01), 
-             std::complex<double> (5.668781407579560e-02 , -1.103208654541415e+01), 
-             std::complex<double> (2.648230944082334e-02 , -7.479622938044910e+00), 
-             std::complex<double> (1.239954779449508e-02 , -5.025240853463135e+00), 
-             std::complex<double> (5.693487289688867e-03 , -3.327879562175432e+00), 
-             std::complex<double> (1.860537802467127e-03 , -2.310260680395144e+00), 
-             std::complex<double> (1.598197294753274e-04 , -2.018152106357870e+00), 
-             std::complex<double> (1.437389085953849e-06 , -2.000132617367441e+00), 
-             std::complex<double> (5.993178254446946e-10 , -2.000000051066325e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 1.138274331919166e+04;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-2.200140744024029e+04 , 3.974462749966869e+03), 
-             std::complex<double> (-1.721129861413965e+04 , 9.736596746171608e+03), 
-             std::complex<double> (-1.107683046705493e+04 , 1.135617784198418e+04), 
-             std::complex<double> (-6.270456593459743e+03 , 1.015591397626164e+04), 
-             std::complex<double> (-3.296802846550238e+03 , 8.002049672433395e+03), 
-             std::complex<double> (-1.666587789549242e+03 , 5.923407880623897e+03), 
-             std::complex<double> (-8.258198601294596e+02 , 4.252129119762406e+03), 
-             std::complex<double> (-4.051584607219896e+02 , 3.006872174944886e+03), 
-             std::complex<double> (-1.978041658306479e+02 , 2.110771324703107e+03), 
-             std::complex<double> (-9.633645806488423e+01 , 1.476455451524824e+03), 
-             std::complex<double> (-4.685987604832491e+01 , 1.030983850084752e+03), 
-             std::complex<double> (-2.277632239555227e+01 , 7.193329136413156e+02), 
-             std::complex<double> (-1.106309994783381e+01 , 5.017148012703821e+02), 
-             std::complex<double> (-5.368608420831922e+00 , 3.499073737872292e+02), 
-             std::complex<double> (-2.600722961499763e+00 , 2.440742966261574e+02), 
-             std::complex<double> (-1.255471158259803e+00 , 1.703362234370004e+02), 
-             std::complex<double> (-6.016531106911772e-01 , 1.190060952464079e+02), 
-             std::complex<double> (-2.838368939061326e-01 , 8.333572503097746e+01), 
-             std::complex<double> (-1.292429994736169e-01 , 5.863595433538533e+01), 
-             std::complex<double> (-5.388850307076155e-02 , 4.166197489437655e+01), 
-             std::complex<double> (-1.744760289143409e-02 , 3.014999937825728e+01), 
-             std::complex<double> (-2.737183175197586e-03 , 2.220418688588807e+01), 
-             std::complex<double> (-9.607833698541100e-05 , 1.571363315166138e+01), 
-             std::complex<double> (-4.065179810660882e-07 , 9.424798719304857e+00), 
-             std::complex<double> (-8.111167317574562e-11 , 3.141592657495105e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (8.948400255004358e+02 , 2.395959021318808e+03), 
-             std::complex<double> (1.940568522442985e+03 , 1.166267085546447e+03), 
-             std::complex<double> (1.817740498629313e+03 , -4.527450160958868e+01), 
-             std::complex<double> (1.224147158574178e+03 , -6.134315606782586e+02), 
-             std::complex<double> (6.997510751916801e+02 , -7.050700883448437e+02), 
-             std::complex<double> (3.683907051618648e+02 , -6.028359017261160e+02), 
-             std::complex<double> (1.861824845141888e+02 , -4.612320277751987e+02), 
-             std::complex<double> (9.222591723168787e+01 , -3.359934975261960e+02), 
-             std::complex<double> (4.523836496502550e+01 , -2.392227827861900e+02), 
-             std::complex<double> (2.208433347127993e+01 , -1.684734636890618e+02), 
-             std::complex<double> (1.075600442417885e+01 , -1.180242233851356e+02), 
-             std::complex<double> (5.232704271656762e+00 , -8.246940754747892e+01), 
-             std::complex<double> (2.544266960624304e+00 , -5.755083865962865e+01), 
-             std::complex<double> (1.236754346410644e+00 , -4.013233041302669e+01), 
-             std::complex<double> (6.011041566788931e-01 , -2.797018277385432e+01), 
-             std::complex<double> (2.921443382225316e-01 , -1.948030300227659e+01), 
-             std::complex<double> (1.419937333043957e-01 , -1.355088645076997e+01), 
-             std::complex<double> (6.903797504032956e-02 , -9.403150330218590e+00), 
-             std::complex<double> (3.361141043927978e-02 , -6.491072225419416e+00), 
-             std::complex<double> (1.640320159366630e-02 , -4.432289692738207e+00), 
-             std::complex<double> (7.640741457627663e-03 , -2.990804154053763e+00), 
-             std::complex<double> (2.151485487405385e-03 , -2.189855236246026e+00), 
-             std::complex<double> (1.323173537777747e-04 , -2.008182286479190e+00), 
-             std::complex<double> (8.699166744696476e-07 , -2.000045041084302e+00), 
-             std::complex<double> (2.816290368664371e-10 , -2.000000013594450e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 25;
-            int m = 2;
-            double b = 7.568486488496546e+03;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.467760939146840e+04 , 2.517250040114760e+03), 
-             std::complex<double> (-1.174862011184371e+04 , 6.283604305282818e+03), 
-             std::complex<double> (-7.850635752005036e+03 , 7.548873761978218e+03), 
-             std::complex<double> (-4.639386664936884e+03 , 6.969532465280259e+03), 
-             std::complex<double> (-2.546755726761585e+03 , 5.656337791774859e+03), 
-             std::complex<double> (-1.341983527394147e+03 , 4.298365091706187e+03), 
-             std::complex<double> (-6.919668892184336e+02 , 3.158600221046387e+03), 
-             std::complex<double> (-3.528119077706226e+02 , 2.281824362836700e+03), 
-             std::complex<double> (-1.788528477590552e+02 , 1.634270162413233e+03), 
-             std::complex<double> (-9.039651409964291e+01 , 1.165405670515718e+03), 
-             std::complex<double> (-4.561438300652406e+01 , 8.292495986235490e+02), 
-             std::complex<double> (-2.299318516720757e+01 , 5.894296807432193e+02), 
-             std::complex<double> (-1.157922597523006e+01 , 4.187706374830202e+02), 
-             std::complex<double> (-5.823394665244928e+00 , 2.974939287813858e+02), 
-             std::complex<double> (-2.921672132969186e+00 , 2.113865223849131e+02), 
-             std::complex<double> (-1.458989022742513e+00 , 1.503007904478883e+02), 
-             std::complex<double> (-7.216764574349218e-01 , 1.070181904946213e+02), 
-             std::complex<double> (-3.498997534832062e-01 , 7.641812482962595e+01), 
-             std::complex<double> (-1.622208465026699e-01 , 5.488096489165680e+01), 
-             std::complex<double> (-6.723123054533840e-02 , 3.986020028729303e+01), 
-             std::complex<double> (-2.018898535585851e-02 , 2.951631519746510e+01), 
-             std::complex<double> (-2.569447008291321e-03 , 2.210474313643918e+01), 
-             std::complex<double> (-6.722069177672878e-05 , 1.571027852231603e+01), 
-             std::complex<double> (-2.199444639199661e-07 , 9.424784636434616e+00), 
-             std::complex<double> (-3.514385821565780e-11 , 3.141592654602162e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (5.391886832116896e+02 , 1.525715272787130e+03), 
-             std::complex<double> (1.205027547524299e+03 , 8.042918020751428e+02), 
-             std::complex<double> (1.184513458919501e+03 , 4.644485737686573e+01), 
-             std::complex<double> (8.413512386330929e+02 , -3.519254019726017e+02), 
-             std::complex<double> (5.061656624147366e+02 , -4.481384869169310e+02), 
-             std::complex<double> (2.792982255840163e+02 , -4.036851425953848e+02), 
-             std::complex<double> (1.474007367453372e+02 , -3.202565633707214e+02), 
-             std::complex<double> (7.604284769304232e+01 , -2.400028134129853e+02), 
-             std::complex<double> (3.878004209292357e+01 , -1.750194130940599e+02), 
-             std::complex<double> (1.966186363697081e+01 , -1.259279757456473e+02), 
-             std::complex<double> (9.939396063222505e+00 , -9.000042106543675e+01), 
-             std::complex<double> (5.017018692892879e+00 , -6.410498463890151e+01), 
-             std::complex<double> (2.530468977524313e+00 , -4.557930222776973e+01), 
-             std::complex<double> (1.275820342683220e+00 , -3.237391500566422e+01), 
-             std::complex<double> (6.431294800847643e-01 , -2.297613490246886e+01), 
-             std::complex<double> (3.241789590653019e-01 , -1.629085192805470e+01), 
-             std::complex<double> (1.634276754601557e-01 , -1.153224301855493e+01), 
-             std::complex<double> (8.243930123182515e-02 , -8.138174614809062e+00), 
-             std::complex<double> (4.167260527403722e-02 , -5.706198008980571e+00), 
-             std::complex<double> (2.108790107167119e-02 , -3.950939354890322e+00), 
-             std::complex<double> (9.712589211716362e-03 , -2.721868835745906e+00), 
-             std::complex<double> (2.244804969055464e-03 , -2.110597529401569e+00), 
-             std::complex<double> (9.866673914841044e-05 , -2.003530954312899e+00), 
-             std::complex<double> (4.870594346865956e-07 , -2.000014959693225e+00), 
-             std::complex<double> (1.244127935221651e-10 , -2.000000003591815e+00), 
+             std::complex<double> (2.233825342648173e+02 , 6.997558576362865e+02), 
+             std::complex<double> (5.243206284476087e+02 , 4.169410534379146e+02), 
+             std::complex<double> (5.586255964813120e+02 , 8.706860210024267e+01), 
+             std::complex<double> (4.348509883081007e+02 , -1.200817181055730e+02), 
+             std::complex<double> (2.862248321565207e+02 , -1.964373688943619e+02), 
+             std::complex<double> (1.717110689432833e+02 , -1.970910866697924e+02), 
+             std::complex<double> (9.789130005802932e+01 , -1.679605081114850e+02), 
+             std::complex<double> (5.427796693472952e+01 , -1.329339945876383e+02), 
+             std::complex<double> (2.964650279123934e+01 , -1.014094371657507e+02), 
+             std::complex<double> (1.606224507349390e+01 , -7.589980212477514e+01), 
+             std::complex<double> (8.664614769687560e+00 , -5.623732681565048e+01), 
+             std::complex<double> (4.663122228494752e+00 , -4.144303669529222e+01), 
+             std::complex<double> (2.506450404835361e+00 , -3.044836675279958e+01), 
+             std::complex<double> (1.346345905218170e+00 , -2.232889958620853e+01), 
+             std::complex<double> (7.229884064051585e-01 , -1.635070224156870e+01), 
+             std::complex<double> (3.882566146409886e-01 , -1.195315379384877e+01), 
+             std::complex<double> (2.086028783026887e-01 , -8.715660270887964e+00), 
+             std::complex<double> (1.122623477384150e-01 , -6.324797219658176e+00), 
+             std::complex<double> (6.064720648773948e-02 , -4.547561780135394e+00), 
+             std::complex<double> (3.227589977984663e-02 , -3.224098175845442e+00), 
+             std::complex<double> (1.308601967709231e-02 , -2.347867283048108e+00), 
+             std::complex<double> (1.818763283925938e-03 , -2.032252584839498e+00), 
+             std::complex<double> (4.241752531159779e-05 , -2.000588093530181e+00), 
+             std::complex<double> (1.263489618030886e-07 , -2.000001557577005e+00), 
+             std::complex<double> (2.096735891755558e-11 , -2.000000000245687e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -22561,61 +21612,1010 @@
         { 
             int np = 25;
             int m = 2;
-            double b = 3.769320093606350e+03;
+            double b = 7.568486488496546e+03;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-7.349137635536470e+03 , 1.144610275291591e+03), 
-             std::complex<double> (-6.106209195403381e+03 , 2.945908606179457e+03), 
-             std::complex<double> (-4.343272122031992e+03 , 3.718881760554523e+03), 
-             std::complex<double> (-2.761819916629966e+03 , 3.627997699062357e+03), 
-             std::complex<double> (-1.633929200490645e+03 , 3.103261322358168e+03), 
-             std::complex<double> (-9.258825245736423e+02 , 2.472428695538470e+03), 
-             std::complex<double> (-5.119239934276529e+02 , 1.895259411566562e+03), 
-             std::complex<double> (-2.792039689110888e+02 , 1.422779869783170e+03), 
-             std::complex<double> (-1.511368189771692e+02 , 1.056118878267329e+03), 
-             std::complex<double> (-8.147004939085437e+01 , 7.792226459025721e+02), 
-             std::complex<double> (-4.380725551985272e+01 , 5.730792947877991e+02), 
-             std::complex<double> (-2.351419103912193e+01 , 4.207738280011841e+02), 
-             std::complex<double> (-1.259973001923183e+01 , 3.087117708799910e+02), 
-             std::complex<double> (-6.735100629379208e+00 , 2.264570621414299e+02), 
-             std::complex<double> (-3.585382823343307e+00 , 1.661789241917392e+02), 
-             std::complex<double> (-1.894006887673428e+00 , 1.220721982555267e+02), 
-             std::complex<double> (-9.855586380914142e-01 , 8.986395348198425e+01), 
-             std::complex<double> (-4.971788166440539e-01 , 6.642625967767339e+01), 
-             std::complex<double> (-2.339369550657568e-01 , 4.948374102186163e+01), 
-             std::complex<double> (-9.198207201044944e-02 , 3.738249144648803e+01), 
-             std::complex<double> (-2.195370938567570e-02 , 2.876801835231873e+01), 
-             std::complex<double> (-1.726212578816507e-03 , 2.201951166967633e+01), 
-             std::complex<double> (-2.604155477773438e-05 , 1.570831479203366e+01), 
-             std::complex<double> (-5.376690136381725e-08 , 9.424778617555379e+00), 
-             std::complex<double> (-5.719436824667930e-12 , 3.141592653656703e+00), 
+             std::complex<double> (-1.467760939146840e+04 , 2.517250040114760e+03), 
+             std::complex<double> (-1.174862011184371e+04 , 6.283604305282818e+03), 
+             std::complex<double> (-7.850635752005036e+03 , 7.548873761978218e+03), 
+             std::complex<double> (-4.639386664936884e+03 , 6.969532465280259e+03), 
+             std::complex<double> (-2.546755726761585e+03 , 5.656337791774859e+03), 
+             std::complex<double> (-1.341983527394147e+03 , 4.298365091706187e+03), 
+             std::complex<double> (-6.919668892184336e+02 , 3.158600221046387e+03), 
+             std::complex<double> (-3.528119077706226e+02 , 2.281824362836700e+03), 
+             std::complex<double> (-1.788528477590552e+02 , 1.634270162413233e+03), 
+             std::complex<double> (-9.039651409964291e+01 , 1.165405670515718e+03), 
+             std::complex<double> (-4.561438300652406e+01 , 8.292495986235490e+02), 
+             std::complex<double> (-2.299318516720757e+01 , 5.894296807432193e+02), 
+             std::complex<double> (-1.157922597523006e+01 , 4.187706374830202e+02), 
+             std::complex<double> (-5.823394665244928e+00 , 2.974939287813858e+02), 
+             std::complex<double> (-2.921672132969186e+00 , 2.113865223849131e+02), 
+             std::complex<double> (-1.458989022742513e+00 , 1.503007904478883e+02), 
+             std::complex<double> (-7.216764574349218e-01 , 1.070181904946213e+02), 
+             std::complex<double> (-3.498997534832062e-01 , 7.641812482962595e+01), 
+             std::complex<double> (-1.622208465026699e-01 , 5.488096489165680e+01), 
+             std::complex<double> (-6.723123054533840e-02 , 3.986020028729303e+01), 
+             std::complex<double> (-2.018898535585851e-02 , 2.951631519746510e+01), 
+             std::complex<double> (-2.569447008291321e-03 , 2.210474313643918e+01), 
+             std::complex<double> (-6.722069177672878e-05 , 1.571027852231603e+01), 
+             std::complex<double> (-2.199444639199661e-07 , 9.424784636434616e+00), 
+             std::complex<double> (-3.514385821565780e-11 , 3.141592654602162e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (2.233825342648173e+02 , 6.997558576362865e+02), 
-             std::complex<double> (5.243206284476087e+02 , 4.169410534379146e+02), 
-             std::complex<double> (5.586255964813120e+02 , 8.706860210024267e+01), 
-             std::complex<double> (4.348509883081007e+02 , -1.200817181055730e+02), 
-             std::complex<double> (2.862248321565207e+02 , -1.964373688943619e+02), 
-             std::complex<double> (1.717110689432833e+02 , -1.970910866697924e+02), 
-             std::complex<double> (9.789130005802932e+01 , -1.679605081114850e+02), 
-             std::complex<double> (5.427796693472952e+01 , -1.329339945876383e+02), 
-             std::complex<double> (2.964650279123934e+01 , -1.014094371657507e+02), 
-             std::complex<double> (1.606224507349390e+01 , -7.589980212477514e+01), 
-             std::complex<double> (8.664614769687560e+00 , -5.623732681565048e+01), 
-             std::complex<double> (4.663122228494752e+00 , -4.144303669529222e+01), 
-             std::complex<double> (2.506450404835361e+00 , -3.044836675279958e+01), 
-             std::complex<double> (1.346345905218170e+00 , -2.232889958620853e+01), 
-             std::complex<double> (7.229884064051585e-01 , -1.635070224156870e+01), 
-             std::complex<double> (3.882566146409886e-01 , -1.195315379384877e+01), 
-             std::complex<double> (2.086028783026887e-01 , -8.715660270887964e+00), 
-             std::complex<double> (1.122623477384150e-01 , -6.324797219658176e+00), 
-             std::complex<double> (6.064720648773948e-02 , -4.547561780135394e+00), 
-             std::complex<double> (3.227589977984663e-02 , -3.224098175845442e+00), 
-             std::complex<double> (1.308601967709231e-02 , -2.347867283048108e+00), 
-             std::complex<double> (1.818763283925938e-03 , -2.032252584839498e+00), 
-             std::complex<double> (4.241752531159779e-05 , -2.000588093530181e+00), 
-             std::complex<double> (1.263489618030886e-07 , -2.000001557577005e+00), 
-             std::complex<double> (2.096735891755558e-11 , -2.000000000245687e+00), 
+             std::complex<double> (5.391886832116896e+02 , 1.525715272787130e+03), 
+             std::complex<double> (1.205027547524299e+03 , 8.042918020751428e+02), 
+             std::complex<double> (1.184513458919501e+03 , 4.644485737686573e+01), 
+             std::complex<double> (8.413512386330929e+02 , -3.519254019726017e+02), 
+             std::complex<double> (5.061656624147366e+02 , -4.481384869169310e+02), 
+             std::complex<double> (2.792982255840163e+02 , -4.036851425953848e+02), 
+             std::complex<double> (1.474007367453372e+02 , -3.202565633707214e+02), 
+             std::complex<double> (7.604284769304232e+01 , -2.400028134129853e+02), 
+             std::complex<double> (3.878004209292357e+01 , -1.750194130940599e+02), 
+             std::complex<double> (1.966186363697081e+01 , -1.259279757456473e+02), 
+             std::complex<double> (9.939396063222505e+00 , -9.000042106543675e+01), 
+             std::complex<double> (5.017018692892879e+00 , -6.410498463890151e+01), 
+             std::complex<double> (2.530468977524313e+00 , -4.557930222776973e+01), 
+             std::complex<double> (1.275820342683220e+00 , -3.237391500566422e+01), 
+             std::complex<double> (6.431294800847643e-01 , -2.297613490246886e+01), 
+             std::complex<double> (3.241789590653019e-01 , -1.629085192805470e+01), 
+             std::complex<double> (1.634276754601557e-01 , -1.153224301855493e+01), 
+             std::complex<double> (8.243930123182515e-02 , -8.138174614809062e+00), 
+             std::complex<double> (4.167260527403722e-02 , -5.706198008980571e+00), 
+             std::complex<double> (2.108790107167119e-02 , -3.950939354890322e+00), 
+             std::complex<double> (9.712589211716362e-03 , -2.721868835745906e+00), 
+             std::complex<double> (2.244804969055464e-03 , -2.110597529401569e+00), 
+             std::complex<double> (9.866673914841044e-05 , -2.003530954312899e+00), 
+             std::complex<double> (4.870594346865956e-07 , -2.000014959693225e+00), 
+             std::complex<double> (1.244127935221651e-10 , -2.000000003591815e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 1.138274331919166e+04;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-2.200140744024029e+04 , 3.974462749966869e+03), 
+             std::complex<double> (-1.721129861413965e+04 , 9.736596746171608e+03), 
+             std::complex<double> (-1.107683046705493e+04 , 1.135617784198418e+04), 
+             std::complex<double> (-6.270456593459743e+03 , 1.015591397626164e+04), 
+             std::complex<double> (-3.296802846550238e+03 , 8.002049672433395e+03), 
+             std::complex<double> (-1.666587789549242e+03 , 5.923407880623897e+03), 
+             std::complex<double> (-8.258198601294596e+02 , 4.252129119762406e+03), 
+             std::complex<double> (-4.051584607219896e+02 , 3.006872174944886e+03), 
+             std::complex<double> (-1.978041658306479e+02 , 2.110771324703107e+03), 
+             std::complex<double> (-9.633645806488423e+01 , 1.476455451524824e+03), 
+             std::complex<double> (-4.685987604832491e+01 , 1.030983850084752e+03), 
+             std::complex<double> (-2.277632239555227e+01 , 7.193329136413156e+02), 
+             std::complex<double> (-1.106309994783381e+01 , 5.017148012703821e+02), 
+             std::complex<double> (-5.368608420831922e+00 , 3.499073737872292e+02), 
+             std::complex<double> (-2.600722961499763e+00 , 2.440742966261574e+02), 
+             std::complex<double> (-1.255471158259803e+00 , 1.703362234370004e+02), 
+             std::complex<double> (-6.016531106911772e-01 , 1.190060952464079e+02), 
+             std::complex<double> (-2.838368939061326e-01 , 8.333572503097746e+01), 
+             std::complex<double> (-1.292429994736169e-01 , 5.863595433538533e+01), 
+             std::complex<double> (-5.388850307076155e-02 , 4.166197489437655e+01), 
+             std::complex<double> (-1.744760289143409e-02 , 3.014999937825728e+01), 
+             std::complex<double> (-2.737183175197586e-03 , 2.220418688588807e+01), 
+             std::complex<double> (-9.607833698541100e-05 , 1.571363315166138e+01), 
+             std::complex<double> (-4.065179810660882e-07 , 9.424798719304857e+00), 
+             std::complex<double> (-8.111167317574562e-11 , 3.141592657495105e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (8.948400255004358e+02 , 2.395959021318808e+03), 
+             std::complex<double> (1.940568522442985e+03 , 1.166267085546447e+03), 
+             std::complex<double> (1.817740498629313e+03 , -4.527450160958868e+01), 
+             std::complex<double> (1.224147158574178e+03 , -6.134315606782586e+02), 
+             std::complex<double> (6.997510751916801e+02 , -7.050700883448437e+02), 
+             std::complex<double> (3.683907051618648e+02 , -6.028359017261160e+02), 
+             std::complex<double> (1.861824845141888e+02 , -4.612320277751987e+02), 
+             std::complex<double> (9.222591723168787e+01 , -3.359934975261960e+02), 
+             std::complex<double> (4.523836496502550e+01 , -2.392227827861900e+02), 
+             std::complex<double> (2.208433347127993e+01 , -1.684734636890618e+02), 
+             std::complex<double> (1.075600442417885e+01 , -1.180242233851356e+02), 
+             std::complex<double> (5.232704271656762e+00 , -8.246940754747892e+01), 
+             std::complex<double> (2.544266960624304e+00 , -5.755083865962865e+01), 
+             std::complex<double> (1.236754346410644e+00 , -4.013233041302669e+01), 
+             std::complex<double> (6.011041566788931e-01 , -2.797018277385432e+01), 
+             std::complex<double> (2.921443382225316e-01 , -1.948030300227659e+01), 
+             std::complex<double> (1.419937333043957e-01 , -1.355088645076997e+01), 
+             std::complex<double> (6.903797504032956e-02 , -9.403150330218590e+00), 
+             std::complex<double> (3.361141043927978e-02 , -6.491072225419416e+00), 
+             std::complex<double> (1.640320159366630e-02 , -4.432289692738207e+00), 
+             std::complex<double> (7.640741457627663e-03 , -2.990804154053763e+00), 
+             std::complex<double> (2.151485487405385e-03 , -2.189855236246026e+00), 
+             std::complex<double> (1.323173537777747e-04 , -2.008182286479190e+00), 
+             std::complex<double> (8.699166744696476e-07 , -2.000045041084302e+00), 
+             std::complex<double> (2.816290368664371e-10 , -2.000000013594450e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 1.797557536969104e+04;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-3.460969817815411e+04 , 6.604163400620757e+03), 
+             std::complex<double> (-2.636328557160672e+04 , 1.583115477760520e+04), 
+             std::complex<double> (-1.625596855227097e+04 , 1.785618883079884e+04), 
+             std::complex<double> (-8.770309253532130e+03 , 1.541661301167759e+04), 
+             std::complex<double> (-4.396596187464927e+03 , 1.176331902232053e+04), 
+             std::complex<double> (-2.123446863653772e+03 , 8.465172035237203e+03), 
+             std::complex<double> (-1.007174471780252e+03 , 5.925641920122363e+03), 
+             std::complex<double> (-4.736156401012078e+02 , 4.094465565486505e+03), 
+             std::complex<double> (-2.218099685058050e+02 , 2.812033428867710e+03), 
+             std::complex<double> (-1.036810929452091e+02 , 1.925803269574458e+03), 
+             std::complex<double> (-4.841816111632444e+01 , 1.317137284141384e+03), 
+             std::complex<double> (-2.259881773345828e+01 , 9.003042660478659e+02), 
+             std::complex<double> (-1.054313304823508e+01 , 6.152326156680514e+02), 
+             std::complex<double> (-4.915640162738932e+00 , 4.204050159381569e+02), 
+             std::complex<double> (-2.289122786420149e+00 , 2.873085503224958e+02), 
+             std::complex<double> (-1.063322073021556e+00 , 1.964204880644473e+02), 
+             std::complex<double> (-4.912446948332309e-01 , 1.343953711152879e+02), 
+             std::complex<double> (-2.242385078438374e-01 , 9.212186543170240e+01), 
+             std::complex<double> (-9.957086303861180e-02 , 6.339017821090112e+01), 
+             std::complex<double> (-4.127886824448182e-02 , 4.398191818846385e+01), 
+             std::complex<double> (-1.406327199444138e-02 , 3.103112718030820e+01), 
+             std::complex<double> (-2.641842790454905e-03 , 2.237366989291479e+01), 
+             std::complex<double> (-1.248859612469691e-04 , 1.572135530159720e+01), 
+             std::complex<double> (-6.977813433560928e-07 , 9.424841295061135e+00), 
+             std::complex<double> (-1.762399828940226e-10 , 3.141592668563918e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.566848292974774e+03 , 3.956111564469049e+03), 
+             std::complex<double> (3.281529879093910e+03 , 1.747052473007945e+03), 
+             std::complex<double> (2.910141801015012e+03 , -2.736333912391690e+02), 
+             std::complex<double> (1.847249415583363e+03 , -1.098124351410455e+03), 
+             std::complex<double> (9.985198464134793e+02 , -1.149191098232400e+03), 
+             std::complex<double> (4.995162872032331e+02 , -9.330104659811948e+02), 
+             std::complex<double> (2.408478215764314e+02 , -6.880287253681282e+02), 
+             std::complex<double> (1.141289969083505e+02 , -4.867158044793719e+02), 
+             std::complex<double> (5.364310472868186e+01 , -3.379000044651108e+02), 
+             std::complex<double> (2.511760104178017e+01 , -2.325668424800111e+02), 
+             std::complex<double> (1.174004682124476e+01 , -1.594279395120610e+02), 
+             std::complex<double> (5.482779020623415e+00 , -1.090846942380697e+02), 
+             std::complex<double> (2.559547471449550e+00 , -7.457079969126342e+01), 
+             std::complex<double> (1.194666971096660e+00 , -5.095194700777535e+01), 
+             std::complex<double> (5.575631164482663e-01 , -3.480094155426643e+01), 
+             std::complex<double> (2.602120672346646e-01 , -2.375808120660787e+01), 
+             std::complex<double> (1.214423721937116e-01 , -1.620477599368805e+01), 
+             std::complex<double> (5.668781407579560e-02 , -1.103208654541415e+01), 
+             std::complex<double> (2.648230944082334e-02 , -7.479622938044910e+00), 
+             std::complex<double> (1.239954779449508e-02 , -5.025240853463135e+00), 
+             std::complex<double> (5.693487289688867e-03 , -3.327879562175432e+00), 
+             std::complex<double> (1.860537802467127e-03 , -2.310260680395144e+00), 
+             std::complex<double> (1.598197294753274e-04 , -2.018152106357870e+00), 
+             std::complex<double> (1.437389085953849e-06 , -2.000132617367441e+00), 
+             std::complex<double> (5.993178254446946e-10 , -2.000000051066325e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 3.007317109997245e+04;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-5.763716124685593e+04 , 1.165465401139088e+04), 
+             std::complex<double> (-4.255967779642986e+04 , 2.723952035457892e+04), 
+             std::complex<double> (-2.498789059908102e+04 , 2.957574180477994e+04), 
+             std::complex<double> (-1.277306086810044e+04 , 2.455919200828622e+04), 
+             std::complex<double> (-6.073676156877335e+03 , 1.809679059392678e+04), 
+             std::complex<double> (-2.789292151987068e+03 , 1.263172610312310e+04), 
+             std::complex<double> (-1.260530761537012e+03 , 8.604388028934538e+03), 
+             std::complex<double> (-5.655193133145067e+02 , 5.797260802748918e+03), 
+             std::complex<double> (-2.528817125539699e+02 , 3.886872101133649e+03), 
+             std::complex<double> (-1.129134377699256e+02 , 2.600335518344097e+03), 
+             std::complex<double> (-5.038216018327863e+01 , 1.737949060749353e+03), 
+             std::complex<double> (-2.247252983584780e+01 , 1.161075313340091e+03), 
+             std::complex<double> (-1.002085979433980e+01 , 7.755501031922179e+02), 
+             std::complex<double> (-4.466686434856854e+00 , 5.180182421633351e+02), 
+             std::complex<double> (-1.989406893927575e+00 , 3.460315999056143e+02), 
+             std::complex<double> (-8.845260760434258e-01 , 2.312044701234011e+02), 
+             std::complex<double> (-3.917461292853863e-01 , 1.545739527782731e+02), 
+             std::complex<double> (-1.719568022575579e-01 , 1.034820169382285e+02), 
+             std::complex<double> (-7.390638162734330e-02 , 6.948909605202205e+01), 
+             std::complex<double> (-3.012597162166876e-02 , 4.698179659354058e+01), 
+             std::complex<double> (-1.056161738205788e-02 , 3.223629250475251e+01), 
+             std::complex<double> (-2.299040172398579e-03 , 2.264983681159068e+01), 
+             std::complex<double> (-1.455146710255502e-04 , 1.573834944559516e+01), 
+             std::complex<double> (-1.098170565241017e-06 , 9.424967099354957e+00), 
+             std::complex<double> (-3.570426412894763e-10 , 3.141592710620479e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (2.921769481203409e+03 , 6.929288266620085e+03), 
+             std::complex<double> (5.875580712897955e+03 , 2.709797573361160e+03), 
+             std::complex<double> (4.895531659638326e+03 , -8.291183275307773e+02), 
+             std::complex<double> (2.909442602462147e+03 , -2.040449365425031e+03), 
+             std::complex<double> (1.479181319064367e+03 , -1.955418251667207e+03), 
+             std::complex<double> (6.998810798998495e+02 , -1.507481565713051e+03), 
+             std::complex<double> (3.205291865534780e+02 , -1.070482525760811e+03), 
+             std::complex<double> (1.446583778196000e+02 , -7.343979805786191e+02), 
+             std::complex<double> (6.485881886834673e+01 , -4.963276725193895e+02), 
+             std::complex<double> (2.899485769148739e+01 , -3.332193030241388e+02), 
+             std::complex<double> (1.294507424770513e+01 , -2.230559374174589e+02), 
+             std::complex<double> (5.776098444013410e+00 , -1.491162266744689e+02), 
+             std::complex<double> (2.576627275451514e+00 , -9.962597495123035e+01), 
+             std::complex<double> (1.149259954268274e+00 , -6.654020323158292e+01), 
+             std::complex<double> (5.125815541291086e-01 , -4.443170541123320e+01), 
+             std::complex<double> (2.286124573766687e-01 , -2.965935315958090e+01), 
+             std::complex<double> (1.019627235328294e-01 , -1.978585973333206e+01), 
+             std::complex<double> (4.548023999730320e-02 , -1.318079363563392e+01), 
+             std::complex<double> (2.029550000422393e-02 , -8.752759537532944e+00), 
+             std::complex<double> (9.071864751949677e-03 , -5.769832343111419e+00), 
+             std::complex<double> (4.030059683252116e-03 , -3.749466414165739e+00), 
+             std::complex<double> (1.451229555743454e-03 , -2.484390839322632e+00), 
+             std::complex<double> (1.712183038289819e-04 , -2.038362296781771e+00), 
+             std::complex<double> (2.167261351065470e-06 , -2.000380680168940e+00), 
+             std::complex<double> (1.186949757225600e-09 , -2.000000190218532e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 5.389957740118304e+04;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.027391706743321e+05 , 2.209351949384508e+04), 
+             std::complex<double> (-7.313579536359299e+04 , 5.012525996047722e+04), 
+             std::complex<double> (-4.058515250369693e+04 , 5.210906364146554e+04), 
+             std::complex<double> (-1.952197754199242e+04 , 4.144050304126611e+04), 
+             std::complex<double> (-8.752276757708827e+03 , 2.939698228470431e+04), 
+             std::complex<double> (-3.800571723523838e+03 , 1.985146042081549e+04), 
+             std::complex<double> (-1.627494289324524e+03 , 1.312598239096218e+04), 
+             std::complex<double> (-6.927700715173618e+02 , 8.601538346432042e+03), 
+             std::complex<double> (-2.941368607868795e+02 , 5.615218831326496e+03), 
+             std::complex<double> (-1.247487674279758e+02 , 3.659790063981623e+03), 
+             std::complex<double> (-5.288308085242623e+01 , 2.383687443241005e+03), 
+             std::complex<double> (-2.241284078970750e+01 , 1.552096987346185e+03), 
+             std::complex<double> (-9.497388851328285e+00 , 1.010510416394529e+03), 
+             std::complex<double> (-4.023546713750131e+00 , 6.578907970458954e+02), 
+             std::complex<double> (-1.703731528204116e+00 , 4.283409589698261e+02), 
+             std::complex<double> (-7.206134749316105e-01 , 2.789316027054076e+02), 
+             std::complex<double> (-3.039785999502871e-01 , 1.817123282844690e+02), 
+             std::complex<double> (-1.274105386236773e-01 , 1.184938493189041e+02), 
+             std::complex<double> (-5.257432696984863e-02 , 7.744813580840386e+01), 
+             std::complex<double> (-2.084014127549728e-02 , 5.089673808011091e+01), 
+             std::complex<double> (-7.366966547123454e-03 , 3.386996174024080e+01), 
+             std::complex<double> (-1.794771689024560e-03 , 2.308235626019172e+01), 
+             std::complex<double> (-1.496019498419593e-04 , 1.577395512479946e+01), 
+             std::complex<double> (-1.559461779785682e-06 , 9.425329234877381e+00), 
+             std::complex<double> (-6.653414111055195e-10 , 3.141592869201194e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (5.870416131556249e+03 , 1.301808911719944e+04), 
+             std::complex<double> (1.125505273438091e+04 , 4.353951520513552e+03), 
+             std::complex<double> (8.731299298615784e+03 , -2.205061951201345e+03), 
+             std::complex<double> (4.821218547607376e+03 , -3.981546898712687e+03), 
+             std::complex<double> (2.291301388881804e+03 , -3.506897132566718e+03), 
+             std::complex<double> (1.019882951187834e+03 , -2.565937506878220e+03), 
+             std::complex<double> (4.413420115415439e+02 , -1.752379631729090e+03), 
+             std::complex<double> (1.887019051369650e+02 , -1.163871180943330e+03), 
+             std::complex<double> (8.027067541448241e+01 , -7.640927517247154e+02), 
+             std::complex<double> (3.407182450864039e+01 , -4.991938238083632e+02), 
+             std::complex<double> (1.444888609352675e+01 , -3.254593517450245e+02), 
+             std::complex<double> (6.124970336280453e+00 , -2.120036162859004e+02), 
+             std::complex<double> (2.595982967402665e+00 , -1.380459364857038e+02), 
+             std::complex<double> (1.100194160756966e+00 , -8.987156986420281e+01), 
+             std::complex<double> (4.662556779406380e-01 , -5.850053510951644e+01), 
+             std::complex<double> (1.975941883547968e-01 , -3.807225347093418e+01), 
+             std::complex<double> (8.373855338311331e-02 , -2.476685751773691e+01), 
+             std::complex<double> (3.548908858908655e-02 , -1.609534320390479e+01), 
+             std::complex<double> (1.504403602114764e-02 , -1.043510050380000e+01), 
+             std::complex<double> (6.383863441956811e-03 , -6.726701937056735e+00), 
+             std::complex<double> (2.706983850738468e-03 , -4.281317986782434e+00), 
+             std::complex<double> (1.021562492111798e-03 , -2.726418339001828e+00), 
+             std::complex<double> (1.601653948149719e-04 , -2.076920072659586e+00), 
+             std::complex<double> (2.931097181302017e-06 , -2.001061326872212e+00), 
+             std::complex<double> (2.157737582301619e-09 , -2.000000701952047e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 1.049710280230338e+05;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.987758394264543e+05 , 4.564419809295447e+04), 
+             std::complex<double> (-1.354791919315292e+05 , 9.997675741657047e+04), 
+             std::complex<double> (-7.043025946631936e+04 , 9.888175008457511e+04), 
+             std::complex<double> (-3.162454821989473e+04 , 7.495028302932758e+04), 
+             std::complex<double> (-1.327371560704787e+04 , 5.100417721974160e+04), 
+             std::complex<double> (-5.413907310483050e+03 , 3.322029011027178e+04), 
+             std::complex<double> (-2.182346466919670e+03 , 2.125814778972344e+04), 
+             std::complex<double> (-8.755356163477635e+02 , 1.350724469410716e+04), 
+             std::complex<double> (-3.505865208112791e+02 , 8.558040642074013e+03), 
+             std::complex<double> (-1.402760814830147e+02 , 5.416121288105456e+03), 
+             std::complex<double> (-5.610947706435270e+01 , 3.426142291814335e+03), 
+             std::complex<double> (-2.244026990193558e+01 , 2.166928646346737e+03), 
+             std::complex<double> (-8.973866202946223e+00 , 1.370424814824114e+03), 
+             std::complex<double> (-3.588184836570763e+00 , 8.666837062014156e+02), 
+             std::complex<double> (-1.434323093537390e+00 , 5.481250153406387e+02), 
+             std::complex<double> (-5.729519807994330e-01 , 3.466914784102993e+02), 
+             std::complex<double> (-2.284741091552447e-01 , 2.193422825966488e+02), 
+             std::complex<double> (-9.071046018459382e-02 , 1.388648734448946e+02), 
+             std::complex<double> (-3.561363968411716e-02 , 8.806231837551802e+01), 
+             std::complex<double> (-1.357289977969387e-02 , 5.607940011105132e+01), 
+             std::complex<double> (-4.747585681149294e-03 , 3.608119185272472e+01), 
+             std::complex<double> (-1.249881330185700e-03 , 2.373799408458941e+01), 
+             std::complex<double> (-1.335253116894805e-04 , 1.584477848305304e+01), 
+             std::complex<double> (-1.959678836597898e-06 , 9.426340414736684e+00), 
+             std::complex<double> (-1.121976751108328e-09 , 3.141593461907410e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.289761855145293e+04 , 2.660309123228703e+04), 
+             std::complex<double> (2.336904946328959e+04 , 7.211194817318362e+03), 
+             std::complex<double> (1.669880474023177e+04 , -5.775275663001779e+03), 
+             std::complex<double> (8.491817123598381e+03 , -8.271296545240717e+03), 
+             std::complex<double> (3.745978686507347e+03 , -6.709509100954338e+03), 
+             std::complex<double> (1.558577228923486e+03 , -4.654792886904642e+03), 
+             std::complex<double> (6.332868269242400e+02 , -3.051902086783011e+03), 
+             std::complex<double> (2.548793282070340e+02 , -1.957799765977790e+03), 
+             std::complex<double> (1.021904363963120e+02 , -1.245168595520624e+03), 
+             std::complex<double> (4.090929850393462e+01 , -7.892251533517771e+02), 
+             std::complex<double> (1.636696782933405e+01 , -4.995509498307842e+02), 
+             std::complex<double> (6.546485417272803e+00 , -3.160242072720284e+02), 
+             std::complex<double> (2.618217456092200e+00 , -1.998771448259560e+02), 
+             std::complex<double> (1.047095426852841e+00 , -1.264039274095929e+02), 
+             std::complex<double> (4.187550492392016e-01 , -7.993264903249630e+01), 
+             std::complex<double> (1.674677929130239e-01 , -5.053999047797362e+01), 
+             std::complex<double> (6.697344397118465e-02 , -3.194676559831449e+01), 
+             std::complex<double> (2.678435552835270e-02 , -2.018015331077571e+01), 
+             std::complex<double> (1.071287196743573e-02 , -1.272570342076817e+01), 
+             std::complex<double> (4.287233251765175e-03 , -7.990246897928382e+00), 
+             std::complex<double> (1.717175574411375e-03 , -4.964257722358515e+00), 
+             std::complex<double> (6.496138615619556e-04 , -3.053742926962065e+00), 
+             std::complex<double> (1.289543417402177e-04 , -2.145995594158197e+00), 
+             std::complex<double> (3.482077749431756e-06 , -2.002860123765703e+00), 
+             std::complex<double> (3.540894197991953e-09 , -2.000002562706204e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 2.262579246114125e+05;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-4.250278840434309e+05 , 1.046991821961638e+05), 
+             std::complex<double> (-2.749692977014305e+05 , 2.198937319220287e+05), 
+             std::complex<double> (-1.324816420703487e+05 , 2.053627241878025e+05), 
+             std::complex<double> (-5.500604547661055e+04 , 1.475537274352964e+05), 
+             std::complex<double> (-2.143354576121021e+04 , 9.593358031575846e+04), 
+             std::complex<double> (-8.145192267487366e+03 , 6.004717384277641e+04), 
+             std::complex<double> (-3.065878231628334e+03 , 3.705073070384436e+04), 
+             std::complex<double> (-1.149851975217563e+03 , 2.273880295524879e+04), 
+             std::complex<double> (-4.306662823203903e+02 , 1.392721470208671e+04), 
+             std::complex<double> (-1.612200603286548e+02 , 8.523809485780688e+03), 
+             std::complex<double> (-6.034114922252016e+01 , 5.215319157728231e+03), 
+             std::complex<double> (-2.258259667377936e+01 , 3.190676062332682e+03), 
+             std::complex<double> (-8.451109563895010e+00 , 1.951950280404210e+03), 
+             std::complex<double> (-3.162463355414173e+00 , 1.194131162884469e+03), 
+             std::complex<double> (-1.183238066346120e+00 , 7.305378177479554e+02), 
+             std::complex<double> (-4.425356580765495e-01 , 4.469496912064553e+02), 
+             std::complex<double> (-1.653367020516970e-01 , 2.734917055359470e+02), 
+             std::complex<double> (-6.159816695603971e-02 , 1.674234687829023e+02), 
+             std::complex<double> (-2.277458586423954e-02 , 1.026094240217175e+02), 
+             std::complex<double> (-8.243505325082634e-03 , 6.307942377555342e+01), 
+             std::complex<double> (-2.801784616164576e-03 , 3.909277773998902e+01), 
+             std::complex<double> (-7.702577450462051e-04 , 2.470837545197407e+01), 
+             std::complex<double> (-1.016831791651275e-04 , 1.597850209907064e+01), 
+             std::complex<double> (-2.126044768331737e-06 , 9.429065404364550e+00), 
+             std::complex<double> (-1.676847370376560e-09 , 3.141595654835235e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (3.158012519779156e+04 , 6.021035094222407e+04), 
+             std::complex<double> (5.348223949869934e+04 , 1.205387040242063e+04), 
+             std::complex<double> (3.475255070549959e+04 , -1.572573157493599e+04), 
+             std::complex<double> (1.611024014908957e+04 , -1.860502037792518e+04), 
+             std::complex<double> (6.541935250285595e+03 , -1.390959549700811e+04), 
+             std::complex<double> (2.524803124283017e+03 , -9.135309727606527e+03), 
+             std::complex<double> (9.558617553771969e+02 , -5.736182094660154e+03), 
+             std::complex<double> (3.592719005135438e+02 , -3.543290313118555e+03), 
+             std::complex<double> (1.346711796639663e+02 , -2.175464519777428e+03), 
+             std::complex<double> (5.042958889873542e+01 , -1.332640875597609e+03), 
+             std::complex<double> (1.887692486229664e+01 , -8.156545332838579e+02), 
+             std::complex<double> (7.065051487895920e+00 , -4.990697908073975e+02), 
+             std::complex<double> (2.644090428874665e+00 , -3.053257688940086e+02), 
+             std::complex<double> (9.895292385658513e-01 , -1.867853055062293e+02), 
+             std::complex<double> (3.703204905796083e-01 , -1.142628232787177e+02), 
+             std::complex<double> (1.385880245092619e-01 , -6.989374582520954e+01), 
+             std::complex<double> (5.186490403733011e-02 , -4.274651011803243e+01), 
+             std::complex<double> (1.940993003412860e-02 , -2.613215361251221e+01), 
+             std::complex<double> (7.264284944960565e-03 , -1.595682199862547e+01), 
+             std::complex<double> (2.719436843847922e-03 , -9.713170234848066e+00), 
+             std::complex<double> (1.018948105117762e-03 , -5.863917929860847e+00), 
+             std::complex<double> (3.726987936631255e-04 , -3.490959588854945e+00), 
+             std::complex<double> (8.815876853901260e-05 , -2.262430555805313e+00), 
+             std::complex<double> (3.538735057081614e-06 , -2.007407588959979e+00), 
+             std::complex<double> (5.134642880935755e-09 , -2.000009240486565e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 5.529312911523790e+05;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.028457075629534e+06 , 2.732333550270321e+05), 
+             std::complex<double> (-6.246229036149400e+05 , 5.455143588873432e+05), 
+             std::complex<double> (-2.752861261270817e+05 , 4.767816465223085e+05), 
+             std::complex<double> (-1.044963637691675e+05 , 3.227011061322295e+05), 
+             std::complex<double> (-3.741725402929212e+04 , 1.994947001897425e+05), 
+             std::complex<double> (-1.311770258749830e+04 , 1.194618935099800e+05), 
+             std::complex<double> (-4.564670354209729e+03 , 7.074662103802926e+04), 
+             std::complex<double> (-1.584286960719915e+03 , 4.173566801395968e+04), 
+             std::complex<double> (-5.493723380910128e+02 , 2.458828259375870e+04), 
+             std::complex<double> (-1.904424740662533e+02 , 1.447930359221225e+04), 
+             std::complex<double> (-6.601054802528526e+01 , 8.525059485958051e+03), 
+             std::complex<double> (-2.287943459110757e+01 , 5.019068928868332e+03), 
+             std::complex<double> (-7.929904384581426e+00 , 2.954888306892509e+03), 
+             std::complex<double> (-2.748388835547903e+00 , 1.739633121128664e+03), 
+             std::complex<double> (-9.524835500011295e-01 , 1.024183703311025e+03), 
+             std::complex<double> (-3.300268534112832e-01 , 6.029912142102426e+02), 
+             std::complex<double> (-1.142849079392104e-01 , 3.550440967071883e+02), 
+             std::complex<double> (-3.950925499188210e-02 , 2.091048331996693e+02), 
+             std::complex<double> (-1.359205755669124e-02 , 1.232436185417129e+02), 
+             std::complex<double> (-4.608809447029173e-03 , 7.279170914924730e+01), 
+             std::complex<double> (-1.494287338736338e-03 , 4.325330552367545e+01), 
+             std::complex<double> (-4.150752378264587e-04 , 2.612498895502299e+01), 
+             std::complex<double> (-6.480508493301116e-05 , 1.621892036804682e+01), 
+             std::complex<double> (-1.930211477569133e-06 , 9.436111337543549e+00), 
+             std::complex<double> (-2.161926391177454e-09 , 3.141603672944558e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (8.834185860184884e+04 , 1.545254388405145e+05), 
+             std::complex<double> (1.378967644343935e+05 , 1.873096685692346e+04), 
+             std::complex<double> (8.023313843775926e+04 , -4.631720082688536e+04), 
+             std::complex<double> (3.350263245523042e+04 , -4.630630848492371e+04), 
+             std::complex<double> (1.240009051827291e+04 , -3.189342364562411e+04), 
+             std::complex<double> (4.397430173681727e+03 , -1.978209290945825e+04), 
+             std::complex<double> (1.536315230053567e+03 , -1.185590895556145e+04), 
+             std::complex<double> (5.339547064627275e+02 , -7.022983247186423e+03), 
+             std::complex<double> (1.852444829473326e+02 , -4.143426839519464e+03), 
+             std::complex<double> (6.422654810531527e+01 , -2.441140859295768e+03), 
+             std::complex<double> (2.226331046526604e+01 , -1.437528444693137e+03), 
+             std::complex<double> (7.716711670362090e+00 , -8.463836611376719e+02), 
+             std::complex<double> (2.674628657586064e+00 , -4.983017178630948e+02), 
+             std::complex<double> (9.270236104038946e-01 , -2.933642462223322e+02), 
+             std::complex<double> (3.213044496598842e-01 , -1.727087563285458e+02), 
+             std::complex<double> (1.113633368968346e-01 , -1.016733660592169e+02), 
+             std::complex<double> (3.859825603485854e-02 , -5.984961410423781e+01), 
+             std::complex<double> (1.337808218583708e-02 , -3.522124589742737e+01), 
+             std::complex<double> (4.636885710842437e-03 , -2.071229067722778e+01), 
+             std::complex<double> (1.607337056359469e-03 , -1.215416610136053e+01), 
+             std::complex<double> (5.574786128188092e-04 , -7.088712673039149e+00), 
+             std::complex<double> (1.917176710114599e-04 , -4.077236896870208e+00), 
+             std::complex<double> (5.048304262468848e-05 , -2.448381222044735e+00), 
+             std::complex<double> (2.977085698122081e-06 , -2.018319335412383e+00), 
+             std::complex<double> (6.399651460136722e-09 , -2.000032837341610e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 1.582461574498143e+06;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-2.907075804495280e+06 , 8.381603087091710e+05), 
+             std::complex<double> (-1.634001450709266e+06 , 1.573236096829913e+06), 
+             std::complex<double> (-6.481945111191381e+05 , 1.273120040012515e+06), 
+             std::complex<double> (-2.218708611921907e+05 , 8.058443946504710e+05), 
+             std::complex<double> (-7.209133440994893e+04 , 4.709555467668507e+05), 
+             std::complex<double> (-2.302688958308514e+04 , 2.682820629772965e+05), 
+             std::complex<double> (-7.314845380342371e+03 , 1.515881939634075e+05), 
+             std::complex<double> (-2.319622523760162e+03 , 8.543119507728654e+04), 
+             std::complex<double> (-7.351722443070878e+02 , 4.810738041933499e+04), 
+             std::complex<double> (-2.329617693710550e+02 , 2.708283752806788e+04), 
+             std::complex<double> (-7.381692305476086e+01 , 1.524547298648565e+04), 
+             std::complex<double> (-2.338940469058382e+01 , 8.581760254172368e+03), 
+             std::complex<double> (-7.411032334520423e+00 , 4.830682043602524e+03), 
+             std::complex<double> (-2.348191402667750e+00 , 2.719192705117721e+03), 
+             std::complex<double> (-7.440043386251874e-01 , 1.530639923271575e+03), 
+             std::complex<double> (-2.357098428814943e-01 , 8.616123131971789e+02), 
+             std::complex<double> (-7.465429905341259e-02 , 4.850309094440976e+02), 
+             std::complex<double> (-2.362308303327609e-02 , 2.730774972363135e+02), 
+             std::complex<double> (-7.453581931343394e-03 , 1.538113815158709e+02), 
+             std::complex<double> (-2.330131387467641e-03 , 8.675151319314284e+01), 
+             std::complex<double> (-7.065596889720038e-04 , 4.913607539352810e+01), 
+             std::complex<double> (-1.920346812872231e-04 , 2.818825776481373e+01), 
+             std::complex<double> (-3.375259119311689e-05 , 1.663323083821144e+01), 
+             std::complex<double> (-1.409585250856134e-06 , 9.453485964587877e+00), 
+             std::complex<double> (-2.318360528765509e-09 , 3.141632582666794e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (2.918468413235057e+05 , 4.640486451952496e+05), 
+             std::complex<double> (4.124144637368025e+05 , 1.563308582704653e+04), 
+             std::complex<double> (2.108774597166502e+05 , -1.534094808921258e+05), 
+             std::complex<double> (7.820053129700478e+04 , -1.312484603393439e+05), 
+             std::complex<double> (2.606395510247544e+04 , -8.313994584891268e+04), 
+             std::complex<double> (8.392610243572997e+03 , -4.853020778726826e+04), 
+             std::complex<double> (2.672869743497869e+03 , -2.763093504184038e+04), 
+             std::complex<double> (8.482854084470169e+02 , -1.560956719215150e+04), 
+             std::complex<double> (2.689213901738477e+02 , -8.796633267121466e+03), 
+             std::complex<double> (8.522289937459077e+01 , -4.953401931742339e+03), 
+             std::complex<double> (2.700467611974488e+01 , -2.788581904704634e+03), 
+             std::complex<double> (8.556700659832833e+00 , -1.569745363752446e+03), 
+             std::complex<double> (2.711245565153868e+00 , -8.836169965353700e+02), 
+             std::complex<double> (8.590725216115385e-01 , -4.973875470068554e+02), 
+             std::complex<double> (2.722013705589704e-01 , -2.799772843202516e+02), 
+             std::complex<double> (8.624831424832065e-02 , -1.575957201401409e+02), 
+             std::complex<double> (2.732818868427299e-02 , -8.870482331686209e+01), 
+             std::complex<double> (8.659068302080705e-03 , -4.992188767746226e+01), 
+             std::complex<double> (2.743678002597711e-03 , -2.808331858458761e+01), 
+             std::complex<double> (8.693829062662288e-04 , -1.577675282365806e+01), 
+             std::complex<double> (2.755491967777021e-04 , -8.825588828273037e+00), 
+             std::complex<double> (8.712583276945072e-05 , -4.879445916639436e+00), 
+             std::complex<double> (2.382112992949155e-05 , -2.733110063500346e+00), 
+             std::complex<double> (1.991169224268951e-06 , -2.042980526108393e+00), 
+             std::complex<double> (6.604165683614133e-09 , -2.000114689334854e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 5.544898076864207e+06;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.002609980890299e+07 , 3.160209167152561e+06), 
+             std::complex<double> (-5.118501562828318e+06 , 5.497094676223950e+06), 
+             std::complex<double> (-1.791213622776857e+06 , 4.066282654151815e+06), 
+             std::complex<double> (-5.435137692224783e+05 , 2.386484029672952e+06), 
+             std::complex<double> (-1.577144567287188e+05 , 1.309001607657194e+06), 
+             std::complex<double> (-4.516940853951985e+04 , 7.041488679300844e+05), 
+             std::complex<double> (-1.288793394445529e+04 , 3.766791560520380e+05), 
+             std::complex<double> (-3.673292998230233e+03 , 2.011821279192351e+05), 
+             std::complex<double> (-1.046633925383539e+03 , 1.074016062626152e+05), 
+             std::complex<double> (-2.981920970195383e+02 , 5.732924080867106e+04), 
+             std::complex<double> (-8.495454567140933e+01 , 3.060029856596788e+04), 
+             std::complex<double> (-2.420326393147524e+01 , 1.633317477328620e+04), 
+             std::complex<double> (-6.895408857120517e+00 , 8.717948761504394e+03), 
+             std::complex<double> (-1.964466472173925e+00 , 4.653265450619026e+03), 
+             std::complex<double> (-5.596606841221657e-01 , 2.483715664955833e+03), 
+             std::complex<double> (-1.594372003932122e-01 , 1.325708780904054e+03), 
+             std::complex<double> (-4.541515286271827e-02 , 7.076234812664014e+02), 
+             std::complex<double> (-1.293073336466620e-02 , 3.777321098518221e+02), 
+             std::complex<double> (-3.676052262374842e-03 , 2.016797505364832e+02), 
+             std::complex<double> (-1.039423624394977e-03 , 1.077654749677000e+02), 
+             std::complex<double> (-2.882349530758460e-04 , 5.774033972624650e+01), 
+             std::complex<double> (-7.419907923414202e-05 , 3.122497845084447e+01), 
+             std::complex<double> (-1.391940971779196e-05 , 1.732451124662663e+01), 
+             std::complex<double> (-7.878771461676014e-07 , 9.494141891643114e+00), 
+             std::complex<double> (-1.968299363710694e-09 , 3.141735081105699e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.191295470326250e+06 , 1.702008686015660e+06), 
+             std::complex<double> (1.488761670258951e+06 , -1.063252048076552e+05), 
+             std::complex<double> (6.538718188084075e+05 , -5.981695165057027e+05), 
+             std::complex<double> (2.116812714528147e+05 , -4.406248411379426e+05), 
+             std::complex<double> (6.257183716366295e+04 , -2.558980243186552e+05), 
+             std::complex<double> (1.801537927643874e+04 , -1.398436426457292e+05), 
+             std::complex<double> (5.147962518016867e+03 , -7.514238353250042e+04), 
+             std::complex<double> (1.467890702366131e+03 , -4.018396083541004e+04), 
+             std::complex<double> (4.182981776172394e+02 , -2.146004827387551e+04), 
+             std::complex<double> (1.191797331436746e+02 , -1.145620308633133e+04), 
+             std::complex<double> (3.395449253052530e+01 , -6.115090245261643e+03), 
+             std::complex<double> (9.673550997198095e+00 , -3.264009351838906e+03), 
+             std::complex<double> (2.755959642223176e+00 , -1.742191874164765e+03), 
+             std::complex<double> (7.851620173567884e-01 , -9.299065042716626e+02), 
+             std::complex<double> (2.236894886488015e-01 , -4.963426948200848e+02), 
+             std::complex<double> (6.372822832602859e-02 , -2.649242145839163e+02), 
+             std::complex<double> (1.815591390779050e-02 , -1.414014281589783e+02), 
+             std::complex<double> (5.172546489847683e-03 , -7.546722122474711e+01), 
+             std::complex<double> (1.473638615976540e-03 , -4.026856729391694e+01), 
+             std::complex<double> (4.198379092446877e-04 , -2.147014017536402e+01), 
+             std::complex<double> (1.196216715652353e-04 , -1.141623593004148e+01), 
+             std::complex<double> (3.406515196956009e-05 , -6.017089152924379e+00), 
+             std::complex<double> (9.055559978888164e-06 , -3.158204500196164e+00), 
+             std::complex<double> (1.008667249298538e-06 , -2.095194761862561e+00), 
+             std::complex<double> (5.364430684081745e-09 , -2.000392276848490e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 2.532690578681951e+07;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-4.485855251667663e+07 , 1.559434905817375e+07), 
+             std::complex<double> (-2.028458634865906e+07 , 2.466653547890673e+07), 
+             std::complex<double> (-6.104811399024409e+06 , 1.642191258320905e+07), 
+             std::complex<double> (-1.606919213769642e+06 , 8.843821967464814e+06), 
+             std::complex<double> (-4.078531531727845e+05 , 4.510031034102946e+06), 
+             std::complex<double> (-1.025568407292848e+05 , 2.268481154538866e+06), 
+             std::complex<double> (-2.572793816316750e+04 , 1.137070996325078e+06), 
+             std::complex<double> (-6.450437731618684e+03 , 5.694596620402246e+05), 
+             std::complex<double> (-1.616996804271129e+03 , 2.851306011235656e+05), 
+             std::complex<double> (-4.053339989421064e+02 , 1.427581789642742e+05), 
+             std::complex<double> (-1.016044815887522e+02 , 7.147468177687380e+04), 
+             std::complex<double> (-2.546898656996068e+01 , 3.578507859020046e+04), 
+             std::complex<double> (-6.384253677279625e+00 , 1.791642507496807e+04), 
+             std::complex<double> (-1.600325198837434e+00 , 8.970170319483859e+03), 
+             std::complex<double> (-4.011484683363307e-01 , 4.491073548820071e+03), 
+             std::complex<double> (-1.005535105564264e-01 , 2.248538451018544e+03), 
+             std::complex<double> (-2.520404389470724e-02 , 1.125779086195757e+03), 
+             std::complex<double> (-6.316361410832303e-03 , 5.636595074497301e+02), 
+             std::complex<double> (-1.581827818295049e-03 , 2.822432614005124e+02), 
+             std::complex<double> (-3.950322996892122e-04 , 1.413845708842510e+02), 
+             std::complex<double> (-9.753921979638200e-05 , 7.093527042948136e+01), 
+             std::complex<double> (-2.296503065539771e-05 , 3.580815253088542e+01), 
+             std::complex<double> (-4.344331102989828e-06 , 1.845658665179792e+01), 
+             std::complex<double> (-3.161894954300827e-07 , 9.584244111689816e+00), 
+             std::complex<double> (-1.234329793473086e-09 , 3.142091104567090e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (6.401851326497968e+06 , 8.095001615585194e+06), 
+             std::complex<double> (6.859297924436153e+06 , -1.350153746361203e+06), 
+             std::complex<double> (2.515696021573704e+06 , -2.916002603762225e+06), 
+             std::complex<double> (6.959952505782511e+05 , -1.852004657654446e+06), 
+             std::complex<double> (1.788762416841343e+05 , -9.809166290685949e+05), 
+             std::complex<double> (4.512086164736761e+04 , -4.980000304495365e+05), 
+             std::complex<double> (1.132816840318087e+04 , -2.502014959046308e+05), 
+             std::complex<double> (2.840727818641510e+03 , -1.253769441634810e+05), 
+             std::complex<double> (7.121493584734540e+02 , -6.278585196461254e+04), 
+             std::complex<double> (1.785173153859296e+02 , -3.143654533669901e+04), 
+             std::complex<double> (4.474881452506213e+01 , -1.573946684005197e+04), 
+             std::complex<double> (1.121710276388816e+01 , -7.880263701584214e+03), 
+             std::complex<double> (2.811767162341049e+00 , -3.945393768471392e+03), 
+             std::complex<double> (7.048194552619181e-01 , -1.975329886139517e+03), 
+             std::complex<double> (1.766755228405779e-01 , -9.889826534762695e+02), 
+             std::complex<double> (4.428685900994399e-02 , -4.951502668855513e+02), 
+             std::complex<double> (1.110128792356559e-02 , -2.479034941959124e+02), 
+             std::complex<double> (2.782735147080057e-03 , -1.241130577412773e+02), 
+             std::complex<double> (6.975421393125956e-04 , -6.213112608684230e+01), 
+             std::complex<double> (1.748516072984516e-04 , -3.109062229748772e+01), 
+             std::complex<double> (4.383054944900958e-05 , -1.553354716832274e+01), 
+             std::complex<double> (1.098585293879195e-05 , -7.715176851384284e+00), 
+             std::complex<double> (2.677994895564640e-06 , -3.790763970489791e+00), 
+             std::complex<double> (3.647200633727070e-07 , -2.198773295698555e+00), 
+             std::complex<double> (3.194386060452414e-09 , -2.001307672244279e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 1.652235747470210e+08;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-2.846723006826614e+08 , 1.103262119615021e+08), 
+             std::complex<double> (-1.101745521898821e+08 , 1.547126323552420e+08), 
+             std::complex<double> (-2.759500506014759e+07 , 9.096121385542513e+07), 
+             std::complex<double> (-6.124478582229281e+06 , 4.436020178283665e+07), 
+             std::complex<double> (-1.322174627952584e+06 , 2.076466267252767e+07), 
+             std::complex<double> (-2.837234202331722e+05 , 9.634261835367033e+06), 
+             std::complex<double> (-6.080508321988305e+04 , 4.461580259382267e+06), 
+             std::complex<double> (-1.302759281475449e+04 , 2.065297138332049e+06), 
+             std::complex<double> (-2.791018174257961e+03 , 9.559574815322031e+05), 
+             std::complex<double> (-5.979372718073802e+02 , 4.424727314750738e+05), 
+             std::complex<double> (-1.280994903758838e+02 , 2.048013010982928e+05), 
+             std::complex<double> (-2.744346359050791e+01 , 9.479349591996644e+04), 
+             std::complex<double> (-5.879364366324149e+00 , 4.387572346506749e+04), 
+             std::complex<double> (-1.259568422780648e+00 , 2.030813450210310e+04), 
+             std::complex<double> (-2.698440906799862e-01 , 9.399739127143552e+03), 
+             std::complex<double> (-5.780999785020665e-02 , 4.350725892187787e+03), 
+             std::complex<double> (-1.238476568295157e-02 , 2.013763002010345e+03), 
+             std::complex<double> (-2.653066622690015e-03 , 9.320910185761129e+02), 
+             std::complex<double> (-5.681904106493250e-04 , 4.314434038509463e+02), 
+             std::complex<double> (-1.215356407006027e-04 , 1.997385331683443e+02), 
+             std::complex<double> (-2.584618280724964e-05 , 9.254166528875541e+01), 
+             std::complex<double> (-5.346081594905893e-06 , 4.302918264823252e+01), 
+             std::complex<double> (-9.593790903523458e-07 , 2.030895866732791e+01), 
+             std::complex<double> (-8.363793627475115e-08 , 9.774042277543659e+00), 
+             std::complex<double> (-5.174431041864318e-10 , 3.143296733062278e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (4.964920095470116e+07 , 5.443346978302167e+07), 
+             std::complex<double> (4.374305791163472e+07 , -1.513786104680932e+07), 
+             std::complex<double> (1.293038487943203e+07 , -1.934981401840410e+07), 
+             std::complex<double> (2.974296942773023e+06 , -1.056624352272299e+07), 
+             std::complex<double> (6.470544838033246e+05 , -5.060372986848258e+06), 
+             std::complex<double> (1.390793096384244e+05 , -2.359277228624903e+06), 
+             std::complex<double> (2.981676289467578e+04 , -1.093701092857774e+06), 
+             std::complex<double> (6.388775336217243e+03 , -5.063941820539886e+05), 
+             std::complex<double> (1.368746870901357e+03 , -2.344041809567730e+05), 
+             std::complex<double> (2.932362166060562e+02 , -1.084969936728278e+05), 
+             std::complex<double> (6.282170332442647e+01 , -5.021862881884091e+04), 
+             std::complex<double> (1.345864382797343e+01 , -2.324400076133422e+04), 
+             std::complex<double> (2.883319596899132e+00 , -1.075862254797321e+04), 
+             std::complex<double> (6.177094454714178e-01 , -4.979691095708837e+03), 
+             std::complex<double> (1.323352954808784e-01 , -2.304878789278241e+03), 
+             std::complex<double> (2.835091912773195e-02 , -1.066826080659305e+03), 
+             std::complex<double> (6.073773969700597e-03 , -4.937856256796169e+02), 
+             std::complex<double> (1.301218416290769e-03 , -2.285493189900311e+02), 
+             std::complex<double> (2.787673121752139e-04 , -1.057805639168893e+02), 
+             std::complex<double> (5.972191203728079e-05 , -4.895075262854895e+01), 
+             std::complex<double> (1.279459692542021e-05 , -2.263481099893045e+01), 
+             std::complex<double> (2.740932652981146e-06 , -1.043002305859359e+01), 
+             std::complex<double> (5.816028935902000e-07 , -4.754756830176578e+00), 
+             std::complex<double> (8.717280879770618e-08 , -2.392986873161238e+00), 
+             std::complex<double> (1.259211474614584e-09 , -2.004221935414873e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 1.767980261388775e+09;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-2.932655679354784e+09 , 1.284247920399536e+09), 
+             std::complex<double> (-9.259043230571325e+08 , 1.542328752657431e+09), 
+             std::complex<double> (-1.847767716302595e+08 , 7.820873231726789e+08), 
+             std::complex<double> (-3.326166069214310e+07 , 3.393297005108014e+08), 
+             std::complex<double> (-5.874197308565493e+06 , 1.431645022532985e+08), 
+             std::complex<double> (-1.033905861368113e+06 , 6.010389351872045e+07), 
+             std::complex<double> (-1.818670887732783e+05 , 2.521111837568082e+07), 
+             std::complex<double> (-3.198759615877932e+04 , 1.057341233012433e+07), 
+             std::complex<double> (-5.626017366237886e+03 , 4.434314977046109e+06), 
+             std::complex<double> (-9.895075693209335e+02 , 1.859669861954770e+06), 
+             std::complex<double> (-1.740351310589180e+02 , 7.799105689244438e+05), 
+             std::complex<double> (-3.060939068999734e+01 , 3.270797784793235e+05), 
+             std::complex<double> (-5.383595692458747e+00 , 1.371710847732878e+05), 
+             std::complex<double> (-9.468696199055263e-01 , 5.752696339250897e+04), 
+             std::complex<double> (-1.665359069650703e-01 , 2.412572263571203e+04), 
+             std::complex<double> (-2.929040576991615e-02 , 1.011787323094865e+04), 
+             std::complex<double> (-5.151596472610081e-03 , 4.243246538712087e+03), 
+             std::complex<double> (-9.060506689300735e-04 , 1.779541127851121e+03), 
+             std::complex<double> (-1.593420252114536e-04 , 7.463146315166932e+02), 
+             std::complex<double> (-2.801054687150691e-05 , 3.130109576506529e+02), 
+             std::complex<double> (-4.911889095193575e-06 , 1.313201614183852e+02), 
+             std::complex<double> (-8.492918922036244e-07 , 5.518980769577839e+01), 
+             std::complex<double> (-1.349971143507167e-07 , 2.340886474914185e+01), 
+             std::complex<double> (-1.288850676466663e-08 , 1.015828114798678e+01), 
+             std::complex<double> (-1.249074556375340e-10 , 3.147253059075107e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (6.381758991990042e+08 , 5.889233575065727e+08), 
+             std::complex<double> (4.364889293543850e+08 , -2.325231407979714e+08), 
+             std::complex<double> (9.936060296953343e+07 , -1.985396356749212e+08), 
+             std::complex<double> (1.830882242995034e+07 , -9.249438682146960e+07), 
+             std::complex<double> (3.246788914719936e+06 , -3.949836359824469e+07), 
+             std::complex<double> (5.718752561212354e+05 , -1.661745031779712e+07), 
+             std::complex<double> (1.006073689724109e+05 , -6.972928181302273e+06), 
+             std::complex<double> (1.769567036288116e+04 , -2.924600926924957e+06), 
+             std::complex<double> (3.112348327917191e+03 , -1.226543546410261e+06), 
+             std::complex<double> (5.474022145395021e+02 , -5.143907655510101e+05), 
+             std::complex<double> (9.627741187995788e+01 , -2.157258905768880e+05), 
+             std::complex<double> (1.693332237101915e+01 , -9.047137417366235e+04), 
+             std::complex<double> (2.978241635773591e+00 , -3.794198688127947e+04), 
+             std::complex<double> (5.238147035808129e-01 , -1.591215298501723e+04), 
+             std::complex<double> (9.212880486985725e-02 , -6.673256476615108e+03), 
+             std::complex<double> (1.620366190585845e-02 , -2.798637601312119e+03), 
+             std::complex<double> (2.849908244862314e-03 , -1.173695350699257e+03), 
+             std::complex<double> (5.012432452484116e-04 , -4.922246643761710e+02), 
+             std::complex<double> (8.815890249401233e-05 , -2.064273307158491e+02), 
+             std::complex<double> (1.550543416014607e-05 , -8.656600503326850e+01), 
+             std::complex<double> (2.727106346110066e-06 , -3.629056062550842e+01), 
+             std::complex<double> (4.796333355889154e-07 , -1.518793607690816e+01), 
+             std::complex<double> (8.411667129933547e-08 , -6.308038107375014e+00), 
+             std::complex<double> (1.232839497736220e-08 , -2.743980107230492e+00), 
+             std::complex<double> (2.823699846137673e-10 , -2.013099043213079e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 25;
+            int m = 2;
+            double b = 3.867378956616377e+10;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-6.077320369364378e+10 , 3.059678380237500e+10), 
+             std::complex<double> (-1.460591138411945e+10 , 2.998846283807779e+10), 
+             std::complex<double> (-2.187022290547302e+09 , 1.272079536885996e+10), 
+             std::complex<double> (-3.019947565476583e+08 , 4.786854771686548e+09), 
+             std::complex<double> (-4.122599256073815e+07 , 1.771663032000535e+09), 
+             std::complex<double> (-5.619031450880168e+06 , 6.542260379070795e+08), 
+             std::complex<double> (-7.657004317265709e+05 , 2.415129232401696e+08), 
+             std::complex<double> (-1.043382765859096e+05 , 8.915272935196063e+07), 
+             std::complex<double> (-1.421761338798866e+04 , 3.290988926955791e+07), 
+             std::complex<double> (-1.937356333725410e+03 , 1.214836576612728e+07), 
+             std::complex<double> (-2.639929209504956e+02 , 4.484450672581832e+06), 
+             std::complex<double> (-3.597286697153279e+01 , 1.655391180191916e+06), 
+             std::complex<double> (-4.901825221181357e+00 , 6.110714899422112e+05), 
+             std::complex<double> (-6.679448315017542e-01 , 2.255710736027956e+05), 
+             std::complex<double> (-9.101717711898168e-02 , 8.326735923839128e+04), 
+             std::complex<double> (-1.240240937633931e-02 , 3.073733272919445e+04), 
+             std::complex<double> (-1.690006930054038e-03 , 1.134638663765282e+04), 
+             std::complex<double> (-2.302872728253521e-04 , 4.188408922003046e+03), 
+             std::complex<double> (-3.137932262441905e-05 , 1.546113204863072e+03), 
+             std::complex<double> (-4.275322047103569e-06 , 5.707405828619054e+02), 
+             std::complex<double> (-5.820414759643836e-07 , 2.107049456895719e+02), 
+             std::complex<double> (-7.878369771534275e-08 , 7.783799434035748e+01), 
+             std::complex<double> (-1.021345387634282e-08 , 2.888503208043884e+01), 
+             std::complex<double> (-9.547142584879242e-10 , 1.092131801702088e+01), 
+             std::complex<double> (-1.377894061757376e-11 , 3.159754212802467e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.692123827916010e+10 , 1.254542897972015e+10), 
+             std::complex<double> (8.283262825530298e+09 , -6.486299976716513e+09), 
+             std::complex<double> (1.366304795103021e+09 , -3.856098788856364e+09), 
+             std::complex<double> (1.911953096040010e+08 , -1.509267032556283e+09), 
+             std::complex<double> (2.614798773212380e+07 , -5.615430484522009e+08), 
+             std::complex<double> (3.564808418811441e+06 , -2.075107131353775e+08), 
+             std::complex<double> (4.857896789660904e+05 , -7.661175394573624e+07), 
+             std::complex<double> (6.619650313517894e+04 , -2.828104430008595e+07), 
+             std::complex<double> (9.020245589203836e+03 , -1.043969968781972e+07), 
+             std::complex<double> (1.229139584856770e+03 , -3.853714624625777e+06), 
+             std::complex<double> (1.674881111582609e+02 , -1.422561194960687e+06), 
+             std::complex<double> (2.282268602571365e+01 , -5.251245778205775e+05), 
+             std::complex<double> (3.109922208626706e+00 , -1.938446103894729e+05), 
+             std::complex<double> (4.237720376404838e-01 , -7.155584509053650e+04), 
+             std::complex<double> (5.774509134515964e-02 , -2.641414147579403e+04), 
+             std::complex<double> (7.868606908817414e-03 , -9.750522352166572e+03), 
+             std::complex<double> (1.072211537678262e-03 , -3.599309987712317e+03), 
+             std::complex<double> (1.461043361598581e-04 , -1.328649790290224e+03), 
+             std::complex<double> (1.990881361665280e-05 , -4.904571604462841e+02), 
+             std::complex<double> (2.712842261234037e-06 , -1.810449373218616e+02), 
+             std::complex<double> (3.696608362272592e-07 , -6.682411872254279e+01), 
+             std::complex<double> (5.037080204457085e-08 , -2.464917947356721e+01), 
+             std::complex<double> (6.858622512117156e-09 , -9.055590449803987e+00), 
+             std::complex<double> (8.653130651466150e-10 , -3.375077256324674e+00), 
+             std::complex<double> (2.855449324229107e-11 , -2.038736577872309e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -22634,486 +22634,71 @@
         { 
             int np = 30;
             int m = 2;
-            double b = 1.362802852101742e+11;
+            double b = 1.786300538817640e+04;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-2.260563430113050e+11 , 9.899300161597076e+10), 
-             std::complex<double> (-7.137099207454512e+10 , 1.188865095897478e+11), 
-             std::complex<double> (-1.424304992986035e+10 , 6.028522251575875e+10), 
-             std::complex<double> (-2.563890957766498e+09 , 2.615637141197538e+10), 
-             std::complex<double> (-4.527976369835516e+08 , 1.103547342985601e+10), 
-             std::complex<double> (-7.969601739563417e+07 , 4.632956560581381e+09), 
-             std::complex<double> (-1.401876438849539e+07 , 1.943335272312015e+09), 
-             std::complex<double> (-2.465682916825068e+06 , 8.150247372464416e+08), 
-             std::complex<double> (-4.336673142192835e+05 , 3.418079505644055e+08), 
-             std::complex<double> (-7.627368744880818e+04 , 1.433479460818319e+08), 
-             std::complex<double> (-1.341505775291618e+04 , 6.011743292117146e+07), 
-             std::complex<double> (-2.359447432738017e+03 , 2.521211716431283e+07), 
-             std::complex<double> (-4.149808500901972e+02 , 1.057348600316693e+07), 
-             std::complex<double> (-7.298704903278420e+01 , 4.434320411262261e+06), 
-             std::complex<double> (-1.283700045347998e+01 , 1.859670262788693e+06), 
-             std::complex<double> (-2.257778267474294e+00 , 7.799105984904652e+05), 
-             std::complex<double> (-3.970991745646501e-01 , 3.270797806601724e+05), 
-             std::complex<double> (-6.984200945055032e-02 , 1.371710849341482e+05), 
-             std::complex<double> (-1.228385149331165e-02 , 5.752696340436584e+04), 
-             std::complex<double> (-2.160488920004809e-03 , 2.412572263657624e+04), 
-             std::complex<double> (-3.799858292012274e-04 , 1.011787323100246e+04), 
-             std::complex<double> (-6.683059995445239e-05 , 4.243246538709969e+03), 
-             std::complex<double> (-1.175324304299886e-05 , 1.779541127848084e+03), 
-             std::complex<double> (-2.066709078414816e-06 , 7.463146315152027e+02), 
-             std::complex<double> (-3.632561502681531e-07 , 3.130109576500223e+02), 
-             std::complex<double> (-6.369356947468524e-08 , 1.313201614181625e+02), 
-             std::complex<double> (-1.101427091490508e-08 , 5.518980769571331e+01), 
-             std::complex<double> (-1.751054480068750e-09 , 2.340886474912669e+01), 
-             std::complex<double> (-1.674126285839405e-10 , 1.015828114798508e+01), 
-             std::complex<double> (-1.635747317515906e-12 , 3.147253059075087e+00), 
+             std::complex<double> (-3.482835827820777e+04 , 5.424190012136590e+03), 
+             std::complex<double> (-2.893810661534187e+04 , 1.396062841592816e+04), 
+             std::complex<double> (-2.058347397381449e+04 , 1.762381479312181e+04), 
+             std::complex<double> (-1.308886772633729e+04 , 1.719314303770886e+04), 
+             std::complex<double> (-7.743687979452162e+03 , 1.470640607039742e+04), 
+             std::complex<double> (-4.388164051580203e+03 , 1.171684906286218e+04), 
+             std::complex<double> (-2.426344947905732e+03 , 8.981582692213115e+03), 
+             std::complex<double> (-1.323438244666042e+03 , 6.742424415794953e+03), 
+             std::complex<double> (-7.165038457904284e+02 , 5.004717352696811e+03), 
+             std::complex<double> (-3.863464424585692e+02 , 3.692369813835811e+03), 
+             std::complex<double> (-2.078659897858887e+02 , 2.715269912412166e+03), 
+             std::complex<double> (-1.117039754454796e+02 , 1.993242169016990e+03), 
+             std::complex<double> (-5.998670510754253e+01 , 1.461843158803807e+03), 
+             std::complex<double> (-3.219928979683724e+01 , 1.071587995063758e+03), 
+             std::complex<double> (-1.727712165046628e+01 , 7.853239667778385e+02), 
+             std::complex<double> (-9.266083302374119e+00 , 5.754785508933257e+02), 
+             std::complex<double> (-4.965957745297645e+00 , 4.217138332047496e+02), 
+             std::complex<double> (-2.657890615469179e+00 , 3.090776606648884e+02), 
+             std::complex<double> (-1.419128066110732e+00 , 2.265977561595959e+02), 
+             std::complex<double> (-7.543804277059780e-01 , 1.662318650570458e+02), 
+             std::complex<double> (-3.977262414022457e-01 , 1.220913778800418e+02), 
+             std::complex<double> (-2.063665757446078e-01 , 8.987045871137030e+01), 
+             std::complex<double> (-1.036556446532321e-01 , 6.642826418922323e+01), 
+             std::complex<double> (-4.847304122988369e-02 , 4.948435976001259e+01), 
+             std::complex<double> (-1.891070221918447e-02 , 3.738281221346241e+01), 
+             std::complex<double> (-4.474243501553810e-03 , 2.876820897784674e+01), 
+             std::complex<double> (-3.484281138185630e-04 , 2.201954255181188e+01), 
+             std::complex<double> (-5.192442862488305e-06 , 1.570831546873151e+01), 
+             std::complex<double> (-1.055839973835105e-08 , 9.424778619222671e+00), 
+             std::complex<double> (-1.110227986340854e-12 , 3.141592653656908e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (4.919217451488852e+10 , 4.539566695439857e+10), 
-             std::complex<double> (3.364564474083897e+10 , -1.792345799212862e+10), 
-             std::complex<double> (7.658960683588418e+09 , -1.530392548277468e+10), 
-             std::complex<double> (1.411289253112843e+09 , -7.129695784316122e+09), 
-             std::complex<double> (2.502705086579407e+08 , -3.044631421551719e+09), 
-             std::complex<double> (4.408155719307550e+07 , -1.280914113259307e+09), 
-             std::complex<double> (7.755064486344404e+06 , -5.374905263660849e+08), 
-             std::complex<double> (1.364025977297759e+06 , -2.254354628001529e+08), 
-             std::complex<double> (2.399074961948096e+05 , -9.454500594733365e+07), 
-             std::complex<double> (4.219511473185286e+04 , -3.965051068154848e+07), 
-             std::complex<double> (7.421300706560492e+03 , -1.662868445845063e+07), 
-             std::complex<double> (1.305262312540593e+03 , -6.973756973368203e+06), 
-             std::complex<double> (2.295702203474029e+02 , -2.924662061392994e+06), 
-             std::complex<double> (4.037693036399335e+01 , -1.226548055774383e+06), 
-             std::complex<double> (7.101515694977040e+00 , -5.143910981667502e+05), 
-             std::complex<double> (1.249018314044843e+00 , -2.157259151110064e+05), 
-             std::complex<double> (2.196779705719005e-01 , -9.047137598333800e+04), 
-             std::complex<double> (3.863707057795756e-02 , -3.794198701476835e+04), 
-             std::complex<double> (6.795509471537484e-03 , -1.591215299486408e+04), 
-             std::complex<double> (1.195198476973741e-03 , -6.673256477342017e+03), 
-             std::complex<double> (2.102120245046098e-04 , -2.798637601364831e+03), 
-             std::complex<double> (3.697201442680757e-05 , -1.173695350701868e+03), 
-             std::complex<double> (6.502482611233163e-06 , -4.922246643756272e+02), 
-             std::complex<double> (1.143537794983518e-06 , -2.064273307154715e+02), 
-             std::complex<double> (2.010977199820400e-07 , -8.656600503307962e+01), 
-             std::complex<double> (3.536354387973731e-08 , -3.629056062542763e+01), 
-             std::complex<double> (6.219484889780642e-09 , -1.518793607688082e+01), 
-             std::complex<double> (1.090944126469887e-09 , -6.308038107366983e+00), 
-             std::complex<double> (1.599569759616599e-10 , -2.743980107228885e+00), 
-             std::complex<double> (3.690635197941082e-12 , -2.013099043213039e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 30;
-            int m = 2;
-            double b = 7.777560169487656e+09;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.340036341986429e+10 , 5.193379656137459e+09), 
-             std::complex<double> (-5.186240584073159e+09 , 7.282779161291145e+09), 
-             std::complex<double> (-1.298978142551649e+09 , 4.281812174394330e+09), 
-             std::complex<double> (-2.882972405851151e+08 , 2.088165317958621e+09), 
-             std::complex<double> (-6.223865292177729e+07 , 9.774538142130129e+08), 
-             std::complex<double> (-1.335569682272292e+07 , 4.535130729843550e+08), 
-             std::complex<double> (-2.862274309657053e+06 , 2.100197200753430e+08), 
-             std::complex<double> (-6.132471539992122e+05 , 9.721961763471982e+07), 
-             std::complex<double> (-1.313814437510622e+05 , 4.499973350262288e+07), 
-             std::complex<double> (-2.814666805905915e+04 , 2.082849434449822e+07), 
-             std::complex<double> (-6.030020222776345e+03 , 9.640600284193022e+06), 
-             std::complex<double> (-1.291844652912483e+03 , 4.462208970071673e+06), 
-             std::complex<double> (-2.767590046687632e+02 , 2.065359485395700e+06), 
-             std::complex<double> (-5.929160573872303e+01 , 9.559636639607314e+05), 
-             std::complex<double> (-1.270236692955135e+01 , 4.424733445272422e+05), 
-             std::complex<double> (-2.721297873507507e+00 , 2.048013618887120e+05), 
-             std::complex<double> (-5.829985617043429e-01 , 9.479350194798034e+04), 
-             std::complex<double> (-1.248989590203771e-01 , 4.387572406281675e+04), 
-             std::complex<double> (-2.675777797803507e-02 , 2.030813456137690e+04), 
-             std::complex<double> (-5.732458834817584e-03 , 9.399739133018220e+03), 
-             std::complex<double> (-1.228090375508765e-03 , 4.350725892767989e+03), 
-             std::complex<double> (-2.630946076463827e-04 , 2.013763002066167e+03), 
-             std::complex<double> (-5.635895693398096e-05 , 9.320910185808137e+02), 
-             std::complex<double> (-1.206968716420404e-05 , 4.314434038509972e+02), 
-             std::complex<double> (-2.581638244107004e-06 , 1.997385331681191e+02), 
-             std::complex<double> (-5.490055153730659e-07 , 9.254166528862122e+01), 
-             std::complex<double> (-1.135505618228694e-07 , 4.302918264817856e+01), 
-             std::complex<double> (-2.037507137607511e-08 , 2.030895866731232e+01), 
-             std::complex<double> (-1.776287578310367e-09 , 9.774042277542037e+00), 
-             std::complex<double> (-1.099461804086121e-11 , 3.143296733062273e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (2.337134082612616e+09 , 2.562343703782293e+09), 
-             std::complex<double> (2.059114538739392e+09 , -7.125836933970790e+08), 
-             std::complex<double> (6.086712902069863e+08 , -9.108527219967749e+08), 
-             std::complex<double> (1.400089150081459e+08 , -4.973841952581840e+08), 
-             std::complex<double> (3.045875982471164e+07 , -2.382066569219896e+08), 
-             std::complex<double> (6.546872627964534e+06 , -1.110581261191356e+08), 
-             std::complex<double> (1.403562825822862e+06 , -5.148373087887733e+07), 
-             std::complex<double> (3.007384670227370e+05 , -2.383746524327619e+07), 
-             std::complex<double> (6.443094553630956e+04 , -1.103409500840049e+07), 
-             std::complex<double> (1.380349216431272e+04 , -5.107272965336684e+06), 
-             std::complex<double> (2.957202558297040e+03 , -2.363938729470136e+06), 
-             std::complex<double> (6.335379950957779e+02 , -1.094163559852584e+06), 
-             std::complex<double> (1.357263438120013e+02 , -5.064400452784285e+05), 
-             std::complex<double> (2.907740259125273e+01 , -2.344087288652768e+05), 
-             std::complex<double> (6.229412046489145e+00 , -1.084974446461929e+05), 
-             std::complex<double> (1.334561210617000e+00 , -5.021867353745985e+04), 
-             std::complex<double> (2.859103826622169e-01 , -2.324400519564840e+04), 
-             std::complex<double> (6.125214739452008e-02 , -1.075862298768337e+04), 
-             std::complex<double> (1.312238096865155e-02 , -4.979691139313308e+03), 
-             std::complex<double> (2.811279011398451e-03 , -2.304878793602031e+03), 
-             std::complex<double> (6.022757187639150e-04 , -1.066826081087913e+03), 
-             std::complex<double> (1.290287982182687e-04 , -4.937856257218228e+02), 
-             std::complex<double> (2.764221827286943e-05 , -2.285493189940098e+02), 
-             std::complex<double> (5.921774023805938e-06 , -1.057805639172012e+02), 
-             std::complex<double> (1.268618871986980e-06 , -4.895075262853618e+01), 
-             std::complex<double> (2.717802630711590e-07 , -2.263481099889794e+01), 
-             std::complex<double> (5.822038762103108e-08 , -1.043002305857571e+01), 
-             std::complex<double> (1.235258522685602e-08 , -4.754756830168871e+00), 
-             std::complex<double> (1.851266663506792e-09 , -2.392986873159544e+00), 
-             std::complex<double> (2.675316853230272e-11 , -2.004221935414854e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 30;
-            int m = 2;
-            double b = 8.050742173805323e+08;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.425932735889674e+09 , 4.957024150292232e+08), 
-             std::complex<double> (-6.447924439297898e+08 , 7.840828213828845e+08), 
-             std::complex<double> (-1.940555352739612e+08 , 5.220084337206816e+08), 
-             std::complex<double> (-5.107963994105916e+07 , 2.811213145805761e+08), 
-             std::complex<double> (-1.296455480427407e+07 , 1.433617566893554e+08), 
-             std::complex<double> (-3.260006136783800e+06 , 7.210891474402954e+07), 
-             std::complex<double> (-8.178219582224345e+05 , 3.614442878099144e+07), 
-             std::complex<double> (-2.050420669439653e+05 , 1.810159107396463e+07), 
-             std::complex<double> (-5.139997951468418e+04 , 9.063534939492136e+06), 
-             std::complex<double> (-1.288447772381847e+04 , 4.537898553064034e+06), 
-             std::complex<double> (-3.229733260016483e+03 , 2.271987893797936e+06), 
-             std::complex<double> (-8.095906457000415e+02 , 1.137511390681061e+06), 
-             std::complex<double> (-2.029383165299460e+02 , 5.695149413375852e+05), 
-             std::complex<double> (-5.087009643409584e+01 , 2.851375390434747e+05), 
-             std::complex<double> (-1.275149340409899e+01 , 1.427590496966748e+05), 
-             std::complex<double> (-3.196388268890898e+00 , 7.147479105827559e+04), 
-             std::complex<double> (-8.012314361188517e-01 , 3.578509230676397e+04), 
-             std::complex<double> (-2.008428430190844e-01 , 1.791642679721231e+04), 
-             std::complex<double> (-5.034478457210373e-02 , 8.970170536023263e+03), 
-             std::complex<double> (-1.261977463155531e-02 , 4.491073576192549e+03), 
-             std::complex<double> (-3.163329895190986e-03 , 2.248538454549567e+03), 
-             std::complex<double> (-7.929019028998871e-04 , 1.125779086684483e+03), 
-             std::complex<double> (-1.987098730255687e-04 , 5.636595075324266e+02), 
-             std::complex<double> (-4.976385096472798e-05 , 2.822432614208342e+02), 
-             std::complex<double> (-1.242744655450400e-05 , 1.413845708914785e+02), 
-             std::complex<double> (-3.068333489803973e-06 , 7.093527043253458e+01), 
-             std::complex<double> (-7.223158726723104e-07 , 3.580815253213384e+01), 
-             std::complex<double> (-1.366075084778147e-07 , 1.845658665214465e+01), 
-             std::complex<double> (-9.938834294812918e-09 , 9.584244111714973e+00), 
-             std::complex<double> (-3.876361316436709e-11 , 3.142091104567148e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (2.034976356727266e+08 , 2.573183295748415e+08), 
-             std::complex<double> (2.180386327005781e+08 , -4.291775631403627e+07), 
-             std::complex<double> (7.996721047450256e+07 , -9.269188008511361e+07), 
-             std::complex<double> (2.212381711263887e+07 , -5.887024703655051e+07), 
-             std::complex<double> (5.685994629279939e+06 , -3.118070142885414e+07), 
-             std::complex<double> (1.434270837624724e+06 , -1.583008157969254e+07), 
-             std::complex<double> (3.600920060476071e+05 , -7.953232629329551e+06), 
-             std::complex<double> (9.029909714178318e+04 , -3.985395849507198e+06), 
-             std::complex<double> (2.263731276692567e+04 , -1.995793369572163e+06), 
-             std::complex<double> (5.674585329031583e+03 , -9.992832272603641e+05), 
-             std::complex<double> (1.422444458828822e+03 , -5.003153203802009e+05), 
-             std::complex<double> (3.565615275682567e+02 , -2.504923915818458e+05), 
-             std::complex<double> (8.937851583105515e+01 , -1.254134621198605e+05), 
-             std::complex<double> (2.240431490228944e+01 , -6.279043533435158e+04), 
-             std::complex<double> (5.616039658388154e+00 , -3.143712056635074e+04), 
-             std::complex<double> (1.407760110187167e+00 , -1.573953903304089e+04), 
-             std::complex<double> (3.528800735085265e-01 , -7.880272762253429e+03), 
-             std::complex<double> (8.845565555765417e-02 , -3.945394905775825e+03), 
-             std::complex<double> (2.217297994279907e-02 , -1.975330028960530e+03), 
-             std::complex<double> (5.558051315024736e-03 , -9.889826714447177e+02), 
-             std::complex<double> (1.393224794864747e-03 , -4.951502691628797e+02), 
-             std::complex<double> (3.492373147348032e-04 , -2.479034944926362e+02), 
-             std::complex<double> (8.754308641287641e-05 , -1.241130577837041e+02), 
-             std::complex<double> (2.194447516961261e-05 , -6.213112609457483e+01), 
-             std::complex<double> (5.500831781069279e-06 , -3.109062229958284e+01), 
-             std::complex<double> (1.378890739493853e-06 , -1.553354716914265e+01), 
-             std::complex<double> (3.455819827470462e-07 , -7.715176851779923e+00), 
-             std::complex<double> (8.422268247454932e-08 , -3.790763970679506e+00), 
-             std::complex<double> (1.146586071259843e-08 , -2.198773295729515e+00), 
-             std::complex<double> (1.003402882138138e-10 , -2.001307672244444e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 30;
-            int m = 2;
-            double b = 1.279905757901758e+08;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-2.314282913221650e+08 , 7.294579364443612e+07), 
-             std::complex<double> (-1.181482424285914e+08 , 1.268871497765626e+08), 
-             std::complex<double> (-4.134583896343520e+07 , 9.386031104946351e+07), 
-             std::complex<double> (-1.254570225004170e+07 , 5.508621814877839e+07), 
-             std::complex<double> (-3.640457200547342e+06 , 3.021513960279294e+07), 
-             std::complex<double> (-1.042626668484624e+06 , 1.625357541256095e+07), 
-             std::complex<double> (-2.974868185433647e+05 , 8.694728270603180e+06), 
-             std::complex<double> (-8.478909459452594e+04 , 4.643803370879969e+06), 
-             std::complex<double> (-2.415901581426754e+04 , 2.479106597653165e+06), 
-             std::complex<double> (-6.883044409137209e+03 , 1.323307011191927e+06), 
-             std::complex<double> (-1.960970704278958e+03 , 7.063339496389678e+05), 
-             std::complex<double> (-5.586741342503982e+02 , 3.770118541898234e+05), 
-             std::complex<double> (-1.591641124661413e+02 , 2.012327380491327e+05), 
-             std::complex<double> (-4.534521828939148e+01 , 1.074093030896666e+05), 
-             std::complex<double> (-1.291866927400398e+01 , 5.733041126095514e+04), 
-             std::complex<double> (-3.680476388876830e+00 , 3.060047655183592e+04), 
-             std::complex<double> (-1.048552553397212e+00 , 1.633320183847794e+04), 
-             std::complex<double> (-2.987280900539186e-01 , 8.717952877066295e+03), 
-             std::complex<double> (-8.510612711665420e-02 , 4.653266076428588e+03), 
-             std::complex<double> (-2.424607329743559e-02 , 2.483715760121476e+03), 
-             std::complex<double> (-6.907273854928963e-03 , 1.325708795379122e+03), 
-             std::complex<double> (-1.967514156922237e-03 , 7.076234834716391e+02), 
-             std::complex<double> (-5.601966533124439e-04 , 3.777321101915988e+02), 
-             std::complex<double> (-1.592579215613054e-04 , 2.016797505915737e+02), 
-             std::complex<double> (-4.503170580998576e-05 , 1.077654749782195e+02), 
-             std::complex<double> (-1.248785715582555e-05 , 5.774033972883079e+01), 
-             std::complex<double> (-3.214871876352756e-06 , 3.122497845157856e+01), 
-             std::complex<double> (-6.031303456583466e-07 , 1.732451124679044e+01), 
-             std::complex<double> (-3.414088864119126e-08 , 9.494141891654081e+00), 
-             std::complex<double> (-8.530747958690035e-11 , 3.141735081105732e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (2.749817779605933e+07 , 3.928675851365912e+07), 
-             std::complex<double> (3.436446635272976e+07 , -2.454260473454576e+06), 
-             std::complex<double> (1.509305120206410e+07 , -1.380729812793133e+07), 
-             std::complex<double> (4.886150735896152e+06 , -1.017075992077017e+07), 
-             std::complex<double> (1.444319689288647e+06 , -5.906787649253402e+06), 
-             std::complex<double> (4.158415059837546e+05 , -3.227952632427697e+06), 
-             std::complex<double> (1.188282774014820e+05 , -1.734480382269202e+06), 
-             std::complex<double> (3.388271048795941e+04 , -9.275496530209908e+05), 
-             std::complex<double> (9.655402838304772e+03 , -4.953533683153779e+05), 
-             std::complex<double> (2.750976207793482e+03 , -2.644387718213535e+05), 
-             std::complex<double> (7.837574289190582e+02 , -1.411520870983752e+05), 
-             std::complex<double> (2.232905547392273e+02 , -7.534177512849862e+04), 
-             std::complex<double> (6.361467081224986e+01 , -4.021429968376477e+04), 
-             std::complex<double> (1.812356882920825e+01 , -2.146466254756372e+04), 
-             std::complex<double> (5.163331720760453e+00 , -1.145690479052291e+04), 
-             std::complex<double> (1.471012341135676e+00 , -6.115196951391106e+03), 
-             std::complex<double> (4.190854753553419e-01 , -3.264025578102081e+03), 
-             std::complex<double> (1.193957562144194e-01 , -1.742194341571693e+03), 
-             std::complex<double> (3.401537322103352e-02 , -9.299068794628328e+02), 
-             std::complex<double> (9.690848873605763e-03 , -4.963427518708056e+02), 
-             std::complex<double> (2.760887128542860e-03 , -2.649242232595692e+02), 
-             std::complex<double> (7.865661139762456e-04 , -1.414014294778943e+02), 
-             std::complex<double> (2.240892746231011e-04 , -7.546722142548825e+01), 
-             std::complex<double> (6.384215836620829e-05 , -4.026856732483116e+01), 
-             std::complex<double> (1.818860139193252e-05 , -2.147014018048246e+01), 
-             std::complex<double> (5.182454136748546e-06 , -1.141623593110925e+01), 
-             std::complex<double> (1.475901739479886e-06 , -6.017089153223023e+00), 
-             std::complex<double> (3.923684598711579e-07 , -3.158204500293917e+00), 
-             std::complex<double> (4.370748052730614e-08 , -2.095194761876006e+00), 
-             std::complex<double> (2.324864606821677e-10 , -2.000392276848578e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 30;
-            int m = 2;
-            double b = 2.800157732752085e+07;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-5.144055897068965e+07 , 1.483120416683455e+07), 
-             std::complex<double> (-2.891357282658651e+07 , 2.783833296884530e+07), 
-             std::complex<double> (-1.146976901179962e+07 , 2.252779455957355e+07), 
-             std::complex<double> (-3.925993641212572e+06 , 1.425937570589937e+07), 
-             std::complex<double> (-1.275652508562986e+06 , 8.333534521330995e+06), 
-             std::complex<double> (-4.074596447736801e+05 , 4.747237500773826e+06), 
-             std::complex<double> (-1.294358191095930e+05 , 2.682345403979623e+06), 
-             std::complex<double> (-4.104560386435923e+04 , 1.511700660968927e+06), 
-             std::complex<double> (-1.300883645931853e+04 , 8.512576494746523e+05), 
-             std::complex<double> (-4.122247536582769e+03 , 4.792294228016091e+05), 
-             std::complex<double> (-1.306187534343982e+03 , 2.697678464343942e+05), 
-             std::complex<double> (-4.138751497003890e+02 , 1.518537680012092e+05), 
-             std::complex<double> (-1.311386597164553e+02 , 8.547859461758003e+04), 
-             std::complex<double> (-4.155194443347297e+01 , 4.811583630649425e+04), 
-             std::complex<double> (-1.316593432979022e+01 , 2.708434580128943e+04), 
-             std::complex<double> (-4.171688168539736e+00 , 1.524574200443283e+04), 
-             std::complex<double> (-1.321817841941753e+00 , 8.581808236077301e+03), 
-             std::complex<double> (-4.188226631971046e-01 , 4.830690601576561e+03), 
-             std::complex<double> (-1.327042533774207e-01 , 2.719194231431160e+03), 
-             std::complex<double> (-4.204622760276631e-02 , 1.530640195421175e+03), 
-             std::complex<double> (-1.332077651308736e-02 , 8.616123616726908e+02), 
-             std::complex<double> (-4.218971060427111e-03 , 4.850309180498789e+02), 
-             std::complex<double> (-1.335019918776156e-03 , 2.730774987518769e+02), 
-             std::complex<double> (-4.212269856076930e-04 , 1.538113817795715e+02), 
-             std::complex<double> (-1.316843559579567e-04 , 8.675151323843581e+01), 
-             std::complex<double> (-3.993082059949652e-05 , 4.913607540097872e+01), 
-             std::complex<double> (-1.085287442972345e-05 , 2.818825776588787e+01), 
-             std::complex<double> (-1.907543362141894e-06 , 1.663323083836115e+01), 
-             std::complex<double> (-7.966303417965077e-08 , 9.453485964598679e+00), 
-             std::complex<double> (-1.310238991487586e-10 , 3.141632582666812e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (5.164215060255514e+06 , 8.211317249128222e+06), 
-             std::complex<double> (7.297653026028864e+06 , 2.766266611335894e+05), 
-             std::complex<double> (3.731465958037045e+06 , -2.714572986446508e+06), 
-             std::complex<double> (1.383754436514395e+06 , -2.322434851407710e+06), 
-             std::complex<double> (4.612003641399817e+05 , -1.471157126686850e+06), 
-             std::complex<double> (1.485068127955537e+05 , -8.587395665244827e+05), 
-             std::complex<double> (4.729629461902505e+04 , -4.889279951055130e+05), 
-             std::complex<double> (1.501036730919981e+04 , -2.762105008620486e+05), 
-             std::complex<double> (4.758550376624863e+03 , -1.556559811192289e+05), 
-             std::complex<double> (1.508014891090192e+03 , -8.765019862413383e+04), 
-             std::complex<double> (4.778463773462889e+02 , -4.934382001082131e+04), 
-             std::complex<double> (1.514103848109962e+02 , -2.777657278153364e+04), 
-             std::complex<double> (4.797535328602482e+01 , -1.563557244579445e+04), 
-             std::complex<double> (1.520124524293161e+01 , -8.801273171341929e+03), 
-             std::complex<double> (4.816589773094258e+00 , -4.954229587063105e+03), 
-             std::complex<double> (1.526159776592680e+00 , -2.788729528500177e+03), 
-             std::complex<double> (4.835710885424361e-01 , -1.569771693928325e+03), 
-             std::complex<double> (1.532218412029837e-01 , -8.836216927823823e+02), 
-             std::complex<double> (4.854908948110069e-02 , -4.973883846318289e+02), 
-             std::complex<double> (1.538302053410261e-02 , -2.799774337151554e+02), 
-             std::complex<double> (4.874188439827747e-03 , -1.575957467787032e+02), 
-             std::complex<double> (1.544411034443838e-03 , -8.870482806045658e+01), 
-             std::complex<double> (4.893536585166794e-04 , -4.992188851806088e+01), 
-             std::complex<double> (1.550541743038486e-04 , -2.808331873186118e+01), 
-             std::complex<double> (4.913162730551911e-05 , -1.577675284921960e+01), 
-             std::complex<double> (1.557232157210188e-05 , -8.825588832667364e+00), 
-             std::complex<double> (4.923897018755638e-06 , -4.879445917330541e+00), 
-             std::complex<double> (1.346262210116094e-06 , -2.733110063591393e+00), 
-             std::complex<double> (1.125315837075026e-07 , -2.042980526122038e+00), 
-             std::complex<double> (3.732368722903438e-10 , -2.000114689334910e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 30;
-            int m = 2;
-            double b = 1.037878524103058e+06;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.965353452355160e+06 , 4.512972094019555e+05), 
-             std::complex<double> (-1.339521437976738e+06 , 9.884987256279119e+05), 
-             std::complex<double> (-6.963640820183916e+05 , 9.776720747111859e+05), 
-             std::complex<double> (-3.126809423792953e+05 , 7.410548299523090e+05), 
-             std::complex<double> (-1.312410243006304e+05 , 5.042928468151261e+05), 
-             std::complex<double> (-5.352885708089831e+04 , 3.284584768792502e+05), 
-             std::complex<double> (-2.157749299970477e+04 , 2.101853565679360e+05), 
-             std::complex<double> (-8.656681258064169e+03 , 1.335499565627082e+05), 
-             std::complex<double> (-3.466359745779085e+03 , 8.461574890451488e+04), 
-             std::complex<double> (-1.386960394429364e+03 , 5.355067201267625e+04), 
-             std::complex<double> (-5.547811413513231e+02 , 3.387514431116203e+04), 
-             std::complex<double> (-2.218840742315764e+02 , 2.142488030488860e+04), 
-             std::complex<double> (-8.873789662753697e+01 , 1.354952573356077e+04), 
-             std::complex<double> (-3.548813107626696e+01 , 8.568745148482347e+03), 
-             std::complex<double> (-1.419228989154608e+01 , 5.418829625762190e+03), 
-             std::complex<double> (-5.675672269839032e+00 , 3.426827336355957e+03), 
-             std::complex<double> (-2.269727200130654e+00 , 2.167101895751966e+03), 
-             std::complex<double> (-9.076324772316735e-01 , 1.370468624168203e+03), 
-             std::complex<double> (-3.629088983542017e-01 , 8.666947820190341e+02), 
-             std::complex<double> (-1.450656880485980e-01 , 5.481278145665016e+02), 
-             std::complex<double> (-5.794704980437172e-02 , 3.466921854736551e+02), 
-             std::complex<double> (-2.310707295735892e-02 , 2.193424610314883e+02), 
-             std::complex<double> (-9.174013991361829e-03 , 1.388649183955535e+02), 
-             std::complex<double> (-3.601751611839669e-03 , 8.806232967527349e+01), 
-             std::complex<double> (-1.372686139969153e-03 , 5.607940296954874e+01), 
-             std::complex<double> (-4.801555835849495e-04 , 3.608119261510220e+01), 
-             std::complex<double> (-1.264144330401454e-04 , 2.373799431571446e+01), 
-             std::complex<double> (-1.350559549059643e-05 , 1.584477852588604e+01), 
-             std::complex<double> (-1.982247330964216e-07 , 9.426340415704457e+00), 
-             std::complex<double> (-1.134825816149471e-10 , 3.141593461908054e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.275224346846662e+05 , 2.630323535462741e+05), 
-             std::complex<double> (2.310564600253989e+05 , 7.129914050357543e+04), 
-             std::complex<double> (1.651058471994774e+05 , -5.710179874835252e+04), 
-             std::complex<double> (8.396101888307597e+04 , -8.178066962260584e+04), 
-             std::complex<double> (3.703756010136355e+04 , -6.633883186510229e+04), 
-             std::complex<double> (1.541009775557300e+04 , -4.602326693548385e+04), 
-             std::complex<double> (6.261487544679016e+03 , -3.017502912565647e+04), 
-             std::complex<double> (2.520064645120270e+03 , -1.935732868379216e+04), 
-             std::complex<double> (1.010386012192963e+03 , -1.231134315053274e+04), 
-             std::complex<double> (4.044819153259888e+02 , -7.803303706091599e+03), 
-             std::complex<double> (1.618248853034352e+02 , -4.939217683880694e+03), 
-             std::complex<double> (6.472697082963181e+01 , -3.124645077766205e+03), 
-             std::complex<double> (2.588706274368349e+01 , -1.976279628132655e+03), 
-             std::complex<double> (1.035292994262468e+01 , -1.249850625740999e+03), 
-             std::complex<double> (4.140349244223376e+00 , -7.904101005909387e+02), 
-             std::complex<double> (1.655800415150153e+00 , -4.998507095528129e+02), 
-             std::complex<double> (6.621828806799700e-01 , -3.161000241038133e+02), 
-             std::complex<double> (2.648178182993499e-01 , -1.998963186743309e+02), 
-             std::complex<double> (1.059047618454167e-01 , -1.264087758121324e+02), 
-             std::complex<double> (4.235286678511035e-02 , -7.993387477234691e+01), 
-             std::complex<double> (1.693751070435709e-02 , -5.054030024683711e+01), 
-             std::complex<double> (6.773555400403035e-03 , -3.194684384172625e+01), 
-             std::complex<double> (2.708878744118172e-03 , -2.018017305479761e+01), 
-             std::complex<double> (1.083442860894291e-03 , -1.272570838680152e+01), 
-             std::complex<double> (4.335808047196679e-04 , -7.990248136963910e+00), 
-             std::complex<double> (1.736642471388445e-04 , -4.964258027946280e+00), 
-             std::complex<double> (6.570072990076973e-05 , -3.053743016083243e+00), 
-             std::complex<double> (1.304302882610784e-05 , -2.145995627766039e+00), 
-             std::complex<double> (3.522151453232783e-07 , -2.002860125401003e+00), 
-             std::complex<double> (3.581589429484659e-10 , -2.000002562708235e+00), 
+             std::complex<double> (1.058603073719127e+03 , 3.316169472438535e+03), 
+             std::complex<double> (2.484770612913337e+03 , 1.975909551234731e+03), 
+             std::complex<double> (2.647356830977340e+03 , 4.126335653275221e+02), 
+             std::complex<double> (2.060793469291490e+03 , -5.690649691072831e+02), 
+             std::complex<double> (1.356451257143194e+03 , -9.309256348256666e+02), 
+             std::complex<double> (8.137644492551511e+02 , -9.340313657531439e+02), 
+             std::complex<double> (4.639253995481013e+02 , -7.959868647191480e+02), 
+             std::complex<double> (2.572343945037466e+02 , -6.300020229589354e+02), 
+             std::complex<double> (1.404993165911721e+02 , -4.806162661507047e+02), 
+             std::complex<double> (7.611904812153365e+01 , -3.597397667018288e+02), 
+             std::complex<double> (4.105967092526156e+01 , -2.665776486608805e+02), 
+             std::complex<double> (2.209633064296089e+01 , -1.964910978792202e+02), 
+             std::complex<double> (1.187626013446552e+01 , -1.444182333881764e+02), 
+             std::complex<double> (6.378880639037950e+00 , -1.059820124919450e+02), 
+             std::complex<double> (3.424886138614437e+00 , -7.770961578069281e+01), 
+             std::complex<double> (1.838480190683470e+00 , -5.695132906374673e+01), 
+             std::complex<double> (9.868104016774549e-01 , -4.172417812342363e+01), 
+             std::complex<double> (5.296525880106261e-01 , -3.055882763227439e+01), 
+             std::complex<double> (2.842490722753033e-01 , -2.237209798332090e+01), 
+             std::complex<double> (1.525166904702508e-01 , -1.636743313808943e+01), 
+             std::complex<double> (8.182625183402431e-02 , -1.195951826587348e+01), 
+             std::complex<double> (4.390937177772417e-02 , -8.717992458092597e+00), 
+             std::complex<double> (2.357742506580863e-02 , -6.325576041433425e+00), 
+             std::complex<double> (1.267582568904524e-02 , -4.547763452767348e+00), 
+             std::complex<double> (6.686257427377829e-03 , -3.224132966353317e+00), 
+             std::complex<double> (2.679830388945505e-03 , -2.347926640374447e+00), 
+             std::complex<double> (3.682868882091529e-04 , -2.032279877905038e+00), 
+             std::complex<double> (8.480852568846298e-06 , -2.000589142478385e+00), 
+             std::complex<double> (2.486229004620719e-08 , -2.000001561429920e+00), 
+             std::complex<double> (4.079761101264092e-12 , -2.000000000246414e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -23215,71 +22800,486 @@
         { 
             int np = 30;
             int m = 2;
-            double b = 1.786300538817640e+04;
+            double b = 1.037878524103058e+06;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-3.482835827820777e+04 , 5.424190012136590e+03), 
-             std::complex<double> (-2.893810661534187e+04 , 1.396062841592816e+04), 
-             std::complex<double> (-2.058347397381449e+04 , 1.762381479312181e+04), 
-             std::complex<double> (-1.308886772633729e+04 , 1.719314303770886e+04), 
-             std::complex<double> (-7.743687979452162e+03 , 1.470640607039742e+04), 
-             std::complex<double> (-4.388164051580203e+03 , 1.171684906286218e+04), 
-             std::complex<double> (-2.426344947905732e+03 , 8.981582692213115e+03), 
-             std::complex<double> (-1.323438244666042e+03 , 6.742424415794953e+03), 
-             std::complex<double> (-7.165038457904284e+02 , 5.004717352696811e+03), 
-             std::complex<double> (-3.863464424585692e+02 , 3.692369813835811e+03), 
-             std::complex<double> (-2.078659897858887e+02 , 2.715269912412166e+03), 
-             std::complex<double> (-1.117039754454796e+02 , 1.993242169016990e+03), 
-             std::complex<double> (-5.998670510754253e+01 , 1.461843158803807e+03), 
-             std::complex<double> (-3.219928979683724e+01 , 1.071587995063758e+03), 
-             std::complex<double> (-1.727712165046628e+01 , 7.853239667778385e+02), 
-             std::complex<double> (-9.266083302374119e+00 , 5.754785508933257e+02), 
-             std::complex<double> (-4.965957745297645e+00 , 4.217138332047496e+02), 
-             std::complex<double> (-2.657890615469179e+00 , 3.090776606648884e+02), 
-             std::complex<double> (-1.419128066110732e+00 , 2.265977561595959e+02), 
-             std::complex<double> (-7.543804277059780e-01 , 1.662318650570458e+02), 
-             std::complex<double> (-3.977262414022457e-01 , 1.220913778800418e+02), 
-             std::complex<double> (-2.063665757446078e-01 , 8.987045871137030e+01), 
-             std::complex<double> (-1.036556446532321e-01 , 6.642826418922323e+01), 
-             std::complex<double> (-4.847304122988369e-02 , 4.948435976001259e+01), 
-             std::complex<double> (-1.891070221918447e-02 , 3.738281221346241e+01), 
-             std::complex<double> (-4.474243501553810e-03 , 2.876820897784674e+01), 
-             std::complex<double> (-3.484281138185630e-04 , 2.201954255181188e+01), 
-             std::complex<double> (-5.192442862488305e-06 , 1.570831546873151e+01), 
-             std::complex<double> (-1.055839973835105e-08 , 9.424778619222671e+00), 
-             std::complex<double> (-1.110227986340854e-12 , 3.141592653656908e+00), 
+             std::complex<double> (-1.965353452355160e+06 , 4.512972094019555e+05), 
+             std::complex<double> (-1.339521437976738e+06 , 9.884987256279119e+05), 
+             std::complex<double> (-6.963640820183916e+05 , 9.776720747111859e+05), 
+             std::complex<double> (-3.126809423792953e+05 , 7.410548299523090e+05), 
+             std::complex<double> (-1.312410243006304e+05 , 5.042928468151261e+05), 
+             std::complex<double> (-5.352885708089831e+04 , 3.284584768792502e+05), 
+             std::complex<double> (-2.157749299970477e+04 , 2.101853565679360e+05), 
+             std::complex<double> (-8.656681258064169e+03 , 1.335499565627082e+05), 
+             std::complex<double> (-3.466359745779085e+03 , 8.461574890451488e+04), 
+             std::complex<double> (-1.386960394429364e+03 , 5.355067201267625e+04), 
+             std::complex<double> (-5.547811413513231e+02 , 3.387514431116203e+04), 
+             std::complex<double> (-2.218840742315764e+02 , 2.142488030488860e+04), 
+             std::complex<double> (-8.873789662753697e+01 , 1.354952573356077e+04), 
+             std::complex<double> (-3.548813107626696e+01 , 8.568745148482347e+03), 
+             std::complex<double> (-1.419228989154608e+01 , 5.418829625762190e+03), 
+             std::complex<double> (-5.675672269839032e+00 , 3.426827336355957e+03), 
+             std::complex<double> (-2.269727200130654e+00 , 2.167101895751966e+03), 
+             std::complex<double> (-9.076324772316735e-01 , 1.370468624168203e+03), 
+             std::complex<double> (-3.629088983542017e-01 , 8.666947820190341e+02), 
+             std::complex<double> (-1.450656880485980e-01 , 5.481278145665016e+02), 
+             std::complex<double> (-5.794704980437172e-02 , 3.466921854736551e+02), 
+             std::complex<double> (-2.310707295735892e-02 , 2.193424610314883e+02), 
+             std::complex<double> (-9.174013991361829e-03 , 1.388649183955535e+02), 
+             std::complex<double> (-3.601751611839669e-03 , 8.806232967527349e+01), 
+             std::complex<double> (-1.372686139969153e-03 , 5.607940296954874e+01), 
+             std::complex<double> (-4.801555835849495e-04 , 3.608119261510220e+01), 
+             std::complex<double> (-1.264144330401454e-04 , 2.373799431571446e+01), 
+             std::complex<double> (-1.350559549059643e-05 , 1.584477852588604e+01), 
+             std::complex<double> (-1.982247330964216e-07 , 9.426340415704457e+00), 
+             std::complex<double> (-1.134825816149471e-10 , 3.141593461908054e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (1.058603073719127e+03 , 3.316169472438535e+03), 
-             std::complex<double> (2.484770612913337e+03 , 1.975909551234731e+03), 
-             std::complex<double> (2.647356830977340e+03 , 4.126335653275221e+02), 
-             std::complex<double> (2.060793469291490e+03 , -5.690649691072831e+02), 
-             std::complex<double> (1.356451257143194e+03 , -9.309256348256666e+02), 
-             std::complex<double> (8.137644492551511e+02 , -9.340313657531439e+02), 
-             std::complex<double> (4.639253995481013e+02 , -7.959868647191480e+02), 
-             std::complex<double> (2.572343945037466e+02 , -6.300020229589354e+02), 
-             std::complex<double> (1.404993165911721e+02 , -4.806162661507047e+02), 
-             std::complex<double> (7.611904812153365e+01 , -3.597397667018288e+02), 
-             std::complex<double> (4.105967092526156e+01 , -2.665776486608805e+02), 
-             std::complex<double> (2.209633064296089e+01 , -1.964910978792202e+02), 
-             std::complex<double> (1.187626013446552e+01 , -1.444182333881764e+02), 
-             std::complex<double> (6.378880639037950e+00 , -1.059820124919450e+02), 
-             std::complex<double> (3.424886138614437e+00 , -7.770961578069281e+01), 
-             std::complex<double> (1.838480190683470e+00 , -5.695132906374673e+01), 
-             std::complex<double> (9.868104016774549e-01 , -4.172417812342363e+01), 
-             std::complex<double> (5.296525880106261e-01 , -3.055882763227439e+01), 
-             std::complex<double> (2.842490722753033e-01 , -2.237209798332090e+01), 
-             std::complex<double> (1.525166904702508e-01 , -1.636743313808943e+01), 
-             std::complex<double> (8.182625183402431e-02 , -1.195951826587348e+01), 
-             std::complex<double> (4.390937177772417e-02 , -8.717992458092597e+00), 
-             std::complex<double> (2.357742506580863e-02 , -6.325576041433425e+00), 
-             std::complex<double> (1.267582568904524e-02 , -4.547763452767348e+00), 
-             std::complex<double> (6.686257427377829e-03 , -3.224132966353317e+00), 
-             std::complex<double> (2.679830388945505e-03 , -2.347926640374447e+00), 
-             std::complex<double> (3.682868882091529e-04 , -2.032279877905038e+00), 
-             std::complex<double> (8.480852568846298e-06 , -2.000589142478385e+00), 
-             std::complex<double> (2.486229004620719e-08 , -2.000001561429920e+00), 
-             std::complex<double> (4.079761101264092e-12 , -2.000000000246414e+00), 
+             std::complex<double> (1.275224346846662e+05 , 2.630323535462741e+05), 
+             std::complex<double> (2.310564600253989e+05 , 7.129914050357543e+04), 
+             std::complex<double> (1.651058471994774e+05 , -5.710179874835252e+04), 
+             std::complex<double> (8.396101888307597e+04 , -8.178066962260584e+04), 
+             std::complex<double> (3.703756010136355e+04 , -6.633883186510229e+04), 
+             std::complex<double> (1.541009775557300e+04 , -4.602326693548385e+04), 
+             std::complex<double> (6.261487544679016e+03 , -3.017502912565647e+04), 
+             std::complex<double> (2.520064645120270e+03 , -1.935732868379216e+04), 
+             std::complex<double> (1.010386012192963e+03 , -1.231134315053274e+04), 
+             std::complex<double> (4.044819153259888e+02 , -7.803303706091599e+03), 
+             std::complex<double> (1.618248853034352e+02 , -4.939217683880694e+03), 
+             std::complex<double> (6.472697082963181e+01 , -3.124645077766205e+03), 
+             std::complex<double> (2.588706274368349e+01 , -1.976279628132655e+03), 
+             std::complex<double> (1.035292994262468e+01 , -1.249850625740999e+03), 
+             std::complex<double> (4.140349244223376e+00 , -7.904101005909387e+02), 
+             std::complex<double> (1.655800415150153e+00 , -4.998507095528129e+02), 
+             std::complex<double> (6.621828806799700e-01 , -3.161000241038133e+02), 
+             std::complex<double> (2.648178182993499e-01 , -1.998963186743309e+02), 
+             std::complex<double> (1.059047618454167e-01 , -1.264087758121324e+02), 
+             std::complex<double> (4.235286678511035e-02 , -7.993387477234691e+01), 
+             std::complex<double> (1.693751070435709e-02 , -5.054030024683711e+01), 
+             std::complex<double> (6.773555400403035e-03 , -3.194684384172625e+01), 
+             std::complex<double> (2.708878744118172e-03 , -2.018017305479761e+01), 
+             std::complex<double> (1.083442860894291e-03 , -1.272570838680152e+01), 
+             std::complex<double> (4.335808047196679e-04 , -7.990248136963910e+00), 
+             std::complex<double> (1.736642471388445e-04 , -4.964258027946280e+00), 
+             std::complex<double> (6.570072990076973e-05 , -3.053743016083243e+00), 
+             std::complex<double> (1.304302882610784e-05 , -2.145995627766039e+00), 
+             std::complex<double> (3.522151453232783e-07 , -2.002860125401003e+00), 
+             std::complex<double> (3.581589429484659e-10 , -2.000002562708235e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 30;
+            int m = 2;
+            double b = 2.800157732752085e+07;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-5.144055897068965e+07 , 1.483120416683455e+07), 
+             std::complex<double> (-2.891357282658651e+07 , 2.783833296884530e+07), 
+             std::complex<double> (-1.146976901179962e+07 , 2.252779455957355e+07), 
+             std::complex<double> (-3.925993641212572e+06 , 1.425937570589937e+07), 
+             std::complex<double> (-1.275652508562986e+06 , 8.333534521330995e+06), 
+             std::complex<double> (-4.074596447736801e+05 , 4.747237500773826e+06), 
+             std::complex<double> (-1.294358191095930e+05 , 2.682345403979623e+06), 
+             std::complex<double> (-4.104560386435923e+04 , 1.511700660968927e+06), 
+             std::complex<double> (-1.300883645931853e+04 , 8.512576494746523e+05), 
+             std::complex<double> (-4.122247536582769e+03 , 4.792294228016091e+05), 
+             std::complex<double> (-1.306187534343982e+03 , 2.697678464343942e+05), 
+             std::complex<double> (-4.138751497003890e+02 , 1.518537680012092e+05), 
+             std::complex<double> (-1.311386597164553e+02 , 8.547859461758003e+04), 
+             std::complex<double> (-4.155194443347297e+01 , 4.811583630649425e+04), 
+             std::complex<double> (-1.316593432979022e+01 , 2.708434580128943e+04), 
+             std::complex<double> (-4.171688168539736e+00 , 1.524574200443283e+04), 
+             std::complex<double> (-1.321817841941753e+00 , 8.581808236077301e+03), 
+             std::complex<double> (-4.188226631971046e-01 , 4.830690601576561e+03), 
+             std::complex<double> (-1.327042533774207e-01 , 2.719194231431160e+03), 
+             std::complex<double> (-4.204622760276631e-02 , 1.530640195421175e+03), 
+             std::complex<double> (-1.332077651308736e-02 , 8.616123616726908e+02), 
+             std::complex<double> (-4.218971060427111e-03 , 4.850309180498789e+02), 
+             std::complex<double> (-1.335019918776156e-03 , 2.730774987518769e+02), 
+             std::complex<double> (-4.212269856076930e-04 , 1.538113817795715e+02), 
+             std::complex<double> (-1.316843559579567e-04 , 8.675151323843581e+01), 
+             std::complex<double> (-3.993082059949652e-05 , 4.913607540097872e+01), 
+             std::complex<double> (-1.085287442972345e-05 , 2.818825776588787e+01), 
+             std::complex<double> (-1.907543362141894e-06 , 1.663323083836115e+01), 
+             std::complex<double> (-7.966303417965077e-08 , 9.453485964598679e+00), 
+             std::complex<double> (-1.310238991487586e-10 , 3.141632582666812e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (5.164215060255514e+06 , 8.211317249128222e+06), 
+             std::complex<double> (7.297653026028864e+06 , 2.766266611335894e+05), 
+             std::complex<double> (3.731465958037045e+06 , -2.714572986446508e+06), 
+             std::complex<double> (1.383754436514395e+06 , -2.322434851407710e+06), 
+             std::complex<double> (4.612003641399817e+05 , -1.471157126686850e+06), 
+             std::complex<double> (1.485068127955537e+05 , -8.587395665244827e+05), 
+             std::complex<double> (4.729629461902505e+04 , -4.889279951055130e+05), 
+             std::complex<double> (1.501036730919981e+04 , -2.762105008620486e+05), 
+             std::complex<double> (4.758550376624863e+03 , -1.556559811192289e+05), 
+             std::complex<double> (1.508014891090192e+03 , -8.765019862413383e+04), 
+             std::complex<double> (4.778463773462889e+02 , -4.934382001082131e+04), 
+             std::complex<double> (1.514103848109962e+02 , -2.777657278153364e+04), 
+             std::complex<double> (4.797535328602482e+01 , -1.563557244579445e+04), 
+             std::complex<double> (1.520124524293161e+01 , -8.801273171341929e+03), 
+             std::complex<double> (4.816589773094258e+00 , -4.954229587063105e+03), 
+             std::complex<double> (1.526159776592680e+00 , -2.788729528500177e+03), 
+             std::complex<double> (4.835710885424361e-01 , -1.569771693928325e+03), 
+             std::complex<double> (1.532218412029837e-01 , -8.836216927823823e+02), 
+             std::complex<double> (4.854908948110069e-02 , -4.973883846318289e+02), 
+             std::complex<double> (1.538302053410261e-02 , -2.799774337151554e+02), 
+             std::complex<double> (4.874188439827747e-03 , -1.575957467787032e+02), 
+             std::complex<double> (1.544411034443838e-03 , -8.870482806045658e+01), 
+             std::complex<double> (4.893536585166794e-04 , -4.992188851806088e+01), 
+             std::complex<double> (1.550541743038486e-04 , -2.808331873186118e+01), 
+             std::complex<double> (4.913162730551911e-05 , -1.577675284921960e+01), 
+             std::complex<double> (1.557232157210188e-05 , -8.825588832667364e+00), 
+             std::complex<double> (4.923897018755638e-06 , -4.879445917330541e+00), 
+             std::complex<double> (1.346262210116094e-06 , -2.733110063591393e+00), 
+             std::complex<double> (1.125315837075026e-07 , -2.042980526122038e+00), 
+             std::complex<double> (3.732368722903438e-10 , -2.000114689334910e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 30;
+            int m = 2;
+            double b = 1.279905757901758e+08;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-2.314282913221650e+08 , 7.294579364443612e+07), 
+             std::complex<double> (-1.181482424285914e+08 , 1.268871497765626e+08), 
+             std::complex<double> (-4.134583896343520e+07 , 9.386031104946351e+07), 
+             std::complex<double> (-1.254570225004170e+07 , 5.508621814877839e+07), 
+             std::complex<double> (-3.640457200547342e+06 , 3.021513960279294e+07), 
+             std::complex<double> (-1.042626668484624e+06 , 1.625357541256095e+07), 
+             std::complex<double> (-2.974868185433647e+05 , 8.694728270603180e+06), 
+             std::complex<double> (-8.478909459452594e+04 , 4.643803370879969e+06), 
+             std::complex<double> (-2.415901581426754e+04 , 2.479106597653165e+06), 
+             std::complex<double> (-6.883044409137209e+03 , 1.323307011191927e+06), 
+             std::complex<double> (-1.960970704278958e+03 , 7.063339496389678e+05), 
+             std::complex<double> (-5.586741342503982e+02 , 3.770118541898234e+05), 
+             std::complex<double> (-1.591641124661413e+02 , 2.012327380491327e+05), 
+             std::complex<double> (-4.534521828939148e+01 , 1.074093030896666e+05), 
+             std::complex<double> (-1.291866927400398e+01 , 5.733041126095514e+04), 
+             std::complex<double> (-3.680476388876830e+00 , 3.060047655183592e+04), 
+             std::complex<double> (-1.048552553397212e+00 , 1.633320183847794e+04), 
+             std::complex<double> (-2.987280900539186e-01 , 8.717952877066295e+03), 
+             std::complex<double> (-8.510612711665420e-02 , 4.653266076428588e+03), 
+             std::complex<double> (-2.424607329743559e-02 , 2.483715760121476e+03), 
+             std::complex<double> (-6.907273854928963e-03 , 1.325708795379122e+03), 
+             std::complex<double> (-1.967514156922237e-03 , 7.076234834716391e+02), 
+             std::complex<double> (-5.601966533124439e-04 , 3.777321101915988e+02), 
+             std::complex<double> (-1.592579215613054e-04 , 2.016797505915737e+02), 
+             std::complex<double> (-4.503170580998576e-05 , 1.077654749782195e+02), 
+             std::complex<double> (-1.248785715582555e-05 , 5.774033972883079e+01), 
+             std::complex<double> (-3.214871876352756e-06 , 3.122497845157856e+01), 
+             std::complex<double> (-6.031303456583466e-07 , 1.732451124679044e+01), 
+             std::complex<double> (-3.414088864119126e-08 , 9.494141891654081e+00), 
+             std::complex<double> (-8.530747958690035e-11 , 3.141735081105732e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (2.749817779605933e+07 , 3.928675851365912e+07), 
+             std::complex<double> (3.436446635272976e+07 , -2.454260473454576e+06), 
+             std::complex<double> (1.509305120206410e+07 , -1.380729812793133e+07), 
+             std::complex<double> (4.886150735896152e+06 , -1.017075992077017e+07), 
+             std::complex<double> (1.444319689288647e+06 , -5.906787649253402e+06), 
+             std::complex<double> (4.158415059837546e+05 , -3.227952632427697e+06), 
+             std::complex<double> (1.188282774014820e+05 , -1.734480382269202e+06), 
+             std::complex<double> (3.388271048795941e+04 , -9.275496530209908e+05), 
+             std::complex<double> (9.655402838304772e+03 , -4.953533683153779e+05), 
+             std::complex<double> (2.750976207793482e+03 , -2.644387718213535e+05), 
+             std::complex<double> (7.837574289190582e+02 , -1.411520870983752e+05), 
+             std::complex<double> (2.232905547392273e+02 , -7.534177512849862e+04), 
+             std::complex<double> (6.361467081224986e+01 , -4.021429968376477e+04), 
+             std::complex<double> (1.812356882920825e+01 , -2.146466254756372e+04), 
+             std::complex<double> (5.163331720760453e+00 , -1.145690479052291e+04), 
+             std::complex<double> (1.471012341135676e+00 , -6.115196951391106e+03), 
+             std::complex<double> (4.190854753553419e-01 , -3.264025578102081e+03), 
+             std::complex<double> (1.193957562144194e-01 , -1.742194341571693e+03), 
+             std::complex<double> (3.401537322103352e-02 , -9.299068794628328e+02), 
+             std::complex<double> (9.690848873605763e-03 , -4.963427518708056e+02), 
+             std::complex<double> (2.760887128542860e-03 , -2.649242232595692e+02), 
+             std::complex<double> (7.865661139762456e-04 , -1.414014294778943e+02), 
+             std::complex<double> (2.240892746231011e-04 , -7.546722142548825e+01), 
+             std::complex<double> (6.384215836620829e-05 , -4.026856732483116e+01), 
+             std::complex<double> (1.818860139193252e-05 , -2.147014018048246e+01), 
+             std::complex<double> (5.182454136748546e-06 , -1.141623593110925e+01), 
+             std::complex<double> (1.475901739479886e-06 , -6.017089153223023e+00), 
+             std::complex<double> (3.923684598711579e-07 , -3.158204500293917e+00), 
+             std::complex<double> (4.370748052730614e-08 , -2.095194761876006e+00), 
+             std::complex<double> (2.324864606821677e-10 , -2.000392276848578e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 30;
+            int m = 2;
+            double b = 8.050742173805323e+08;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.425932735889674e+09 , 4.957024150292232e+08), 
+             std::complex<double> (-6.447924439297898e+08 , 7.840828213828845e+08), 
+             std::complex<double> (-1.940555352739612e+08 , 5.220084337206816e+08), 
+             std::complex<double> (-5.107963994105916e+07 , 2.811213145805761e+08), 
+             std::complex<double> (-1.296455480427407e+07 , 1.433617566893554e+08), 
+             std::complex<double> (-3.260006136783800e+06 , 7.210891474402954e+07), 
+             std::complex<double> (-8.178219582224345e+05 , 3.614442878099144e+07), 
+             std::complex<double> (-2.050420669439653e+05 , 1.810159107396463e+07), 
+             std::complex<double> (-5.139997951468418e+04 , 9.063534939492136e+06), 
+             std::complex<double> (-1.288447772381847e+04 , 4.537898553064034e+06), 
+             std::complex<double> (-3.229733260016483e+03 , 2.271987893797936e+06), 
+             std::complex<double> (-8.095906457000415e+02 , 1.137511390681061e+06), 
+             std::complex<double> (-2.029383165299460e+02 , 5.695149413375852e+05), 
+             std::complex<double> (-5.087009643409584e+01 , 2.851375390434747e+05), 
+             std::complex<double> (-1.275149340409899e+01 , 1.427590496966748e+05), 
+             std::complex<double> (-3.196388268890898e+00 , 7.147479105827559e+04), 
+             std::complex<double> (-8.012314361188517e-01 , 3.578509230676397e+04), 
+             std::complex<double> (-2.008428430190844e-01 , 1.791642679721231e+04), 
+             std::complex<double> (-5.034478457210373e-02 , 8.970170536023263e+03), 
+             std::complex<double> (-1.261977463155531e-02 , 4.491073576192549e+03), 
+             std::complex<double> (-3.163329895190986e-03 , 2.248538454549567e+03), 
+             std::complex<double> (-7.929019028998871e-04 , 1.125779086684483e+03), 
+             std::complex<double> (-1.987098730255687e-04 , 5.636595075324266e+02), 
+             std::complex<double> (-4.976385096472798e-05 , 2.822432614208342e+02), 
+             std::complex<double> (-1.242744655450400e-05 , 1.413845708914785e+02), 
+             std::complex<double> (-3.068333489803973e-06 , 7.093527043253458e+01), 
+             std::complex<double> (-7.223158726723104e-07 , 3.580815253213384e+01), 
+             std::complex<double> (-1.366075084778147e-07 , 1.845658665214465e+01), 
+             std::complex<double> (-9.938834294812918e-09 , 9.584244111714973e+00), 
+             std::complex<double> (-3.876361316436709e-11 , 3.142091104567148e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (2.034976356727266e+08 , 2.573183295748415e+08), 
+             std::complex<double> (2.180386327005781e+08 , -4.291775631403627e+07), 
+             std::complex<double> (7.996721047450256e+07 , -9.269188008511361e+07), 
+             std::complex<double> (2.212381711263887e+07 , -5.887024703655051e+07), 
+             std::complex<double> (5.685994629279939e+06 , -3.118070142885414e+07), 
+             std::complex<double> (1.434270837624724e+06 , -1.583008157969254e+07), 
+             std::complex<double> (3.600920060476071e+05 , -7.953232629329551e+06), 
+             std::complex<double> (9.029909714178318e+04 , -3.985395849507198e+06), 
+             std::complex<double> (2.263731276692567e+04 , -1.995793369572163e+06), 
+             std::complex<double> (5.674585329031583e+03 , -9.992832272603641e+05), 
+             std::complex<double> (1.422444458828822e+03 , -5.003153203802009e+05), 
+             std::complex<double> (3.565615275682567e+02 , -2.504923915818458e+05), 
+             std::complex<double> (8.937851583105515e+01 , -1.254134621198605e+05), 
+             std::complex<double> (2.240431490228944e+01 , -6.279043533435158e+04), 
+             std::complex<double> (5.616039658388154e+00 , -3.143712056635074e+04), 
+             std::complex<double> (1.407760110187167e+00 , -1.573953903304089e+04), 
+             std::complex<double> (3.528800735085265e-01 , -7.880272762253429e+03), 
+             std::complex<double> (8.845565555765417e-02 , -3.945394905775825e+03), 
+             std::complex<double> (2.217297994279907e-02 , -1.975330028960530e+03), 
+             std::complex<double> (5.558051315024736e-03 , -9.889826714447177e+02), 
+             std::complex<double> (1.393224794864747e-03 , -4.951502691628797e+02), 
+             std::complex<double> (3.492373147348032e-04 , -2.479034944926362e+02), 
+             std::complex<double> (8.754308641287641e-05 , -1.241130577837041e+02), 
+             std::complex<double> (2.194447516961261e-05 , -6.213112609457483e+01), 
+             std::complex<double> (5.500831781069279e-06 , -3.109062229958284e+01), 
+             std::complex<double> (1.378890739493853e-06 , -1.553354716914265e+01), 
+             std::complex<double> (3.455819827470462e-07 , -7.715176851779923e+00), 
+             std::complex<double> (8.422268247454932e-08 , -3.790763970679506e+00), 
+             std::complex<double> (1.146586071259843e-08 , -2.198773295729515e+00), 
+             std::complex<double> (1.003402882138138e-10 , -2.001307672244444e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 30;
+            int m = 2;
+            double b = 7.777560169487656e+09;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.340036341986429e+10 , 5.193379656137459e+09), 
+             std::complex<double> (-5.186240584073159e+09 , 7.282779161291145e+09), 
+             std::complex<double> (-1.298978142551649e+09 , 4.281812174394330e+09), 
+             std::complex<double> (-2.882972405851151e+08 , 2.088165317958621e+09), 
+             std::complex<double> (-6.223865292177729e+07 , 9.774538142130129e+08), 
+             std::complex<double> (-1.335569682272292e+07 , 4.535130729843550e+08), 
+             std::complex<double> (-2.862274309657053e+06 , 2.100197200753430e+08), 
+             std::complex<double> (-6.132471539992122e+05 , 9.721961763471982e+07), 
+             std::complex<double> (-1.313814437510622e+05 , 4.499973350262288e+07), 
+             std::complex<double> (-2.814666805905915e+04 , 2.082849434449822e+07), 
+             std::complex<double> (-6.030020222776345e+03 , 9.640600284193022e+06), 
+             std::complex<double> (-1.291844652912483e+03 , 4.462208970071673e+06), 
+             std::complex<double> (-2.767590046687632e+02 , 2.065359485395700e+06), 
+             std::complex<double> (-5.929160573872303e+01 , 9.559636639607314e+05), 
+             std::complex<double> (-1.270236692955135e+01 , 4.424733445272422e+05), 
+             std::complex<double> (-2.721297873507507e+00 , 2.048013618887120e+05), 
+             std::complex<double> (-5.829985617043429e-01 , 9.479350194798034e+04), 
+             std::complex<double> (-1.248989590203771e-01 , 4.387572406281675e+04), 
+             std::complex<double> (-2.675777797803507e-02 , 2.030813456137690e+04), 
+             std::complex<double> (-5.732458834817584e-03 , 9.399739133018220e+03), 
+             std::complex<double> (-1.228090375508765e-03 , 4.350725892767989e+03), 
+             std::complex<double> (-2.630946076463827e-04 , 2.013763002066167e+03), 
+             std::complex<double> (-5.635895693398096e-05 , 9.320910185808137e+02), 
+             std::complex<double> (-1.206968716420404e-05 , 4.314434038509972e+02), 
+             std::complex<double> (-2.581638244107004e-06 , 1.997385331681191e+02), 
+             std::complex<double> (-5.490055153730659e-07 , 9.254166528862122e+01), 
+             std::complex<double> (-1.135505618228694e-07 , 4.302918264817856e+01), 
+             std::complex<double> (-2.037507137607511e-08 , 2.030895866731232e+01), 
+             std::complex<double> (-1.776287578310367e-09 , 9.774042277542037e+00), 
+             std::complex<double> (-1.099461804086121e-11 , 3.143296733062273e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (2.337134082612616e+09 , 2.562343703782293e+09), 
+             std::complex<double> (2.059114538739392e+09 , -7.125836933970790e+08), 
+             std::complex<double> (6.086712902069863e+08 , -9.108527219967749e+08), 
+             std::complex<double> (1.400089150081459e+08 , -4.973841952581840e+08), 
+             std::complex<double> (3.045875982471164e+07 , -2.382066569219896e+08), 
+             std::complex<double> (6.546872627964534e+06 , -1.110581261191356e+08), 
+             std::complex<double> (1.403562825822862e+06 , -5.148373087887733e+07), 
+             std::complex<double> (3.007384670227370e+05 , -2.383746524327619e+07), 
+             std::complex<double> (6.443094553630956e+04 , -1.103409500840049e+07), 
+             std::complex<double> (1.380349216431272e+04 , -5.107272965336684e+06), 
+             std::complex<double> (2.957202558297040e+03 , -2.363938729470136e+06), 
+             std::complex<double> (6.335379950957779e+02 , -1.094163559852584e+06), 
+             std::complex<double> (1.357263438120013e+02 , -5.064400452784285e+05), 
+             std::complex<double> (2.907740259125273e+01 , -2.344087288652768e+05), 
+             std::complex<double> (6.229412046489145e+00 , -1.084974446461929e+05), 
+             std::complex<double> (1.334561210617000e+00 , -5.021867353745985e+04), 
+             std::complex<double> (2.859103826622169e-01 , -2.324400519564840e+04), 
+             std::complex<double> (6.125214739452008e-02 , -1.075862298768337e+04), 
+             std::complex<double> (1.312238096865155e-02 , -4.979691139313308e+03), 
+             std::complex<double> (2.811279011398451e-03 , -2.304878793602031e+03), 
+             std::complex<double> (6.022757187639150e-04 , -1.066826081087913e+03), 
+             std::complex<double> (1.290287982182687e-04 , -4.937856257218228e+02), 
+             std::complex<double> (2.764221827286943e-05 , -2.285493189940098e+02), 
+             std::complex<double> (5.921774023805938e-06 , -1.057805639172012e+02), 
+             std::complex<double> (1.268618871986980e-06 , -4.895075262853618e+01), 
+             std::complex<double> (2.717802630711590e-07 , -2.263481099889794e+01), 
+             std::complex<double> (5.822038762103108e-08 , -1.043002305857571e+01), 
+             std::complex<double> (1.235258522685602e-08 , -4.754756830168871e+00), 
+             std::complex<double> (1.851266663506792e-09 , -2.392986873159544e+00), 
+             std::complex<double> (2.675316853230272e-11 , -2.004221935414854e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 30;
+            int m = 2;
+            double b = 1.362802852101742e+11;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-2.260563430113050e+11 , 9.899300161597076e+10), 
+             std::complex<double> (-7.137099207454512e+10 , 1.188865095897478e+11), 
+             std::complex<double> (-1.424304992986035e+10 , 6.028522251575875e+10), 
+             std::complex<double> (-2.563890957766498e+09 , 2.615637141197538e+10), 
+             std::complex<double> (-4.527976369835516e+08 , 1.103547342985601e+10), 
+             std::complex<double> (-7.969601739563417e+07 , 4.632956560581381e+09), 
+             std::complex<double> (-1.401876438849539e+07 , 1.943335272312015e+09), 
+             std::complex<double> (-2.465682916825068e+06 , 8.150247372464416e+08), 
+             std::complex<double> (-4.336673142192835e+05 , 3.418079505644055e+08), 
+             std::complex<double> (-7.627368744880818e+04 , 1.433479460818319e+08), 
+             std::complex<double> (-1.341505775291618e+04 , 6.011743292117146e+07), 
+             std::complex<double> (-2.359447432738017e+03 , 2.521211716431283e+07), 
+             std::complex<double> (-4.149808500901972e+02 , 1.057348600316693e+07), 
+             std::complex<double> (-7.298704903278420e+01 , 4.434320411262261e+06), 
+             std::complex<double> (-1.283700045347998e+01 , 1.859670262788693e+06), 
+             std::complex<double> (-2.257778267474294e+00 , 7.799105984904652e+05), 
+             std::complex<double> (-3.970991745646501e-01 , 3.270797806601724e+05), 
+             std::complex<double> (-6.984200945055032e-02 , 1.371710849341482e+05), 
+             std::complex<double> (-1.228385149331165e-02 , 5.752696340436584e+04), 
+             std::complex<double> (-2.160488920004809e-03 , 2.412572263657624e+04), 
+             std::complex<double> (-3.799858292012274e-04 , 1.011787323100246e+04), 
+             std::complex<double> (-6.683059995445239e-05 , 4.243246538709969e+03), 
+             std::complex<double> (-1.175324304299886e-05 , 1.779541127848084e+03), 
+             std::complex<double> (-2.066709078414816e-06 , 7.463146315152027e+02), 
+             std::complex<double> (-3.632561502681531e-07 , 3.130109576500223e+02), 
+             std::complex<double> (-6.369356947468524e-08 , 1.313201614181625e+02), 
+             std::complex<double> (-1.101427091490508e-08 , 5.518980769571331e+01), 
+             std::complex<double> (-1.751054480068750e-09 , 2.340886474912669e+01), 
+             std::complex<double> (-1.674126285839405e-10 , 1.015828114798508e+01), 
+             std::complex<double> (-1.635747317515906e-12 , 3.147253059075087e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (4.919217451488852e+10 , 4.539566695439857e+10), 
+             std::complex<double> (3.364564474083897e+10 , -1.792345799212862e+10), 
+             std::complex<double> (7.658960683588418e+09 , -1.530392548277468e+10), 
+             std::complex<double> (1.411289253112843e+09 , -7.129695784316122e+09), 
+             std::complex<double> (2.502705086579407e+08 , -3.044631421551719e+09), 
+             std::complex<double> (4.408155719307550e+07 , -1.280914113259307e+09), 
+             std::complex<double> (7.755064486344404e+06 , -5.374905263660849e+08), 
+             std::complex<double> (1.364025977297759e+06 , -2.254354628001529e+08), 
+             std::complex<double> (2.399074961948096e+05 , -9.454500594733365e+07), 
+             std::complex<double> (4.219511473185286e+04 , -3.965051068154848e+07), 
+             std::complex<double> (7.421300706560492e+03 , -1.662868445845063e+07), 
+             std::complex<double> (1.305262312540593e+03 , -6.973756973368203e+06), 
+             std::complex<double> (2.295702203474029e+02 , -2.924662061392994e+06), 
+             std::complex<double> (4.037693036399335e+01 , -1.226548055774383e+06), 
+             std::complex<double> (7.101515694977040e+00 , -5.143910981667502e+05), 
+             std::complex<double> (1.249018314044843e+00 , -2.157259151110064e+05), 
+             std::complex<double> (2.196779705719005e-01 , -9.047137598333800e+04), 
+             std::complex<double> (3.863707057795756e-02 , -3.794198701476835e+04), 
+             std::complex<double> (6.795509471537484e-03 , -1.591215299486408e+04), 
+             std::complex<double> (1.195198476973741e-03 , -6.673256477342017e+03), 
+             std::complex<double> (2.102120245046098e-04 , -2.798637601364831e+03), 
+             std::complex<double> (3.697201442680757e-05 , -1.173695350701868e+03), 
+             std::complex<double> (6.502482611233163e-06 , -4.922246643756272e+02), 
+             std::complex<double> (1.143537794983518e-06 , -2.064273307154715e+02), 
+             std::complex<double> (2.010977199820400e-07 , -8.656600503307962e+01), 
+             std::complex<double> (3.536354387973731e-08 , -3.629056062542763e+01), 
+             std::complex<double> (6.219484889780642e-09 , -1.518793607688082e+01), 
+             std::complex<double> (1.090944126469887e-09 , -6.308038107366983e+00), 
+             std::complex<double> (1.599569759616599e-10 , -2.743980107228885e+00), 
+             std::complex<double> (3.690635197941082e-12 , -2.013099043213039e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -23298,546 +23298,81 @@
         { 
             int np = 35;
             int m = 2;
-            double b = 3.661126584467638e+11;
+            double b = 1.368346306979379e+05;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-6.307945639596056e+11 , 2.444676724836913e+11), 
-             std::complex<double> (-2.441316153383444e+11 , 3.428218594922180e+11), 
-             std::complex<double> (-6.114672605093970e+10 , 2.015575069779266e+11), 
-             std::complex<double> (-1.357100001422721e+10 , 9.829609018404015e+10), 
-             std::complex<double> (-2.929756656504599e+09 , 4.601162917818328e+10), 
-             std::complex<double> (-6.286919756152569e+08 , 2.134819572875746e+10), 
-             std::complex<double> (-1.347356797636413e+08 , 9.886246633575878e+09), 
-             std::complex<double> (-2.886734924069148e+07 , 4.576413668275360e+09), 
-             std::complex<double> (-6.184511402221180e+06 , 2.118269959097176e+09), 
-             std::complex<double> (-1.324946538595911e+06 , 9.804585589535079e+08), 
-             std::complex<double> (-2.838508051697291e+05 , 4.538114424290624e+08), 
-             std::complex<double> (-6.081093083117034e+04 , 2.100493153366877e+08), 
-             std::complex<double> (-1.302786096428326e+04 , 9.722255249376732e+07), 
-             std::complex<double> (-2.791030369309058e+03 , 4.500002452740357e+07), 
-             std::complex<double> (-5.979377877390295e+02 , 2.082852320253444e+07), 
-             std::complex<double> (-1.280994980774351e+02 , 9.640603145718211e+06), 
-             std::complex<double> (-2.744345684132097e+01 , 4.462209253800593e+06), 
-             std::complex<double> (-5.879360297411511e+00 , 2.065359513521473e+06), 
-             std::complex<double> (-1.259566230413336e+00 , 9.559636667460443e+05), 
-             std::complex<double> (-2.698431011062096e-01 , 4.424733448020630e+05), 
-             std::complex<double> (-5.780967105366942e-02 , 2.048013619154774e+05), 
-             std::complex<double> (-1.238477200671828e-02 , 9.479350195048715e+04), 
-             std::complex<double> (-2.653224600100998e-03 , 4.387572406301765e+04), 
-             std::complex<double> (-5.684019297029851e-04 , 2.030813456136477e+04), 
-             std::complex<double> (-1.217665056769685e-04 , 9.399739132995324e+03), 
-             std::complex<double> (-2.608425170878246e-05 , 4.350725892754523e+03), 
-             std::complex<double> (-5.586125381983436e-06 , 2.013763002060904e+03), 
-             std::complex<double> (-1.195437279580542e-06 , 9.320910185793575e+02), 
-             std::complex<double> (-2.555646067401665e-07 , 4.314434038506678e+02), 
-             std::complex<double> (-5.453656271165292e-08 , 1.997385331680464e+02), 
-             std::complex<double> (-1.154526652348691e-08 , 9.254166528861525e+01), 
-             std::complex<double> (-2.370098625984520e-09 , 4.302918264819222e+01), 
-             std::complex<double> (-4.251346942266734e-10 , 2.030895866731932e+01), 
-             std::complex<double> (-3.740047797430902e-11 , 9.774042277542533e+00), 
-             std::complex<double> (-2.302410606659064e-13 , 3.143296733062276e+00), 
+             std::complex<double> (-2.661284134218509e+05 , 4.344239887318401e+04), 
+             std::complex<double> (-2.173073947926793e+05 , 1.102281011511850e+05), 
+             std::complex<double> (-1.500998999121676e+05 , 1.359428229888415e+05), 
+             std::complex<double> (-9.219094413570182e+04 , 1.291876425709090e+05), 
+             std::complex<double> (-5.262986921484789e+04 , 1.077488849638818e+05), 
+             std::complex<double> (-2.880484951293436e+04 , 8.390750971169297e+04), 
+             std::complex<double> (-1.540348104515853e+04 , 6.301848662782524e+04), 
+             std::complex<double> (-8.135164670759678e+03 , 4.643825073488006e+04), 
+             std::complex<double> (-4.268327846531819e+03 , 3.388129044376720e+04), 
+             std::complex<double> (-2.231796513383334e+03 , 2.459152418572268e+04), 
+             std::complex<double> (-1.164862398718876e+03 , 1.780051409800733e+04), 
+             std::complex<double> (-6.074223063401635e+02 , 1.286664295006284e+04), 
+             std::complex<double> (-3.165850933192811e+02 , 9.293470364555118e+03), 
+             std::complex<double> (-1.649536660020866e+02 , 6.710026444260639e+03), 
+             std::complex<double> (-8.592946523961575e+01 , 4.843780845710698e+03), 
+             std::complex<double> (-4.475519084405402e+01 , 3.496235736822668e+03), 
+             std::complex<double> (-2.330593469342423e+01 , 2.523452346503214e+03), 
+             std::complex<double> (-1.213412528275187e+01 , 1.821293596956446e+03), 
+             std::complex<double> (-6.316563554236127e+00 , 1.314507486690182e+03), 
+             std::complex<double> (-3.287979992668263e+00 , 9.487486246454343e+02), 
+             std::complex<double> (-1.711724586449948e+00 , 6.847831117660782e+02), 
+             std::complex<double> (-8.914373654139039e-01 , 4.942921108350927e+02), 
+             std::complex<double> (-4.644591221152064e-01 , 3.568378829509836e+02), 
+             std::complex<double> (-2.420156555284626e-01 , 2.576724769350066e+02), 
+             std::complex<double> (-1.259402454237831e-01 , 1.861559728624649e+02), 
+             std::complex<double> (-6.524140136727251e-02 , 1.346152047834656e+02), 
+             std::complex<double> (-3.343082639174252e-02 , 9.752092994533440e+01), 
+             std::complex<double> (-1.672157514354674e-02 , 7.089558394297437e+01), 
+             std::complex<double> (-7.915074827835652e-03 , 5.188817335723763e+01), 
+             std::complex<double> (-3.254043737308055e-03 , 3.846246990671016e+01), 
+             std::complex<double> (-8.945782700727192e-04 , 2.907153492536575e+01), 
+             std::complex<double> (-9.181508576232362e-05 , 2.204917271557439e+01), 
+             std::complex<double> (-1.864347368121481e-06 , 1.570887975663578e+01), 
+             std::complex<double> (-5.118614276716521e-09 , 9.424780074695237e+00), 
+             std::complex<double> (-8.029598596237081e-13 , 3.141592653851281e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (1.100157830328794e+11 , 1.206170630375351e+11), 
-             std::complex<double> (9.692858446525174e+10 , -3.354341267328455e+10), 
-             std::complex<double> (2.865194988151737e+10 , -4.287651965861333e+10), 
-             std::complex<double> (6.590631889983819e+09 , -2.341333863403447e+10), 
-             std::complex<double> (1.433783511683214e+09 , -1.121308874822120e+10), 
-             std::complex<double> (3.081805720490319e+08 , -5.227833010532295e+09), 
-             std::complex<double> (6.606983503491054e+07 , -2.423490807918841e+09), 
-             std::complex<double> (1.415664517139390e+07 , -1.122099679161702e+09), 
-             std::complex<double> (3.032954322743739e+06 , -5.194073422832803e+08), 
-             std::complex<double> (6.497710195047724e+05 , -2.404143770039436e+08), 
-             std::complex<double> (1.392042312822887e+05 , -1.112775566882604e+08), 
-             std::complex<double> (2.982249863297660e+04 , -5.150550056145880e+07), 
-             std::complex<double> (6.389038547154360e+03 , -2.383962416005900e+07), 
-             std::complex<double> (1.368758921187781e+03 , -1.103430909174908e+07), 
-             std::complex<double> (2.932367553968926e+02 , -5.107294193942631e+06), 
-             std::complex<double> (6.282172333381487e+01 , -2.363940834492869e+06), 
-             std::complex<double> (1.345864313887621e+01 , -1.094163768581928e+06), 
-             std::complex<double> (2.883318862290756e+00 , -5.064400659736095e+05), 
-             std::complex<double> (6.177089623900379e-01 , -2.344087309163525e+05), 
-             std::complex<double> (1.323350083110048e-01 , -1.084974448491311e+05), 
-             std::complex<double> (2.835077156968269e-02 , -5.021867355741675e+04), 
-             std::complex<double> (6.073701819300884e-03 , -2.324400519756631e+04), 
-             std::complex<double> (1.301190012240960e-03 , -1.075862298786252e+04), 
-             std::complex<double> (2.787578902710746e-04 , -4.979691139328100e+03), 
-             std::complex<double> (5.971813761761080e-05 , -2.304878793599981e+03), 
-             std::complex<double> (1.279344065777640e-05 , -1.066826081084737e+03), 
-             std::complex<double> (2.740677098808649e-06 , -4.937856257199231e+02), 
-             std::complex<double> (5.868590687873311e-07 , -2.285493189933585e+02), 
-             std::complex<double> (1.255515936911348e-07 , -1.057805639170392e+02), 
-             std::complex<double> (2.685043176250633e-08 , -4.895075262850140e+01), 
-             std::complex<double> (5.739176017944376e-09 , -2.263481099888547e+01), 
-             std::complex<double> (1.220194697817891e-09 , -1.043002305857490e+01), 
-             std::complex<double> (2.567993505249665e-10 , -4.754756830172241e+00), 
-             std::complex<double> (3.889406163732241e-11 , -2.392986873160181e+00), 
-             std::complex<double> (5.623340971642698e-13 , -2.004221935414860e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 35;
-            int m = 2;
-            double b = 2.559114409292506e+10;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-4.532656657464156e+10 , 1.575704656434800e+10), 
-             std::complex<double> (-2.049621759823529e+10 , 2.492388407197852e+10), 
-             std::complex<double> (-6.168503546190593e+09 , 1.659324414653366e+10), 
-             std::complex<double> (-1.623684372909160e+09 , 8.936090504032839e+09), 
-             std::complex<double> (-4.121083284828110e+08 , 4.557084668253875e+09), 
-             std::complex<double> (-1.036268271367227e+08 , 2.292148460050887e+09), 
-             std::complex<double> (-2.599636046812138e+07 , 1.148934179140789e+09), 
-             std::complex<double> (-6.517735830320256e+06 , 5.754008953303035e+08), 
-             std::complex<double> (-1.633867102271246e+06 , 2.881053990083175e+08), 
-             std::complex<double> (-4.095628915006536e+05 , 1.442475901532158e+08), 
-             std::complex<double> (-1.026645329126901e+05 , 7.222038454714096e+07), 
-             std::complex<double> (-2.573470883983175e+04 , 3.615842773009486e+07), 
-             std::complex<double> (-6.450863159756488e+03 , 1.810334825278041e+07), 
-             std::complex<double> (-1.617023527588249e+03 , 9.063755476664023e+06), 
-             std::complex<double> (-4.053356846650801e+02 , 4.537926230981850e+06), 
-             std::complex<double> (-1.016045938190524e+02 , 2.271991367391491e+06), 
-             std::complex<double> (-2.546899750743354e+01 , 1.137511826608874e+06), 
-             std::complex<double> (-6.384257109469424e+00 , 5.695149960417598e+05), 
-             std::complex<double> (-1.600327696759544e+00 , 2.851375459065801e+05), 
-             std::complex<double> (-4.011507501446508e-01 , 1.427590505568059e+05), 
-             std::complex<double> (-1.005557260614090e-01 , 7.147479116552553e+04), 
-             std::complex<double> (-2.520621157020497e-02 , 3.578509231981450e+04), 
-             std::complex<double> (-6.318439949869721e-03 , 1.791642679861770e+04), 
-             std::complex<double> (-1.583833232967032e-03 , 8.970170536082336e+03), 
-             std::complex<double> (-3.970108999862773e-04 , 4.491073576147814e+03), 
-             std::complex<double> (-9.951662711028358e-05 , 2.248538454521619e+03), 
-             std::complex<double> (-2.494541209018015e-05 , 1.125779086671986e+03), 
-             std::complex<double> (-6.252063242514667e-06 , 5.636595075277912e+02), 
-             std::complex<double> (-1.565813725523499e-06 , 2.822432614196582e+02), 
-             std::complex<double> (-3.910221927625447e-07 , 1.413845708914203e+02), 
-             std::complex<double> (-9.650832960367997e-08 , 7.093527043268038e+01), 
-             std::complex<double> (-2.268160142307858e-08 , 3.580815253223169e+01), 
-             std::complex<double> (-4.277740800393754e-09 , 1.845658665217416e+01), 
-             std::complex<double> (-3.103360619177208e-10 , 9.584244111717663e+00), 
-             std::complex<double> (-1.207170778039565e-12 , 3.142091104567167e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (6.468642523996503e+09 , 8.179457630157963e+09), 
-             std::complex<double> (6.930861710529076e+09 , -1.364240044619521e+09), 
-             std::complex<double> (2.541942546031832e+09 , -2.946425569663490e+09), 
-             std::complex<double> (7.032566431126790e+08 , -1.871326819524766e+09), 
-             std::complex<double> (1.807424765469372e+08 , -9.911506367359675e+08), 
-             std::complex<double> (4.559161239337274e+07 , -5.031957178101393e+08), 
-             std::complex<double> (1.144635638627455e+07 , -2.528118747650265e+08), 
-             std::complex<double> (2.870365432884742e+06 , -1.266850151831013e+08), 
-             std::complex<double> (7.195792879144998e+05 , -6.344090345726652e+07), 
-             std::complex<double> (1.803798051115711e+05 , -3.176452618474746e+07), 
-             std::complex<double> (4.521568337544602e+04 , -1.590367841802815e+07), 
-             std::complex<double> (1.133413185470298e+04 , -7.962479419785627e+06), 
-             std::complex<double> (2.841102584052593e+03 , -3.986556656781173e+06), 
-             std::complex<double> (7.121728979379262e+02 , -1.995939062421094e+06), 
-             std::complex<double> (1.785187930889132e+02 , -9.993015121963143e+05), 
-             std::complex<double> (4.474890822538592e+01 , -5.003176151656802e+05), 
-             std::complex<double> (1.121710919927146e+01 , -2.504926795770592e+05), 
-             std::complex<double> (2.811767799331259e+00 , -1.254134982621653e+05), 
-             std::complex<double> (7.048195746723961e-01 , -6.279043986969013e+04), 
-             std::complex<double> (1.766755603097578e-01 , -3.143712113531950e+04), 
-             std::complex<double> (4.428687029620062e-02 , -1.573953910433104e+04), 
-             std::complex<double> (1.110131089866292e-02 , -7.880272771129580e+03), 
-             std::complex<double> (2.782764617619278e-03 , -3.945394906844859e+03), 
-             std::complex<double> (6.975576671268311e-04 , -1.975330029066225e+03), 
-             std::complex<double> (1.748545901521675e-04 , -9.889826714440525e+02), 
-             std::complex<double> (4.382943183209879e-05 , -4.951502691566606e+02), 
-             std::complex<double> (1.098677789825252e-05 , -2.479034944890813e+02), 
-             std::complex<double> (2.754250788960751e-06 , -1.241130577820450e+02), 
-             std::complex<double> (6.904662787171891e-07 , -6.213112609393782e+01), 
-             std::complex<double> (1.730919441341018e-07 , -3.109062229942667e+01), 
-             std::complex<double> (4.339541973531861e-08 , -1.553354716913738e+01), 
-             std::complex<double> (1.086946993048000e-08 , -7.715176851804723e+00), 
-             std::complex<double> (2.641280332353083e-09 , -3.790763970695156e+00), 
-             std::complex<double> (3.582905464904482e-10 , -2.198773295732380e+00), 
-             std::complex<double> (3.127939277216378e-12 , -2.001307672244486e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 35;
-            int m = 2;
-            double b = 2.954353221201707e+09;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-5.341962982081656e+09 , 1.683777411943043e+09), 
-             std::complex<double> (-2.727166734118958e+09 , 2.928883297586369e+09), 
-             std::complex<double> (-9.543688022029916e+08 , 2.166538517214723e+09), 
-             std::complex<double> (-2.895872263850663e+08 , 1.271532259487842e+09), 
-             std::complex<double> (-8.403115921867932e+07 , 6.974434989486202e+08), 
-             std::complex<double> (-2.406651767276453e+07 , 3.751745202953250e+08), 
-             std::complex<double> (-6.866764478129898e+06 , 2.006967959498261e+08), 
-             std::complex<double> (-1.957151396234491e+06 , 1.071909815411994e+08), 
-             std::complex<double> (-5.576525104650599e+05 , 5.722418636706638e+07), 
-             std::complex<double> (-1.588784499699595e+05 , 3.054534528695559e+07), 
-             std::complex<double> (-4.526427056272518e+04 , 1.630401274721097e+07), 
-             std::complex<double> (-1.289564234942270e+04 , 8.702407804586332e+06), 
-             std::complex<double> (-3.673918829546373e+03 , 4.644971584112166e+06), 
-             std::complex<double> (-1.046684726652748e+03 , 2.479284260645661e+06), 
-             std::complex<double> (-2.981962293470992e+02 , 1.323334028430303e+06), 
-             std::complex<double> (-8.495488997079961e+01 , 7.063380581079188e+05), 
-             std::complex<double> (-2.420330026097238e+01 , 3.770124789740098e+05), 
-             std::complex<double> (-6.895420189086758e+00 , 2.012328330707724e+05), 
-             std::complex<double> (-1.964475913194190e+00 , 1.074093175463131e+05), 
-             std::complex<double> (-5.596704963621225e-01 , 5.733041346353997e+04), 
-             std::complex<double> (-1.594475845061644e-01 , 3.060047688934252e+04), 
-             std::complex<double> (-4.542589560486287e-02 , 1.633320189125173e+04), 
-             std::complex<double> (-1.294161882336601e-02 , 8.717952885833845e+03), 
-             std::complex<double> (-3.686974178705422e-03 , 4.653266078116745e+03), 
-             std::complex<double> (-1.050364146464201e-03 , 2.483715760551319e+03), 
-             std::complex<double> (-2.992148248955254e-04 , 1.325708795536287e+03), 
-             std::complex<double> (-8.522587105986485e-05 , 7.076234835417355e+02), 
-             std::complex<double> (-2.426612237888168e-05 , 3.777321102216015e+02), 
-             std::complex<double> (-6.899186303050835e-06 , 2.016797506027174e+02), 
-             std::complex<double> (-1.950868264678864e-06 , 1.077654749813868e+02), 
-             std::complex<double> (-5.410102738937334e-07 , 5.774033972928748e+01), 
-             std::complex<double> (-1.393652647174156e-07 , 3.122497845142529e+01), 
-             std::complex<double> (-2.618504058369163e-08 , 1.732451124668063e+01), 
-             std::complex<double> (-1.484093553939854e-09 , 9.494141891641695e+00), 
-             std::complex<double> (-3.705382757286793e-12 , 3.141735081105678e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (6.347289997914248e+08 , 9.068399047523047e+08), 
-             std::complex<double> (7.932206823482014e+08 , -5.665067366296517e+07), 
-             std::complex<double> (3.483866226767799e+08 , -3.187081193295093e+08), 
-             std::complex<double> (1.127849849502518e+08 , -2.347674205574897e+08), 
-             std::complex<double> (3.333863059277647e+07 , -1.363439222798468e+08), 
-             std::complex<double> (9.598696502990393e+06 , -7.450948789216682e+07), 
-             std::complex<double> (2.742863696671803e+06 , -4.003628917695790e+07), 
-             std::complex<double> (7.821005109659435e+05 , -2.141024281060456e+07), 
-             std::complex<double> (2.228716468239017e+05 , -1.143403575026430e+07), 
-             std::complex<double> (6.349963924286003e+04 , -6.103930172251933e+06), 
-             std::complex<double> (1.809114662010968e+04 , -3.258154912007595e+06), 
-             std::complex<double> (5.154122945860079e+03 , -1.739082855803733e+06), 
-             std::complex<double> (1.468390949528229e+03 , -9.282499521752106e+05), 
-             std::complex<double> (4.183387805658296e+02 , -4.954598777473632e+05), 
-             std::complex<double> (1.191830281614660e+02 , -2.644549690019308e+05), 
-             std::complex<double> (3.395476025476729e+01 , -1.411545501702359e+05), 
-             std::complex<double> (9.673572759458848e+00 , -7.534214968356599e+04), 
-             std::complex<double> (2.755961404606907e+00 , -4.021435664363626e+04), 
-             std::complex<double> (7.851620498502022e-01 , -2.146467121050541e+04), 
-             std::complex<double> (2.236892972004485e-01 , -1.145690610851495e+04), 
-             std::complex<double> (6.372807375067199e-02 , -6.115197152241593e+03), 
-             std::complex<double> (1.815583903815911e-02 , -3.264025608931459e+03), 
-             std::complex<double> (5.172524007385113e-03 , -1.742194346428488e+03), 
-             std::complex<double> (1.473633045031648e-03 , -9.299068802857494e+02), 
-             std::complex<double> (4.198298378333071e-04 , -4.963427520330058e+02), 
-             std::complex<double> (1.196040993535331e-04 , -2.649242233025061e+02), 
-             std::complex<double> (3.407214254330199e-05 , -1.414014294957790e+02), 
-             std::complex<double> (9.706426295970842e-06 , -7.546722143415607e+01), 
-             std::complex<double> (2.765516387984685e-06 , -4.026856732870812e+01), 
-             std::complex<double> (7.879854524567858e-07 , -2.147014018196367e+01), 
-             std::complex<double> (2.244874108599590e-07 , -1.141623593152252e+01), 
-             std::complex<double> (6.392933429834181e-08 , -6.017089153267768e+00), 
-             std::complex<double> (1.702141884886936e-08 , -3.158204500251845e+00), 
-             std::complex<double> (1.899614157011302e-09 , -2.095194761862603e+00), 
-             std::complex<double> (1.010255487720709e-11 , -2.000392276848434e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 35;
-            int m = 2;
-            double b = 1.105465055323651e+08;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-2.056174747314652e+08 , 5.462702708340009e+07), 
-             std::complex<double> (-1.248796737705579e+08 , 1.090636523230593e+08), 
-             std::complex<double> (-5.503743367224923e+07 , 9.532205133049019e+07), 
-             std::complex<double> (-2.089176005564509e+07 , 6.451702078131849e+07), 
-             std::complex<double> (-7.480760734355396e+06 , 3.988459744282800e+07), 
-             std::complex<double> (-2.622597454324994e+06 , 2.388379000683395e+07), 
-             std::complex<double> (-9.126059256863295e+05 , 1.414423784180475e+07), 
-             std::complex<double> (-3.167435211317990e+05 , 8.344132913198477e+06), 
-             std::complex<double> (-1.098350016877171e+05 , 4.915888544543148e+06), 
-             std::complex<double> (-3.807483410311422e+04 , 2.894819376252319e+06), 
-             std::complex<double> (-1.319739487578971e+04 , 1.704398381237641e+06), 
-             std::complex<double> (-4.574273071902612e+03 , 1.003451904734638e+06), 
-             std::complex<double> (-1.585441815397109e+03 , 5.907634591168201e+05), 
-             std::complex<double> (-5.495112214000010e+02 , 3.477985615529468e+05), 
-             std::complex<double> (-1.904592741570209e+02 , 2.047580245603100e+05), 
-             std::complex<double> (-6.601268526257599e+01 , 1.205462574670654e+05), 
-             std::complex<double> (-2.287981408831644e+01 , 7.096862847584837e+04), 
-             std::complex<double> (-7.930076614012533e+00 , 4.178102148884641e+04), 
-             std::complex<double> (-2.748539587332887e+00 , 2.459754074270638e+04), 
-             std::complex<double> (-9.526342175204983e-01 , 1.448119299389701e+04), 
-             std::complex<double> (-3.301789648667092e-01 , 8.525445041452595e+03), 
-             std::complex<double> (-1.144379758322808e-01 , 5.019147604508195e+03), 
-             std::complex<double> (-3.966295597230947e-02 , 2.954904361447640e+03), 
-             std::complex<double> (-1.374630778028932e-02 , 1.739636397369029e+03), 
-             std::complex<double> (-4.763791474181150e-03 , 1.024184371975565e+03), 
-             std::complex<double> (-1.650547643809279e-03 , 6.029913507360656e+02), 
-             std::complex<double> (-5.715417791689269e-04 , 3.550441246139415e+02), 
-             std::complex<double> (-1.975819291687172e-04 , 2.091048389162337e+02), 
-             std::complex<double> (-6.797529705010001e-05 , 1.232436197132160e+02), 
-             std::complex<double> (-2.305139212584215e-05 , 7.279170938651387e+01), 
-             std::complex<double> (-7.475219227090609e-06 , 4.325330557046042e+01), 
-             std::complex<double> (-2.077374999214285e-06 , 2.612498896489193e+01), 
-             std::complex<double> (-3.245917253521437e-07 , 1.621892037029814e+01), 
-             std::complex<double> (-9.678377189543531e-09 , 9.436111337664489e+00), 
-             std::complex<double> (-1.084626152091708e-11 , 3.141603672944733e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.766202043514169e+07 , 3.089397823327621e+07), 
-             std::complex<double> (2.756943886827726e+07 , 3.744846708951503e+06), 
-             std::complex<double> (1.604085936285369e+07 , -9.260110219198819e+06), 
-             std::complex<double> (6.698117833047478e+06 , -9.257932532015027e+06), 
-             std::complex<double> (2.479126603495896e+06 , -6.376391772078541e+06), 
-             std::complex<double> (8.791698827751188e+05 , -3.954996365712693e+06), 
-             std::complex<double> (3.071525929525471e+05 , -2.370329429024518e+06), 
-             std::complex<double> (1.067525526867399e+05 , -1.404091756706270e+06), 
-             std::complex<double> (3.703557845169985e+04 , -8.283875140501200e+05), 
-             std::complex<double> (1.284069206953309e+04 , -4.880527279064512e+05), 
-             std::complex<double> (4.451061486500535e+03 , -2.874024415211375e+05), 
-             std::complex<double> (1.542787546046310e+03 , -1.692160567828360e+05), 
-             std::complex<double> (5.347334423072297e+02 , -9.962481547717983e+04), 
-             std::complex<double> (1.853380763359534e+02 , -5.865226256159375e+04), 
-             std::complex<double> (6.423779123409220e+01 , -3.453019157957943e+04), 
-             std::complex<double> (2.226465997820563e+01 , -2.032881941477426e+04), 
-             std::complex<double> (7.716872548092494e+00 , -1.196809323964989e+04), 
-             std::complex<double> (2.674646787812702e+00 , -7.045918922174672e+03), 
-             std::complex<double> (9.270248294013168e-01 , -4.148110026379695e+03), 
-             std::complex<double> (3.213039751237012e-01 , -2.442096690521033e+03), 
-             std::complex<double> (1.113629512680212e-01 , -1.437723499166115e+03), 
-             std::complex<double> (3.859801743899460e-02 , -8.464234636198585e+02), 
-             std::complex<double> (1.337790582194390e-02 , -4.983098398334885e+02), 
-             std::complex<double> (4.636698951696993e-03 , -2.933659035918621e+02), 
-             std::complex<double> (1.607036093282423e-03 , -1.727090945446318e+02), 
-             std::complex<double> (5.569787072250253e-04 , -1.016734350860752e+02), 
-             std::complex<double> (1.930387493218836e-04 , -5.984962819894576e+01), 
-             std::complex<double> (6.690226720461467e-05 , -3.522124878051003e+01), 
-             std::complex<double> (2.318794312521300e-05 , -2.071229126928188e+01), 
-             std::complex<double> (8.038343157591242e-06 , -1.215416622295455e+01), 
-             std::complex<double> (2.788118524494845e-06 , -7.088712697259929e+00), 
-             std::complex<double> (9.590905579726293e-07 , -4.077236901379703e+00), 
-             std::complex<double> (2.527622583919645e-07 , -2.448381223348704e+00), 
-             std::complex<double> (1.492360183542152e-08 , -2.018319335581660e+00), 
-             std::complex<double> (3.211729867164913e-11 , -2.000032837342118e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 35;
-            int m = 2;
-            double b = 1.026180134646449e+07;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.943201088908280e+07 , 4.462104438955036e+06), 
-             std::complex<double> (-1.324423101045890e+07 , 9.773569241784515e+06), 
-             std::complex<double> (-6.885150541906087e+06 , 9.666523038062979e+06), 
-             std::complex<double> (-3.091565761846407e+06 , 7.327020753586905e+06), 
-             std::complex<double> (-1.297617476472537e+06 , 4.986087403947366e+06), 
-             std::complex<double> (-5.292550891860635e+05 , 3.247562768508746e+06), 
-             std::complex<double> (-2.133428312601008e+05 , 2.078162647894131e+06), 
-             std::complex<double> (-8.559107833917180e+04 , 1.320446559479368e+06), 
-             std::complex<double> (-3.427288907645283e+04 , 8.366200707557073e+05), 
-             std::complex<double> (-1.371327481963341e+04 , 5.294707805626044e+05), 
-             std::complex<double> (-5.485281225019179e+03 , 3.349332149148736e+05), 
-             std::complex<double> (-2.193832853418786e+03 , 2.118338930282334e+05), 
-             std::complex<double> (-8.773784592422566e+02 , 1.339680039582493e+05), 
-             std::complex<double> (-3.508826890904584e+02 , 8.472158903395882e+04), 
-             std::complex<double> (-1.403245122891171e+02 , 5.357745107243057e+04), 
-             std::complex<double> (-5.611819952818349e+01 , 3.388191809148429e+04), 
-             std::complex<double> (-2.244259932000173e+01 , 2.142659359086906e+04), 
-             std::complex<double> (-8.975154577868876e+00 , 1.354995907587761e+04), 
-             std::complex<double> (-3.589301615805944e+00 , 8.568854764721897e+03), 
-             std::complex<double> (-1.435412728945383e+00 , 5.418857360447386e+03), 
-             std::complex<double> (-5.740383691926080e-01 , 3.426834357187925e+03), 
-             std::complex<double> (-2.295608086877896e-01 , 2.167103674968478e+03), 
-             std::complex<double> (-9.179840456822293e-02 , 1.370469075897189e+03), 
-             std::complex<double> (-3.670471483280777e-02 , 8.666948967738975e+02), 
-             std::complex<double> (-1.467174550828827e-02 , 5.481278434769908e+02), 
-             std::complex<double> (-5.860460438223919e-03 , 3.466921925043665e+02), 
-             std::complex<double> (-2.336793980118080e-03 , 2.193424625856353e+02), 
-             std::complex<double> (-9.276987187545067e-04 , 1.388649186711725e+02), 
-             std::complex<double> (-3.642018135552275e-04 , 8.806232969321276e+01), 
-             std::complex<double> (-1.388090773146201e-04 , 5.607940295433601e+01), 
-             std::complex<double> (-4.856440384813166e-05 , 3.608119261180187e+01), 
-             std::complex<double> (-1.279071290789698e-05 , 2.373799432083292e+01), 
-             std::complex<double> (-1.367146050728631e-06 , 1.584477852780033e+01), 
-             std::complex<double> (-2.007386092974969e-08 , 9.426340415767395e+00), 
-             std::complex<double> (-1.146809910772601e-11 , 3.141593461908137e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.260850738289951e+06 , 2.600675999295314e+06), 
-             std::complex<double> (2.284521212948746e+06 , 7.049549601707552e+05), 
-             std::complex<double> (1.632448665698916e+06 , -5.645817960072458e+05), 
-             std::complex<double> (8.301465719983791e+05 , -8.085888386401753e+05), 
-             std::complex<double> (3.662009332128101e+05 , -6.559109776654616e+05), 
-             std::complex<double> (1.523640362045052e+05 , -4.550451848594168e+05), 
-             std::complex<double> (6.190911451065743e+04 , -2.983491313779661e+05), 
-             std::complex<double> (2.491659811687785e+04 , -1.913914376911295e+05), 
-             std::complex<double> (9.989974618093216e+03 , -1.217257665934458e+05), 
-             std::complex<double> (3.999228015927376e+03 , -7.715349340728085e+04), 
-             std::complex<double> (1.600008817641251e+03 , -4.883545738235494e+04), 
-             std::complex<double> (6.399740708396686e+02 , -3.089426058849887e+04), 
-             std::complex<double> (2.559528237526280e+02 , -1.954004478811741e+04), 
-             std::complex<double> (1.023624149738926e+02 , -1.235763598569351e+04), 
-             std::complex<double> (4.093684686792244e+01 , -7.815019782804298e+03), 
-             std::complex<double> (1.637139220941916e+01 , -4.942181589875851e+03), 
-             std::complex<double> (6.547202168239145e+00 , -3.125394754837007e+03), 
-             std::complex<double> (2.618335341756563e+00 , -1.976469237866021e+03), 
-             std::complex<double> (1.047114701994884e+00 , -1.249898583026991e+03), 
-             std::complex<double> (4.187577693442188e-01 , -7.904222315637359e+02), 
-             std::complex<double> (1.674679348265500e-01 , -4.998537788182201e+02), 
-             std::complex<double> (6.697319346403730e-02 , -3.161008010446330e+02), 
-             std::complex<double> (2.678375967902768e-02 , -1.998965156610936e+02), 
-             std::complex<double> (1.071132639059350e-02 , -1.264088259248508e+02), 
-             std::complex<double> (4.283636765708093e-03 , -7.993388755917833e+01), 
-             std::complex<double> (1.713062928279200e-03 , -5.054030348770195e+01), 
-             std::complex<double> (6.850497187306558e-04 , -3.194684462764545e+01), 
-             std::complex<double> (2.739465468429037e-04 , -2.018017322446559e+01), 
-             std::complex<double> (1.095573762818831e-04 , -1.272570841597254e+01), 
-             std::complex<double> (4.383957780249302e-05 , -7.990248136320462e+00), 
-             std::complex<double> (1.756033196474276e-05 , -4.964258023328600e+00), 
-             std::complex<double> (6.645886263047244e-06 , -3.053743015777302e+00), 
-             std::complex<double> (1.320107146649731e-06 , -2.145995629049842e+00), 
-             std::complex<double> (3.566779459360094e-08 , -2.002860125498104e+00), 
-             std::complex<double> (3.621436857082297e-11 , -2.000002562708464e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 35;
-            int m = 2;
-            double b = 1.704319355157387e+06;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-3.266436830905796e+06 , 6.604972004282690e+05), 
-             std::complex<double> (-2.411959605195913e+06 , 1.543729023197506e+06), 
-             std::complex<double> (-1.416124177854151e+06 , 1.676128288857639e+06), 
-             std::complex<double> (-7.238804011981136e+05 , 1.391828324270356e+06), 
-             std::complex<double> (-3.442101501833206e+05 , 1.025588458781179e+06), 
-             std::complex<double> (-1.580761986944787e+05 , 7.158700522845953e+05), 
-             std::complex<double> (-7.143760351525380e+04 , 4.876310249975937e+05), 
-             std::complex<double> (-3.204962574611533e+04 , 3.285442299409541e+05), 
-             std::complex<double> (-1.433169683430693e+04 , 2.202776876120392e+05), 
-             std::complex<double> (-6.399356258240637e+03 , 1.473662316202510e+05), 
-             std::complex<double> (-2.855557896216299e+03 , 9.849221363013831e+04), 
-             std::complex<double> (-1.273852214445582e+03 , 6.579863408259478e+04), 
-             std::complex<double> (-5.681865051762112e+02 , 4.394885717406782e+04), 
-             std::complex<double> (-2.534183766365905e+02 , 2.935220376339105e+04), 
-             std::complex<double> (-1.130250598934417e+02 , 1.960275407182156e+04), 
-             std::complex<double> (-5.040890277960460e+01 , 1.309139801661447e+04), 
-             std::complex<double> (-2.248218509340209e+01 , 8.742823437044553e+03), 
-             std::complex<double> (-1.002697078424605e+01 , 5.838698968769202e+03), 
-             std::complex<double> (-4.471995107153908e+00 , 3.899242174934777e+03), 
-             std::complex<double> (-1.994498201724353e+00 , 2.604023865623547e+03), 
-             std::complex<double> (-8.895428644675663e-01 , 1.739048307981923e+03), 
-             std::complex<double> (-3.967302637594754e-01 , 1.161402907110942e+03), 
-             std::complex<double> (-1.769264974936149e-01 , 7.756477565261306e+02), 
-             std::complex<double> (-7.888329279436990e-02 , 5.180473699593130e+02), 
-             std::complex<double> (-3.514755206612464e-02 , 3.460402986840670e+02), 
-             std::complex<double> (-1.563575324528675e-02 , 2.312070741801582e+02), 
-             std::complex<double> (-6.929701165283079e-03 , 1.545747356354551e+02), 
-             std::complex<double> (-3.044194375228442e-03 , 1.034822536994857e+02), 
-             std::complex<double> (-1.309432345454434e-03 , 6.948916820219362e+01), 
-             std::complex<double> (-5.341526178979395e-04 , 4.698181902932901e+01), 
-             std::complex<double> (-1.873934464100954e-04 , 3.223630007369167e+01), 
-             std::complex<double> (-4.082279616871332e-05 , 2.264983927559361e+01), 
-             std::complex<double> (-2.586628539483479e-06 , 1.573834971462750e+01), 
-             std::complex<double> (-1.955685403185753e-08 , 9.424967102185864e+00), 
-             std::complex<double> (-6.368901266460307e-12 , 3.141592710621642e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.655836959451874e+05 , 3.926994172378575e+05), 
-             std::complex<double> (3.329832835416716e+05 , 1.535707370457346e+05), 
-             std::complex<double> (2.774415507888164e+05 , -4.698813618638822e+04), 
-             std::complex<double> (1.648851107990223e+05 , -1.156371814621338e+05), 
-             std::complex<double> (8.382876594338447e+04 , -1.108182694574222e+05), 
-             std::complex<double> (3.966394762505158e+04 , -8.543262918067907e+04), 
-             std::complex<double> (1.816516281278227e+04 , -6.066685587765294e+04), 
-             std::complex<double> (8.198140000003805e+03 , -4.162015613630528e+04), 
-             std::complex<double> (3.675706145542460e+03 , -2.812816861208291e+04), 
-             std::complex<double> (1.643208637822709e+03 , -1.888446893604327e+04), 
-             std::complex<double> (7.336285069588095e+02 , -1.264131162859335e+04), 
-             std::complex<double> (3.273452762380070e+02 , -8.451068401704257e+03), 
-             std::complex<double> (1.460235569378905e+02 , -5.646483454555449e+03), 
-             std::complex<double> (6.513128435425182e+01 , -3.771652683876342e+03), 
-             std::complex<double> (2.904921319977776e+01 , -2.519039694133170e+03), 
-             std::complex<double> (1.295596346040507e+01 , -1.682348085982877e+03), 
-             std::complex<double> (5.778319146702528e+00 , -1.123535025101075e+03), 
-             std::complex<double> (2.577107251309330e+00 , -7.503307148065359e+02), 
-             std::complex<double> (1.149379556667323e+00 , -5.010908039082480e+02), 
-             std::complex<double> (5.126187133708107e-01 , -3.346403700442774e+02), 
-             std::complex<double> (2.286271532513289e-01 , -2.234795394017029e+02), 
-             std::complex<double> (1.019698875027650e-01 , -1.492424563745788e+02), 
-             std::complex<double> (4.548203389662622e-02 , -9.966359010821046e+01), 
-             std::complex<double> (2.028814983846166e-02 , -6.655141504778342e+01), 
-             std::complex<double> (9.050727051621337e-03 , -4.443504906707873e+01), 
-             std::complex<double> (4.038075455994924e-03 , -2.966035142532295e+01), 
-             std::complex<double> (1.801978135170209e-03 , -1.978615854203796e+01), 
-             std::complex<double> (8.043635351767344e-04 , -1.318088350773374e+01), 
-             std::complex<double> (3.592587556446812e-04 , -8.752786701384906e+00), 
-             std::complex<double> (1.607299490014284e-04 , -5.769840505467695e+00), 
-             std::complex<double> (7.146320116795132e-05 , -3.749468885020797e+00), 
-             std::complex<double> (2.575742480466152e-05 , -2.484391952530531e+00), 
-             std::complex<double> (3.042382407782342e-06 , -2.038362574123834e+00), 
-             std::complex<double> (3.858186595723820e-08 , -2.000380685542973e+00), 
-             std::complex<double> (2.117179035236950e-11 , -2.000000190222287e+00), 
+             std::complex<double> (8.873014296195062e+03 , 2.645366341243227e+04), 
+             std::complex<double> (2.035605148911698e+04 , 1.490271654851431e+04), 
+             std::complex<double> (2.088160936904645e+04 , 2.072259002925070e+03), 
+             std::complex<double> (1.556276422441292e+04 , -5.350970799542912e+03), 
+             std::complex<double> (9.811990846597333e+03 , -7.647595137664073e+03), 
+             std::complex<double> (5.654373298771113e+03 , -7.264929713015909e+03), 
+             std::complex<double> (3.105952974994619e+03 , -5.973994766473129e+03), 
+             std::complex<double> (1.663450219856786e+03 , -4.602211588076935e+03), 
+             std::complex<double> (8.791331683858780e+02 , -3.434043099568624e+03), 
+             std::complex<double> (4.614085710234661e+02 , -2.521373833784440e+03), 
+             std::complex<double> (2.412963932733338e+02 , -1.835998798462590e+03), 
+             std::complex<double> (1.259532722173400e+02 , -1.331213816821988e+03), 
+             std::complex<double> (6.568340717920867e+01 , -9.630695634421785e+02), 
+             std::complex<double> (3.423629685263381e+01 , -6.959294146243286e+02), 
+             std::complex<double> (1.783994114605263e+01 , -5.025871221789065e+02), 
+             std::complex<double> (9.294217762167191e+00 , -3.628453650249633e+02), 
+             std::complex<double> (4.841264833498431e+00 , -2.619152047595795e+02), 
+             std::complex<double> (2.521291169347260e+00 , -1.890434270159062e+02), 
+             std::complex<double> (1.312735026613885e+00 , -1.364394394263236e+02), 
+             std::complex<double> (6.832947811272498e-01 , -9.846937060320541e+01), 
+             std::complex<double> (3.555923785838337e-01 , -7.106279792856250e+01), 
+             std::complex<double> (1.850600723880460e-01 , -5.128034405528786e+01), 
+             std::complex<double> (9.636167974674677e-02 , -3.699987287052112e+01), 
+             std::complex<double> (5.024118718300388e-02 , -2.668928681309445e+01), 
+             std::complex<double> (2.624658124979181e-02 , -1.924230801677728e+01), 
+             std::complex<double> (1.374180896525411e-02 , -1.385980443983916e+01), 
+             std::complex<double> (7.210358199452321e-03 , -9.963940963742065e+00), 
+             std::complex<double> (3.793251273097910e-03 , -7.135934354100351e+00), 
+             std::complex<double> (2.004695599067881e-03 , -5.071173978093083e+00), 
+             std::complex<double> (1.058010046511066e-03 , -3.554451988231489e+00), 
+             std::complex<double> (4.736175536187006e-04 , -2.510347587968260e+00), 
+             std::complex<double> (8.787189316466357e-05 , -2.061278441304192e+00), 
+             std::complex<double> (2.868426589209481e-06 , -2.001467651128709e+00), 
+             std::complex<double> (1.153600932097999e-08 , -2.000004878740090e+00), 
+             std::complex<double> (2.795693697430165e-12 , -2.000000000944322e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -23949,81 +23484,546 @@
         { 
             int np = 35;
             int m = 2;
-            double b = 1.368346306979379e+05;
+            double b = 1.704319355157387e+06;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-2.661284134218509e+05 , 4.344239887318401e+04), 
-             std::complex<double> (-2.173073947926793e+05 , 1.102281011511850e+05), 
-             std::complex<double> (-1.500998999121676e+05 , 1.359428229888415e+05), 
-             std::complex<double> (-9.219094413570182e+04 , 1.291876425709090e+05), 
-             std::complex<double> (-5.262986921484789e+04 , 1.077488849638818e+05), 
-             std::complex<double> (-2.880484951293436e+04 , 8.390750971169297e+04), 
-             std::complex<double> (-1.540348104515853e+04 , 6.301848662782524e+04), 
-             std::complex<double> (-8.135164670759678e+03 , 4.643825073488006e+04), 
-             std::complex<double> (-4.268327846531819e+03 , 3.388129044376720e+04), 
-             std::complex<double> (-2.231796513383334e+03 , 2.459152418572268e+04), 
-             std::complex<double> (-1.164862398718876e+03 , 1.780051409800733e+04), 
-             std::complex<double> (-6.074223063401635e+02 , 1.286664295006284e+04), 
-             std::complex<double> (-3.165850933192811e+02 , 9.293470364555118e+03), 
-             std::complex<double> (-1.649536660020866e+02 , 6.710026444260639e+03), 
-             std::complex<double> (-8.592946523961575e+01 , 4.843780845710698e+03), 
-             std::complex<double> (-4.475519084405402e+01 , 3.496235736822668e+03), 
-             std::complex<double> (-2.330593469342423e+01 , 2.523452346503214e+03), 
-             std::complex<double> (-1.213412528275187e+01 , 1.821293596956446e+03), 
-             std::complex<double> (-6.316563554236127e+00 , 1.314507486690182e+03), 
-             std::complex<double> (-3.287979992668263e+00 , 9.487486246454343e+02), 
-             std::complex<double> (-1.711724586449948e+00 , 6.847831117660782e+02), 
-             std::complex<double> (-8.914373654139039e-01 , 4.942921108350927e+02), 
-             std::complex<double> (-4.644591221152064e-01 , 3.568378829509836e+02), 
-             std::complex<double> (-2.420156555284626e-01 , 2.576724769350066e+02), 
-             std::complex<double> (-1.259402454237831e-01 , 1.861559728624649e+02), 
-             std::complex<double> (-6.524140136727251e-02 , 1.346152047834656e+02), 
-             std::complex<double> (-3.343082639174252e-02 , 9.752092994533440e+01), 
-             std::complex<double> (-1.672157514354674e-02 , 7.089558394297437e+01), 
-             std::complex<double> (-7.915074827835652e-03 , 5.188817335723763e+01), 
-             std::complex<double> (-3.254043737308055e-03 , 3.846246990671016e+01), 
-             std::complex<double> (-8.945782700727192e-04 , 2.907153492536575e+01), 
-             std::complex<double> (-9.181508576232362e-05 , 2.204917271557439e+01), 
-             std::complex<double> (-1.864347368121481e-06 , 1.570887975663578e+01), 
-             std::complex<double> (-5.118614276716521e-09 , 9.424780074695237e+00), 
-             std::complex<double> (-8.029598596237081e-13 , 3.141592653851281e+00), 
+             std::complex<double> (-3.266436830905796e+06 , 6.604972004282690e+05), 
+             std::complex<double> (-2.411959605195913e+06 , 1.543729023197506e+06), 
+             std::complex<double> (-1.416124177854151e+06 , 1.676128288857639e+06), 
+             std::complex<double> (-7.238804011981136e+05 , 1.391828324270356e+06), 
+             std::complex<double> (-3.442101501833206e+05 , 1.025588458781179e+06), 
+             std::complex<double> (-1.580761986944787e+05 , 7.158700522845953e+05), 
+             std::complex<double> (-7.143760351525380e+04 , 4.876310249975937e+05), 
+             std::complex<double> (-3.204962574611533e+04 , 3.285442299409541e+05), 
+             std::complex<double> (-1.433169683430693e+04 , 2.202776876120392e+05), 
+             std::complex<double> (-6.399356258240637e+03 , 1.473662316202510e+05), 
+             std::complex<double> (-2.855557896216299e+03 , 9.849221363013831e+04), 
+             std::complex<double> (-1.273852214445582e+03 , 6.579863408259478e+04), 
+             std::complex<double> (-5.681865051762112e+02 , 4.394885717406782e+04), 
+             std::complex<double> (-2.534183766365905e+02 , 2.935220376339105e+04), 
+             std::complex<double> (-1.130250598934417e+02 , 1.960275407182156e+04), 
+             std::complex<double> (-5.040890277960460e+01 , 1.309139801661447e+04), 
+             std::complex<double> (-2.248218509340209e+01 , 8.742823437044553e+03), 
+             std::complex<double> (-1.002697078424605e+01 , 5.838698968769202e+03), 
+             std::complex<double> (-4.471995107153908e+00 , 3.899242174934777e+03), 
+             std::complex<double> (-1.994498201724353e+00 , 2.604023865623547e+03), 
+             std::complex<double> (-8.895428644675663e-01 , 1.739048307981923e+03), 
+             std::complex<double> (-3.967302637594754e-01 , 1.161402907110942e+03), 
+             std::complex<double> (-1.769264974936149e-01 , 7.756477565261306e+02), 
+             std::complex<double> (-7.888329279436990e-02 , 5.180473699593130e+02), 
+             std::complex<double> (-3.514755206612464e-02 , 3.460402986840670e+02), 
+             std::complex<double> (-1.563575324528675e-02 , 2.312070741801582e+02), 
+             std::complex<double> (-6.929701165283079e-03 , 1.545747356354551e+02), 
+             std::complex<double> (-3.044194375228442e-03 , 1.034822536994857e+02), 
+             std::complex<double> (-1.309432345454434e-03 , 6.948916820219362e+01), 
+             std::complex<double> (-5.341526178979395e-04 , 4.698181902932901e+01), 
+             std::complex<double> (-1.873934464100954e-04 , 3.223630007369167e+01), 
+             std::complex<double> (-4.082279616871332e-05 , 2.264983927559361e+01), 
+             std::complex<double> (-2.586628539483479e-06 , 1.573834971462750e+01), 
+             std::complex<double> (-1.955685403185753e-08 , 9.424967102185864e+00), 
+             std::complex<double> (-6.368901266460307e-12 , 3.141592710621642e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (8.873014296195062e+03 , 2.645366341243227e+04), 
-             std::complex<double> (2.035605148911698e+04 , 1.490271654851431e+04), 
-             std::complex<double> (2.088160936904645e+04 , 2.072259002925070e+03), 
-             std::complex<double> (1.556276422441292e+04 , -5.350970799542912e+03), 
-             std::complex<double> (9.811990846597333e+03 , -7.647595137664073e+03), 
-             std::complex<double> (5.654373298771113e+03 , -7.264929713015909e+03), 
-             std::complex<double> (3.105952974994619e+03 , -5.973994766473129e+03), 
-             std::complex<double> (1.663450219856786e+03 , -4.602211588076935e+03), 
-             std::complex<double> (8.791331683858780e+02 , -3.434043099568624e+03), 
-             std::complex<double> (4.614085710234661e+02 , -2.521373833784440e+03), 
-             std::complex<double> (2.412963932733338e+02 , -1.835998798462590e+03), 
-             std::complex<double> (1.259532722173400e+02 , -1.331213816821988e+03), 
-             std::complex<double> (6.568340717920867e+01 , -9.630695634421785e+02), 
-             std::complex<double> (3.423629685263381e+01 , -6.959294146243286e+02), 
-             std::complex<double> (1.783994114605263e+01 , -5.025871221789065e+02), 
-             std::complex<double> (9.294217762167191e+00 , -3.628453650249633e+02), 
-             std::complex<double> (4.841264833498431e+00 , -2.619152047595795e+02), 
-             std::complex<double> (2.521291169347260e+00 , -1.890434270159062e+02), 
-             std::complex<double> (1.312735026613885e+00 , -1.364394394263236e+02), 
-             std::complex<double> (6.832947811272498e-01 , -9.846937060320541e+01), 
-             std::complex<double> (3.555923785838337e-01 , -7.106279792856250e+01), 
-             std::complex<double> (1.850600723880460e-01 , -5.128034405528786e+01), 
-             std::complex<double> (9.636167974674677e-02 , -3.699987287052112e+01), 
-             std::complex<double> (5.024118718300388e-02 , -2.668928681309445e+01), 
-             std::complex<double> (2.624658124979181e-02 , -1.924230801677728e+01), 
-             std::complex<double> (1.374180896525411e-02 , -1.385980443983916e+01), 
-             std::complex<double> (7.210358199452321e-03 , -9.963940963742065e+00), 
-             std::complex<double> (3.793251273097910e-03 , -7.135934354100351e+00), 
-             std::complex<double> (2.004695599067881e-03 , -5.071173978093083e+00), 
-             std::complex<double> (1.058010046511066e-03 , -3.554451988231489e+00), 
-             std::complex<double> (4.736175536187006e-04 , -2.510347587968260e+00), 
-             std::complex<double> (8.787189316466357e-05 , -2.061278441304192e+00), 
-             std::complex<double> (2.868426589209481e-06 , -2.001467651128709e+00), 
-             std::complex<double> (1.153600932097999e-08 , -2.000004878740090e+00), 
-             std::complex<double> (2.795693697430165e-12 , -2.000000000944322e+00), 
+             std::complex<double> (1.655836959451874e+05 , 3.926994172378575e+05), 
+             std::complex<double> (3.329832835416716e+05 , 1.535707370457346e+05), 
+             std::complex<double> (2.774415507888164e+05 , -4.698813618638822e+04), 
+             std::complex<double> (1.648851107990223e+05 , -1.156371814621338e+05), 
+             std::complex<double> (8.382876594338447e+04 , -1.108182694574222e+05), 
+             std::complex<double> (3.966394762505158e+04 , -8.543262918067907e+04), 
+             std::complex<double> (1.816516281278227e+04 , -6.066685587765294e+04), 
+             std::complex<double> (8.198140000003805e+03 , -4.162015613630528e+04), 
+             std::complex<double> (3.675706145542460e+03 , -2.812816861208291e+04), 
+             std::complex<double> (1.643208637822709e+03 , -1.888446893604327e+04), 
+             std::complex<double> (7.336285069588095e+02 , -1.264131162859335e+04), 
+             std::complex<double> (3.273452762380070e+02 , -8.451068401704257e+03), 
+             std::complex<double> (1.460235569378905e+02 , -5.646483454555449e+03), 
+             std::complex<double> (6.513128435425182e+01 , -3.771652683876342e+03), 
+             std::complex<double> (2.904921319977776e+01 , -2.519039694133170e+03), 
+             std::complex<double> (1.295596346040507e+01 , -1.682348085982877e+03), 
+             std::complex<double> (5.778319146702528e+00 , -1.123535025101075e+03), 
+             std::complex<double> (2.577107251309330e+00 , -7.503307148065359e+02), 
+             std::complex<double> (1.149379556667323e+00 , -5.010908039082480e+02), 
+             std::complex<double> (5.126187133708107e-01 , -3.346403700442774e+02), 
+             std::complex<double> (2.286271532513289e-01 , -2.234795394017029e+02), 
+             std::complex<double> (1.019698875027650e-01 , -1.492424563745788e+02), 
+             std::complex<double> (4.548203389662622e-02 , -9.966359010821046e+01), 
+             std::complex<double> (2.028814983846166e-02 , -6.655141504778342e+01), 
+             std::complex<double> (9.050727051621337e-03 , -4.443504906707873e+01), 
+             std::complex<double> (4.038075455994924e-03 , -2.966035142532295e+01), 
+             std::complex<double> (1.801978135170209e-03 , -1.978615854203796e+01), 
+             std::complex<double> (8.043635351767344e-04 , -1.318088350773374e+01), 
+             std::complex<double> (3.592587556446812e-04 , -8.752786701384906e+00), 
+             std::complex<double> (1.607299490014284e-04 , -5.769840505467695e+00), 
+             std::complex<double> (7.146320116795132e-05 , -3.749468885020797e+00), 
+             std::complex<double> (2.575742480466152e-05 , -2.484391952530531e+00), 
+             std::complex<double> (3.042382407782342e-06 , -2.038362574123834e+00), 
+             std::complex<double> (3.858186595723820e-08 , -2.000380685542973e+00), 
+             std::complex<double> (2.117179035236950e-11 , -2.000000190222287e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 35;
+            int m = 2;
+            double b = 1.026180134646449e+07;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.943201088908280e+07 , 4.462104438955036e+06), 
+             std::complex<double> (-1.324423101045890e+07 , 9.773569241784515e+06), 
+             std::complex<double> (-6.885150541906087e+06 , 9.666523038062979e+06), 
+             std::complex<double> (-3.091565761846407e+06 , 7.327020753586905e+06), 
+             std::complex<double> (-1.297617476472537e+06 , 4.986087403947366e+06), 
+             std::complex<double> (-5.292550891860635e+05 , 3.247562768508746e+06), 
+             std::complex<double> (-2.133428312601008e+05 , 2.078162647894131e+06), 
+             std::complex<double> (-8.559107833917180e+04 , 1.320446559479368e+06), 
+             std::complex<double> (-3.427288907645283e+04 , 8.366200707557073e+05), 
+             std::complex<double> (-1.371327481963341e+04 , 5.294707805626044e+05), 
+             std::complex<double> (-5.485281225019179e+03 , 3.349332149148736e+05), 
+             std::complex<double> (-2.193832853418786e+03 , 2.118338930282334e+05), 
+             std::complex<double> (-8.773784592422566e+02 , 1.339680039582493e+05), 
+             std::complex<double> (-3.508826890904584e+02 , 8.472158903395882e+04), 
+             std::complex<double> (-1.403245122891171e+02 , 5.357745107243057e+04), 
+             std::complex<double> (-5.611819952818349e+01 , 3.388191809148429e+04), 
+             std::complex<double> (-2.244259932000173e+01 , 2.142659359086906e+04), 
+             std::complex<double> (-8.975154577868876e+00 , 1.354995907587761e+04), 
+             std::complex<double> (-3.589301615805944e+00 , 8.568854764721897e+03), 
+             std::complex<double> (-1.435412728945383e+00 , 5.418857360447386e+03), 
+             std::complex<double> (-5.740383691926080e-01 , 3.426834357187925e+03), 
+             std::complex<double> (-2.295608086877896e-01 , 2.167103674968478e+03), 
+             std::complex<double> (-9.179840456822293e-02 , 1.370469075897189e+03), 
+             std::complex<double> (-3.670471483280777e-02 , 8.666948967738975e+02), 
+             std::complex<double> (-1.467174550828827e-02 , 5.481278434769908e+02), 
+             std::complex<double> (-5.860460438223919e-03 , 3.466921925043665e+02), 
+             std::complex<double> (-2.336793980118080e-03 , 2.193424625856353e+02), 
+             std::complex<double> (-9.276987187545067e-04 , 1.388649186711725e+02), 
+             std::complex<double> (-3.642018135552275e-04 , 8.806232969321276e+01), 
+             std::complex<double> (-1.388090773146201e-04 , 5.607940295433601e+01), 
+             std::complex<double> (-4.856440384813166e-05 , 3.608119261180187e+01), 
+             std::complex<double> (-1.279071290789698e-05 , 2.373799432083292e+01), 
+             std::complex<double> (-1.367146050728631e-06 , 1.584477852780033e+01), 
+             std::complex<double> (-2.007386092974969e-08 , 9.426340415767395e+00), 
+             std::complex<double> (-1.146809910772601e-11 , 3.141593461908137e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.260850738289951e+06 , 2.600675999295314e+06), 
+             std::complex<double> (2.284521212948746e+06 , 7.049549601707552e+05), 
+             std::complex<double> (1.632448665698916e+06 , -5.645817960072458e+05), 
+             std::complex<double> (8.301465719983791e+05 , -8.085888386401753e+05), 
+             std::complex<double> (3.662009332128101e+05 , -6.559109776654616e+05), 
+             std::complex<double> (1.523640362045052e+05 , -4.550451848594168e+05), 
+             std::complex<double> (6.190911451065743e+04 , -2.983491313779661e+05), 
+             std::complex<double> (2.491659811687785e+04 , -1.913914376911295e+05), 
+             std::complex<double> (9.989974618093216e+03 , -1.217257665934458e+05), 
+             std::complex<double> (3.999228015927376e+03 , -7.715349340728085e+04), 
+             std::complex<double> (1.600008817641251e+03 , -4.883545738235494e+04), 
+             std::complex<double> (6.399740708396686e+02 , -3.089426058849887e+04), 
+             std::complex<double> (2.559528237526280e+02 , -1.954004478811741e+04), 
+             std::complex<double> (1.023624149738926e+02 , -1.235763598569351e+04), 
+             std::complex<double> (4.093684686792244e+01 , -7.815019782804298e+03), 
+             std::complex<double> (1.637139220941916e+01 , -4.942181589875851e+03), 
+             std::complex<double> (6.547202168239145e+00 , -3.125394754837007e+03), 
+             std::complex<double> (2.618335341756563e+00 , -1.976469237866021e+03), 
+             std::complex<double> (1.047114701994884e+00 , -1.249898583026991e+03), 
+             std::complex<double> (4.187577693442188e-01 , -7.904222315637359e+02), 
+             std::complex<double> (1.674679348265500e-01 , -4.998537788182201e+02), 
+             std::complex<double> (6.697319346403730e-02 , -3.161008010446330e+02), 
+             std::complex<double> (2.678375967902768e-02 , -1.998965156610936e+02), 
+             std::complex<double> (1.071132639059350e-02 , -1.264088259248508e+02), 
+             std::complex<double> (4.283636765708093e-03 , -7.993388755917833e+01), 
+             std::complex<double> (1.713062928279200e-03 , -5.054030348770195e+01), 
+             std::complex<double> (6.850497187306558e-04 , -3.194684462764545e+01), 
+             std::complex<double> (2.739465468429037e-04 , -2.018017322446559e+01), 
+             std::complex<double> (1.095573762818831e-04 , -1.272570841597254e+01), 
+             std::complex<double> (4.383957780249302e-05 , -7.990248136320462e+00), 
+             std::complex<double> (1.756033196474276e-05 , -4.964258023328600e+00), 
+             std::complex<double> (6.645886263047244e-06 , -3.053743015777302e+00), 
+             std::complex<double> (1.320107146649731e-06 , -2.145995629049842e+00), 
+             std::complex<double> (3.566779459360094e-08 , -2.002860125498104e+00), 
+             std::complex<double> (3.621436857082297e-11 , -2.000002562708464e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 35;
+            int m = 2;
+            double b = 1.105465055323651e+08;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-2.056174747314652e+08 , 5.462702708340009e+07), 
+             std::complex<double> (-1.248796737705579e+08 , 1.090636523230593e+08), 
+             std::complex<double> (-5.503743367224923e+07 , 9.532205133049019e+07), 
+             std::complex<double> (-2.089176005564509e+07 , 6.451702078131849e+07), 
+             std::complex<double> (-7.480760734355396e+06 , 3.988459744282800e+07), 
+             std::complex<double> (-2.622597454324994e+06 , 2.388379000683395e+07), 
+             std::complex<double> (-9.126059256863295e+05 , 1.414423784180475e+07), 
+             std::complex<double> (-3.167435211317990e+05 , 8.344132913198477e+06), 
+             std::complex<double> (-1.098350016877171e+05 , 4.915888544543148e+06), 
+             std::complex<double> (-3.807483410311422e+04 , 2.894819376252319e+06), 
+             std::complex<double> (-1.319739487578971e+04 , 1.704398381237641e+06), 
+             std::complex<double> (-4.574273071902612e+03 , 1.003451904734638e+06), 
+             std::complex<double> (-1.585441815397109e+03 , 5.907634591168201e+05), 
+             std::complex<double> (-5.495112214000010e+02 , 3.477985615529468e+05), 
+             std::complex<double> (-1.904592741570209e+02 , 2.047580245603100e+05), 
+             std::complex<double> (-6.601268526257599e+01 , 1.205462574670654e+05), 
+             std::complex<double> (-2.287981408831644e+01 , 7.096862847584837e+04), 
+             std::complex<double> (-7.930076614012533e+00 , 4.178102148884641e+04), 
+             std::complex<double> (-2.748539587332887e+00 , 2.459754074270638e+04), 
+             std::complex<double> (-9.526342175204983e-01 , 1.448119299389701e+04), 
+             std::complex<double> (-3.301789648667092e-01 , 8.525445041452595e+03), 
+             std::complex<double> (-1.144379758322808e-01 , 5.019147604508195e+03), 
+             std::complex<double> (-3.966295597230947e-02 , 2.954904361447640e+03), 
+             std::complex<double> (-1.374630778028932e-02 , 1.739636397369029e+03), 
+             std::complex<double> (-4.763791474181150e-03 , 1.024184371975565e+03), 
+             std::complex<double> (-1.650547643809279e-03 , 6.029913507360656e+02), 
+             std::complex<double> (-5.715417791689269e-04 , 3.550441246139415e+02), 
+             std::complex<double> (-1.975819291687172e-04 , 2.091048389162337e+02), 
+             std::complex<double> (-6.797529705010001e-05 , 1.232436197132160e+02), 
+             std::complex<double> (-2.305139212584215e-05 , 7.279170938651387e+01), 
+             std::complex<double> (-7.475219227090609e-06 , 4.325330557046042e+01), 
+             std::complex<double> (-2.077374999214285e-06 , 2.612498896489193e+01), 
+             std::complex<double> (-3.245917253521437e-07 , 1.621892037029814e+01), 
+             std::complex<double> (-9.678377189543531e-09 , 9.436111337664489e+00), 
+             std::complex<double> (-1.084626152091708e-11 , 3.141603672944733e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.766202043514169e+07 , 3.089397823327621e+07), 
+             std::complex<double> (2.756943886827726e+07 , 3.744846708951503e+06), 
+             std::complex<double> (1.604085936285369e+07 , -9.260110219198819e+06), 
+             std::complex<double> (6.698117833047478e+06 , -9.257932532015027e+06), 
+             std::complex<double> (2.479126603495896e+06 , -6.376391772078541e+06), 
+             std::complex<double> (8.791698827751188e+05 , -3.954996365712693e+06), 
+             std::complex<double> (3.071525929525471e+05 , -2.370329429024518e+06), 
+             std::complex<double> (1.067525526867399e+05 , -1.404091756706270e+06), 
+             std::complex<double> (3.703557845169985e+04 , -8.283875140501200e+05), 
+             std::complex<double> (1.284069206953309e+04 , -4.880527279064512e+05), 
+             std::complex<double> (4.451061486500535e+03 , -2.874024415211375e+05), 
+             std::complex<double> (1.542787546046310e+03 , -1.692160567828360e+05), 
+             std::complex<double> (5.347334423072297e+02 , -9.962481547717983e+04), 
+             std::complex<double> (1.853380763359534e+02 , -5.865226256159375e+04), 
+             std::complex<double> (6.423779123409220e+01 , -3.453019157957943e+04), 
+             std::complex<double> (2.226465997820563e+01 , -2.032881941477426e+04), 
+             std::complex<double> (7.716872548092494e+00 , -1.196809323964989e+04), 
+             std::complex<double> (2.674646787812702e+00 , -7.045918922174672e+03), 
+             std::complex<double> (9.270248294013168e-01 , -4.148110026379695e+03), 
+             std::complex<double> (3.213039751237012e-01 , -2.442096690521033e+03), 
+             std::complex<double> (1.113629512680212e-01 , -1.437723499166115e+03), 
+             std::complex<double> (3.859801743899460e-02 , -8.464234636198585e+02), 
+             std::complex<double> (1.337790582194390e-02 , -4.983098398334885e+02), 
+             std::complex<double> (4.636698951696993e-03 , -2.933659035918621e+02), 
+             std::complex<double> (1.607036093282423e-03 , -1.727090945446318e+02), 
+             std::complex<double> (5.569787072250253e-04 , -1.016734350860752e+02), 
+             std::complex<double> (1.930387493218836e-04 , -5.984962819894576e+01), 
+             std::complex<double> (6.690226720461467e-05 , -3.522124878051003e+01), 
+             std::complex<double> (2.318794312521300e-05 , -2.071229126928188e+01), 
+             std::complex<double> (8.038343157591242e-06 , -1.215416622295455e+01), 
+             std::complex<double> (2.788118524494845e-06 , -7.088712697259929e+00), 
+             std::complex<double> (9.590905579726293e-07 , -4.077236901379703e+00), 
+             std::complex<double> (2.527622583919645e-07 , -2.448381223348704e+00), 
+             std::complex<double> (1.492360183542152e-08 , -2.018319335581660e+00), 
+             std::complex<double> (3.211729867164913e-11 , -2.000032837342118e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 35;
+            int m = 2;
+            double b = 2.954353221201707e+09;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-5.341962982081656e+09 , 1.683777411943043e+09), 
+             std::complex<double> (-2.727166734118958e+09 , 2.928883297586369e+09), 
+             std::complex<double> (-9.543688022029916e+08 , 2.166538517214723e+09), 
+             std::complex<double> (-2.895872263850663e+08 , 1.271532259487842e+09), 
+             std::complex<double> (-8.403115921867932e+07 , 6.974434989486202e+08), 
+             std::complex<double> (-2.406651767276453e+07 , 3.751745202953250e+08), 
+             std::complex<double> (-6.866764478129898e+06 , 2.006967959498261e+08), 
+             std::complex<double> (-1.957151396234491e+06 , 1.071909815411994e+08), 
+             std::complex<double> (-5.576525104650599e+05 , 5.722418636706638e+07), 
+             std::complex<double> (-1.588784499699595e+05 , 3.054534528695559e+07), 
+             std::complex<double> (-4.526427056272518e+04 , 1.630401274721097e+07), 
+             std::complex<double> (-1.289564234942270e+04 , 8.702407804586332e+06), 
+             std::complex<double> (-3.673918829546373e+03 , 4.644971584112166e+06), 
+             std::complex<double> (-1.046684726652748e+03 , 2.479284260645661e+06), 
+             std::complex<double> (-2.981962293470992e+02 , 1.323334028430303e+06), 
+             std::complex<double> (-8.495488997079961e+01 , 7.063380581079188e+05), 
+             std::complex<double> (-2.420330026097238e+01 , 3.770124789740098e+05), 
+             std::complex<double> (-6.895420189086758e+00 , 2.012328330707724e+05), 
+             std::complex<double> (-1.964475913194190e+00 , 1.074093175463131e+05), 
+             std::complex<double> (-5.596704963621225e-01 , 5.733041346353997e+04), 
+             std::complex<double> (-1.594475845061644e-01 , 3.060047688934252e+04), 
+             std::complex<double> (-4.542589560486287e-02 , 1.633320189125173e+04), 
+             std::complex<double> (-1.294161882336601e-02 , 8.717952885833845e+03), 
+             std::complex<double> (-3.686974178705422e-03 , 4.653266078116745e+03), 
+             std::complex<double> (-1.050364146464201e-03 , 2.483715760551319e+03), 
+             std::complex<double> (-2.992148248955254e-04 , 1.325708795536287e+03), 
+             std::complex<double> (-8.522587105986485e-05 , 7.076234835417355e+02), 
+             std::complex<double> (-2.426612237888168e-05 , 3.777321102216015e+02), 
+             std::complex<double> (-6.899186303050835e-06 , 2.016797506027174e+02), 
+             std::complex<double> (-1.950868264678864e-06 , 1.077654749813868e+02), 
+             std::complex<double> (-5.410102738937334e-07 , 5.774033972928748e+01), 
+             std::complex<double> (-1.393652647174156e-07 , 3.122497845142529e+01), 
+             std::complex<double> (-2.618504058369163e-08 , 1.732451124668063e+01), 
+             std::complex<double> (-1.484093553939854e-09 , 9.494141891641695e+00), 
+             std::complex<double> (-3.705382757286793e-12 , 3.141735081105678e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (6.347289997914248e+08 , 9.068399047523047e+08), 
+             std::complex<double> (7.932206823482014e+08 , -5.665067366296517e+07), 
+             std::complex<double> (3.483866226767799e+08 , -3.187081193295093e+08), 
+             std::complex<double> (1.127849849502518e+08 , -2.347674205574897e+08), 
+             std::complex<double> (3.333863059277647e+07 , -1.363439222798468e+08), 
+             std::complex<double> (9.598696502990393e+06 , -7.450948789216682e+07), 
+             std::complex<double> (2.742863696671803e+06 , -4.003628917695790e+07), 
+             std::complex<double> (7.821005109659435e+05 , -2.141024281060456e+07), 
+             std::complex<double> (2.228716468239017e+05 , -1.143403575026430e+07), 
+             std::complex<double> (6.349963924286003e+04 , -6.103930172251933e+06), 
+             std::complex<double> (1.809114662010968e+04 , -3.258154912007595e+06), 
+             std::complex<double> (5.154122945860079e+03 , -1.739082855803733e+06), 
+             std::complex<double> (1.468390949528229e+03 , -9.282499521752106e+05), 
+             std::complex<double> (4.183387805658296e+02 , -4.954598777473632e+05), 
+             std::complex<double> (1.191830281614660e+02 , -2.644549690019308e+05), 
+             std::complex<double> (3.395476025476729e+01 , -1.411545501702359e+05), 
+             std::complex<double> (9.673572759458848e+00 , -7.534214968356599e+04), 
+             std::complex<double> (2.755961404606907e+00 , -4.021435664363626e+04), 
+             std::complex<double> (7.851620498502022e-01 , -2.146467121050541e+04), 
+             std::complex<double> (2.236892972004485e-01 , -1.145690610851495e+04), 
+             std::complex<double> (6.372807375067199e-02 , -6.115197152241593e+03), 
+             std::complex<double> (1.815583903815911e-02 , -3.264025608931459e+03), 
+             std::complex<double> (5.172524007385113e-03 , -1.742194346428488e+03), 
+             std::complex<double> (1.473633045031648e-03 , -9.299068802857494e+02), 
+             std::complex<double> (4.198298378333071e-04 , -4.963427520330058e+02), 
+             std::complex<double> (1.196040993535331e-04 , -2.649242233025061e+02), 
+             std::complex<double> (3.407214254330199e-05 , -1.414014294957790e+02), 
+             std::complex<double> (9.706426295970842e-06 , -7.546722143415607e+01), 
+             std::complex<double> (2.765516387984685e-06 , -4.026856732870812e+01), 
+             std::complex<double> (7.879854524567858e-07 , -2.147014018196367e+01), 
+             std::complex<double> (2.244874108599590e-07 , -1.141623593152252e+01), 
+             std::complex<double> (6.392933429834181e-08 , -6.017089153267768e+00), 
+             std::complex<double> (1.702141884886936e-08 , -3.158204500251845e+00), 
+             std::complex<double> (1.899614157011302e-09 , -2.095194761862603e+00), 
+             std::complex<double> (1.010255487720709e-11 , -2.000392276848434e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 35;
+            int m = 2;
+            double b = 2.559114409292506e+10;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-4.532656657464156e+10 , 1.575704656434800e+10), 
+             std::complex<double> (-2.049621759823529e+10 , 2.492388407197852e+10), 
+             std::complex<double> (-6.168503546190593e+09 , 1.659324414653366e+10), 
+             std::complex<double> (-1.623684372909160e+09 , 8.936090504032839e+09), 
+             std::complex<double> (-4.121083284828110e+08 , 4.557084668253875e+09), 
+             std::complex<double> (-1.036268271367227e+08 , 2.292148460050887e+09), 
+             std::complex<double> (-2.599636046812138e+07 , 1.148934179140789e+09), 
+             std::complex<double> (-6.517735830320256e+06 , 5.754008953303035e+08), 
+             std::complex<double> (-1.633867102271246e+06 , 2.881053990083175e+08), 
+             std::complex<double> (-4.095628915006536e+05 , 1.442475901532158e+08), 
+             std::complex<double> (-1.026645329126901e+05 , 7.222038454714096e+07), 
+             std::complex<double> (-2.573470883983175e+04 , 3.615842773009486e+07), 
+             std::complex<double> (-6.450863159756488e+03 , 1.810334825278041e+07), 
+             std::complex<double> (-1.617023527588249e+03 , 9.063755476664023e+06), 
+             std::complex<double> (-4.053356846650801e+02 , 4.537926230981850e+06), 
+             std::complex<double> (-1.016045938190524e+02 , 2.271991367391491e+06), 
+             std::complex<double> (-2.546899750743354e+01 , 1.137511826608874e+06), 
+             std::complex<double> (-6.384257109469424e+00 , 5.695149960417598e+05), 
+             std::complex<double> (-1.600327696759544e+00 , 2.851375459065801e+05), 
+             std::complex<double> (-4.011507501446508e-01 , 1.427590505568059e+05), 
+             std::complex<double> (-1.005557260614090e-01 , 7.147479116552553e+04), 
+             std::complex<double> (-2.520621157020497e-02 , 3.578509231981450e+04), 
+             std::complex<double> (-6.318439949869721e-03 , 1.791642679861770e+04), 
+             std::complex<double> (-1.583833232967032e-03 , 8.970170536082336e+03), 
+             std::complex<double> (-3.970108999862773e-04 , 4.491073576147814e+03), 
+             std::complex<double> (-9.951662711028358e-05 , 2.248538454521619e+03), 
+             std::complex<double> (-2.494541209018015e-05 , 1.125779086671986e+03), 
+             std::complex<double> (-6.252063242514667e-06 , 5.636595075277912e+02), 
+             std::complex<double> (-1.565813725523499e-06 , 2.822432614196582e+02), 
+             std::complex<double> (-3.910221927625447e-07 , 1.413845708914203e+02), 
+             std::complex<double> (-9.650832960367997e-08 , 7.093527043268038e+01), 
+             std::complex<double> (-2.268160142307858e-08 , 3.580815253223169e+01), 
+             std::complex<double> (-4.277740800393754e-09 , 1.845658665217416e+01), 
+             std::complex<double> (-3.103360619177208e-10 , 9.584244111717663e+00), 
+             std::complex<double> (-1.207170778039565e-12 , 3.142091104567167e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (6.468642523996503e+09 , 8.179457630157963e+09), 
+             std::complex<double> (6.930861710529076e+09 , -1.364240044619521e+09), 
+             std::complex<double> (2.541942546031832e+09 , -2.946425569663490e+09), 
+             std::complex<double> (7.032566431126790e+08 , -1.871326819524766e+09), 
+             std::complex<double> (1.807424765469372e+08 , -9.911506367359675e+08), 
+             std::complex<double> (4.559161239337274e+07 , -5.031957178101393e+08), 
+             std::complex<double> (1.144635638627455e+07 , -2.528118747650265e+08), 
+             std::complex<double> (2.870365432884742e+06 , -1.266850151831013e+08), 
+             std::complex<double> (7.195792879144998e+05 , -6.344090345726652e+07), 
+             std::complex<double> (1.803798051115711e+05 , -3.176452618474746e+07), 
+             std::complex<double> (4.521568337544602e+04 , -1.590367841802815e+07), 
+             std::complex<double> (1.133413185470298e+04 , -7.962479419785627e+06), 
+             std::complex<double> (2.841102584052593e+03 , -3.986556656781173e+06), 
+             std::complex<double> (7.121728979379262e+02 , -1.995939062421094e+06), 
+             std::complex<double> (1.785187930889132e+02 , -9.993015121963143e+05), 
+             std::complex<double> (4.474890822538592e+01 , -5.003176151656802e+05), 
+             std::complex<double> (1.121710919927146e+01 , -2.504926795770592e+05), 
+             std::complex<double> (2.811767799331259e+00 , -1.254134982621653e+05), 
+             std::complex<double> (7.048195746723961e-01 , -6.279043986969013e+04), 
+             std::complex<double> (1.766755603097578e-01 , -3.143712113531950e+04), 
+             std::complex<double> (4.428687029620062e-02 , -1.573953910433104e+04), 
+             std::complex<double> (1.110131089866292e-02 , -7.880272771129580e+03), 
+             std::complex<double> (2.782764617619278e-03 , -3.945394906844859e+03), 
+             std::complex<double> (6.975576671268311e-04 , -1.975330029066225e+03), 
+             std::complex<double> (1.748545901521675e-04 , -9.889826714440525e+02), 
+             std::complex<double> (4.382943183209879e-05 , -4.951502691566606e+02), 
+             std::complex<double> (1.098677789825252e-05 , -2.479034944890813e+02), 
+             std::complex<double> (2.754250788960751e-06 , -1.241130577820450e+02), 
+             std::complex<double> (6.904662787171891e-07 , -6.213112609393782e+01), 
+             std::complex<double> (1.730919441341018e-07 , -3.109062229942667e+01), 
+             std::complex<double> (4.339541973531861e-08 , -1.553354716913738e+01), 
+             std::complex<double> (1.086946993048000e-08 , -7.715176851804723e+00), 
+             std::complex<double> (2.641280332353083e-09 , -3.790763970695156e+00), 
+             std::complex<double> (3.582905464904482e-10 , -2.198773295732380e+00), 
+             std::complex<double> (3.127939277216378e-12 , -2.001307672244486e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 35;
+            int m = 2;
+            double b = 3.661126584467638e+11;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-6.307945639596056e+11 , 2.444676724836913e+11), 
+             std::complex<double> (-2.441316153383444e+11 , 3.428218594922180e+11), 
+             std::complex<double> (-6.114672605093970e+10 , 2.015575069779266e+11), 
+             std::complex<double> (-1.357100001422721e+10 , 9.829609018404015e+10), 
+             std::complex<double> (-2.929756656504599e+09 , 4.601162917818328e+10), 
+             std::complex<double> (-6.286919756152569e+08 , 2.134819572875746e+10), 
+             std::complex<double> (-1.347356797636413e+08 , 9.886246633575878e+09), 
+             std::complex<double> (-2.886734924069148e+07 , 4.576413668275360e+09), 
+             std::complex<double> (-6.184511402221180e+06 , 2.118269959097176e+09), 
+             std::complex<double> (-1.324946538595911e+06 , 9.804585589535079e+08), 
+             std::complex<double> (-2.838508051697291e+05 , 4.538114424290624e+08), 
+             std::complex<double> (-6.081093083117034e+04 , 2.100493153366877e+08), 
+             std::complex<double> (-1.302786096428326e+04 , 9.722255249376732e+07), 
+             std::complex<double> (-2.791030369309058e+03 , 4.500002452740357e+07), 
+             std::complex<double> (-5.979377877390295e+02 , 2.082852320253444e+07), 
+             std::complex<double> (-1.280994980774351e+02 , 9.640603145718211e+06), 
+             std::complex<double> (-2.744345684132097e+01 , 4.462209253800593e+06), 
+             std::complex<double> (-5.879360297411511e+00 , 2.065359513521473e+06), 
+             std::complex<double> (-1.259566230413336e+00 , 9.559636667460443e+05), 
+             std::complex<double> (-2.698431011062096e-01 , 4.424733448020630e+05), 
+             std::complex<double> (-5.780967105366942e-02 , 2.048013619154774e+05), 
+             std::complex<double> (-1.238477200671828e-02 , 9.479350195048715e+04), 
+             std::complex<double> (-2.653224600100998e-03 , 4.387572406301765e+04), 
+             std::complex<double> (-5.684019297029851e-04 , 2.030813456136477e+04), 
+             std::complex<double> (-1.217665056769685e-04 , 9.399739132995324e+03), 
+             std::complex<double> (-2.608425170878246e-05 , 4.350725892754523e+03), 
+             std::complex<double> (-5.586125381983436e-06 , 2.013763002060904e+03), 
+             std::complex<double> (-1.195437279580542e-06 , 9.320910185793575e+02), 
+             std::complex<double> (-2.555646067401665e-07 , 4.314434038506678e+02), 
+             std::complex<double> (-5.453656271165292e-08 , 1.997385331680464e+02), 
+             std::complex<double> (-1.154526652348691e-08 , 9.254166528861525e+01), 
+             std::complex<double> (-2.370098625984520e-09 , 4.302918264819222e+01), 
+             std::complex<double> (-4.251346942266734e-10 , 2.030895866731932e+01), 
+             std::complex<double> (-3.740047797430902e-11 , 9.774042277542533e+00), 
+             std::complex<double> (-2.302410606659064e-13 , 3.143296733062276e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.100157830328794e+11 , 1.206170630375351e+11), 
+             std::complex<double> (9.692858446525174e+10 , -3.354341267328455e+10), 
+             std::complex<double> (2.865194988151737e+10 , -4.287651965861333e+10), 
+             std::complex<double> (6.590631889983819e+09 , -2.341333863403447e+10), 
+             std::complex<double> (1.433783511683214e+09 , -1.121308874822120e+10), 
+             std::complex<double> (3.081805720490319e+08 , -5.227833010532295e+09), 
+             std::complex<double> (6.606983503491054e+07 , -2.423490807918841e+09), 
+             std::complex<double> (1.415664517139390e+07 , -1.122099679161702e+09), 
+             std::complex<double> (3.032954322743739e+06 , -5.194073422832803e+08), 
+             std::complex<double> (6.497710195047724e+05 , -2.404143770039436e+08), 
+             std::complex<double> (1.392042312822887e+05 , -1.112775566882604e+08), 
+             std::complex<double> (2.982249863297660e+04 , -5.150550056145880e+07), 
+             std::complex<double> (6.389038547154360e+03 , -2.383962416005900e+07), 
+             std::complex<double> (1.368758921187781e+03 , -1.103430909174908e+07), 
+             std::complex<double> (2.932367553968926e+02 , -5.107294193942631e+06), 
+             std::complex<double> (6.282172333381487e+01 , -2.363940834492869e+06), 
+             std::complex<double> (1.345864313887621e+01 , -1.094163768581928e+06), 
+             std::complex<double> (2.883318862290756e+00 , -5.064400659736095e+05), 
+             std::complex<double> (6.177089623900379e-01 , -2.344087309163525e+05), 
+             std::complex<double> (1.323350083110048e-01 , -1.084974448491311e+05), 
+             std::complex<double> (2.835077156968269e-02 , -5.021867355741675e+04), 
+             std::complex<double> (6.073701819300884e-03 , -2.324400519756631e+04), 
+             std::complex<double> (1.301190012240960e-03 , -1.075862298786252e+04), 
+             std::complex<double> (2.787578902710746e-04 , -4.979691139328100e+03), 
+             std::complex<double> (5.971813761761080e-05 , -2.304878793599981e+03), 
+             std::complex<double> (1.279344065777640e-05 , -1.066826081084737e+03), 
+             std::complex<double> (2.740677098808649e-06 , -4.937856257199231e+02), 
+             std::complex<double> (5.868590687873311e-07 , -2.285493189933585e+02), 
+             std::complex<double> (1.255515936911348e-07 , -1.057805639170392e+02), 
+             std::complex<double> (2.685043176250633e-08 , -4.895075262850140e+01), 
+             std::complex<double> (5.739176017944376e-09 , -2.263481099888547e+01), 
+             std::complex<double> (1.220194697817891e-09 , -1.043002305857490e+01), 
+             std::complex<double> (2.567993505249665e-10 , -4.754756830172241e+00), 
+             std::complex<double> (3.889406163732241e-11 , -2.392986873160181e+00), 
+             std::complex<double> (5.623340971642698e-13 , -2.004221935414860e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -24042,1018 +24042,91 @@
         { 
             int np = 40;
             int m = 2;
-            double b = 8.134736423706821e+11;
+            double b = 6.988380680095612e+05;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-1.440809643864922e+12 , 5.008741310420167e+11), 
-             std::complex<double> (-6.515196321257891e+11 , 7.922632408784691e+11), 
-             std::complex<double> (-1.960801373321361e+11 , 5.274546032541372e+11), 
-             std::complex<double> (-5.161255926383042e+10 , 2.840542831706465e+11), 
-             std::complex<double> (-1.309981538565485e+10 , 1.448574651533858e+11), 
-             std::complex<double> (-3.294018128354926e+09 , 7.286123472575073e+10), 
-             std::complex<double> (-8.263543820442933e+08 , 3.652152745333930e+10), 
-             std::complex<double> (-2.071812928383177e+08 , 1.829044690030399e+10), 
-             std::complex<double> (-5.193624110930210e+07 , 9.158095764230179e+09), 
-             std::complex<double> (-1.301890294393754e+07 , 4.585242931673070e+09), 
-             std::complex<double> (-3.263429464993271e+06 , 2.295691785310366e+09), 
-             std::complex<double> (-8.180372188950301e+05 , 1.149379168079005e+09), 
-             std::complex<double> (-2.050556062820008e+05 , 5.754567513124533e+08), 
-             std::complex<double> (-5.140083486249537e+04 , 2.881124092881241e+08), 
-             std::complex<double> (-1.288453349035496e+04 , 1.442484699582121e+08), 
-             std::complex<double> (-3.229737823183041e+03 , 7.222049496261081e+07), 
-             std::complex<double> (-8.095915196311006e+02 , 3.615844158660392e+07), 
-             std::complex<double> (-2.029386866901165e+02 , 1.810334999136597e+07), 
-             std::complex<double> (-5.087028352358930e+01 , 9.063755694635114e+06), 
-             std::complex<double> (-1.275158900550609e+01 , 4.537926258220419e+06), 
-             std::complex<double> (-3.196435182078091e+00 , 2.271991370749227e+06), 
-             std::complex<double> (-8.012534376710599e-01 , 1.137511826999906e+06), 
-             std::complex<double> (-2.008530083475540e-01 , 5.695149960757114e+05), 
-             std::complex<double> (-5.034941129638724e-02 , 2.851375459029769e+05), 
-             std::complex<double> (-1.262183255250669e-02 , 1.427590505521357e+05), 
-             std::complex<double> (-3.164206846249448e-03 , 7.147479116274066e+04), 
-             std::complex<double> (-7.932941996121635e-04 , 3.578509231837100e+04), 
-             std::complex<double> (-1.989274626938337e-04 , 1.791642679792211e+04), 
-             std::complex<double> (-4.991617688647164e-05 , 8.970170535750925e+03), 
-             std::complex<double> (-1.254209880189170e-05 , 4.491073575979819e+03), 
-             std::complex<double> (-3.157576840181941e-06 , 2.248538454431801e+03), 
-             std::complex<double> (-7.959306737183112e-07 , 1.125779086624337e+03), 
-             std::complex<double> (-2.002430377521418e-07 , 5.636595075036817e+02), 
-             std::complex<double> (-5.029126134722351e-08 , 2.822432614075452e+02), 
-             std::complex<double> (-1.270799281646027e-08 , 1.413845708853201e+02), 
-             std::complex<double> (-3.228987431756206e-09 , 7.093527042970345e+01), 
-             std::complex<double> (-7.957795172405493e-10 , 3.580815253095030e+01), 
-             std::complex<double> (-1.633323393295353e-10 , 1.845658665182304e+01), 
-             std::complex<double> (-1.340243786813576e-11 , 9.584244111693033e+00), 
-             std::complex<double> (-5.701085395132057e-14 , 3.142091104567096e+00), 
+             std::complex<double> (-1.359172146074914e+06 , 2.218902434034566e+05), 
+             std::complex<double> (-1.109828775325050e+06 , 5.629714892325068e+05), 
+             std::complex<double> (-7.665856554752493e+05 , 6.942945071882324e+05), 
+             std::complex<double> (-4.708340500485759e+05 , 6.597889805515391e+05), 
+             std::complex<double> (-2.687890174238547e+05 , 5.502936302554040e+05), 
+             std::complex<double> (-1.471107180914611e+05 , 4.285292880669166e+05), 
+             std::complex<double> (-7.866763494098514e+04 , 3.218442880336218e+05), 
+             std::complex<double> (-4.154701737698323e+04 , 2.371657967194124e+05), 
+             std::complex<double> (-2.179834245361820e+04 , 1.730353515984738e+05), 
+             std::complex<double> (-1.139739780817430e+04 , 1.255912705923701e+05), 
+             std::complex<double> (-5.948411704568179e+03 , 9.090883846097489e+04), 
+             std::complex<double> (-3.101558818577540e+03 , 6.571110150340381e+04), 
+             std::complex<double> (-1.616336520195704e+03 , 4.746259906208562e+04), 
+             std::complex<double> (-8.420747888118427e+02 , 3.426870863800703e+04), 
+             std::complex<double> (-4.386133876776503e+02 , 2.473758319865785e+04), 
+             std::complex<double> (-2.284258426830214e+02 , 1.785548516887275e+04), 
+             std::complex<double> (-1.189451942485062e+02 , 1.288731690608702e+04), 
+             std::complex<double> (-6.192782050055680e+01 , 9.301245435648771e+03), 
+             std::complex<double> (-3.223786217893775e+01 , 6.712950532610028e+03), 
+             std::complex<double> (-1.678095837619314e+01 , 4.844877806094157e+03), 
+             std::complex<double> (-8.735467064786857e+00 , 3.496641695320403e+03), 
+             std::complex<double> (-4.548046012081870e+00 , 2.523594992618343e+03), 
+             std::complex<double> (-2.368640642876843e+00 , 1.821334752290886e+03), 
+             std::complex<double> (-1.234219488020846e+00 , 1.314509180530722e+03), 
+             std::complex<double> (-6.434450266692811e-01 , 9.487355431598161e+02), 
+             std::complex<double> (-3.354765466493912e-01 , 6.847657657872270e+02), 
+             std::complex<double> (-1.747393013299599e-01 , 4.942752044552273e+02), 
+             std::complex<double> (-9.077609439692873e-02 , 3.568234393772188e+02), 
+             std::complex<double> (-4.691307387069280e-02 , 2.576611456902768e+02), 
+             std::complex<double> (-2.400612203371580e-02 , 1.861476668902309e+02), 
+             std::complex<double> (-1.205645833691592e-02 , 1.346094779596603e+02), 
+             std::complex<double> (-5.857146461554719e-03 , 9.751721010522917e+01), 
+             std::complex<double> (-2.690534497031602e-03 , 7.089331505888089e+01), 
+             std::complex<double> (-1.120667793503100e-03 , 5.188689906688285e+01), 
+             std::complex<double> (-3.838190108324714e-04 , 3.846186039668368e+01), 
+             std::complex<double> (-8.267307848528107e-05 , 2.907134377774091e+01), 
+             std::complex<double> (-6.151535848098680e-06 , 2.204915069897227e+01), 
+             std::complex<double> (-7.822069571952862e-08 , 1.570887925734013e+01), 
+             std::complex<double> (-1.385167044514575e-10 , 9.424780073214315e+00), 
+             std::complex<double> (-3.993187134695477e-14 , 3.141592653851127e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (2.056207481535771e+11 , 2.600029590914943e+11), 
-             std::complex<double> (2.203134529581333e+11 , -4.336552182703562e+10), 
-             std::complex<double> (8.080151689298392e+10 , -9.365894433132759e+10), 
-             std::complex<double> (2.235463725189983e+10 , -5.948444658785091e+10), 
-             std::complex<double> (5.745317216740170e+09 , -3.150601300483326e+10), 
-             std::complex<double> (1.449234738065675e+09 , -1.599523850540641e+10), 
-             std::complex<double> (3.638488843256133e+08 , -8.036209551752358e+09), 
-             std::complex<double> (9.124119725197355e+07 , -4.026975908568357e+09), 
-             std::complex<double> (2.287349027494256e+07 , -2.016615694224953e+09), 
-             std::complex<double> (5.733788895445901e+06 , -1.009708855536060e+09), 
-             std::complex<double> (1.437284983727629e+06 , -5.055351633723626e+08), 
-             std::complex<double> (3.602815783340446e+05 , -2.531058053673864e+08), 
-             std::complex<double> (9.031101481455479e+04 , -1.267219141238533e+08), 
-             std::complex<double> (2.263806297092661e+04 , -6.344553464017255e+07), 
-             std::complex<double> (5.674632929256124e+03 , -3.176510741323538e+07), 
-             std::complex<double> (1.422447651755881e+03 , -1.590375136294847e+07), 
-             std::complex<double> (3.565618397870513e+02 , -7.962488574325078e+06), 
-             std::complex<double> (8.937860016321510e+01 , -3.986557805603319e+06), 
-             std::complex<double> (2.240435461492090e+01 , -1.995939206553575e+06), 
-             std::complex<double> (5.616060491211885e+00 , -9.993015302610622e+05), 
-             std::complex<double> (1.407771168802800e+00 , -5.003176174197889e+05), 
-             std::complex<double> (3.528854391884821e-01 , -2.504926798531449e+05), 
-             std::complex<double> (8.845817952176574e-02 , -1.254134982935338e+05), 
-             std::complex<double> (2.217414904179711e-02 , -6.279043987205452e+04), 
-             std::complex<double> (5.558597554302266e-03 , -3.143712113477009e+04), 
-             std::complex<double> (1.393463586730668e-03 , -1.573953910379059e+04), 
-             std::complex<double> (3.493274824860981e-04 , -7.880272770808787e+03), 
-             std::complex<double> (8.757428434491133e-05 , -3.945394906678375e+03), 
-             std::complex<double> (2.195897676440100e-05 , -1.975330028990690e+03), 
-             std::complex<double> (5.510747522603683e-06 , -9.889826714095484e+02), 
-             std::complex<double> (1.385290938447173e-06 , -4.951502691389830e+02), 
-             std::complex<double> (3.492409888766843e-07 , -2.479034944790983e+02), 
-             std::complex<double> (8.806072942349475e-08 , -1.241130577767191e+02), 
-             std::complex<double> (2.209550055426092e-08 , -6.213112609130783e+01), 
-             std::complex<double> (5.543483469188144e-09 , -3.109062229807737e+01), 
-             std::complex<double> (1.413668111604913e-09 , -1.553354716842355e+01), 
-             std::complex<double> (3.657274168660119e-10 , -7.715176851404666e+00), 
-             std::complex<double> (9.523575611016325e-11 , -3.790763970499301e+00), 
-             std::complex<double> (1.490208229386450e-11 , -2.198773295701914e+00), 
-             std::complex<double> (1.487538366356832e-13 , -2.001307672244305e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 40;
-            int m = 2;
-            double b = 6.819410646545146e+10;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.233063093947589e+11 , 3.886593358749860e+10), 
-             std::complex<double> (-6.295005529345710e+10 , 6.760619481505519e+10), 
-             std::complex<double> (-2.202929806979887e+10 , 5.000930736702473e+10), 
-             std::complex<double> (-6.684421486831000e+09 , 2.935025022025160e+10), 
-             std::complex<double> (-1.939656294074093e+09 , 1.609879816721802e+10), 
-             std::complex<double> (-5.555174167453873e+08 , 8.659997388731089e+09), 
-             std::complex<double> (-1.585026682299974e+08 , 4.632600656020922e+09), 
-             std::complex<double> (-4.517611163502118e+07 , 2.474244838119772e+09), 
-             std::complex<double> (-1.287206096674998e+07 , 1.320882090064760e+09), 
-             std::complex<double> (-3.667325188798876e+06 , 7.050654991503648e+08), 
-             std::complex<double> (-1.044816336692254e+06 , 3.763387441777830e+08), 
-             std::complex<double> (-2.976647517980348e+05 , 2.008740593667665e+08), 
-             std::complex<double> (-8.480354131036608e+04 , 1.072179468827314e+08), 
-             std::complex<double> (-2.416018814143966e+04 , 5.722828726793589e+07), 
-             std::complex<double> (-6.883139240223544e+03 , 3.054596890449500e+07), 
-             std::complex<double> (-1.960978209527619e+03 , 1.630410757626035e+07), 
-             std::complex<double> (-5.586746450356742e+02 , 8.702422223743515e+06), 
-             std::complex<double> (-1.591641011210570e+02 , 4.644973776248476e+06), 
-             std::complex<double> (-4.534519000027903e+01 , 2.479284593753169e+06), 
-             std::complex<double> (-1.291865277349106e+01 , 1.323334078974005e+06), 
-             std::complex<double> (-3.680466919741806e+00 , 7.063380657425054e+05), 
-             std::complex<double> (-1.048547944916449e+00 , 3.770124801100980e+05), 
-             std::complex<double> (-2.987266178599685e-01 , 2.012328332308975e+05), 
-             std::complex<double> (-8.510620527872556e-02 , 1.074093175638488e+05), 
-             std::complex<double> (-2.424663762151651e-02 , 5.733041346228250e+04), 
-             std::complex<double> (-6.907856556376299e-03 , 3.060047688687298e+04), 
-             std::complex<double> (-1.968001888140749e-03 , 1.633320188958294e+04), 
-             std::complex<double> (-5.606260664002580e-04 , 8.717952884880904e+03), 
-             std::complex<double> (-1.596933206252242e-04 , 4.653266077629039e+03), 
-             std::complex<double> (-4.548962854141386e-05 , 2.483715760318971e+03), 
-             std::complex<double> (-1.296021053810168e-05 , 1.325708795424703e+03), 
-             std::complex<double> (-3.694261449336069e-06 , 7.076234834857372e+02), 
-             std::complex<double> (-1.053615766760628e-06 , 3.777321101946091e+02), 
-             std::complex<double> (-3.006055470841920e-07 , 2.016797505912135e+02), 
-             std::complex<double> (-8.570477437377466e-08 , 1.077654749773149e+02), 
-             std::complex<double> (-2.421283676088920e-08 , 5.774033972822340e+01), 
-             std::complex<double> (-6.409753640296327e-09 , 3.122497845132783e+01), 
-             std::complex<double> (-1.245535805161496e-09 , 1.732451124674103e+01), 
-             std::complex<double> (-7.404040085441005e-11 , 9.494141891652125e+00), 
-             std::complex<double> (-2.050132095128929e-13 , 3.141735081105737e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.465118547022579e+10 , 2.093220829935340e+10), 
-             std::complex<double> (1.830958305082091e+10 , -1.307643934371990e+09), 
-             std::complex<double> (8.041663491442461e+09 , -7.356606943762166e+09), 
-             std::complex<double> (2.603368892097106e+09 , -5.419038711361868e+09), 
-             std::complex<double> (7.695417420646356e+08 , -3.147170042352588e+09), 
-             std::complex<double> (2.215627186385823e+08 , -1.719871514943714e+09), 
-             std::complex<double> (6.331238179280723e+07 , -9.241410089746137e+08), 
-             std::complex<double> (1.805290078169994e+07 , -4.942037286669359e+08), 
-             std::complex<double> (5.144453523510835e+06 , -2.639270909474180e+08), 
-             std::complex<double> (1.465735762659553e+06 , -1.408944810820993e+08), 
-             std::complex<double> (4.175904139532322e+05 , -7.520663452194430e+07), 
-             std::complex<double> (1.189704769722787e+05 , -4.014252614512323e+07), 
-             std::complex<double> (3.389425806841782e+04 , -2.142640751692654e+07), 
-             std::complex<double> (9.656340261115569e+03 , -1.143649425888393e+07), 
-             std::complex<double> (2.751052260642191e+03 , -6.104304042796352e+06), 
-             std::complex<double> (7.837635623842881e+02 , -3.258211764940087e+06), 
-             std::complex<double> (2.232910321480046e+02 , -1.739091500941681e+06), 
-             std::complex<double> (6.361469922974091e+01 , -9.282512666781858e+05), 
-             std::complex<double> (1.812356506508652e+01 , -4.954600775780139e+05), 
-             std::complex<double> (5.163328796549208e+00 , -2.644549993620467e+05), 
-             std::complex<double> (1.471010540297020e+00 , -1.411545547746814e+05), 
-             std::complex<double> (4.190841937544170e-01 , -7.534215037820653e+04), 
-             std::complex<double> (1.193950308609848e-01 , -4.021435674664161e+04), 
-             std::complex<double> (3.401508311031978e-02 , -2.146467122491296e+04), 
-             std::complex<double> (9.690795370584563e-03 , -1.145690611003498e+04), 
-             std::complex<double> (2.760910937221205e-03 , -6.115197152070576e+03), 
-             std::complex<double> (7.865951615107165e-04 , -3.264025608666328e+03), 
-             std::complex<double> (2.240959842166102e-04 , -1.742194346241094e+03), 
-             std::complex<double> (6.383497488331847e-05 , -9.299068801746106e+02), 
-             std::complex<double> (1.818260672086020e-05 , -4.963427519773529e+02), 
-             std::complex<double> (5.179019680093155e-06 , -2.649242232774399e+02), 
-             std::complex<double> (1.475538253956464e-06 , -1.414014294834601e+02), 
-             std::complex<double> (4.206723634968911e-07 , -7.546722142743826e+01), 
-             std::complex<double> (1.200081716501330e-07 , -4.026856732529073e+01), 
-             std::complex<double> (3.427478319649621e-08 , -2.147014018045991e+01), 
-             std::complex<double> (9.860467176147622e-09 , -1.141623593098393e+01), 
-             std::complex<double> (2.879767906246125e-09 , -6.017089153129619e+00), 
-             std::complex<double> (7.941984902259705e-10 , -3.158204500259297e+00), 
-             std::complex<double> (9.333783894965729e-11 , -2.095194761873083e+00), 
-             std::complex<double> (5.467232781849662e-13 , -2.000392276848583e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 40;
-            int m = 2;
-            double b = 8.767608340531406e+09;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.610661672721688e+10 , 4.643816589270030e+09), 
-             std::complex<double> (-9.053164371726076e+09 , 8.716494696091959e+09), 
-             std::complex<double> (-3.591313491142742e+09 , 7.053705479160174e+09), 
-             std::complex<double> (-1.229272700672112e+09 , 4.464770676088959e+09), 
-             std::complex<double> (-3.994211268415112e+08 , 2.609323249948285e+09), 
-             std::complex<double> (-1.275801907840611e+08 , 1.486413376230754e+09), 
-             std::complex<double> (-4.052780857353461e+07 , 8.398724705676417e+08), 
-             std::complex<double> (-1.285183950712821e+07 , 4.733304543902467e+08), 
-             std::complex<double> (-4.073212774435883e+06 , 2.665383302636197e+08), 
-             std::complex<double> (-1.290721991356240e+06 , 1.500521143525332e+08), 
-             std::complex<double> (-4.089819839943156e+05 , 8.446734237943131e+07), 
-             std::complex<double> (-1.295889574142116e+05 , 4.754712014277605e+07), 
-             std::complex<double> (-4.106098815384283e+04 , 2.676430788050086e+07), 
-             std::complex<double> (-1.301038180154414e+04 , 1.506560858066691e+07), 
-             std::complex<double> (-4.122403062976586e+03 , 8.480412595076224e+06), 
-             std::complex<double> (-1.306203329104089e+03 , 4.773612595763293e+06), 
-             std::complex<double> (-4.138768101624122e+02 , 2.687059746438675e+06), 
-             std::complex<double> (-1.311388484187883e+02 , 1.512542072844161e+06), 
-             std::complex<double> (-4.155196172073543e+01 , 8.514077538031481e+05), 
-             std::complex<double> (-1.316593020099958e+01 , 4.792561968152644e+05), 
-             std::complex<double> (-4.171685799708315e+00 , 2.697726218716812e+05), 
-             std::complex<double> (-1.321819325120319e+00 , 1.518546197359088e+05), 
-             std::complex<double> (-4.188259805506248e-01 , 8.547874652668991e+04), 
-             std::complex<double> (-1.327078198553247e-01 , 4.811586339718426e+04), 
-             std::complex<double> (-4.204951108709425e-02 , 2.708435063051265e+04), 
-             std::complex<double> (-1.332373286169278e-02 , 1.524574286399132e+04), 
-             std::complex<double> (-4.221693620706279e-03 , 8.581808388287651e+03), 
-             std::complex<double> (-1.337622638041483e-03 , 4.830690628082541e+03), 
-             std::complex<double> (-4.237972052053582e-04 , 2.719194235821104e+03), 
-             std::complex<double> (-1.342577676804125e-04 , 1.530640196045328e+03), 
-             std::complex<double> (-4.251824176118857e-05 , 8.616123617127558e+02), 
-             std::complex<double> (-1.345292221624769e-05 , 4.850309180194964e+02), 
-             std::complex<double> (-4.247215505066930e-06 , 2.730774987242593e+02), 
-             std::complex<double> (-1.333944594564809e-06 , 1.538113817636532e+02), 
-             std::complex<double> (-4.140617757977241e-07 , 8.675151323219090e+01), 
-             std::complex<double> (-1.245937376871465e-07 , 4.913607539941756e+01), 
-             std::complex<double> (-3.359434021286551e-08 , 2.818825776567928e+01), 
-             std::complex<double> (-5.849129029473393e-09 , 1.663323083835730e+01), 
-             std::complex<double> (-2.410291864794301e-10 , 9.453485964597251e+00), 
-             std::complex<double> (-3.727341490860978e-13 , 3.141632582666789e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.616973733100822e+09 , 2.571055649401248e+09), 
-             std::complex<double> (2.284977120198832e+09 , 8.661491429684791e+07), 
-             std::complex<double> (1.168363898460488e+09 , -8.499632885645322e+08), 
-             std::complex<double> (4.332690546151149e+08 , -7.271804345050156e+08), 
-             std::complex<double> (1.444070136134930e+08 , -4.606358184700190e+08), 
-             std::complex<double> (4.649915091918428e+07 , -2.688810025149615e+08), 
-             std::complex<double> (1.480900101320543e+07 , -1.530888462639134e+08), 
-             std::complex<double> (4.699914577101156e+06 , -8.648460985240068e+07), 
-             std::complex<double> (1.489955560392514e+06 , -4.873763581290583e+07), 
-             std::complex<double> (4.721763958162231e+05 , -2.744426156481187e+07), 
-             std::complex<double> (1.496190661809330e+05 , -1.545010421633239e+07), 
-             std::complex<double> (4.740829143913260e+04 , -8.697156896988722e+06), 
-             std::complex<double> (1.502162169454108e+04 , -4.895673346130614e+06), 
-             std::complex<double> (4.759680604375374e+03 , -2.755777500460585e+06), 
-             std::complex<double> (1.508128441344631e+03 , -1.551224969096821e+06), 
-             std::complex<double> (4.778578243255149e+02 , -8.731826162070866e+05), 
-             std::complex<double> (1.514115571567000e+02 , -4.915132917445675e+05), 
-             std::complex<double> (4.797548258273670e+01 , -2.766721329085908e+05), 
-             std::complex<double> (1.520126210499702e+01 , -1.557383462331809e+05), 
-             std::complex<double> (4.816590909208264e+00 , -8.766489071013530e+04), 
-             std::complex<double> (1.526158426023936e+00 , -4.934644054491052e+04), 
-             std::complex<double> (4.835701513536483e-01 , -2.777704017799139e+04), 
-             std::complex<double> (1.532215720993542e-01 , -1.563565580936367e+04), 
-             std::complex<double> (4.854913717611598e-02 , -8.801288039593481e+03), 
-             std::complex<double> (1.538313018094348e-02 , -4.954232238658193e+03), 
-             std::complex<double> (4.874280665100051e-03 , -2.788730001182036e+03), 
-             std::complex<double> (1.544466933006866e-03 , -1.569771778059184e+03), 
-             std::complex<double> (4.893754466976076e-04 , -8.836217076683749e+02), 
-             std::complex<double> (1.550562516061321e-04 , -4.973883872116578e+02), 
-             std::complex<double> (4.912876544759819e-05 , -2.799774341346834e+02), 
-             std::complex<double> (1.556607337791191e-05 , -1.575957468364490e+02), 
-             std::complex<double> (4.931058801125233e-06 , -8.870482806430422e+01), 
-             std::complex<double> (1.561223857528711e-06 , -4.992188851476876e+01), 
-             std::complex<double> (4.935854222620059e-07 , -2.808331872815572e+01), 
-             std::complex<double> (1.555119962643026e-07 , -1.577675284693110e+01), 
-             std::complex<double> (4.888966480993283e-08 , -8.825588831853372e+00), 
-             std::complex<double> (1.533442783581276e-08 , -4.879445917161496e+00), 
-             std::complex<double> (4.147180446793749e-09 , -2.733110063583577e+00), 
-             std::complex<double> (3.420152555682672e-10 , -2.042980526121471e+00), 
-             std::complex<double> (1.082387178464305e-12 , -2.000114689334851e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 40;
-            int m = 2;
-            double b = 1.563082652204966e+09;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-2.907347511144252e+09 , 7.724039573343986e+08), 
-             std::complex<double> (-1.765747824695564e+09 , 1.542115710523208e+09), 
-             std::complex<double> (-7.782069398337824e+08 , 1.347815058517721e+09), 
-             std::complex<double> (-2.954009947906344e+08 , 9.122444485838728e+08), 
-             std::complex<double> (-1.057749158935667e+08 , 5.639519953938454e+08), 
-             std::complex<double> (-3.708246196328126e+07 , 3.377070823419682e+08), 
-             std::complex<double> (-1.290387685867627e+07 , 1.999937736846150e+08), 
-             std::complex<double> (-4.478624662514562e+06 , 1.179826476320135e+08), 
-             std::complex<double> (-1.553022292221680e+06 , 6.950866578235863e+07), 
-             std::complex<double> (-5.383626840240620e+05 , 4.093156927606445e+07), 
-             std::complex<double> (-1.866058016054107e+05 , 2.409950029619724e+07), 
-             std::complex<double> (-6.467836273928163e+04 , 1.418840204411208e+07), 
-             std::complex<double> (-2.241750293020049e+04 , 8.353155175602375e+06), 
-             std::complex<double> (-7.769865233301661e+03 , 4.917730285754640e+06), 
-             std::complex<double> (-2.693016676141433e+03 , 2.895195235813679e+06), 
-             std::complex<double> (-9.333925532483522e+02 , 1.704475078466238e+06), 
-             std::complex<double> (-3.235113459850519e+02 , 1.003467554684307e+06), 
-             std::complex<double> (-1.121281675092420e+02 , 5.907666523194790e+05), 
-             std::complex<double> (-3.886332883033633e+01 , 3.477992130311116e+05), 
-             std::complex<double> (-1.346992282741687e+01 , 2.047581574452301e+05), 
-             std::complex<double> (-4.668632028598083e+00 , 1.205462845646340e+05), 
-             std::complex<double> (-1.618131309090977e+00 , 7.096863400428811e+04), 
-             std::complex<double> (-5.608396712711295e-01 , 4.178102262031913e+04), 
-             std::complex<double> (-1.943862624114411e-01 , 2.459754097613390e+04), 
-             std::complex<double> (-6.737411332605869e-02 , 1.448119304279567e+04), 
-             std::complex<double> (-2.335181629214159e-02 , 8.525445051947156e+03), 
-             std::complex<double> (-8.093880894964935e-03 , 5.019147606715412e+03), 
-             std::complex<double> (-2.805530386959645e-03 , 2.954904361673518e+03), 
-             std::complex<double> (-9.725074005272411e-04 , 1.739636397084562e+03), 
-             std::complex<double> (-3.371090402953826e-04 , 1.024184371617434e+03), 
-             std::complex<double> (-1.168360683456084e-04 , 6.029913504357919e+02), 
-             std::complex<double> (-4.046239368609373e-05 , 3.550441244007910e+02), 
-             std::complex<double> (-1.397941032449423e-05 , 2.091048387833814e+02), 
-             std::complex<double> (-4.800772076943351e-06 , 1.232436196415769e+02), 
-             std::complex<double> (-1.624406049955491e-06 , 7.279170935439704e+01), 
-             std::complex<double> (-5.262502423559682e-07 , 4.325330555897848e+01), 
-             std::complex<double> (-1.465199993035186e-07 , 2.612498896184864e+01), 
-             std::complex<double> (-2.303827143522598e-08 , 1.621892036988437e+01), 
-             std::complex<double> (-6.970580647162130e-10 , 9.436111337656246e+00), 
-             std::complex<double> (-8.193513926457782e-13 , 3.141603672944739e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (2.497337894786215e+08 , 4.368282941921436e+08), 
-             std::complex<double> (3.898206589092215e+08 , 5.295061029987082e+07), 
-             std::complex<double> (2.268112309483741e+08 , -1.309341943075704e+08), 
-             std::complex<double> (9.470866342345458e+07 , -1.309034027352926e+08), 
-             std::complex<double> (3.505384241105291e+07 , -9.015958773598580e+07), 
-             std::complex<double> (1.243110475743731e+07 , -5.592204097099373e+07), 
-             std::complex<double> (4.343012809978185e+06 , -3.351549463081950e+07), 
-             std::complex<double> (1.509437704910050e+06 , -1.985328670118356e+07), 
-             std::complex<double> (5.236680280354188e+05 , -1.171306272258705e+07), 
-             std::complex<double> (1.815621681942994e+05 , -6.900867186258990e+06), 
-             std::complex<double> (6.293620093860045e+04 , -4.063753697811282e+06), 
-             std::complex<double> (2.181438914464249e+04 , -2.392646258744826e+06), 
-             std::complex<double> (7.560913645580136e+03 , -1.408654394688695e+06), 
-             std::complex<double> (2.620605071047464e+03 , -8.293191514502283e+05), 
-             std::complex<double> (9.082962391113452e+02 , -4.882428732753578e+05), 
-             std::complex<double> (3.148132225519375e+02 , -2.874412437632169e+05), 
-             std::complex<double> (1.091134247629300e+02 , -1.692239745221116e+05), 
-             std::complex<double> (3.781841513749194e+01 , -9.962643106448060e+04), 
-             std::complex<double> (1.310776335399662e+01 , -5.865259220404935e+04), 
-             std::complex<double> (4.543118410465391e+00 , -3.453025883110186e+04), 
-             std::complex<double> (1.574632584801455e+00 , -2.032883312959338e+04), 
-             std::complex<double> (5.457619972253657e-01 , -1.196809603519004e+04), 
-             std::complex<double> (1.891588768114733e-01 , -7.045919492437385e+03), 
-             std::complex<double> (6.556196983586285e-02 , -4.148110143203874e+03), 
-             std::complex<double> (2.272374288353910e-02 , -2.442096714678605e+03), 
-             std::complex<double> (7.875992491065385e-03 , -1.437723504272329e+03), 
-             std::complex<double> (2.729770835270368e-03 , -8.464234647792599e+02), 
-             std::complex<double> (9.461524819415148e-04 , -4.983098401341786e+02), 
-             std::complex<double> (3.279649621861561e-04 , -2.933659036596868e+02), 
-             std::complex<double> (1.136902389785451e-04 , -1.727090945383379e+02), 
-             std::complex<double> (3.941614129449380e-05 , -1.016734350602007e+02), 
-             std::complex<double> (1.366775124773620e-05 , -5.984962817116728e+01), 
-             std::complex<double> (4.738818693738254e-06 , -3.522124875771384e+01), 
-             std::complex<double> (1.641113023885773e-06 , -2.071229125324714e+01), 
-             std::complex<double> (5.674218636329427e-07 , -1.215416621367042e+01), 
-             std::complex<double> (1.962545066726201e-07 , -7.088712693028019e+00), 
-             std::complex<double> (6.746632821637535e-08 , -4.077236899881440e+00), 
-             std::complex<double> (1.787340333528884e-08 , -2.448381223000574e+00), 
-             std::complex<double> (1.069635178400833e-09 , -2.018319335566692e+00), 
-             std::complex<double> (2.402486204385628e-12 , -2.000032837342133e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 40;
-            int m = 2;
-            double b = 3.597493655870090e+08;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-6.757929558574898e+08 , 1.664713583363300e+08), 
-             std::complex<double> (-4.372002913964674e+08 , 3.496303185812742e+08), 
-             std::complex<double> (-2.106453818015416e+08 , 3.265260638143334e+08), 
-             std::complex<double> (-8.745943473669402e+07 , 2.346099468608779e+08), 
-             std::complex<double> (-3.407926908881292e+07 , 1.525340805277402e+08), 
-             std::complex<double> (-1.295083008629596e+07 , 9.547481054111528e+07), 
-             std::complex<double> (-4.874737200563508e+06 , 5.891054016331727e+07), 
-             std::complex<double> (-1.828261639255609e+06 , 3.615462071028834e+07), 
-             std::complex<double> (-6.847587043800608e+05 , 2.214422265356991e+07), 
-             std::complex<double> (-2.563400778194122e+05 , 1.355282368658760e+07), 
-             std::complex<double> (-9.594293369958854e+04 , 8.292331171473768e+06), 
-             std::complex<double> (-3.590695713795506e+04 , 5.073149276407419e+06), 
-             std::complex<double> (-1.343793858490837e+04 , 3.103569584341675e+06), 
-             std::complex<double> (-5.029008526599193e+03 , 1.898623759716890e+06), 
-             std::complex<double> (-1.882047047445277e+03 , 1.161485875297074e+06), 
-             std::complex<double> (-7.043328998930591e+02 , 7.105392198459121e+05), 
-             std::complex<double> (-2.635877568499291e+02 , 4.346721750592028e+05), 
-             std::complex<double> (-9.864439477907760e+01 , 2.659105081487501e+05), 
-             std::complex<double> (-3.691642612809024e+01 , 1.626706165169031e+05), 
-             std::complex<double> (-1.381550956016815e+01 , 9.951366200834389e+04), 
-             std::complex<double> (-5.170274872813414e+00 , 6.087742838242603e+04), 
-             std::complex<double> (-1.934900695949033e+00 , 3.724173367350674e+04), 
-             std::complex<double> (-7.241028989448756e-01 , 2.278261078161663e+04), 
-             std::complex<double> (-2.709794933849554e-01 , 1.393725088986471e+04), 
-             std::complex<double> (-1.014067814475907e-01 , 8.526107754745986e+03), 
-             std::complex<double> (-3.794857907721268e-02 , 5.215845374286750e+03), 
-             std::complex<double> (-1.420128602616471e-02 , 3.190796539536440e+03), 
-             std::complex<double> (-5.314641373456001e-03 , 1.951977863633049e+03), 
-             std::complex<double> (-1.989073462021171e-03 , 1.194137478514606e+03), 
-             std::complex<double> (-7.444727058733413e-04 , 7.305392641779973e+02), 
-             std::complex<double> (-2.785935492041724e-04 , 4.469500227108133e+02), 
-             std::complex<double> (-1.041697874742726e-04 , 2.734917816578494e+02), 
-             std::complex<double> (-3.885029775980553e-05 , 1.674234863546034e+02), 
-             std::complex<double> (-1.438085862810561e-05 , 1.026094281347010e+02), 
-             std::complex<double> (-5.210915924018490e-06 , 6.307942476532812e+01), 
-             std::complex<double> (-1.771743570475432e-06 , 3.909277798924850e+01), 
-             std::complex<double> (-4.871556936491854e-07 , 2.470837551989106e+01), 
-             std::complex<double> (-6.451344870642707e-08 , 1.597850211276049e+01), 
-             std::complex<double> (-1.364027307617252e-09 , 9.429065404812917e+00), 
-             std::complex<double> (-1.106422446541182e-12 , 3.141595654835673e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (5.021229629899424e+07 , 9.573426248688118e+07), 
-             std::complex<double> (8.503658702053596e+07 , 1.916561491759082e+07), 
-             std::complex<double> (5.525644276706799e+07 , -2.500386205323650e+07), 
-             std::complex<double> (2.561522955845227e+07 , -2.958192196709283e+07), 
-             std::complex<double> (1.040165584109257e+07 , -2.211621171347208e+07), 
-             std::complex<double> (4.014428794357887e+06 , -1.452511290783674e+07), 
-             std::complex<double> (1.519817102089311e+06 , -9.120511098008595e+06), 
-             std::complex<double> (5.712411633161930e+05 , -5.633820421544250e+06), 
-             std::complex<double> (2.141267423762998e+05 , -3.458982067629103e+06), 
-             std::complex<double> (8.018288424430869e+04 , -2.118895560447226e+06), 
-             std::complex<double> (3.001424968198962e+04 , -1.296889525250297e+06), 
-             std::complex<double> (1.123340896130684e+04 , -7.935217430994142e+05), 
-             std::complex<double> (4.204095139347477e+03 , -4.854708974808910e+05), 
-             std::complex<double> (1.573348184128247e+03 , -2.969944305593917e+05), 
-             std::complex<double> (5.888082824190428e+02 , -1.816879818254871e+05), 
-             std::complex<double> (2.203544256809051e+02 , -1.111479350313492e+05), 
-             std::complex<double> (8.246490999967402e+01 , -6.799478212729240e+04), 
-             std::complex<double> (3.086145346157888e+01 , -4.159579187759199e+04), 
-             std::complex<double> (1.154950870899146e+01 , -2.544620754551074e+04), 
-             std::complex<double> (4.322260374810132e+00 , -1.556670445547073e+04), 
-             std::complex<double> (1.617553585390565e+00 , -9.522923024249372e+03), 
-             std::complex<double> (6.053495386271041e-01 , -5.825642854377887e+03), 
-             std::complex<double> (2.265439252257474e-01 , -3.563833664786646e+03), 
-             std::complex<double> (8.478026332952812e-02 , -2.180173054066974e+03), 
-             std::complex<double> (3.172705425842923e-02 , -1.333719304104711e+03), 
-             std::complex<double> (1.187292562038440e-02 , -8.159014677217300e+02), 
-             std::complex<double> (4.443061545970862e-03 , -4.991263273560290e+02), 
-             std::complex<double> (1.662668710382170e-03 , -3.053387126875481e+02), 
-             std::complex<double> (6.222243967626335e-04 , -1.867882689298264e+02), 
-             std::complex<double> (2.328909259342514e-04 , -1.142635017832522e+02), 
-             std::complex<double> (8.718629119580242e-05 , -6.989390121133002e+01), 
-             std::complex<double> (3.264631534860909e-05 , -4.274654572583646e+01), 
-             std::complex<double> (1.222793440898706e-05 , -2.613216178496151e+01), 
-             std::complex<double> (4.581577656949828e-06 , -1.595682388476035e+01), 
-             std::complex<double> (1.717608884935356e-06 , -9.713170677780306e+00), 
-             std::complex<double> (6.443895273476331e-07 , -5.863918036472604e+00), 
-             std::complex<double> (2.355597460701598e-07 , -3.490959616758682e+00), 
-             std::complex<double> (5.581060396181204e-08 , -2.262430565379247e+00), 
-             std::complex<double> (2.262389730855300e-09 , -2.007407589661226e+00), 
-             std::complex<double> (3.375789190314810e-12 , -2.000009240487879e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 40;
-            int m = 2;
-            double b = 1.014613602735905e+08;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.921298399391937e+08 , 4.411810006779376e+07), 
-             std::complex<double> (-1.309494937489181e+08 , 9.663406920712876e+07), 
-             std::complex<double> (-6.807544958308402e+07 , 9.557567298880142e+07), 
-             std::complex<double> (-3.056719370227870e+07 , 7.244434603880116e+07), 
-             std::complex<double> (-1.282991474460506e+07 , 4.929886967980125e+07), 
-             std::complex<double> (-5.232896374310734e+06 , 3.210958024437876e+07), 
-             std::complex<double> (-2.109381616336855e+06 , 2.054738737514637e+07), 
-             std::complex<double> (-8.462635041149040e+05 , 1.305563208140372e+07), 
-             std::complex<double> (-3.388658761826573e+05 , 8.271901465431931e+06), 
-             std::complex<double> (-1.355870790070452e+05 , 5.235028754150138e+06), 
-             std::complex<double> (-5.423454780303057e+04 , 3.311580310229713e+06), 
-             std::complex<double> (-2.169105448313469e+04 , 2.094462173327443e+06), 
-             std::complex<double> (-8.674892818394434e+03 , 1.324579897681296e+06), 
-             std::complex<double> (-3.469278272680851e+03 , 8.376665324502613e+05), 
-             std::complex<double> (-1.387429096730825e+03 , 5.297355469988022e+05), 
-             std::complex<double> (-5.548569922154544e+02 , 3.350001862007834e+05), 
-             std::complex<double> (-2.218965616189625e+02 , 2.118508313338263e+05), 
-             std::complex<double> (-8.874000063767203e+01 , 1.339722878806102e+05), 
-             std::complex<double> (-3.548850276807578e+01 , 8.472267256430519e+04), 
-             std::complex<double> (-1.419239245410664e+01 , 5.357772519806287e+04), 
-             std::complex<double> (-5.675754850035216e+00 , 3.388198749163363e+04), 
-             std::complex<double> (-2.269822844993397e+00 , 2.142661118979817e+04), 
-             std::complex<double> (-9.077373037127995e-01 , 1.354996355298606e+04), 
-             std::complex<double> (-3.630169283001943e-01 , 8.568855909327011e+03), 
-             std::complex<double> (-1.451744119223127e-01 , 5.418857655487433e+03), 
-             std::complex<double> (-5.805597115309982e-02 , 3.426834435421355e+03), 
-             std::complex<double> (-2.321618407667637e-02 , 2.167103697694515e+03), 
-             std::complex<double> (-9.283303310394741e-03 , 1.370469083810355e+03), 
-             std::complex<double> (-3.711453141871698e-03 , 8.666949000740808e+02), 
-             std::complex<double> (-1.483330493985827e-03 , 5.481278448477266e+02), 
-             std::complex<double> (-5.923672491767484e-04 , 3.466921929181578e+02), 
-             std::complex<double> (-2.361181712478414e-04 , 2.193424625752881e+02), 
-             std::complex<double> (-9.369480092950490e-05 , 1.388649185253084e+02), 
-             std::complex<double> (-3.678071268751481e-05 , 8.806232953845476e+01), 
-             std::complex<double> (-1.403861979031402e-05 , 5.607940283582973e+01), 
-             std::complex<double> (-4.926490814993237e-06 , 3.608119254060830e+01), 
-             std::complex<double> (-1.300310160202216e-06 , 2.373799429271499e+01), 
-             std::complex<double> (-1.387999663190090e-07 , 1.584477852379612e+01), 
-             std::complex<double> (-2.025137578642771e-09 , 9.426340415696112e+00), 
-             std::complex<double> (-1.159772172168061e-12 , 3.141593461908113e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.246639116695216e+07 , 2.571362615571233e+07), 
-             std::complex<double> (2.258771346510689e+07 , 6.970091021206074e+06), 
-             std::complex<double> (1.614048604932548e+07 , -5.582181370644691e+06), 
-             std::complex<double> (8.207896193435946e+06 , -7.994748690941910e+06), 
-             std::complex<double> (3.620733203720899e+06 , -6.485179102127224e+06), 
-             std::complex<double> (1.506466749955960e+06 , -4.499161663663012e+06), 
-             std::complex<double> (6.121131110691743e+05 , -2.949863042766987e+06), 
-             std::complex<double> (2.463575349610918e+05 , -1.892341784543781e+06), 
-             std::complex<double> (9.877374058162920e+04 , -1.203537403010204e+06), 
-             std::complex<double> (3.954151368307140e+04 , -7.628386133020810e+05), 
-             std::complex<double> (1.581974580395497e+04 , -4.828501078634487e+05), 
-             std::complex<double> (6.327606980469617e+03 , -3.054603742638551e+05), 
-             std::complex<double> (2.530678876673760e+03 , -1.931980016907821e+05), 
-             std::complex<double> (1.012086559791048e+03 , -1.221834755304546e+05), 
-             std::complex<double> (4.047543897120896e+02 , -7.726933251349335e+04), 
-             std::complex<double> (1.618686916350659e+02 , -4.886476169363668e+04), 
-             std::complex<double> (6.473409570981391e+01 , -3.090167250891183e+04), 
-             std::complex<double> (2.588824778407673e+01 , -1.954191934360788e+04), 
-             std::complex<double> (1.035312496177912e+01 , -1.235811007077327e+04), 
-             std::complex<double> (4.140373386908720e+00 , -7.815139687146089e+03), 
-             std::complex<double> (1.655797620187784e+00 , -4.942211922368764e+03), 
-             std::complex<double> (6.621788179877617e-01 , -3.125402433678355e+03), 
-             std::complex<double> (2.648160280637075e-01 , -1.976471185508419e+03), 
-             std::complex<double> (1.059043000700572e-01 , -1.249899078839237e+03), 
-             std::complex<double> (4.235278368110191e-02 , -7.904223581419200e+02), 
-             std::complex<double> (1.693744796849116e-02 , -4.998538111026916e+02), 
-             std::complex<double> (6.773502714409515e-03 , -3.161008094278062e+02), 
-             std::complex<double> (2.708801934770430e-03 , -1.998965180502970e+02), 
-             std::complex<double> (1.083242235716243e-03 , -1.264088268013140e+02), 
-             std::complex<double> (4.331659849709797e-04 , -7.993388798257237e+01), 
-             std::complex<double> (1.732057476218584e-04 , -5.054030369263095e+01), 
-             std::complex<double> (6.925184332833776e-05 , -3.194684470569799e+01), 
-             std::complex<double> (2.768038637046936e-05 , -2.018017324127766e+01), 
-             std::complex<double> (1.105830188665991e-05 , -1.272570840892989e+01), 
-             std::complex<double> (4.422861272282279e-06 , -7.990248121945951e+00), 
-             std::complex<double> (1.776432828792962e-06 , -4.964258008290898e+00), 
-             std::complex<double> (6.753436106737522e-07 , -3.053743004207058e+00), 
-             std::complex<double> (1.341813225842820e-07 , -2.145995625494450e+00), 
-             std::complex<double> (3.604001177576182e-09 , -2.002860125373691e+00), 
-             std::complex<double> (3.645919624456548e-12 , -2.000002562708367e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 40;
-            int m = 2;
-            double b = 3.372849818068297e+07;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-6.429063117899310e+07 , 1.382536283779675e+07), 
-             std::complex<double> (-4.576585974019063e+07 , 3.136665907857788e+07), 
-             std::complex<double> (-2.539679001577676e+07 , 3.260805476536937e+07), 
-             std::complex<double> (-1.221618159512390e+07 , 2.593203722131532e+07), 
-             std::complex<double> (-5.476874336357435e+06 , 1.839561696629719e+07), 
-             std::complex<double> (-2.378268155268686e+06 , 1.242235812413723e+07), 
-             std::complex<double> (-1.018431273742565e+06 , 8.213785221815328e+06), 
-             std::complex<double> (-4.335131104676636e+05 , 5.382543119647412e+06), 
-             std::complex<double> (-1.840622034209667e+05 , 3.513805748568872e+06), 
-             std::complex<double> (-7.806498146729966e+04 , 2.290163401848242e+06), 
-             std::complex<double> (-3.309391739017106e+04 , 1.491618615944708e+06), 
-             std::complex<double> (-1.402669570518078e+04 , 9.712321916524942e+05), 
-             std::complex<double> (-5.944654458337495e+03 , 6.323170914697213e+05), 
-             std::complex<double> (-2.519315610627144e+03 , 4.116462213842663e+05), 
-             std::complex<double> (-1.067657749108736e+03 , 2.679808442277437e+05), 
-             std::complex<double> (-4.524586361738204e+02 , 1.744533454528707e+05), 
-             std::complex<double> (-1.917453332052945e+02 , 1.135672552748869e+05), 
-             std::complex<double> (-8.125879601521375e+01 , 7.393093982221054e+04), 
-             std::complex<double> (-3.443623343777325e+01 , 4.812813325335967e+04), 
-             std::complex<double> (-1.459356079119954e+01 , 3.133081424791512e+04), 
-             std::complex<double> (-6.184561271340652e+00 , 2.039596719751718e+04), 
-             std::complex<double> (-2.620954485901897e+00 , 1.327751917689954e+04), 
-             std::complex<double> (-1.110737654189575e+00 , 8.643500052475230e+03), 
-             std::complex<double> (-4.707177620204561e-01 , 5.626813540685920e+03), 
-             std::complex<double> (-1.994807274615887e-01 , 3.662990984521928e+03), 
-             std::complex<double> (-8.453348245830929e-02 , 2.384570786916154e+03), 
-             std::complex<double> (-3.582158522626007e-02 , 1.552340727575078e+03), 
-             std::complex<double> (-1.517896501240274e-02 , 1.010577670156192e+03), 
-             std::complex<double> (-6.430981294561975e-03 , 6.579093549166789e+02), 
-             std::complex<double> (-2.723490230949166e-03 , 4.283460804032580e+02), 
-             std::complex<double> (-1.152076757011837e-03 , 2.789330163420434e+02), 
-             std::complex<double> (-4.860211591947028e-04 , 1.817127186239851e+02), 
-             std::complex<double> (-2.037330620376564e-04 , 1.184939572294430e+02), 
-             std::complex<double> (-8.407337628012382e-05 , 7.744816578929685e+01), 
-             std::complex<double> (-3.331415810425147e-05 , 5.089674660136445e+01), 
-             std::complex<double> (-1.176643899885547e-05 , 3.386996437350400e+01), 
-             std::complex<double> (-2.864688946140982e-06 , 2.308235712690259e+01), 
-             std::complex<double> (-2.388707580183042e-07 , 1.577395525089171e+01), 
-             std::complex<double> (-2.496845245240810e-09 , 9.425329236788178e+00), 
-             std::complex<double> (-1.085884088875372e-12 , 3.141592869202212e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (3.673504009246490e+06 , 8.146271161489838e+06), 
-             std::complex<double> (7.043023862767386e+06 , 2.724552630469848e+06), 
-             std::complex<double> (5.463745970945064e+06 , -1.379851799255619e+06), 
-             std::complex<double> (3.016952272996435e+06 , -2.491514822179004e+06), 
-             std::complex<double> (1.433817366155757e+06 , -2.194495400715092e+06), 
-             std::complex<double> (6.382075633756730e+05 , -1.605675377863806e+06), 
-             std::complex<double> (2.761766029068796e+05 , -1.096579009107399e+06), 
-             std::complex<double> (1.180831408468410e+05 , -7.283108575517322e+05), 
-             std::complex<double> (5.023061834893578e+04 , -4.781435209079718e+05), 
-             std::complex<double> (2.132097134070465e+04 , -3.123792417990398e+05), 
-             std::complex<double> (9.041613355595406e+03 , -2.036627156244318e+05), 
-             std::complex<double> (3.832794113550935e+03 , -1.326668206383934e+05), 
-             std::complex<double> (1.624475676918181e+03 , -8.638787111657622e+04), 
-             std::complex<double> (6.884627251406737e+02 , -5.624388207442427e+04), 
-             std::complex<double> (2.917659804910053e+02 , -3.661584160057628e+04), 
-             std::complex<double> (1.236469138146348e+02 , -2.383694279212383e+04), 
-             std::complex<double> (5.239981247836497e+01 , -1.551768449569411e+04), 
-             std::complex<double> (2.220627437836546e+01 , -1.010185399194996e+04), 
-             std::complex<double> (9.410683548187754e+00 , -6.576189564935177e+03), 
-             std::complex<double> (3.988095061160299e+00 , -4.281019054152628e+03), 
-             std::complex<double> (1.690090259784373e+00 , -2.786889937655153e+03), 
-             std::complex<double> (7.162379626257696e-01 , -1.814230104398216e+03), 
-             std::complex<double> (3.035356743872196e-01 , -1.181040552752193e+03), 
-             std::complex<double> (1.286369037874478e-01 , -7.688419116554246e+02), 
-             std::complex<double> (5.451539715526936e-02 , -5.005054858092889e+02), 
-             std::complex<double> (2.310264818588378e-02 , -3.258213871250342e+02), 
-             std::complex<double> (9.790199154645674e-03 , -2.121035172713848e+02), 
-             std::complex<double> (4.148831560431325e-03 , -1.380735011578393e+02), 
-             std::complex<double> (1.758261007413990e-03 , -8.987917550844391e+01), 
-             std::complex<double> (7.452078377491277e-04 , -5.850263379504320e+01), 
-             std::complex<double> (3.158664791863635e-04 , -3.807283265103564e+01), 
-             std::complex<double> (1.338757334037931e-04 , -2.476701737085556e+01), 
-             std::complex<double> (5.673970920817093e-05 , -1.609538732124914e+01), 
-             std::complex<double> (2.405950423860381e-05 , -1.043511266833778e+01), 
-             std::complex<double> (1.021201855768473e-05 , -6.726705277328384e+00), 
-             std::complex<double> (4.327005335681858e-06 , -4.281318911346707e+00), 
-             std::complex<double> (1.630788644829155e-06 , -2.726418689856930e+00), 
-             std::complex<double> (2.556501286869910e-07 , -2.076920187151913e+00), 
-             std::complex<double> (4.688726700939065e-09 , -2.001061330312164e+00), 
-             std::complex<double> (3.501036610277353e-12 , -2.000000701955252e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 40;
-            int m = 2;
-            double b = 1.283029586327183e+07;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-2.459007912784178e+07 , 4.972291833663177e+06), 
-             std::complex<double> (-1.815748505686428e+07 , 1.162135362909335e+07), 
-             std::complex<double> (-1.066073151038934e+07 , 1.261806928501339e+07), 
-             std::complex<double> (-5.449447679683310e+06 , 1.047782943559382e+07), 
-             std::complex<double> (-2.591250137642941e+06 , 7.720737387186867e+06), 
-             std::complex<double> (-1.190014195496150e+06 , 5.389144786123645e+06), 
-             std::complex<double> (-5.377897566460994e+05 , 3.670937484082993e+06), 
-             std::complex<double> (-2.412729271159523e+05 , 2.473315429862499e+06), 
-             std::complex<double> (-1.078904988188915e+05 , 1.658273558144286e+06), 
-             std::complex<double> (-4.817500819771435e+04 , 1.109388473927277e+06), 
-             std::complex<double> (-2.149692561599358e+04 , 7.414597361508097e+05), 
-             std::complex<double> (-9.589682153767131e+03 , 4.953390317278366e+05), 
-             std::complex<double> (-4.277358223565303e+03 , 3.308516096796244e+05), 
-             std::complex<double> (-1.907751975625013e+03 , 2.209664625716690e+05), 
-             std::complex<double> (-8.508578991268816e+02 , 1.475715739028376e+05), 
-             std::complex<double> (-3.794785178178740e+02 , 9.855339265817212e+04), 
-             std::complex<double> (-1.692447345084124e+02 , 6.581685364627738e+04), 
-             std::complex<double> (-7.548178769318051e+01 , 4.395428011011957e+04), 
-             std::complex<double> (-3.366421561355417e+01 , 2.935381611835436e+04), 
-             std::complex<double> (-1.501391087611332e+01 , 1.960323231200959e+04), 
-             std::complex<double> (-6.696036319041447e+00 , 1.309153910632633e+04), 
-             std::complex<double> (-2.986338900259917e+00 , 8.742864564537293e+03), 
-             std::complex<double> (-1.331849398916066e+00 , 5.838710649438138e+03), 
-             std::complex<double> (-5.939705045141928e-01 , 3.899245316699059e+03), 
-             std::complex<double> (-2.648947021705502e-01 , 2.604024617952774e+03), 
-             std::complex<double> (-1.181392386147316e-01 , 1.739048440096345e+03), 
-             std::complex<double> (-5.269148176379781e-02 , 1.161402903204316e+03), 
-             std::complex<double> (-2.350180750512550e-02 , 7.756477359771625e+02), 
-             std::complex<double> (-1.048130427736623e-02 , 5.180473558027376e+02), 
-             std::complex<double> (-4.672222488715252e-03 , 3.460402923009413e+02), 
-             std::complex<double> (-2.080102598231416e-03 , 2.312070734654582e+02), 
-             std::complex<double> (-9.231664120304972e-04 , 1.545747381390437e+02), 
-             std::complex<double> (-4.063669606927029e-04 , 1.034822572748718e+02), 
-             std::complex<double> (-1.751682455950118e-04 , 6.948917145018561e+01), 
-             std::complex<double> (-7.156160098429197e-05 , 4.698182129914718e+01), 
-             std::complex<double> (-2.512004300949283e-05 , 3.223630121911779e+01), 
-             std::complex<double> (-5.470540831325066e-06 , 2.264983957612602e+01), 
-             std::complex<double> (-3.458248330082421e-07 , 1.573834973377633e+01), 
-             std::complex<double> (-2.589926405543323e-09 , 9.424967102279309e+00), 
-             std::complex<double> (-8.348337637419898e-13 , 3.141592710621604e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (1.246531385938415e+06 , 2.956282374766850e+06), 
-             std::complex<double> (2.506733065592390e+06 , 1.156096636249635e+06), 
-             std::complex<double> (2.088609109973678e+06 , -3.537315818648565e+05), 
-             std::complex<double> (1.241272434514447e+06 , -8.705288026002197e+05), 
-             std::complex<double> (6.310717591156868e+05 , -8.342515372468245e+05), 
-             std::complex<double> (2.985943629114640e+05 , -6.431457804192142e+05), 
-             std::complex<double> (1.367492516623627e+05 , -4.567064447380460e+05), 
-             std::complex<double> (6.171645828288417e+04 , -3.133208943835331e+05), 
-             std::complex<double> (2.767110144842042e+04 , -2.117518006956108e+05), 
-             std::complex<double> (1.237024616501191e+04 , -1.421642631055339e+05), 
-             std::complex<double> (5.522831279230314e+03 , -9.516512203510279e+04), 
-             std::complex<double> (2.464288902873484e+03 , -6.362053236621246e+04), 
-             std::complex<double> (1.099280272202903e+03 , -4.250732275092662e+04), 
-             std::complex<double> (4.903146987665073e+02 , -2.839339982309546e+04), 
-             std::complex<double> (2.186850046483490e+02 , -1.896359789719047e+04), 
-             std::complex<double> (9.753335246203429e+01 , -1.266489642136532e+04), 
-             std::complex<double> (4.349935822891281e+01 , -8.458094667430363e+03), 
-             std::complex<double> (1.940040088961305e+01 , -5.648576033440358e+03), 
-             std::complex<double> (8.652428552847550e+00 , -3.772275653281644e+03), 
-             std::complex<double> (3.858911175449535e+00 , -2.519225004627943e+03), 
-             std::complex<double> (1.721039751182882e+00 , -1.682403108226222e+03), 
-             std::complex<double> (7.675682990098244e-01 , -1.123551291161626e+03), 
-             std::complex<double> (3.423268282506078e-01 , -7.503354719568061e+02), 
-             std::complex<double> (1.526712132514274e-01 , -5.010921601438338e+02), 
-             std::complex<double> (6.808639022063472e-02 , -3.346407359195942e+02), 
-             std::complex<double> (3.036374579458956e-02 , -2.234796271338597e+02), 
-             std::complex<double> (1.354158902757430e-02 , -1.492424717676142e+02), 
-             std::complex<double> (6.039988646576623e-03 , -9.966358958671667e+01), 
-             std::complex<double> (2.694513074849377e-03 , -6.655141240510318e+01), 
-             std::complex<double> (1.202270684309551e-03 , -4.443504688348371e+01), 
-             std::complex<double> (5.365218146476245e-04 , -2.966035001247701e+01), 
-             std::complex<double> (2.395448754963829e-04 , -1.978615789013239e+01), 
-             std::complex<double> (1.070874682733313e-04 , -1.318088343454806e+01), 
-             std::complex<double> (4.795309788625994e-05 , -8.752786941800668e+00), 
-             std::complex<double> (2.151030805034829e-05 , -5.769840862467224e+00), 
-             std::complex<double> (9.578239609139342e-06 , -3.749469221810053e+00), 
-             std::complex<double> (3.453345215971069e-06 , -2.484392132570860e+00), 
-             std::complex<double> (4.072444940948181e-07 , -2.038362597345107e+00), 
-             std::complex<double> (5.123229727783894e-09 , -2.000380685759731e+00), 
-             std::complex<double> (2.760544492680041e-12 , -2.000000190222195e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 40;
-            int m = 2;
-            double b = 5.458426252894914e+06;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-1.050950882538181e+07 , 2.005406502269755e+06), 
-             std::complex<double> (-8.005420745274840e+06 , 4.807254759041592e+06), 
-             std::complex<double> (-4.936254557387851e+06 , 5.422172021946796e+06), 
-             std::complex<double> (-2.663175432027383e+06 , 4.681375369207916e+06), 
-             std::complex<double> (-1.335063274229627e+06 , 3.572023537257050e+06), 
-             std::complex<double> (-6.448038119832833e+05 , 2.570514667934843e+06), 
-             std::complex<double> (-3.058391087485874e+05 , 1.799365472380248e+06), 
-             std::complex<double> (-1.438199255488981e+05 , 1.243313053870234e+06), 
-             std::complex<double> (-6.735725605682332e+04 , 8.538905519435105e+05), 
-             std::complex<double> (-3.148654309104434e+04 , 5.847770635030086e+05), 
-             std::complex<double> (-1.470552286419278e+04 , 3.999469108944969e+05), 
-             std::complex<double> (-6.865252003293586e+03 , 2.733665768552077e+05), 
-             std::complex<double> (-3.204415165340534e+03 , 1.867940129522092e+05), 
-             std::complex<double> (-1.495552756769021e+03 , 1.276209314940099e+05), 
-             std::complex<double> (-6.979689025020568e+02 , 8.718736166367456e+04), 
-             std::complex<double> (-3.257331653345278e+02 , 5.956243020759933e+04), 
-             std::complex<double> (-1.520144631556065e+02 , 4.068977902915746e+04), 
-             std::complex<double> (-7.094262808151849e+01 , 2.779684341628767e+04), 
-             std::complex<double> (-3.310764475927235e+01 , 1.898909872540562e+04), 
-             std::complex<double> (-1.545055192872436e+01 , 1.297217104912800e+04), 
-             std::complex<double> (-7.210215250877744e+00 , 8.861776571039685e+03), 
-             std::complex<double> (-3.364597549280587e+00 , 6.053812791942889e+03), 
-             std::complex<double> (-1.569960040455586e+00 , 4.135590284920948e+03), 
-             std::complex<double> (-7.324865793861162e-01 , 2.825184511724380e+03), 
-             std::complex<double> (-3.416945563722042e-01 , 1.930002467565401e+03), 
-             std::complex<double> (-1.593466837912913e-01 , 1.318477327204231e+03), 
-             std::complex<double> (-7.426773456016582e-02 , 9.007318864942993e+02), 
-             std::complex<double> (-3.458198687465494e-02 , 6.153691420655362e+02), 
-             std::complex<double> (-1.607983186921572e-02 , 4.204486648841556e+02), 
-             std::complex<double> (-7.459731728351108e-03 , 2.873225506878231e+02), 
-             std::complex<double> (-3.447373385986109e-03 , 1.964250119542468e+02), 
-             std::complex<double> (-1.582531414366485e-03 , 1.343968557071215e+02), 
-             std::complex<double> (-7.174781164518479e-04 , 9.212236643358214e+01), 
-             std::complex<double> (-3.167681984728014e-04 , 6.339035462458018e+01), 
-             std::complex<double> (-1.308773427978208e-04 , 4.398198389333952e+01), 
-             std::complex<double> (-4.453472286349769e-05 , 3.103115269401535e+01), 
-             std::complex<double> (-8.366223443216935e-06 , 2.237367721577699e+01), 
-             std::complex<double> (-3.958304402333969e-07 , 1.572135584013273e+01), 
-             std::complex<double> (-2.213725251461898e-09 , 9.424841298880422e+00), 
-             std::complex<double> (-5.194500495907792e-13 , 3.141592668564982e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (4.757858459331138e+05 , 1.201304323932755e+06), 
-             std::complex<double> (9.964623402468410e+05 , 5.305061412770180e+05), 
-             std::complex<double> (8.836873918714785e+05 , -8.309101091543230e+04), 
-             std::complex<double> (5.609317465831924e+05 , -3.334541928323549e+05), 
-             std::complex<double> (3.032083367062090e+05 , -3.489610656505206e+05), 
-             std::complex<double> (1.516819854666219e+05 , -2.833162001470454e+05), 
-             std::complex<double> (7.313528024965849e+04 , -2.089256799363761e+05), 
-             std::complex<double> (3.465612628387137e+04 , -1.477955826496697e+05), 
-             std::complex<double> (1.628912651422027e+04 , -1.026067143666145e+05), 
-             std::complex<double> (7.627149464015731e+03 , -7.062178822430955e+04), 
-             std::complex<double> (3.564961875371606e+03 , -4.841304736960518e+04), 
-             std::complex<double> (1.664899007210490e+03 , -3.312660429421671e+04), 
-             std::complex<double> (7.772372518024200e+02 , -2.264718871064117e+04), 
-             std::complex<double> (3.627782836840460e+02 , -1.547660858645463e+04), 
-             std::complex<double> (1.693136338353727e+02 , -1.057438839966940e+04), 
-             std::complex<double> (7.901773837936850e+01 , -7.224311267623453e+03), 
-             std::complex<double> (3.687645822131733e+01 , -4.935370772249512e+03), 
-             std::complex<double> (1.720965173932001e+01 , -3.371590100640262e+03), 
-             std::complex<double> (8.031503359451282e+00 , -2.303275196884474e+03), 
-             std::complex<double> (3.748203767107624e+00 , -1.573457533013899e+03), 
-             std::complex<double> (1.749231366349186e+00 , -1.074888202991120e+03), 
-             std::complex<double> (8.163257877457771e-01 , -7.342957535891645e+02), 
-             std::complex<double> (3.809480597010548e-01 , -5.016238760882882e+02), 
-             std::complex<double> (1.777662118030407e-01 , -3.426766377143156e+02), 
-             std::complex<double> (8.294930280633252e-02 , -2.340933069973269e+02), 
-             std::complex<double> (3.870393210137684e-02 , -1.599151804894827e+02), 
-             std::complex<double> (1.805652566538811e-02 , -1.092401483936102e+02), 
-             std::complex<double> (8.420473299673142e-03 , -7.462039478868475e+01), 
-             std::complex<double> (3.924328566548329e-03 , -5.096777439599738e+01), 
-             std::complex<double> (1.827505499097473e-03 , -3.480599683173383e+01), 
-             std::complex<double> (8.500197486023599e-04 , -2.375969935298117e+01), 
-             std::complex<double> (3.946455976746133e-04 , -1.620529705270146e+01), 
-             std::complex<double> (1.828759168156255e-04 , -1.103225677647784e+01), 
-             std::complex<double> (8.472003119270014e-05 , -7.479680090904045e+00), 
-             std::complex<double> (3.940326231905205e-05 , -5.025260861581506e+00), 
-             std::complex<double> (1.803614519869294e-05 , -3.327887497132883e+00), 
-             std::complex<double> (5.890845876225736e-06 , -2.310264685358018e+00), 
-             std::complex<double> (5.063827361806577e-07 , -2.018152736228967e+00), 
-             std::complex<double> (4.561826352117045e-09 , -2.000132625052268e+00), 
-             std::complex<double> (1.820055215917564e-12 , -2.000000051069919e+00), 
-            };
-            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
-            std::vector< std::complex<double> >wvec2;
-            std::vector< std::complex<double> >wvec3;
-            wvec2.push_back(NULL);
-            wvec3.push_back(NULL);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec);
-        } 
-
-        { 
-            int np = 40;
-            int m = 2;
-            double b = 2.550702517738841e+06;
-             std::complex<double> zvec1[] = {
-             std::complex<double> (-4.930174595007643e+06 , 8.906123945983183e+05), 
-             std::complex<double> (-3.856786835171367e+06 , 2.181816114949857e+06), 
-             std::complex<double> (-2.482148829939292e+06 , 2.544738896772400e+06), 
-             std::complex<double> (-1.405115674755809e+06 , 2.275778593632792e+06), 
-             std::complex<double> (-7.387663093551483e+05 , 1.793131224091675e+06), 
-             std::complex<double> (-3.734605338130355e+05 , 1.327339812411121e+06), 
-             std::complex<double> (-1.850575188533130e+05 , 9.528317576234050e+05), 
-             std::complex<double> (-9.079378741949148e+04 , 6.737880814234124e+05), 
-             std::complex<double> (-4.432882114956781e+04 , 4.729842074494265e+05), 
-             std::complex<double> (-2.159138740213971e+04 , 3.308413813921391e+05), 
-             std::complex<double> (-1.050437545701187e+04 , 2.310143674796951e+05), 
-             std::complex<double> (-5.107570502079680e+03 , 1.611727248228040e+05), 
-             std::complex<double> (-2.482785844932301e+03 , 1.123998936635827e+05), 
-             std::complex<double> (-1.206721733980071e+03 , 7.837068482543784e+04), 
-             std::complex<double> (-5.864755628960727e+02 , 5.463856613034698e+04), 
-             std::complex<double> (-2.850266897319742e+02 , 3.809118596369446e+04), 
-             std::complex<double> (-1.385241020326192e+02 , 2.655459986136343e+04), 
-             std::complex<double> (-6.732505605045868e+01 , 1.851186670401653e+04), 
-             std::complex<double> (-3.272226359482976e+01 , 1.290501053080275e+04), 
-             std::complex<double> (-1.590471081285379e+01 , 8.996331796926745e+03), 
-             std::complex<double> (-7.730727388922802e+00 , 6.271511018285853e+03), 
-             std::complex<double> (-3.757635405299777e+00 , 4.371988368460032e+03), 
-             std::complex<double> (-1.826356354800551e+00 , 3.047799586724509e+03), 
-             std::complex<double> (-8.875570327597455e-01 , 2.124688530802362e+03), 
-             std::complex<double> (-4.312001441356908e-01 , 1.481177996749026e+03), 
-             std::complex<double> (-2.093635235643192e-01 , 1.032584631985095e+03), 
-             std::complex<double> (-1.015398924312514e-01 , 7.198752872527600e+02), 
-             std::complex<double> (-4.915494178042067e-02 , 5.018986144612410e+02), 
-             std::complex<double> (-2.373052610205995e-02 , 3.499697563427933e+02), 
-             std::complex<double> (-1.141430363810807e-02 , 2.440955463542509e+02), 
-             std::complex<double> (-5.464920162706266e-03 , 1.703435249312997e+02), 
-             std::complex<double> (-2.600067462292022e-03 , 1.190086518281665e+02), 
-             std::complex<double> (-1.222464485916535e-03 , 8.333665338763376e+01), 
-             std::complex<double> (-5.581337382325661e-04 , 5.863631192932306e+01), 
-             std::complex<double> (-2.349494487813428e-04 , 4.166212288857597e+01), 
-             std::complex<double> (-7.721358338537288e-05 , 3.015006071783224e+01), 
-             std::complex<double> (-1.231637423407742e-05 , 2.220420220339163e+01), 
-             std::complex<double> (-4.391306357772723e-07 , 1.571363395468869e+01), 
-             std::complex<double> (-1.865670154700320e-09 , 9.424798723514536e+00), 
-             std::complex<double> (-3.589819255287683e-13 , 3.141592657496090e+00), 
-            };
-            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
-             std::complex<double> wvec1[] = {
-             std::complex<double> (2.005193961994937e+05 , 5.368967287834879e+05), 
-             std::complex<double> (4.348508784911602e+05 , 2.613421677037183e+05), 
-             std::complex<double> (4.073271579442536e+05 , -1.014528678277312e+04), 
-             std::complex<double> (2.743122433151479e+05 , -1.374604130298962e+05), 
-             std::complex<double> (1.568032983927115e+05 , -1.579952321612911e+05), 
-             std::complex<double> (8.255061799191230e+04 , -1.350862380378558e+05), 
-             std::complex<double> (4.172060763041765e+04 , -1.033551459827106e+05), 
-             std::complex<double> (2.066641886699318e+04 , -7.529131609292091e+04), 
-             std::complex<double> (1.013724643425412e+04 , -5.360674414854537e+04), 
-             std::complex<double> (4.948784662546389e+03 , -3.775325697210731e+04), 
-             std::complex<double> (2.410274668871462e+03 , -2.644883673064380e+04), 
-             std::complex<double> (1.172581561484868e+03 , -1.848221639779480e+04), 
-             std::complex<double> (5.701384432699806e+02 , -1.289928872520819e+04), 
-             std::complex<double> (2.771408365731337e+02 , -8.997406917602681e+03), 
-             std::complex<double> (1.346987559495062e+02 , -6.273972563569732e+03), 
-             std::complex<double> (6.546364866130867e+01 , -4.374279045122077e+03), 
-             std::complex<double> (3.181472865977212e+01 , -3.049583449110763e+03), 
-             std::complex<double> (1.546180611535955e+01 , -2.125984214483195e+03), 
-             std::complex<double> (7.514579184335930e+00 , -1.482082724595209e+03), 
-             std::complex<double> (3.652298515360992e+00 , -1.033192751513496e+03), 
-             std::complex<double> (1.775211712738303e+00 , -7.202585951329638e+02), 
-             std::complex<double> (8.628959985261258e-01 , -5.021048281924063e+02), 
-             std::complex<double> (4.194526383070269e-01 , -3.500251008453313e+02), 
-             std::complex<double> (2.038982737415696e-01 , -2.440069713726977e+02), 
-             std::complex<double> (9.911655548984351e-02 , -1.700991182751359e+02), 
-             std::complex<double> (4.817947036381683e-02 , -1.185756387351027e+02), 
-             std::complex<double> (2.341375779258309e-02 , -8.265625933722868e+01), 
-             std::complex<double> (1.137013204115651e-02 , -5.761412185658138e+01), 
-             std::complex<double> (5.513422775337461e-03 , -4.015376253881021e+01), 
-             std::complex<double> (2.666972343186617e-03 , -2.797744576939514e+01), 
-             std::complex<double> (1.285914200590372e-03 , -1.948276915915976e+01), 
-             std::complex<double> (6.184050788925227e-04 , -1.355172852903723e+01), 
-             std::complex<double> (2.975845442855294e-04 , -9.403442074032634e+00), 
-             std::complex<double> (1.440608827015309e-04 , -6.491176712996634e+00), 
-             std::complex<double> (7.056435232467201e-05 , -4.432329864276197e+00), 
-             std::complex<double> (3.341080809385670e-05 , -2.990823380388287e+00), 
-             std::complex<double> (9.616118601422761e-06 , -2.189864930972624e+00), 
-             std::complex<double> (6.028777387097391e-07 , -2.008183316055813e+00), 
-             std::complex<double> (3.999960502862214e-09 , -2.000045049887408e+00), 
-             std::complex<double> (1.243766270842621e-12 , -2.000000013597790e+00), 
+             std::complex<double> (4.531832966708455e+04 , 1.351024653375058e+05), 
+             std::complex<double> (1.039632823776562e+05 , 7.610876939306529e+04), 
+             std::complex<double> (1.066464408204632e+05 , 1.058135927227278e+04), 
+             std::complex<double> (7.948171639602531e+04 , -2.732986374943379e+04), 
+             std::complex<double> (5.011144763138166e+04 , -3.905856053208002e+04), 
+             std::complex<double> (2.887782913283473e+04 , -3.710378091193706e+04), 
+             std::complex<double> (1.586265196640482e+04 , -3.051044613177179e+04), 
+             std::complex<double> (8.495553792061870e+03 , -2.350431354118958e+04), 
+             std::complex<double> (4.489901910371671e+03 , -1.753816383079628e+04), 
+             std::complex<double> (2.356493095971274e+03 , -1.287695899479721e+04), 
+             std::complex<double> (1.232322863094649e+03 , -9.376627719296965e+03), 
+             std::complex<double> (6.432281766836850e+02 , -6.798625384398039e+03), 
+             std::complex<double> (3.354101599974503e+02 , -4.918481341627487e+03), 
+             std::complex<double> (1.748056468763063e+02 , -3.554182436618822e+03), 
+             std::complex<double> (9.107546029061420e+01 , -2.566775054026677e+03), 
+             std::complex<double> (4.744182710202697e+01 , -1.853106608307326e+03), 
+             std::complex<double> (2.470913325759803e+01 , -1.337649969309736e+03), 
+             std::complex<double> (1.286747439148689e+01 , -9.654896097109040e+02), 
+             std::complex<double> (6.699602087418877e+00 , -6.968400460744324e+02), 
+             std::complex<double> (3.487466729788453e+00 , -5.029307492645578e+02), 
+             std::complex<double> (1.815148146863408e+00 , -3.629758106399501e+02), 
+             std::complex<double> (9.447167797920660e-01 , -2.619652136781965e+02), 
+             std::complex<double> (4.917018333691266e-01 , -1.890628441161611e+02), 
+             std::complex<double> (2.559860843198664e-01 , -1.364469423409842e+02), 
+             std::complex<double> (1.333751327278221e-01 , -9.847195708006571e+01), 
+             std::complex<double> (6.957555426445142e-02 , -7.106321080662359e+01), 
+             std::complex<double> (3.633432104048020e-02 , -5.127978530122873e+01), 
+             std::complex<double> (1.898277389764431e-02 , -3.699893350812071e+01), 
+             std::complex<double> (9.915188283493496e-03 , -2.668828273779921e+01), 
+             std::complex<double> (5.176587200043455e-03 , -1.924140442852947e+01), 
+             std::complex<double> (2.695475013557251e-03 , -1.385907231432522e+01), 
+             std::complex<double> (1.389246217167925e-03 , -9.963394267487034e+00), 
+             std::complex<double> (6.998510096477988e-04 , -7.135551752454193e+00), 
+             std::complex<double> (3.385575403274995e-04 , -5.070916359163551e+00), 
+             std::complex<double> (1.508153916674418e-04 , -3.554281365658535e+00), 
+             std::complex<double> (5.103349355169122e-05 , -2.510253784882813e+00), 
+             std::complex<double> (6.634346172152688e-06 , -2.061258155545494e+00), 
+             std::complex<double> (1.340336457744053e-07 , -2.001466899739071e+00), 
+             std::complex<double> (3.153717353813765e-10 , -2.000004875410597e+00), 
+             std::complex<double> (1.206047008490024e-13 , -2.000000000943698e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -25175,91 +24248,1018 @@
         { 
             int np = 40;
             int m = 2;
-            double b = 6.988380680095612e+05;
+            double b = 2.550702517738841e+06;
              std::complex<double> zvec1[] = {
-             std::complex<double> (-1.359172146074914e+06 , 2.218902434034566e+05), 
-             std::complex<double> (-1.109828775325050e+06 , 5.629714892325068e+05), 
-             std::complex<double> (-7.665856554752493e+05 , 6.942945071882324e+05), 
-             std::complex<double> (-4.708340500485759e+05 , 6.597889805515391e+05), 
-             std::complex<double> (-2.687890174238547e+05 , 5.502936302554040e+05), 
-             std::complex<double> (-1.471107180914611e+05 , 4.285292880669166e+05), 
-             std::complex<double> (-7.866763494098514e+04 , 3.218442880336218e+05), 
-             std::complex<double> (-4.154701737698323e+04 , 2.371657967194124e+05), 
-             std::complex<double> (-2.179834245361820e+04 , 1.730353515984738e+05), 
-             std::complex<double> (-1.139739780817430e+04 , 1.255912705923701e+05), 
-             std::complex<double> (-5.948411704568179e+03 , 9.090883846097489e+04), 
-             std::complex<double> (-3.101558818577540e+03 , 6.571110150340381e+04), 
-             std::complex<double> (-1.616336520195704e+03 , 4.746259906208562e+04), 
-             std::complex<double> (-8.420747888118427e+02 , 3.426870863800703e+04), 
-             std::complex<double> (-4.386133876776503e+02 , 2.473758319865785e+04), 
-             std::complex<double> (-2.284258426830214e+02 , 1.785548516887275e+04), 
-             std::complex<double> (-1.189451942485062e+02 , 1.288731690608702e+04), 
-             std::complex<double> (-6.192782050055680e+01 , 9.301245435648771e+03), 
-             std::complex<double> (-3.223786217893775e+01 , 6.712950532610028e+03), 
-             std::complex<double> (-1.678095837619314e+01 , 4.844877806094157e+03), 
-             std::complex<double> (-8.735467064786857e+00 , 3.496641695320403e+03), 
-             std::complex<double> (-4.548046012081870e+00 , 2.523594992618343e+03), 
-             std::complex<double> (-2.368640642876843e+00 , 1.821334752290886e+03), 
-             std::complex<double> (-1.234219488020846e+00 , 1.314509180530722e+03), 
-             std::complex<double> (-6.434450266692811e-01 , 9.487355431598161e+02), 
-             std::complex<double> (-3.354765466493912e-01 , 6.847657657872270e+02), 
-             std::complex<double> (-1.747393013299599e-01 , 4.942752044552273e+02), 
-             std::complex<double> (-9.077609439692873e-02 , 3.568234393772188e+02), 
-             std::complex<double> (-4.691307387069280e-02 , 2.576611456902768e+02), 
-             std::complex<double> (-2.400612203371580e-02 , 1.861476668902309e+02), 
-             std::complex<double> (-1.205645833691592e-02 , 1.346094779596603e+02), 
-             std::complex<double> (-5.857146461554719e-03 , 9.751721010522917e+01), 
-             std::complex<double> (-2.690534497031602e-03 , 7.089331505888089e+01), 
-             std::complex<double> (-1.120667793503100e-03 , 5.188689906688285e+01), 
-             std::complex<double> (-3.838190108324714e-04 , 3.846186039668368e+01), 
-             std::complex<double> (-8.267307848528107e-05 , 2.907134377774091e+01), 
-             std::complex<double> (-6.151535848098680e-06 , 2.204915069897227e+01), 
-             std::complex<double> (-7.822069571952862e-08 , 1.570887925734013e+01), 
-             std::complex<double> (-1.385167044514575e-10 , 9.424780073214315e+00), 
-             std::complex<double> (-3.993187134695477e-14 , 3.141592653851127e+00), 
+             std::complex<double> (-4.930174595007643e+06 , 8.906123945983183e+05), 
+             std::complex<double> (-3.856786835171367e+06 , 2.181816114949857e+06), 
+             std::complex<double> (-2.482148829939292e+06 , 2.544738896772400e+06), 
+             std::complex<double> (-1.405115674755809e+06 , 2.275778593632792e+06), 
+             std::complex<double> (-7.387663093551483e+05 , 1.793131224091675e+06), 
+             std::complex<double> (-3.734605338130355e+05 , 1.327339812411121e+06), 
+             std::complex<double> (-1.850575188533130e+05 , 9.528317576234050e+05), 
+             std::complex<double> (-9.079378741949148e+04 , 6.737880814234124e+05), 
+             std::complex<double> (-4.432882114956781e+04 , 4.729842074494265e+05), 
+             std::complex<double> (-2.159138740213971e+04 , 3.308413813921391e+05), 
+             std::complex<double> (-1.050437545701187e+04 , 2.310143674796951e+05), 
+             std::complex<double> (-5.107570502079680e+03 , 1.611727248228040e+05), 
+             std::complex<double> (-2.482785844932301e+03 , 1.123998936635827e+05), 
+             std::complex<double> (-1.206721733980071e+03 , 7.837068482543784e+04), 
+             std::complex<double> (-5.864755628960727e+02 , 5.463856613034698e+04), 
+             std::complex<double> (-2.850266897319742e+02 , 3.809118596369446e+04), 
+             std::complex<double> (-1.385241020326192e+02 , 2.655459986136343e+04), 
+             std::complex<double> (-6.732505605045868e+01 , 1.851186670401653e+04), 
+             std::complex<double> (-3.272226359482976e+01 , 1.290501053080275e+04), 
+             std::complex<double> (-1.590471081285379e+01 , 8.996331796926745e+03), 
+             std::complex<double> (-7.730727388922802e+00 , 6.271511018285853e+03), 
+             std::complex<double> (-3.757635405299777e+00 , 4.371988368460032e+03), 
+             std::complex<double> (-1.826356354800551e+00 , 3.047799586724509e+03), 
+             std::complex<double> (-8.875570327597455e-01 , 2.124688530802362e+03), 
+             std::complex<double> (-4.312001441356908e-01 , 1.481177996749026e+03), 
+             std::complex<double> (-2.093635235643192e-01 , 1.032584631985095e+03), 
+             std::complex<double> (-1.015398924312514e-01 , 7.198752872527600e+02), 
+             std::complex<double> (-4.915494178042067e-02 , 5.018986144612410e+02), 
+             std::complex<double> (-2.373052610205995e-02 , 3.499697563427933e+02), 
+             std::complex<double> (-1.141430363810807e-02 , 2.440955463542509e+02), 
+             std::complex<double> (-5.464920162706266e-03 , 1.703435249312997e+02), 
+             std::complex<double> (-2.600067462292022e-03 , 1.190086518281665e+02), 
+             std::complex<double> (-1.222464485916535e-03 , 8.333665338763376e+01), 
+             std::complex<double> (-5.581337382325661e-04 , 5.863631192932306e+01), 
+             std::complex<double> (-2.349494487813428e-04 , 4.166212288857597e+01), 
+             std::complex<double> (-7.721358338537288e-05 , 3.015006071783224e+01), 
+             std::complex<double> (-1.231637423407742e-05 , 2.220420220339163e+01), 
+             std::complex<double> (-4.391306357772723e-07 , 1.571363395468869e+01), 
+             std::complex<double> (-1.865670154700320e-09 , 9.424798723514536e+00), 
+             std::complex<double> (-3.589819255287683e-13 , 3.141592657496090e+00), 
             };
             std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
              std::complex<double> wvec1[] = {
-             std::complex<double> (4.531832966708455e+04 , 1.351024653375058e+05), 
-             std::complex<double> (1.039632823776562e+05 , 7.610876939306529e+04), 
-             std::complex<double> (1.066464408204632e+05 , 1.058135927227278e+04), 
-             std::complex<double> (7.948171639602531e+04 , -2.732986374943379e+04), 
-             std::complex<double> (5.011144763138166e+04 , -3.905856053208002e+04), 
-             std::complex<double> (2.887782913283473e+04 , -3.710378091193706e+04), 
-             std::complex<double> (1.586265196640482e+04 , -3.051044613177179e+04), 
-             std::complex<double> (8.495553792061870e+03 , -2.350431354118958e+04), 
-             std::complex<double> (4.489901910371671e+03 , -1.753816383079628e+04), 
-             std::complex<double> (2.356493095971274e+03 , -1.287695899479721e+04), 
-             std::complex<double> (1.232322863094649e+03 , -9.376627719296965e+03), 
-             std::complex<double> (6.432281766836850e+02 , -6.798625384398039e+03), 
-             std::complex<double> (3.354101599974503e+02 , -4.918481341627487e+03), 
-             std::complex<double> (1.748056468763063e+02 , -3.554182436618822e+03), 
-             std::complex<double> (9.107546029061420e+01 , -2.566775054026677e+03), 
-             std::complex<double> (4.744182710202697e+01 , -1.853106608307326e+03), 
-             std::complex<double> (2.470913325759803e+01 , -1.337649969309736e+03), 
-             std::complex<double> (1.286747439148689e+01 , -9.654896097109040e+02), 
-             std::complex<double> (6.699602087418877e+00 , -6.968400460744324e+02), 
-             std::complex<double> (3.487466729788453e+00 , -5.029307492645578e+02), 
-             std::complex<double> (1.815148146863408e+00 , -3.629758106399501e+02), 
-             std::complex<double> (9.447167797920660e-01 , -2.619652136781965e+02), 
-             std::complex<double> (4.917018333691266e-01 , -1.890628441161611e+02), 
-             std::complex<double> (2.559860843198664e-01 , -1.364469423409842e+02), 
-             std::complex<double> (1.333751327278221e-01 , -9.847195708006571e+01), 
-             std::complex<double> (6.957555426445142e-02 , -7.106321080662359e+01), 
-             std::complex<double> (3.633432104048020e-02 , -5.127978530122873e+01), 
-             std::complex<double> (1.898277389764431e-02 , -3.699893350812071e+01), 
-             std::complex<double> (9.915188283493496e-03 , -2.668828273779921e+01), 
-             std::complex<double> (5.176587200043455e-03 , -1.924140442852947e+01), 
-             std::complex<double> (2.695475013557251e-03 , -1.385907231432522e+01), 
-             std::complex<double> (1.389246217167925e-03 , -9.963394267487034e+00), 
-             std::complex<double> (6.998510096477988e-04 , -7.135551752454193e+00), 
-             std::complex<double> (3.385575403274995e-04 , -5.070916359163551e+00), 
-             std::complex<double> (1.508153916674418e-04 , -3.554281365658535e+00), 
-             std::complex<double> (5.103349355169122e-05 , -2.510253784882813e+00), 
-             std::complex<double> (6.634346172152688e-06 , -2.061258155545494e+00), 
-             std::complex<double> (1.340336457744053e-07 , -2.001466899739071e+00), 
-             std::complex<double> (3.153717353813765e-10 , -2.000004875410597e+00), 
-             std::complex<double> (1.206047008490024e-13 , -2.000000000943698e+00), 
+             std::complex<double> (2.005193961994937e+05 , 5.368967287834879e+05), 
+             std::complex<double> (4.348508784911602e+05 , 2.613421677037183e+05), 
+             std::complex<double> (4.073271579442536e+05 , -1.014528678277312e+04), 
+             std::complex<double> (2.743122433151479e+05 , -1.374604130298962e+05), 
+             std::complex<double> (1.568032983927115e+05 , -1.579952321612911e+05), 
+             std::complex<double> (8.255061799191230e+04 , -1.350862380378558e+05), 
+             std::complex<double> (4.172060763041765e+04 , -1.033551459827106e+05), 
+             std::complex<double> (2.066641886699318e+04 , -7.529131609292091e+04), 
+             std::complex<double> (1.013724643425412e+04 , -5.360674414854537e+04), 
+             std::complex<double> (4.948784662546389e+03 , -3.775325697210731e+04), 
+             std::complex<double> (2.410274668871462e+03 , -2.644883673064380e+04), 
+             std::complex<double> (1.172581561484868e+03 , -1.848221639779480e+04), 
+             std::complex<double> (5.701384432699806e+02 , -1.289928872520819e+04), 
+             std::complex<double> (2.771408365731337e+02 , -8.997406917602681e+03), 
+             std::complex<double> (1.346987559495062e+02 , -6.273972563569732e+03), 
+             std::complex<double> (6.546364866130867e+01 , -4.374279045122077e+03), 
+             std::complex<double> (3.181472865977212e+01 , -3.049583449110763e+03), 
+             std::complex<double> (1.546180611535955e+01 , -2.125984214483195e+03), 
+             std::complex<double> (7.514579184335930e+00 , -1.482082724595209e+03), 
+             std::complex<double> (3.652298515360992e+00 , -1.033192751513496e+03), 
+             std::complex<double> (1.775211712738303e+00 , -7.202585951329638e+02), 
+             std::complex<double> (8.628959985261258e-01 , -5.021048281924063e+02), 
+             std::complex<double> (4.194526383070269e-01 , -3.500251008453313e+02), 
+             std::complex<double> (2.038982737415696e-01 , -2.440069713726977e+02), 
+             std::complex<double> (9.911655548984351e-02 , -1.700991182751359e+02), 
+             std::complex<double> (4.817947036381683e-02 , -1.185756387351027e+02), 
+             std::complex<double> (2.341375779258309e-02 , -8.265625933722868e+01), 
+             std::complex<double> (1.137013204115651e-02 , -5.761412185658138e+01), 
+             std::complex<double> (5.513422775337461e-03 , -4.015376253881021e+01), 
+             std::complex<double> (2.666972343186617e-03 , -2.797744576939514e+01), 
+             std::complex<double> (1.285914200590372e-03 , -1.948276915915976e+01), 
+             std::complex<double> (6.184050788925227e-04 , -1.355172852903723e+01), 
+             std::complex<double> (2.975845442855294e-04 , -9.403442074032634e+00), 
+             std::complex<double> (1.440608827015309e-04 , -6.491176712996634e+00), 
+             std::complex<double> (7.056435232467201e-05 , -4.432329864276197e+00), 
+             std::complex<double> (3.341080809385670e-05 , -2.990823380388287e+00), 
+             std::complex<double> (9.616118601422761e-06 , -2.189864930972624e+00), 
+             std::complex<double> (6.028777387097391e-07 , -2.008183316055813e+00), 
+             std::complex<double> (3.999960502862214e-09 , -2.000045049887408e+00), 
+             std::complex<double> (1.243766270842621e-12 , -2.000000013597790e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 40;
+            int m = 2;
+            double b = 5.458426252894914e+06;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.050950882538181e+07 , 2.005406502269755e+06), 
+             std::complex<double> (-8.005420745274840e+06 , 4.807254759041592e+06), 
+             std::complex<double> (-4.936254557387851e+06 , 5.422172021946796e+06), 
+             std::complex<double> (-2.663175432027383e+06 , 4.681375369207916e+06), 
+             std::complex<double> (-1.335063274229627e+06 , 3.572023537257050e+06), 
+             std::complex<double> (-6.448038119832833e+05 , 2.570514667934843e+06), 
+             std::complex<double> (-3.058391087485874e+05 , 1.799365472380248e+06), 
+             std::complex<double> (-1.438199255488981e+05 , 1.243313053870234e+06), 
+             std::complex<double> (-6.735725605682332e+04 , 8.538905519435105e+05), 
+             std::complex<double> (-3.148654309104434e+04 , 5.847770635030086e+05), 
+             std::complex<double> (-1.470552286419278e+04 , 3.999469108944969e+05), 
+             std::complex<double> (-6.865252003293586e+03 , 2.733665768552077e+05), 
+             std::complex<double> (-3.204415165340534e+03 , 1.867940129522092e+05), 
+             std::complex<double> (-1.495552756769021e+03 , 1.276209314940099e+05), 
+             std::complex<double> (-6.979689025020568e+02 , 8.718736166367456e+04), 
+             std::complex<double> (-3.257331653345278e+02 , 5.956243020759933e+04), 
+             std::complex<double> (-1.520144631556065e+02 , 4.068977902915746e+04), 
+             std::complex<double> (-7.094262808151849e+01 , 2.779684341628767e+04), 
+             std::complex<double> (-3.310764475927235e+01 , 1.898909872540562e+04), 
+             std::complex<double> (-1.545055192872436e+01 , 1.297217104912800e+04), 
+             std::complex<double> (-7.210215250877744e+00 , 8.861776571039685e+03), 
+             std::complex<double> (-3.364597549280587e+00 , 6.053812791942889e+03), 
+             std::complex<double> (-1.569960040455586e+00 , 4.135590284920948e+03), 
+             std::complex<double> (-7.324865793861162e-01 , 2.825184511724380e+03), 
+             std::complex<double> (-3.416945563722042e-01 , 1.930002467565401e+03), 
+             std::complex<double> (-1.593466837912913e-01 , 1.318477327204231e+03), 
+             std::complex<double> (-7.426773456016582e-02 , 9.007318864942993e+02), 
+             std::complex<double> (-3.458198687465494e-02 , 6.153691420655362e+02), 
+             std::complex<double> (-1.607983186921572e-02 , 4.204486648841556e+02), 
+             std::complex<double> (-7.459731728351108e-03 , 2.873225506878231e+02), 
+             std::complex<double> (-3.447373385986109e-03 , 1.964250119542468e+02), 
+             std::complex<double> (-1.582531414366485e-03 , 1.343968557071215e+02), 
+             std::complex<double> (-7.174781164518479e-04 , 9.212236643358214e+01), 
+             std::complex<double> (-3.167681984728014e-04 , 6.339035462458018e+01), 
+             std::complex<double> (-1.308773427978208e-04 , 4.398198389333952e+01), 
+             std::complex<double> (-4.453472286349769e-05 , 3.103115269401535e+01), 
+             std::complex<double> (-8.366223443216935e-06 , 2.237367721577699e+01), 
+             std::complex<double> (-3.958304402333969e-07 , 1.572135584013273e+01), 
+             std::complex<double> (-2.213725251461898e-09 , 9.424841298880422e+00), 
+             std::complex<double> (-5.194500495907792e-13 , 3.141592668564982e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (4.757858459331138e+05 , 1.201304323932755e+06), 
+             std::complex<double> (9.964623402468410e+05 , 5.305061412770180e+05), 
+             std::complex<double> (8.836873918714785e+05 , -8.309101091543230e+04), 
+             std::complex<double> (5.609317465831924e+05 , -3.334541928323549e+05), 
+             std::complex<double> (3.032083367062090e+05 , -3.489610656505206e+05), 
+             std::complex<double> (1.516819854666219e+05 , -2.833162001470454e+05), 
+             std::complex<double> (7.313528024965849e+04 , -2.089256799363761e+05), 
+             std::complex<double> (3.465612628387137e+04 , -1.477955826496697e+05), 
+             std::complex<double> (1.628912651422027e+04 , -1.026067143666145e+05), 
+             std::complex<double> (7.627149464015731e+03 , -7.062178822430955e+04), 
+             std::complex<double> (3.564961875371606e+03 , -4.841304736960518e+04), 
+             std::complex<double> (1.664899007210490e+03 , -3.312660429421671e+04), 
+             std::complex<double> (7.772372518024200e+02 , -2.264718871064117e+04), 
+             std::complex<double> (3.627782836840460e+02 , -1.547660858645463e+04), 
+             std::complex<double> (1.693136338353727e+02 , -1.057438839966940e+04), 
+             std::complex<double> (7.901773837936850e+01 , -7.224311267623453e+03), 
+             std::complex<double> (3.687645822131733e+01 , -4.935370772249512e+03), 
+             std::complex<double> (1.720965173932001e+01 , -3.371590100640262e+03), 
+             std::complex<double> (8.031503359451282e+00 , -2.303275196884474e+03), 
+             std::complex<double> (3.748203767107624e+00 , -1.573457533013899e+03), 
+             std::complex<double> (1.749231366349186e+00 , -1.074888202991120e+03), 
+             std::complex<double> (8.163257877457771e-01 , -7.342957535891645e+02), 
+             std::complex<double> (3.809480597010548e-01 , -5.016238760882882e+02), 
+             std::complex<double> (1.777662118030407e-01 , -3.426766377143156e+02), 
+             std::complex<double> (8.294930280633252e-02 , -2.340933069973269e+02), 
+             std::complex<double> (3.870393210137684e-02 , -1.599151804894827e+02), 
+             std::complex<double> (1.805652566538811e-02 , -1.092401483936102e+02), 
+             std::complex<double> (8.420473299673142e-03 , -7.462039478868475e+01), 
+             std::complex<double> (3.924328566548329e-03 , -5.096777439599738e+01), 
+             std::complex<double> (1.827505499097473e-03 , -3.480599683173383e+01), 
+             std::complex<double> (8.500197486023599e-04 , -2.375969935298117e+01), 
+             std::complex<double> (3.946455976746133e-04 , -1.620529705270146e+01), 
+             std::complex<double> (1.828759168156255e-04 , -1.103225677647784e+01), 
+             std::complex<double> (8.472003119270014e-05 , -7.479680090904045e+00), 
+             std::complex<double> (3.940326231905205e-05 , -5.025260861581506e+00), 
+             std::complex<double> (1.803614519869294e-05 , -3.327887497132883e+00), 
+             std::complex<double> (5.890845876225736e-06 , -2.310264685358018e+00), 
+             std::complex<double> (5.063827361806577e-07 , -2.018152736228967e+00), 
+             std::complex<double> (4.561826352117045e-09 , -2.000132625052268e+00), 
+             std::complex<double> (1.820055215917564e-12 , -2.000000051069919e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 40;
+            int m = 2;
+            double b = 1.283029586327183e+07;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-2.459007912784178e+07 , 4.972291833663177e+06), 
+             std::complex<double> (-1.815748505686428e+07 , 1.162135362909335e+07), 
+             std::complex<double> (-1.066073151038934e+07 , 1.261806928501339e+07), 
+             std::complex<double> (-5.449447679683310e+06 , 1.047782943559382e+07), 
+             std::complex<double> (-2.591250137642941e+06 , 7.720737387186867e+06), 
+             std::complex<double> (-1.190014195496150e+06 , 5.389144786123645e+06), 
+             std::complex<double> (-5.377897566460994e+05 , 3.670937484082993e+06), 
+             std::complex<double> (-2.412729271159523e+05 , 2.473315429862499e+06), 
+             std::complex<double> (-1.078904988188915e+05 , 1.658273558144286e+06), 
+             std::complex<double> (-4.817500819771435e+04 , 1.109388473927277e+06), 
+             std::complex<double> (-2.149692561599358e+04 , 7.414597361508097e+05), 
+             std::complex<double> (-9.589682153767131e+03 , 4.953390317278366e+05), 
+             std::complex<double> (-4.277358223565303e+03 , 3.308516096796244e+05), 
+             std::complex<double> (-1.907751975625013e+03 , 2.209664625716690e+05), 
+             std::complex<double> (-8.508578991268816e+02 , 1.475715739028376e+05), 
+             std::complex<double> (-3.794785178178740e+02 , 9.855339265817212e+04), 
+             std::complex<double> (-1.692447345084124e+02 , 6.581685364627738e+04), 
+             std::complex<double> (-7.548178769318051e+01 , 4.395428011011957e+04), 
+             std::complex<double> (-3.366421561355417e+01 , 2.935381611835436e+04), 
+             std::complex<double> (-1.501391087611332e+01 , 1.960323231200959e+04), 
+             std::complex<double> (-6.696036319041447e+00 , 1.309153910632633e+04), 
+             std::complex<double> (-2.986338900259917e+00 , 8.742864564537293e+03), 
+             std::complex<double> (-1.331849398916066e+00 , 5.838710649438138e+03), 
+             std::complex<double> (-5.939705045141928e-01 , 3.899245316699059e+03), 
+             std::complex<double> (-2.648947021705502e-01 , 2.604024617952774e+03), 
+             std::complex<double> (-1.181392386147316e-01 , 1.739048440096345e+03), 
+             std::complex<double> (-5.269148176379781e-02 , 1.161402903204316e+03), 
+             std::complex<double> (-2.350180750512550e-02 , 7.756477359771625e+02), 
+             std::complex<double> (-1.048130427736623e-02 , 5.180473558027376e+02), 
+             std::complex<double> (-4.672222488715252e-03 , 3.460402923009413e+02), 
+             std::complex<double> (-2.080102598231416e-03 , 2.312070734654582e+02), 
+             std::complex<double> (-9.231664120304972e-04 , 1.545747381390437e+02), 
+             std::complex<double> (-4.063669606927029e-04 , 1.034822572748718e+02), 
+             std::complex<double> (-1.751682455950118e-04 , 6.948917145018561e+01), 
+             std::complex<double> (-7.156160098429197e-05 , 4.698182129914718e+01), 
+             std::complex<double> (-2.512004300949283e-05 , 3.223630121911779e+01), 
+             std::complex<double> (-5.470540831325066e-06 , 2.264983957612602e+01), 
+             std::complex<double> (-3.458248330082421e-07 , 1.573834973377633e+01), 
+             std::complex<double> (-2.589926405543323e-09 , 9.424967102279309e+00), 
+             std::complex<double> (-8.348337637419898e-13 , 3.141592710621604e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.246531385938415e+06 , 2.956282374766850e+06), 
+             std::complex<double> (2.506733065592390e+06 , 1.156096636249635e+06), 
+             std::complex<double> (2.088609109973678e+06 , -3.537315818648565e+05), 
+             std::complex<double> (1.241272434514447e+06 , -8.705288026002197e+05), 
+             std::complex<double> (6.310717591156868e+05 , -8.342515372468245e+05), 
+             std::complex<double> (2.985943629114640e+05 , -6.431457804192142e+05), 
+             std::complex<double> (1.367492516623627e+05 , -4.567064447380460e+05), 
+             std::complex<double> (6.171645828288417e+04 , -3.133208943835331e+05), 
+             std::complex<double> (2.767110144842042e+04 , -2.117518006956108e+05), 
+             std::complex<double> (1.237024616501191e+04 , -1.421642631055339e+05), 
+             std::complex<double> (5.522831279230314e+03 , -9.516512203510279e+04), 
+             std::complex<double> (2.464288902873484e+03 , -6.362053236621246e+04), 
+             std::complex<double> (1.099280272202903e+03 , -4.250732275092662e+04), 
+             std::complex<double> (4.903146987665073e+02 , -2.839339982309546e+04), 
+             std::complex<double> (2.186850046483490e+02 , -1.896359789719047e+04), 
+             std::complex<double> (9.753335246203429e+01 , -1.266489642136532e+04), 
+             std::complex<double> (4.349935822891281e+01 , -8.458094667430363e+03), 
+             std::complex<double> (1.940040088961305e+01 , -5.648576033440358e+03), 
+             std::complex<double> (8.652428552847550e+00 , -3.772275653281644e+03), 
+             std::complex<double> (3.858911175449535e+00 , -2.519225004627943e+03), 
+             std::complex<double> (1.721039751182882e+00 , -1.682403108226222e+03), 
+             std::complex<double> (7.675682990098244e-01 , -1.123551291161626e+03), 
+             std::complex<double> (3.423268282506078e-01 , -7.503354719568061e+02), 
+             std::complex<double> (1.526712132514274e-01 , -5.010921601438338e+02), 
+             std::complex<double> (6.808639022063472e-02 , -3.346407359195942e+02), 
+             std::complex<double> (3.036374579458956e-02 , -2.234796271338597e+02), 
+             std::complex<double> (1.354158902757430e-02 , -1.492424717676142e+02), 
+             std::complex<double> (6.039988646576623e-03 , -9.966358958671667e+01), 
+             std::complex<double> (2.694513074849377e-03 , -6.655141240510318e+01), 
+             std::complex<double> (1.202270684309551e-03 , -4.443504688348371e+01), 
+             std::complex<double> (5.365218146476245e-04 , -2.966035001247701e+01), 
+             std::complex<double> (2.395448754963829e-04 , -1.978615789013239e+01), 
+             std::complex<double> (1.070874682733313e-04 , -1.318088343454806e+01), 
+             std::complex<double> (4.795309788625994e-05 , -8.752786941800668e+00), 
+             std::complex<double> (2.151030805034829e-05 , -5.769840862467224e+00), 
+             std::complex<double> (9.578239609139342e-06 , -3.749469221810053e+00), 
+             std::complex<double> (3.453345215971069e-06 , -2.484392132570860e+00), 
+             std::complex<double> (4.072444940948181e-07 , -2.038362597345107e+00), 
+             std::complex<double> (5.123229727783894e-09 , -2.000380685759731e+00), 
+             std::complex<double> (2.760544492680041e-12 , -2.000000190222195e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 40;
+            int m = 2;
+            double b = 3.372849818068297e+07;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-6.429063117899310e+07 , 1.382536283779675e+07), 
+             std::complex<double> (-4.576585974019063e+07 , 3.136665907857788e+07), 
+             std::complex<double> (-2.539679001577676e+07 , 3.260805476536937e+07), 
+             std::complex<double> (-1.221618159512390e+07 , 2.593203722131532e+07), 
+             std::complex<double> (-5.476874336357435e+06 , 1.839561696629719e+07), 
+             std::complex<double> (-2.378268155268686e+06 , 1.242235812413723e+07), 
+             std::complex<double> (-1.018431273742565e+06 , 8.213785221815328e+06), 
+             std::complex<double> (-4.335131104676636e+05 , 5.382543119647412e+06), 
+             std::complex<double> (-1.840622034209667e+05 , 3.513805748568872e+06), 
+             std::complex<double> (-7.806498146729966e+04 , 2.290163401848242e+06), 
+             std::complex<double> (-3.309391739017106e+04 , 1.491618615944708e+06), 
+             std::complex<double> (-1.402669570518078e+04 , 9.712321916524942e+05), 
+             std::complex<double> (-5.944654458337495e+03 , 6.323170914697213e+05), 
+             std::complex<double> (-2.519315610627144e+03 , 4.116462213842663e+05), 
+             std::complex<double> (-1.067657749108736e+03 , 2.679808442277437e+05), 
+             std::complex<double> (-4.524586361738204e+02 , 1.744533454528707e+05), 
+             std::complex<double> (-1.917453332052945e+02 , 1.135672552748869e+05), 
+             std::complex<double> (-8.125879601521375e+01 , 7.393093982221054e+04), 
+             std::complex<double> (-3.443623343777325e+01 , 4.812813325335967e+04), 
+             std::complex<double> (-1.459356079119954e+01 , 3.133081424791512e+04), 
+             std::complex<double> (-6.184561271340652e+00 , 2.039596719751718e+04), 
+             std::complex<double> (-2.620954485901897e+00 , 1.327751917689954e+04), 
+             std::complex<double> (-1.110737654189575e+00 , 8.643500052475230e+03), 
+             std::complex<double> (-4.707177620204561e-01 , 5.626813540685920e+03), 
+             std::complex<double> (-1.994807274615887e-01 , 3.662990984521928e+03), 
+             std::complex<double> (-8.453348245830929e-02 , 2.384570786916154e+03), 
+             std::complex<double> (-3.582158522626007e-02 , 1.552340727575078e+03), 
+             std::complex<double> (-1.517896501240274e-02 , 1.010577670156192e+03), 
+             std::complex<double> (-6.430981294561975e-03 , 6.579093549166789e+02), 
+             std::complex<double> (-2.723490230949166e-03 , 4.283460804032580e+02), 
+             std::complex<double> (-1.152076757011837e-03 , 2.789330163420434e+02), 
+             std::complex<double> (-4.860211591947028e-04 , 1.817127186239851e+02), 
+             std::complex<double> (-2.037330620376564e-04 , 1.184939572294430e+02), 
+             std::complex<double> (-8.407337628012382e-05 , 7.744816578929685e+01), 
+             std::complex<double> (-3.331415810425147e-05 , 5.089674660136445e+01), 
+             std::complex<double> (-1.176643899885547e-05 , 3.386996437350400e+01), 
+             std::complex<double> (-2.864688946140982e-06 , 2.308235712690259e+01), 
+             std::complex<double> (-2.388707580183042e-07 , 1.577395525089171e+01), 
+             std::complex<double> (-2.496845245240810e-09 , 9.425329236788178e+00), 
+             std::complex<double> (-1.085884088875372e-12 , 3.141592869202212e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (3.673504009246490e+06 , 8.146271161489838e+06), 
+             std::complex<double> (7.043023862767386e+06 , 2.724552630469848e+06), 
+             std::complex<double> (5.463745970945064e+06 , -1.379851799255619e+06), 
+             std::complex<double> (3.016952272996435e+06 , -2.491514822179004e+06), 
+             std::complex<double> (1.433817366155757e+06 , -2.194495400715092e+06), 
+             std::complex<double> (6.382075633756730e+05 , -1.605675377863806e+06), 
+             std::complex<double> (2.761766029068796e+05 , -1.096579009107399e+06), 
+             std::complex<double> (1.180831408468410e+05 , -7.283108575517322e+05), 
+             std::complex<double> (5.023061834893578e+04 , -4.781435209079718e+05), 
+             std::complex<double> (2.132097134070465e+04 , -3.123792417990398e+05), 
+             std::complex<double> (9.041613355595406e+03 , -2.036627156244318e+05), 
+             std::complex<double> (3.832794113550935e+03 , -1.326668206383934e+05), 
+             std::complex<double> (1.624475676918181e+03 , -8.638787111657622e+04), 
+             std::complex<double> (6.884627251406737e+02 , -5.624388207442427e+04), 
+             std::complex<double> (2.917659804910053e+02 , -3.661584160057628e+04), 
+             std::complex<double> (1.236469138146348e+02 , -2.383694279212383e+04), 
+             std::complex<double> (5.239981247836497e+01 , -1.551768449569411e+04), 
+             std::complex<double> (2.220627437836546e+01 , -1.010185399194996e+04), 
+             std::complex<double> (9.410683548187754e+00 , -6.576189564935177e+03), 
+             std::complex<double> (3.988095061160299e+00 , -4.281019054152628e+03), 
+             std::complex<double> (1.690090259784373e+00 , -2.786889937655153e+03), 
+             std::complex<double> (7.162379626257696e-01 , -1.814230104398216e+03), 
+             std::complex<double> (3.035356743872196e-01 , -1.181040552752193e+03), 
+             std::complex<double> (1.286369037874478e-01 , -7.688419116554246e+02), 
+             std::complex<double> (5.451539715526936e-02 , -5.005054858092889e+02), 
+             std::complex<double> (2.310264818588378e-02 , -3.258213871250342e+02), 
+             std::complex<double> (9.790199154645674e-03 , -2.121035172713848e+02), 
+             std::complex<double> (4.148831560431325e-03 , -1.380735011578393e+02), 
+             std::complex<double> (1.758261007413990e-03 , -8.987917550844391e+01), 
+             std::complex<double> (7.452078377491277e-04 , -5.850263379504320e+01), 
+             std::complex<double> (3.158664791863635e-04 , -3.807283265103564e+01), 
+             std::complex<double> (1.338757334037931e-04 , -2.476701737085556e+01), 
+             std::complex<double> (5.673970920817093e-05 , -1.609538732124914e+01), 
+             std::complex<double> (2.405950423860381e-05 , -1.043511266833778e+01), 
+             std::complex<double> (1.021201855768473e-05 , -6.726705277328384e+00), 
+             std::complex<double> (4.327005335681858e-06 , -4.281318911346707e+00), 
+             std::complex<double> (1.630788644829155e-06 , -2.726418689856930e+00), 
+             std::complex<double> (2.556501286869910e-07 , -2.076920187151913e+00), 
+             std::complex<double> (4.688726700939065e-09 , -2.001061330312164e+00), 
+             std::complex<double> (3.501036610277353e-12 , -2.000000701955252e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 40;
+            int m = 2;
+            double b = 1.014613602735905e+08;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.921298399391937e+08 , 4.411810006779376e+07), 
+             std::complex<double> (-1.309494937489181e+08 , 9.663406920712876e+07), 
+             std::complex<double> (-6.807544958308402e+07 , 9.557567298880142e+07), 
+             std::complex<double> (-3.056719370227870e+07 , 7.244434603880116e+07), 
+             std::complex<double> (-1.282991474460506e+07 , 4.929886967980125e+07), 
+             std::complex<double> (-5.232896374310734e+06 , 3.210958024437876e+07), 
+             std::complex<double> (-2.109381616336855e+06 , 2.054738737514637e+07), 
+             std::complex<double> (-8.462635041149040e+05 , 1.305563208140372e+07), 
+             std::complex<double> (-3.388658761826573e+05 , 8.271901465431931e+06), 
+             std::complex<double> (-1.355870790070452e+05 , 5.235028754150138e+06), 
+             std::complex<double> (-5.423454780303057e+04 , 3.311580310229713e+06), 
+             std::complex<double> (-2.169105448313469e+04 , 2.094462173327443e+06), 
+             std::complex<double> (-8.674892818394434e+03 , 1.324579897681296e+06), 
+             std::complex<double> (-3.469278272680851e+03 , 8.376665324502613e+05), 
+             std::complex<double> (-1.387429096730825e+03 , 5.297355469988022e+05), 
+             std::complex<double> (-5.548569922154544e+02 , 3.350001862007834e+05), 
+             std::complex<double> (-2.218965616189625e+02 , 2.118508313338263e+05), 
+             std::complex<double> (-8.874000063767203e+01 , 1.339722878806102e+05), 
+             std::complex<double> (-3.548850276807578e+01 , 8.472267256430519e+04), 
+             std::complex<double> (-1.419239245410664e+01 , 5.357772519806287e+04), 
+             std::complex<double> (-5.675754850035216e+00 , 3.388198749163363e+04), 
+             std::complex<double> (-2.269822844993397e+00 , 2.142661118979817e+04), 
+             std::complex<double> (-9.077373037127995e-01 , 1.354996355298606e+04), 
+             std::complex<double> (-3.630169283001943e-01 , 8.568855909327011e+03), 
+             std::complex<double> (-1.451744119223127e-01 , 5.418857655487433e+03), 
+             std::complex<double> (-5.805597115309982e-02 , 3.426834435421355e+03), 
+             std::complex<double> (-2.321618407667637e-02 , 2.167103697694515e+03), 
+             std::complex<double> (-9.283303310394741e-03 , 1.370469083810355e+03), 
+             std::complex<double> (-3.711453141871698e-03 , 8.666949000740808e+02), 
+             std::complex<double> (-1.483330493985827e-03 , 5.481278448477266e+02), 
+             std::complex<double> (-5.923672491767484e-04 , 3.466921929181578e+02), 
+             std::complex<double> (-2.361181712478414e-04 , 2.193424625752881e+02), 
+             std::complex<double> (-9.369480092950490e-05 , 1.388649185253084e+02), 
+             std::complex<double> (-3.678071268751481e-05 , 8.806232953845476e+01), 
+             std::complex<double> (-1.403861979031402e-05 , 5.607940283582973e+01), 
+             std::complex<double> (-4.926490814993237e-06 , 3.608119254060830e+01), 
+             std::complex<double> (-1.300310160202216e-06 , 2.373799429271499e+01), 
+             std::complex<double> (-1.387999663190090e-07 , 1.584477852379612e+01), 
+             std::complex<double> (-2.025137578642771e-09 , 9.426340415696112e+00), 
+             std::complex<double> (-1.159772172168061e-12 , 3.141593461908113e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.246639116695216e+07 , 2.571362615571233e+07), 
+             std::complex<double> (2.258771346510689e+07 , 6.970091021206074e+06), 
+             std::complex<double> (1.614048604932548e+07 , -5.582181370644691e+06), 
+             std::complex<double> (8.207896193435946e+06 , -7.994748690941910e+06), 
+             std::complex<double> (3.620733203720899e+06 , -6.485179102127224e+06), 
+             std::complex<double> (1.506466749955960e+06 , -4.499161663663012e+06), 
+             std::complex<double> (6.121131110691743e+05 , -2.949863042766987e+06), 
+             std::complex<double> (2.463575349610918e+05 , -1.892341784543781e+06), 
+             std::complex<double> (9.877374058162920e+04 , -1.203537403010204e+06), 
+             std::complex<double> (3.954151368307140e+04 , -7.628386133020810e+05), 
+             std::complex<double> (1.581974580395497e+04 , -4.828501078634487e+05), 
+             std::complex<double> (6.327606980469617e+03 , -3.054603742638551e+05), 
+             std::complex<double> (2.530678876673760e+03 , -1.931980016907821e+05), 
+             std::complex<double> (1.012086559791048e+03 , -1.221834755304546e+05), 
+             std::complex<double> (4.047543897120896e+02 , -7.726933251349335e+04), 
+             std::complex<double> (1.618686916350659e+02 , -4.886476169363668e+04), 
+             std::complex<double> (6.473409570981391e+01 , -3.090167250891183e+04), 
+             std::complex<double> (2.588824778407673e+01 , -1.954191934360788e+04), 
+             std::complex<double> (1.035312496177912e+01 , -1.235811007077327e+04), 
+             std::complex<double> (4.140373386908720e+00 , -7.815139687146089e+03), 
+             std::complex<double> (1.655797620187784e+00 , -4.942211922368764e+03), 
+             std::complex<double> (6.621788179877617e-01 , -3.125402433678355e+03), 
+             std::complex<double> (2.648160280637075e-01 , -1.976471185508419e+03), 
+             std::complex<double> (1.059043000700572e-01 , -1.249899078839237e+03), 
+             std::complex<double> (4.235278368110191e-02 , -7.904223581419200e+02), 
+             std::complex<double> (1.693744796849116e-02 , -4.998538111026916e+02), 
+             std::complex<double> (6.773502714409515e-03 , -3.161008094278062e+02), 
+             std::complex<double> (2.708801934770430e-03 , -1.998965180502970e+02), 
+             std::complex<double> (1.083242235716243e-03 , -1.264088268013140e+02), 
+             std::complex<double> (4.331659849709797e-04 , -7.993388798257237e+01), 
+             std::complex<double> (1.732057476218584e-04 , -5.054030369263095e+01), 
+             std::complex<double> (6.925184332833776e-05 , -3.194684470569799e+01), 
+             std::complex<double> (2.768038637046936e-05 , -2.018017324127766e+01), 
+             std::complex<double> (1.105830188665991e-05 , -1.272570840892989e+01), 
+             std::complex<double> (4.422861272282279e-06 , -7.990248121945951e+00), 
+             std::complex<double> (1.776432828792962e-06 , -4.964258008290898e+00), 
+             std::complex<double> (6.753436106737522e-07 , -3.053743004207058e+00), 
+             std::complex<double> (1.341813225842820e-07 , -2.145995625494450e+00), 
+             std::complex<double> (3.604001177576182e-09 , -2.002860125373691e+00), 
+             std::complex<double> (3.645919624456548e-12 , -2.000002562708367e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 40;
+            int m = 2;
+            double b = 3.597493655870090e+08;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-6.757929558574898e+08 , 1.664713583363300e+08), 
+             std::complex<double> (-4.372002913964674e+08 , 3.496303185812742e+08), 
+             std::complex<double> (-2.106453818015416e+08 , 3.265260638143334e+08), 
+             std::complex<double> (-8.745943473669402e+07 , 2.346099468608779e+08), 
+             std::complex<double> (-3.407926908881292e+07 , 1.525340805277402e+08), 
+             std::complex<double> (-1.295083008629596e+07 , 9.547481054111528e+07), 
+             std::complex<double> (-4.874737200563508e+06 , 5.891054016331727e+07), 
+             std::complex<double> (-1.828261639255609e+06 , 3.615462071028834e+07), 
+             std::complex<double> (-6.847587043800608e+05 , 2.214422265356991e+07), 
+             std::complex<double> (-2.563400778194122e+05 , 1.355282368658760e+07), 
+             std::complex<double> (-9.594293369958854e+04 , 8.292331171473768e+06), 
+             std::complex<double> (-3.590695713795506e+04 , 5.073149276407419e+06), 
+             std::complex<double> (-1.343793858490837e+04 , 3.103569584341675e+06), 
+             std::complex<double> (-5.029008526599193e+03 , 1.898623759716890e+06), 
+             std::complex<double> (-1.882047047445277e+03 , 1.161485875297074e+06), 
+             std::complex<double> (-7.043328998930591e+02 , 7.105392198459121e+05), 
+             std::complex<double> (-2.635877568499291e+02 , 4.346721750592028e+05), 
+             std::complex<double> (-9.864439477907760e+01 , 2.659105081487501e+05), 
+             std::complex<double> (-3.691642612809024e+01 , 1.626706165169031e+05), 
+             std::complex<double> (-1.381550956016815e+01 , 9.951366200834389e+04), 
+             std::complex<double> (-5.170274872813414e+00 , 6.087742838242603e+04), 
+             std::complex<double> (-1.934900695949033e+00 , 3.724173367350674e+04), 
+             std::complex<double> (-7.241028989448756e-01 , 2.278261078161663e+04), 
+             std::complex<double> (-2.709794933849554e-01 , 1.393725088986471e+04), 
+             std::complex<double> (-1.014067814475907e-01 , 8.526107754745986e+03), 
+             std::complex<double> (-3.794857907721268e-02 , 5.215845374286750e+03), 
+             std::complex<double> (-1.420128602616471e-02 , 3.190796539536440e+03), 
+             std::complex<double> (-5.314641373456001e-03 , 1.951977863633049e+03), 
+             std::complex<double> (-1.989073462021171e-03 , 1.194137478514606e+03), 
+             std::complex<double> (-7.444727058733413e-04 , 7.305392641779973e+02), 
+             std::complex<double> (-2.785935492041724e-04 , 4.469500227108133e+02), 
+             std::complex<double> (-1.041697874742726e-04 , 2.734917816578494e+02), 
+             std::complex<double> (-3.885029775980553e-05 , 1.674234863546034e+02), 
+             std::complex<double> (-1.438085862810561e-05 , 1.026094281347010e+02), 
+             std::complex<double> (-5.210915924018490e-06 , 6.307942476532812e+01), 
+             std::complex<double> (-1.771743570475432e-06 , 3.909277798924850e+01), 
+             std::complex<double> (-4.871556936491854e-07 , 2.470837551989106e+01), 
+             std::complex<double> (-6.451344870642707e-08 , 1.597850211276049e+01), 
+             std::complex<double> (-1.364027307617252e-09 , 9.429065404812917e+00), 
+             std::complex<double> (-1.106422446541182e-12 , 3.141595654835673e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (5.021229629899424e+07 , 9.573426248688118e+07), 
+             std::complex<double> (8.503658702053596e+07 , 1.916561491759082e+07), 
+             std::complex<double> (5.525644276706799e+07 , -2.500386205323650e+07), 
+             std::complex<double> (2.561522955845227e+07 , -2.958192196709283e+07), 
+             std::complex<double> (1.040165584109257e+07 , -2.211621171347208e+07), 
+             std::complex<double> (4.014428794357887e+06 , -1.452511290783674e+07), 
+             std::complex<double> (1.519817102089311e+06 , -9.120511098008595e+06), 
+             std::complex<double> (5.712411633161930e+05 , -5.633820421544250e+06), 
+             std::complex<double> (2.141267423762998e+05 , -3.458982067629103e+06), 
+             std::complex<double> (8.018288424430869e+04 , -2.118895560447226e+06), 
+             std::complex<double> (3.001424968198962e+04 , -1.296889525250297e+06), 
+             std::complex<double> (1.123340896130684e+04 , -7.935217430994142e+05), 
+             std::complex<double> (4.204095139347477e+03 , -4.854708974808910e+05), 
+             std::complex<double> (1.573348184128247e+03 , -2.969944305593917e+05), 
+             std::complex<double> (5.888082824190428e+02 , -1.816879818254871e+05), 
+             std::complex<double> (2.203544256809051e+02 , -1.111479350313492e+05), 
+             std::complex<double> (8.246490999967402e+01 , -6.799478212729240e+04), 
+             std::complex<double> (3.086145346157888e+01 , -4.159579187759199e+04), 
+             std::complex<double> (1.154950870899146e+01 , -2.544620754551074e+04), 
+             std::complex<double> (4.322260374810132e+00 , -1.556670445547073e+04), 
+             std::complex<double> (1.617553585390565e+00 , -9.522923024249372e+03), 
+             std::complex<double> (6.053495386271041e-01 , -5.825642854377887e+03), 
+             std::complex<double> (2.265439252257474e-01 , -3.563833664786646e+03), 
+             std::complex<double> (8.478026332952812e-02 , -2.180173054066974e+03), 
+             std::complex<double> (3.172705425842923e-02 , -1.333719304104711e+03), 
+             std::complex<double> (1.187292562038440e-02 , -8.159014677217300e+02), 
+             std::complex<double> (4.443061545970862e-03 , -4.991263273560290e+02), 
+             std::complex<double> (1.662668710382170e-03 , -3.053387126875481e+02), 
+             std::complex<double> (6.222243967626335e-04 , -1.867882689298264e+02), 
+             std::complex<double> (2.328909259342514e-04 , -1.142635017832522e+02), 
+             std::complex<double> (8.718629119580242e-05 , -6.989390121133002e+01), 
+             std::complex<double> (3.264631534860909e-05 , -4.274654572583646e+01), 
+             std::complex<double> (1.222793440898706e-05 , -2.613216178496151e+01), 
+             std::complex<double> (4.581577656949828e-06 , -1.595682388476035e+01), 
+             std::complex<double> (1.717608884935356e-06 , -9.713170677780306e+00), 
+             std::complex<double> (6.443895273476331e-07 , -5.863918036472604e+00), 
+             std::complex<double> (2.355597460701598e-07 , -3.490959616758682e+00), 
+             std::complex<double> (5.581060396181204e-08 , -2.262430565379247e+00), 
+             std::complex<double> (2.262389730855300e-09 , -2.007407589661226e+00), 
+             std::complex<double> (3.375789190314810e-12 , -2.000009240487879e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 40;
+            int m = 2;
+            double b = 1.563082652204966e+09;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-2.907347511144252e+09 , 7.724039573343986e+08), 
+             std::complex<double> (-1.765747824695564e+09 , 1.542115710523208e+09), 
+             std::complex<double> (-7.782069398337824e+08 , 1.347815058517721e+09), 
+             std::complex<double> (-2.954009947906344e+08 , 9.122444485838728e+08), 
+             std::complex<double> (-1.057749158935667e+08 , 5.639519953938454e+08), 
+             std::complex<double> (-3.708246196328126e+07 , 3.377070823419682e+08), 
+             std::complex<double> (-1.290387685867627e+07 , 1.999937736846150e+08), 
+             std::complex<double> (-4.478624662514562e+06 , 1.179826476320135e+08), 
+             std::complex<double> (-1.553022292221680e+06 , 6.950866578235863e+07), 
+             std::complex<double> (-5.383626840240620e+05 , 4.093156927606445e+07), 
+             std::complex<double> (-1.866058016054107e+05 , 2.409950029619724e+07), 
+             std::complex<double> (-6.467836273928163e+04 , 1.418840204411208e+07), 
+             std::complex<double> (-2.241750293020049e+04 , 8.353155175602375e+06), 
+             std::complex<double> (-7.769865233301661e+03 , 4.917730285754640e+06), 
+             std::complex<double> (-2.693016676141433e+03 , 2.895195235813679e+06), 
+             std::complex<double> (-9.333925532483522e+02 , 1.704475078466238e+06), 
+             std::complex<double> (-3.235113459850519e+02 , 1.003467554684307e+06), 
+             std::complex<double> (-1.121281675092420e+02 , 5.907666523194790e+05), 
+             std::complex<double> (-3.886332883033633e+01 , 3.477992130311116e+05), 
+             std::complex<double> (-1.346992282741687e+01 , 2.047581574452301e+05), 
+             std::complex<double> (-4.668632028598083e+00 , 1.205462845646340e+05), 
+             std::complex<double> (-1.618131309090977e+00 , 7.096863400428811e+04), 
+             std::complex<double> (-5.608396712711295e-01 , 4.178102262031913e+04), 
+             std::complex<double> (-1.943862624114411e-01 , 2.459754097613390e+04), 
+             std::complex<double> (-6.737411332605869e-02 , 1.448119304279567e+04), 
+             std::complex<double> (-2.335181629214159e-02 , 8.525445051947156e+03), 
+             std::complex<double> (-8.093880894964935e-03 , 5.019147606715412e+03), 
+             std::complex<double> (-2.805530386959645e-03 , 2.954904361673518e+03), 
+             std::complex<double> (-9.725074005272411e-04 , 1.739636397084562e+03), 
+             std::complex<double> (-3.371090402953826e-04 , 1.024184371617434e+03), 
+             std::complex<double> (-1.168360683456084e-04 , 6.029913504357919e+02), 
+             std::complex<double> (-4.046239368609373e-05 , 3.550441244007910e+02), 
+             std::complex<double> (-1.397941032449423e-05 , 2.091048387833814e+02), 
+             std::complex<double> (-4.800772076943351e-06 , 1.232436196415769e+02), 
+             std::complex<double> (-1.624406049955491e-06 , 7.279170935439704e+01), 
+             std::complex<double> (-5.262502423559682e-07 , 4.325330555897848e+01), 
+             std::complex<double> (-1.465199993035186e-07 , 2.612498896184864e+01), 
+             std::complex<double> (-2.303827143522598e-08 , 1.621892036988437e+01), 
+             std::complex<double> (-6.970580647162130e-10 , 9.436111337656246e+00), 
+             std::complex<double> (-8.193513926457782e-13 , 3.141603672944739e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (2.497337894786215e+08 , 4.368282941921436e+08), 
+             std::complex<double> (3.898206589092215e+08 , 5.295061029987082e+07), 
+             std::complex<double> (2.268112309483741e+08 , -1.309341943075704e+08), 
+             std::complex<double> (9.470866342345458e+07 , -1.309034027352926e+08), 
+             std::complex<double> (3.505384241105291e+07 , -9.015958773598580e+07), 
+             std::complex<double> (1.243110475743731e+07 , -5.592204097099373e+07), 
+             std::complex<double> (4.343012809978185e+06 , -3.351549463081950e+07), 
+             std::complex<double> (1.509437704910050e+06 , -1.985328670118356e+07), 
+             std::complex<double> (5.236680280354188e+05 , -1.171306272258705e+07), 
+             std::complex<double> (1.815621681942994e+05 , -6.900867186258990e+06), 
+             std::complex<double> (6.293620093860045e+04 , -4.063753697811282e+06), 
+             std::complex<double> (2.181438914464249e+04 , -2.392646258744826e+06), 
+             std::complex<double> (7.560913645580136e+03 , -1.408654394688695e+06), 
+             std::complex<double> (2.620605071047464e+03 , -8.293191514502283e+05), 
+             std::complex<double> (9.082962391113452e+02 , -4.882428732753578e+05), 
+             std::complex<double> (3.148132225519375e+02 , -2.874412437632169e+05), 
+             std::complex<double> (1.091134247629300e+02 , -1.692239745221116e+05), 
+             std::complex<double> (3.781841513749194e+01 , -9.962643106448060e+04), 
+             std::complex<double> (1.310776335399662e+01 , -5.865259220404935e+04), 
+             std::complex<double> (4.543118410465391e+00 , -3.453025883110186e+04), 
+             std::complex<double> (1.574632584801455e+00 , -2.032883312959338e+04), 
+             std::complex<double> (5.457619972253657e-01 , -1.196809603519004e+04), 
+             std::complex<double> (1.891588768114733e-01 , -7.045919492437385e+03), 
+             std::complex<double> (6.556196983586285e-02 , -4.148110143203874e+03), 
+             std::complex<double> (2.272374288353910e-02 , -2.442096714678605e+03), 
+             std::complex<double> (7.875992491065385e-03 , -1.437723504272329e+03), 
+             std::complex<double> (2.729770835270368e-03 , -8.464234647792599e+02), 
+             std::complex<double> (9.461524819415148e-04 , -4.983098401341786e+02), 
+             std::complex<double> (3.279649621861561e-04 , -2.933659036596868e+02), 
+             std::complex<double> (1.136902389785451e-04 , -1.727090945383379e+02), 
+             std::complex<double> (3.941614129449380e-05 , -1.016734350602007e+02), 
+             std::complex<double> (1.366775124773620e-05 , -5.984962817116728e+01), 
+             std::complex<double> (4.738818693738254e-06 , -3.522124875771384e+01), 
+             std::complex<double> (1.641113023885773e-06 , -2.071229125324714e+01), 
+             std::complex<double> (5.674218636329427e-07 , -1.215416621367042e+01), 
+             std::complex<double> (1.962545066726201e-07 , -7.088712693028019e+00), 
+             std::complex<double> (6.746632821637535e-08 , -4.077236899881440e+00), 
+             std::complex<double> (1.787340333528884e-08 , -2.448381223000574e+00), 
+             std::complex<double> (1.069635178400833e-09 , -2.018319335566692e+00), 
+             std::complex<double> (2.402486204385628e-12 , -2.000032837342133e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 40;
+            int m = 2;
+            double b = 8.767608340531406e+09;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.610661672721688e+10 , 4.643816589270030e+09), 
+             std::complex<double> (-9.053164371726076e+09 , 8.716494696091959e+09), 
+             std::complex<double> (-3.591313491142742e+09 , 7.053705479160174e+09), 
+             std::complex<double> (-1.229272700672112e+09 , 4.464770676088959e+09), 
+             std::complex<double> (-3.994211268415112e+08 , 2.609323249948285e+09), 
+             std::complex<double> (-1.275801907840611e+08 , 1.486413376230754e+09), 
+             std::complex<double> (-4.052780857353461e+07 , 8.398724705676417e+08), 
+             std::complex<double> (-1.285183950712821e+07 , 4.733304543902467e+08), 
+             std::complex<double> (-4.073212774435883e+06 , 2.665383302636197e+08), 
+             std::complex<double> (-1.290721991356240e+06 , 1.500521143525332e+08), 
+             std::complex<double> (-4.089819839943156e+05 , 8.446734237943131e+07), 
+             std::complex<double> (-1.295889574142116e+05 , 4.754712014277605e+07), 
+             std::complex<double> (-4.106098815384283e+04 , 2.676430788050086e+07), 
+             std::complex<double> (-1.301038180154414e+04 , 1.506560858066691e+07), 
+             std::complex<double> (-4.122403062976586e+03 , 8.480412595076224e+06), 
+             std::complex<double> (-1.306203329104089e+03 , 4.773612595763293e+06), 
+             std::complex<double> (-4.138768101624122e+02 , 2.687059746438675e+06), 
+             std::complex<double> (-1.311388484187883e+02 , 1.512542072844161e+06), 
+             std::complex<double> (-4.155196172073543e+01 , 8.514077538031481e+05), 
+             std::complex<double> (-1.316593020099958e+01 , 4.792561968152644e+05), 
+             std::complex<double> (-4.171685799708315e+00 , 2.697726218716812e+05), 
+             std::complex<double> (-1.321819325120319e+00 , 1.518546197359088e+05), 
+             std::complex<double> (-4.188259805506248e-01 , 8.547874652668991e+04), 
+             std::complex<double> (-1.327078198553247e-01 , 4.811586339718426e+04), 
+             std::complex<double> (-4.204951108709425e-02 , 2.708435063051265e+04), 
+             std::complex<double> (-1.332373286169278e-02 , 1.524574286399132e+04), 
+             std::complex<double> (-4.221693620706279e-03 , 8.581808388287651e+03), 
+             std::complex<double> (-1.337622638041483e-03 , 4.830690628082541e+03), 
+             std::complex<double> (-4.237972052053582e-04 , 2.719194235821104e+03), 
+             std::complex<double> (-1.342577676804125e-04 , 1.530640196045328e+03), 
+             std::complex<double> (-4.251824176118857e-05 , 8.616123617127558e+02), 
+             std::complex<double> (-1.345292221624769e-05 , 4.850309180194964e+02), 
+             std::complex<double> (-4.247215505066930e-06 , 2.730774987242593e+02), 
+             std::complex<double> (-1.333944594564809e-06 , 1.538113817636532e+02), 
+             std::complex<double> (-4.140617757977241e-07 , 8.675151323219090e+01), 
+             std::complex<double> (-1.245937376871465e-07 , 4.913607539941756e+01), 
+             std::complex<double> (-3.359434021286551e-08 , 2.818825776567928e+01), 
+             std::complex<double> (-5.849129029473393e-09 , 1.663323083835730e+01), 
+             std::complex<double> (-2.410291864794301e-10 , 9.453485964597251e+00), 
+             std::complex<double> (-3.727341490860978e-13 , 3.141632582666789e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.616973733100822e+09 , 2.571055649401248e+09), 
+             std::complex<double> (2.284977120198832e+09 , 8.661491429684791e+07), 
+             std::complex<double> (1.168363898460488e+09 , -8.499632885645322e+08), 
+             std::complex<double> (4.332690546151149e+08 , -7.271804345050156e+08), 
+             std::complex<double> (1.444070136134930e+08 , -4.606358184700190e+08), 
+             std::complex<double> (4.649915091918428e+07 , -2.688810025149615e+08), 
+             std::complex<double> (1.480900101320543e+07 , -1.530888462639134e+08), 
+             std::complex<double> (4.699914577101156e+06 , -8.648460985240068e+07), 
+             std::complex<double> (1.489955560392514e+06 , -4.873763581290583e+07), 
+             std::complex<double> (4.721763958162231e+05 , -2.744426156481187e+07), 
+             std::complex<double> (1.496190661809330e+05 , -1.545010421633239e+07), 
+             std::complex<double> (4.740829143913260e+04 , -8.697156896988722e+06), 
+             std::complex<double> (1.502162169454108e+04 , -4.895673346130614e+06), 
+             std::complex<double> (4.759680604375374e+03 , -2.755777500460585e+06), 
+             std::complex<double> (1.508128441344631e+03 , -1.551224969096821e+06), 
+             std::complex<double> (4.778578243255149e+02 , -8.731826162070866e+05), 
+             std::complex<double> (1.514115571567000e+02 , -4.915132917445675e+05), 
+             std::complex<double> (4.797548258273670e+01 , -2.766721329085908e+05), 
+             std::complex<double> (1.520126210499702e+01 , -1.557383462331809e+05), 
+             std::complex<double> (4.816590909208264e+00 , -8.766489071013530e+04), 
+             std::complex<double> (1.526158426023936e+00 , -4.934644054491052e+04), 
+             std::complex<double> (4.835701513536483e-01 , -2.777704017799139e+04), 
+             std::complex<double> (1.532215720993542e-01 , -1.563565580936367e+04), 
+             std::complex<double> (4.854913717611598e-02 , -8.801288039593481e+03), 
+             std::complex<double> (1.538313018094348e-02 , -4.954232238658193e+03), 
+             std::complex<double> (4.874280665100051e-03 , -2.788730001182036e+03), 
+             std::complex<double> (1.544466933006866e-03 , -1.569771778059184e+03), 
+             std::complex<double> (4.893754466976076e-04 , -8.836217076683749e+02), 
+             std::complex<double> (1.550562516061321e-04 , -4.973883872116578e+02), 
+             std::complex<double> (4.912876544759819e-05 , -2.799774341346834e+02), 
+             std::complex<double> (1.556607337791191e-05 , -1.575957468364490e+02), 
+             std::complex<double> (4.931058801125233e-06 , -8.870482806430422e+01), 
+             std::complex<double> (1.561223857528711e-06 , -4.992188851476876e+01), 
+             std::complex<double> (4.935854222620059e-07 , -2.808331872815572e+01), 
+             std::complex<double> (1.555119962643026e-07 , -1.577675284693110e+01), 
+             std::complex<double> (4.888966480993283e-08 , -8.825588831853372e+00), 
+             std::complex<double> (1.533442783581276e-08 , -4.879445917161496e+00), 
+             std::complex<double> (4.147180446793749e-09 , -2.733110063583577e+00), 
+             std::complex<double> (3.420152555682672e-10 , -2.042980526121471e+00), 
+             std::complex<double> (1.082387178464305e-12 , -2.000114689334851e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 40;
+            int m = 2;
+            double b = 6.819410646545146e+10;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.233063093947589e+11 , 3.886593358749860e+10), 
+             std::complex<double> (-6.295005529345710e+10 , 6.760619481505519e+10), 
+             std::complex<double> (-2.202929806979887e+10 , 5.000930736702473e+10), 
+             std::complex<double> (-6.684421486831000e+09 , 2.935025022025160e+10), 
+             std::complex<double> (-1.939656294074093e+09 , 1.609879816721802e+10), 
+             std::complex<double> (-5.555174167453873e+08 , 8.659997388731089e+09), 
+             std::complex<double> (-1.585026682299974e+08 , 4.632600656020922e+09), 
+             std::complex<double> (-4.517611163502118e+07 , 2.474244838119772e+09), 
+             std::complex<double> (-1.287206096674998e+07 , 1.320882090064760e+09), 
+             std::complex<double> (-3.667325188798876e+06 , 7.050654991503648e+08), 
+             std::complex<double> (-1.044816336692254e+06 , 3.763387441777830e+08), 
+             std::complex<double> (-2.976647517980348e+05 , 2.008740593667665e+08), 
+             std::complex<double> (-8.480354131036608e+04 , 1.072179468827314e+08), 
+             std::complex<double> (-2.416018814143966e+04 , 5.722828726793589e+07), 
+             std::complex<double> (-6.883139240223544e+03 , 3.054596890449500e+07), 
+             std::complex<double> (-1.960978209527619e+03 , 1.630410757626035e+07), 
+             std::complex<double> (-5.586746450356742e+02 , 8.702422223743515e+06), 
+             std::complex<double> (-1.591641011210570e+02 , 4.644973776248476e+06), 
+             std::complex<double> (-4.534519000027903e+01 , 2.479284593753169e+06), 
+             std::complex<double> (-1.291865277349106e+01 , 1.323334078974005e+06), 
+             std::complex<double> (-3.680466919741806e+00 , 7.063380657425054e+05), 
+             std::complex<double> (-1.048547944916449e+00 , 3.770124801100980e+05), 
+             std::complex<double> (-2.987266178599685e-01 , 2.012328332308975e+05), 
+             std::complex<double> (-8.510620527872556e-02 , 1.074093175638488e+05), 
+             std::complex<double> (-2.424663762151651e-02 , 5.733041346228250e+04), 
+             std::complex<double> (-6.907856556376299e-03 , 3.060047688687298e+04), 
+             std::complex<double> (-1.968001888140749e-03 , 1.633320188958294e+04), 
+             std::complex<double> (-5.606260664002580e-04 , 8.717952884880904e+03), 
+             std::complex<double> (-1.596933206252242e-04 , 4.653266077629039e+03), 
+             std::complex<double> (-4.548962854141386e-05 , 2.483715760318971e+03), 
+             std::complex<double> (-1.296021053810168e-05 , 1.325708795424703e+03), 
+             std::complex<double> (-3.694261449336069e-06 , 7.076234834857372e+02), 
+             std::complex<double> (-1.053615766760628e-06 , 3.777321101946091e+02), 
+             std::complex<double> (-3.006055470841920e-07 , 2.016797505912135e+02), 
+             std::complex<double> (-8.570477437377466e-08 , 1.077654749773149e+02), 
+             std::complex<double> (-2.421283676088920e-08 , 5.774033972822340e+01), 
+             std::complex<double> (-6.409753640296327e-09 , 3.122497845132783e+01), 
+             std::complex<double> (-1.245535805161496e-09 , 1.732451124674103e+01), 
+             std::complex<double> (-7.404040085441005e-11 , 9.494141891652125e+00), 
+             std::complex<double> (-2.050132095128929e-13 , 3.141735081105737e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (1.465118547022579e+10 , 2.093220829935340e+10), 
+             std::complex<double> (1.830958305082091e+10 , -1.307643934371990e+09), 
+             std::complex<double> (8.041663491442461e+09 , -7.356606943762166e+09), 
+             std::complex<double> (2.603368892097106e+09 , -5.419038711361868e+09), 
+             std::complex<double> (7.695417420646356e+08 , -3.147170042352588e+09), 
+             std::complex<double> (2.215627186385823e+08 , -1.719871514943714e+09), 
+             std::complex<double> (6.331238179280723e+07 , -9.241410089746137e+08), 
+             std::complex<double> (1.805290078169994e+07 , -4.942037286669359e+08), 
+             std::complex<double> (5.144453523510835e+06 , -2.639270909474180e+08), 
+             std::complex<double> (1.465735762659553e+06 , -1.408944810820993e+08), 
+             std::complex<double> (4.175904139532322e+05 , -7.520663452194430e+07), 
+             std::complex<double> (1.189704769722787e+05 , -4.014252614512323e+07), 
+             std::complex<double> (3.389425806841782e+04 , -2.142640751692654e+07), 
+             std::complex<double> (9.656340261115569e+03 , -1.143649425888393e+07), 
+             std::complex<double> (2.751052260642191e+03 , -6.104304042796352e+06), 
+             std::complex<double> (7.837635623842881e+02 , -3.258211764940087e+06), 
+             std::complex<double> (2.232910321480046e+02 , -1.739091500941681e+06), 
+             std::complex<double> (6.361469922974091e+01 , -9.282512666781858e+05), 
+             std::complex<double> (1.812356506508652e+01 , -4.954600775780139e+05), 
+             std::complex<double> (5.163328796549208e+00 , -2.644549993620467e+05), 
+             std::complex<double> (1.471010540297020e+00 , -1.411545547746814e+05), 
+             std::complex<double> (4.190841937544170e-01 , -7.534215037820653e+04), 
+             std::complex<double> (1.193950308609848e-01 , -4.021435674664161e+04), 
+             std::complex<double> (3.401508311031978e-02 , -2.146467122491296e+04), 
+             std::complex<double> (9.690795370584563e-03 , -1.145690611003498e+04), 
+             std::complex<double> (2.760910937221205e-03 , -6.115197152070576e+03), 
+             std::complex<double> (7.865951615107165e-04 , -3.264025608666328e+03), 
+             std::complex<double> (2.240959842166102e-04 , -1.742194346241094e+03), 
+             std::complex<double> (6.383497488331847e-05 , -9.299068801746106e+02), 
+             std::complex<double> (1.818260672086020e-05 , -4.963427519773529e+02), 
+             std::complex<double> (5.179019680093155e-06 , -2.649242232774399e+02), 
+             std::complex<double> (1.475538253956464e-06 , -1.414014294834601e+02), 
+             std::complex<double> (4.206723634968911e-07 , -7.546722142743826e+01), 
+             std::complex<double> (1.200081716501330e-07 , -4.026856732529073e+01), 
+             std::complex<double> (3.427478319649621e-08 , -2.147014018045991e+01), 
+             std::complex<double> (9.860467176147622e-09 , -1.141623593098393e+01), 
+             std::complex<double> (2.879767906246125e-09 , -6.017089153129619e+00), 
+             std::complex<double> (7.941984902259705e-10 , -3.158204500259297e+00), 
+             std::complex<double> (9.333783894965729e-11 , -2.095194761873083e+00), 
+             std::complex<double> (5.467232781849662e-13 , -2.000392276848583e+00), 
+            };
+            std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
+            std::vector< std::complex<double> >wvec2;
+            std::vector< std::complex<double> >wvec3;
+            wvec2.push_back(NULL);
+            wvec3.push_back(NULL);
+            fweight.push_back(wvec2);
+            eweight.push_back(wvec3);
+            method.push_back(m);
+            beta.push_back(b);
+            numPole.push_back(np);
+            zshift.push_back(zvec);
+            zweight.push_back(wvec);
+        } 
+
+        { 
+            int np = 40;
+            int m = 2;
+            double b = 8.134736423706821e+11;
+             std::complex<double> zvec1[] = {
+             std::complex<double> (-1.440809643864922e+12 , 5.008741310420167e+11), 
+             std::complex<double> (-6.515196321257891e+11 , 7.922632408784691e+11), 
+             std::complex<double> (-1.960801373321361e+11 , 5.274546032541372e+11), 
+             std::complex<double> (-5.161255926383042e+10 , 2.840542831706465e+11), 
+             std::complex<double> (-1.309981538565485e+10 , 1.448574651533858e+11), 
+             std::complex<double> (-3.294018128354926e+09 , 7.286123472575073e+10), 
+             std::complex<double> (-8.263543820442933e+08 , 3.652152745333930e+10), 
+             std::complex<double> (-2.071812928383177e+08 , 1.829044690030399e+10), 
+             std::complex<double> (-5.193624110930210e+07 , 9.158095764230179e+09), 
+             std::complex<double> (-1.301890294393754e+07 , 4.585242931673070e+09), 
+             std::complex<double> (-3.263429464993271e+06 , 2.295691785310366e+09), 
+             std::complex<double> (-8.180372188950301e+05 , 1.149379168079005e+09), 
+             std::complex<double> (-2.050556062820008e+05 , 5.754567513124533e+08), 
+             std::complex<double> (-5.140083486249537e+04 , 2.881124092881241e+08), 
+             std::complex<double> (-1.288453349035496e+04 , 1.442484699582121e+08), 
+             std::complex<double> (-3.229737823183041e+03 , 7.222049496261081e+07), 
+             std::complex<double> (-8.095915196311006e+02 , 3.615844158660392e+07), 
+             std::complex<double> (-2.029386866901165e+02 , 1.810334999136597e+07), 
+             std::complex<double> (-5.087028352358930e+01 , 9.063755694635114e+06), 
+             std::complex<double> (-1.275158900550609e+01 , 4.537926258220419e+06), 
+             std::complex<double> (-3.196435182078091e+00 , 2.271991370749227e+06), 
+             std::complex<double> (-8.012534376710599e-01 , 1.137511826999906e+06), 
+             std::complex<double> (-2.008530083475540e-01 , 5.695149960757114e+05), 
+             std::complex<double> (-5.034941129638724e-02 , 2.851375459029769e+05), 
+             std::complex<double> (-1.262183255250669e-02 , 1.427590505521357e+05), 
+             std::complex<double> (-3.164206846249448e-03 , 7.147479116274066e+04), 
+             std::complex<double> (-7.932941996121635e-04 , 3.578509231837100e+04), 
+             std::complex<double> (-1.989274626938337e-04 , 1.791642679792211e+04), 
+             std::complex<double> (-4.991617688647164e-05 , 8.970170535750925e+03), 
+             std::complex<double> (-1.254209880189170e-05 , 4.491073575979819e+03), 
+             std::complex<double> (-3.157576840181941e-06 , 2.248538454431801e+03), 
+             std::complex<double> (-7.959306737183112e-07 , 1.125779086624337e+03), 
+             std::complex<double> (-2.002430377521418e-07 , 5.636595075036817e+02), 
+             std::complex<double> (-5.029126134722351e-08 , 2.822432614075452e+02), 
+             std::complex<double> (-1.270799281646027e-08 , 1.413845708853201e+02), 
+             std::complex<double> (-3.228987431756206e-09 , 7.093527042970345e+01), 
+             std::complex<double> (-7.957795172405493e-10 , 3.580815253095030e+01), 
+             std::complex<double> (-1.633323393295353e-10 , 1.845658665182304e+01), 
+             std::complex<double> (-1.340243786813576e-11 , 9.584244111693033e+00), 
+             std::complex<double> (-5.701085395132057e-14 , 3.142091104567096e+00), 
+            };
+            std::vector< std::complex<double> >zvec (zvec1, zvec1 + sizeof(zvec1)/ sizeof(std::complex<double>));
+             std::complex<double> wvec1[] = {
+             std::complex<double> (2.056207481535771e+11 , 2.600029590914943e+11), 
+             std::complex<double> (2.203134529581333e+11 , -4.336552182703562e+10), 
+             std::complex<double> (8.080151689298392e+10 , -9.365894433132759e+10), 
+             std::complex<double> (2.235463725189983e+10 , -5.948444658785091e+10), 
+             std::complex<double> (5.745317216740170e+09 , -3.150601300483326e+10), 
+             std::complex<double> (1.449234738065675e+09 , -1.599523850540641e+10), 
+             std::complex<double> (3.638488843256133e+08 , -8.036209551752358e+09), 
+             std::complex<double> (9.124119725197355e+07 , -4.026975908568357e+09), 
+             std::complex<double> (2.287349027494256e+07 , -2.016615694224953e+09), 
+             std::complex<double> (5.733788895445901e+06 , -1.009708855536060e+09), 
+             std::complex<double> (1.437284983727629e+06 , -5.055351633723626e+08), 
+             std::complex<double> (3.602815783340446e+05 , -2.531058053673864e+08), 
+             std::complex<double> (9.031101481455479e+04 , -1.267219141238533e+08), 
+             std::complex<double> (2.263806297092661e+04 , -6.344553464017255e+07), 
+             std::complex<double> (5.674632929256124e+03 , -3.176510741323538e+07), 
+             std::complex<double> (1.422447651755881e+03 , -1.590375136294847e+07), 
+             std::complex<double> (3.565618397870513e+02 , -7.962488574325078e+06), 
+             std::complex<double> (8.937860016321510e+01 , -3.986557805603319e+06), 
+             std::complex<double> (2.240435461492090e+01 , -1.995939206553575e+06), 
+             std::complex<double> (5.616060491211885e+00 , -9.993015302610622e+05), 
+             std::complex<double> (1.407771168802800e+00 , -5.003176174197889e+05), 
+             std::complex<double> (3.528854391884821e-01 , -2.504926798531449e+05), 
+             std::complex<double> (8.845817952176574e-02 , -1.254134982935338e+05), 
+             std::complex<double> (2.217414904179711e-02 , -6.279043987205452e+04), 
+             std::complex<double> (5.558597554302266e-03 , -3.143712113477009e+04), 
+             std::complex<double> (1.393463586730668e-03 , -1.573953910379059e+04), 
+             std::complex<double> (3.493274824860981e-04 , -7.880272770808787e+03), 
+             std::complex<double> (8.757428434491133e-05 , -3.945394906678375e+03), 
+             std::complex<double> (2.195897676440100e-05 , -1.975330028990690e+03), 
+             std::complex<double> (5.510747522603683e-06 , -9.889826714095484e+02), 
+             std::complex<double> (1.385290938447173e-06 , -4.951502691389830e+02), 
+             std::complex<double> (3.492409888766843e-07 , -2.479034944790983e+02), 
+             std::complex<double> (8.806072942349475e-08 , -1.241130577767191e+02), 
+             std::complex<double> (2.209550055426092e-08 , -6.213112609130783e+01), 
+             std::complex<double> (5.543483469188144e-09 , -3.109062229807737e+01), 
+             std::complex<double> (1.413668111604913e-09 , -1.553354716842355e+01), 
+             std::complex<double> (3.657274168660119e-10 , -7.715176851404666e+00), 
+             std::complex<double> (9.523575611016325e-11 , -3.790763970499301e+00), 
+             std::complex<double> (1.490208229386450e-11 , -2.198773295701914e+00), 
+             std::complex<double> (1.487538366356832e-13 , -2.001307672244305e+00), 
             };
             std::vector< std::complex<double> >wvec (wvec1, wvec1 + sizeof(wvec1)/ sizeof(std::complex<double>));
             std::vector< std::complex<double> >wvec2;
@@ -25278,57 +25278,57 @@
         { 
             int np = 10;
             int m = 3;
-            double b = 1.000000000000000e+02;
+            double b = 1.300000000000000e+02;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-1.839545712616918e+02 , -4.923823134418731e+01), 
-             std::complex<double> (-1.096602580125941e+02 , -9.859907642603956e+01), 
-             std::complex<double> (-4.465943520158932e+01 , 8.390661935296886e+01), 
-             std::complex<double> (-1.447414711464736e+01 , 5.372967236105842e+01), 
-             std::complex<double> (-3.864383272091598e+00 , 3.101580982850948e+01), 
-             std::complex<double> (-6.690353973581093e-01 , -1.722728855726279e+01), 
-             std::complex<double> (3.313665592286900e-03 , 9.326398141749714e+00), 
-             std::complex<double> (1.252694569602430e-02 , 4.722325243671452e+00), 
-             std::complex<double> (-3.955533410304494e-03 , 3.149650418611132e+00), 
-             std::complex<double> (-5.093482515832220e-01 , 0.000000000000000e+00), 
+             std::complex<double> (-3.236800408768558e+02 , 9.012971287837883e+01), 
+             std::complex<double> (-1.893690259400591e+02 , 1.832006424141057e+02), 
+             std::complex<double> (-7.099856299399594e+01 , 1.582542737608380e+02), 
+             std::complex<double> (-1.807154666047631e+01 , 1.021626585400728e+02), 
+             std::complex<double> (-2.074048826318912e+00 , -5.913116652382960e+01), 
+             std::complex<double> (9.620857754444802e-01 , -3.256085786183025e+01), 
+             std::complex<double> (5.798819187666178e-01 , -1.744077713554439e+01), 
+             std::complex<double> (2.838415999035016e-02 , 9.290692380259468e+00), 
+             std::complex<double> (-7.964947566784680e-03 , 4.707206289636048e+00), 
+             std::complex<double> (2.525659594521877e-03 , 3.150203694840134e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (-1.596886799357967e+01 , 2.796084722913309e+01), 
-             std::complex<double> (-2.571044853319461e+01 , 3.121044829705629e+00), 
-             std::complex<double> (1.468278417411207e+01 , -9.332259464472883e+00), 
-             std::complex<double> (5.583096548851009e+00 , -8.790452469770358e+00), 
-             std::complex<double> (1.801452313805505e+00 , -5.689524348065122e+00), 
-             std::complex<double> (-4.698893501173776e-01 , -3.245051314437571e+00), 
-             std::complex<double> (4.698109186983733e-02 , -2.051325161562134e+00), 
-             std::complex<double> (-2.265801081720879e-02 , 5.407812242231979e-02), 
-             std::complex<double> (1.274534449453101e-02 , -2.026976299611306e+00), 
-             std::complex<double> (-2.268879373846832e-80 , -4.998654933704035e-08), 
+             std::complex<double> (2.861045843142247e+01 , 5.146972121753338e+01), 
+             std::complex<double> (4.683114657459485e+01 , 6.773516677545783e+00), 
+             std::complex<double> (2.648281765303011e+01 , -1.697883474527979e+01), 
+             std::complex<double> (9.200486141352396e+00 , -1.658460270467476e+01), 
+             std::complex<double> (-2.238067507299625e+00 , -1.082060066793396e+01), 
+             std::complex<double> (-1.520984745569083e-01 , -6.389163672693998e+00), 
+             std::complex<double> (2.441134932644622e-01 , -3.453565226569297e+00), 
+             std::complex<double> (-7.000046762387141e-02 , -2.047288885723472e+00), 
+             std::complex<double> (1.653885546751350e-02 , 6.130147166036734e-02), 
+             std::complex<double> (-8.899298465518928e-03 , -2.029737963705714e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (4.313104569706972e+03 , -4.357072266817057e+03), 
-             std::complex<double> (3.128491683705929e+03 , 2.193925860845072e+03), 
-             std::complex<double> (1.272960428441521e+02 , 1.647387090382016e+03), 
-             std::complex<double> (3.920545396781280e+02 , 4.279035612374533e+02), 
-             std::complex<double> (1.688670039933746e+02 , 7.761449642896779e+01), 
-             std::complex<double> (-5.643399098202156e+01 , 1.030417565896788e+01), 
-             std::complex<double> (1.732091767346528e+01 , 4.498420913625018e-01), 
-             std::complex<double> (5.543174787321582e+00 , -6.659829497689776e-02), 
-             std::complex<double> (8.330696139238374e-01 , 2.299677865023963e-03), 
-             std::complex<double> (-1.542615658293732e-78 , -8.608238823139160e-08), 
+             std::complex<double> (-1.390461668565820e+04 , -1.407261943680456e+04), 
+             std::complex<double> (-1.011603755699515e+04 , 7.289407512775060e+03), 
+             std::complex<double> (8.124292026117630e+02 , 5.397475551463582e+03), 
+             std::complex<double> (1.525430994796769e+03 , 1.239948305232563e+03), 
+             std::complex<double> (-6.364063592108737e+02 , 1.545783744555489e+02), 
+             std::complex<double> (-2.074509129253644e+02 , -1.119191527948015e+00), 
+             std::complex<double> (-6.089015789104137e+01 , -6.252993470455859e+00), 
+             std::complex<double> (1.726718257121653e+01 , -7.460876589795505e-01), 
+             std::complex<double> (5.510166995396387e+00 , 6.748415165209924e-02), 
+             std::complex<double> (8.202397759126771e-01 , -7.950359039231105e-03), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (4.313748361598819e+03 , -4.356635275772127e+03), 
-             std::complex<double> (3.128548377754866e+03 , 2.193270626361268e+03), 
-             std::complex<double> (1.276941447503018e+02 , 1.647737679086684e+03), 
-             std::complex<double> (3.915979772841979e+02 , 4.277858746382851e+02), 
-             std::complex<double> (1.693841443477060e+02 , 7.761395341699690e+01), 
-             std::complex<double> (-5.564992026518899e+01 , 1.036442174174735e+01), 
-             std::complex<double> (1.911032629871469e+01 , 3.952828223010458e-01), 
-             std::complex<double> (-2.494126973463168e-01 , -9.401635785078027e-02), 
-             std::complex<double> (6.382490564214748e+00 , 4.456909952929095e-02), 
-             std::complex<double> (-1.542835405731457e-78 , 9.270926954966186e-08), 
+             std::complex<double> (-1.390352049322807e+04 , -1.407299613921163e+04), 
+             std::complex<double> (-1.011620895327751e+04 , 7.289755980565523e+03), 
+             std::complex<double> (8.122060799298240e+02 , 5.397555666407250e+03), 
+             std::complex<double> (1.525720467958472e+03 , 1.239715404577589e+03), 
+             std::complex<double> (-6.360777772359382e+02 , 1.547877831937612e+02), 
+             std::complex<double> (-2.078653702087494e+02 , -1.250948610020998e+00), 
+             std::complex<double> (-6.020049173771857e+01 , -6.216495866126913e+00), 
+             std::complex<double> (1.898247472461322e+01 , -7.280625802882289e-01), 
+             std::complex<double> (-2.764259550228895e-01 , 8.377156053629136e-02), 
+             std::complex<double> (6.390458508780159e+00 , -3.498299243845708e-02), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -25603,77 +25603,77 @@
         { 
             int np = 15;
             int m = 3;
-            double b = 1.000000000000000e+02;
+            double b = 1.200000000000000e+02;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-1.864170140013518e+02 , 0.000000000000000e+00), 
-             std::complex<double> (-1.665358261189805e+02 , 5.728592127256957e+01), 
-             std::complex<double> (-1.203500407504617e+02 , 8.884573952126492e+01), 
-             std::complex<double> (-7.276540257590263e+01 , 9.083979908071004e+01), 
-             std::complex<double> (-3.827471165573121e+01 , 7.571200772382329e+01), 
-             std::complex<double> (-1.807926475610603e+01 , 5.629028457758768e+01), 
-             std::complex<double> (-7.788534817149820e+00 , -3.922529129795802e+01), 
-             std::complex<double> (-3.026805888041656e+00 , -2.626389437505646e+01), 
-             std::complex<double> (-1.015307700530988e+00 , -1.687088195928026e+01), 
-             std::complex<double> (-3.829194021332304e+00 , 9.959994152401631e+00), 
-             std::complex<double> (3.897124125459899e+00 , 9.734037873522118e+00), 
-             std::complex<double> (-1.602584175375456e-01 , -9.522688378589352e+00), 
-             std::complex<double> (1.597453249703380e-02 , -5.490202874153808e+00), 
-             std::complex<double> (8.897075479029846e-03 , -3.788762065604738e+00), 
-             std::complex<double> (-3.327757373204071e-04 , -3.141632381354685e+00), 
+             std::complex<double> (-1.922514339145570e+02 , -2.737172664404408e+01), 
+             std::complex<double> (-1.613977222186311e+02 , -7.091327941811804e+01), 
+             std::complex<double> (-1.160225596240509e+02 , -8.982491598651601e+01), 
+             std::complex<double> (-7.367514301164566e+01 , -8.664633710579182e+01), 
+             std::complex<double> (-4.262700331316101e+01 , -7.170260329004570e+01), 
+             std::complex<double> (-2.296852999503875e+01 , -5.393300023115593e+01), 
+             std::complex<double> (-1.161090883754967e+01 , -3.804739319709143e+01), 
+             std::complex<double> (-5.401223558100870e+00 , -2.554443040330558e+01), 
+             std::complex<double> (-2.080310847744409e+00 , -1.628225484672579e+01), 
+             std::complex<double> (-5.483358361000157e+00 , -8.464750572118972e+00), 
+             std::complex<double> (3.539731073834923e+00 , -9.534762894780806e+00), 
+             std::complex<double> (-3.311452781424370e-01 , 9.406326999270510e+00), 
+             std::complex<double> (-8.031452043336371e-02 , 5.395421261131209e+00), 
+             std::complex<double> (-2.265878217688997e-02 , 3.745226839498640e+00), 
+             std::complex<double> (-4.647763143417078e-04 , 3.141187785640201e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (1.087612761112884e-72 , 1.994253009515983e+01), 
-             std::complex<double> (1.183014363119785e+01 , 1.501525427565280e+01), 
-             std::complex<double> (1.611117365233157e+01 , 4.926616912237808e+00), 
-             std::complex<double> (1.341117571320146e+01 , -2.895250291954957e+00), 
-             std::complex<double> (8.534354487549647e+00 , -6.025191052037697e+00), 
-             std::complex<double> (4.585144537203002e+00 , -5.998405039880355e+00), 
-             std::complex<double> (-2.204384923459276e+00 , -4.788589675141832e+00), 
-             std::complex<double> (-9.721210686379899e-01 , -3.497504103287165e+00), 
-             std::complex<double> (-3.828352029496252e-01 , -2.565846175800059e+00), 
-             std::complex<double> (-2.749284869291513e-02 , -2.038459098518333e-02), 
-             std::complex<double> (7.632854835825556e-04 , 1.486170055972188e-02), 
-             std::complex<double> (-1.850303867519762e-01 , -2.134726804287884e+00), 
-             std::complex<double> (-7.490507227417771e-03 , -2.522278806871298e-03), 
-             std::complex<double> (4.385073437061357e-03 , 7.381830954692554e-04), 
-             std::complex<double> (-2.464564628163092e-03 , -2.000319674730524e+00), 
+             std::complex<double> (-5.463508474678830e+00 , 1.677129950480529e+01), 
+             std::complex<double> (-1.321012218523654e+01 , 1.019620010968534e+01), 
+             std::complex<double> (-1.468550433555167e+01 , 2.037294592748134e+00), 
+             std::complex<double> (-1.184948785132986e+01 , -3.459423756858183e+00), 
+             std::complex<double> (-7.942599904449036e+00 , -5.568168692990298e+00), 
+             std::complex<double> (-4.752206427264650e+00 , -5.502490798110145e+00), 
+             std::complex<double> (-2.649430871241583e+00 , -4.540190256063069e+00), 
+             std::complex<double> (-1.423609113027509e+00 , -3.431749317534419e+00), 
+             std::complex<double> (-7.594428509713270e-01 , -2.510339639084870e+00), 
+             std::complex<double> (7.932984376930647e-04 , -1.045866069277691e-02), 
+             std::complex<double> (2.409384094771155e-02 , 9.847770819781077e-03), 
+             std::complex<double> (3.355900829168470e-01 , -1.996965617944943e+00), 
+             std::complex<double> (1.466719217173260e-02 , 7.367066121695445e-03), 
+             std::complex<double> (-7.295689453794991e-03 , -5.272100230433135e-03), 
+             std::complex<double> (3.942326138690502e-03 , -1.996950211572110e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (7.338725035024350e-72 , -3.717608674272780e+03), 
-             std::complex<double> (-2.830296806005336e+03 , -1.822946443954153e+03), 
-             std::complex<double> (-2.376616329778226e+03 , 8.385521830765596e+02), 
-             std::complex<double> (-7.129474133810557e+02 , 1.428958329915275e+03), 
-             std::complex<double> (1.295652807259239e+02 , 8.767196340501298e+02), 
-             std::complex<double> (2.547523450707729e+02 , 3.665829747273419e+02), 
-             std::complex<double> (-1.706547479348681e+02 , 1.237416022103867e+02), 
-             std::complex<double> (-8.893208928575795e+01 , 3.612828402897468e+01), 
-             std::complex<double> (-4.292800676030015e+01 , 9.044776273146551e+00), 
-             std::complex<double> (5.418884589412923e-01 , -6.929299898663568e-01), 
-             std::complex<double> (-3.125195515850816e-02 , 5.430053528293854e-01), 
-             std::complex<double> (-1.778202896722479e+01 , 2.185200571816870e+00), 
-             std::complex<double> (-4.802772203468432e+00 , 1.869360487088658e-02), 
-             std::complex<double> (-2.236967681164120e+00 , -2.577824563329442e-02), 
-             std::complex<double> (-3.430763998888914e-01 , -5.185864661139297e-03), 
+             std::complex<double> (1.509438408666253e+03 , -3.074762562041887e+03), 
+             std::complex<double> (2.855110288447033e+03 , -7.088777375240864e+02), 
+             std::complex<double> (1.886860307239881e+03 , 1.082773834326705e+03), 
+             std::complex<double> (5.732705405169309e+02 , 1.281566552328644e+03), 
+             std::complex<double> (-6.069346553233832e+01 , 8.068739166228215e+02), 
+             std::complex<double> (-1.876039894022721e+02 , 3.826737543234749e+02), 
+             std::complex<double> (-1.419917463002294e+02 , 1.535353728648113e+02), 
+             std::complex<double> (-7.994905058102055e+01 , 5.486218339944085e+01), 
+             std::complex<double> (-3.942372039863951e+01 , 1.775141309244128e+01), 
+             std::complex<double> (-8.679567096451996e-02 , -3.186919291306461e-02), 
+             std::complex<double> (2.148045918764479e-01 , 4.879727265564898e-01), 
+             std::complex<double> (1.662523721747445e+01 , 2.887736806528679e+00), 
+             std::complex<double> (4.751653981116974e+00 , 1.715798335663391e-01), 
+             std::complex<double> (2.115090579352301e+00 , 7.470384138178121e-02), 
+             std::complex<double> (3.149272942384539e-01 , 1.316455214913089e-02), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (-1.132583663917364e-70 , -3.717610937504947e+03), 
-             std::complex<double> (-2.830293096351776e+03 , -1.822947425646748e+03), 
-             std::complex<double> (-2.376617882832366e+03 , 8.385577081523636e+02), 
-             std::complex<double> (-7.129504907279784e+02 , 1.428952311747788e+03), 
-             std::complex<double> (1.295715463141866e+02 , 8.767234056349455e+02), 
-             std::complex<double> (2.547441915273986e+02 , 3.665818986401838e+02), 
-             std::complex<double> (-1.706652073581090e+02 , 1.237398128036962e+02), 
-             std::complex<double> (-8.891804857406221e+01 , 3.613389309572541e+01), 
-             std::complex<double> (-4.289686486591916e+01 , 9.051121181021785e+00), 
-             std::complex<double> (3.115412092638754e-01 , -1.968247271190818e-01), 
-             std::complex<double> (-1.437141229352480e-01 , 6.458505007444442e-02), 
-             std::complex<double> (-2.029868594604720e+01 , 2.113077956028047e+00), 
-             std::complex<double> (-1.394796688198421e-02 , 3.975368239610588e-02), 
-             std::complex<double> (2.847024451270645e-03 , -1.613233235370360e-02), 
-             std::complex<double> (-6.284274455525596e+00 , 8.266456449548737e-03), 
+             std::complex<double> (1.509434485380543e+03 , -3.074761237860913e+03), 
+             std::complex<double> (2.855118699874291e+03 , -7.088774620270474e+02), 
+             std::complex<double> (1.886850974102664e+03 , 1.082766688684612e+03), 
+             std::complex<double> (5.732750876339374e+02 , 1.281579244131794e+03), 
+             std::complex<double> (-6.069197095215364e+01 , 8.068597563626677e+02), 
+             std::complex<double> (-1.876098757964932e+02 , 3.826882526581220e+02), 
+             std::complex<double> (-1.419815664672757e+02 , 1.535163138825217e+02), 
+             std::complex<double> (-7.997290682417217e+01 , 5.490334649265659e+01), 
+             std::complex<double> (-3.929353567980341e+01 , 1.758591652331946e+01), 
+             std::complex<double> (-9.301331431698848e-02 , 5.053504896111161e-02), 
+             std::complex<double> (1.795547636459028e-01 , -1.949119288477871e-01), 
+             std::complex<double> (1.867369915671088e+01 , 3.819079546723665e+00), 
+             std::complex<double> (-4.110520489977353e-02 , 7.833183146949652e-02), 
+             std::complex<double> (1.998338465674346e-02 , -2.711766628925896e-02), 
+             std::complex<double> (6.272770064356892e+00 , 1.328387975164251e-02), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -25688,77 +25688,77 @@
         { 
             int np = 15;
             int m = 3;
-            double b = 1.000000000000000e+03;
+            double b = 1.050000000000000e+03;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-2.379669955571094e+03 , -0.000000000000000e+00), 
-             std::complex<double> (-1.900107248911202e+03 , -1.008097574435928e+03), 
-             std::complex<double> (-1.006159565845679e+03 , -1.280168489949595e+03), 
-             std::complex<double> (-3.823093901832621e+02 , -1.023824165075259e+03), 
-             std::complex<double> (-1.057658282267611e+02 , -6.797976360074730e+02), 
-             std::complex<double> (-1.361185808059625e+01 , 4.204659394597565e+02), 
-             std::complex<double> (9.247712885291420e+00 , 2.534696263955550e+02), 
-             std::complex<double> (1.117886106277435e+01 , 1.508889883178944e+02), 
-             std::complex<double> (8.315577796676816e+00 , -8.870470908257232e+01), 
-             std::complex<double> (5.240097553808656e+00 , -5.121649913590045e+01), 
-             std::complex<double> (2.929538743719356e+00 , -2.895105137439484e+01), 
-             std::complex<double> (1.402322658975567e+00 , -1.619308376804907e+01), 
-             std::complex<double> (3.985759235411923e-01 , -8.969634203913229e+00), 
-             std::complex<double> (5.628239505763489e-03 , -4.657225110442427e+00), 
-             std::complex<double> (-5.854818888421867e-03 , 3.174133042452409e+00), 
+             std::complex<double> (-1.603209488381664e+03 , -2.590634185748175e+02), 
+             std::complex<double> (-1.268780317869003e+03 , -6.368591289490774e+02), 
+             std::complex<double> (-8.218879823897855e+02 , -7.344954475444069e+02), 
+             std::complex<double> (-4.602422486233931e+02 , -6.291129860885124e+02), 
+             std::complex<double> (-2.365167002722807e+02 , -4.570983641820820e+02), 
+             std::complex<double> (-1.173100858143885e+02 , -3.006013083871234e+02), 
+             std::complex<double> (-5.754432745248132e+01 , -1.850622762597378e+02), 
+             std::complex<double> (-2.776049817074638e+01 , -1.084750861670819e+02), 
+             std::complex<double> (-1.281938544441418e+01 , -6.094371393462643e+01), 
+             std::complex<double> (-5.530914497128998e+00 , -3.306026649289365e+01), 
+             std::complex<double> (-2.200460703081086e+00 , -1.752676103433940e+01), 
+             std::complex<double> (-6.119965666453686e-01 , -9.116405997208542e+00), 
+             std::complex<double> (4.136103604255786e-02 , 4.471104859421853e+00), 
+             std::complex<double> (1.761254665121392e+00 , -3.380926884438972e+00), 
+             std::complex<double> (4.248942392583479e-02 , 3.154086985316706e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (3.244668900553620e-71 , 3.793868771410700e+02), 
-             std::complex<double> (-2.680849712020155e+02 , 2.160750239282660e+02), 
-             std::complex<double> (-2.603419446487672e+02 , -2.505552004682633e+01), 
-             std::complex<double> (-1.360851373419802e+02 , -1.123598006510717e+02), 
-             std::complex<double> (-5.005415314581167e+01 , -9.868387798670072e+01), 
-             std::complex<double> (1.458532442032744e+01 , -6.662227288496842e+01), 
-             std::complex<double> (2.361445985373219e+00 , -4.138252382050036e+01), 
-             std::complex<double> (-4.211765090786389e-01 , -2.516433859851027e+01), 
-             std::complex<double> (1.154031716728227e+00 , -1.526346939349759e+01), 
-             std::complex<double> (7.989553625654991e-01 , -9.083460324780216e+00), 
-             std::complex<double> (6.465699896041144e-01 , -5.385703634071372e+00), 
-             std::complex<double> (3.652232035105546e-01 , -2.930155018004523e+00), 
-             std::complex<double> (2.338181042011753e-01 , -1.932361202639877e+00), 
-             std::complex<double> (6.274441584039173e-02 , 2.027659032869518e-01), 
-             std::complex<double> (2.544978815461630e-02 , -2.110298207339513e+00), 
+             std::complex<double> (-6.126443855081903e+01 , 1.564818581362421e+02), 
+             std::complex<double> (-1.381229370904226e+02 , 7.623904427287056e+01), 
+             std::complex<double> (-1.352501467247185e+02 , -8.835650819125170e+00), 
+             std::complex<double> (-9.267196705953103e+01 , -5.041476075026991e+01), 
+             std::complex<double> (-5.196553157125743e+01 , -5.480691802604077e+01), 
+             std::complex<double> (-2.643046266063107e+01 , -4.364570680227498e+01), 
+             std::complex<double> (-1.315208772223861e+01 , -3.012228255184619e+01), 
+             std::complex<double> (-6.579903307418293e+00 , -1.919831689785799e+01), 
+             std::complex<double> (-3.285843583238126e+00 , -1.156290474214407e+01), 
+             std::complex<double> (-1.541101277444564e+00 , -6.579375348602794e+00), 
+             std::complex<double> (-7.033033870058670e-01 , -3.569513576218187e+00), 
+             std::complex<double> (-3.085895749835938e-01 , -2.065941996516334e+00), 
+             std::complex<double> (2.578674886800740e-01 , 1.866311713205541e-01), 
+             std::complex<double> (1.002885844889016e-03 , -2.996947120604902e-02), 
+             std::complex<double> (-1.768375391082141e-01 , -2.075327911565333e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (-4.707372691603628e-68 , -9.030660145576560e+05), 
-             std::complex<double> (7.267175220669206e+05 , -1.405875214932179e+05), 
-             std::complex<double> (2.299988594511737e+05 , 3.590661326406720e+05), 
-             std::complex<double> (-6.293061786985188e+04 , 1.819159849688443e+05), 
-             std::complex<double> (-6.185799960777568e+04 , 4.464912204847763e+04), 
-             std::complex<double> (2.778617706404589e+04 , 6.947347878900294e+03), 
-             std::complex<double> (1.051745952538155e+04 , 2.613521407994729e+02), 
-             std::complex<double> (3.793449642620820e+03 , -3.663590853306174e+02), 
-             std::complex<double> (-1.341798594287381e+03 , -2.197873395477342e+02), 
-             std::complex<double> (-4.630785933018992e+02 , -9.243737345563438e+01), 
-             std::complex<double> (-1.526498202105977e+02 , -3.293758684399799e+01), 
-             std::complex<double> (-4.809268563526454e+01 , -1.062504681353204e+01), 
-             std::complex<double> (-1.528136499287940e+01 , -2.760991117889614e+00), 
-             std::complex<double> (-5.230853624011992e+00 , -1.764202911169844e-01), 
-             std::complex<double> (8.357475034814135e-01 , 2.755119865313776e-02), 
+             std::complex<double> (1.387590645553524e+05 , -2.350050893191917e+05), 
+             std::complex<double> (2.237879716453753e+05 , -8.760031357245990e+03), 
+             std::complex<double> (1.046854455731140e+05 , 1.066171729961689e+05), 
+             std::complex<double> (1.093970916726470e+04 , 8.148717790212844e+04), 
+             std::complex<double> (-1.277133676063962e+04 , 3.672057057644118e+04), 
+             std::complex<double> (-1.001420709690064e+04 , 1.306666850342719e+04), 
+             std::complex<double> (-4.819140578279531e+03 , 4.165518863243846e+03), 
+             std::complex<double> (-1.899702062261373e+03 , 1.247565683082547e+03), 
+             std::complex<double> (-6.625636839536216e+02 , 3.482229151609696e+02), 
+             std::complex<double> (-2.088595044138136e+02 , 8.738634313846196e+01), 
+             std::complex<double> (-6.143898748598174e+01 , 2.011778054563667e+01), 
+             std::complex<double> (-1.726943390074035e+01 , 4.436125643907195e+00), 
+             std::complex<double> (5.295814618585090e+00 , 1.681523944948512e-01), 
+             std::complex<double> (6.207118106740691e-02 , 4.791237057749016e-02), 
+             std::complex<double> (5.975615593514378e-01 , -5.741458536103084e-02), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (-2.081551775381123e-68 , -9.030654343506770e+05), 
-             std::complex<double> (7.267176003015006e+05 , -1.405877356840447e+05), 
-             std::complex<double> (2.299992376711233e+05 , 3.590660257641886e+05), 
-             std::complex<double> (-6.293130873947752e+04 , 1.819161008724326e+05), 
-             std::complex<double> (-6.185727577141902e+04 , 4.464897995794074e+04), 
-             std::complex<double> (2.778680224363064e+04 , 6.947573969805836e+03), 
-             std::complex<double> (1.051698167666117e+04 , 2.610460331750273e+02), 
-             std::complex<double> (3.793768190534121e+03 , -3.660078444563595e+02), 
-             std::complex<double> (-1.341635313749891e+03 , -2.201474372111097e+02), 
-             std::complex<double> (-4.630891029633408e+02 , -9.209269747031995e+01), 
-             std::complex<double> (-1.528297562344521e+02 , -3.325313801970455e+01), 
-             std::complex<double> (-4.752760434824345e+01 , -1.039105991674419e+01), 
-             std::complex<double> (-1.700349089466892e+01 , -2.781995584611744e+00), 
-             std::complex<double> (8.648894428874399e-01 , -3.127833546392406e-01), 
-             std::complex<double> (6.675052882290227e+00 , 1.000170030276243e-01), 
+             std::complex<double> (1.387594864234268e+05 , -2.350051036867064e+05), 
+             std::complex<double> (2.237874216009386e+05 , -8.760541318459903e+03), 
+             std::complex<double> (1.046852886862902e+05 , 1.066180556822822e+05), 
+             std::complex<double> (1.094045467942979e+04 , 8.148677935229647e+04), 
+             std::complex<double> (-1.277200666913280e+04 , 3.672038435826838e+04), 
+             std::complex<double> (-1.001388420871803e+04 , 1.306708957126742e+04), 
+             std::complex<double> (-4.819173703339419e+03 , 4.165122765083927e+03), 
+             std::complex<double> (-1.899833088013559e+03 , 1.247847306637695e+03), 
+             std::complex<double> (-6.623483470356235e+02 , 3.480529958146589e+02), 
+             std::complex<double> (-2.091576495147325e+02 , 8.746722516045459e+01), 
+             std::complex<double> (-6.091965452577842e+01 , 2.015563655319935e+01), 
+             std::complex<double> (-1.869605237067208e+01 , 4.070704219675568e+00), 
+             std::complex<double> (-8.496354036612016e-01 , 1.189835687059798e+00), 
+             std::complex<double> (-1.060718698398473e-01 , -6.435437521246343e-02), 
+             std::complex<double> (6.539750696956992e+00 , -6.596418524366012e-01), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -26026,83 +26026,99 @@
         } 
 
         { 
-            int np = 16;
+            int np = 20;
             int m = 3;
-            double b = 1.000000000000000e+02;
+            double b = 1.100000000000000e+02;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-1.724615859830931e+02 , -2.617430442452097e+01), 
-             std::complex<double> (-1.431075882303238e+02 , -6.746448943007403e+01), 
-             std::complex<double> (-1.006660644955266e+02 , -8.478740897972817e+01), 
-             std::complex<double> (-6.205893270054918e+01 , -8.122797361861814e+01), 
-             std::complex<double> (-3.463392398424109e+01 , -6.708923926575701e+01), 
-             std::complex<double> (-1.787302484222348e+01 , -5.078385962500604e+01), 
-             std::complex<double> (-8.560458198689720e+00 , -3.644289818652576e+01), 
-             std::complex<double> (-3.733547475553309e+00 , -2.520732994776143e+01), 
-             std::complex<double> (-1.467493115139686e+00 , -1.674244786448956e+01), 
-             std::complex<double> (3.723334158666395e+00 , -1.161488638877491e+01), 
-             std::complex<double> (-2.412753322126503e+00 , -1.145084910381567e+01), 
-             std::complex<double> (-1.505735099338442e-01 , 9.397002591878348e+00), 
-             std::complex<double> (1.532043596059633e-01 , 6.200765668926099e+00), 
-             std::complex<double> (7.751875028094384e-02 , 4.499571853163097e+00), 
-             std::complex<double> (1.909741862008159e-02 , 3.529459532949106e+00), 
-             std::complex<double> (7.083351232719981e-05 , 3.141708253664910e+00), 
+             std::complex<double> (-2.140828517500404e+02 , -3.068572288975308e+01), 
+             std::complex<double> (-1.826924917097320e+02 , -8.097166422889407e+01), 
+             std::complex<double> (-1.354736066756045e+02 , -1.062828270940727e+02), 
+             std::complex<double> (-8.982402325042067e+01 , -1.079315350743385e+02), 
+             std::complex<double> (-5.480108011491035e+01 , 9.543894974536769e+01), 
+             std::complex<double> (-3.141449361926493e+01 , 7.784288757838850e+01), 
+             std::complex<double> (-1.708024977819608e+01 , 6.048841145415045e+01), 
+             std::complex<double> (-8.766800212686019e+00 , 4.560912629098131e+01), 
+             std::complex<double> (-4.132905810450048e+00 , 3.368583023445073e+01), 
+             std::complex<double> (-1.645420673387365e+00 , 2.435906717827839e+01), 
+             std::complex<double> (5.558219441429399e+00 , -1.686607958814941e+01), 
+             std::complex<double> (-6.000549338399674e-01 , 1.656926291636377e+01), 
+             std::complex<double> (-2.707876752622709e+00 , -1.439066596363113e+01), 
+             std::complex<double> (7.728148761890386e-01 , -1.202253732771206e+01), 
+             std::complex<double> (8.535694224833234e-03 , -9.432966875244602e+00), 
+             std::complex<double> (-1.081494029293997e-01 , 6.766374796549499e+00), 
+             std::complex<double> (-7.430429497815245e-02 , 5.097390346545138e+00), 
+             std::complex<double> (-3.584487301591142e-02 , 4.021685978649300e+00), 
+             std::complex<double> (-1.059395963802097e-02 , 3.395159860538754e+00), 
+             std::complex<double> (1.952780978474678e-06 , 3.141594983942348e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (-5.229260209247807e+00 , 1.601442585743898e+01), 
-             std::complex<double> (-1.248875279480169e+01 , 9.549027877012109e+00), 
-             std::complex<double> (-1.357472119596603e+01 , 1.706259779884667e+00), 
-             std::complex<double> (-1.063219436525202e+01 , -3.372817960106388e+00), 
-             std::complex<double> (-6.886174984062198e+00 , -5.173121759900387e+00), 
-             std::complex<double> (-3.969591399955496e+00 , -4.997634902578013e+00), 
-             std::complex<double> (-2.119073135945696e+00 , -4.080309685799940e+00), 
-             std::complex<double> (-1.055318521799539e+00 , -3.092775114445235e+00), 
-             std::complex<double> (-4.360163265148736e-01 , -2.368906004286409e+00), 
-             std::complex<double> (-3.055180261983318e-02 , 1.518275581847380e-02), 
-             std::complex<double> (-1.753740031077291e-02 , -2.208249949169209e-01), 
-             std::complex<double> (2.350296053137941e-01 , -1.980667941650697e+00), 
-             std::complex<double> (8.214115193978947e-03 , 3.208034865080129e-03), 
-             std::complex<double> (-1.944902204931683e-03 , -1.846999505963247e-03), 
-             std::complex<double> (1.426418830911695e-03 , 2.148400276697595e-03), 
-             std::complex<double> (-8.075302399578171e-04 , -2.001347416149184e+00), 
+             std::complex<double> (-5.515333392443751e+00 , 1.889258951197188e+01), 
+             std::complex<double> (-1.355113880760378e+01 , 1.234405362736160e+01), 
+             std::complex<double> (-1.552755280807292e+01 , 3.889760189032705e+00), 
+             std::complex<double> (-1.306233246788197e+01 , -2.283617186113258e+00), 
+             std::complex<double> (9.208338202084653e+00 , -5.175576034836957e+00), 
+             std::complex<double> (5.833739522415403e+00 , -5.748495339652226e+00), 
+             std::complex<double> (3.457624256689053e+00 , -5.189148091453678e+00), 
+             std::complex<double> (1.959171575715872e+00 , -4.262689180587354e+00), 
+             std::complex<double> (1.071111787247696e+00 , -3.348267890050494e+00), 
+             std::complex<double> (5.582022318355897e-01 , -2.639451785196826e+00), 
+             std::complex<double> (-4.500924609178014e-03 , 1.742341308849610e-02), 
+             std::complex<double> (2.475047368578720e-02 , -2.467158908833110e+00), 
+             std::complex<double> (-1.729729143926056e-01 , 1.973484870404911e-02), 
+             std::complex<double> (-9.313949817820090e-02 , -3.205276679871172e-02), 
+             std::complex<double> (1.796392652539771e-02 , -2.016585567638228e+00), 
+             std::complex<double> (-4.189476719605838e-04 , -5.959080110965922e-04), 
+             std::complex<double> (8.325034471862880e-05 , 1.058435639026752e-04), 
+             std::complex<double> (-4.322329269377127e-05 , -5.072104946799135e-05), 
+             std::complex<double> (5.381935393537518e-05 , 6.023302051116932e-05), 
+             std::complex<double> (-3.457995978068821e-05 , -2.000038287006105e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (1.321016621770901e+03 , -2.625000372888524e+03), 
-             std::complex<double> (2.431452325264929e+03 , -5.239947933518428e+02), 
-             std::complex<double> (1.511182388288721e+03 , 9.792085138211584e+02), 
-             std::complex<double> (3.858596818856115e+02 , 1.072941601296889e+03), 
-             std::complex<double> (-1.085710145403116e+02 , 6.411543280217766e+02), 
-             std::complex<double> (-1.828440391765075e+02 , 2.909162082247969e+02), 
-             std::complex<double> (-1.305686928747480e+02 , 1.121464576034158e+02), 
-             std::complex<double> (-7.398979954446929e+01 , 3.818722201958754e+01), 
-             std::complex<double> (-3.923788224422099e+01 , 1.035939278718996e+01), 
-             std::complex<double> (-6.128166419570914e-01 , 1.059833337106134e-01), 
-             std::complex<double> (-4.768949402993831e+00 , 8.863652100572841e-01), 
-             std::complex<double> (1.216418446636470e+01 , 3.389330267082938e+00), 
-             std::complex<double> (4.351885273466931e+00 , -5.702593660094783e-02), 
-             std::complex<double> (2.597441673683594e+00 , -1.626481478401202e-01), 
-             std::complex<double> (1.327817477052200e+00 , -7.133030640054959e-02), 
-             std::complex<double> (2.073393277197401e-01 , -9.228455800709565e-03), 
+             std::complex<double> (1.760471125780168e+03 , -3.875337427407356e+03), 
+             std::complex<double> (3.475209816119134e+03 , -1.157907757324675e+03), 
+             std::complex<double> (2.516988288372598e+03 , 1.123352553113033e+03), 
+             std::complex<double> (9.268370170730644e+02 , 1.614961073081828e+03), 
+             std::complex<double> (-1.067525954234807e+01 , 1.162461529385787e+03), 
+             std::complex<double> (2.642154407379450e+02 , 6.347007801388424e+02), 
+             std::complex<double> (2.548263169471410e+02 , 2.977790751902991e+02), 
+             std::complex<double> (1.772416488461406e+02 , 1.267235984713283e+02), 
+             std::complex<double> (1.083631881324646e+02 , 4.993064655582771e+01), 
+             std::complex<double> (6.337138080115905e+01 , 1.784707499449807e+01), 
+             std::complex<double> (1.311665308942938e-01 , 2.741066496575512e-01), 
+             std::complex<double> (4.138350106202416e+01 , 4.566944947422161e+00), 
+             std::complex<double> (3.560705488250542e+00 , 2.981900097526364e+00), 
+             std::complex<double> (-8.800035313291763e+00 , -1.464391780949651e+00), 
+             std::complex<double> (-8.639745448076980e+00 , -1.083170626103609e+00), 
+             std::complex<double> (4.085541829346276e+00 , 2.229369760138826e-02), 
+             std::complex<double> (2.681583969178095e+00 , 8.454352842076297e-02), 
+             std::complex<double> (1.667268467676013e+00 , 6.511299488729118e-02), 
+             std::complex<double> (8.642473585380502e-01 , 3.577485129936342e-02), 
+             std::complex<double> (1.361595431142781e-01 , 5.739524217486413e-03), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (1.321014203045521e+03 , -2.625001334004724e+03), 
-             std::complex<double> (2.431453484369223e+03 , -5.239924336183339e+02), 
-             std::complex<double> (1.511182991862828e+03 , 9.792058652283451e+02), 
-             std::complex<double> (3.858574888585624e+02 , 1.072943608604000e+03), 
-             std::complex<double> (-1.085674267197971e+02 , 6.411535451664054e+02), 
-             std::complex<double> (-1.828495207218557e+02 , 2.909148899305554e+02), 
-             std::complex<double> (-1.305585243140765e+02 , 1.121535684646572e+02), 
-             std::complex<double> (-7.402039730491478e+01 , 3.814964363753926e+01), 
-             std::complex<double> (-3.902129372183448e+01 , 1.077529416579367e+01), 
-             std::complex<double> (6.285157034071250e-02 , 4.113587113581243e-01), 
-             std::complex<double> (-2.487054265211759e+00 , 7.337018170961124e-01), 
-             std::complex<double> (1.857656552627427e+01 , 2.507490559579451e+00), 
-             std::complex<double> (-1.853458358388797e-02 , 5.125218332680828e-02), 
-             std::complex<double> (8.097949281838416e-03 , -8.819859311805481e-03), 
-             std::complex<double> (-7.518889737029251e-03 , 5.039182575667176e-03), 
-             std::complex<double> (6.287636498588576e+00 , -2.666451030444846e-03), 
+             std::complex<double> (1.760471067511604e+03 , -3.875337417173488e+03), 
+             std::complex<double> (3.475209923235895e+03 , -1.157907753955831e+03), 
+             std::complex<double> (2.516988138477934e+03 , 1.123352475678268e+03), 
+             std::complex<double> (9.268371710073239e+02 , 1.614961262355258e+03), 
+             std::complex<double> (-1.067513283741928e+01 , 1.162461197637471e+03), 
+             std::complex<double> (2.642153595269539e+02 , 6.347013409581066e+02), 
+             std::complex<double> (2.548263246823024e+02 , 2.977779879434070e+02), 
+             std::complex<double> (1.772418179772184e+02 , 1.267264064649540e+02), 
+             std::complex<double> (1.083623978085031e+02 , 4.991919567874891e+01), 
+             std::complex<double> (6.337612257348943e+01 , 1.794052189856855e+01), 
+             std::complex<double> (2.688298902910619e-01 , 1.728071486838785e-01), 
+             std::complex<double> (4.086395081023569e+01 , 1.889996118390471e+00), 
+             std::complex<double> (7.521675401069589e-01 , 2.435901944034627e+00), 
+             std::complex<double> (-4.572038646946928e-01 , 1.095221125723332e+00), 
+             std::complex<double> (-1.902232496061278e+01 , -1.866917107605699e-01), 
+             std::complex<double> (4.052985971940275e-03 , -2.763297840944399e-03), 
+             std::complex<double> (-5.344251643516218e-04 , 4.119110128981288e-04), 
+             std::complex<double> (1.993320670334924e-04 , -1.688755977533735e-04), 
+             std::complex<double> (-2.014590938266994e-04 , 1.800203415473804e-04), 
+             std::complex<double> (6.283308935571084e+00 , -1.117514326193773e-04), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -26115,83 +26131,99 @@
         } 
 
         { 
-            int np = 16;
+            int np = 20;
             int m = 3;
             double b = 1.000000000000000e+03;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-2.089207632057294e+03 , 4.938203797452162e+02), 
-             std::complex<double> (-1.408886049179735e+03 , 1.098921670914446e+03), 
-             std::complex<double> (-6.876022156642391e+02 , 1.088328877144342e+03), 
-             std::complex<double> (-2.668509919460793e+02 , -8.042917648354356e+02), 
-             std::complex<double> (-8.801477872208325e+01 , 5.247053984013442e+02), 
-             std::complex<double> (-2.484559467136061e+01 , -3.252100857482168e+02), 
-             std::complex<double> (-5.291242954275248e+00 , 1.969627047184606e+02), 
-             std::complex<double> (-1.463997936104864e-01 , 1.174632120469663e+02), 
-             std::complex<double> (7.218053487044609e-01 , 6.885047796956037e+01), 
-             std::complex<double> (5.871554948520353e-01 , 3.941427086632899e+01), 
-             std::complex<double> (4.884156773622077e-01 , 2.194806598914713e+01), 
-             std::complex<double> (1.074083033998512e+00 , 1.189221994468075e+01), 
-             std::complex<double> (1.331813952512139e+00 , -8.604158672640552e+00), 
-             std::complex<double> (-5.835466920175832e-01 , -5.121456956681465e+00), 
-             std::complex<double> (-5.233254236989765e-01 , -3.862041951400276e+00), 
-             std::complex<double> (-8.676697724291072e-04 , 3.125067761727252e+00), 
+             std::complex<double> (-1.837086287744288e+03 , -3.255825142012526e+02), 
+             std::complex<double> (-1.442512828743705e+03 , -8.039817314715038e+02), 
+             std::complex<double> (-9.237846451000711e+02 , -9.426159805266547e+02), 
+             std::complex<double> (-5.096597990892543e+02 , -8.376331657620943e+02), 
+             std::complex<double> (-2.543698737029530e+02 , -6.472079390521547e+02), 
+             std::complex<double> (-1.189706999084561e+02 , -4.649564385243577e+02), 
+             std::complex<double> (-5.365858181107979e+01 , -3.219187284832510e+02), 
+             std::complex<double> (-2.415903519538472e+01 , 2.189404387916084e+02), 
+             std::complex<double> (-1.136987603758774e+01 , -1.475626215424942e+02), 
+             std::complex<double> (-5.766772895456550e+00 , -9.882077265569268e+01), 
+             std::complex<double> (-3.044585677914919e+00 , -6.570262217681910e+01), 
+             std::complex<double> (-1.524635012675408e+00 , -4.323881136105238e+01), 
+             std::complex<double> (-6.544574209264735e-01 , -2.801191674993361e+01), 
+             std::complex<double> (-2.172899377440811e-01 , -1.758026736252976e+01), 
+             std::complex<double> (3.990084589888040e+00 , -9.859995328423445e+00), 
+             std::complex<double> (-3.709270383364194e+00 , -9.828481078527238e+00), 
+             std::complex<double> (-4.252766872193728e-02 , 9.672699494318854e+00), 
+             std::complex<double> (3.691449554004392e-02 , 5.465275415987489e+00), 
+             std::complex<double> (1.846600980918597e-02 , 3.773109363954083e+00), 
+             std::complex<double> (-5.765186879593118e-05 , 3.141963036199732e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (1.355934015306317e+02 , 2.897200453547860e+02), 
-             std::complex<double> (2.562436532483178e+02 , 8.392846942757378e+01), 
-             std::complex<double> (1.853127565405904e+02 , -6.793643013172977e+01), 
-             std::complex<double> (-8.790258717431732e+01 , -9.795847207192153e+01), 
-             std::complex<double> (3.310446443097905e+01 , -7.684630995694660e+01), 
-             std::complex<double> (-1.078766612648793e+01 , -5.096498671953246e+01), 
-             std::complex<double> (3.076625896424426e+00 , -3.194179225714692e+01), 
-             std::complex<double> (6.770274703273008e-01 , -1.961668681713113e+01), 
-             std::complex<double> (2.801482061893863e-02 , -1.194280153719230e+01), 
-             std::complex<double> (-6.518987047597622e-02 , -7.167336546564014e+00), 
-             std::complex<double> (2.050407893022517e-02 , -4.195138892921359e+00), 
-             std::complex<double> (5.578250314153322e-01 , -2.180511757131877e+00), 
-             std::complex<double> (6.233689587595399e-01 , -8.912737382432996e-01), 
-             std::complex<double> (2.030891128805367e-01 , 5.932166321506154e-02), 
-             std::complex<double> (-6.302467477671783e-02 , -1.567171606766209e-01), 
-             std::complex<double> (2.826169846168233e-02 , -1.909275719139289e+00), 
+             std::complex<double> (-7.280339454385316e+01 , 1.968157753428383e+02), 
+             std::complex<double> (-1.617913400823624e+02 , 9.850765849990987e+01), 
+             std::complex<double> (-1.556713583244978e+02 , -3.681297485787060e+00), 
+             std::complex<double> (-1.057421265350661e+02 , -5.411207395210931e+01), 
+             std::complex<double> (-5.929877086054888e+01 , -6.225912747098283e+01), 
+             std::complex<double> (-2.964846462719622e+01 , -5.231389136811117e+01), 
+             std::complex<double> (-1.373182184313837e+01 , -3.880897257653663e+01), 
+             std::complex<double> (6.028279582254061e+00 , -2.723971027228258e+01), 
+             std::complex<double> (-2.595827972966288e+00 , -1.868640685848780e+01), 
+             std::complex<double> (-1.186538557847305e+00 , -1.271492218603536e+01), 
+             std::complex<double> (-6.277888408120055e-01 , -8.629478317522920e+00), 
+             std::complex<double> (-3.650545698306509e-01 , -5.849797280233371e+00), 
+             std::complex<double> (-1.992221769933177e-01 , -3.969620683374971e+00), 
+             std::complex<double> (-8.728792348985968e-02 , -2.784671746305028e+00), 
+             std::complex<double> (-2.148373253115527e-02 , 1.766473507209393e-02), 
+             std::complex<double> (3.288678487935065e-02 , 1.848824518763746e-02), 
+             std::complex<double> (4.309616949777043e-02 , -2.302267279081848e+00), 
+             std::complex<double> (1.507969797097157e-03 , -9.652197213333909e-03), 
+             std::complex<double> (-8.967154146595724e-04 , 5.135803284736699e-03), 
+             std::complex<double> (5.195986148250523e-04 , -2.002834854565344e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (-4.263516363908196e+05 , -5.383285996258306e+05), 
-             std::complex<double> (-4.532459016722834e+05 , 1.633509554380038e+05), 
-             std::complex<double> (-5.349019873624778e+04 , 2.483924545443890e+05), 
-             std::complex<double> (-5.533463912413445e+04 , 9.683912162953443e+04), 
-             std::complex<double> (3.740563886885101e+04 , 2.413458209958281e+04), 
-             std::complex<double> (-1.630749152555432e+04 , 4.773896693442125e+03), 
-             std::complex<double> (6.274465425224533e+03 , 7.753687210624156e+02), 
-             std::complex<double> (2.304444266547343e+03 , 8.215861282601249e+01), 
-             std::complex<double> (8.221202807451953e+02 , -6.516307251035878e+00), 
-             std::complex<double> (2.825797792288286e+02 , -6.944043574078721e+00), 
-             std::complex<double> (9.189164960380161e+01 , -1.347043925223060e+00), 
-             std::complex<double> (2.793478958878578e+01 , 3.692613803987600e+00), 
-             std::complex<double> (-3.871665439495994e+00 , -7.172817207431934e+00), 
-             std::complex<double> (-5.052931320214874e+00 , -1.461895888341654e+00), 
-             std::complex<double> (-1.492694108709028e+00 , 1.658607110311870e+00), 
-             std::complex<double> (4.570300283001560e-01 , 2.009276163790842e-01), 
+             std::complex<double> (1.978260535557524e+05 , -3.378641580483867e+05), 
+             std::complex<double> (3.125840376112682e+05 , -1.202141253806309e+04), 
+             std::complex<double> (1.403369021433127e+05 , 1.501394627525803e+05), 
+             std::complex<double> (8.566588899713518e+03 , 1.161515386037338e+05), 
+             std::complex<double> (-2.521097974575016e+04 , 5.421561911154459e+04), 
+             std::complex<double> (-2.079623079164623e+04 , 2.000902782756420e+04), 
+             std::complex<double> (-1.175660344708903e+04 , 6.502966252974151e+03), 
+             std::complex<double> (5.818174908863764e+03 , 1.977926906309675e+03), 
+             std::complex<double> (-2.727939762510312e+03 , 5.955011502380052e+02), 
+             std::complex<double> (-1.249631150671882e+03 , 1.905857029758129e+02), 
+             std::complex<double> (-5.650845890539329e+02 , 6.751481043458606e+01), 
+             std::complex<double> (-2.523692275654766e+02 , 2.470806087941333e+01), 
+             std::complex<double> (-1.110760984392728e+02 , 8.175120329508933e+00), 
+             std::complex<double> (-4.897990571665042e+01 , 2.130435363625102e+00), 
+             std::complex<double> (-7.864566834050054e-02 , 7.280578486371887e-01), 
+             std::complex<double> (-1.157006252411864e-01 , -9.796862772772975e-01), 
+             std::complex<double> (1.979192661169748e+01 , 7.409143363063080e-01), 
+             std::complex<double> (4.836220392830246e+00 , -4.647243274214826e-03), 
+             std::complex<double> (2.194723577815062e+00 , -5.057015272459466e-02), 
+             std::complex<double> (3.332053269995911e-01 , -1.197260199091548e-02), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (-4.263517363102286e+05 , -5.383285568946821e+05), 
-             std::complex<double> (-4.532459255787773e+05 , 1.633509753394765e+05), 
-             std::complex<double> (-5.349017306244650e+04 , 2.483923016721168e+05), 
-             std::complex<double> (-5.533465896492059e+04 , 9.683932292616344e+04), 
-             std::complex<double> (3.740560263992368e+04 , 2.413438579428492e+04), 
-             std::complex<double> (-1.630752124822056e+04 , 4.774073849277648e+03), 
-             std::complex<double> (6.274449672001051e+03 , 7.752115427978453e+02), 
-             std::complex<double> (2.304444639434131e+03 , 8.229962594286603e+01), 
-             std::complex<double> (8.221373315010504e+02 , -6.649651136865310e+00), 
-             std::complex<double> (2.825334883319539e+02 , -6.796827013146447e+00), 
-             std::complex<double> (9.204094078462602e+01 , -1.587169572603205e+00), 
-             std::complex<double> (2.657436315556772e+01 , 4.284561394970019e+00), 
-             std::complex<double> (-6.806774053482359e+00 , -6.556777055225163e+00), 
-             std::complex<double> (1.712324701970457e-01 , -1.062212175276162e+00), 
-             std::complex<double> (-5.607440109141920e-01 , 3.229805754312131e-01), 
-             std::complex<double> (5.969326331115837e+00 , 8.799142975292234e-02), 
+             std::complex<double> (1.978260306034062e+05 , -3.378641688349889e+05), 
+             std::complex<double> (3.125840440399151e+05 , -1.202139169100416e+04), 
+             std::complex<double> (1.403369088542608e+05 , 1.501394474098346e+05), 
+             std::complex<double> (8.566578919428541e+03 , 1.161515454816743e+05), 
+             std::complex<double> (-2.521097121297680e+04 , 5.421561733067458e+04), 
+             std::complex<double> (-2.079623726071214e+04 , 2.000902748638629e+04), 
+             std::complex<double> (-1.175659845182117e+04 , 6.502967259709310e+03), 
+             std::complex<double> (5.818179044964238e+03 , 1.977925786397822e+03), 
+             std::complex<double> (-2.727936046621368e+03 , 5.955022274016970e+02), 
+             std::complex<double> (-1.249634794237228e+03 , 1.905846610939985e+02), 
+             std::complex<double> (-5.650806185670700e+02 , 6.751588638715146e+01), 
+             std::complex<double> (-2.523740818358544e+02 , 2.470690565808681e+01), 
+             std::complex<double> (-1.110712297905057e+02 , 8.175793035630503e+00), 
+             std::complex<double> (-4.893241697010526e+01 , 2.142043956498478e+00), 
+             std::complex<double> (8.839020893897886e-02 , 2.833142155350407e-01), 
+             std::complex<double> (6.078104103713707e-02 , -3.923929105039435e-01), 
+             std::complex<double> (2.227054441501564e+01 , 5.129469072367475e-01), 
+             std::complex<double> (5.229812626148828e-02 , 8.152124552145877e-03), 
+             std::complex<double> (-1.919240285959228e-02 , -3.383019124777680e-03), 
+             std::complex<double> (6.292768867085489e+00 , 1.775602258394898e-03), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -26204,83 +26236,99 @@
         } 
 
         { 
-            int np = 16;
+            int np = 20;
             int m = 3;
-            double b = 1.000000000000000e+04;
+            double b = 9.500000000000000e+03;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-1.915994770912137e+04 , 4.469519608028314e+03), 
-             std::complex<double> (-1.286354006642451e+04 , 9.835933314703904e+03), 
-             std::complex<double> (-6.272354000631419e+03 , 9.552206236648539e+03), 
-             std::complex<double> (-2.475867682773831e+03 , 6.873652427966450e+03), 
-             std::complex<double> (-8.704044528627455e+02 , 4.329891381103556e+03), 
-             std::complex<double> (-2.890665738170216e+02 , 2.564853387826573e+03), 
-             std::complex<double> (-8.578081332367895e+01 , 1.464640909634461e+03), 
-             std::complex<double> (-1.376224423005249e+01 , 8.118102122648037e+02), 
-             std::complex<double> (8.434129106482463e+00 , 4.362323586807024e+02), 
-             std::complex<double> (1.116703761015110e+01 , 2.250916564422265e+02), 
-             std::complex<double> (8.055150730638130e+00 , 1.113248347981749e+02), 
-             std::complex<double> (4.538056525347219e+00 , -5.319074553345612e+01), 
-             std::complex<double> (2.068562513510740e+00 , 2.450663022868964e+01), 
-             std::complex<double> (6.247424499100544e-01 , 1.080965415909765e+01), 
-             std::complex<double> (2.483248877014596e-02 , 4.697127002345649e+00), 
-             std::complex<double> (-3.611877325302677e-02 , -3.103224133072917e+00), 
+             std::complex<double> (-1.335317600771081e+04 , -1.609898041112629e+03), 
+             std::complex<double> (-1.151736462622129e+04 , -4.224510813151062e+03), 
+             std::complex<double> (-8.718707691712592e+03 , -5.467347403105100e+03), 
+             std::complex<double> (-5.965162312213617e+03 , -5.405055091156438e+03), 
+             std::complex<double> (-3.812853506396538e+03 , -4.579451810097666e+03), 
+             std::complex<double> (-2.345635188253396e+03 , -3.519400960170455e+03), 
+             std::complex<double> (-1.420367226312552e+03 , -2.535796856511321e+03), 
+             std::complex<double> (-8.574237717235737e+02 , -1.745178554435472e+03), 
+             std::complex<double> (-5.164171690280050e+02 , -1.158697060588494e+03), 
+             std::complex<double> (-3.080716515763900e+02 , -7.473170107455054e+02), 
+             std::complex<double> (-1.813698616330189e+02 , -4.706341444031906e+02), 
+             std::complex<double> (-1.055700286447801e+02 , -2.892600950252519e+02), 
+             std::complex<double> (-6.062970577235549e+01 , -1.726383631614855e+02), 
+             std::complex<double> (-3.396790947506895e+01 , -9.934269342270125e+01), 
+             std::complex<double> (-1.777381892905190e+01 , -5.486068326242952e+01), 
+             std::complex<double> (-8.074321483419472e+00 , -2.933755341671168e+01), 
+             std::complex<double> (-2.728331507899032e+00 , -1.548625797423414e+01), 
+             std::complex<double> (-6.133611393663631e-02 , -8.502429132919450e+00), 
+             std::complex<double> (1.079380123878547e-01 , 4.810267791783337e+00), 
+             std::complex<double> (-2.149027962457749e-02 , -3.145909832523771e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (1.261446400628450e+03 , 2.613733935022969e+03), 
-             std::complex<double> (2.358409637653415e+03 , 7.016871004233131e+02), 
-             std::complex<double> (1.680112896210911e+03 , -6.663657567082383e+02), 
-             std::complex<double> (7.895378365207990e+02 , -9.040546083227298e+02), 
-             std::complex<double> (2.984891015566988e+02 , -6.888483791723643e+02), 
-             std::complex<double> (1.044145085684281e+02 , -4.440370493248158e+02), 
-             std::complex<double> (3.681433932530836e+01 , -2.683934950014566e+02), 
-             std::complex<double> (1.276492732165580e+01 , -1.562300593307139e+02), 
-             std::complex<double> (2.867447380276769e+00 , -8.881040725033834e+01), 
-             std::complex<double> (-4.584964767073116e-01 , -4.901662545668889e+01), 
-             std::complex<double> (-1.242132062097645e+00 , -2.559167943679276e+01), 
-             std::complex<double> (9.422896106948911e-01 , -1.278935113589618e+01), 
-             std::complex<double> (-6.327712273383731e-01 , -6.201993705103861e+00), 
-             std::complex<double> (-2.859673553176758e-01 , -2.962989066526257e+00), 
-             std::complex<double> (-1.873108104661762e-01 , -2.452795623218497e-01), 
-             std::complex<double> (-1.033742063012416e-01 , -1.875045064596449e+00), 
+             std::complex<double> (-3.214317028834418e+02 , 9.897254589179236e+02), 
+             std::complex<double> (-7.964010077152056e+02 , 6.324279820100984e+02), 
+             std::complex<double> (-9.274280904397633e+02 , 1.650117802354949e+02), 
+             std::complex<double> (-7.964938025546600e+02 , -1.740683345379638e+02), 
+             std::complex<double> (-5.716793103975853e+02 , -3.219324706927768e+02), 
+             std::complex<double> (-3.702457900288520e+02 , -3.362733837005744e+02), 
+             std::complex<double> (-2.287237059481810e+02 , -2.849366967994263e+02), 
+             std::complex<double> (-1.375204581510606e+02 , -2.178075702402813e+02), 
+             std::complex<double> (-8.386080815125193e+01 , -1.571830284701277e+02), 
+             std::complex<double> (-5.152801217811116e+01 , -1.071167593118157e+02), 
+             std::complex<double> (-3.074184680286705e+01 , -7.099099163829270e+01), 
+             std::complex<double> (-1.847526105871629e+01 , -4.616086803759617e+01), 
+             std::complex<double> (-1.085838468738607e+01 , -2.921403573060571e+01), 
+             std::complex<double> (-6.496267261302560e+00 , -1.817049413183034e+01), 
+             std::complex<double> (-4.013069123341621e+00 , -1.068695930509412e+01), 
+             std::complex<double> (-2.274436855095781e+00 , -5.936145080980628e+00), 
+             std::complex<double> (-1.233328744338552e+00 , -3.129876385292341e+00), 
+             std::complex<double> (-3.946873760599719e-01 , -1.632509129849320e+00), 
+             std::complex<double> (-1.560996387290149e-01 , 1.088783311150680e-01), 
+             std::complex<double> (-7.436767514097858e-02 , -2.021160227364936e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (-3.585261941548312e+07 , -4.444328098667087e+07), 
-             std::complex<double> (-3.723391778210862e+07 , 1.417134799371930e+07), 
-             std::complex<double> (-4.176345563027396e+06 , 2.023130806584190e+07), 
-             std::complex<double> (4.260232523292783e+06 , 7.662972585434765e+06), 
-             std::complex<double> (2.722777926415920e+06 , 1.893207095456224e+06), 
-             std::complex<double> (1.108633211193485e+06 , 3.956396532634917e+05), 
-             std::complex<double> (3.900001398329775e+05 , 7.715457921320218e+04), 
-             std::complex<double> (1.266234150076079e+05 , 1.243115151934511e+04), 
-             std::complex<double> (3.877851882358386e+04 , 5.321850167903334e+02), 
-             std::complex<double> (1.102386908891868e+04 , -6.614868418882598e+02), 
-             std::complex<double> (2.840359629294759e+03 , -3.405936521481827e+02), 
-             std::complex<double> (-6.753987362844362e+02 , -1.094634661726932e+02), 
-             std::complex<double> (1.512513776408074e+02 , -2.789919580793559e+01), 
-             std::complex<double> (3.064212667119169e+01 , -5.201410172305999e+00), 
-             std::complex<double> (6.113629368970796e+00 , -4.341382269736567e-01), 
-             std::complex<double> (-6.784379577592599e-01 , 7.924320741716523e-02), 
+             std::complex<double> (5.879171628095686e+06 , -1.270162545798926e+07), 
+             std::complex<double> (1.184334151960070e+07 , -3.910356361412567e+06), 
+             std::complex<double> (8.997905726349038e+06 , 3.630709651780496e+06), 
+             std::complex<double> (3.807241237024622e+06 , 5.335670942600629e+06), 
+             std::complex<double> (7.011730575704349e+05 , 3.849596806675389e+06), 
+             std::complex<double> (-3.114787736415249e+05 , 2.092877591253983e+06), 
+             std::complex<double> (-3.983353161070377e+05 , 9.827536690689554e+05), 
+             std::complex<double> (-2.627540025493041e+05 , 4.276599817389162e+05), 
+             std::complex<double> (-1.383159220888109e+05 , 1.782418509203832e+05), 
+             std::complex<double> (-6.437244814422461e+04 , 7.137239619860062e+04), 
+             std::complex<double> (-2.781265877043256e+04 , 2.744856505375314e+04), 
+             std::complex<double> (-1.137982247573562e+04 , 1.017711145317427e+04), 
+             std::complex<double> (-4.402397680748845e+03 , 3.652625763255078e+03), 
+             std::complex<double> (-1.577728048850149e+03 , 1.264774726128856e+03), 
+             std::complex<double> (-5.163006455473103e+02 , 4.078575533152286e+02), 
+             std::complex<double> (-1.559095359478862e+02 , 1.156271545231688e+02), 
+             std::complex<double> (-4.515536444824793e+01 , 2.724154049110604e+01), 
+             std::complex<double> (-1.218360068045430e+01 , 3.843848618679294e+00), 
+             std::complex<double> (5.333157039866639e+00 , -7.160072542023587e-01), 
+             std::complex<double> (-9.340089283285603e-01 , 3.898099417925027e-02), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (-3.585261917733233e+07 , -4.444328463028669e+07), 
-             std::complex<double> (-3.723391157995192e+07 , 1.417135246972910e+07), 
-             std::complex<double> (-4.176353653830898e+06 , 2.023130780968958e+07), 
-             std::complex<double> (4.260238859727381e+06 , 7.662970460890230e+06), 
-             std::complex<double> (2.722773567975386e+06 , 1.893209588364759e+06), 
-             std::complex<double> (1.108636144912800e+06 , 3.956374916603103e+05), 
-             std::complex<double> (3.899981663013861e+05 , 7.715628992114617e+04), 
-             std::complex<double> (1.266247725820965e+05 , 1.242987308661928e+04), 
-             std::complex<double> (3.877753918144267e+04 , 5.330772408003481e+02), 
-             std::complex<double> (1.102462349779569e+04 , -6.620677889309855e+02), 
-             std::complex<double> (2.839727059927053e+03 , -3.402353390236311e+02), 
-             std::complex<double> (-6.759899038422975e+02 , -1.096668440532490e+02), 
-             std::complex<double> (1.505772466434515e+02 , -2.781863878379927e+01), 
-             std::complex<double> (3.192414344144615e+01 , -5.113483609885277e+00), 
-             std::complex<double> (1.106300622149848e+00 , -8.179297234204120e-01), 
-             std::complex<double> (-5.830472451425713e+00 , 3.638995579487490e-01), 
+             std::complex<double> (5.879172192592621e+06 , -1.270162544084677e+07), 
+             std::complex<double> (1.184334067614201e+07 , -3.910356836334479e+06), 
+             std::complex<double> (8.997906058476260e+06 , 3.630711114396750e+06), 
+             std::complex<double> (3.807242464235233e+06 , 5.335669482363949e+06), 
+             std::complex<double> (7.011710073789773e+05 , 3.849596736208096e+06), 
+             std::complex<double> (-3.114775581832959e+05 , 2.092879107309570e+06), 
+             std::complex<double> (-3.983350846070684e+05 , 9.827520113305613e+05), 
+             std::complex<double> (-2.627550702677793e+05 , 4.276607929330919e+05), 
+             std::complex<double> (-1.383149059956171e+05 , 1.782419714333452e+05), 
+             std::complex<double> (-6.437293781999355e+04 , 7.137180979271532e+04), 
+             std::complex<double> (-2.781268076946377e+04 , 2.744912914579805e+04), 
+             std::complex<double> (-1.137954272325373e+04 , 1.017681153336075e+04), 
+             std::complex<double> (-4.402689457833242e+03 , 3.652657679358820e+03), 
+             std::complex<double> (-1.577557378036606e+03 , 1.264903471675990e+03), 
+             std::complex<double> (-5.163131425997247e+02 , 4.076823606152712e+02), 
+             std::complex<double> (-1.560668229047483e+02 , 1.157555309079370e+02), 
+             std::complex<double> (-4.468369384135865e+01 , 2.732181738915382e+01), 
+             std::complex<double> (-1.410603249770375e+01 , 3.539698345009697e+00), 
+             std::complex<double> (-6.394448436892213e-01 , -7.880932465725767e-01), 
+             std::complex<double> (-6.379476826984747e+00 , 2.931993469857379e-01), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -26293,624 +26341,99 @@
         } 
 
         { 
-            int np = 16;
-            int m = 3;
-            double b = 1.000000000000000e+05;
-             std::complex<double> vec_temp[] = {
-             std::complex<double> (-2.214747678711451e+05 , -6.183528674298349e+04), 
-             std::complex<double> (-1.307026561226299e+05 , 1.272268281850591e+05), 
-             std::complex<double> (-4.802041608345684e+04 , 1.111849784761070e+05), 
-             std::complex<double> (-9.828485269310980e+03 , -7.123460416243941e+04), 
-             std::complex<double> (1.238727459845238e+03 , -3.992738914899674e+04), 
-             std::complex<double> (2.515583026207952e+03 , -2.122315135457208e+04), 
-             std::complex<double> (1.669336467255783e+03 , -1.108868798498215e+04), 
-             std::complex<double> (8.980611499516534e+02 , -5.670514651076319e+03), 
-             std::complex<double> (4.444211370349117e+02 , -2.770925062255063e+03), 
-             std::complex<double> (2.006737389243259e+02 , 1.278818016676094e+03), 
-             std::complex<double> (8.559924658905966e+01 , -5.530636520852362e+02), 
-             std::complex<double> (3.555885198803740e+01 , -2.191191544425544e+02), 
-             std::complex<double> (1.572660086481564e+01 , -7.947919050571109e+01), 
-             std::complex<double> (6.377488443499278e+00 , -2.570165658871248e+01), 
-             std::complex<double> (2.551376194040591e+00 , -6.980610715364116e+00), 
-             std::complex<double> (2.422277567234616e-01 , 2.425633011837575e+00), 
-            };
-            std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp1[] = {
-             std::complex<double> (-1.910585527444135e+04 , 3.544553437057510e+04), 
-             std::complex<double> (3.210448968362025e+04 , 5.329165161169380e+03), 
-             std::complex<double> (1.892161045804020e+04 , -1.178017712016022e+04), 
-             std::complex<double> (-6.633788547363402e+03 , -1.202939598323660e+04), 
-             std::complex<double> (-1.341140335452458e+03 , -7.810021148175934e+03), 
-             std::complex<double> (1.482200601170228e+02 , -4.347943719064424e+03), 
-             std::complex<double> (2.942684556830759e+02 , -2.312997542610404e+03), 
-             std::complex<double> (1.905519336961708e+02 , -1.247896482613316e+03), 
-             std::complex<double> (1.059813353947832e+02 , -6.542517808210230e+02), 
-             std::complex<double> (-5.276529734328098e+01 , -3.282534740688430e+02), 
-             std::complex<double> (2.421987492535898e+01 , -1.537774618654137e+02), 
-             std::complex<double> (9.290329804786857e+00 , -6.834452817778677e+01), 
-             std::complex<double> (4.428359276776341e+00 , -2.650049841715134e+01), 
-             std::complex<double> (1.717601333552169e+00 , -1.007081717996076e+01), 
-             std::complex<double> (9.157742039274561e-01 , -2.841720638291481e+00), 
-             std::complex<double> (-3.899033147009929e-01 , -1.194525960876435e+00), 
-            };
-            std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp2[] = {
-             std::complex<double> (6.423034190628313e+09 , -6.667680970310459e+09), 
-             std::complex<double> (-4.875807379529597e+09 , 3.388612991066886e+09), 
-             std::complex<double> (4.013636049836615e+08 , 2.668428280277757e+09), 
-             std::complex<double> (-7.918484211920163e+08 , 5.912195263060274e+08), 
-             std::complex<double> (-3.134296426415254e+08 , 4.371950076037568e+07), 
-             std::complex<double> (-9.191744060944872e+07 , -1.402355957277105e+07), 
-             std::complex<double> (-2.515877636914474e+07 , -7.146873448105337e+06), 
-             std::complex<double> (-6.901915345966710e+06 , -2.193748056570927e+06), 
-             std::complex<double> (-1.767536850434083e+06 , -5.864383234393137e+05), 
-             std::complex<double> (4.084863893698275e+05 , -1.329338301641061e+05), 
-             std::complex<double> (-8.320067274968615e+04 , -2.661121585163667e+04), 
-             std::complex<double> (-1.458566634472887e+04 , -4.469354903133953e+03), 
-             std::complex<double> (-2.049606607527728e+03 , -7.643808324968838e+02), 
-             std::complex<double> (-2.456412134401306e+02 , -1.094180356014754e+02), 
-             std::complex<double> (-1.889364323394011e+01 , -1.378585147604528e+01), 
-             std::complex<double> (7.271073104016402e-01 , -1.183196117738047e+00), 
-            };
-            std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp3[] = {
-             std::complex<double> (6.423034172256159e+09 , -6.667681002079795e+09), 
-             std::complex<double> (-4.875807363627841e+09 , 3.388613054945655e+09), 
-             std::complex<double> (4.013635723263438e+08 , 2.668428223758256e+09), 
-             std::complex<double> (-7.918484458556392e+08 , 5.912195689642898e+08), 
-             std::complex<double> (-3.134296324100848e+08 , 4.371946824279422e+07), 
-             std::complex<double> (-9.191743950499268e+07 , -1.402353566368079e+07), 
-             std::complex<double> (-2.515878345429806e+07 , -7.146889147293867e+06), 
-             std::complex<double> (-6.901906870339694e+06 , -2.193739394634520e+06), 
-             std::complex<double> (-1.767544186909347e+06 , -5.864419906961645e+05), 
-             std::complex<double> (4.084809679743614e+05 , -1.329330740152105e+05), 
-             std::complex<double> (-8.320425911118181e+04 , -2.661058389057234e+04), 
-             std::complex<double> (-1.458350598912820e+04 , -4.470516658491774e+03), 
-             std::complex<double> (-2.050705521104732e+03 , -7.630740449743549e+02), 
-             std::complex<double> (-2.454622412006645e+02 , -1.106931906553506e+02), 
-             std::complex<double> (-1.767042700073290e+01 , -1.300291535713991e+01), 
-             std::complex<double> (2.863159361529806e+00 , -1.353987714562290e+00), 
-            };
-            std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec1);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-        } 
-
-        { 
-            int np = 16;
-            int m = 3;
-            double b = 1.000000000000000e+06;
-             std::complex<double> vec_temp[] = {
-             std::complex<double> (-1.271995431639950e+06 , -1.655497432962928e+05), 
-             std::complex<double> (-1.032934088637491e+06 , -4.054059147713963e+05), 
-             std::complex<double> (-7.051229533567801e+05 , -4.632171668135335e+05), 
-             std::complex<double> (-4.268337442681595e+05 , -3.885666507045302e+05), 
-             std::complex<double> (-2.404662014020404e+05 , -2.719544478320960e+05), 
-             std::complex<double> (-1.311287980187868e+05 , -1.698367578477724e+05), 
-             std::complex<double> (-7.068925690634320e+04 , -9.704802358304906e+04), 
-             std::complex<double> (-3.649881216802984e+04 , -5.141180405105193e+04), 
-             std::complex<double> (-1.760304756375354e+04 , -2.615797345627348e+04), 
-             std::complex<double> (-8.238283683713881e+03 , -1.284373116356155e+04), 
-             std::complex<double> (-3.806862426764322e+03 , -5.722704821435211e+03), 
-             std::complex<double> (-1.549146464460843e+03 , -2.155079275161532e+03), 
-             std::complex<double> (-5.131707701861099e+02 , -7.169288116707335e+02), 
-             std::complex<double> (-1.462311578710351e+02 , -2.005335415202523e+02), 
-             std::complex<double> (-3.244532780530586e+01 , -2.821915592797874e+01), 
-             std::complex<double> (-9.296140751924401e-01 , -3.279600125604347e+00), 
-            };
-            std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp1[] = {
-             std::complex<double> (-4.485802116050138e+04 , 9.925066124512831e+04), 
-             std::complex<double> (-9.957149486176275e+04 , 4.977674942354420e+04), 
-             std::complex<double> (-9.912214948663855e+04 , -8.312278578226544e+03), 
-             std::complex<double> (-7.517930358029524e+04 , -3.638361865150098e+04), 
-             std::complex<double> (-4.659044092189063e+04 , -3.523085871875049e+04), 
-             std::complex<double> (-2.446204772663812e+04 , -2.760707173354413e+04), 
-             std::complex<double> (-1.424606539617638e+04 , -1.928799492383452e+04), 
-             std::complex<double> (-8.504736249778848e+03 , -1.070289112916211e+04), 
-             std::complex<double> (-4.077971084552051e+03 , -5.453798973895902e+03), 
-             std::complex<double> (-1.837104920246982e+03 , -3.236078476253599e+03), 
-             std::complex<double> (-1.136095063259023e+03 , -1.632911002788495e+03), 
-             std::complex<double> (-4.615498277488701e+02 , -6.461512731011392e+02), 
-             std::complex<double> (-1.649383561807730e+02 , -2.957876100473909e+02), 
-             std::complex<double> (-8.492905314338229e+01 , -9.963111570545099e+01), 
-             std::complex<double> (-1.508938448791790e+01 , -1.404711964863335e+01), 
-             std::complex<double> (-1.587366673429370e+00 , -3.759460029147674e+00), 
-            };
-            std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp2[] = {
-             std::complex<double> (7.188132483393071e+10 , -1.198609452852968e+11), 
-             std::complex<double> (1.221955123018869e+11 , -9.043042325345619e+09), 
-             std::complex<double> (6.782058020471273e+10 , 5.243090113580068e+10), 
-             std::complex<double> (1.825698819254860e+10 , 4.353912871543620e+10), 
-             std::complex<double> (9.667849727173792e+08 , 2.111275313059878e+10), 
-             std::complex<double> (-1.404757281722669e+09 , 8.063473826900400e+09), 
-             std::complex<double> (-7.683460931280364e+08 , 2.678125501602453e+09), 
-             std::complex<double> (-2.741792388529546e+08 , 8.021893992525288e+08), 
-             std::complex<double> (-7.591353049927335e+07 , 2.176721214187208e+08), 
-             std::complex<double> (-2.098888882781035e+07 , 4.964170069561439e+07), 
-             std::complex<double> (-5.880946465422699e+06 , 1.148869224704028e+07), 
-             std::complex<double> (-8.594864311965757e+05 , 2.266935703149347e+06), 
-             std::complex<double> (-6.274553734137301e+04 , 2.913255856425134e+05), 
-             std::complex<double> (-8.081807954767360e+03 , 1.999932450850486e+04), 
-             std::complex<double> (-8.537366549351644e+02 , 1.168832098286330e+03), 
-             std::complex<double> (-9.384378963272475e+00 , 9.619548024792575e+01), 
-            };
-            std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp3[] = {
-             std::complex<double> (7.188132487135588e+10 , -1.198609452786179e+11), 
-             std::complex<double> (1.221955122748033e+11 , -9.043042384784651e+09), 
-             std::complex<double> (6.782058014021616e+10 , 5.243090119430296e+10), 
-             std::complex<double> (1.825698827131789e+10 , 4.353912876272574e+10), 
-             std::complex<double> (9.667849901128794e+08 , 2.111275305013007e+10), 
-             std::complex<double> (-1.404757346830359e+09 , 8.063473837694242e+09), 
-             std::complex<double> (-7.683460681711845e+08 , 2.678125542255379e+09), 
-             std::complex<double> (-2.741792175075149e+08 , 8.021893734437218e+08), 
-             std::complex<double> (-7.591355391442944e+07 , 2.176721129656129e+08), 
-             std::complex<double> (-2.098888682330965e+07 , 4.964171845200376e+07), 
-             std::complex<double> (-5.880937437665697e+06 , 1.148868614076731e+07), 
-             std::complex<double> (-8.594913508539038e+05 , 2.266932009852622e+06), 
-             std::complex<double> (-6.274693653094214e+04 , 2.913291896501102e+05), 
-             std::complex<double> (-8.079455008929689e+03 , 1.999937470822456e+04), 
-             std::complex<double> (-8.536919548649246e+02 , 1.167651028846045e+03), 
-             std::complex<double> (-1.114261635072573e+01 , 9.658752018472534e+01), 
-            };
-            std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec1);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-        } 
-
-        { 
-            int np = 22;
-            int m = 3;
-            double b = 1.000000000000000e+02;
-             std::complex<double> vec_temp[] = {
-             std::complex<double> (-1.687368447776888e+02 , -1.875866489568888e+01), 
-             std::complex<double> (-1.520186890934673e+02 , -5.163497531918667e+01), 
-             std::complex<double> (-1.242853334328827e+02 , -7.298733094935281e+01), 
-             std::complex<double> (-9.334815599313858e+01 , -8.112944633423460e+01), 
-             std::complex<double> (-6.530950262964656e+01 , -7.869424806810342e+01), 
-             std::complex<double> (-4.307986153839249e+01 , -6.994391372194293e+01), 
-             std::complex<double> (-2.698903366279364e+01 , -5.864441129441252e+01), 
-             std::complex<double> (-1.604763228641288e+01 , -4.726393478766914e+01), 
-             std::complex<double> (-8.918799235916806e+00 , -3.705923733326385e+01), 
-             std::complex<double> (-4.417431575225058e+00 , -2.845357599310957e+01), 
-             std::complex<double> (-1.730225129215809e+00 , 2.133772872311934e+01), 
-             std::complex<double> (6.775569736832039e+00 , -1.742846379964435e+01), 
-             std::complex<double> (-2.826842046184329e+00 , -1.601318509153513e+01), 
-             std::complex<double> (6.855036006453645e-02 , 1.527112684015510e+01), 
-             std::complex<double> (5.091295396663212e-01 , -1.198203386853575e+01), 
-             std::complex<double> (-3.119937557476394e-03 , 9.422865020393097e+00), 
-             std::complex<double> (-3.406299980226468e-01 , -6.991442196513088e+00), 
-             std::complex<double> (-5.508620484955497e-01 , -5.549672931398091e+00), 
-             std::complex<double> (-3.129056690012078e-01 , -4.672817742631844e+00), 
-             std::complex<double> (-1.047312306059482e-01 , -3.855734165184945e+00), 
-             std::complex<double> (-2.612269704489279e-02 , 3.348680084768353e+00), 
-             std::complex<double> (6.549011812826222e-07 , 3.141592391058303e+00), 
-            };
-            std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp1[] = {
-             std::complex<double> (-2.836705344225044e+00 , 1.168125602331855e+01), 
-             std::complex<double> (-7.481459990311283e+00 , 8.867033441877082e+00), 
-             std::complex<double> (-9.737281061830808e+00 , 4.643474297528971e+00), 
-             std::complex<double> (-9.626841376283409e+00 , 6.960041846520714e-01), 
-             std::complex<double> (-8.073294224318778e+00 , -2.008458531416681e+00), 
-             std::complex<double> (-6.068441563667284e+00 , -3.358620553816048e+00), 
-             std::complex<double> (-4.233012800420543e+00 , -3.704878674503577e+00), 
-             std::complex<double> (-2.805895989395905e+00 , -3.475721856375885e+00), 
-             std::complex<double> (-1.796251766105137e+00 , -3.000213160600545e+00), 
-             std::complex<double> (-1.113527774397612e+00 , -2.483175646534665e+00), 
-             std::complex<double> (6.181562659062541e-01 , -2.097557977416498e+00), 
-             std::complex<double> (-2.524618816117805e-04 , 1.223684968716710e-03), 
-             std::complex<double> (-7.917488334283272e-02 , -1.870522580034094e-01), 
-             std::complex<double> (2.219619014326331e-01 , -1.590572411155509e+00), 
-             std::complex<double> (3.023830838117327e-02 , 1.404098350364532e-02), 
-             std::complex<double> (6.567699738328837e-03 , -1.997075091094977e+00), 
-             std::complex<double> (-1.686145790395042e-04 , 3.608357288795958e-04), 
-             std::complex<double> (6.778320516596544e-05 , -7.512855183811466e-05), 
-             std::complex<double> (-4.562765655264286e-05 , 4.346426986173010e-06), 
-             std::complex<double> (1.970065425718777e-05 , 7.163100314708977e-06), 
-             std::complex<double> (2.102896265351654e-05 , -1.057223601510411e-05), 
-             std::complex<double> (-1.307016247581636e-05 , -1.999993099426177e+00), 
-            };
-            std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp2[] = {
-             std::complex<double> (6.977814165433001e+02 , -1.917845492047039e+03), 
-             std::complex<double> (1.595170844038670e+03 , -9.616497730318943e+02), 
-             std::complex<double> (1.549115958892264e+03 , 1.335823677952359e+02), 
-             std::complex<double> (9.551143980500057e+02 , 7.160496838251919e+02), 
-             std::complex<double> (3.692086399063713e+02 , 7.664930851756622e+02), 
-             std::complex<double> (2.651254040121126e+01 , 5.691397418151587e+02), 
-             std::complex<double> (-1.030252970632424e+02 , 3.482331475795345e+02), 
-             std::complex<double> (-1.192491251031239e+02 , 1.883958061822446e+02), 
-             std::complex<double> (-9.516154271550833e+01 , 9.332303602881152e+01), 
-             std::complex<double> (-6.576076415059148e+01 , 4.267010873426438e+01), 
-             std::complex<double> (4.339343948863280e+01 , 1.655692281591533e+01), 
-             std::complex<double> (-4.192124876557028e-02 , 9.891705416421335e-03), 
-             std::complex<double> (-2.541730082717833e+00 , -6.317487752288298e-01), 
-             std::complex<double> (2.043985775045722e+01 , 8.498151647340489e+00), 
-             std::complex<double> (-1.088907140500260e+01 , -2.014841650945898e+00), 
-             std::complex<double> (7.543654304008503e+00 , -1.231039619236236e+00), 
-             std::complex<double> (-3.809900126340518e+00 , -5.099341638828618e-01), 
-             std::complex<double> (-1.946930577719384e+00 , -7.020965418857461e-02), 
-             std::complex<double> (-1.833660766685735e+00 , 6.519022221869241e-01), 
-             std::complex<double> (-1.335195943080518e+00 , 2.420716442306341e-01), 
-             std::complex<double> (7.046518400281042e-01 , 9.380187881204827e-02), 
-             std::complex<double> (1.113494823402610e-01 , 1.331988914410172e-02), 
-            };
-            std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp3[] = {
-             std::complex<double> (6.977814756746027e+02 , -1.917845477987984e+03), 
-             std::complex<double> (1.595170798200657e+03 , -9.616498037495773e+02), 
-             std::complex<double> (1.549116002901734e+03 , 1.335824053275450e+02), 
-             std::complex<double> (9.551143414975184e+02 , 7.160496193220115e+02), 
-             std::complex<double> (3.692086955337075e+02 , 7.664932189367324e+02), 
-             std::complex<double> (2.651253802941530e+01 , 5.691394843375512e+02), 
-             std::complex<double> (-1.030254751426038e+02 , 3.482336304227498e+02), 
-             std::complex<double> (-1.192483347914703e+02 , 1.883947842517979e+02), 
-             std::complex<double> (-9.516517388017249e+01 , 9.332604112997175e+01), 
-             std::complex<double> (-6.573632208031187e+01 , 4.265306519213871e+01), 
-             std::complex<double> (4.368753652500048e+01 , 1.681938452450568e+01), 
-             std::complex<double> (1.961455939198837e-02 , 1.269570903884132e-02), 
-             std::complex<double> (-2.771400702869017e+00 , 1.796583920924907e+00), 
-             std::complex<double> (2.430520314479135e+01 , 3.280550457414952e+00), 
-             std::complex<double> (1.836897514152931e-01 , -3.552007263763920e-01), 
-             std::complex<double> (1.881815826992649e+01 , 6.814045879858808e-02), 
-             std::complex<double> (2.582730065078980e-03 , 1.045481866037724e-03), 
-             std::complex<double> (-4.585512762164304e-04 , -3.287794276839623e-04), 
-             std::complex<double> (3.908857328400267e-05 , 2.100460903778317e-04), 
-             std::complex<double> (2.330883822216533e-05 , -7.662616804809702e-05), 
-             std::complex<double> (3.364007668053848e-05 , 7.075809095800085e-05), 
-             std::complex<double> (6.283163535907689e+00 , -4.240517614152691e-05), 
-            };
-            std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec1);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-        } 
-
-        { 
-            int np = 22;
-            int m = 3;
-            double b = 1.000000000000000e+03;
-             std::complex<double> vec_temp[] = {
-             std::complex<double> (-1.930839490398529e+03 , -3.125277437665242e+02), 
-             std::complex<double> (-1.581078519871069e+03 , -8.002972791611300e+02), 
-             std::complex<double> (-1.085014655183269e+03 , -9.957515757879882e+02), 
-             std::complex<double> (-6.458720622282456e+02 , 9.444120777795899e+02), 
-             std::complex<double> (-3.443081466450943e+02 , 7.737555826982623e+02), 
-             std::complex<double> (-1.681024912025201e+02 , 5.827562228000308e+02), 
-             std::complex<double> (-7.620211316886554e+01 , 4.182173774535858e+02), 
-             std::complex<double> (-3.242145310278985e+01 , 2.922399265971859e+02), 
-             std::complex<double> (-1.320291544853161e+01 , 2.013322551980424e+02), 
-             std::complex<double> (-5.381009161203141e+00 , 1.375721377278037e+02), 
-             std::complex<double> (-2.315791602856163e+00 , 9.340021631576915e+01), 
-             std::complex<double> (-1.014408842361184e+00 , 6.294525726753098e+01), 
-             std::complex<double> (-3.579520218084015e-01 , 4.200104075798002e+01), 
-             std::complex<double> (-2.069948783343015e-02 , 2.762916082603817e+01), 
-             std::complex<double> (1.163684689470229e-01 , -1.765167662190157e+01), 
-             std::complex<double> (3.485249602754513e+00 , -1.128124653203761e+01), 
-             std::complex<double> (-3.053261023552950e+00 , -1.092580988682793e+01), 
-             std::complex<double> (1.820611956752533e-02 , 9.626400213143037e+00), 
-             std::complex<double> (7.059072644141349e-02 , 5.928511642891385e+00), 
-             std::complex<double> (6.102340327726274e-02 , 4.262704928025750e+00), 
-             std::complex<double> (2.947997078259351e-02 , 3.436226306024863e+00), 
-             std::complex<double> (-3.240176389428326e-05 , 3.141285855552705e+00), 
-            };
-            std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp1[] = {
-             std::complex<double> (-6.275464317412680e+01 , 1.908600074285368e+02), 
-             std::complex<double> (-1.477089170814444e+02 , 1.110016922886349e+02), 
-             std::complex<double> (-1.566393466332996e+02 , 1.670386243660365e+01), 
-             std::complex<double> (1.189363296820684e+02 , -4.199678160300838e+01), 
-             std::complex<double> (7.407589240898701e+01 , -6.132535018519582e+01), 
-             std::complex<double> (4.044446594568697e+01 , -5.790788069711991e+01), 
-             std::complex<double> (2.000856615974063e+01 , -4.630417793387406e+01), 
-             std::complex<double> (9.095268898208942e+00 , -3.413786137344108e+01), 
-             std::complex<double> (3.815962811150785e+00 , -2.417915008496037e+01), 
-             std::complex<double> (1.500781041165774e+00 , -1.681819072924092e+01), 
-             std::complex<double> (6.003662222457799e-01 , -1.161324947466252e+01), 
-             std::complex<double> (2.818419364515000e-01 , -7.995848903373112e+00), 
-             std::complex<double> (1.503359549380535e-01 , -5.490947252665826e+00), 
-             std::complex<double> (6.961643218128643e-02 , -3.770382044533212e+00), 
-             std::complex<double> (-2.425814668491157e-02 , -2.692607357817835e+00), 
-             std::complex<double> (-7.280365893151173e-02 , -3.626726253643767e-02), 
-             std::complex<double> (8.420489658811744e-02 , 1.409389235884670e-02), 
-             std::complex<double> (-3.419056839929555e-02 , -2.303317627920995e+00), 
-             std::complex<double> (-1.897814093881490e-03 , -9.891154377733831e-03), 
-             std::complex<double> (7.310029738287654e-04 , 4.225064634579682e-03), 
-             std::complex<double> (-4.241478739843606e-04 , -6.269437620699634e-03), 
-             std::complex<double> (1.387327696101065e-04 , -1.995708017074246e+00), 
-            };
-            std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp2[] = {
-             std::complex<double> (1.808181901743114e+05 , -3.489074558032342e+05), 
-             std::complex<double> (3.223737802856295e+05 , -5.729137256444521e+04), 
-             std::complex<double> (1.865888345518122e+05 , 1.378499419098533e+05), 
-             std::complex<double> (-3.715542293541841e+04 , 1.394494752372685e+05), 
-             std::complex<double> (2.194591897397777e+04 , 7.843142794910639e+04), 
-             std::complex<double> (2.694735329519976e+04 , 3.330374280194681e+04), 
-             std::complex<double> (1.784052131561132e+04 , 1.189639286305814e+04), 
-             std::complex<double> (9.681561222407362e+03 , 3.764808776107998e+03), 
-             std::complex<double> (4.817663744729161e+03 , 1.087505462516128e+03), 
-             std::complex<double> (2.305635829789010e+03 , 2.969690683281853e+02), 
-             std::complex<double> (1.083293098970098e+03 , 8.296442449194219e+01), 
-             std::complex<double> (5.030100832205088e+02 , 2.585546775099810e+01), 
-             std::complex<double> (2.305809511579297e+02 , 8.274551204047722e+00), 
-             std::complex<double> (1.041397981389898e+02 , 2.012973420503937e+00), 
-             std::complex<double> (-4.779825073550634e+01 , 5.894841805290802e-02), 
-             std::complex<double> (-1.579831074825737e+00 , 6.592608835352995e-01), 
-             std::complex<double> (-1.347592156429368e+00 , -1.387387218060077e+00), 
-             std::complex<double> (1.695893881608553e+01 , 2.544143626475165e-01), 
-             std::complex<double> (4.542212148590638e+00 , 1.347666406483686e-02), 
-             std::complex<double> (2.351087453782759e+00 , -4.529468220357084e-02), 
-             std::complex<double> (1.050823153303996e+00 , -7.466139022562067e-02), 
-             std::complex<double> (1.499918555535064e-01 , -2.108830333475817e-02), 
-            };
-            std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp3[] = {
-             std::complex<double> (1.808181857617132e+05 , -3.489074593207792e+05), 
-             std::complex<double> (3.223737788933897e+05 , -5.729136599091902e+04), 
-             std::complex<double> (1.865888405724534e+05 , 1.378499379945633e+05), 
-             std::complex<double> (-3.715541624351506e+04 , 1.394494753607760e+05), 
-             std::complex<double> (2.194591359990065e+04 , 7.843142998393014e+04), 
-             std::complex<double> (2.694735727198327e+04 , 3.330374010836073e+04), 
-             std::complex<double> (1.784051822299586e+04 , 1.189639552113138e+04), 
-             std::complex<double> (9.681563902846125e+03 , 3.764806345973402e+03), 
-             std::complex<double> (4.817661148882775e+03 , 1.087507682786486e+03), 
-             std::complex<double> (2.305638603248891e+03 , 2.969669413396171e+02), 
-             std::complex<double> (1.083289786155766e+03 , 8.296667781098960e+01), 
-             std::complex<double> (5.030148068410324e+02 , 2.585264935059562e+01), 
-             std::complex<double> (2.305717155566942e+02 , 8.279095422331794e+00), 
-             std::complex<double> (1.041710326997281e+02 , 2.002010842139153e+00), 
-             std::complex<double> (-4.753187418419917e+01 , 1.142866278013113e-01), 
-             std::complex<double> (-6.626418439960653e-01 , 6.948569230367133e-01), 
-             std::complex<double> (-1.033673108786285e-01 , -9.631374515628349e-01), 
-             std::complex<double> (2.217199801082851e+01 , -3.704846312693585e-01), 
-             std::complex<double> (5.852464579260408e-02 , -1.209638017167037e-02), 
-             std::complex<double> (-1.798516856420019e-02 , 3.470593589706341e-03), 
-             std::complex<double> (2.155316103645298e-02 , -1.714109117675229e-03), 
-             std::complex<double> (6.269077679391218e+00 , 5.303838489840490e-04), 
-            };
-            std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec1);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-        } 
-
-        { 
-            int np = 22;
-            int m = 3;
-            double b = 1.000000000000000e+04;
-             std::complex<double> vec_temp[] = {
-             std::complex<double> (-1.511022964310075e+04 , -2.043610349475034e+03), 
-             std::complex<double> (-1.278066101700669e+04 , -5.304116656129324e+03), 
-             std::complex<double> (-9.337109344348559e+03 , -6.744432666872924e+03), 
-             std::complex<double> (-6.093740438844393e+03 , -6.544445340636012e+03), 
-             std::complex<double> (-3.681520685348717e+03 , -5.459508544571525e+03), 
-             std::complex<double> (-2.120157769905463e+03 , -4.150530853754732e+03), 
-             std::complex<double> (-1.187371836637251e+03 , -2.972736689590076e+03), 
-             std::complex<double> (-6.550100729561848e+02 , -2.045220457133451e+03), 
-             std::complex<double> (-3.593193207494582e+02 , -1.365710845613543e+03), 
-             std::complex<double> (-1.968850546420371e+02 , -8.890396453982826e+02), 
-             std::complex<double> (-1.068701303861264e+02 , -5.653275629992380e+02), 
-             std::complex<double> (-5.627666583205449e+01 , -3.516729884784316e+02), 
-             std::complex<double> (-2.795356354125570e+01 , -2.139794259548907e+02), 
-             std::complex<double> (-1.272519264304352e+01 , -1.271602280438091e+02), 
-             std::complex<double> (-5.342515677172316e+00 , -7.372928887674408e+01), 
-             std::complex<double> (-2.339927231921929e+00 , -4.170401155606610e+01), 
-             std::complex<double> (-1.402233470729259e+00 , -2.303142366577366e+01), 
-             std::complex<double> (-1.568591118656362e+00 , -1.275844630037415e+01), 
-             std::complex<double> (-9.516593121863539e-01 , -8.609668130451552e+00), 
-             std::complex<double> (6.734747400896796e-01 , 5.365703707833145e+00), 
-             std::complex<double> (2.905733768189489e-01 , 4.018017915538288e+00), 
-             std::complex<double> (3.799709247448748e-03 , 3.130696607015714e+00), 
-            };
-            std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp1[] = {
-             std::complex<double> (-4.118607246497411e+02 , 1.252745459806467e+03), 
-             std::complex<double> (-9.991575815099689e+02 , 7.673647576206050e+02), 
-             std::complex<double> (-1.118883852698068e+03 , 1.634184076071588e+02), 
-             std::complex<double> (-9.134748169473721e+02 , -2.467277701381334e+02), 
-             std::complex<double> (-6.234103188114771e+02 , -4.080255952470381e+02), 
-             std::complex<double> (-3.836165268018909e+02 , -4.070302016249029e+02), 
-             std::complex<double> (-2.226066512439492e+02 , -3.370936168333233e+02), 
-             std::complex<double> (-1.249162387846467e+02 , -2.539251325731366e+02), 
-             std::complex<double> (-6.872026562157656e+01 , -1.812496075914049e+02), 
-             std::complex<double> (-3.783370291960910e+01 , -1.248999803994060e+02), 
-             std::complex<double> (-2.116004608099730e+01 , -8.346469873169866e+01), 
-             std::complex<double> (-1.191560022462714e+01 , -5.436060299443614e+01), 
-             std::complex<double> (-6.583388319333361e+00 , -3.462239965362679e+01), 
-             std::complex<double> (-3.378131132230898e+00 , -2.156222840888447e+01), 
-             std::complex<double> (-1.503039290336858e+00 , -1.308160595237391e+01), 
-             std::complex<double> (-5.322227872957152e-01 , -7.727096883122003e+00), 
-             std::complex<double> (-1.212688749355948e-01 , -4.433587882499026e+00), 
-             std::complex<double> (2.018142056325945e-01 , -2.058755585694177e+00), 
-             std::complex<double> (-4.937063161742124e-01 , -1.309365563378637e+00), 
-             std::complex<double> (1.330741255605094e-01 , 1.345249582118227e-01), 
-             std::complex<double> (1.337456848084118e-02 , -1.522871405964783e-01), 
-             std::complex<double> (-2.937421959831543e-02 , -1.938747509095529e+00), 
-            };
-            std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp2[] = {
-             std::complex<double> (8.783335439249761e+06 , -1.808758506577323e+07), 
-             std::complex<double> (1.684023922000951e+07 , -4.507694735981372e+06), 
-             std::complex<double> (1.154927160673014e+07 , 6.020147376818836e+06), 
-             std::complex<double> (3.951611811967528e+06 , 7.481846183071318e+06), 
-             std::complex<double> (6.766730746899084e+04 , 4.905686246247964e+06), 
-             std::complex<double> (-8.761478639124795e+05 , 2.455083941655458e+06), 
-             std::complex<double> (-7.377697573892389e+05 , 1.062083342640616e+06), 
-             std::complex<double> (-4.374899708655690e+05 , 4.217678286350685e+05), 
-             std::complex<double> (-2.228611724882043e+05 , 1.589899325554137e+05), 
-             std::complex<double> (-1.035811151995786e+05 , 5.822563802202952e+04), 
-             std::complex<double> (-4.492856215843272e+04 , 2.088050135294152e+04), 
-             std::complex<double> (-1.844467808862617e+04 , 7.251333097813518e+03), 
-             std::complex<double> (-7.225017539144156e+03 , 2.375407558453507e+03), 
-             std::complex<double> (-2.698788336970582e+03 , 7.046032759583970e+02), 
-             std::complex<double> (-9.563967893125114e+02 , 1.803101492692146e+02), 
-             std::complex<double> (-3.211459372303808e+02 , 4.056886939715066e+01), 
-             std::complex<double> (-1.016402447927495e+02 , 8.688162630405207e+00), 
-             std::complex<double> (-2.793071356209776e+01 , 8.310465055130606e-01), 
-             std::complex<double> (-7.810217614735738e+00 , 6.616085725789055e+00), 
-             std::complex<double> (3.665583731822922e+00 , 1.077202816490660e+00), 
-             std::complex<double> (2.735116459685233e+00 , -1.363542065467740e+00), 
-             std::complex<double> (4.655317087990174e-01 , -1.086431310812650e-01), 
-            };
-            std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
-             std::complex<double> vec_temp3[] = {
-             std::complex<double> (8.783335942582678e+06 , -1.808758503262548e+07), 
-             std::complex<double> (1.684023867851304e+07 , -4.507695590687114e+06), 
-             std::complex<double> (1.154927079377791e+07 , 6.020148636759778e+06), 
-             std::complex<double> (3.951613608414270e+06 , 7.481846243544967e+06), 
-             std::complex<double> (6.766618559540797e+04 , 4.905684776277136e+06), 
-             std::complex<double> (-8.761480375047782e+05 , 2.455085635617833e+06), 
-             std::complex<double> (-7.377687691595567e+05 , 1.062082275936759e+06), 
-             std::complex<double> (-4.374911074103493e+05 , 4.217681438019430e+05), 
-             std::complex<double> (-2.228602725717129e+05 , 1.589901211913092e+05), 
-             std::complex<double> (-1.035816780231907e+05 , 5.822522923446422e+04), 
-             std::complex<double> (-4.492828677815772e+04 , 2.088094110912182e+04), 
-             std::complex<double> (-1.844475940200362e+04 , 7.250952926385636e+03), 
-             std::complex<double> (-7.225045949074830e+03 , 2.375704518942832e+03), 
-             std::complex<double> (-2.698706802736987e+03 , 7.043760817346284e+02), 
-             std::complex<double> (-9.565062320982531e+02 , 1.804972389905028e+02), 
-             std::complex<double> (-3.209973401694577e+02 , 4.038264198088355e+01), 
-             std::complex<double> (-1.019425410516144e+02 , 8.946971120471250e+00), 
-             std::complex<double> (-2.659749039092567e+01 , 7.055193368418272e-01), 
-             std::complex<double> (-1.077568575701985e+01 , 5.466264620284457e+00), 
-             std::complex<double> (-6.131884943317700e-01 , 8.219568281220048e-01), 
-             std::complex<double> (6.109540269855192e-01 , -6.699364571639206e-03), 
-             std::complex<double> (6.069222274913101e+00 , -9.521672942914621e-02), 
-            };
-            std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
-            method.push_back(m);
-            beta.push_back(b);
-            numPole.push_back(np);
-            zshift.push_back(zvec);
-            zweight.push_back(wvec1);
-            fweight.push_back(wvec2);
-            eweight.push_back(wvec3);
-        } 
-
-        { 
-            int np = 22;
+            int np = 20;
             int m = 3;
             double b = 1.000000000000000e+05;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-1.959378751360190e+05 , 4.189630784667186e+04), 
-             std::complex<double> (-1.401407204460927e+05 , 9.676193520716615e+04), 
-             std::complex<double> (-7.615942706948586e+04 , 1.017134417008144e+05), 
-             std::complex<double> (-3.412207505649316e+04 , 8.010376317555712e+04), 
-             std::complex<double> (-1.336577023727063e+04 , 5.528853206145223e+04), 
-             std::complex<double> (-4.608760677826207e+03 , 3.593577494880655e+04), 
-             std::complex<double> (-1.263418834453881e+03 , -2.270474472507635e+04), 
-             std::complex<double> (-9.107840744007212e+01 , -1.412360746531896e+04), 
-             std::complex<double> (2.702199876642067e+02 , 8.670660448743038e+03), 
-             std::complex<double> (3.289620448924932e+02 , -5.234562395117565e+03), 
-             std::complex<double> (2.697399152834833e+02 , 3.095878456057626e+03), 
-             std::complex<double> (1.766896634893579e+02 , 1.795124667484002e+03), 
-             std::complex<double> (9.632664268247675e+01 , 1.023698581423169e+03), 
-             std::complex<double> (4.625383249193208e+01 , 5.724281007408201e+02), 
-             std::complex<double> (2.156095803609172e+01 , 3.109237511739578e+02), 
-             std::complex<double> (1.073808030450337e+01 , 1.629563401088502e+02), 
-             std::complex<double> (5.659121081729394e+00 , 8.285985467246240e+01), 
-             std::complex<double> (2.804985166063036e+00 , 4.150617018852943e+01), 
-             std::complex<double> (1.148436255611688e+00 , 2.055916152293709e+01), 
-             std::complex<double> (2.850125323961549e-01 , -9.923547762557187e+00), 
-             std::complex<double> (-1.945291765988390e-02 , -4.637365343654291e+00), 
-             std::complex<double> (-1.084780744257779e-02 , -3.136976367398626e+00), 
+             std::complex<double> (-1.441906360622105e+05 , -2.090688438853900e+04), 
+             std::complex<double> (-1.173715985289214e+05 , -5.187040454190585e+04), 
+             std::complex<double> (-8.079409221248230e+04 , -6.103648126154734e+04), 
+             std::complex<double> (-4.986661465689410e+04 , -5.399232761746272e+04), 
+             std::complex<double> (-2.920383766862381e+04 , -4.099113097545750e+04), 
+             std::complex<double> (-1.688030288139758e+04 , -2.847924192617005e+04), 
+             std::complex<double> (-9.807164996421806e+03 , -1.873177113095094e+04), 
+             std::complex<double> (-5.741992870504618e+03 , -1.186610989240605e+04), 
+             std::complex<double> (-3.365927899072609e+03 , -7.285360414045964e+03), 
+             std::complex<double> (-1.957613375254282e+03 , -4.329533824907540e+03), 
+             std::complex<double> (-1.113295520473992e+03 , -2.478356823348125e+03), 
+             std::complex<double> (-6.100169568218485e+02 , -1.374978631075682e+03), 
+             std::complex<double> (-3.281977440435622e+02 , -7.427916528229938e+02), 
+             std::complex<double> (-1.713724027614488e+02 , -3.853084222035280e+02), 
+             std::complex<double> (-8.321663407068622e+01 , -1.894873077320584e+02), 
+             std::complex<double> (-3.602864631925159e+01 , -8.733992747564605e+01), 
+             std::complex<double> (-1.403659726619028e+01 , -3.710722510042617e+01), 
+             std::complex<double> (-4.431283855405616e+00 , -1.374310508108590e+01), 
+             std::complex<double> (-6.466713233180145e-01 , -5.019929604946231e+00), 
+             std::complex<double> (2.615685686839706e-01 , 3.051725413900731e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (1.081786416893542e+04 , 2.484735474868752e+04), 
-             std::complex<double> (2.168008906161515e+04 , 8.978672534599057e+03), 
-             std::complex<double> (1.743557229946389e+04 , -4.266202433429749e+03), 
-             std::complex<double> (9.518536212516642e+03 , -8.202306499886287e+03), 
-             std::complex<double> (4.239285962602379e+03 , -7.188578502494076e+03), 
-             std::complex<double> (1.681452507410309e+03 , -5.127505938080613e+03), 
-             std::complex<double> (-6.110990122302031e+02 , -3.382636983162207e+03), 
-             std::complex<double> (-2.022525479546458e+02 , -2.162741721337031e+03), 
-             std::complex<double> (5.205844246250162e+01 , -1.367369449158594e+03), 
-             std::complex<double> (5.945410358248955e+00 , -8.574726274444367e+02), 
-             std::complex<double> (-2.753759955627120e+01 , -5.278485309810780e+02), 
-             std::complex<double> (-2.925025875889898e+01 , -3.163474261652479e+02), 
-             std::complex<double> (-2.099097950840403e+01 , -1.857939888970280e+02), 
-             std::complex<double> (-1.126268060075437e+01 , -1.082585031459888e+02), 
-             std::complex<double> (-5.110353535212921e+00 , -6.213712724278294e+01), 
-             std::complex<double> (-2.219039145031835e+00 , -3.441011902592233e+01), 
-             std::complex<double> (-1.182840319766426e+00 , -1.810031206083164e+01), 
-             std::complex<double> (-6.803335893995175e-01 , -9.191900369560986e+00), 
-             std::complex<double> (-3.944584713054079e-01 , -4.646892222689020e+00), 
-             std::complex<double> (1.570768818812375e-01 , -2.463855832889016e+00), 
-             std::complex<double> (6.759737320435905e-02 , -3.906409504389912e-02), 
-             std::complex<double> (-3.606753828124648e-02 , -1.983605413870231e+00), 
+             std::complex<double> (-4.886212620651208e+03 , 1.265807366630485e+04), 
+             std::complex<double> (-1.114798305483026e+04 , 6.445363822785288e+03), 
+             std::complex<double> (-1.127348733095556e+04 , -2.301377938862522e+02), 
+             std::complex<double> (-8.210063190881731e+03 , -3.663495954385177e+03), 
+             std::complex<double> (-5.074165327183507e+03 , -4.272655646152394e+03), 
+             std::complex<double> (-2.942952681087424e+03 , -3.588016309725876e+03), 
+             std::complex<double> (-1.681017525713567e+03 , -2.617812160946431e+03), 
+             std::complex<double> (-9.732040514839665e+02 , -1.786348445220400e+03), 
+             std::complex<double> (-5.758807576692599e+02 , -1.167385235296764e+03), 
+             std::complex<double> (-3.426933176789886e+02 , -7.417160361067695e+02), 
+             std::complex<double> (-2.055587683959390e+02 , -4.542633170522036e+02), 
+             std::complex<double> (-1.203772082647217e+02 , -2.639160229302264e+02), 
+             std::complex<double> (-6.521746233018072e+01 , -1.486463292386707e+02), 
+             std::complex<double> (-3.677324777275761e+01 , -8.439492984126493e+01), 
+             std::complex<double> (-2.100253247823107e+01 , -4.429815454175433e+01), 
+             std::complex<double> (-9.886576868422785e+00 , -2.253849657008824e+01), 
+             std::complex<double> (-4.688251549331592e+00 , -1.088551513409515e+01), 
+             std::complex<double> (-1.808138046805044e+00 , -4.597632482985333e+00), 
+             std::complex<double> (-1.114687850844540e+00 , -9.245894440240816e-01), 
+             std::complex<double> (-4.601209936323350e-01 , -1.515145443263626e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (-3.160655550902159e+09 , -4.415332908022665e+09), 
-             std::complex<double> (-3.907002410956303e+09 , 8.395167189043326e+08), 
-             std::complex<double> (-8.939704385260785e+08 , 2.098389214024240e+09), 
-             std::complex<double> (3.322339204077814e+08 , 1.042321108131136e+09), 
-             std::complex<double> (3.407959592335601e+08 , 3.304772011573148e+08), 
-             std::complex<double> (1.765042554710285e+08 , 8.405089479555469e+07), 
-             std::complex<double> (-7.603374679357383e+07 , 1.815054100805584e+07), 
-             std::complex<double> (-3.052533132083588e+07 , 3.052597115234596e+06), 
-             std::complex<double> (1.187098689019158e+07 , 8.234908803752458e+04), 
-             std::complex<double> (-4.486136917604156e+06 , -3.134418393761391e+05), 
-             std::complex<double> (1.626884604329656e+06 , -2.275014985896710e+05), 
-             std::complex<double> (5.626603217294702e+05 , -1.084738203564114e+05), 
-             std::complex<double> (1.881910136362305e+05 , -3.935082842615025e+04), 
-             std::complex<double> (6.144543868310396e+04 , -1.146964218418725e+04), 
-             std::complex<double> (1.921049517833774e+04 , -2.922567654025878e+03), 
-             std::complex<double> (5.583330846800938e+03 , -7.334221684950171e+02), 
-             std::complex<double> (1.493249993217819e+03 , -1.995749595067703e+02), 
-             std::complex<double> (3.793537419771566e+02 , -5.434700684676894e+01), 
-             std::complex<double> (9.558195355496712e+01 , -1.330285715267917e+01), 
-             std::complex<double> (-2.307160220386055e+01 , -2.413503602837233e+00), 
-             std::complex<double> (-5.648897482428852e+00 , -1.390311704452667e-01), 
-             std::complex<double> (-7.092978540009576e-01 , 5.974918413763689e-02), 
+             std::complex<double> (9.689864712529950e+08 , -1.723015307569411e+09), 
+             std::complex<double> (1.643076666569559e+09 , -1.780466355887174e+08), 
+             std::complex<double> (8.968293092790504e+08 , 7.062346292794787e+08), 
+             std::complex<double> (2.112291456596388e+08 , 6.261137200133005e+08), 
+             std::complex<double> (-2.672969331947104e+07 , 3.329480286026538e+08), 
+             std::complex<double> (-5.250050394446526e+07 , 1.442085184311388e+08), 
+             std::complex<double> (-3.262350718024584e+07 , 5.721758771873303e+07), 
+             std::complex<double> (-1.556438411819724e+07 , 2.181426685233624e+07), 
+             std::complex<double> (-6.577145507792720e+06 , 8.107180498791994e+06), 
+             std::complex<double> (-2.542820466664379e+06 , 2.944050882238103e+06), 
+             std::complex<double> (-8.938705367629159e+05 , 1.013672422194255e+06), 
+             std::complex<double> (-2.906881447215885e+05 , 3.259877720329270e+05), 
+             std::complex<double> (-8.883563490683122e+04 , 9.770416421457777e+04), 
+             std::complex<double> (-2.613631771383475e+04 , 2.847647667862255e+04), 
+             std::complex<double> (-6.699554027977428e+03 , 7.679620837956293e+03), 
+             std::complex<double> (-1.599116698526420e+03 , 1.684345404919860e+03), 
+             std::complex<double> (-3.391241703265845e+02 , 3.229843202346925e+02), 
+             std::complex<double> (-5.486240169271512e+01 , 4.595532911331269e+01), 
+             std::complex<double> (-6.913088351624154e+00 , 4.622894266446244e+00), 
+             std::complex<double> (9.090656061989686e-01 , -3.961942904862522e-01), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (-3.160655548935014e+09 , -4.415332911432850e+09), 
-             std::complex<double> (-3.907002406032628e+09 , 8.395167219313564e+08), 
-             std::complex<double> (-8.939704448153657e+08 , 2.098389216854438e+09), 
-             std::complex<double> (3.322339239460338e+08 , 1.042321102261984e+09), 
-             std::complex<double> (3.407959580555476e+08 , 3.304772072115880e+08), 
-             std::complex<double> (1.765042555274452e+08 , 8.405088950841009e+07), 
-             std::complex<double> (-7.603374707411268e+07 , 1.815054540865294e+07), 
-             std::complex<double> (-3.052533107615858e+07 , 3.052593537823628e+06), 
-             std::complex<double> (1.187098693730700e+07 , 8.235191242169800e+04), 
-             std::complex<double> (-4.486137124126712e+06 , -3.134439840630022e+05), 
-             std::complex<double> (1.626884167045178e+06 , -2.274999435414420e+05), 
-             std::complex<double> (5.626609037703604e+05 , -1.084748878261658e+05), 
-             std::complex<double> (1.881904001459286e+05 , -3.935013812572661e+04), 
-             std::complex<double> (6.144599357528766e+04 , -1.147006884290909e+04), 
-             std::complex<double> (1.921003151638251e+04 , -2.922306833870083e+03), 
-             std::complex<double> (5.583722373782452e+03 , -7.335838680284175e+02), 
-             std::complex<double> (1.492884521912651e+03 , -1.994758294873257e+02), 
-             std::complex<double> (3.797565911311661e+02 , -5.439787742406011e+01), 
-             std::complex<double> (9.500258470484691e+01 , -1.330647354107420e+01), 
-             std::complex<double> (-2.444241185504617e+01 , -2.309291088063885e+00), 
-             std::complex<double> (-1.663627050497922e-01 , -2.937546246840093e-01), 
-             std::complex<double> (-6.227644477483040e+00 , 1.279048094583514e-01), 
+             std::complex<double> (9.689864417718155e+08 , -1.723015313081908e+09), 
+             std::complex<double> (1.643076688241458e+09 , -1.780465933288611e+08), 
+             std::complex<double> (8.968293457432356e+08 , 7.062345834853954e+08), 
+             std::complex<double> (2.112290871693043e+08 , 6.261137076600908e+08), 
+             std::complex<double> (-2.672967474492816e+07 , 3.329480797688265e+08), 
+             std::complex<double> (-5.250047850702559e+07 , 1.442084801299854e+08), 
+             std::complex<double> (-3.262354381893656e+07 , 5.721759154631710e+07), 
+             std::complex<double> (-1.556436332002361e+07 , 2.181428594968669e+07), 
+             std::complex<double> (-6.577145484541529e+06 , 8.107159787683730e+06), 
+             std::complex<double> (-2.542831215364564e+06 , 2.944060726406279e+06), 
+             std::complex<double> (-8.938605156524888e+05 , 1.013673476951862e+06), 
+             std::complex<double> (-2.906922421319192e+05 , 3.259819796975011e+05), 
+             std::complex<double> (-8.883668342304700e+04 , 9.770902148487796e+04), 
+             std::complex<double> (-2.613341433614166e+04 , 2.847480354153155e+04), 
+             std::complex<double> (-6.701652578303776e+03 , 7.678882490410241e+03), 
+             std::complex<double> (-1.598558124195600e+03 , 1.685768238660601e+03), 
+             std::complex<double> (-3.386179247844002e+02 , 3.219600771839405e+02), 
+             std::complex<double> (-5.608897274296451e+01 , 4.620176296811302e+01), 
+             std::complex<double> (-3.379753668947771e+00 , 6.199937348687603e+00), 
+             std::complex<double> (4.693931412045514e+00 , -1.876981417057362e+00), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -26923,107 +26446,99 @@
         } 
 
         { 
-            int np = 22;
+            int np = 20;
             int m = 3;
-            double b = 1.000000000000000e+06;
+            double b = 1.100000000000000e+06;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-3.453967449207179e+06 , -1.102332637557811e+06), 
-             std::complex<double> (-1.855510821969708e+06 , -2.229391885578125e+06), 
-             std::complex<double> (-4.871825934336283e+05 , -1.914354911306760e+06), 
-             std::complex<double> (7.435289829592614e+04 , -1.239235985173334e+06), 
-             std::complex<double> (1.971468021581715e+05 , -7.337560906246920e+05), 
-             std::complex<double> (1.776208356978026e+05 , -4.264122015594609e+05), 
-             std::complex<double> (1.291430198151929e+05 , -2.471305776919412e+05), 
-             std::complex<double> (8.459759278190843e+04 , -1.434915045944620e+05), 
-             std::complex<double> (5.241775986035910e+04 , -8.407170212673779e+04), 
-             std::complex<double> (3.183352565747719e+04 , -4.922801147586381e+04), 
-             std::complex<double> (1.912395677343313e+04 , -2.835333680272616e+04), 
-             std::complex<double> (1.141121091669638e+04 , -1.584944671453061e+04), 
-             std::complex<double> (6.742199040033265e+03 , -8.362766439327924e+03), 
-             std::complex<double> (3.716377672579579e+03 , -4.052645081985751e+03), 
-             std::complex<double> (1.860586303478959e+03 , -1.880346647216737e+03), 
-             std::complex<double> (8.505470566999821e+02 , 8.869270134661417e+02), 
-             std::complex<double> (3.844526382453790e+02 , -4.273038080548931e+02), 
-             std::complex<double> (1.767037007336764e+02 , 1.888980408310336e+02), 
-             std::complex<double> (6.788721674254195e+01 , -7.219262220897913e+01), 
-             std::complex<double> (2.401112296983641e+01 , 2.431825059993584e+01), 
-             std::complex<double> (6.307476241420775e+00 , 5.597237847497912e+00), 
-             std::complex<double> (4.609619612520298e-01 , 2.124572040842354e+00), 
+             std::complex<double> (-2.570475242046493e+06 , -6.984789726631377e+05), 
+             std::complex<double> (-1.580456371173426e+06 , 1.478719079915912e+06), 
+             std::complex<double> (-6.369933531563229e+05 , 1.372257742746467e+06), 
+             std::complex<double> (-1.542585544292671e+05 , -9.600215146249546e+05), 
+             std::complex<double> (1.783517369623438e+04 , -5.985319093150013e+05), 
+             std::complex<double> (5.616899901646968e+04 , -3.555568085756882e+05), 
+             std::complex<double> (5.057085812594248e+04 , -2.066839379615484e+05), 
+             std::complex<double> (3.582899617280462e+04 , -1.185323193918693e+05), 
+             std::complex<double> (2.289813558813297e+04 , -6.701258123794981e+04), 
+             std::complex<double> (1.378636086073266e+04 , -3.704582074703192e+04), 
+             std::complex<double> (7.768459399898865e+03 , -1.987929963926327e+04), 
+             std::complex<double> (4.029733657189107e+03 , -1.038451354445766e+04), 
+             std::complex<double> (1.928026800007649e+03 , 5.308451305280633e+03), 
+             std::complex<double> (8.788375804648260e+02 , 2.648664080325833e+03), 
+             std::complex<double> (3.854816180341903e+02 , -1.268248346459751e+03), 
+             std::complex<double> (1.529563589394261e+02 , -5.667266103851251e+02), 
+             std::complex<double> (4.750115774696548e+01 , -2.272483204611354e+02), 
+             std::complex<double> (1.101932843229065e+01 , 7.667091928255529e+01), 
+             std::complex<double> (2.677677593222096e+00 , 1.964940051527991e+01), 
+             std::complex<double> (1.384906740555478e-01 , 3.101999899340652e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (-3.318750014436717e+05 , 6.368103285285200e+05), 
-             std::complex<double> (-5.524445721578910e+05 , 6.383243034805387e+04), 
-             std::complex<double> (-2.983645201560764e+05 , -1.968173865134766e+05), 
-             std::complex<double> (-8.714009440014490e+04 , -2.043058632911061e+05), 
-             std::complex<double> (-3.863971195922717e+03 , -1.218791711917420e+05), 
-             std::complex<double> (1.069120338572352e+04 , -7.430926201632607e+04), 
-             std::complex<double> (1.688566839767510e+04 , -4.445924997110602e+04), 
-             std::complex<double> (1.288656217008866e+04 , -2.344379359017400e+04), 
-             std::complex<double> (7.278176086860976e+03 , -1.421759263303327e+04), 
-             std::complex<double> (5.396529102246923e+03 , -9.103100654883675e+03), 
-             std::complex<double> (3.413993151019524e+03 , -4.706464161818053e+03), 
-             std::complex<double> (1.581391309405369e+03 , -3.018860198298148e+03), 
-             std::complex<double> (1.239455167659000e+03 , -1.954188943623421e+03), 
-             std::complex<double> (8.152173246669692e+02 , -9.349370270983524e+02), 
-             std::complex<double> (4.139791757300114e+02 , -4.342482518836449e+02), 
-             std::complex<double> (-2.077270595219334e+02 , -2.240894356745582e+02), 
-             std::complex<double> (1.054603541385238e+02 , -1.040619329265893e+02), 
-             std::complex<double> (-4.451819355287425e+01 , -4.771072995813173e+01), 
-             std::complex<double> (2.076170964393012e+01 , -2.709079578995128e+01), 
-             std::complex<double> (-1.061708009280687e+01 , -8.510408758276609e+00), 
-             std::complex<double> (-2.242197011297950e+00 , -2.225132966722792e+00), 
-             std::complex<double> (-8.367120591168566e-01 , -1.232823002610248e+00), 
+             std::complex<double> (-2.059463345882654e+05 , 4.033779482106805e+05), 
+             std::complex<double> (3.558030259528262e+05 , 8.271440454289908e+04), 
+             std::complex<double> (2.258911872361663e+05 , -1.124140006515084e+05), 
+             std::complex<double> (-9.258482899958187e+04 , -1.319454583374801e+05), 
+             std::complex<double> (-2.656936304907724e+04 , -9.579025272464085e+04), 
+             std::complex<double> (-2.383506170228319e+03 , -6.051361365535359e+04), 
+             std::complex<double> (4.276703962750004e+03 , -3.614279088378900e+04), 
+             std::complex<double> (4.611369441790834e+03 , -2.120748412642788e+04), 
+             std::complex<double> (3.518874603537248e+03 , -1.239303183487773e+04), 
+             std::complex<double> (2.357054202936797e+03 , -7.135224920721312e+03), 
+             std::complex<double> (1.504221958726535e+03 , -4.043936697172135e+03), 
+             std::complex<double> (9.102404251765432e+02 , -2.183373455103418e+03), 
+             std::complex<double> (-4.643692686130319e+02 , -1.145454013504851e+03), 
+             std::complex<double> (-2.249110198664707e+02 , -6.071036490345083e+02), 
+             std::complex<double> (1.076382722891957e+02 , -3.047697492988752e+02), 
+             std::complex<double> (4.663362177375178e+01 , -1.550726232669021e+02), 
+             std::complex<double> (2.223037169460509e+01 , -7.146709455143435e+01), 
+             std::complex<double> (-4.233561530001236e+00 , -2.891591897700206e+01), 
+             std::complex<double> (-1.703363562844677e+00 , -1.001595623089190e+01), 
+             std::complex<double> (-1.883543805241632e-01 , -2.298665589322637e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (1.877189358261477e+12 , -1.792033935528081e+12), 
-             std::complex<double> (1.198555579148169e+12 , 1.085714752531193e+12), 
-             std::complex<double> (-2.539605543440733e+11 , 6.677373720090331e+11), 
-             std::complex<double> (-2.500636103268072e+11 , 9.295451656719249e+10), 
-             std::complex<double> (-9.369015611620807e+10 , -1.972609606808172e+10), 
-             std::complex<double> (-2.913244507477940e+10 , -1.909093916495262e+10), 
-             std::complex<double> (-8.538132924606227e+09 , -9.391614796499680e+09), 
-             std::complex<double> (-2.517213938669874e+09 , -3.836829057471377e+09), 
-             std::complex<double> (-7.661767937227681e+08 , -1.452427600650048e+09), 
-             std::complex<double> (-2.486056722304674e+08 , -5.185575678998384e+08), 
-             std::complex<double> (-8.654940461845410e+07 , -1.836400069633813e+08), 
-             std::complex<double> (-2.784692498147152e+07 , -6.598495605019564e+07), 
-             std::complex<double> (-6.361152617634922e+06 , -2.223805572740138e+07), 
-             std::complex<double> (-1.182717666272403e+06 , -6.384315205369162e+06), 
-             std::complex<double> (-1.787392156436064e+05 , -1.706658980985453e+06), 
-             std::complex<double> (-1.734175083850579e+04 , -4.316244340543661e+05), 
-             std::complex<double> (1.784836177236957e+04 , -6.718324422185011e+04), 
-             std::complex<double> (8.020631064419110e+03 , -1.134204504427596e+04), 
-             std::complex<double> (-1.886446061010180e+03 , -5.107626661255106e+03), 
-             std::complex<double> (-4.605663411897429e+02 , -7.296978506318801e+02), 
-             std::complex<double> (-5.875594663492976e+01 , 2.775272151604234e+01), 
-             std::complex<double> (1.374671676399339e+01 , 1.576591686437228e+01), 
+             std::complex<double> (8.111905511469613e+11 , -8.928949924476414e+11), 
+             std::complex<double> (-6.847862920303591e+11 , 3.952036881656229e+11), 
+             std::complex<double> (1.057109632947818e+10 , 3.816708727037746e+11), 
+             std::complex<double> (-1.122600805195184e+11 , 1.092153339944522e+11), 
+             std::complex<double> (-5.786976098864339e+10 , 1.420924014899706e+10), 
+             std::complex<double> (-2.162514379778746e+10 , -2.566155733202932e+09), 
+             std::complex<double> (-7.260567065096250e+09 , -2.701356939196983e+09), 
+             std::complex<double> (-2.348525909020829e+09 , -1.311577529730251e+09), 
+             std::complex<double> (-7.486827244064316e+08 , -5.179128755116609e+08), 
+             std::complex<double> (-2.326176037537280e+08 , -1.858792901765951e+08), 
+             std::complex<double> (-6.844156395323940e+07 , -6.147005494700955e+07), 
+             std::complex<double> (-1.903310462570691e+07 , -1.813821038784082e+07), 
+             std::complex<double> (5.208321722967250e+06 , -4.712075908970780e+06), 
+             std::complex<double> (1.394466735640008e+06 , -1.123838711380567e+06), 
+             std::complex<double> (-3.504072600387285e+05 , -2.523177562208061e+05), 
+             std::complex<double> (-7.974514367479932e+04 , -5.140198234568455e+04), 
+             std::complex<double> (-1.523548987229416e+04 , -8.072406453408527e+03), 
+             std::complex<double> (2.187939275429159e+03 , -7.092367356182495e+02), 
+             std::complex<double> (1.895314818927971e+02 , -5.287834176868936e+01), 
+             std::complex<double> (5.556826053218609e+00 , -1.302698996126144e+00), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (1.877189358166064e+12 , -1.792033935744736e+12), 
-             std::complex<double> (1.198555578879058e+12 , 1.085714752872095e+12), 
-             std::complex<double> (-2.539605539952125e+11 , 6.677373717068669e+11), 
-             std::complex<double> (-2.500636105079258e+11 , 9.295451687972614e+10), 
-             std::complex<double> (-9.369015615189525e+10 , -1.972609631768972e+10), 
-             std::complex<double> (-2.913244492958627e+10 , -1.909093907697415e+10), 
-             std::complex<double> (-8.538133025157293e+09 , -9.391614742146282e+09), 
-             std::complex<double> (-2.517213944190638e+09 , -3.836829137832616e+09), 
-             std::complex<double> (-7.661767373585043e+08 , -1.452427580519500e+09), 
-             std::complex<double> (-2.486057033499097e+08 , -5.185575366783375e+08), 
-             std::complex<double> (-8.654941471847788e+07 , -1.836400359224996e+08), 
-             std::complex<double> (-2.784690557490442e+07 , -6.598495419506507e+07), 
-             std::complex<double> (-6.361157093831758e+06 , -2.223804575463526e+07), 
-             std::complex<double> (-1.182722868535494e+06 , -6.384318064550297e+06), 
-             std::complex<double> (-1.787378016916746e+05 , -1.706662528295019e+06), 
-             std::complex<double> (-1.734481971398575e+04 , -4.316236104660841e+05), 
-             std::complex<double> (1.784735770342819e+04 , -6.718066139127532e+04), 
-             std::complex<double> (8.022272918643355e+03 , -1.134305133375574e+04), 
-             std::complex<double> (-1.885787659953379e+03 , -5.108713939600980e+03), 
-             std::complex<double> (-4.612852001310474e+02 , -7.293043245668458e+02), 
-             std::complex<double> (-5.894142220870119e+01 , 2.826790485342497e+01), 
-             std::complex<double> (1.540841343052247e+01 , 1.552242394096306e+01), 
+             std::complex<double> (8.111905514234480e+11 , -8.928949918239866e+11), 
+             std::complex<double> (-6.847862926259478e+11 , 3.952036871386119e+11), 
+             std::complex<double> (1.057109724534210e+10 , 3.816708734357051e+11), 
+             std::complex<double> (-1.122600797878540e+11 , 1.092153334530777e+11), 
+             std::complex<double> (-5.786976141103118e+10 , 1.420924063359871e+10), 
+             std::complex<double> (-2.162514366259713e+10 , -2.566156153751142e+09), 
+             std::complex<double> (-7.260566996865968e+09 , -2.701356642965958e+09), 
+             std::complex<double> (-2.348526067108539e+09 , -1.311577669208703e+09), 
+             std::complex<double> (-7.486825784523847e+08 , -5.179128683601308e+08), 
+             std::complex<double> (-2.326176821389169e+08 , -1.858792274972431e+08), 
+             std::complex<double> (-6.844155583283365e+07 , -6.147012420355575e+07), 
+             std::complex<double> (-1.903307246051971e+07 , -1.813817112697227e+07), 
+             std::complex<double> (5.208360109507660e+06 , -4.712080692047179e+06), 
+             std::complex<double> (1.394441808232517e+06 , -1.123854053900086e+06), 
+             std::complex<double> (-3.504155414983536e+05 , -2.522987686825919e+05), 
+             std::complex<double> (-7.974720250259102e+04 , -5.141525457852251e+04), 
+             std::complex<double> (-1.523058843671294e+04 , -8.065935247186011e+03), 
+             std::complex<double> (2.191913076094001e+03 , -7.117110179670258e+02), 
+             std::complex<double> (1.868369324292391e+02 , -5.215548164481263e+01), 
+             std::complex<double> (7.715484039607391e+00 , -1.390003019885010e+00), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -27047,7 +26562,7 @@
              std::complex<double> (-7.403808822904865e+01 , -9.385579542933184e+01), 
              std::complex<double> (-4.929944325863324e+01 , -8.465195445393490e+01), 
              std::complex<double> (-3.139697563998171e+01 , -7.228532638229340e+01), 
-             std::complex<double> (-1.920496933803378e+01 , -5.954192670686182e+01), 
+             std::complex<double> (-1.920496933803378e+01 , 5.954192670686182e+01), 
              std::complex<double> (-1.122158564052254e+01 , 4.787652972796741e+01), 
              std::complex<double> (-6.119055333961207e+00 , 3.783174787995289e+01), 
              std::complex<double> (-2.933040176313970e+00 , 2.940378426997294e+01), 
@@ -27057,7 +26572,7 @@
              std::complex<double> (3.181908248653056e+00 , -1.699033859072414e+01), 
              std::complex<double> (-9.535387602676608e-02 , -1.572923764919454e+01), 
              std::complex<double> (-1.524716165519876e-01 , 1.180839513700475e+01), 
-             std::complex<double> (6.852662713808848e-04 , -9.424492651474934e+00), 
+             std::complex<double> (6.852662713808848e-04 , 9.424492651474934e+00), 
              std::complex<double> (6.816440027003553e-01 , -7.539719030274956e+00), 
              std::complex<double> (2.566105306208524e-01 , 6.705720113525743e+00), 
              std::complex<double> (2.544103377003263e-02 , 5.325313032980503e+00), 
@@ -27075,7 +26590,7 @@
              std::complex<double> (-8.988194673344113e+00 , -2.010584060808129e+00), 
              std::complex<double> (-6.751163340818043e+00 , -3.621154552347297e+00), 
              std::complex<double> (-4.711489099949319e+00 , -4.104930809453367e+00), 
-             std::complex<double> (-3.132601557115997e+00 , -3.933080223395576e+00), 
+             std::complex<double> (3.132601557115997e+00 , -3.933080223395576e+00), 
              std::complex<double> (2.021029052418908e+00 , -3.466600811288688e+00), 
              std::complex<double> (1.278737365533766e+00 , -2.929122760547982e+00), 
              std::complex<double> (7.784279858531623e-01 , -2.457528276653512e+00), 
@@ -27085,7 +26600,7 @@
              std::complex<double> (-3.231978248037998e-03 , 2.665078771944358e-02), 
              std::complex<double> (-1.279437199852638e-01 , -2.016899831214234e+00), 
              std::complex<double> (5.210370328758058e-03 , -1.096236095033683e-03), 
-             std::complex<double> (1.168236981600171e-03 , -1.999664263630738e+00), 
+             std::complex<double> (-1.168236981600171e-03 , -1.999664263630738e+00), 
              std::complex<double> (1.380803531015955e-04 , 8.780138083073537e-05), 
              std::complex<double> (5.419196330444926e-05 , 3.361140660319697e-05), 
              std::complex<double> (-3.958942457693700e-06 , -5.832738347491190e-06), 
@@ -27103,7 +26618,7 @@
              std::complex<double> (4.767637982881249e+02 , 9.924539387895521e+02), 
              std::complex<double> (2.629075402411819e+01 , 7.500200992153441e+02), 
              std::complex<double> (-1.487996931670464e+02 , 4.694539109895209e+02), 
-             std::complex<double> (-1.740218090754714e+02 , 2.620558574219263e+02), 
+             std::complex<double> (1.740218090754714e+02 , 2.620558574219263e+02), 
              std::complex<double> (1.432891587865464e+02 , 1.356605420192076e+02), 
              std::complex<double> (1.029918383668341e+02 , 6.630063749524616e+01), 
              std::complex<double> (6.995231124483923e+01 , 3.009204192360773e+01), 
@@ -27113,7 +26628,7 @@
              std::complex<double> (-7.386337721218838e-01 , 1.265062667024827e+00), 
              std::complex<double> (-2.541573042773419e+01 , 8.048053902731077e-02), 
              std::complex<double> (1.171074204876079e+01 , 1.813469873256876e-01), 
-             std::complex<double> (-6.507655003618835e+00 , 8.567849475108284e-01), 
+             std::complex<double> (6.507655003618835e+00 , 8.567849475108284e-01), 
              std::complex<double> (-1.345268779146732e+00 , 9.359787958937725e-01), 
              std::complex<double> (3.192952875750490e+00 , -1.199770900492972e+00), 
              std::complex<double> (2.317914985232126e+00 , -1.582105987717978e-01), 
@@ -27131,7 +26646,7 @@
              std::complex<double> (4.767637846618953e+02 , 9.924539615946057e+02), 
              std::complex<double> (2.629078350201659e+01 , 7.500200738094311e+02), 
              std::complex<double> (-1.487997549366045e+02 , 4.694539412428314e+02), 
-             std::complex<double> (-1.740216570755682e+02 , 2.620558161432103e+02), 
+             std::complex<double> (1.740216570755682e+02 , 2.620558161432103e+02), 
              std::complex<double> (1.432896670482747e+02 , 1.356606166665587e+02), 
              std::complex<double> (1.029891676920044e+02 , 6.630033249070289e+01), 
              std::complex<double> (6.997747330029464e+01 , 3.009675944564342e+01), 
@@ -27141,7 +26656,7 @@
              std::complex<double> (4.425237068498304e-01 , 1.397149509397452e-01), 
              std::complex<double> (-3.171210293939046e+01 , 2.204776833099712e+00), 
              std::complex<double> (1.214842533316994e-02 , 6.169380443893274e-02), 
-             std::complex<double> (-1.884582130952629e+01 , -1.238099148469177e-02), 
+             std::complex<double> (1.884582130952629e+01 , -1.238099148469177e-02), 
              std::complex<double> (7.568674005376932e-04 , -9.810542299163332e-04), 
              std::complex<double> (-2.109337168183042e-04 , 3.722038425471138e-04), 
              std::complex<double> (3.081535303426617e-05 , -2.129168872720156e-05), 
@@ -27163,117 +26678,117 @@
         { 
             int np = 25;
             int m = 3;
-            double b = 1.000000000000000e+03;
+            double b = 1.200000000000000e+03;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-2.342306032770875e+03 , -0.000000000000000e+00), 
-             std::complex<double> (-2.123811528013839e+03 , -7.102742062078813e+02), 
-             std::complex<double> (-1.601593930539636e+03 , 1.146780677479665e+03), 
-             std::complex<double> (-1.032924574373182e+03 , 1.248101042173457e+03), 
-             std::complex<double> (-5.865459617185937e+02 , -1.126321055422484e+03), 
-             std::complex<double> (-2.976508338631042e+02 , -9.173188602796016e+02), 
-             std::complex<double> (-1.327628108783855e+02 , -7.054024829013454e+02), 
-             std::complex<double> (-4.725393209522611e+01 , -5.249658185597021e+02), 
-             std::complex<double> (-7.269399142263837e+00 , 3.830315953812967e+02), 
-             std::complex<double> (8.372821579852955e+00 , 2.758924444627088e+02), 
-             std::complex<double> (1.195789262416482e+01 , 1.970765164599630e+02), 
-             std::complex<double> (1.043634909461216e+01 , 1.401501811328108e+02), 
-             std::complex<double> (7.514043989628812e+00 , 9.947058245964958e+01), 
-             std::complex<double> (4.823105411081522e+00 , 7.047602348312741e+01), 
-             std::complex<double> (2.822455267509548e+00 , 4.976932376597247e+01), 
-             std::complex<double> (1.480751131782355e+00 , 3.494359909413749e+01), 
-             std::complex<double> (6.555457823108913e-01 , -2.427499320600903e+01), 
-             std::complex<double> (2.361974118622077e-01 , 1.631067832614859e+01), 
-             std::complex<double> (-3.206171311805445e+00 , -1.182689969250689e+01), 
-             std::complex<double> (2.953443468703209e+00 , -1.183656292016899e+01), 
-             std::complex<double> (1.487309304504025e-02 , 9.445046821257560e+00), 
-             std::complex<double> (-7.544687215739553e-03 , 6.153517521847446e+00), 
-             std::complex<double> (5.891033491784607e-04 , 4.441881115257943e+00), 
-             std::complex<double> (1.595340484859766e-03 , 3.507429386968021e+00), 
-             std::complex<double> (-8.549220307181705e-06 , 3.141588784592126e+00), 
+             std::complex<double> (-2.005379468738763e+03 , -2.451251781890126e+02), 
+             std::complex<double> (-1.765372413319447e+03 , -6.599133545453178e+02), 
+             std::complex<double> (-1.385835602717871e+03 , -8.963860624986168e+02), 
+             std::complex<double> (-9.911730361348779e+02 , -9.473705971054482e+02), 
+             std::complex<double> (-6.617238293347626e+02 , -8.703504495390255e+02), 
+             std::complex<double> (-4.217775910436197e+02 , -7.334004823090759e+02), 
+             std::complex<double> (-2.614807335172601e+02 , -5.851635068296422e+02), 
+             std::complex<double> (-1.598441898284417e+02 , -4.509399648414221e+02), 
+             std::complex<double> (-9.718003824061746e+01 , -3.397364713706865e+02), 
+             std::complex<double> (-5.899828368182715e+01 , -2.519824462130385e+02), 
+             std::complex<double> (-3.580258549949935e+01 , -1.846742083302363e+02), 
+             std::complex<double> (-2.170625597065212e+01 , -1.340086353024577e+02), 
+             std::complex<double> (-1.313235082808122e+01 , -9.640999174819362e+01), 
+             std::complex<double> (-7.897640142718740e+00 , -6.881456180586844e+01), 
+             std::complex<double> (-4.653412255596852e+00 , -4.873285170639402e+01), 
+             std::complex<double> (-2.582759034586533e+00 , -3.422908377412636e+01), 
+             std::complex<double> (-1.236997442801454e+00 , -2.379506318319968e+01), 
+             std::complex<double> (-4.696099872082977e-01 , -1.603419763134730e+01), 
+             std::complex<double> (3.345289148516327e+00 , -1.227818839444418e+01), 
+             std::complex<double> (-2.482988531802453e+00 , -1.193095375586024e+01), 
+             std::complex<double> (-1.299917211854032e-02 , 9.413538951456731e+00), 
+             std::complex<double> (5.623794644445738e-02 , 6.247265098698815e+00), 
+             std::complex<double> (2.797038278099575e-02 , 4.504723458211450e+00), 
+             std::complex<double> (7.879814791318967e-03 , 3.528427067664104e+00), 
+             std::complex<double> (-1.215844306604829e-05 , 3.141603063592119e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (3.233365040824654e-69 , 2.438429933204050e+02), 
-             std::complex<double> (-1.310091467475294e+02 , 1.924087587907863e+02), 
-             std::complex<double> (1.864386564939322e+02 , 8.262293271327998e+01), 
-             std::complex<double> (1.664981567311543e+02 , -1.121308747929310e+01), 
-             std::complex<double> (-1.162568643173055e+02 , -5.873377990363688e+01), 
-             std::complex<double> (-6.975006535219002e+01 , -6.990918277800462e+01), 
-             std::complex<double> (-3.768762933091859e+01 , -6.331328084211079e+01), 
-             std::complex<double> (-1.854420493996775e+01 , -5.127153227478547e+01), 
-             std::complex<double> (8.010644480797983e+00 , -3.932237132637401e+01), 
-             std::complex<double> (2.579718797711822e+00 , -2.924024922887366e+01), 
-             std::complex<double> (6.088718408115919e-02 , -2.127969238997487e+01), 
-             std::complex<double> (-8.385347015502519e-01 , -1.526158939852081e+01), 
-             std::complex<double> (-9.401305183355191e-01 , -1.087843224394382e+01), 
-             std::complex<double> (-7.523501352708007e-01 , -7.759183427455331e+00), 
-             std::complex<double> (-5.248903399235934e-01 , -5.549173130846980e+00), 
-             std::complex<double> (-3.375213726566451e-01 , -3.978522281345062e+00), 
-             std::complex<double> (1.934608487662150e-01 , -2.887445475562489e+00), 
-             std::complex<double> (-8.030501039800112e-02 , -2.271800629963020e+00), 
-             std::complex<double> (1.470702431257945e-02 , -1.394378634805479e-02), 
-             std::complex<double> (2.215454413990506e-03 , -3.219432510810937e-02), 
-             std::complex<double> (-2.490067723888964e-02 , -2.037154296716273e+00), 
-             std::complex<double> (-6.615794973337260e-04 , -6.657355851074633e-04), 
-             std::complex<double> (1.840639278026395e-04 , 1.344386759270247e-04), 
-             std::complex<double> (-1.740542286279727e-04 , -9.513945380613401e-05), 
-             std::complex<double> (1.056321063945913e-04 , -1.999947064699348e+00), 
+             std::complex<double> (-4.142385249685435e+01 , 1.517430547463618e+02), 
+             std::complex<double> (-1.055440779885850e+02 , 1.065862439406997e+02), 
+             std::complex<double> (-1.290776215097009e+02 , 4.380147136709356e+01), 
+             std::complex<double> (-1.178749632036226e+02 , -7.968175905950675e+00), 
+             std::complex<double> (-9.071485490801088e+01 , -3.729776100666599e+01), 
+             std::complex<double> (-6.269126872528330e+01 , -4.730023390496516e+01), 
+             std::complex<double> (-4.053330486945617e+01 , -4.577311243188650e+01), 
+             std::complex<double> (-2.523194397749834e+01 , -3.924122852404322e+01), 
+             std::complex<double> (-1.542677444729521e+01 , -3.155729114914419e+01), 
+             std::complex<double> (-9.376068701567935e+00 , -2.448120126362093e+01), 
+             std::complex<double> (-5.696044110408690e+00 , -1.857508536058531e+01), 
+             std::complex<double> (-3.462904421699252e+00 , -1.387041342889012e+01), 
+             std::complex<double> (-2.108343050594991e+00 , -1.022843901519838e+01), 
+             std::complex<double> (-1.294236617599810e+00 , -7.471341014372338e+00), 
+             std::complex<double> (-8.135848509683084e-01 , -5.415158472111910e+00), 
+             std::complex<double> (-5.281571252356441e-01 , -3.896683643886372e+00), 
+             std::complex<double> (-3.357265324079348e-01 , -2.816726505870483e+00), 
+             std::complex<double> (-1.564638579133147e-01 , -2.219626534730492e+00), 
+             std::complex<double> (-9.650069638720826e-03 , -4.629634176432681e-03), 
+             std::complex<double> (-4.542740538616630e-02 , -2.743443002319369e-02), 
+             std::complex<double> (2.913207928129166e-02 , -1.986944189730875e+00), 
+             std::complex<double> (8.472034204802394e-07 , 8.714509476197421e-04), 
+             std::complex<double> (1.399931200955558e-04 , -2.396264645261059e-04), 
+             std::complex<double> (-2.076916147108684e-04 , 2.063323189357886e-04), 
+             std::complex<double> (1.362112325431596e-04 , -2.000121756639052e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (-2.979349604955222e-67 , -5.711554945091392e+05), 
-             std::complex<double> (4.149006430749864e+05 , -3.155879525141145e+05), 
-             std::complex<double> (-3.933497348742437e+05 , 8.147742780566377e+04), 
-             std::complex<double> (-1.579856654876303e+05 , 2.193874300893725e+05), 
-             std::complex<double> (2.035955902972518e+03 , 1.653933269559998e+05), 
-             std::complex<double> (-4.336710221547381e+04 , 8.479128037683031e+04), 
-             std::complex<double> (-3.965831259560528e+04 , 3.499073071638349e+04), 
-             std::complex<double> (-2.603922967122755e+04 , 1.215776894794646e+04), 
-             std::complex<double> (1.500363610835564e+04 , 3.354250992989042e+03), 
-             std::complex<double> (8.088682736654488e+03 , 4.668417225165964e+02), 
-             std::complex<double> (4.194491855612778e+03 , -2.424137020207353e+02), 
-             std::complex<double> (2.130151057238209e+03 , -2.768305260007087e+02), 
-             std::complex<double> (1.075020085383074e+03 , -1.752326536365839e+02), 
-             std::complex<double> (5.432134715948026e+02 , -9.046156850199482e+01), 
-             std::complex<double> (2.746865185220721e+02 , -4.177612758395282e+01), 
-             std::complex<double> (1.385461771856947e+02 , -1.768929338969065e+01), 
-             std::complex<double> (-6.988436743562616e+01 , -6.600248375752910e+00), 
-             std::complex<double> (3.782404723451583e+01 , -1.683424410088863e+00), 
-             std::complex<double> (-1.330756958574359e+00 , 5.228093152229132e-01), 
-             std::complex<double> (-1.808268369871096e+00 , -8.533538350354756e-01), 
-             std::complex<double> (1.273923401971397e+01 , -3.629168292787374e-01), 
-             std::complex<double> (4.468822665349382e+00 , 1.719889827820379e-02), 
-             std::complex<double> (2.543681082355692e+00 , 9.653541304838855e-03), 
-             std::complex<double> (1.259410996727779e+00 , -3.248781492178491e-03), 
-             std::complex<double> (1.944164614891879e-01 , -1.183996254980572e-03), 
+             std::complex<double> (1.202665697862538e+05 , -2.941483787396373e+05), 
+             std::complex<double> (2.566623064405973e+05 , -1.185144368354287e+05), 
+             std::complex<double> (2.181434231578460e+05 , 5.500170049084434e+04), 
+             std::complex<double> (1.092856111334937e+05 , 1.195691097570265e+05), 
+             std::complex<double> (2.756608835401405e+04 , 1.036345775535023e+05), 
+             std::complex<double> (-8.248234186298484e+03 , 6.592794121018417e+04), 
+             std::complex<double> (-1.618610174857036e+04 , 3.568742075560948e+04), 
+             std::complex<double> (-1.366223464975077e+04 , 1.765057010928184e+04), 
+             std::complex<double> (-9.222004036527949e+03 , 8.307771237313526e+03), 
+             std::complex<double> (-5.615653157273482e+03 , 3.806961684451044e+03), 
+             std::complex<double> (-3.226408371057979e+03 , 1.716941225216858e+03), 
+             std::complex<double> (-1.783589552970787e+03 , 7.651392313502403e+02), 
+             std::complex<double> (-9.584330363894366e+02 , 3.375853404905317e+02), 
+             std::complex<double> (-5.039208430706068e+02 , 1.480698625775538e+02), 
+             std::complex<double> (-2.601011854562615e+02 , 6.484831626096552e+01), 
+             std::complex<double> (-1.320369223143224e+02 , 2.813396530634215e+01), 
+             std::complex<double> (-6.652213782529588e+01 , 1.152390299972386e+01), 
+             std::complex<double> (-3.643303026134643e+01 , 2.903637155717297e+00), 
+             std::complex<double> (-7.592841324962551e-01 , -8.946657119253548e-01), 
+             std::complex<double> (-2.401469314320274e+00 , 1.750476563689387e+00), 
+             std::complex<double> (1.159538695279107e+01 , 8.895610183115533e-01), 
+             std::complex<double> (4.469761714889218e+00 , -4.359319471962824e-02), 
+             std::complex<double> (2.634245237128710e+00 , -5.302567162683282e-02), 
+             std::complex<double> (1.327181788334572e+00 , -2.732359404588868e-02), 
+             std::complex<double> (2.062981164422469e-01 , -4.138010443175244e-03), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (-1.483596966822349e-66 , -5.711554993156168e+05), 
-             std::complex<double> (4.149006439847330e+05 , -3.155879468920577e+05), 
-             std::complex<double> (-3.933497343804667e+05 , 8.147742085471369e+04), 
-             std::complex<double> (-1.579856648796368e+05 , 2.193874374532694e+05), 
-             std::complex<double> (2.035957183966731e+03 , 1.653933201110288e+05), 
-             std::complex<double> (-4.336710344683310e+04 , 8.479128634653253e+04), 
-             std::complex<double> (-3.965831190014511e+04 , 3.499072564029281e+04), 
-             std::complex<double> (-2.603922963584100e+04 , 1.215777318741043e+04), 
-             std::complex<double> (1.500363687750945e+04 , 3.354247543248287e+03), 
-             std::complex<double> (8.088681321248240e+03 , 4.668444255036870e+02), 
-             std::complex<double> (4.194493823817987e+03 , -2.424157171623287e+02), 
-             std::complex<double> (2.130148553654917e+03 , -2.768291219923913e+02), 
-             std::complex<double> (1.075023295333525e+03 , -1.752335142694883e+02), 
-             std::complex<double> (5.432089386415056e+02 , -9.046126671046043e+01), 
-             std::complex<double> (2.746943518209855e+02 , -4.177553757090335e+01), 
-             std::complex<double> (1.385271405766984e+02 , -1.769252663907424e+01), 
-             std::complex<double> (-6.996287976278988e+01 , -6.583499037023558e+00), 
-             std::complex<double> (3.703945648886470e+01 , -1.852793521675121e+00), 
-             std::complex<double> (-2.135670612298635e-01 , -1.276269753222191e-01), 
-             std::complex<double> (-3.718033127560615e-01 , -1.217199196645699e-01), 
-             std::complex<double> (1.923937285945520e+01 , -2.624604142597019e-01), 
-             std::complex<double> (4.375178643474729e-03 , -4.737458563865343e-03), 
-             std::complex<double> (-7.254151037633001e-04 , 1.144413408712126e-03), 
-             std::complex<double> (4.060177128527838e-04 , -7.943972003800029e-04), 
-             std::complex<double> (6.282984704087189e+00 , 4.153310239532648e-04), 
+             std::complex<double> (1.202665688350616e+05 , -2.941483789481003e+05), 
+             std::complex<double> (2.566623073269808e+05 , -1.185144358751149e+05), 
+             std::complex<double> (2.181434231840384e+05 , 5.500169878220762e+04), 
+             std::complex<double> (1.092856097181484e+05 , 1.195691112055403e+05), 
+             std::complex<double> (2.756609055625459e+04 , 1.036345773223641e+05), 
+             std::complex<double> (-8.248236196634980e+03 , 6.592794009964134e+04), 
+             std::complex<double> (-1.618610056295739e+04 , 3.568742274198428e+04), 
+             std::complex<double> (-1.366223483860706e+04 , 1.765056781457909e+04), 
+             std::complex<double> (-9.222004743113336e+03 , 8.307773421435210e+03), 
+             std::complex<double> (-5.615651738048978e+03 , 3.806959842756721e+03), 
+             std::complex<double> (-3.226410363966583e+03 , 1.716942631029760e+03), 
+             std::complex<double> (-1.783586997478519e+03 , 7.651382914258641e+02), 
+             std::complex<double> (-9.584363689083734e+02 , 3.375857524775187e+02), 
+             std::complex<double> (-5.039160413564211e+02 , 1.480702528139315e+02), 
+             std::complex<double> (-2.601095894137590e+02 , 6.484602111341464e+01), 
+             std::complex<double> (-1.320164355903005e+02 , 2.814335065492387e+01), 
+             std::complex<double> (-6.660821429437995e+01 , 1.147231750185690e+01), 
+             std::complex<double> (-3.551748878312153e+01 , 3.551747005999939e+00), 
+             std::complex<double> (-8.915713764799510e-02 , 1.026684408422362e-01), 
+             std::complex<double> (-2.140586089372129e-01 , 6.104023859664484e-01), 
+             std::complex<double> (1.870351234702843e+01 , 2.996979373682207e-01), 
+             std::complex<double> (-5.385464923764002e-03 , 1.369258709536427e-04), 
+             std::complex<double> (1.059909586970273e-03 , 5.860262726388490e-04), 
+             std::complex<double> (-7.182267456256991e-04 , -7.111460898483281e-04), 
+             std::complex<double> (6.283584753627451e+00 , 4.452102025081715e-04), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -27288,117 +26803,117 @@
         { 
             int np = 25;
             int m = 3;
-            double b = 1.000000000000000e+04;
+            double b = 1.050000000000000e+04;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-2.587009836243193e+04 , -0.000000000000000e+00), 
-             std::complex<double> (-2.228412582491677e+04 , 9.527470937918987e+03), 
-             std::complex<double> (-1.452020391743985e+04 , 1.400646416466428e+04), 
-             std::complex<double> (-7.443271175270274e+03 , -1.344930986881625e+04), 
-             std::complex<double> (-3.040188345099158e+03 , 1.064136009376939e+04), 
-             std::complex<double> (-8.785839448317339e+02 , 7.664292981531398e+03), 
-             std::complex<double> (-3.032564326345682e+00 , 5.283265149323803e+03), 
-             std::complex<double> (2.661212509200062e+02 , 3.572392927861679e+03), 
-             std::complex<double> (2.904074177272138e+02 , 2.396773854206483e+03), 
-             std::complex<double> (2.359507871438796e+02 , 1.602708789113921e+03), 
-             std::complex<double> (1.699660993355642e+02 , -1.068446270183677e+03), 
-             std::complex<double> (1.147143826320481e+02 , -7.084443988648778e+02), 
-             std::complex<double> (7.413772446474952e+01 , 4.658859632544019e+02), 
-             std::complex<double> (4.631411485764110e+01 , 3.034060542292191e+02), 
-             std::complex<double> (2.826131436480518e+01 , -1.955860024687115e+02), 
-             std::complex<double> (1.703419396097461e+01 , -1.246702310918599e+02), 
-             std::complex<double> (1.012934091540746e+01 , -7.846873299191696e+01), 
-             std::complex<double> (5.848798985592475e+00 , -4.870600429014764e+01), 
-             std::complex<double> (3.169328753425836e+00 , 2.976100919122025e+01), 
-             std::complex<double> (1.491758708829388e+00 , -1.788296747511696e+01), 
-             std::complex<double> (2.798399610828947e-01 , 1.056255600734361e+01), 
-             std::complex<double> (-9.444867107739120e-01 , -9.012204492027942e+00), 
-             std::complex<double> (2.310278366481465e-01 , 5.822997039201661e+00), 
-             std::complex<double> (5.786222549705727e-02 , 3.867143182882188e+00), 
-             std::complex<double> (-8.794936339682769e-04 , -3.142153147252502e+00), 
+             std::complex<double> (-2.474528955577560e+04 , 4.934205534309728e+03), 
+             std::complex<double> (-1.881128563908481e+04 , 1.205195487200355e+04), 
+             std::complex<double> (-1.127442627224479e+04 , 1.392834251552754e+04), 
+             std::complex<double> (-5.532223036019862e+03 , -1.224358701361636e+04), 
+             std::complex<double> (-2.193555838522057e+03 , -9.413669926490723e+03), 
+             std::complex<double> (-5.652436909266499e+02 , -6.761887746413646e+03), 
+             std::complex<double> (1.112794112083183e+02 , 4.688259039799128e+03), 
+             std::complex<double> (3.249890174310184e+02 , -3.187100331346916e+03), 
+             std::complex<double> (3.375217802365051e+02 , -2.141932118275832e+03), 
+             std::complex<double> (2.787290659067680e+02 , -1.431129507281686e+03), 
+             std::complex<double> (2.083091097467547e+02 , -9.535486087489226e+02), 
+             std::complex<double> (1.482283802552717e+02 , -6.331610374266718e+02), 
+             std::complex<double> (1.024265898801569e+02 , -4.175657150707590e+02), 
+             std::complex<double> (6.873212327806445e+01 , -2.725447970195736e+02), 
+             std::complex<double> (4.434311334860014e+01 , -1.758897046303796e+02), 
+             std::complex<double> (2.723373291718929e+01 , 1.124590803211498e+02), 
+             std::complex<double> (1.577453258001678e+01 , 7.138573646890739e+01), 
+             std::complex<double> (8.489980874918207e+00 , -4.502603672608664e+01), 
+             std::complex<double> (4.166979855935409e+00 , 2.816723951420799e+01), 
+             std::complex<double> (1.788157710971033e+00 , 1.734319315779322e+01), 
+             std::complex<double> (5.017993481384539e-01 , 1.043475828533034e+01), 
+             std::complex<double> (-9.935278347833295e-01 , -8.891792979467604e+00), 
+             std::complex<double> (2.391421942874354e-01 , 5.935004016610454e+00), 
+             std::complex<double> (6.319641935375279e-02 , 3.902363205698016e+00), 
+             std::complex<double> (-1.109219008741574e-03 , -3.142301191603876e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (-3.212223420250953e-69 , 3.388214700846982e+03), 
-             std::complex<double> (2.091496144272708e+03 , 2.373767553922761e+03), 
-             std::complex<double> (2.562809617343629e+03 , 4.994474827529804e+02), 
-             std::complex<double> (-1.844803535194258e+03 , -6.852325079693641e+02), 
-             std::complex<double> (9.929245603204597e+02 , -9.909711608129261e+02), 
-             std::complex<double> (4.374370844466518e+02 , -8.679832125734060e+02), 
-             std::complex<double> (1.557733686817540e+02 , -6.464182772620946e+02), 
-             std::complex<double> (3.400032786221932e+01 , -4.507724225353713e+02), 
-             std::complex<double> (-1.023167852106580e+01 , -3.060136258920511e+02), 
-             std::complex<double> (-2.114680558601715e+01 , -2.059612414836932e+02), 
-             std::complex<double> (1.980702945830405e+01 , -1.386545754737320e+02), 
-             std::complex<double> (1.522246779595200e+01 , -9.349288776793163e+01), 
-             std::complex<double> (-1.073270215468989e+01 , -6.286475369060922e+01), 
-             std::complex<double> (-7.142388763415467e+00 , -4.190099720853069e+01), 
-             std::complex<double> (4.508262114438847e+00 , -2.767122972145329e+01), 
-             std::complex<double> (2.774688918506209e+00 , -1.811336375639733e+01), 
-             std::complex<double> (1.709900060236053e+00 , -1.173101002605513e+01), 
-             std::complex<double> (1.067858979313138e+00 , -7.511952433235961e+00), 
-             std::complex<double> (-6.697440469186279e-01 , -4.741938366410476e+00), 
-             std::complex<double> (4.087422200240365e-01 , -2.962694780235579e+00), 
-             std::complex<double> (-7.932866665362781e-01 , -1.661012537226303e+00), 
-             std::complex<double> (-4.783699474390398e-01 , -6.416896525030393e-01), 
-             std::complex<double> (3.024887136067317e-02 , -2.583637889029876e-02), 
-             std::complex<double> (-1.261528558499354e-02 , 7.468246506350849e-03), 
-             std::complex<double> (-6.509186735322257e-03 , -2.003623486237485e+00), 
+             std::complex<double> (1.109530394542267e+03 , 2.972823440445608e+03), 
+             std::complex<double> (2.399671988134935e+03 , 1.422508478354484e+03), 
+             std::complex<double> (2.210604900139547e+03 , -1.138648169929898e+02), 
+             std::complex<double> (-1.424021928018900e+03 , -8.218135929136659e+02), 
+             std::complex<double> (-7.447661081649158e+02 , -9.119744286257454e+02), 
+             std::complex<double> (-3.333312158131430e+02 , -7.580103770815228e+02), 
+             std::complex<double> (1.228647467561015e+02 , -5.638851563068403e+02), 
+             std::complex<double> (-2.650139670619756e+01 , -3.984319893307813e+02), 
+             std::complex<double> (1.193878088062964e+01 , -2.734844942010345e+02), 
+             std::complex<double> (2.248485038378645e+01 , -1.844163945524118e+02), 
+             std::complex<double> (2.128199881931656e+01 , -1.236409568367906e+02), 
+             std::complex<double> (1.681903355379574e+01 , -8.307596928797414e+01), 
+             std::complex<double> (1.248387052053649e+01 , -5.595531778409806e+01), 
+             std::complex<double> (9.118595982152916e+00 , -3.751973644528617e+01), 
+             std::complex<double> (6.513607620262349e+00 , -2.480187938452718e+01), 
+             std::complex<double> (-4.462526070836126e+00 , -1.615114277573452e+01), 
+             std::complex<double> (-2.912810493972730e+00 , -1.039878488829319e+01), 
+             std::complex<double> (1.787738322545419e+00 , -6.654811087819238e+00), 
+             std::complex<double> (-1.020161038254227e+00 , -4.258419338890800e+00), 
+             std::complex<double> (-5.239804469140233e-01 , -2.754852081405624e+00), 
+             std::complex<double> (-6.856387349068898e-01 , -1.602163523189122e+00), 
+             std::complex<double> (-3.135243964303551e-01 , -6.076737999982144e-01), 
+             std::complex<double> (3.665888093004029e-02 , -3.366421637597836e-02), 
+             std::complex<double> (-1.499075565415784e-02 , 8.665033802833428e-03), 
+             std::complex<double> (-7.765538057549349e-03 , -2.004211495660397e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (-6.799102708833948e-66 , -8.765422049012219e+07), 
-             std::complex<double> (-6.922203819818803e+07 , -3.297078969085274e+07), 
-             std::complex<double> (-4.420869766839919e+07 , 2.864481360034486e+07), 
-             std::complex<double> (4.515354976549250e+06 , 2.991085054103977e+07), 
-             std::complex<double> (7.526632000225643e+06 , 1.357930411028409e+07), 
-             std::complex<double> (6.268145842118899e+06 , 4.114980870132476e+06), 
-             std::complex<double> (3.414704326399930e+06 , 8.250835184018355e+05), 
-             std::complex<double> (1.619415418921048e+06 , 1.441738906958659e+03), 
-             std::complex<double> (7.304477188065434e+05 , -1.133678978208671e+05), 
-             std::complex<double> (3.251239957883160e+05 , -8.249516437864251e+04), 
-             std::complex<double> (-1.447684603592140e+05 , -4.472986250208386e+04), 
-             std::complex<double> (-6.449306619537663e+04 , -2.150700541692901e+04), 
-             std::complex<double> (2.849018958227700e+04 , -9.662880569127731e+03), 
-             std::complex<double> (1.238279721229278e+04 , -4.106301855437154e+03), 
-             std::complex<double> (-5.284652686558533e+03 , -1.664560769954071e+03), 
-             std::complex<double> (-2.210807493608770e+03 , -6.540541551892531e+02), 
-             std::complex<double> (-9.033573220561291e+02 , -2.532026989790621e+02), 
-             std::complex<double> (-3.594658418938845e+02 , -9.586347343789175e+01), 
-             std::complex<double> (1.392076404722192e+02 , -3.495855263201213e+01), 
-             std::complex<double> (-5.192477018675690e+01 , -1.194892977619052e+01), 
-             std::complex<double> (2.009392356029849e+01 , -5.408327503271752e+00), 
-             std::complex<double> (1.625425793922322e-01 , 2.514433783079763e+00), 
-             std::complex<double> (5.510719871882841e+00 , -4.476152237580781e-01), 
-             std::complex<double> (2.532861944034951e+00 , -2.172747963106044e-01), 
-             std::complex<double> (-3.816160047207742e-01 , -2.684330724311171e-02), 
+             std::complex<double> (-4.212385878573546e+07 , -6.808953107300754e+07), 
+             std::complex<double> (-6.228378907062359e+07 , 2.162320525916049e+06), 
+             std::complex<double> (-2.333863743223159e+07 , 3.207407021425161e+07), 
+             std::complex<double> (-2.184644491141165e+06 , 2.198101203531745e+07), 
+             std::complex<double> (-6.951019381501440e+06 , 9.011885118851956e+06), 
+             std::complex<double> (-4.937331581557469e+06 , 2.682165331801011e+06), 
+             std::complex<double> (2.657212243240997e+06 , 5.133877113956556e+05), 
+             std::complex<double> (-1.278519311817559e+06 , -4.506707963082755e+04), 
+             std::complex<double> (-5.817171500726456e+05 , -1.178695751024461e+05), 
+             std::complex<double> (-2.576768629240707e+05 , -8.357714539013801e+04), 
+             std::complex<double> (-1.134556966430602e+05 , -4.605552012341061e+04), 
+             std::complex<double> (-5.010992668644932e+04 , -2.295818918875051e+04), 
+             std::complex<double> (-2.208644980906367e+04 , -1.094714040904583e+04), 
+             std::complex<double> (-9.598272113402401e+03 , -5.062723020815482e+03), 
+             std::complex<double> (-4.074259653398045e+03 , -2.245851385110718e+03), 
+             std::complex<double> (1.694384400112550e+03 , -9.417117142724761e+02), 
+             std::complex<double> (6.965969708832408e+02 , -3.718642421114865e+02), 
+             std::complex<double> (-2.843367162663100e+02 , -1.370955515444554e+02), 
+             std::complex<double> (1.158375056804379e+02 , -4.637833498545072e+01), 
+             std::complex<double> (4.644998166088540e+01 , -1.429389878289892e+01), 
+             std::complex<double> (1.848762942742808e+01 , -4.364674780678126e+00), 
+             std::complex<double> (3.286134759966624e-02 , 9.409997238561276e-01), 
+             std::complex<double> (5.684115483405684e+00 , -4.826793724244703e-01), 
+             std::complex<double> (2.655309326314093e+00 , -2.275762421767239e-01), 
+             std::complex<double> (-3.990341207143097e-01 , -3.074563553493630e-02), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (-7.744643778209236e-65 , -8.765422044785008e+07), 
-             std::complex<double> (-6.922203875278972e+07 , -3.297078945476894e+07), 
-             std::complex<double> (-4.420869703334914e+07 , 2.864481295215648e+07), 
-             std::complex<double> (4.515355468044823e+06 , 2.991085130483342e+07), 
-             std::complex<double> (7.526632402665479e+06 , 1.357930346174218e+07), 
-             std::complex<double> (6.268145458205535e+06 , 4.114981326969091e+06), 
-             std::complex<double> (3.414704702112544e+06 , 8.250832566011745e+05), 
-             std::complex<double> (1.619415076919437e+06 , 1.441832194567848e+03), 
-             std::complex<double> (7.304479966221760e+05 , -1.133678648753043e+05), 
-             std::complex<double> (3.251238002238552e+05 , -8.249527490197368e+04), 
-             std::complex<double> (-1.447685731261294e+05 , -4.472971967180615e+04), 
-             std::complex<double> (-6.449302276109353e+04 , -2.150714676713020e+04), 
-             std::complex<double> (2.849018336150867e+04 , -9.662759720638763e+03), 
-             std::complex<double> (1.238283446020929e+04 , -4.106395715083269e+03), 
-             std::complex<double> (-5.284597930525359e+03 , -1.664492879058379e+03), 
-             std::complex<double> (-2.210872655685481e+03 , -6.540998873175214e+02), 
-             std::complex<double> (-9.032820150365509e+02 , -2.531758874698466e+02), 
-             std::complex<double> (-3.595609413661422e+02 , -9.587031653381254e+01), 
-             std::complex<double> (1.390544731261832e+02 , -3.499100267951941e+01), 
-             std::complex<double> (-5.233066223464743e+01 , -1.172186509147592e+01), 
-             std::complex<double> (1.737732122774968e+01 , -8.819793526913199e+00), 
-             std::complex<double> (-5.288174734752056e+00 , 4.899455086581403e+00), 
-             std::complex<double> (1.680784770327207e-01 , 1.629888388229573e-01), 
-             std::complex<double> (-3.418638950501391e-02 , -4.686886598665283e-02), 
-             std::complex<double> (-6.297164698931240e+00 , 2.186085397721899e-02), 
+             std::complex<double> (-4.212385835429175e+07 , -6.808953136461721e+07), 
+             std::complex<double> (-6.228378903259227e+07 , 2.162321084746316e+06), 
+             std::complex<double> (-2.333863784823490e+07 , 3.207406980330206e+07), 
+             std::complex<double> (-2.184645006305398e+06 , 2.198101223936307e+07), 
+             std::complex<double> (-6.951018915935245e+06 , 9.011885008830261e+06), 
+             std::complex<double> (-4.937331953196108e+06 , 2.682165439624635e+06), 
+             std::complex<double> (2.657211976169402e+06 , 5.133875716605179e+05), 
+             std::complex<double> (-1.278519473546093e+06 , -4.506691371570354e+04), 
+             std::complex<double> (-5.817170852177133e+05 , -1.178697427327512e+05), 
+             std::complex<double> (-2.576768502355337e+05 , -8.357700333819268e+04), 
+             std::complex<double> (-1.134557591782467e+05 , -4.605561712717830e+04), 
+             std::complex<double> (-5.010984425922487e+04 , -2.295814387820620e+04), 
+             std::complex<double> (-2.208652659828781e+04 , -1.094713966034774e+04), 
+             std::complex<double> (-9.598217759135213e+03 , -5.062756326782734e+03), 
+             std::complex<double> (-4.074284022730635e+03 , -2.245801297114968e+03), 
+             std::complex<double> (1.694391167593876e+03 , -9.417647189287502e+02), 
+             std::complex<double> (6.965593897081873e+02 , -3.718189054123410e+02), 
+             std::complex<double> (-2.844111865070820e+02 , -1.371233460440183e+02), 
+             std::complex<double> (1.156908936002401e+02 , -4.639290650245810e+01), 
+             std::complex<double> (4.686939748481000e+01 , -1.407001095179835e+01), 
+             std::complex<double> (1.630033570798713e+01 , -7.923138503112103e+00), 
+             std::complex<double> (-5.146874124619632e+00 , 3.363911245976849e+00), 
+             std::complex<double> (2.082313916942278e-01 , 2.289864464112583e-01), 
+             std::complex<double> (-3.286282903748809e-02 , -6.394401702001754e-02), 
+             std::complex<double> (-6.297110593491933e+00 , 2.835869998873437e-02), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -27677,7 +27192,7 @@
              std::complex<double> (-1.282881807734587e+01 , 5.457801996935229e+01), 
              std::complex<double> (-7.573155739394780e+00 , 4.468414603499026e+01), 
              std::complex<double> (-4.108170077990581e+00 , 3.607375216161482e+01), 
-             std::complex<double> (-1.882156085189878e+00 , 2.853839715660954e+01), 
+             std::complex<double> (-1.882156085189878e+00 , -2.853839715660954e+01), 
              std::complex<double> (1.189595576874082e+01 , -2.490588162528388e+01), 
              std::complex<double> (-7.230494931503821e+00 , -2.303607213177757e+01), 
              std::complex<double> (-4.837140866212117e-01 , -2.192610587414120e+01), 
@@ -27687,7 +27202,7 @@
              std::complex<double> (1.586702515446828e+00 , -1.353227914709936e+01), 
              std::complex<double> (2.174873548059069e-01 , 1.149113879370620e+01), 
              std::complex<double> (3.464980346380925e-05 , 9.424777357673468e+00), 
-             std::complex<double> (-8.540438148165205e-02 , -7.583341411001175e+00), 
+             std::complex<double> (-8.540438148165205e-02 , 7.583341411001175e+00), 
              std::complex<double> (-9.966392703236179e-02 , 6.261844086013824e+00), 
              std::complex<double> (-8.436432187863645e-02 , 5.247041311799476e+00), 
              std::complex<double> (-5.953135153016559e-02 , 4.470974815191912e+00), 
@@ -27710,7 +27225,7 @@
              std::complex<double> (2.031645809292068e+00 , -3.355233031005343e+00), 
              std::complex<double> (1.354082891857051e+00 , -2.940542866194381e+00), 
              std::complex<double> (8.799481677677516e-01 , -2.552480622343305e+00), 
-             std::complex<double> (5.667333601198891e-01 , -2.260130290512170e+00), 
+             std::complex<double> (-5.667333601198891e-01 , -2.260130290512170e+00), 
              std::complex<double> (-2.159227448455774e-05 , -2.086692571445149e-05), 
              std::complex<double> (-5.661849135335165e-03 , -2.927850977999961e-03), 
              std::complex<double> (-2.823331706784890e-01 , -1.979228324484059e+00), 
@@ -27720,7 +27235,7 @@
              std::complex<double> (-1.867813353624981e-03 , 8.407417630323826e-04), 
              std::complex<double> (4.874612247882383e-04 , -3.602857928646760e-05), 
              std::complex<double> (-8.446144415444543e-05 , -2.000004801609700e+00), 
-             std::complex<double> (4.549165626584605e-06 , 2.114693456341841e-07), 
+             std::complex<double> (-4.549165626584605e-06 , 2.114693456341841e-07), 
              std::complex<double> (7.158375856807303e-07 , -1.590618112033951e-07), 
              std::complex<double> (-2.048093401596378e-07 , 8.749616903182554e-08), 
              std::complex<double> (8.599002656492786e-08 , -5.443369163475574e-08), 
@@ -27743,7 +27258,7 @@
              std::complex<double> (1.570582989878697e+02 , 1.539268870089460e+02), 
              std::complex<double> (1.211413318401246e+02 , 8.277517959988716e+01), 
              std::complex<double> (8.845886009985147e+01 , 4.222912823852829e+01), 
-             std::complex<double> (6.350013144263539e+01 , 2.044816253577779e+01), 
+             std::complex<double> (-6.350013144263539e+01 , 2.044816253577779e+01), 
              std::complex<double> (-9.380239077027062e-04 , -2.749067563224712e-04), 
              std::complex<double> (-6.068954983956554e-02 , 1.110864594080614e-01), 
              std::complex<double> (-4.226989827055317e+01 , 6.037655633530929e+00), 
@@ -27753,7 +27268,7 @@
              std::complex<double> (-2.670216140039649e+00 , -1.627224363568808e+00), 
              std::complex<double> (1.017711981886742e+01 , -1.601633494224144e+00), 
              std::complex<double> (5.632228359064517e+00 , -3.859514306771357e-01), 
-             std::complex<double> (-3.025087090450475e+00 , -7.741166550005875e-02), 
+             std::complex<double> (3.025087090450475e+00 , -7.741166550005875e-02), 
              std::complex<double> (2.305955019586976e+00 , 9.464827309031561e-03), 
              std::complex<double> (1.774634825624805e+00 , 4.511464379862078e-02), 
              std::complex<double> (1.342161651476846e+00 , 5.079026627332290e-02), 
@@ -27776,7 +27291,7 @@
              std::complex<double> (1.570583609153271e+02 , 1.539268797482331e+02), 
              std::complex<double> (1.211409661823999e+02 , 8.277522672487026e+01), 
              std::complex<double> (8.846257671948526e+01 , 4.222905669958242e+01), 
-             std::complex<double> (6.343381503823679e+01 , 2.042757954848704e+01), 
+             std::complex<double> (-6.343381503823679e+01 , 2.042757954848704e+01), 
              std::complex<double> (-7.765688911668092e-04 , 2.895420825400629e-04), 
              std::complex<double> (-2.650822354561701e-02 , 1.515965435174909e-01), 
              std::complex<double> (-4.326020154621755e+01 , 7.147847954918134e+00), 
@@ -27786,7 +27301,7 @@
              std::complex<double> (8.413553208261956e-03 , 2.660986527132467e-02), 
              std::complex<double> (5.200748787814540e-04 , 5.593682470046353e-03), 
              std::complex<double> (1.884959995201421e+01 , -8.653406755450470e-04), 
-             std::complex<double> (1.209312503189592e-06 , -3.451229401664560e-05), 
+             std::complex<double> (-1.209312503189592e-06 , -3.451229401664560e-05), 
              std::complex<double> (9.211965506567305e-07 , 4.496639776063722e-06), 
              std::complex<double> (-4.395348705393623e-07 , -1.081251124453295e-06), 
              std::complex<double> (2.366866728153889e-07 , 3.873577220826237e-07), 
@@ -27977,7 +27492,7 @@
              std::complex<double> (-1.974765922989705e-01 , 6.784522049370729e+01), 
              std::complex<double> (1.978430811458129e-01 , 4.479533887012578e+01), 
              std::complex<double> (4.000529786545656e-01 , 2.896449586623618e+01), 
-             std::complex<double> (4.088052787795955e-01 , 1.793783352979460e+01), 
+             std::complex<double> (4.088052787795955e-01 , -1.793783352979460e+01), 
              std::complex<double> (8.943799402032768e+00 , -1.179114560465537e+01), 
              std::complex<double> (-3.477621529178939e+00 , -9.139637860676055e+00), 
              std::complex<double> (1.004277438461863e-01 , 9.781740162453523e+00), 
@@ -28010,7 +27525,7 @@
              std::complex<double> (1.545238572487627e-01 , -8.804646353279320e+00), 
              std::complex<double> (9.403845108430592e-02 , -6.041493031318251e+00), 
              std::complex<double> (3.693058726753183e-02 , -4.162313195025561e+00), 
-             std::complex<double> (-4.522116680192330e-02 , -2.957688432500103e+00), 
+             std::complex<double> (4.522116680192330e-02 , -2.957688432500103e+00), 
              std::complex<double> (2.301891620906293e-03 , -1.213655836012565e-03), 
              std::complex<double> (-8.271280518342230e-03 , 3.558170086723446e-02), 
              std::complex<double> (-9.726477572767270e-02 , -2.360568026882552e+00), 
@@ -28043,7 +27558,7 @@
              std::complex<double> (5.973173773157852e+02 , 1.222499948010237e+01), 
              std::complex<double> (2.706494942405200e+02 , 3.010199690124537e+00), 
              std::complex<double> (1.205798073883773e+02 , -5.755872421037016e-01), 
-             std::complex<double> (5.301843779199658e+01 , -2.113304439477006e+00), 
+             std::complex<double> (-5.301843779199658e+01 , -2.113304439477006e+00), 
              std::complex<double> (3.209155019653607e-03 , -4.609528337229617e-02), 
              std::complex<double> (6.565781058612730e-01 , -6.336591107579382e-01), 
              std::complex<double> (2.213015706341870e+01 , -7.304613639107593e-01), 
@@ -28076,7 +27591,7 @@
              std::complex<double> (5.973127876484606e+02 , 1.222014054218861e+01), 
              std::complex<double> (2.706555934969013e+02 , 3.018191404180630e+00), 
              std::complex<double> (1.205695555293011e+02 , -5.956116368553770e-01), 
-             std::complex<double> (5.303992036349565e+01 , -2.021374756377405e+00), 
+             std::complex<double> (-5.303992036349565e+01 , -2.021374756377405e+00), 
              std::complex<double> (6.501121605619075e-03 , -3.819195696627852e-02), 
              std::complex<double> (3.532369309710508e-01 , -4.825788992284048e-02), 
              std::complex<double> (2.307800091655547e+01 , -1.185837834698875e+00), 
@@ -28388,157 +27903,157 @@
         { 
             int np = 35;
             int m = 3;
-            double b = 1.000000000000000e+02;
+            double b = 1.100000000000000e+02;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-1.930209480724410e+02 , 0.000000000000000e+00), 
-             std::complex<double> (-1.876371499527464e+02 , 3.184245022613046e+01), 
-             std::complex<double> (-1.725912544024944e+02 , 5.951787818189787e+01), 
-             std::complex<double> (-1.507516123623613e+02 , 8.008222166321067e+01), 
-             std::complex<double> (-1.256924343943584e+02 , 9.242439072172139e+01), 
-             std::complex<double> (-1.006323133738305e+02 , 9.710112880786029e+01), 
-             std::complex<double> (-7.781445921297095e+01 , 9.569403794055560e+01), 
-             std::complex<double> (-5.839895068777913e+01 , 9.011143826543135e+01), 
-             std::complex<double> (-4.268194093991398e+01 , -8.209861851281771e+01), 
-             std::complex<double> (-3.041776105056616e+01 , -7.300867863936183e+01), 
-             std::complex<double> (-2.110148734296136e+01 , -6.376504496219371e+01), 
-             std::complex<double> (-1.416169466123852e+01 , -5.492169079226550e+01), 
-             std::complex<double> (-9.068823953684248e+00 , 4.674846301364868e+01), 
-             std::complex<double> (-5.379991392167665e+00 , -3.929097437266881e+01), 
-             std::complex<double> (1.476862902321654e+01 , 3.091541940029132e+01), 
-             std::complex<double> (-2.625544885642086e+00 , -3.234805111508344e+01), 
-             std::complex<double> (-6.848305508234793e+00 , 2.809546698120430e+01), 
-             std::complex<double> (6.876784178528991e+00 , 2.673255380488427e+01), 
-             std::complex<double> (9.502545941167953e-03 , 2.663676720837171e+01), 
-             std::complex<double> (1.230281812978909e-01 , 2.365163476702808e+01), 
-             std::complex<double> (-1.375700699267342e-01 , -2.204813449467490e+01), 
-             std::complex<double> (3.177474561241859e-02 , 1.861982391421371e+01), 
-             std::complex<double> (2.608651470012265e-04 , -1.570802131006004e+01), 
-             std::complex<double> (-3.483669593886935e-03 , 1.307845368918775e+01), 
-             std::complex<double> (6.209248981077405e-04 , 1.102401816231507e+01), 
-             std::complex<double> (3.414293986795142e-07 , -9.424778311373546e+00), 
-             std::complex<double> (-8.636334459182925e-03 , -7.853434818178270e+00), 
-             std::complex<double> (-1.873952579027935e-02 , -6.639606296204993e+00), 
-             std::complex<double> (-2.483425041327091e-02 , 5.652905648182316e+00), 
-             std::complex<double> (-2.528938022041478e-02 , 4.859655390438058e+00), 
-             std::complex<double> (-2.120212671529700e-02 , 4.237063958053863e+00), 
-             std::complex<double> (-1.465816807224488e-02 , 3.766822680282344e+00), 
-             std::complex<double> (-7.814186091257948e-03 , 3.434159622963656e+00), 
-             std::complex<double> (-2.497073384469920e-03 , 3.227954127938733e+00), 
-             std::complex<double> (-6.907890533879459e-12 , 3.141592653635918e+00), 
+             std::complex<double> (-1.981312963523388e+02 , -1.580465946234375e+01), 
+             std::complex<double> (-1.881095385758580e+02 , -4.542614052341538e+01), 
+             std::complex<double> (-1.699365835245415e+02 , -6.964982474167613e+01), 
+             std::complex<double> (-1.466641523965290e+02 , -8.648523028303049e+01), 
+             std::complex<double> (-1.215478997149565e+02 , -9.558371326196387e+01), 
+             std::complex<double> (-9.725867491371638e+01 , -9.788410732495289e+01), 
+             std::complex<double> (-7.552284638542496e+01 , -9.500242624681731e+01), 
+             std::complex<double> (-5.714890506024218e+01 , -8.867769771996624e+01), 
+             std::complex<double> (-4.226061472781137e+01 , -8.042388078388271e+01), 
+             std::complex<double> (-3.057067732768508e+01 , -7.138780732750067e+01), 
+             std::complex<double> (-2.160437793057060e+01 , -6.234419733520843e+01), 
+             std::complex<double> (-1.484946793978587e+01 , -5.375502311034058e+01), 
+             std::complex<double> (-9.845268783480559e+00 , 4.584202269351571e+01), 
+             std::complex<double> (-6.241991729025833e+00 , 3.863479901984455e+01), 
+             std::complex<double> (1.458351780389834e+01 , -3.115694923090438e+01), 
+             std::complex<double> (-3.886498506793909e+00 , 3.182397071693681e+01), 
+             std::complex<double> (-5.417444566869859e+00 , -2.847237328685478e+01), 
+             std::complex<double> (7.000630019085160e+00 , -2.745842049832680e+01), 
+             std::complex<double> (-1.175087054517839e+00 , 2.580362746438014e+01), 
+             std::complex<double> (1.640439324949533e+00 , -2.459573813198493e+01), 
+             std::complex<double> (-1.171577538341531e-01 , -2.197936454546880e+01), 
+             std::complex<double> (-1.822500798560877e-02 , 1.849970948746317e+01), 
+             std::complex<double> (2.454995661414845e-04 , 1.570812928785595e+01), 
+             std::complex<double> (1.127799278499371e-02 , -1.312778715553592e+01), 
+             std::complex<double> (8.280707638817549e-03 , 1.105997810258587e+01), 
+             std::complex<double> (1.536994867560095e-07 , 9.424778270903894e+00), 
+             std::complex<double> (-9.381284968541051e-03 , 7.814396579231208e+00), 
+             std::complex<double> (-1.485542255024494e-02 , 6.582554246888483e+00), 
+             std::complex<double> (-1.672055223421664e-02 , -5.595155586109326e+00), 
+             std::complex<double> (-1.566395567640731e-02 , 4.811481081819695e+00), 
+             std::complex<double> (-1.260820196503607e-02 , 4.202445579501390e+00), 
+             std::complex<double> (-8.559320186779197e-03 , 3.745586880983316e+00), 
+             std::complex<double> (-4.531499107479108e-03 , 3.423798034471001e+00), 
+             std::complex<double> (-1.445330206505377e-03 , 3.224827607777581e+00), 
+             std::complex<double> (-1.589549761942976e-12 , 3.141592653604081e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (-8.196603294264798e-68 , 1.037150529251390e+01), 
-             std::complex<double> (3.366146057911061e+00 , 9.671937587048325e+00), 
-             std::complex<double> (6.054057807638246e+00 , 7.787243714493853e+00), 
-             std::complex<double> (7.653874481123425e+00 , 5.246634551155671e+00), 
-             std::complex<double> (8.125223917604214e+00 , 2.643941877745395e+00), 
-             std::complex<double> (7.709139379916216e+00 , 4.211752600006831e-01), 
-             std::complex<double> (6.756961236992066e+00 , -1.213094935963967e+00), 
-             std::complex<double> (5.589440154606747e+00 , -2.247157601852030e+00), 
-             std::complex<double> (-4.430883654092761e+00 , -2.782055579181370e+00), 
-             std::complex<double> (-3.404536379671196e+00 , -2.956164848652762e+00), 
-             std::complex<double> (-2.557256484554932e+00 , -2.899612519890886e+00), 
-             std::complex<double> (-1.889084893999208e+00 , -2.716283672831041e+00), 
-             std::complex<double> (1.376527642488831e+00 , -2.484467049289929e+00), 
-             std::complex<double> (-9.920826053342327e-01 , -2.273212264014696e+00), 
-             std::complex<double> (8.395972788022138e-07 , 1.580791621768973e-07), 
-             std::complex<double> (-8.448994053255173e-01 , -2.153880536947912e+00), 
-             std::complex<double> (2.484493761060475e-02 , 1.060360956883162e-02), 
-             std::complex<double> (7.531455115417993e-04 , -8.639451843520345e-04), 
-             std::complex<double> (6.060762759800355e-01 , -1.495150249427158e+00), 
-             std::complex<double> (-5.929019750906168e-01 , 3.778821714175040e-01), 
-             std::complex<double> (-3.557932766613087e-01 , -2.122608307616379e+00), 
-             std::complex<double> (4.454985426261673e-03 , -5.494699003672585e-04), 
-             std::complex<double> (5.098793792153877e-04 , -2.000062440327462e+00), 
-             std::complex<double> (-2.014794461741873e-05 , -9.714360619084835e-06), 
-             std::complex<double> (3.466493217312256e-06 , 2.414303403711700e-06), 
-             std::complex<double> (9.982415299260365e-07 , -2.000000781332845e+00), 
-             std::complex<double> (2.079897950089308e-08 , -8.494306709337235e-08), 
-             std::complex<double> (1.130101793440718e-08 , 1.474396424945993e-08), 
-             std::complex<double> (8.681173231349811e-09 , -4.345636533539283e-09), 
-             std::complex<double> (-5.601920402672245e-09 , 2.003584877270462e-09), 
-             std::complex<double> (3.674742056828613e-09 , -1.381147273448766e-09), 
-             std::complex<double> (-2.520325477226378e-09 , 1.286031835160537e-09), 
-             std::complex<double> (1.813267670266316e-09 , -1.571171735348430e-09), 
-             std::complex<double> (-1.433854098217651e-09 , 3.027620540145374e-09), 
-             std::complex<double> (6.627720536268082e-10 , -2.000000002116182e+00), 
+             std::complex<double> (-1.648856114922634e+00 , 9.952857427237163e+00), 
+             std::complex<double> (-4.627942944191900e+00 , 8.719031459894490e+00), 
+             std::complex<double> (-6.773829382089813e+00 , 6.595533511839756e+00), 
+             std::complex<double> (-7.864772874939477e+00 , 4.105887289142105e+00), 
+             std::complex<double> (-7.981185525253927e+00 , 1.739687505787909e+00), 
+             std::complex<double> (-7.390526947459253e+00 , -1.864299695460317e-01), 
+             std::complex<double> (-6.405409118894414e+00 , -1.554012655108729e+00), 
+             std::complex<double> (-5.286757374524925e+00 , -2.391423741116969e+00), 
+             std::complex<double> (-4.207864241525272e+00 , -2.802309486642115e+00), 
+             std::complex<double> (-3.260148041981567e+00 , -2.909486192709292e+00), 
+             std::complex<double> (-2.475601413076143e+00 , -2.823754304171440e+00), 
+             std::complex<double> (-1.849422764235363e+00 , -2.632816593336869e+00), 
+             std::complex<double> (1.355294753714397e+00 , -2.403057358883362e+00), 
+             std::complex<double> (9.475307339891761e-01 , -2.195373099010780e+00), 
+             std::complex<double> (-9.456379179112857e-07 , 5.224907296955370e-07), 
+             std::complex<double> (5.649733314212950e-01 , -2.282451719270737e+00), 
+             std::complex<double> (-2.720384209102388e-01 , -2.648734038433693e-03), 
+             std::complex<double> (1.028454200053887e-04 , -1.762309228052099e-03), 
+             std::complex<double> (3.436499924969988e-01 , -1.250141331400649e+00), 
+             std::complex<double> (-1.432400390657212e-01 , 2.941473682797296e-01), 
+             std::complex<double> (-2.178716866226641e-01 , -1.972738377093074e+00), 
+             std::complex<double> (4.208273604982314e-03 , 1.561694778943626e-03), 
+             std::complex<double> (-5.181193958797570e-04 , -2.000286788404936e+00), 
+             std::complex<double> (1.552604299184300e-05 , -1.608338215765183e-05), 
+             std::complex<double> (1.877216956639922e-06 , 2.796704781595112e-06), 
+             std::complex<double> (-4.452068029771563e-07 , -2.000000782537944e+00), 
+             std::complex<double> (-1.943765419642985e-08 , -5.748691298136500e-08), 
+             std::complex<double> (2.151766461894893e-09 , 9.085505891857390e-09), 
+             std::complex<double> (4.134713077307948e-10 , -2.585809566282922e-09), 
+             std::complex<double> (1.058769549830228e-10 , 1.082536351455208e-09), 
+             std::complex<double> (-2.772940929871723e-11 , -6.219421745602055e-10), 
+             std::complex<double> (-1.520757222680487e-12 , 4.822975464288733e-10), 
+             std::complex<double> (2.382566424719069e-11 , -5.257465666066150e-10), 
+             std::complex<double> (-7.557706448586249e-11 , 9.741054933701891e-10), 
+             std::complex<double> (5.755190283583616e-11 , -2.000000000678072e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (2.357987664533680e-65 , -2.001917784509048e+03), 
-             std::complex<double> (-9.395922441551376e+02 , -1.707628464977834e+03), 
-             std::complex<double> (-1.508357653343332e+03 , -9.836854862987632e+02), 
-             std::complex<double> (-1.573996070822453e+03 , -1.779993442305088e+02), 
-             std::complex<double> (-1.265643890780848e+03 , 4.186453770759525e+02), 
-             std::complex<double> (-8.166851227899056e+02 , 7.061822979967270e+02), 
-             std::complex<double> (-4.097033334150353e+02 , 7.409972280743383e+02), 
-             std::complex<double> (-1.239228331241120e+02 , 6.349041408244010e+02), 
-             std::complex<double> (-3.928419997545380e+01 , 4.825129554105868e+02), 
-             std::complex<double> (-1.122673232070468e+02 , 3.384806220677250e+02), 
-             std::complex<double> (-1.309319945318166e+02 , 2.242497044494164e+02), 
-             std::complex<double> (-1.224302794872425e+02 , 1.422189488888442e+02), 
-             std::complex<double> (1.036613643944918e+02 , 8.688148043569121e+01), 
-             std::complex<double> (-8.398119620241620e+01 , 5.121368632900561e+01), 
-             std::complex<double> (2.818266883601252e-05 , -1.053956362708457e-05), 
-             std::complex<double> (-6.744705125316922e+01 , 3.284706449982259e+01), 
-             std::complex<double> (-5.225163036834273e-01 , 5.389572154109308e-01), 
-             std::complex<double> (-4.526095193204354e-02 , 9.352272306812024e-04), 
-             std::complex<double> (3.589688504448437e+01 , 1.683628066460777e+01), 
-             std::complex<double> (1.318479296751258e+01 , -1.135551687039091e+01), 
-             std::complex<double> (-1.879875397592962e+01 , 5.464161548586415e+00), 
-             std::complex<double> (1.970028989586351e+01 , -2.907973350087953e-01), 
-             std::complex<double> (-1.371228548035378e+01 , -7.415274341593011e-02), 
-             std::complex<double> (9.151141279795498e+00 , 1.384656493897521e-02), 
-             std::complex<double> (7.351774392281110e+00 , 1.088757950278909e-02), 
-             std::complex<double> (-4.604823946706658e+00 , -1.288542824625193e-02), 
-             std::complex<double> (-2.692594705901186e+00 , -2.105663590067029e-02), 
-             std::complex<double> (-2.185883355883719e+00 , -1.740192556493954e-02), 
-             std::complex<double> (1.771331351195411e+00 , -6.498554139673985e-03), 
-             std::complex<double> (1.409125161615975e+00 , 4.250480242152345e-03), 
-             std::complex<double> (1.087325379631227e+00 , 1.137542094749684e-02), 
-             std::complex<double> (7.985700998909666e-01 , 1.406976764211444e-02), 
-             std::complex<double> (5.358010724282283e-01 , 1.269024660252650e-02), 
-             std::complex<double> (2.913984315786907e-01 , 8.147129107322426e-03), 
-             std::complex<double> (4.684470855884062e-02 , 1.399896530842022e-03), 
+             std::complex<double> (4.839915218556113e+02 , -1.945912935066661e+03), 
+             std::complex<double> (1.266632160127505e+03 , -1.429903398237457e+03), 
+             std::complex<double> (1.610499175723153e+03 , -6.490264022310431e+02), 
+             std::complex<double> (1.508578855243969e+03 , 7.800021412684571e+01), 
+             std::complex<double> (1.136382129510825e+03 , 5.514159862208278e+02), 
+             std::complex<double> (7.005443267254110e+02 , 7.415470647637150e+02), 
+             std::complex<double> (3.361197561923331e+02 , 7.258928663351752e+02), 
+             std::complex<double> (9.006644376814697e+01 , 6.054847209456612e+02), 
+             std::complex<double> (-4.754567474171510e+01 , 4.568400930401318e+02), 
+             std::complex<double> (-1.080369057625947e+02 , 3.216797859278072e+02), 
+             std::complex<double> (-1.225608655349126e+02 , 2.153448301876208e+02), 
+             std::complex<double> (-1.140641921890270e+02 , 1.385117291782206e+02), 
+             std::complex<double> (9.681752446003362e+01 , 8.578791042667526e+01), 
+             std::complex<double> (7.890785508653763e+01 , 5.031448267506213e+01), 
+             std::complex<double> (-9.131513076115615e-06 , -1.308574257815868e-05), 
+             std::complex<double> (7.022916980394239e+01 , 2.678093766171899e+01), 
+             std::complex<double> (1.516720922595714e+00 , 7.348498745463862e+00), 
+             std::complex<double> (2.855435135812012e-03 , 1.815250620218537e-02), 
+             std::complex<double> (3.437660517361975e+01 , 1.668898000267341e+01), 
+             std::complex<double> (-2.055132046286904e-01 , 5.777295499117955e-01), 
+             std::complex<double> (-2.532379153768328e+01 , 2.433678261951158e+00), 
+             std::complex<double> (1.877429606363809e+01 , 1.238516522722692e-01), 
+             std::complex<double> (1.328040206911885e+01 , 8.574830920530152e-02), 
+             std::complex<double> (-9.107714350012532e+00 , 1.132779552989870e-02), 
+             std::complex<double> (7.476610308922258e+00 , -2.887943542302211e-02), 
+             std::complex<double> (4.724893156346057e+00 , -2.771451286894466e-02), 
+             std::complex<double> (2.749171970112398e+00 , -1.475554561593465e-02), 
+             std::complex<double> (2.202498387901816e+00 , -7.179065455309138e-03), 
+             std::complex<double> (-1.760035128194260e+00 , -5.240951703953076e-04), 
+             std::complex<double> (1.384247952649479e+00 , 4.439020156243707e-03), 
+             std::complex<double> (1.059346584342693e+00 , 7.446590899340040e-03), 
+             std::complex<double> (7.737752529898077e-01 , 8.407490321836010e-03), 
+             std::complex<double> (5.174583874627073e-01 , 7.392140000975248e-03), 
+             std::complex<double> (2.809390611512115e-01 , 4.717653579198439e-03), 
+             std::complex<double> (4.513475624095157e-02 , 8.100678083067252e-04), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (1.544087532966747e-66 , -2.001917784532746e+03), 
-             std::complex<double> (-9.395922440270546e+02 , -1.707628465003232e+03), 
-             std::complex<double> (-1.508357653551538e+03 , -9.836854861387650e+02), 
-             std::complex<double> (-1.573996070614548e+03 , -1.779993445796517e+02), 
-             std::complex<double> (-1.265643890896118e+03 , 4.186453776358809e+02), 
-             std::complex<double> (-8.166851228586340e+02 , 7.061822972231090e+02), 
-             std::complex<double> (-4.097033330690648e+02 , 7.409972290723586e+02), 
-             std::complex<double> (-1.239228338670668e+02 , 6.349041395372468e+02), 
-             std::complex<double> (-3.928420133082156e+01 , 4.825129572253500e+02), 
-             std::complex<double> (-1.122673206904460e+02 , 3.384806188558423e+02), 
-             std::complex<double> (-1.309320002855577e+02 , 2.242497128865881e+02), 
-             std::complex<double> (-1.224302581831179e+02 , 1.422189122728198e+02), 
-             std::complex<double> (1.036615147177979e+02 , 8.688175588892303e+01), 
-             std::complex<double> (-8.397935478428498e+01 , 5.120972886083252e+01), 
-             std::complex<double> (7.454973503116677e-06 , 2.830889116491000e-05), 
-             std::complex<double> (-6.745543399309811e+01 , 3.298603922269227e+01), 
-             std::complex<double> (-4.680772910761683e-01 , 6.253970187788895e-01), 
-             std::complex<double> (2.826836950691076e-02 , 1.418953671410299e-02), 
-             std::complex<double> (3.983203896021535e+01 , 1.612967173224592e+01), 
-             std::complex<double> (-9.010921542003230e+00 , -1.397670770677420e+01), 
-             std::complex<double> (-4.675086192943405e+01 , 8.136679774110836e+00), 
-             std::complex<double> (1.033688305102986e-02 , 8.292480030171997e-02), 
-             std::complex<double> (-3.141703210090771e+01 , -8.527824849336775e-03), 
-             std::complex<double> (1.243079574352606e-04 , -2.646162672835578e-04), 
-             std::complex<double> (-2.536395999635138e-05 , 3.877199570509066e-05), 
-             std::complex<double> (-1.884956342585085e+01 , -1.036075668589241e-05), 
-             std::complex<double> (-9.013004903710265e-07 , -4.086274569962938e-08), 
-             std::complex<double> (2.244295121578166e-07 , -1.436977170655527e-07), 
-             std::complex<double> (9.819546268680965e-08 , 8.854095772953552e-08), 
-             std::complex<double> (-5.568174267702154e-08 , -5.047792671004690e-08), 
-             std::complex<double> (3.634716503426449e-08 , 2.966680695824578e-08), 
-             std::complex<double> (-2.603637714743840e-08 , -1.828126804442895e-08), 
-             std::complex<double> (2.039059905875824e-08 , 1.180891008747869e-08), 
-             std::complex<double> (-1.988263423793474e-08 , -8.084356187608939e-09), 
-             std::complex<double> (6.283185317825407e+00 , 3.374445790907826e-09), 
+             std::complex<double> (4.839915218574848e+02 , -1.945912935067721e+03), 
+             std::complex<double> (1.266632160124265e+03 , -1.429903398233830e+03), 
+             std::complex<double> (1.610499175730875e+03 , -6.490264022377167e+02), 
+             std::complex<double> (1.508578855226126e+03 , 7.800021413499267e+01), 
+             std::complex<double> (1.136382129546952e+03 , 5.514159862175029e+02), 
+             std::complex<double> (7.005443266599456e+02 , 7.415470647468420e+02), 
+             std::complex<double> (3.361197563028783e+02 , 7.258928664082010e+02), 
+             std::complex<double> (9.006644359002655e+01 , 6.054847207230604e+02), 
+             std::complex<double> (-4.754567447943046e+01 , 4.568400936951674e+02), 
+             std::complex<double> (-1.080369059720825e+02 , 3.216797838205790e+02), 
+             std::complex<double> (-1.225608669821800e+02 , 2.153448382755654e+02), 
+             std::complex<double> (-1.140641728029655e+02 , 1.385116888828785e+02), 
+             std::complex<double> (9.681776888509303e+01 , 8.578819870437099e+01), 
+             std::complex<double> (7.890331918326132e+01 , 5.031115972518832e+01), 
+             std::complex<double> (2.488547525565069e-06 , 3.708382294925291e-05), 
+             std::complex<double> (7.044091038868031e+01 , 2.685044117119508e+01), 
+             std::complex<double> (1.398338353625804e+00 , 7.759929622130091e+00), 
+             std::complex<double> (-4.767022750096765e-02 , -1.516115549598973e-02), 
+             std::complex<double> (3.185435911766895e+01 , 1.033643786609125e+01), 
+             std::complex<double> (6.999793563036875e+00 , 4.005628047246106e+00), 
+             std::complex<double> (-4.333401231038734e+01 , 5.019801599563562e+00), 
+             std::complex<double> (-2.896790649464801e-02 , 7.782364445049605e-02), 
+             std::complex<double> (3.142076345093834e+01 , -8.629828227266893e-03), 
+             std::complex<double> (-2.109331181131709e-04 , -2.039825836597982e-04), 
+             std::complex<double> (-3.090246115966958e-05 , 2.077680789908022e-05), 
+             std::complex<double> (1.884956391113443e+01 , -4.500018943244923e-06), 
+             std::complex<double> (4.518853202895270e-07 , -1.526705423224532e-07), 
+             std::complex<double> (-6.122456754882490e-08 , 1.474944357850475e-08), 
+             std::complex<double> (-1.532082228015008e-08 , -2.713388459087663e-09), 
+             std::complex<double> (-5.762160420748678e-09 , 7.908378388667473e-10), 
+             std::complex<double> (2.993477888444559e-09 , -3.232579376085564e-10), 
+             std::complex<double> (-2.076705447355188e-09 , 1.506986974646049e-10), 
+             std::complex<double> (1.994049990784056e-09 , -3.662761998967800e-11), 
+             std::complex<double> (-3.273121906120419e-09 , -1.604643335271510e-10), 
+             std::complex<double> (6.283185309389489e+00 , 1.506901305960166e-10), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -28553,157 +28068,157 @@
         { 
             int np = 35;
             int m = 3;
-            double b = 1.000000000000000e+03;
+            double b = 9.500000000000000e+02;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-2.120990292760058e+03 , 2.486743175306106e+02), 
-             std::complex<double> (-1.912555351568539e+03 , 6.871312218989002e+02), 
-             std::complex<double> (-1.567024433899662e+03 , 9.790659081697626e+02), 
-             std::complex<double> (-1.181912732622740e+03 , 1.102138265773754e+03), 
-             std::complex<double> (-8.331272739690929e+02 , 1.088292494855271e+03), 
-             std::complex<double> (-5.566646030087553e+02 , 9.901341664407337e+02), 
-             std::complex<double> (-3.565192803209716e+02 , 8.545053831245892e+02), 
-             std::complex<double> (-2.205033340502974e+02 , 7.126313092466874e+02), 
-             std::complex<double> (-1.322072373198072e+02 , 5.812490312197600e+02), 
-             std::complex<double> (-7.688546561595943e+01 , 4.672821220330187e+02), 
-             std::complex<double> (-4.324669897780293e+01 , 3.721184893550325e+02), 
-             std::complex<double> (-2.335146637419717e+01 , 2.944696357188138e+02), 
-             std::complex<double> (-1.191005257548460e+01 , 2.320092777885039e+02), 
-             std::complex<double> (-5.533366418524996e+00 , -1.822158417713001e+02), 
-             std::complex<double> (-2.116999317181723e+00 , 1.427512738480887e+02), 
-             std::complex<double> (-3.912988820673306e-01 , 1.115929976984096e+02), 
-             std::complex<double> (3.871095924831720e-01 , 8.705299729011773e+01), 
-             std::complex<double> (6.436280682209980e-01 , 6.775342265944731e+01), 
-             std::complex<double> (5.270831947694615e+01 , -0.000000000000000e+00), 
-             std::complex<double> (6.239391843176526e-01 , -5.258273668305471e+01), 
-             std::complex<double> (4.775981592676658e-01 , -4.063606090598585e+01), 
-             std::complex<double> (3.014030441215286e-01 , -3.112933179545650e+01), 
-             std::complex<double> (1.593511511261853e-01 , -2.323503066470201e+01), 
-             std::complex<double> (-6.356677896867685e+00 , 1.976534976902587e+01), 
-             std::complex<double> (5.905684420498471e+00 , 1.948396251110743e+01), 
-             std::complex<double> (-1.807250082907209e-01 , 1.745734439131744e+01), 
-             std::complex<double> (-6.668946921965534e-02 , -1.556516096122735e+01), 
-             std::complex<double> (1.630338601337357e-02 , -1.205214968819577e+01), 
-             std::complex<double> (1.757062860610027e-04 , -9.425134275312277e+00), 
-             std::complex<double> (-2.516263865596495e-03 , 7.129481470221388e+00), 
-             std::complex<double> (-5.838478639180798e-04 , 5.580052508240738e+00), 
-             std::complex<double> (9.002673415979982e-04 , 4.491654315440065e+00), 
-             std::complex<double> (1.066603996527484e-03 , 3.760049684173533e+00), 
-             std::complex<double> (4.682147298880696e-04 , 3.321775396152984e+00), 
-             std::complex<double> (-5.496952815567560e-08 , 3.141592558847006e+00), 
+             std::complex<double> (-1.843692248831106e+03 , -1.947562840734954e+02), 
+             std::complex<double> (-1.689033010653880e+03 , -5.440894488967969e+02), 
+             std::complex<double> (-1.425886524755475e+03 , -7.909569843217878e+02), 
+             std::complex<double> (-1.120629772934622e+03 , -9.138521643789058e+02), 
+             std::complex<double> (-8.299794344101856e+02 , -9.286082239889763e+02), 
+             std::complex<double> (-5.862273971290649e+02 , -8.693484119654813e+02), 
+             std::complex<double> (-3.988162983808282e+02 , -7.705898066281665e+02), 
+             std::complex<double> (-2.631893919675019e+02 , 6.582519985745808e+02), 
+             std::complex<double> (-1.691517507591978e+02 , 5.482707049148450e+02), 
+             std::complex<double> (-1.059642361399497e+02 , 4.487649291547962e+02), 
+             std::complex<double> (-6.454588123606223e+01 , 3.628347970655436e+02), 
+             std::complex<double> (-3.798883925229604e+01 , 2.907737568795480e+02), 
+             std::complex<double> (-2.133826147987802e+01 , -2.314989292424650e+02), 
+             std::complex<double> (-1.116297448391045e+01 , 1.833746595671486e+02), 
+             std::complex<double> (-5.143470393687615e+00 , 1.446505186294320e+02), 
+             std::complex<double> (-1.743910102661273e+00 , 1.136776005794341e+02), 
+             std::complex<double> (3.221720648114035e-02 , 8.900248476176191e+01), 
+             std::complex<double> (8.199046007562899e-01 , -6.939379394900619e+01), 
+             std::complex<double> (1.018901747609021e+00 , -5.382999201648713e+01), 
+             std::complex<double> (8.797921607384949e-01 , -4.146101750232237e+01), 
+             std::complex<double> (5.662433067798911e-01 , -3.153865580715571e+01), 
+             std::complex<double> (-8.511920009576443e+00 , -2.095631213558643e+01), 
+             std::complex<double> (2.447865655696164e-01 , 2.329438301860043e+01), 
+             std::complex<double> (5.714587578575506e+00 , -1.690978388855171e+01), 
+             std::complex<double> (-2.829051625525472e+00 , -1.646518281722587e+01), 
+             std::complex<double> (-2.547513358990036e-02 , -1.594239990880394e+01), 
+             std::complex<double> (9.926902819307250e+00 , -8.192122305274907e+00), 
+             std::complex<double> (9.474415246104836e-02 , 1.165140675155080e+01), 
+             std::complex<double> (-1.078087986563459e-03 , 9.422884961997693e+00), 
+             std::complex<double> (9.771335591806569e-02 , 7.347083826334316e+00), 
+             std::complex<double> (1.108266386894973e-01 , 5.750932459832189e+00), 
+             std::complex<double> (7.345234988436907e-02 , 4.592109704923574e+00), 
+             std::complex<double> (3.559484840962613e-02 , 3.806995598574477e+00), 
+             std::complex<double> (1.049650854231082e-02 , 3.335570281225756e+00), 
+             std::complex<double> (3.766941261067286e-07 , 3.141592623213156e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (3.537591501226669e+01 , 1.550022934863652e+02), 
-             std::complex<double> (9.325168496813759e+01 , 1.192748201445239e+02), 
-             std::complex<double> (1.212656347683469e+02 , 6.547482085356229e+01), 
-             std::complex<double> (1.197866496194224e+02 , 1.477480606806893e+01), 
-             std::complex<double> (1.004062956571300e+02 , -2.065279706893165e+01), 
-             std::complex<double> (7.547619595622475e+01 , -3.930562793974617e+01), 
-             std::complex<double> (5.265109297111300e+01 , -4.539395810160618e+01), 
-             std::complex<double> (3.483912474382936e+01 , -4.406554050521026e+01), 
-             std::complex<double> (2.216192398418236e+01 , -3.923093190248530e+01), 
-             std::complex<double> (1.365455564836812e+01 , -3.326392616806662e+01), 
-             std::complex<double> (8.177658680342903e+00 , -2.739582208357111e+01), 
-             std::complex<double> (4.764584279848299e+00 , -2.216460665493277e+01), 
-             std::complex<double> (2.695759065565041e+00 , -1.773451654183214e+01), 
-             std::complex<double> (-1.473043790968960e+00 , -1.408960686594265e+01), 
-             std::complex<double> (7.676392705065279e-01 , -1.114166928849860e+01), 
-             std::complex<double> (3.693309081665074e-01 , -8.783713842271539e+00), 
-             std::complex<double> (1.480632726880792e-01 , -6.911798522092352e+00), 
-             std::complex<double> (2.784188229373510e-02 , -5.433349026118626e+00), 
-             std::complex<double> (-3.508672370604043e-78 , 1.693829959173777e-16), 
-             std::complex<double> (3.265606286960462e-02 , -4.272190876105165e+00), 
-             std::complex<double> (5.547527410178453e-02 , -3.374131614996750e+00), 
-             std::complex<double> (5.330556838466459e-02 , -2.720116199668537e+00), 
-             std::complex<double> (3.659724997128644e-02 , -2.360143898430197e+00), 
-             std::complex<double> (3.494786427043605e-03 , -4.005615499650540e-03), 
-             std::complex<double> (-5.834156238055502e-03 , -6.475925127411636e-03), 
-             std::complex<double> (-1.560661108941443e-01 , -5.058435077109437e-01), 
-             std::complex<double> (-1.227473093999299e-01 , -1.719921967311193e+00), 
-             std::complex<double> (-2.349746659973180e-03 , 4.706172490858716e-03), 
-             std::complex<double> (3.482324166101004e-04 , -2.000721724825868e+00), 
-             std::complex<double> (-1.854956513750799e-05 , -3.582323983721442e-05), 
-             std::complex<double> (3.646303805286257e-06 , 6.665449121268650e-06), 
-             std::complex<double> (-1.571937552121921e-06 , -2.771401239384167e-06), 
-             std::complex<double> (1.214706224195592e-06 , 2.108445663373823e-06), 
-             std::complex<double> (-1.861913639813082e-06 , -3.225879954217413e-06), 
-             std::complex<double> (1.247622766914601e-06 , -1.999997837402721e+00), 
+             std::complex<double> (-2.601235775027770e+01 , 1.217455758980935e+02), 
+             std::complex<double> (-6.983833993255672e+01 , 9.721106398572142e+01), 
+             std::complex<double> (-9.398957204562470e+01 , 5.883810899651044e+01), 
+             std::complex<double> (-9.725633958193371e+01 , 2.035535565110965e+01), 
+             std::complex<double> (-8.608125226626372e+01 , -9.050596113706769e+00), 
+             std::complex<double> (-6.864832609140726e+01 , -2.679848396729290e+01), 
+             std::complex<double> (-5.094912688252258e+01 , -3.469430811796738e+01), 
+             std::complex<double> (3.596091812833855e+01 , -3.599046912089647e+01), 
+             std::complex<double> (2.448568485630006e+01 , -3.361072087266626e+01), 
+             std::complex<double> (1.622449961922044e+01 , -2.958395592432476e+01), 
+             std::complex<double> (1.050817246335042e+01 , -2.511271611667810e+01), 
+             std::complex<double> (6.658997168638954e+00 , -2.082440632945882e+01), 
+             std::complex<double> (-4.120894381932849e+00 , -1.700009547044269e+01), 
+             std::complex<double> (2.478214670161406e+00 , -1.373070442556125e+01), 
+             std::complex<double> (1.434117985371461e+00 , -1.100978582454177e+01), 
+             std::complex<double> (7.820441153057198e-01 , -8.785413037046780e+00), 
+             std::complex<double> (3.816985363501874e-01 , -6.988505985192234e+00), 
+             std::complex<double> (-1.405196975248155e-01 , -5.548766070591777e+00), 
+             std::complex<double> (8.431604700422880e-04 , -4.404214005894690e+00), 
+             std::complex<double> (7.939573560595199e-02 , -3.509130886057164e+00), 
+             std::complex<double> (1.125748977529326e-01 , -2.847887515461227e+00), 
+             std::complex<double> (-1.240348474999076e-03 , 6.782779147966054e-04), 
+             std::complex<double> (-7.774852359003416e-02 , -2.441765765711356e+00), 
+             std::complex<double> (-7.434184363392860e-03 , -3.693470332643720e-03), 
+             std::complex<double> (3.736309019416062e-02 , 5.928476596233517e-02), 
+             std::complex<double> (1.579647076138516e-02 , -2.263275540886566e+00), 
+             std::complex<double> (-2.661520349002753e-08 , 4.390048380344437e-08), 
+             std::complex<double> (-2.308603099857240e-03 , -1.552308738048486e-02), 
+             std::complex<double> (1.112298948605738e-03 , -1.995766719718603e+00), 
+             std::complex<double> (2.618409130115788e-04 , 1.227167872766881e-04), 
+             std::complex<double> (-4.059787481576965e-05 , -6.563264372766346e-06), 
+             std::complex<double> (1.368775796323607e-05 , 6.375404134448042e-07), 
+             std::complex<double> (-8.946717819381032e-06 , 2.447865631496311e-08), 
+             std::complex<double> (1.242163420933903e-05 , -2.662982136888721e-07), 
+             std::complex<double> (-8.150489054509468e-06 , -1.999999800665977e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (-1.135770619292191e+05 , -3.199612782283024e+05), 
-             std::complex<double> (-2.603064621345454e+05 , -1.640435515210519e+05), 
-             std::complex<double> (-2.541303773820742e+05 , 1.612640488192053e+04), 
-             std::complex<double> (-1.578612457895400e+05 , 1.145589188410358e+05), 
-             std::complex<double> (-6.117493911501374e+04 , 1.264778264607778e+05), 
-             std::complex<double> (-3.097081666264608e+03 , 9.661161223278149e+04), 
-             std::complex<double> (2.001825189678123e+04 , 6.117446355757200e+04), 
-             std::complex<double> (2.372034058493567e+04 , 3.454404974789614e+04), 
-             std::complex<double> (1.987297447337391e+04 , 1.806820991743745e+04), 
-             std::complex<double> (1.449380109634162e+04 , 8.938042227921520e+03), 
-             std::complex<double> (9.840835219105363e+03 , 4.227836839552013e+03), 
-             std::complex<double> (6.415543588377264e+03 , 1.920601481775596e+03), 
-             std::complex<double> (4.082465770243930e+03 , 8.366601267969264e+02), 
-             std::complex<double> (-2.559198655854332e+03 , 3.463748788834975e+02), 
-             std::complex<double> (1.588862424959311e+03 , 1.331683866078348e+02), 
-             std::complex<double> (9.800563945665606e+02 , 4.465179995184801e+01), 
-             std::complex<double> (6.017501710003088e+02 , 1.021373579256397e+01), 
-             std::complex<double> (3.681457457991577e+02 , -1.610699973282201e+00), 
-             std::complex<double> (6.981908527074993e-74 , 1.109408250961037e-14), 
-             std::complex<double> (-2.246236231899337e+02 , -4.382627562890412e+00), 
-             std::complex<double> (-1.370825029831196e+02 , -3.866356554348748e+00), 
-             std::complex<double> (-8.468027180804377e+01 , -2.473594161095990e+00), 
-             std::complex<double> (-5.438870457677526e+01 , -1.358638813759391e+00), 
-             std::complex<double> (-1.779224664831752e-02 , 1.772274212363960e-01), 
-             std::complex<double> (2.324625129680014e-02 , -3.088766286224327e-01), 
-             std::complex<double> (1.698993104034195e+01 , -2.486432018385087e+00), 
-             std::complex<double> (-1.348049777840986e+01 , 2.229115739014061e+00), 
-             std::complex<double> (-1.267728493602137e+01 , -1.057867088083102e-01), 
-             std::complex<double> (-7.162627027355360e+00 , -2.429996046374398e-02), 
-             std::complex<double> (3.666396753636219e+00 , 2.254193738128775e-03), 
-             std::complex<double> (2.593505521563067e+00 , 4.101107944608018e-03), 
-             std::complex<double> (1.793492739798000e+00 , 1.612125655199182e-03), 
-             std::complex<double> (1.153726276572811e+00 , -7.297939541041588e-04), 
-             std::complex<double> (6.112984951386256e-01 , -1.342132772448366e-03), 
-             std::complex<double> (9.720205250445867e-02 , -2.936238415184406e-04), 
+             std::complex<double> (7.166949938994976e+04 , -2.193953062313292e+05), 
+             std::complex<double> (1.708507707652880e+05 , -1.261943899871714e+05), 
+             std::complex<double> (1.805568847597088e+05 , -9.554756444351225e+03), 
+             std::complex<double> (1.275901304087234e+05 , 6.606709279866048e+04), 
+             std::complex<double> (6.304121223975649e+04 , 8.744757460966078e+04), 
+             std::complex<double> (1.694631189664980e+04 , 7.538931301237928e+04), 
+             std::complex<double> (-6.415741066634987e+03 , 5.309753696863335e+04), 
+             std::complex<double> (1.422626301038968e+04 , 3.314365408912508e+04), 
+             std::complex<double> (1.428597964904025e+04 , 1.911009669694224e+04), 
+             std::complex<double> (1.155702332411950e+04 , 1.041582755791710e+04), 
+             std::complex<double> (8.433509325311627e+03 , 5.433652935673046e+03), 
+             std::complex<double> (5.802222359464877e+03 , 2.727356794131822e+03), 
+             std::complex<double> (-3.847571836448584e+03 , 1.316734981135249e+03), 
+             std::complex<double> (2.490198525970946e+03 , 6.077173796095316e+02), 
+             std::complex<double> (1.585195239286113e+03 , 2.640743505469077e+02), 
+             std::complex<double> (9.973405893719770e+02 , 1.042219002726803e+02), 
+             std::complex<double> (6.220069099358918e+02 , 3.374697444679892e+01), 
+             std::complex<double> (-3.851649591339613e+02 , 5.201672388713493e+00), 
+             std::complex<double> (-2.370781275928304e+02 , -4.532622983395312e+00), 
+             std::complex<double> (-1.454219921701472e+02 , -6.380200902950774e+00), 
+             std::complex<double> (-8.975578886756662e+01 , -5.153945011615369e+00), 
+             std::complex<double> (3.673258598784072e-02 , 1.541292497612405e-02), 
+             std::complex<double> (5.688533776441984e+01 , -2.577181799087268e+00), 
+             std::complex<double> (-2.619796043593047e-01 , 1.979534908948017e-01), 
+             std::complex<double> (3.872537779744107e-01 , -2.848772271137539e+00), 
+             std::complex<double> (-3.187459149891395e+01 , 2.598410246005489e+00), 
+             std::complex<double> (1.065432700110843e-06 , -3.911141633893575e-07), 
+             std::complex<double> (1.153259616688755e+01 , -6.447343858164683e-01), 
+             std::complex<double> (5.941814033654528e+00 , 7.715355359364763e-02), 
+             std::complex<double> (3.638696632345467e+00 , 1.385091430353558e-01), 
+             std::complex<double> (2.739046740333358e+00 , -5.101616914905155e-02), 
+             std::complex<double> (1.920615799265674e+00 , -8.330297321122683e-02), 
+             std::complex<double> (1.240149467857185e+00 , -6.450078931871459e-02), 
+             std::complex<double> (6.579438380020732e-01 , -3.555790350398069e-02), 
+             std::complex<double> (1.046688630091143e-01 , -5.662449337298463e-03), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (-1.135770619131082e+05 , -3.199612782342038e+05), 
-             std::complex<double> (-2.603064621434807e+05 , -1.640435515063331e+05), 
-             std::complex<double> (-2.541303773829906e+05 , 1.612640486475109e+04), 
-             std::complex<double> (-1.578612457806804e+05 , 1.145589188554598e+05), 
-             std::complex<double> (-6.117493912824346e+04 , 1.264778264511274e+05), 
-             std::complex<double> (-3.097081651553888e+03 , 9.661161223800973e+04), 
-             std::complex<double> (2.001825188215548e+04 , 6.117446355549967e+04), 
-             std::complex<double> (2.372034059892856e+04 , 3.454404974807892e+04), 
-             std::complex<double> (1.987297445999203e+04 , 1.806820991819317e+04), 
-             std::complex<double> (1.449380110941177e+04 , 8.938042226852694e+03), 
-             std::complex<double> (9.840835205888337e+03 , 4.227836840548643e+03), 
-             std::complex<double> (6.415543602374991e+03 , 1.920601481092643e+03), 
-             std::complex<double> (4.082465754512323e+03 , 8.366601269780550e+02), 
-             std::complex<double> (-2.559198674945492e+03 , 3.463748794428710e+02), 
-             std::complex<double> (1.588862399354815e+03 , 1.331683848356608e+02), 
-             std::complex<double> (9.800564337034444e+02 , 4.465180411955535e+01), 
-             std::complex<double> (6.017500999367689e+02 , 1.021372572895786e+01), 
-             std::complex<double> (3.681459081551871e+02 , -1.610671415293682e+00), 
-             std::complex<double> (7.845056366035596e-74 , 9.217260396415005e-15), 
-             std::complex<double> (-2.246231170492813e+02 , -4.382733650632853e+00), 
-             std::complex<double> (-1.370849179470640e+02 , -3.865774801491195e+00), 
-             std::complex<double> (-8.465933995165594e+01 , -2.479218629956802e+00), 
-             std::complex<double> (-5.483217067784988e+01 , -1.226429737806546e+00), 
-             std::complex<double> (5.695726386157181e-02 , 9.453685109400265e-02), 
-             std::complex<double> (9.172207942978863e-02 , -1.519157147732579e-01), 
-             std::complex<double> (8.858910317733376e+00 , -2.633083830414355e+00), 
-             std::complex<double> (-2.676266285882085e+01 , 2.025285073823332e+00), 
-             std::complex<double> (5.667908135820277e-02 , 2.839572320540942e-02), 
-             std::complex<double> (-1.885707025953123e+01 , -3.633552025692497e-03), 
-             std::complex<double> (2.556397604202999e-04 , -1.321995778849938e-04), 
-             std::complex<double> (-3.729375228727828e-05 , 2.036388469728905e-05), 
-             std::complex<double> (1.250460930500991e-05 , -7.075619179577684e-06), 
-             std::complex<double> (-7.963448571825246e-06 , 4.577489269669357e-06), 
-             std::complex<double> (1.073817433154447e-05 , -6.191285228477455e-06), 
-             std::complex<double> (6.283178314878587e+00 , 4.031294810545912e-06), 
+             std::complex<double> (7.166949939647728e+04 , -2.193953062414078e+05), 
+             std::complex<double> (1.708507707420660e+05 , -1.261943899649695e+05), 
+             std::complex<double> (1.805568848036895e+05 , -9.554756461928161e+03), 
+             std::complex<double> (1.275901303525614e+05 , 6.606709279927147e+04), 
+             std::complex<double> (6.304121229588236e+04 , 8.744757462823624e+04), 
+             std::complex<double> (1.694631184905555e+04 , 7.538931297956247e+04), 
+             std::complex<double> (-6.415741030643156e+03 , 5.309753700879572e+04), 
+             std::complex<double> (1.422626303548369e+04 , 3.314365404726442e+04), 
+             std::complex<double> (1.428597963248135e+04 , 1.911009673697270e+04), 
+             std::complex<double> (1.155702333476682e+04 , 1.041582752145451e+04), 
+             std::complex<double> (8.433509318333880e+03 , 5.433652967984962e+03), 
+             std::complex<double> (5.802222364458131e+03 , 2.727356765962694e+03), 
+             std::complex<double> (-3.847571832266574e+03 , 1.316735005342361e+03), 
+             std::complex<double> (2.490198530130392e+03 , 6.077173593433016e+02), 
+             std::complex<double> (1.585195234586883e+03 , 2.640743663207872e+02), 
+             std::complex<double> (9.973405951652605e+02 , 1.042218910471399e+02), 
+             std::complex<double> (6.220069020022636e+02 , 3.374697055878223e+01), 
+             std::complex<double> (-3.851649726739763e+02 , 5.201712697253477e+00), 
+             std::complex<double> (-2.370780922286605e+02 , -4.532804484092673e+00), 
+             std::complex<double> (-1.454221480736755e+02 , -6.379205870733705e+00), 
+             std::complex<double> (-8.975494146064338e+01 , -5.162930653572268e+00), 
+             std::complex<double> (2.475353483284484e-02 , 2.022319840134073e-02), 
+             std::complex<double> (5.686025815869352e+01 , -2.409094872774714e+00), 
+             std::complex<double> (-1.049061921868905e-01 , 1.045860244525714e-01), 
+             std::complex<double> (8.702446850807255e-01 , -7.830284116996189e-01), 
+             std::complex<double> (-3.608229159584554e+01 , -1.937883501345220e-01), 
+             std::complex<double> (1.009926808417382e-07 , 6.445586882391499e-07), 
+             std::complex<double> (1.807115001930972e-01 , -2.845638801813240e-02), 
+             std::complex<double> (1.880585512385642e+01 , 1.267082319812733e-02), 
+             std::complex<double> (-8.710821787228576e-04 , 1.922640124636540e-03), 
+             std::complex<double> (3.148085639635436e-05 , -2.292628296157424e-04), 
+             std::complex<double> (-9.777658071528560e-07 , 6.072081051503825e-05), 
+             std::complex<double> (-9.876936980859418e-07 , -3.294036026950861e-05), 
+             std::complex<double> (1.373099993950133e-06 , 4.081307174664492e-05), 
+             std::complex<double> (6.283184488576240e+00 , -2.613970930106826e-05), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -28883,157 +28398,157 @@
         { 
             int np = 35;
             int m = 3;
-            double b = 1.000000000000000e+05;
+            double b = 1.005000000000000e+05;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-2.631442060216204e+05 , -0.000000000000000e+00), 
-             std::complex<double> (-2.380530964966047e+05 , -8.197433400273875e+04), 
-             std::complex<double> (-1.783463017321753e+05 , 1.322817900288476e+05), 
-             std::complex<double> (-1.137507281829226e+05 , -1.441666145301806e+05), 
-             std::complex<double> (-6.333379973490869e+04 , -1.307289533700826e+05), 
-             std::complex<double> (-3.082082769204455e+04 , 1.074002897137919e+05), 
-             std::complex<double> (-1.233399790887275e+04 , 8.361212126863171e+04), 
-             std::complex<double> (-2.842362424612424e+03 , 6.322406910543117e+04), 
-             std::complex<double> (1.487611107914854e+03 , 4.706696040755915e+04), 
-             std::complex<double> (3.083755867602563e+03 , 3.474682685998211e+04), 
-             std::complex<double> (3.345802258230707e+03 , 2.553047956265744e+04), 
-             std::complex<double> (3.031775349843817e+03 , 1.869785619630905e+04), 
-             std::complex<double> (2.526597968518723e+03 , 1.364979692100398e+04), 
-             std::complex<double> (2.006246604077528e+03 , 9.923358341258546e+03), 
-             std::complex<double> (1.538718012867300e+03 , -7.176991457452809e+03), 
-             std::complex<double> (1.145700217110782e+03 , 5.162390714717386e+03), 
-             std::complex<double> (8.317309479206341e+02 , 3.694318360695619e+03), 
-             std::complex<double> (5.922899352210521e+02 , 2.630302140914499e+03), 
-             std::complex<double> (4.161120590888451e+02 , 1.861304822921293e+03), 
-             std::complex<double> (2.888302280454365e+02 , -1.306627219223543e+03), 
-             std::complex<double> (1.971658728156682e+02 , -9.083623616973082e+02), 
-             std::complex<double> (1.313597768845400e+02 , 6.250006665335731e+02), 
-             std::complex<double> (8.508076179954234e+01 , -4.257791904079081e+02), 
-             std::complex<double> (5.387169106740928e+01 , 2.870879223070958e+02), 
-             std::complex<double> (3.378974876987052e+01 , -1.909665621467174e+02), 
-             std::complex<double> (2.119170346132220e+01 , 1.245188699953951e+02), 
-             std::complex<double> (1.314474949250580e+01 , 7.903877364525997e+01), 
-             std::complex<double> (7.703213401701335e+00 , -4.874284200712454e+01), 
-             std::complex<double> (3.982569470732209e+00 , 2.947244682986270e+01), 
-             std::complex<double> (1.694481798044767e+00 , -1.769170399466034e+01), 
-             std::complex<double> (2.230461793358761e-01 , 1.054801590537532e+01), 
-             std::complex<double> (-9.392930747148497e-01 , -9.153622404025917e+00), 
-             std::complex<double> (2.353834393614835e-01 , -5.846054198106970e+00), 
-             std::complex<double> (6.956575607983796e-02 , 3.884865541759730e+00), 
-             std::complex<double> (-8.799964680541294e-04 , -3.142187560658544e+00), 
+             std::complex<double> (-1.528266385722518e+05 , -1.617472809475323e+04), 
+             std::complex<double> (-1.377289894136265e+05 , -4.425543542257109e+04), 
+             std::complex<double> (-1.129830171861847e+05 , -6.191329887112672e+04), 
+             std::complex<double> (-8.578983980509044e+04 , -6.798037108398283e+04), 
+             std::complex<double> (-6.145521235227304e+04 , -6.512731554846532e+04), 
+             std::complex<double> (-4.227637624934189e+04 , -5.720377181361266e+04), 
+             std::complex<double> (-2.834541230471211e+04 , -4.740736167045092e+04), 
+             std::complex<double> (-1.874027668931758e+04 , -3.774170252008074e+04), 
+             std::complex<double> (-1.232772615315492e+04 , -2.919467558968831e+04), 
+             std::complex<double> (-8.122805367683526e+03 , -2.210081594021637e+04), 
+             std::complex<double> (-5.384047186145927e+03 , -1.644734536509212e+04), 
+             std::complex<double> (-3.596760836733312e+03 , -1.206926148522642e+04), 
+             std::complex<double> (-2.422095452136395e+03 , -8.752338004253352e+03), 
+             std::complex<double> (-1.642439197711428e+03 , -6.282124966280845e+03), 
+             std::complex<double> (-1.118338806357036e+03 , -4.468026223678673e+03), 
+             std::complex<double> (-7.614621195818250e+02 , -3.151996096567994e+03), 
+             std::complex<double> (-5.166266563774680e+02 , -2.207006765469908e+03), 
+             std::complex<double> (-3.480427863131445e+02 , -1.533379267714298e+03), 
+             std::complex<double> (-2.313122282503616e+02 , -1.056306106669267e+03), 
+             std::complex<double> (-1.504912390567617e+02 , -7.216740041844971e+02), 
+             std::complex<double> (-9.551902806470239e+01 , -4.898723325072685e+02), 
+             std::complex<double> (-5.920474279585718e+01 , -3.311504147114920e+02), 
+             std::complex<double> (-3.583151429631753e+01 , -2.232969658704165e+02), 
+             std::complex<double> (-2.109759270342304e+01 , -1.502236084766799e+02), 
+             std::complex<double> (-1.203835153147012e+01 , -1.006486013870695e+02), 
+             std::complex<double> (-6.632066130569803e+00 , -6.690690609137578e+01), 
+             std::complex<double> (-3.490516638210358e+00 , -4.393576162751772e+01), 
+             std::complex<double> (-1.717591878944693e+00 , -2.834873913447114e+01), 
+             std::complex<double> (-7.644476842006812e-01 , -1.768754593189496e+01), 
+             std::complex<double> (-4.531868463869791e+00 , -9.910286427569329e+00), 
+             std::complex<double> (3.484206871071437e+00 , -9.712785708243401e+00), 
+             std::complex<double> (-1.309163669361951e-01 , -9.694289278095992e+00), 
+             std::complex<double> (-7.522563294981877e-02 , -5.436516516292172e+00), 
+             std::complex<double> (-2.872568396811044e-02 , -3.755577025272168e+00), 
+             std::complex<double> (-2.957577589264248e-04 , -3.141860223698221e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (6.580765394722902e-67 , 2.815338495367672e+04), 
-             std::complex<double> (-1.502826644473277e+04 , 2.218767035380346e+04), 
-             std::complex<double> (2.124477739251070e+04 , 9.532916748199974e+03), 
-             std::complex<double> (-1.885515770630489e+04 , -1.160173670441058e+03), 
-             std::complex<double> (-1.309708755992892e+04 , -6.535772330505803e+03), 
-             std::complex<double> (7.841034503088006e+03 , -7.823182617675070e+03), 
-             std::complex<double> (4.206388720849003e+03 , -7.131804005934012e+03), 
-             std::complex<double> (2.038422061383347e+03 , -5.812713099187295e+03), 
-             std::complex<double> (8.455447376707648e+02 , -4.498439127173042e+03), 
-             std::complex<double> (2.419898720028029e+02 , -3.385657193311645e+03), 
-             std::complex<double> (-3.589448523627215e+01 , -2.519859409056079e+03), 
-             std::complex<double> (-1.446148184950226e+02 , -1.862226215225798e+03), 
-             std::complex<double> (-1.682087900703442e+02 , -1.375547504251152e+03), 
-             std::complex<double> (-1.596147161821629e+02 , -1.015000697808071e+03), 
-             std::complex<double> (1.372195031260145e+02 , -7.462682696070229e+02), 
-             std::complex<double> (-1.125924089356420e+02 , -5.460003990036129e+02), 
-             std::complex<double> (-8.765831707708742e+01 , -3.961713653481296e+02), 
-             std::complex<double> (-6.532932449131885e+01 , -2.868857494299444e+02), 
-             std::complex<double> (-4.763009358827830e+01 , -2.069984518709204e+02), 
-             std::complex<double> (3.413378590427298e+01 , -1.491032629795105e+02), 
-             std::complex<double> (2.470965540529731e+01 , -1.066412068508885e+02), 
-             std::complex<double> (-1.753768195178986e+01 , -7.535467975781847e+01), 
-             std::complex<double> (1.213219701205204e+01 , -5.271770410610050e+01), 
-             std::complex<double> (-7.956950137090827e+00 , -3.653387379564031e+01), 
-             std::complex<double> (5.018460806950288e+00 , -2.533033941295029e+01), 
-             std::complex<double> (-3.159784647713149e+00 , -1.743285814379295e+01), 
-             std::complex<double> (-2.067699297099842e+00 , -1.181610699701368e+01), 
-             std::complex<double> (1.439723220937655e+00 , -7.688124459515033e+00), 
-             std::complex<double> (-9.411907808798773e-01 , -4.765376132065414e+00), 
-             std::complex<double> (5.265477149023388e-01 , -2.900163954517368e+00), 
-             std::complex<double> (-9.529483938056288e-01 , -1.628232871325265e+00), 
-             std::complex<double> (-6.232649773537670e-01 , -6.472868584297827e-01), 
-             std::complex<double> (-2.684881840639595e-02 , -2.482139011887283e-02), 
-             std::complex<double> (-1.209387093053048e-02 , 7.500944888928724e-03), 
-             std::complex<double> (-6.339445229060589e-03 , -2.003629406982922e+00), 
+             std::complex<double> (-2.573504413987876e+03 , 1.005588148623841e+04), 
+             std::complex<double> (-6.725452712355657e+03 , 7.479241918448365e+03), 
+             std::complex<double> (-8.624850926109375e+03 , 3.708640483586644e+03), 
+             std::complex<double> (-8.400383521446913e+03 , 3.115844531118729e+02), 
+             std::complex<double> (-6.975287594306468e+03 , -1.913804028695834e+03), 
+             std::complex<double> (-5.236312095184356e+03 , -2.958540668130828e+03), 
+             std::complex<double> (-3.685555218031366e+03 , -3.173124003392260e+03), 
+             std::complex<double> (-2.491131188228961e+03 , -2.929899214785132e+03), 
+             std::complex<double> (-1.643861952967839e+03 , -2.495207529427385e+03), 
+             std::complex<double> (-1.072268459944891e+03 , -2.022580639274373e+03), 
+             std::complex<double> (-6.982968121440725e+02 , -1.585794884953983e+03), 
+             std::complex<double> (-4.571981487142692e+02 , -1.212982743000388e+03), 
+             std::complex<double> (-3.019309868842276e+02 , -9.101366005999701e+02), 
+             std::complex<double> (-2.016748591521605e+02 , -6.726040219367077e+02), 
+             std::complex<double> (-1.365738167250335e+02 , -4.906566835019021e+02), 
+             std::complex<double> (-9.347225729305088e+01 , -3.538697594738272e+02), 
+             std::complex<double> (-6.425096093451776e+01 , -2.530090145539323e+02), 
+             std::complex<double> (-4.435763905315915e+01 , -1.797819638228326e+02), 
+             std::complex<double> (-3.078707016572931e+01 , -1.267661106507079e+02), 
+             std::complex<double> (-2.118082221377186e+01 , -8.834406150288024e+01), 
+             std::complex<double> (-1.419001262982471e+01 , -6.079275126086603e+01), 
+             std::complex<double> (-9.232878189988594e+00 , -4.142442469248852e+01), 
+             std::complex<double> (-5.874835731584469e+00 , -2.808333539243064e+01), 
+             std::complex<double> (-3.659747375796682e+00 , -1.902894932456827e+01), 
+             std::complex<double> (-2.213205835867956e+00 , -1.293277934012619e+01), 
+             std::complex<double> (-1.301580682724003e+00 , -8.811420159073875e+00), 
+             std::complex<double> (-7.451684887467433e-01 , -5.988221340338461e+00), 
+             std::complex<double> (-4.117532924943475e-01 , -4.061785841826681e+00), 
+             std::complex<double> (-2.150764070088714e-01 , -2.840338211578885e+00), 
+             std::complex<double> (2.972028393267043e-02 , -7.104539202218129e-03), 
+             std::complex<double> (-4.888434851699603e-03 , 4.066543330124240e-02), 
+             std::complex<double> (-1.668733298444678e-01 , -2.308529517645161e+00), 
+             std::complex<double> (-6.676655296444080e-03 , -9.521558216566650e-03), 
+             std::complex<double> (3.890395434137226e-03 , 4.424403291176198e-03), 
+             std::complex<double> (-2.197600601927193e-03 , -2.002339392485908e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (-4.002781199190148e-62 , -7.409098311938112e+09), 
-             std::complex<double> (5.395461054872844e+09 , -4.049657185020708e+09), 
-             std::complex<double> (-5.050942408985146e+09 , 1.110575876070672e+09), 
-             std::complex<double> (1.976881147815738e+09 , 2.849567718805492e+09), 
-             std::complex<double> (-2.455811513545056e+07 , 2.126680637349599e+09), 
-             std::complex<double> (5.987738253369058e+08 , 1.082867997266415e+09), 
-             std::complex<double> (5.442611837920593e+08 , 4.398815547972468e+08), 
-             std::complex<double> (3.618284713044415e+08 , 1.452975700021038e+08), 
-             std::complex<double> (2.129034545626222e+08 , 3.314149314646124e+07), 
-             std::complex<double> (1.184381361439636e+08 , -2.035437285094852e+06), 
-             std::complex<double> (6.418567824645807e+07 , -9.356662184811230e+06), 
-             std::complex<double> (3.439320098323736e+07 , -8.338783540057263e+06), 
-             std::complex<double> (1.834747602995987e+07 , -5.779883305772749e+06), 
-             std::complex<double> (9.751694095774629e+06 , -3.615250541328285e+06), 
-             std::complex<double> (-5.146189549740642e+06 , -2.135486615374908e+06), 
-             std::complex<double> (2.688417387103884e+06 , -1.205999866333902e+06), 
-             std::complex<double> (1.391477960425138e+06 , -6.534153866507499e+05), 
-             std::complex<double> (7.155002454239868e+05 , -3.419195489904351e+05), 
-             std::complex<double> (3.656194006921041e+05 , -1.746155195854374e+05), 
-             std::complex<double> (-1.849327390466362e+05 , -8.778078725951055e+04), 
-             std::complex<double> (-9.198516344197327e+04 , -4.341214424994787e+04), 
-             std::complex<double> (4.481127049287186e+04 , -2.088355402522788e+04), 
-             std::complex<double> (-2.140067513483482e+04 , -9.644103946846203e+03), 
-             std::complex<double> (1.006695385019015e+04 , -4.252906861755668e+03), 
-             std::complex<double> (-4.664502878695772e+03 , -1.815362969017748e+03), 
-             std::complex<double> (2.104885991367887e+03 , -7.618792118515770e+02), 
-             std::complex<double> (9.064939440686143e+02 , -3.193765666499519e+02), 
-             std::complex<double> (-3.635778538909960e+02 , -1.290651159888653e+02), 
-             std::complex<double> (1.369308887540383e+02 , -4.684718646304250e+01), 
-             std::complex<double> (-4.987836487195840e+01 , -1.442585568272829e+01), 
-             std::complex<double> (2.018007318892962e+01 , -6.364079262977874e+00), 
-             std::complex<double> (5.444341532651457e-01 , 3.291592690123024e+00), 
-             std::complex<double> (-5.451943235895936e+00 , -4.217506991022511e-01), 
-             std::complex<double> (2.577900251741100e+00 , -2.246665944099997e-01), 
-             std::complex<double> (-3.937577640412379e-01 , -4.061168230722456e-02), 
+             std::complex<double> (5.559516008031736e+08 , -1.495180802648437e+09), 
+             std::complex<double> (1.257286363458991e+09 , -7.324709492982871e+08), 
+             std::complex<double> (1.204076019494117e+09 , 1.149804685335012e+08), 
+             std::complex<double> (7.418498371548532e+08 , 5.443296007448160e+08), 
+             std::complex<double> (3.040258429656101e+08 , 5.718950296444964e+08), 
+             std::complex<double> (5.213325292853865e+07 , 4.246137816448335e+08), 
+             std::complex<double> (-4.596091230484525e+07 , 2.646652818671193e+08), 
+             std::complex<double> (-6.389516219540914e+07 , 1.489270564383821e+08), 
+             std::complex<double> (-5.258139663434568e+07 , 7.875213409407918e+07), 
+             std::complex<double> (-3.599105206005815e+07 , 4.012699869426675e+07), 
+             std::complex<double> (-2.232236212640462e+07 , 2.002320342765223e+07), 
+             std::complex<double> (-1.299539727507442e+07 , 9.880786099592892e+06), 
+             std::complex<double> (-7.234523477244141e+06 , 4.847079872048699e+06), 
+             std::complex<double> (-3.894130363446858e+06 , 2.371639341755395e+06), 
+             std::complex<double> (-2.039542597388270e+06 , 1.158941605861231e+06), 
+             std::complex<double> (-1.044213328820480e+06 , 5.640826284356580e+05), 
+             std::complex<double> (-5.252024232513120e+05 , 2.725116850245517e+05), 
+             std::complex<double> (-2.602342567301187e+05 , 1.305907009455671e+05), 
+             std::complex<double> (-1.267826000102800e+05 , 6.184189054061550e+04), 
+             std::complex<double> (-6.056828879661871e+04 , 2.858133559426452e+04), 
+             std::complex<double> (-2.842499198363982e+04 , 1.275785122632577e+04), 
+             std::complex<double> (-1.317131442934682e+04 , 5.510096408869414e+03), 
+             std::complex<double> (-6.060263543104138e+03 , 2.318094657130745e+03), 
+             std::complex<double> (-2.781479929747092e+03 , 9.512171576271318e+02), 
+             std::complex<double> (-1.274970051763456e+03 , 3.784800871055418e+02), 
+             std::complex<double> (-5.809409801315816e+02 , 1.454917621652565e+02), 
+             std::complex<double> (-2.604806832354110e+02 , 5.366858581956789e+01), 
+             std::complex<double> (-1.144457016164826e+02 , 1.861816899479708e+01), 
+             std::complex<double> (-5.013265261052703e+01 , 6.050688037251913e+00), 
+             std::complex<double> (-3.621027460526274e-01 , -5.249448961676961e-01), 
+             std::complex<double> (2.907222214668293e-01 , 9.353917818245889e-01), 
+             std::complex<double> (-2.001142760319185e+01 , 1.219324799364457e+00), 
+             std::complex<double> (-4.848777894800525e+00 , 8.589882631344421e-02), 
+             std::complex<double> (-2.151961546859654e+00 , 8.590120058575056e-02), 
+             std::complex<double> (-3.205868891192159e-01 , 1.776214711966690e-02), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (-1.345938077462237e-61 , -7.409098280784194e+09), 
-             std::complex<double> (5.395461090859824e+09 , -4.049657208456791e+09), 
-             std::complex<double> (-5.050942352590803e+09 , 1.110575884697859e+09), 
-             std::complex<double> (1.976881208283048e+09 , 2.849567719292373e+09), 
-             std::complex<double> (-2.455817044839634e+07 , 2.126680636970659e+09), 
-             std::complex<double> (5.987737792372141e+08 , 1.082867991872548e+09), 
-             std::complex<double> (5.442612188176611e+08 , 4.398815670497232e+08), 
-             std::complex<double> (3.618284479739866e+08 , 1.452975528999420e+08), 
-             std::complex<double> (2.129034668615170e+08 , 3.314151174517100e+07), 
-             std::complex<double> (1.184381329358579e+08 , -2.035454102873085e+06), 
-             std::complex<double> (6.418567518832737e+07 , -9.356649415716310e+06), 
-             std::complex<double> (3.439320726530701e+07 , -8.338791379411066e+06), 
-             std::complex<double> (1.834746912589629e+07 , -5.779880024673416e+06), 
-             std::complex<double> (9.751699870896123e+06 , -3.615250433494769e+06), 
-             std::complex<double> (-5.146185718238194e+06 , -2.135488673087254e+06), 
-             std::complex<double> (2.688419228557666e+06 , -1.205997148004219e+06), 
-             std::complex<double> (1.391477677652164e+06 , -6.534178620071483e+05), 
-             std::complex<double> (7.154995827369469e+05 , -3.419177782709174e+05), 
-             std::complex<double> (3.656204386770555e+05 , -1.746164919768348e+05), 
-             std::complex<double> (-1.849317304290697e+05 , -8.778047515746799e+04), 
-             std::complex<double> (-9.198593126773467e+04 , -4.341202816885441e+04), 
-             std::complex<double> (4.481079694338508e+04 , -2.088387374725383e+04), 
-             std::complex<double> (-2.140089729478623e+04 , -9.643744104951295e+03), 
-             std::complex<double> (1.006690305090695e+04 , -4.253216047826526e+03), 
-             std::complex<double> (-4.664458199250819e+03 , -1.815136466790717e+03), 
-             std::complex<double> (2.104974325576647e+03 , -7.620263281847197e+02), 
-             std::complex<double> (9.063860469835731e+02 , -3.192924427198564e+02), 
-             std::complex<double> (-3.637070087098685e+02 , -1.290982219615078e+02), 
-             std::complex<double> (1.367399905000523e+02 , -4.688121432778347e+01), 
-             std::complex<double> (-5.034076101998716e+01 , -1.413483065112706e+01), 
-             std::complex<double> (1.714313495654291e+01 , -1.046955486753643e+01), 
-             std::complex<double> (-5.199413296523400e+00 , 6.358191632768334e+00), 
-             std::complex<double> (-1.588743593428447e-01 , 1.158483737486454e-01), 
-             std::complex<double> (-3.616991910036298e-02 , -3.471068589533936e-02), 
-             std::complex<double> (-6.298019642131647e+00 , 1.825840738323387e-02), 
+             std::complex<double> (5.559516007481518e+08 , -1.495180802659202e+09), 
+             std::complex<double> (1.257286363511767e+09 , -7.324709492357408e+08), 
+             std::complex<double> (1.204076019515612e+09 , 1.149804684243205e+08), 
+             std::complex<double> (7.418498370352680e+08 , 5.443296008044517e+08), 
+             std::complex<double> (3.040258430991343e+08 , 5.718950297007239e+08), 
+             std::complex<double> (5.213325287443095e+07 , 4.246137815105604e+08), 
+             std::complex<double> (-4.596091234926647e+07 , 2.646652819951438e+08), 
+             std::complex<double> (-6.389516209503456e+07 , 1.489270563719059e+08), 
+             std::complex<double> (-5.258139673687981e+07 , 7.875213409289932e+07), 
+             std::complex<double> (-3.599105198869665e+07 , 4.012699873940922e+07), 
+             std::complex<double> (-2.232236215809921e+07 , 2.002320336769452e+07), 
+             std::complex<double> (-1.299539727573522e+07 , 9.880786153217294e+06), 
+             std::complex<double> (-7.234523457192491e+06 , 4.847079835025768e+06), 
+             std::complex<double> (-3.894130390712411e+06 , 2.371639360381129e+06), 
+             std::complex<double> (-2.039542571615838e+06 , 1.158941602524562e+06), 
+             std::complex<double> (-1.044213348241420e+06 , 5.640826215911910e+05), 
+             std::complex<double> (-5.252024118343585e+05 , 2.725116968452056e+05), 
+             std::complex<double> (-2.602342607280559e+05 , 1.305906883515126e+05), 
+             std::complex<double> (-1.267826016238570e+05 , 6.184190119734244e+04), 
+             std::complex<double> (-6.056828369563220e+04 , 2.858132812188723e+04), 
+             std::complex<double> (-2.842499875011047e+04 , 1.275785532641349e+04), 
+             std::complex<double> (-1.317130728434393e+04 , 5.510095315513668e+03), 
+             std::complex<double> (-6.060270275254502e+03 , 2.318093300337445e+03), 
+             std::complex<double> (-2.781474008445849e+03 , 9.512204093947985e+02), 
+             std::complex<double> (-1.274975085774418e+03 , 3.784753290572175e+02), 
+             std::complex<double> (-5.809366728675740e+02 , 1.454981088707016e+02), 
+             std::complex<double> (-2.604843744030183e+02 , 5.365930438500418e+01), 
+             std::complex<double> (-1.144452458765521e+02 , 1.863637757799648e+01), 
+             std::complex<double> (-5.007021518134750e+01 , 5.986117927724310e+00), 
+             std::complex<double> (-2.028084835456314e-01 , -2.623791672947286e-01), 
+             std::complex<double> (3.763487221377611e-01 , 1.916007091848811e-01), 
+             std::complex<double> (-2.236042865142584e+01 , 1.911297494271823e+00), 
+             std::complex<double> (-5.104012281178786e-02 , 3.848354000592675e-02), 
+             std::complex<double> (1.645130781749381e-02 , -1.534221846637861e-02), 
+             std::complex<double> (-6.291060111238645e+00 , 7.693311589101120e-03), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -29048,157 +28563,157 @@
         { 
             int np = 35;
             int m = 3;
-            double b = 1.000000000000000e+06;
+            double b = 1.200000000000000e+06;
              std::complex<double> vec_temp[] = {
-             std::complex<double> (-2.165032954906091e+06 , 3.626214884308309e+05), 
-             std::complex<double> (-1.769027142348412e+06 , 9.323610708774465e+05), 
-             std::complex<double> (-1.206362315436457e+06 , -1.169572429380026e+06), 
-             std::complex<double> (-7.074601215399433e+05 , 1.123685798205190e+06), 
-             std::complex<double> (-3.642367714484090e+05 , 9.382350635225371e+05), 
-             std::complex<double> (-1.628097278566034e+05 , 7.249964868615084e+05), 
-             std::complex<double> (-5.702929885171172e+04 , 5.368714792240521e+05), 
-             std::complex<double> (-6.765427010948111e+03 , -3.884728730017302e+05), 
-             std::complex<double> (1.414897623925849e+04 , -2.776418240683232e+05), 
-             std::complex<double> (2.070010783741086e+04 , -1.970587074530001e+05), 
-             std::complex<double> (2.074723956973347e+04 , -1.391356638018375e+05), 
-             std::complex<double> (1.812964354784894e+04 , -9.769288077779984e+04), 
-             std::complex<double> (1.466065722158580e+04 , -6.817153754748711e+04), 
-             std::complex<double> (1.120879289404438e+04 , -4.729279198586415e+04), 
-             std::complex<double> (8.188267770582219e+03 , -3.266068047091015e+04), 
-             std::complex<double> (5.764682820431570e+03 , 2.249059811747581e+04), 
-             std::complex<double> (3.950605883381786e+03 , -1.545474947036604e+04), 
-             std::complex<double> (2.666579963800658e+03 , -1.058981866727833e+04), 
-             std::complex<double> (1.794634921988498e+03 , 7.220114026842701e+03), 
-             std::complex<double> (1.217732968083302e+03 , -4.881159197137357e+03), 
-             std::complex<double> (8.369409531476905e+02 , -3.256254537420132e+03), 
-             std::complex<double> (5.772122471357663e+02 , -2.133302760537828e+03), 
-             std::complex<double> (3.922221953677457e+02 , -1.370572005967512e+03), 
-             std::complex<double> (2.606465657772744e+02 , -8.649692744410166e+02), 
-             std::complex<double> (1.706748362316908e+02 , -5.357297077218279e+02), 
-             std::complex<double> (1.105046331721028e+02 , -3.236131898914773e+02), 
-             std::complex<double> (6.936422058178019e+01 , -1.893873847371311e+02), 
-             std::complex<double> (4.097528211006572e+01 , 1.073455744374887e+02), 
-             std::complex<double> (2.199070241849163e+01 , -5.892201175074075e+01), 
-             std::complex<double> (9.885144161088345e+00 , -3.159384628932065e+01), 
-             std::complex<double> (3.154629821036469e+01 , -0.000000000000000e+00), 
-             std::complex<double> (3.271323771956324e+00 , -1.702336316688153e+01), 
-             std::complex<double> (5.279024210607704e-01 , -9.165313789401828e+00), 
-             std::complex<double> (-1.373536106122696e-02 , -3.155834530778400e+00), 
-             std::complex<double> (-1.070452639095060e-01 , -4.673950689883314e+00), 
+             std::complex<double> (-2.050493511636964e+06 , -2.792635928311869e+05), 
+             std::complex<double> (-1.758380121770402e+06 , -7.371902093212659e+05), 
+             std::complex<double> (-1.315028876612835e+06 , -9.665669002354270e+05), 
+             std::complex<double> (-8.814151871977897e+05 , -9.763283921849453e+05), 
+             std::complex<double> (-5.452127688750729e+05 , -8.531863160627413e+05), 
+             std::complex<double> (-3.191940493376490e+05 , -6.827190206551781e+05), 
+             std::complex<double> (-1.803256508227112e+05 , -5.169365621216148e+05), 
+             std::complex<double> (-9.975343338990955e+04 , -3.776853615084586e+05), 
+             std::complex<double> (-5.465261207487637e+04 , -2.693587293107159e+05), 
+             std::complex<double> (-2.990611425602403e+04 , -1.887533251167949e+05), 
+             std::complex<double> (-1.642276739515359e+04 , -1.304479243957871e+05), 
+             std::complex<double> (-9.065758470055561e+03 , -8.910154554076609e+04), 
+             std::complex<double> (-5.045496805671015e+03 , -6.022164966617000e+04), 
+             std::complex<double> (-2.853189339228538e+03 , -4.031308410415890e+04), 
+             std::complex<double> (-1.640502218935611e+03 , -2.675956519611467e+04), 
+             std::complex<double> (-9.307435744394845e+02 , -1.764020277885833e+04), 
+             std::complex<double> (-4.914747474494859e+02 , -1.156389320483500e+04), 
+             std::complex<double> (-2.235555172032668e+02 , -7.538059223459821e+03), 
+             std::complex<double> (-7.251018099560115e+01 , -4.874446683662303e+03), 
+             std::complex<double> (2.905272615720142e+00 , 3.113780274632611e+03), 
+             std::complex<double> (3.438090984288662e+01 , 1.957395370575120e+03), 
+             std::complex<double> (4.382040303370727e+01 , 1.209478980120290e+03), 
+             std::complex<double> (4.250060466823751e+01 , -7.360664902632299e+02), 
+             std::complex<double> (3.508052392788860e+01 , 4.428913321374623e+02), 
+             std::complex<double> (2.513821616222975e+01 , 2.644953121110496e+02), 
+             std::complex<double> (1.607142969455019e+01 , 1.572208606917523e+02), 
+             std::complex<double> (9.548176301309497e+00 , 9.319168877486909e+01), 
+             std::complex<double> (5.401204388742777e+00 , -5.511414653319449e+01), 
+             std::complex<double> (2.802842326497586e+00 , 3.243441977946938e+01), 
+             std::complex<double> (1.122948337549469e+00 , 1.883897107352429e+01), 
+             std::complex<double> (-8.334322785939417e-02 , -1.024260426941184e+01), 
+             std::complex<double> (-2.137771812992831e+00 , -9.014292370041607e+00), 
+             std::complex<double> (5.882401631981463e-01 , 5.357207935678935e+00), 
+             std::complex<double> (3.007757697825815e-01 , 3.795505898315552e+00), 
+             std::complex<double> (-2.862611169519364e-03 , -3.141215123729008e+00), 
             };
             std::vector< std::complex<double> >zvec (vec_temp, vec_temp + sizeof(vec_temp)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp1[] = {
-             std::complex<double> (7.100159665094382e+04 , 2.216709586420459e+05), 
-             std::complex<double> (1.673780867333927e+05 , 1.311704872348572e+05), 
-             std::complex<double> (-1.778068842738551e+05 , 2.340953088053286e+04), 
-             std::complex<double> (1.352598499748612e+05 , -4.428397562424658e+04), 
-             std::complex<double> (8.441968552679878e+04 , -6.776347450857701e+04), 
-             std::complex<double> (4.644322198612078e+04 , -6.533126195831697e+04), 
-             std::complex<double> (2.306395536608371e+04 , -5.377131498371045e+04), 
-             std::complex<double> (-1.028953666872659e+04 , -4.088015820842999e+04), 
-             std::complex<double> (-3.809603618117618e+03 , -3.008078015371979e+04), 
-             std::complex<double> (-7.519675555427082e+02 , -2.164056069721402e+04), 
-             std::complex<double> (5.232829437841967e+02 , -1.555087352392696e+04), 
-             std::complex<double> (1.053087538455355e+03 , -1.108384853989641e+04), 
-             std::complex<double> (1.115200244963252e+03 , -7.872087199598135e+03), 
-             std::complex<double> (1.054992222024655e+03 , -5.551457400873535e+03), 
-             std::complex<double> (8.665704025792890e+02 , -3.855612118357448e+03), 
-             std::complex<double> (-6.702950548151813e+02 , -2.687387373393978e+03), 
-             std::complex<double> (4.923515801269900e+02 , -1.845824324827229e+03), 
-             std::complex<double> (3.307833351135948e+02 , -1.283129505862810e+03), 
-             std::complex<double> (-2.296207304098916e+02 , -8.890739665331808e+02), 
-             std::complex<double> (1.446751344175717e+02 , -6.151573477878909e+02), 
-             std::complex<double> (1.000264196786049e+02 , -4.306087046435070e+02), 
-             std::complex<double> (6.902585523111471e+01 , -2.920803301481720e+02), 
-             std::complex<double> (4.910915178445345e+01 , -1.981473158107612e+02), 
-             std::complex<double> (3.538636236975425e+01 , -1.286968131166492e+02), 
-             std::complex<double> (2.267870497120172e+01 , -8.358984008188681e+01), 
-             std::complex<double> (1.597136689323790e+01 , -5.369668117516461e+01), 
-             std::complex<double> (1.075992218078035e+01 , -3.305187170863406e+01), 
-             std::complex<double> (-7.343752604876760e+00 , -2.009856465897114e+01), 
-             std::complex<double> (4.930606227380294e+00 , -1.146449951926256e+01), 
-             std::complex<double> (2.839936077551161e+00 , -6.306917415601455e+00), 
-             std::complex<double> (-1.596450248325397e-78 , 2.383372110262121e-06), 
-             std::complex<double> (1.449949039914832e+00 , -3.306069044907192e+00), 
-             std::complex<double> (3.692492865568410e-01 , -1.982263688083010e+00), 
-             std::complex<double> (-4.512312611363367e-02 , -2.049945426659633e+00), 
-             std::complex<double> (9.588906797163575e-02 , 9.253813441384185e-02), 
+             std::complex<double> (-5.115408486861650e+04 , 1.719698326101333e+05), 
+             std::complex<double> (-1.265365166974652e+05 , 1.124020359890662e+05), 
+             std::complex<double> (-1.466271712578289e+05 , 3.452442254150189e+04), 
+             std::complex<double> (-1.248209942130220e+05 , -2.324029868594659e+04), 
+             std::complex<double> (-8.878225156918732e+04 , -5.046166337613107e+04), 
+             std::complex<double> (-5.648879519216888e+04 , -5.534326206195656e+04), 
+             std::complex<double> (-3.350298892441010e+04 , -4.911337897387508e+04), 
+             std::complex<double> (-1.900549944725414e+04 , -3.935614964194349e+04), 
+             std::complex<double> (-1.049770048061304e+04 , -2.980388593912400e+04), 
+             std::complex<double> (-5.727215590826451e+03 , -2.180963624247907e+04), 
+             std::complex<double> (-3.120567256802865e+03 , -1.559548800051102e+04), 
+             std::complex<double> (-1.705460408224856e+03 , -1.096537870506490e+04), 
+             std::complex<double> (-9.307501408700087e+02 , -7.604749633977227e+03), 
+             std::complex<double> (-5.085239484994024e+02 , -5.207216428978724e+03), 
+             std::complex<double> (-2.882556400790850e+02 , -3.522243904012976e+03), 
+             std::complex<double> (-1.752960427320902e+02 , -2.356418342551056e+03), 
+             std::complex<double> (-1.091004629331674e+02 , -1.564060243084014e+03), 
+             std::complex<double> (-6.422621932170341e+01 , -1.034987264155727e+03), 
+             std::complex<double> (-3.411781096240774e+01 , -6.847189179101082e+02), 
+             std::complex<double> (1.557250862668879e+01 , -4.516892917747693e+02), 
+             std::complex<double> (5.640708457807919e+00 , -2.946556602772277e+02), 
+             std::complex<double> (9.411510709692235e-01 , -1.884803658955122e+02), 
+             std::complex<double> (1.570486603742984e+00 , -1.178524488273232e+02), 
+             std::complex<double> (-2.964684121202275e+00 , -7.222598927794586e+01), 
+             std::complex<double> (-3.172710198682146e+00 , -4.362849362374431e+01), 
+             std::complex<double> (-2.510943751454725e+00 , -2.611527072473281e+01), 
+             std::complex<double> (-1.658771352896615e+00 , -1.554399957131970e+01), 
+             std::complex<double> (1.029604310973093e+00 , -9.244335491962718e+00), 
+             std::complex<double> (-6.589362478921087e-01 , -5.519221203170333e+00), 
+             std::complex<double> (-4.229533606080173e-01 , -3.337712840405082e+00), 
+             std::complex<double> (4.662118662266796e-01 , -2.509140173949017e+00), 
+             std::complex<double> (-2.869660330520635e-01 , 7.919618088024447e-02), 
+             std::complex<double> (3.289608387952775e-02 , -3.865334212331283e-02), 
+             std::complex<double> (-3.526000924986791e-02 , 1.983053172653313e-04), 
+             std::complex<double> (-1.872269736010430e-02 , -1.993257072326245e+00), 
             };
             std::vector< std::complex<double> >wvec1 (vec_temp1, vec_temp1 + sizeof(vec_temp1)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp2[] = {
-             std::complex<double> (-2.340899385520450e+11 , -4.542206109150648e+11), 
-             std::complex<double> (-4.183414945501556e+11 , -7.590729769675862e+10), 
-             std::complex<double> (2.419809613400548e+11 , 1.796686287059861e+11), 
-             std::complex<double> (-4.582999076349937e+10 , 1.833257936229304e+11), 
-             std::complex<double> (3.275611057921997e+10 , 1.038992069442012e+11), 
-             std::complex<double> (3.985157735167387e+10 , 4.429515413411661e+10), 
-             std::complex<double> (2.752246340914804e+10 , 1.545630756866987e+10), 
-             std::complex<double> (-1.583026326069619e+10 , 4.271450215905877e+09), 
-             std::complex<double> (-8.394128890447418e+09 , 6.312282066525235e+08), 
-             std::complex<double> (-4.286388993749965e+09 , -2.975264750336637e+08), 
-             std::complex<double> (-2.149777356731187e+09 , -3.978454879208782e+08), 
-             std::complex<double> (-1.064796814915611e+09 , -3.019285139281683e+08), 
-             std::complex<double> (-5.202202082191219e+08 , -1.926403126895219e+08), 
-             std::complex<double> (-2.504388368720391e+08 , -1.115118074496680e+08), 
-             std::complex<double> (-1.191388914558162e+08 , -6.008481455014939e+07), 
-             std::complex<double> (5.636613863487133e+07 , -3.055627248645336e+07), 
-             std::complex<double> (-2.668761457764776e+07 , -1.484543080546638e+07), 
-             std::complex<double> (-1.266947673011616e+07 , -6.980632991039659e+06), 
-             std::complex<double> (6.010869075538013e+06 , -3.217490778410663e+06), 
-             std::complex<double> (-2.832739589523698e+06 , -1.472653782339978e+06), 
-             std::complex<double> (-1.312201729680341e+06 , -6.798987276818900e+05), 
-             std::complex<double> (-5.870155868431678e+05 , -3.170553310968911e+05), 
-             std::complex<double> (-2.506457763607961e+05 , -1.453676242973899e+05), 
-             std::complex<double> (-1.026183144597946e+05 , -6.366416344540485e+04), 
-             std::complex<double> (-4.083981919131099e+04 , -2.669814649214949e+04), 
-             std::complex<double> (-1.557226839687673e+04 , -1.099739667326484e+04), 
-             std::complex<double> (-5.548993288721821e+03 , -4.351287406161211e+03), 
-             std::complex<double> (1.841936721255354e+03 , -1.615374965191394e+03), 
-             std::complex<double> (-5.697790833585957e+02 , -5.377522314818812e+02), 
-             std::complex<double> (-1.718274582923028e+02 , -1.541606802178686e+02), 
-             std::complex<double> (6.057461847695602e-72 , 1.123629285250253e-04), 
-             std::complex<double> (-5.111610271639219e+01 , -3.486827447144735e+01), 
-             std::complex<double> (-1.688311922533167e+01 , -4.942283038956743e+00), 
-             std::complex<double> (-8.776959647800965e-01 , 1.508939904701386e-01), 
-             std::complex<double> (-5.184732623585422e+00 , -1.097768209509419e-01), 
+             std::complex<double> (1.529158882266105e+11 , -3.383375232792303e+11), 
+             std::complex<double> (3.053612165108975e+11 , -1.043638803642981e+11), 
+             std::complex<double> (2.261891096021320e+11 , 9.632403786020004e+10), 
+             std::complex<double> (8.732875146656544e+10 , 1.423508160152769e+11), 
+             std::complex<double> (5.352213814569674e+09 , 1.032601546024845e+11), 
+             std::complex<double> (-1.975310785389055e+10 , 5.623113377009925e+10), 
+             std::complex<double> (-1.934702713866884e+10 , 2.617539325426399e+10), 
+             std::complex<double> (-1.296837434402122e+10 , 1.110396670356440e+10), 
+             std::complex<double> (-7.454220004357602e+09 , 4.456529475309131e+09), 
+             std::complex<double> (-3.945354099619765e+09 , 1.733262433926192e+09), 
+             std::complex<double> (-1.983156372985477e+09 , 6.631967952745079e+08), 
+             std::complex<double> (-9.615674865722692e+08 , 2.513670146752788e+08), 
+             std::complex<double> (-4.532764067569254e+08 , 9.442160415229818e+07), 
+             std::complex<double> (-2.084669723164709e+08 , 3.535719473190456e+07), 
+             std::complex<double> (-9.378141067818502e+07 , 1.349185012928070e+07), 
+             std::complex<double> (-4.140423014856657e+07 , 5.285514515112971e+06), 
+             std::complex<double> (-1.803317069989573e+07 , 2.030283754176656e+06), 
+             std::complex<double> (-7.787351517547863e+06 , 7.155470268931819e+05), 
+             std::complex<double> (-3.335195129742454e+06 , 2.159366497486787e+05), 
+             std::complex<double> (1.406485263088803e+06 , 4.718675850278478e+04), 
+             std::complex<double> (5.769618343725364e+05 , 9.058543133142697e+02), 
+             std::complex<double> (2.279992354941886e+05 , -7.118873398716744e+03), 
+             std::complex<double> (-8.668306362920221e+04 , -6.165617552073506e+03), 
+             std::complex<double> (3.188289172478881e+04 , -3.846528200021241e+03), 
+             std::complex<double> (1.146052531835419e+04 , -1.935872368122574e+03), 
+             std::complex<double> (4.065100846890985e+03 , -8.146173304439745e+02), 
+             std::complex<double> (1.432954489148025e+03 , -3.028434706911370e+02), 
+             std::complex<double> (-5.038143891563900e+02 , -1.068347361080611e+02), 
+             std::complex<double> (1.772363313703780e+02 , -3.666277761674837e+01), 
+             std::complex<double> (6.230308956488143e+01 , -1.205062019729578e+01), 
+             std::complex<double> (-2.599694439324172e+01 , -1.647624507154803e+00), 
+             std::complex<double> (3.353067277305841e+00 , 8.080286310426833e-01), 
+             std::complex<double> (4.841716365217978e+00 , 1.070673771151625e-01), 
+             std::complex<double> (2.046400806025418e+00 , -9.464280998695935e-01), 
+             std::complex<double> (-3.804600278496259e-01 , -1.504216868966866e-01), 
             };
             std::vector< std::complex<double> >wvec2 (vec_temp2, vec_temp2 + sizeof(vec_temp2)/ sizeof(std::complex<double>));
              std::complex<double> vec_temp3[] = {
-             std::complex<double> (-2.340899385215788e+11 , -4.542206109926297e+11), 
-             std::complex<double> (-4.183414944809989e+11 , -7.590729752325504e+10), 
-             std::complex<double> (2.419809615067148e+11 , 1.796686285333070e+11), 
-             std::complex<double> (-4.582999055946221e+10 , 1.833257937551674e+11), 
-             std::complex<double> (3.275611038551406e+10 , 1.038992068433719e+11), 
-             std::complex<double> (3.985157751384508e+10 , 4.429515422240935e+10), 
-             std::complex<double> (2.752246328482959e+10 , 1.545630748130183e+10), 
-             std::complex<double> (-1.583026334642223e+10 , 4.271450305228998e+09), 
-             std::complex<double> (-8.394128841785945e+09 , 6.312281187723805e+08), 
-             std::complex<double> (-4.286389009054227e+09 , -2.975263955422689e+08), 
-             std::complex<double> (-2.149777368158462e+09 , -3.978455513593746e+08), 
-             std::complex<double> (-1.064796786270821e+09 , -3.019284720979644e+08), 
-             std::complex<double> (-5.202202431449717e+08 , -1.926403315342274e+08), 
-             std::complex<double> (-2.504388055811849e+08 , -1.115118082786609e+08), 
-             std::complex<double> (-1.191389125232332e+08 , -6.008480085503633e+07), 
-             std::complex<double> (5.636612988966073e+07 , -3.055629108222366e+07), 
-             std::complex<double> (-2.668761293609921e+07 , -1.484541394168287e+07), 
-             std::complex<double> (-1.266948455406300e+07 , -6.980644395241948e+06), 
-             std::complex<double> (6.010859459007155e+06 , -3.217485535805384e+06), 
-             std::complex<double> (-2.832747852561664e+06 , -1.472654202889095e+06), 
-             std::complex<double> (-1.312196278868635e+06 , -6.799010308952265e+05), 
-             std::complex<double> (-5.870181623038424e+05 , -3.170522073900016e+05), 
-             std::complex<double> (-2.506453328274128e+05 , -1.453703038151031e+05), 
-             std::complex<double> (-1.026176163512534e+05 , -6.366248779389449e+04), 
-             std::complex<double> (-4.084081419709450e+04 , -2.669881863634417e+04), 
-             std::complex<double> (-1.557148837250663e+04 , -1.099741718808193e+04), 
-             std::complex<double> (-5.549379098999668e+03 , -4.350953691260730e+03), 
-             std::complex<double> (1.841900604757514e+03 , -1.615727879539377e+03), 
-             std::complex<double> (-5.695958740704793e+02 , -5.375322150467132e+02), 
-             std::complex<double> (-1.721423436316204e+02 , -1.542040603025111e+02), 
-             std::complex<double> (7.026863945884617e-72 , 1.089053777043102e-04), 
-             std::complex<double> (-5.057032997237421e+01 , -3.504524500812293e+01), 
-             std::complex<double> (-1.842776206723327e+01 , -4.459786090281143e+00), 
-             std::complex<double> (-6.522423059953749e+00 , 1.610327615226984e-01), 
-             std::complex<double> (5.974471134301987e-01 , -4.490445895534374e-01), 
+             std::complex<double> (1.529158882273265e+11 , -3.383375232793249e+11), 
+             std::complex<double> (3.053612165095512e+11 , -1.043638803651810e+11), 
+             std::complex<double> (2.261891096023927e+11 , 9.632403786268511e+10), 
+             std::complex<double> (8.732875146848918e+10 , 1.423508160128890e+11), 
+             std::complex<double> (5.352213811448641e+09 , 1.032601546032384e+11), 
+             std::complex<double> (-1.975310785100410e+10 , 5.623113377100024e+10), 
+             std::complex<double> (-1.934702714062800e+10 , 2.617539325246698e+10), 
+             std::complex<double> (-1.296837434300420e+10 , 1.110396670555593e+10), 
+             std::complex<double> (-7.454220004689112e+09 , 4.456529473511842e+09), 
+             std::complex<double> (-3.945354099702565e+09 , 1.733262435390857e+09), 
+             std::complex<double> (-1.983156372688786e+09 , 6.631967941461731e+08), 
+             std::complex<double> (-9.615674869565121e+08 , 2.513670155177832e+08), 
+             std::complex<double> (-4.532764063559898e+08 , 9.442160353281712e+07), 
+             std::complex<double> (-2.084669727002697e+08 , 3.535719518452704e+07), 
+             std::complex<double> (-9.378141032385802e+07 , 1.349184980074181e+07), 
+             std::complex<double> (-4.140423046967151e+07 , 5.285514750273578e+06), 
+             std::complex<double> (-1.803317041528003e+07 , 2.030283588900238e+06), 
+             std::complex<double> (-7.787351761241483e+06 , 7.155471419099766e+05), 
+             std::complex<double> (-3.335194929898486e+06 , 2.159365686746921e+05), 
+             std::complex<double> (1.406485420566804e+06 , 4.718681818138006e+04), 
+             std::complex<double> (5.769617130995314e+05 , 9.058071629531826e+02), 
+             std::complex<double> (2.279993288445935e+05 , -7.118832472775449e+03), 
+             std::complex<double> (-8.668299091926258e+04 , -6.165657233412242e+03), 
+             std::complex<double> (3.188294855089711e+04 , -3.846485942420847e+03), 
+             std::complex<double> (1.146048167587241e+04 , -1.935919401361777e+03), 
+             std::complex<double> (4.065133446189445e+03 , -8.145644768662274e+02), 
+             std::complex<double> (1.432930255553460e+03 , -3.029040140539001e+02), 
+             std::complex<double> (-5.038342823732896e+02 , -1.067600379890850e+02), 
+             std::complex<double> (1.772105837333862e+02 , -3.677568045143918e+01), 
+             std::complex<double> (6.238890567921896e+01 , -1.176938196308222e+01), 
+             std::complex<double> (-2.570687118310676e+01 , -4.502586810316021e+00), 
+             std::complex<double> (1.305434263282747e+00 , 2.377639416279478e+00), 
+             std::complex<double> (2.447379384310101e-01 , 1.598951009967707e-01), 
+             std::complex<double> (-1.785909264326089e-02 , -1.431438240810029e-01), 
+             std::complex<double> (-6.261785607794689e+00 , 6.834609495615739e-02), 
             };
             std::vector< std::complex<double> >wvec3 (vec_temp3, vec_temp3 + sizeof(vec_temp3)/ sizeof(std::complex<double>));
             method.push_back(m);
@@ -30149,12 +29664,13 @@
                       if( (numPole[i+1] < numPole[i]) || (beta[i+1] < beta[i]))
                           continue;
                    }
+		 std::cout << " Input beta: " <<  inputBeta << "; Pole beta " << beta[i] << " numPole " << numPole[i] << " method "<<  method[i] << std::endl;
                    out_zshift = zshift[i];
                    out_zweight = zweight[i];
                    if( inputMethod != 2) {  
                      out_fweight = fweight[i];
                      out_eweight = eweight[i];
-                   }
+                   }                        
                    return true;
                }
             }
