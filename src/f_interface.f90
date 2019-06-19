@@ -400,7 +400,7 @@ interface
     implicit none
     integer(c_intptr_t),    value, intent(in)  :: plan
     type(f_ppexsi_options), value, intent(in)  :: options
-    real(c_double),         value, intent(in)  :: mu
+    real(c_double),                intent(in)  :: mu
     real(c_double),         value, intent(in)  :: numElectronExact
     real(c_double),                intent(out) :: numElectronPEXSI
     integer(c_int),                intent(out) :: info
