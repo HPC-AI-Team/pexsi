@@ -435,7 +435,7 @@ Here is the structure of the code using the simple driver routine. ::
   The built-in heuristics in `PPEXSIDFTDriver2` may not be
   optimal. It handles only one :math:`(H,S)` pair at a time, and does
   not accept multiple matrix pairs :math:`\{(H_l,S_l)\}` as in the case of
-  spin-orbit polarized calculations.  For expert users and developers, it
+  spin polarized calculations.  For expert users and developers, it
   should be relatively easy to dig into the driver routine, and only use
   `PEXSI::PPEXSIData::SymbolicFactorizeRealSymmetricMatrix` 
   (for symbolic factorization), 
