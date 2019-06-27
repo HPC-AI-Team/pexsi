@@ -3465,7 +3465,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
         zshift_[i] *= temperature;
         zweightRho_[i] *= temperature;
         zshift_[i] += mu;
-        if( method == 3) {
+        if( isEDMCorrection_ == 0){
           zweightFDM_[i] *= temperature * temperature;
           zweightEDM_[i] *= temperature * temperature;
         }
