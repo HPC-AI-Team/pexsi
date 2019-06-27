@@ -3442,10 +3442,16 @@ void PPEXSIData::CalculateFermiOperatorComplex(
       // first get the real numPole
       poleClass pole;
       bool result;
+      // Method 1: Contour integral
+      // Method 2: Moussa's pole expansion
+      // Method 3: AAA pole expansion
       if(method == 1 || method == 2 || method == 3) 
         result = pole.getPole(method, numPole,deltaE/temperature, zshift_, zweightRho_, zweightFDM_, zweightEDM_);
       else{
         statusOFS << " Error, method must be chosen from [ 1, 2, 3] " << std::endl;
+        statusOFS << " Method 1: Contour integral" << std::endl;
+        statusOFS << " Method 2: Moussa's pole expansion" << std::endl;
+        statusOFS << " Method 3: AAA pole expansion" << std::endl;
         statusOFS << " Error, Current method is: " << method << std::endl;
         ErrorHandling("getPole error.");
       }
