@@ -1,12 +1,9 @@
 .. todolist::
+  - 12/30/2019: add PPEXSIRetrieveComplexFDM; enable fortran bindings
+    for DM and EDM, FDM 
   - Add support of 64-bit integer.
   - Add tree-based parallelisation for the asymmetric PSelInv.
-  - Add expert user interface for PEXSI for k-point sampling and for spin
-    related calculations.
   - Option to not to use the history of the inertia counting?
-  - Document for the DFTDriver2 routine
-  - Simplify interface to LoadRealMatrix and LoadComplexMatrix. Instead of
-    distinguish symmetric and unsymmetric case.
   - Automatic building test
   - Generate standard results for automatic testing
   - Organize testinternals/
