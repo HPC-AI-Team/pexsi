@@ -838,19 +838,22 @@ interface
     integer(c_int),         intent(out)       :: info
   end subroutine
 
-!  subroutine f_ppexsi_retrieve_real_fdm(&
-!      plan,&
-!      FDMnzvalLocal,&
-!      totalFreeEnergy,&
-!      info)&
-!      bind(C, Name="PPEXSIRetrieveRealFDM")
-!    use, intrinsic :: iso_c_binding
-!    implicit none
-!    integer(c_intptr_t), intent(in), value :: plan
-!    real(c_double),      intent(out)       :: FDMnzvalLocal(*)
-!    real(c_double),      intent(out)       :: totalFreeEnergy
-!    integer(c_int),      intent(out)       :: info
-!  end subroutine
+  subroutine f_ppexsi_retrieve_real_fdm(&
+      plan,&
+      options,&
+      FDMnzvalLocal,&
+      totalFreeEnergy,&
+      info)&
+      bind(C, Name="PPEXSIRetrieveRealFDM")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t),    intent(in), value :: plan
+    type(f_ppexsi_options), intent(in), value :: options
+    real(c_double),         intent(out)       :: FDMnzvalLocal(*)
+    real(c_double),         intent(out)       :: totalFreeEnergy
+    integer(c_int),         intent(out)       :: info
+  end subroutine
 
   subroutine f_ppexsi_retrieve_complex_dm(&
       plan,&
@@ -883,19 +886,22 @@ interface
     integer(c_int),         intent(out)       :: info
   end subroutine
 
-!  subroutine f_ppexsi_retrieve_complex_fdm(&
-!      plan,&
-!      FDMnzvalLocal,&
-!      totalFreeEnergy,&
-!      info)&
-!      bind(C, Name="PPEXSIRetrieveComplexFDM")
-!    use, intrinsic :: iso_c_binding
-!    implicit none
-!    integer(c_intptr_t), intent(in), value :: plan
-!    real(c_double),      intent(out)       :: FDMnzvalLocal(*)
-!    real(c_double),      intent(out)       :: totalFreeEnergy
-!    integer(c_int),      intent(out)       :: info
-!  end subroutine
+  subroutine f_ppexsi_retrieve_complex_fdm(&
+      plan,&
+      options,&
+      FDMnzvalLocal,&
+      totalFreeEnergy,&
+      info)&
+      bind(C, Name="PPEXSIRetrieveComplexFDM")
+    use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
+    implicit none
+    integer(c_intptr_t),    intent(in), value :: plan
+    type(f_ppexsi_options), intent(in), value :: options
+    complex(c_double),      intent(out)       :: FDMnzvalLocal(*)
+    real(c_double),         intent(out)       :: totalFreeEnergy
+    integer(c_int),         intent(out)       :: info
+  end subroutine
 
 end interface
 

@@ -1885,7 +1885,7 @@ void PPEXSIRetrieveRealFDM(
     PPEXSIPlan  plan,
     PPEXSIOptions     options,
     double*     FDMnzvalLocal,
-    double*     totalEnergyF,
+    double*     totalFreeEnergy,
     int*              info ){
   *info = 0;
   const GridType* gridPole = 
@@ -1903,7 +1903,7 @@ void PPEXSIRetrieveRealFDM(
       blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
           FDMnzvalLocal, 1 );
     }
-    *totalEnergyF = ptrData->TotalFreeEnergy();
+    *totalFreeEnergy = ptrData->TotalFreeEnergy();
   }
   catch( std::exception& e ) {
     statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
@@ -1987,3 +1987,38 @@ void PPEXSIRetrieveComplexEDM(
   return;
 }   // -----  end of function PPEXSIRetrieveComplexEDM ----- 
 
+extern "C"
+void PPEXSIRetrieveComplexFDM(
+    PPEXSIPlan        plan,
+    PPEXSIOptions     options,
+    double*     FDMnzvalLocal,
+    double*     totalFreeEnergy,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole =
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
+
+    if( options.method == 2){
+        blas::Copy( 2*nnzLocal,
+            reinterpret_cast<double*>(ptrData->RhoComplexMat().nzvalLocal.Data()), 1,
+            FDMnzvalLocal, 1 );
+    }
+    else{
+        blas::Copy( 2*nnzLocal,
+            reinterpret_cast<double*>(ptrData->FreeEnergyDensityComplexMat().nzvalLocal.Data()), 1,
+            FDMnzvalLocal, 1 );
+    }
+    *totalFreeEnergy = ptrData->TotalFreeEnergy();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveComplexFDM  -----
