@@ -4600,8 +4600,8 @@ PPEXSIData::DFTDriver2 (
 
     // do the Inertia Counting 
     // Inertia counting loop
-    // Hard coded: max inertia counting 1 steps
-    const Int maxTotalInertiaIter = 1;
+    // Hard coded: max inertia counting 10 steps
+    const Int maxTotalInertiaIter = 10;
 
     if( verbosity >= 1 ){
       PrintBlock( statusOFS, "Inertia counting phase" );
