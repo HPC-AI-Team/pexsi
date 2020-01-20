@@ -276,6 +276,7 @@ void PPEXSISetDefaultOptions(
   options->method                = 3;
   options->verbosity             = 1;
   options->nPoints               = 2;
+  options->iFLAG                 = 0;
 }   // -----  end of function PPEXSISetDefaultOptions  ----- 
 
 
@@ -1024,6 +1025,7 @@ void PPEXSIInterpolateDMReal(
         options->muMin0,
         options->muMax0,
         *muPEXSI, 
+        options->iFLAG,
         options->method,
         options->verbosity);
 
@@ -1064,6 +1066,7 @@ void PPEXSIInterpolateDMComplex(
         options->muMin0,
         options->muMax0,
         *muPEXSI, 
+        options->iFLAG,
         options->method,
         options->verbosity);
 

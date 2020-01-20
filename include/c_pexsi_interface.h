@@ -337,6 +337,14 @@ typedef struct {
      * - = 2   : Detailed output.
      */ 
     int           verbosity;
+
+    /** 
+     * @brief  The error message of the PEXSI.
+     * - = 0   : No error.
+     * - = 1   : Smaller mu has bigger number of electrons
+     */ 
+     int         iFLAG;
+ 
 } PPEXSIOptions;
 
 

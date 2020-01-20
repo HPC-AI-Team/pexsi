@@ -807,6 +807,7 @@ public:
     Real              & muMin,
     Real              & muMax,
     Real              & muPEXSI,
+    Int               & iFLAG,
     Int                 method,
     Int                 verbosity);
 
@@ -821,6 +822,7 @@ public:
     Real              & muMin,
     Real              & muMax,
     Real              & muPEXSI,
+    Int               & iFLAG,
     Int                 method,
     Int                 verbosity);
 

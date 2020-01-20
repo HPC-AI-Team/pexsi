@@ -4821,6 +4821,7 @@ PPEXSIData::DFTDriver2 (
       }
     }
     */
+    int iFLAG;
     InterpolateDMReal(
         numElectronExact,
         numElectronPEXSI,
@@ -4830,6 +4831,7 @@ PPEXSIData::DFTDriver2 (
         muMinInertia,
         muMaxInertia,
         muPEXSI, 
+        iFLAG,
         method, 
         verbosity);
 
@@ -5932,6 +5934,7 @@ void PPEXSIData::InterpolateDMReal(
     Real              & muMin,
     Real              & muMax,
     Real              & muPEXSI,
+    Int               & iFLAG,
     Int                 method,
     Int                 verbosity){
 
@@ -6050,6 +6053,7 @@ void PPEXSIData::InterpolateDMReal(
                   << std::endl;
         statusOFS << std::endl;
         isMuReasonable = false; 
+        iFLAG = 1;
       }
     }
 
@@ -6089,6 +6093,8 @@ void PPEXSIData::InterpolateDMReal(
           ( NeVec[idxMax] -NeVec[idxMin] ) * (shiftVec[idxMax] - shiftVec[idxMin]);
   
         if( verbosity >= 1 ) {
+          statusOFS << "PEXSI not Converged " << std::endl;
+          statusOFS << " linear interpolate the DM, EDM, FDM " << std::endl;
           statusOFS << " idxMin = " << idxMin << " idxMax = " << idxMax <<std::endl;
           Print( statusOFS, "idxMin                      = ", idxMin );
           Print( statusOFS, "NeVec[min]                  = ", NeVec[idxMin] );
@@ -6154,6 +6160,12 @@ void PPEXSIData::InterpolateDMReal(
       mu = shiftVec[mu_idx];
       numElectronPEXSI = NeVec[mu_idx];
   
+      if( verbosity >= 1 ) {
+        statusOFS << "PEXSI mu not reasonable, no interpolation used " << std::endl;
+        Print( statusOFS, "using mu point              = ", mu_idx);
+        Print( statusOFS, "NeVec[mu_idx]               = ", NeVec[mu_idx]);
+        Print( statusOFS, "Final mu                    = ", mu);
+      }
       // bcast the DM, EDM, FDM
       MPI_Bcast(rhoRealMat_.nzvalLocal.Data(), rhoRealMat_.nnzLocal, MPI_DOUBLE, 
           mu_idx, pointRowComm);
@@ -6195,7 +6207,32 @@ void PPEXSIData::InterpolateDMReal(
       mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
           gridPole_->rowComm ); 
     }
+    // Free energy 
+    if( !isEDMCorrection_ )
+    {
+      Real local = 0.0;
+      if( SMat.size != 0 ){
+        local = blas::Dot( SMat.nnzLocal, 
+            SMat.nzvalLocal.Data(),
+            1, freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
+      }
+      else{
+        DblNumVec& nzval = freeEnergyDensityRealMat_.nzvalLocal;
+        for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
+          local += nzval(diagIdxLocal_[i]);
+        }
+      }
 
+
+      mpi::Allreduce( &local, &totalFreeEnergy_, 1, MPI_SUM, 
+          gridPole_->rowComm ); 
+
+      // Correction
+      totalFreeEnergy_ += mu * numElectronExact;
+
+      //statusOFS << " Free Energy S Tr[S*FDM] " << totalFreeEnergy_ << std::endl;
+    }
+ 
   }
   // FIXME A placeholder for the FDM -- check check
   // if( isFreeEnergyDensityMatrix )
@@ -6240,6 +6277,7 @@ void PPEXSIData::InterpolateDMComplex(
     Real              & muMin,
     Real              & muMax,
     Real              & muPEXSI,
+    Int               & iFLAG,
     Int                 method,
     Int                 verbosity){
 
@@ -6357,6 +6395,7 @@ void PPEXSIData::InterpolateDMComplex(
                   << std::endl;
         statusOFS << std::endl;
         isMuReasonable = false; 
+        iFLAG = 1;
       }
     }
 
