@@ -260,10 +260,10 @@ void PPEXSISetDefaultOptions(
   options->muMin0                = -10.0; 
   options->muMax0                = +10.0; 
   options->mu0                   =  0.0;  // For more control by the user
-  options->muInertiaTolerance    = 0.05;
+  options->muInertiaTolerance    = 0.2;
   options->muInertiaExpansion    = 0.3;      
   options->muPEXSISafeGuard      = 0.05;
-  options->numElectronPEXSITolerance = 1.0E-10;
+  options->numElectronPEXSITolerance = 1.0E-7;
   options->matrixType            = 0;
   options->isSymbolicFactorize   = 1;
   options->solver                = 0;
