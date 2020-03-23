@@ -8,3 +8,7 @@
   - Generate standard results for automatic testing
   - Organize testinternals/
   - Organize utilities/
+  - Update the deprecated commands
+      MPI_Address -> 	MPI_Get_Address
+      MPI_Type_struct -> MPI_Type_create_struct
+      MPI_Type_hindexed -> MPI_Type_create_hindexed
