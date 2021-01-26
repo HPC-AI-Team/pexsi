@@ -283,7 +283,7 @@ int main(int argc, char **argv)
   options.verbosity = 1;
   options.deltaE   = 20.0;
   int method = 1;
-  options.numPole  = 80;
+  options.numPole  = 40;
   options.temperature  = 0.00095; // 300K
 
 /*

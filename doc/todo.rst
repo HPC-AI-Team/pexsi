@@ -24,4 +24,7 @@
   - Update some toolchain files for cmake
   - Make SuperLU_DIST + Parmetis the default in installation, instead of Sympack + PT-SCOTCH
   - Bump up legal part
+  - Problems to fix:
+    1. ppexsi.cpp l 3481: statusOFS << " numPoles should be chosen from [ 10, 15, 20, 25, 30, 35, 40] " << std::endl; is it too small?
+
   - Release 2.0

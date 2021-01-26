@@ -1478,13 +1478,13 @@ void PPEXSIRetrieveRealEDM(
  * @param[out] info (local) whether the current processor returns the correct information.
  * - = 0: successful exit.  
  * - > 0: unsuccessful.
+ */
 void PPEXSIRetrieveRealFDM(
     PPEXSIPlan  plan,
     PPEXSIOptions     options,
     double*     FDMnzvalLocal,
     double*     totalEnergyF,
     int*        info );
- */
 
 
 /**
