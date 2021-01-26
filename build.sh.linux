@@ -1,0 +1,25 @@
+PEXSI_INSTALL_DIR=$HOME/Projects/pexsi_install
+BLAS_LIB=/usr/lib/x86_64-linux-gnu/libblas.a
+LAPACK_LIB=/usr/lib/x86_64-linux-gnu/liblapack.a
+DSUPERLU_DIR=$HOME/Software/SuperLU_DIST_install/v6.1.0
+PARMETIS_DIR=$HOME/Software/parmetis-4.0.3_install
+METIS_DIR=${PARMETIS_DIR}
+GFORTRAN_LIB=/usr/lib/gcc/x86_64-linux-gnu/7/libgfortran.a
+
+BDIR=build
+rm -rf ${BDIR}
+
+/home/linlin/Software/cmake-3.19.2-Linux-x86_64/bin/cmake -H. -B${BDIR} -DCMAKE_TOOLCHAIN_FILE=./config/toolchain.cmake.linux \
+  -DCMAKE_INSTALL_PREFIX=$PEXSI_INSTALL_DIR \
+  -Dlinalg_BLAS_LIBRARIES="$BLAS_LIB;-lm;$GFORTRAN_LIB" \
+  -Dlinalg_LAPACK_LIBRARIES=$LAPACK_LIB \
+  -Dsuperlu_dist_INCLUDE_DIR=$DSUPERLU_DIR/include \
+  -Dsuperlu_dist_LIBRARIES=$DSUPERLU_DIR/lib/libsuperlu_dist.a \
+  -Dmetis_INCLUDE_DIR=$METIS_DIR/include \
+  -Dmetis_LIBRARIES=$METIS_DIR/lib/libmetis.a \
+  -Dparmetis_INCLUDE_DIR=$PARMETIS_DIR/include \
+  -Dparmetis_LIBRARIES=$PARMETIS_DIR/lib/libparmetis.a 
+cd ${BDIR}
+make -j 12
+make install
+cd ..

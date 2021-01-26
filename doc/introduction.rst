@@ -216,17 +216,18 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 Contributors
 ============
+
 - Lin Lin, UC Berkeley and Lawrence Berkeley National Laboratory,
   linlin@math.berkeley.edu
+- Weinan E, Princeton University, weinan@math.princeton.edu
 - Mathias Jacquelin, Lawrence Berkeley National Laboratory,
   mjacquelin@lbl.gov
 - Weile Jia, UC Berkeley, wjia@lbl.gov
+- Jianfeng Lu, Duke University, jianfeng@math.duke.edu
 - David Williams-Young, David Williams-Young, dbwy@lbl.gov, 
 - Chao Yang, Lawrence Berkeley National Laboratory, cyang@lbl.gov
-- Victor Yu, Duke University, wenzhe.yu@duke.edu
-- Jianfeng Lu, Duke University, jianfeng@math.duke.edu
 - Lexing Ying, Stanford University, lexing@stanford.edu
-- Weinan E, Princeton University, weinan@math.princeton.edu
+- Victor Yu, Duke University, wenzhe.yu@duke.edu
 
 
 Citing PEXSI
