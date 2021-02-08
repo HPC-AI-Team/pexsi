@@ -67,7 +67,7 @@ set( PEXSI_PATCH_PATH ${PROJECT_SOURCE_DIR}/external/patch )
 if( NOT CMAKE_BUILD_TYPE AND (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME))
 
   message( STATUS "Using Default CMAKE_BUILD_TYPE=Release" )
-  set( CMAKE_BUILD_TYPE "Release" CACHE STRING "CMake Build Type" )
+  set( CMAKE_BUILD_TYPE "Release" CACHE STRING "CMake Build Type" FORCE )
 
 endif()
 
