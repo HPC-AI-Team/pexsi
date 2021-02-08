@@ -96,7 +96,6 @@ include( CheckSymbolExists )
 include( FindPackageHandleStandardArgs )
 
 include( ${CMAKE_CURRENT_LIST_DIR}/util/CommonFunctions.cmake )
-
 fill_out_prefix( SuperLU_DIST )
 
 
@@ -131,6 +130,15 @@ if( NOT SuperLU_DIST_LIBRARIES )
     DOC "SuperLU_DIST Libraries"
   )
 
+else()
+  foreach( _lib ${SuperLU_DIST_LIBRARIES} )
+    if( _lib MATCHES "ParMETIS" )
+      find_dependency(ParMETIS)
+    if( _lib MATCHES "BLAS" )
+      find_dependency(BLAS)
+    endif()
+    endif()
+  endforeach()
 endif()
 
 if( SuperLU_DIST_LIBRARIES )
@@ -174,6 +182,9 @@ find_package_handle_standard_args( SuperLU_DIST
   REQUIRED_VARS SuperLU_DIST_LIBRARIES SuperLU_DIST_INCLUDE_DIR
   VERSION_VAR SuperLU_DIST_VERSION_STRING
 )
+
+set( SuperLU_DIST_LIBRARIES "${SuperLU_DIST_LIBRARIES}" CACHE STRING "SuperLU_DIST LIBRARIES" FORCE )
+set( SuperLU_DIST_INCLUDE_DIR "${SuperLU_DIST_INCLUDE_DIR}" CACHE STRING "SuperLU_DIST INCLUDE_DIR" FORCE )
 
 # Export target
 if( SuperLU_DIST_FOUND AND NOT TARGET SuperLU::SuperLU_DIST )

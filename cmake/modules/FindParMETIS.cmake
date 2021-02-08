@@ -89,40 +89,8 @@ cmake_minimum_required( VERSION 3.11 ) # Require CMake 3.11+
 
 include(CMakeFindDependencyMacro)
 
-
-
-# Set up some auxillary vars if hints have been set
-
-if( ParMETIS_PREFIX AND NOT ParMETIS_INCLUDE_DIR )
-  set( ParMETIS_INCLUDE_DIR ${ParMETIS_PREFIX}/include )
-endif()
-
-
-if( ParMETIS_PREFIX AND NOT ParMETIS_LIBRARY_DIR )
-  set( ParMETIS_LIBRARY_DIR 
-    ${ParMETIS_PREFIX}/lib 
-    ${ParMETIS_PREFIX}/lib32 
-    ${ParMETIS_PREFIX}/lib64 
-  )
-endif()
-
-# Pass ParMETIS vars as METIS vars if they exist
-if( ParMETIS_PREFIX AND NOT METIS_PREFIX )
-  set( METIS_PREFIX ${ParMETIS_PREFIX} )
-endif()
-
-if( ParMETIS_INCLUDE_DIR AND NOT METIS_INCLUDE_DIR )
-  set( METIS_INCLUDE_DIR ${ParMETIS_INCLUDE_DIR} )
-endif()
-
-if( ParMETIS_LIBRARY_DIR AND NOT METIS_LIBRARY_DIR )
-  set( METIS_LIBRARY_DIR ${ParMETIS_LIBRARY_DIR} )
-endif()
-
-
-
-
-
+include( ${CMAKE_CURRENT_LIST_DIR}/util/CommonFunctions.cmake )
+fill_out_prefix( ParMETIS )
 # DEPENDENCIES
 
 # Make sure C is enabled
@@ -154,14 +122,11 @@ find_path( ParMETIS_INCLUDE_DIR
   DOC "Location of ParMETIS header"
 )
 
-message( STATUS "ParMETIS = ${ParMETIS_LIBRARIES}" )
-
 # Try to find libraries if not already set
 if( NOT ParMETIS_LIBRARIES )
 
-  message( STATUS "DBWY IN PARMETIS" )
-
   # METIS
+  copy_meta_data( ParMETIS METIS )
   find_dependency( METIS )
 
   find_library( ParMETIS_LIBRARIES
@@ -173,7 +138,6 @@ if( NOT ParMETIS_LIBRARIES )
   )
 
   if( ParMETIS_LIBRARIES )
-    message( STATS "DBWY APPENDING METIS" )
     list( APPEND ParMETIS_LIBRARIES METIS::METIS )
   endif()
 
@@ -250,6 +214,9 @@ find_package_handle_standard_args( ParMETIS
   VERSION_VAR ParMETIS_VERSION_STRING
   HANDLE_COMPONENTS
 )
+
+set( ParMETIS_LIBRARIES "${ParMETIS_LIBRARIES}" CACHE STRING "ParMETIS LIBRARIES" FORCE )
+set( ParMETIS_INCLUDE_DIR "${ParMETIS_INCLUDE_DIR}" CACHE STRING "ParMETIS INCLUDE_DIR" FORCE )
 
 # Export target
 if( ParMETIS_FOUND AND NOT TARGET ParMETIS::ParMETIS )

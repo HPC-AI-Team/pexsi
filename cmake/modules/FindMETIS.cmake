@@ -85,21 +85,12 @@
 #
 #==================================================================
 
-cmake_minimum_required( VERSION 3.11 ) # Require CMake 3.11+
+cmake_minimum_required( VERSION 3.17 ) # Require CMake 3.11+
 # Set up some auxillary vars if hints have been set
 
-if( METIS_PREFIX AND NOT METIS_INCLUDE_DIR )
-  set( METIS_INCLUDE_DIR ${METIS_PREFIX}/include )
-endif()
+include( ${CMAKE_CURRENT_LIST_DIR}/util/CommonFunctions.cmake )
+fill_out_prefix( METIS )
 
-
-if( METIS_PREFIX AND NOT METIS_LIBRARY_DIR )
-  set( METIS_LIBRARY_DIR 
-    ${METIS_PREFIX}/lib 
-    ${METIS_PREFIX}/lib32 
-    ${METIS_PREFIX}/lib64 
-  )
-endif()
 
 
 # Try to find the header
@@ -196,6 +187,9 @@ find_package_handle_standard_args( METIS
   VERSION_VAR METIS_VERSION_STRING
   HANDLE_COMPONENTS
 )
+
+set( METIS_LIBRARIES "${METIS_LIBRARIES}" CACHE STRING "METIS LIBRARIES" FORCE )
+set( METIS_INCLUDE_DIR "${METIS_INCLUDE_DIR}" CACHE STRING "METIS INCLUDE_DIR" FORCE )
 
 # Export target
 if( METIS_FOUND AND NOT TARGET METIS::METIS )
