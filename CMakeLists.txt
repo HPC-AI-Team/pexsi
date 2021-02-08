@@ -39,7 +39,7 @@
 #   works, incorporate into other computer software, distribute, and sublicense
 #   such enhancements or derivative works thereof, in binary and source code form.
 #
-cmake_minimum_required( VERSION 3.10 ) # Require CMake 3.10+
+cmake_minimum_required( VERSION 3.17 ) # Require CMake 3.17+
 
 # Set up project definition + version information
 project( PEXSI VERSION 1.2.0 LANGUAGES CXX C Fortran )
@@ -63,10 +63,18 @@ list( APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 # Global config variables
 set( PEXSI_PATCH_PATH ${PROJECT_SOURCE_DIR}/external/patch )
 
+# Default to Release if not subproject
+if( NOT DEFINED CMAKE_BUILD_TYPE AND NOT (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME))
 
-include( PEXSICompileFlags ) # Compile Flags
-include( PEXSIBasicDepends ) # Basic Dependencies
-include( PEXSITPLDepends   ) # TPL Dependencies
+  message( STATUS "Using Default CMAKE_BUILD_TYPE=Release" )
+  set( CMAKE_BUILD_TYPE "Release" CACHE STRING "CMake Build Type" )
+
+endif()
+
+
+#include( PEXSICompileFlags ) # Compile Flags
+#include( PEXSIBasicDepends ) # Basic Dependencies
+#include( PEXSITPLDepends   ) # TPL Dependencies
 
 
 # libPEXSI

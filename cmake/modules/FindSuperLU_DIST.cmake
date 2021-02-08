@@ -1,28 +1,28 @@
-#   FindSuperLU.cmake
+#   FindSuperLU_DIST.cmake
 #
-#   Finds the SuperLU library.
+#   Finds the SuperLU_DIST library.
 #
 #   This module will define the following variables:
 #   
-#     SUPERLU_FOUND        - System has found SuperLU installation
-#     SUPERLU_INCLUDE_DIR  - Location of SuperLU headers
-#     SUPERLU_LIBRARIES    - SuperLU libraries
+#     SuperLU_DIST_FOUND        - System has found SuperLU_DIST installation
+#     SuperLU_DIST_INCLUDE_DIR  - Location of SuperLU_DIST headers
+#     SuperLU_DIST_LIBRARIES    - SuperLU_DIST libraries
 #
-#   This module will export the following targets if SUPERLU_FOUND
+#   This module will export the following targets if SuperLU_FOUND
 #
-#     SUPERLU::superlu
+#     SuperLU::SuperLU_DIST
 #
 #
 #
 #
 #   Proper usage:
 #
-#     project( TEST_FIND_SUPERLU C )
-#     find_package( SUPERLU )
+#     project( TEST_FIND_SuperLUDIST C )
+#     find_package( SuperLU_DIST )
 #
-#     if( SUPERLU_FOUND )
+#     if( SuperLU_DIST_FOUND )
 #       add_executable( test test.cxx )
-#       target_link_libraries( test SUPERLU::superlu )
+#       target_link_libraries( test SuperLU::SuperLU_DIST )
 #     endif()
 #
 #
@@ -31,10 +31,10 @@
 #   This module will use the following variables to change
 #   default behaviour if set
 #
-#     superlu_PREFIX
-#     superlu_INCLUDE_DIR
-#     superlu_LIBRARY_DIR
-#     superlu_LIBRARIES
+#     SuperLU_DIST_PREFIX
+#     SuperLU_DIST_INCLUDE_DIR
+#     SuperLU_DIST_LIBRARY_DIR
+#     SuperLU_DIST_LIBRARIES
 #
 #
 #   This module also calls FindLinAlg.cmake if no LinAlg::BLAS
@@ -89,6 +89,7 @@
 #==================================================================
 
 cmake_minimum_required( VERSION 3.11 ) # Require CMake 3.11+
+
 include( CMakePushCheckState )
 include( CheckLibraryExists )
 include( CheckSymbolExists )
@@ -96,93 +97,91 @@ include( FindPackageHandleStandardArgs )
 
 include( ${CMAKE_CURRENT_LIST_DIR}/CommonFunctions.cmake )
 
-fill_out_prefix( superlu )
+fill_out_prefix( SuperLU_DIST )
 
 
 
 # Dependencies
-if( NOT TARGET LinAlg::BLAS )
+include(CMakeFindDependencyMacro)
+# Inherits MPI from ParMETIS
+find_dependency( BLAS )
+find_dependency( ParMETIS )
 
-  include(CMakeFindDependencyMacro)
-  find_dependency( LinAlg REQUIRED )
-
-endif()
 
 
 # Try to find headers
-find_path( SUPERLU_INCLUDE_DIR
-  NAMES slu_util.h
-  HINTS ${superlu_PREFIX}
-  PATHS ${superlu_INCLUDE_DIE}
+find_path( SuperLU_DIST_INCLUDE_DIR
+  NAMES superlu_defs.h
+  HINTS ${SuperLU_DIST_PREFIX}
+  PATHS ${SuperLU_DIST_INCLUDE_DIR}
   PATH_SUFFIXES include
-  DOC "Local of SuperLU Headers"
+  DOC "Local of SuperLU_DIST Headers"
 )
 
 
 
 # Try to find libraries if not already set
-if( NOT superlu_LIBRARIES )
+if( NOT SuperLU_DIST_LIBRARIES )
 
-  find_library( SUPERLU_LIBRARIES
-    NAMES superlu
-    HINTS ${superlu_PREFIX}
-    PATHS ${superlu_LIBRARY_DIR}
+  find_library( SuperLU_DIST_LIBRARIES
+    NAMES superlu_dist
+    HINTS ${SuperLU_DIST_PREFIX}
+    PATHS ${SuperLU_DIST_LIBRARY_DIR}
     PATH_SUFFIXES lib lib64 lib32
-    DOC "SUPERLU Libraries"
+    DOC "SuperLU_DIST Libraries"
   )
-
-else()
-
-  # FIXME: Check if files exists at least?
-  set( SUPERLU_LIBRARIES ${superlu_LIBRARIES} )
 
 endif()
 
+if( SuperLU_DIST_LIBRARIES )
+  list( APPEND SuperLU_DIST_LIBRARIES BLAS::BLAS ParMETIS::ParMETIS )
+endif()
+
 # Check version
-if( EXISTS ${SUPERLU_INCLUDE_DIR}/slu_util.h )
+if( EXISTS ${SuperLU_DIST_INCLUDE_DIR}/superlu_defs.h )
   set( version_pattern 
-  "^#define[\t ]+SUPERLU_(MAJOR|MINOR|PATCH)_VERSION[\t ]+([0-9\\.]+)$"
+  "^#define[\t ]+SuperLU_DIST_(MAJOR|MINOR|PATCH)_VERSION[\t ]+([0-9\\.]+)$"
   )
-  file( STRINGS ${SUPERLU_INCLUDE_DIR}/slu_util.h superlu_version
+  file( STRINGS ${SuperLU_DIST_INCLUDE_DIR}/superlu_defs.h SuperLU_DIST_version
         REGEX ${version_pattern} )
   
-  foreach( match ${superlu_version} )
+  foreach( match ${SuperLU_DIST_version} )
   
-    if(SUPERLU_VERSION_STRING)
-      set(SUPERLU_VERSION_STRING "${SUPERLU_VERSION_STRING}.")
+    if(SuperLU_DIST_VERSION_STRING)
+      set(SuperLU_DIST_VERSION_STRING "${SuperLU_DIST_VERSION_STRING}.")
     endif()
   
     string(REGEX REPLACE ${version_pattern} 
-      "${SUPERLU_VERSION_STRING}\\2" 
-      SUPERLU_VERSION_STRING ${match}
+      "${SuperLU_DIST_VERSION_STRING}\\2" 
+      SuperLU_DIST_VERSION_STRING ${match}
     )
   
-    set(SUPERLU_VERSION_${CMAKE_MATCH_1} ${CMAKE_MATCH_2})
+    set(SuperLU_DIST_VERSION_${CMAKE_MATCH_1} ${CMAKE_MATCH_2})
   
   endforeach()
   
-  unset( superlu_version )
+  unset( SuperLU_DIST_version )
   unset( version_pattern )
 endif()
 
 
 
-# Determine if we've found SUPERLU
-mark_as_advanced( SUPERLU_FOUND SUPERLU_INCLUDE_DIR SUPERLU_LIBRARIES )
+# Determine if we've found SuperLU_DIST
+mark_as_advanced( SuperLU_DIST_FOUND SuperLU_DIST_INCLUDE_DIR SuperLU_DIST_LIBRARIES )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args( SUPERLU
-  REQUIRED_VARS SUPERLU_LIBRARIES SUPERLU_INCLUDE_DIR
-  VERSION_VAR SUPERLU_VERSION_STRING
+find_package_handle_standard_args( SuperLU_DIST
+  REQUIRED_VARS SuperLU_DIST_LIBRARIES SuperLU_DIST_INCLUDE_DIR
+  VERSION_VAR SuperLU_DIST_VERSION_STRING
 )
 
 # Export target
-if( SUPERLU_FOUND AND NOT TARGET SuperLU::superlu )
+if( SuperLU_DIST_FOUND AND NOT TARGET SuperLU::SuperLU_DIST )
 
-  add_library( SuperLU::superlu INTERFACE IMPORTED )
-  set_target_properties( SuperLU::superlu PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${SUPERLU_INCLUDE_DIR}"
-    INTERFACE_LINK_LIBRARIES      "${SUPERLU_LIBRARIES};LinAlg::BLAS" 
+  add_library( SuperLU::SuperLU_DIST INTERFACE IMPORTED )
+  set_target_properties( SuperLU::SuperLU_DIST PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${SuperLU_DIST_INCLUDE_DIR}"
+    INTERFACE_LINK_LIBRARIES      "${SuperLU_DIST_LIBRARIES}" 
   )
 
 endif()

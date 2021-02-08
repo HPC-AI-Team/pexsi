@@ -43,21 +43,21 @@
 
 # Compile
 
-set( PEXSI_SRC_C   pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c )
-set( PEXSI_SRC_CXX interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp
-                   superlu_dist_internal_complex.cpp 
-                   superlu_dist_internal_real.cpp 
-                   mpi_interf.cpp lapack.cpp blas.cpp utility.cpp 
-                   global.cpp timer.cpp getPole.cpp )
+set( PEXSI_SRC pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c 
+               interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp
+               superlu_dist_internal_complex.cpp 
+               superlu_dist_internal_real.cpp 
+               mpi_interf.cpp lapack.cpp blas.cpp utility.cpp 
+               global.cpp timer.cpp getPole.cpp )
 
 
 if( PEXSI_ENABLE_FORTRAN )
   message( STATUS "PEXSI Will Enable FORTRAN Bindings" )
-  set( PEXSI_SRC_F90 f_interface.f90 )
+  list( APPEND PEXSI_SRC f_interface.f90 )
 endif()
 
-add_library( pexsi STATIC ${PEXSI_SRC_C} ${PEXSI_SRC_CXX} ${PEXSI_SRC_F90})
-add_library( PEXSI::pexsi ALIAS pexsi )
+add_library( pexsi STATIC ${PEXSI_SRC} )
+add_library( PEXSI::PEXSI ALIAS pexsi )
 
 # Set up Fortran module directory
 if( PEXSI_ENABLE_FORTRAN )
@@ -70,19 +70,69 @@ endif()
 
 
 
+# C++11
+target_compile_features( pexsi PUBLIC cxx_std_11 )
+
+# Performance Profiling
+if( PEXSI_ENABLE_PROFILE )
+  target_compile_options( pexsi PRIVATE $<BUILD_INTERFACE: -g -pg> )
+endif( PEXSI_ENABLE_PROFILE )
+
+# Handle DEBUG / RELEASE flags
+if( CMAKE_BUILD_TYPE MATCHES Release )
+  target_compile_definitions( pexsi PRIVATE $<BUILD_INTERFACE:RELEASE> )
+else()
+  if( NOT PEXSI_DEBUG_LEVEL )
+    set( PEXSI_DEBUG_LEVEL 1 )
+  endif()
+  target_compile_definitions( pexsi PRIVATE $<BUILD_INTERFACE:DEBUG=${PEXSI_DEBUG_LEVEL}> )
+endif()
+
+
+# MPI
+find_package( MPI REQUIRED )
+target_link_libraries( pexsi PUBLIC MPI::MPI_C MPI::MPI_CXX )
+if( PEXSI_ENABLE_FORTRAN )
+  target_link_libraries( pexsi PUBLIC MPI::MPI_Fortran )
+endif()
+
+# OpenMP
+if( PEXSI_ENABLE_OPENMP )
+  find_package( OpenMP REQUIRED )
+  target_link_libraries( pexsi PUBLIC OpenMP::OpenMP_C )
+endif()
+if( PEXSI_ENABLE_FORTRAN )
+  target_link_libraries( pexsi PUBLIC OpenMP::OpenMP_Fortran )
+endif()
+
+# BLAS/LAPACK
+find_package( BLAS   REQUIRED COMPONENTS lp64 )
+find_package( LAPACK REQUIRED COMPONENTS lp64 )
+set( BLAS_LIBRARIES   "${BLAS_LIBRARIES}"   CACHE STRING "BLAS Libraries"   )
+set( LAPACK_LIBRARIES "${LAPACK_LIBRARIES}" CACHE STRING "LAPACK Libraries" )
+target_link_libraries( pexsi PUBLIC LAPACK::LAPACK )
+if( LAPACK_FORTRAN_UNDERSCORE )
+  target_compile_definitions( pexsi PUBLIC Add_ )
+endif() 
+
+# SuperLU Dist
+find_package( SuperLU_DIST REQUIRED )
+target_link_libraries( pexsi PUBLIC SuperLU::SuperLU_DIST )
+
+
 # TARGET properties
 
-target_link_libraries( pexsi
-  PUBLIC
-    PEXSI::compile_definitions
-    PEXSI::parallel_cxx
-    PEXSI::parallel_c
-    PEXSI::tpl_depends
-)
-
-if( PEXSI_ENABLE_FORTRAN )
-  target_link_libraries( pexsi PUBLIC PEXSI::parallel_fortran )
-endif()
+#target_link_libraries( pexsi
+#  PUBLIC
+#    PEXSI::compile_definitions
+#    PEXSI::parallel_cxx
+#    PEXSI::parallel_c
+#    PEXSI::tpl_depends
+#)
+#
+#if( PEXSI_ENABLE_FORTRAN )
+#  target_link_libraries( pexsi PUBLIC PEXSI::parallel_fortran )
+#endif()
 
 target_include_directories( pexsi  
   PUBLIC

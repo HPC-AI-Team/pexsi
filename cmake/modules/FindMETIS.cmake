@@ -15,7 +15,7 @@
 #
 #   This module will export the following targets if METIS_FOUND
 #
-#     METIS::metis
+#     METIS::METIS
 #
 #
 #
@@ -27,7 +27,7 @@
 #
 #     if( METIS_FOUND )
 #       add_executable( test test.cxx )
-#       target_link_libraries( test METIS::metis )
+#       target_link_libraries( test METIS::METIS )
 #     endif()
 #
 #
@@ -36,10 +36,10 @@
 #   This module will use the following variables to change
 #   default behaviour if set
 #
-#     metis_PREFIX
-#     metis_INCLUDE_DIR
-#     metis_LIBRARY_DIR
-#     metis_LIBRARIES
+#     METIS_PREFIX
+#     METIS_INCLUDE_DIR
+#     METIS_LIBRARY_DIR
+#     METIS_LIBRARIES
 
 #==================================================================
 #   Copyright (c) 2018 The Regents of the University of California,
@@ -88,16 +88,16 @@
 cmake_minimum_required( VERSION 3.11 ) # Require CMake 3.11+
 # Set up some auxillary vars if hints have been set
 
-if( metis_PREFIX AND NOT metis_INCLUDE_DIR )
-  set( metis_INCLUDE_DIR ${metis_PREFIX}/include )
+if( METIS_PREFIX AND NOT METIS_INCLUDE_DIR )
+  set( METIS_INCLUDE_DIR ${METIS_PREFIX}/include )
 endif()
 
 
-if( metis_PREFIX AND NOT metis_LIBRARY_DIR )
-  set( metis_LIBRARY_DIR 
-    ${metis_PREFIX}/lib 
-    ${metis_PREFIX}/lib32 
-    ${metis_PREFIX}/lib64 
+if( METIS_PREFIX AND NOT METIS_LIBRARY_DIR )
+  set( METIS_LIBRARY_DIR 
+    ${METIS_PREFIX}/lib 
+    ${METIS_PREFIX}/lib32 
+    ${METIS_PREFIX}/lib64 
   )
 endif()
 
@@ -105,27 +105,26 @@ endif()
 # Try to find the header
 find_path( METIS_INCLUDE_DIR 
   NAMES metis.h
-  HINTS ${metis_PREFIX}
-  PATHS ${metis_INCLUDE_DIR}
+  HINTS ${METIS_PREFIX}
+  PATHS ${METIS_INCLUDE_DIR}
   PATH_SUFFIXES include
   DOC "Location of METIS header"
 )
 
 # Try to find libraries if not already set
-if( NOT metis_LIBRARIES )
+if( NOT METIS_LIBRARIES )
 
   find_library( METIS_LIBRARIES
     NAMES metis
-    HINTS ${metis_PREFIX}
-    PATHS ${metis_LIBRARY_DIR}
+    HINTS ${METIS_PREFIX}
+    PATHS ${METIS_LIBRARY_DIR}
     PATH_SUFFIXES lib lib64 lib32
     DOC "METIS Libraries"
   )
 
 else()
 
-  # FIXME: Check if files exists at least?
-  set( METIS_LIBRARIES ${metis_LIBRARIES} )
+  # FIXME: Check link OK
 
 endif()
 
@@ -199,10 +198,10 @@ find_package_handle_standard_args( METIS
 )
 
 # Export target
-if( METIS_FOUND AND NOT TARGET METIS::metis )
+if( METIS_FOUND AND NOT TARGET METIS::METIS )
 
-  add_library( METIS::metis INTERFACE IMPORTED )
-  set_target_properties( METIS::metis PROPERTIES
+  add_library( METIS::METIS INTERFACE IMPORTED )
+  set_target_properties( METIS::METIS PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${METIS_INCLUDE_DIR}"
     INTERFACE_LINK_LIBRARIES      "${METIS_LIBRARIES}" 
   )
