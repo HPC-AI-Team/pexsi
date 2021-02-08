@@ -95,7 +95,7 @@ include( CheckLibraryExists )
 include( CheckSymbolExists )
 include( FindPackageHandleStandardArgs )
 
-include( ${CMAKE_CURRENT_LIST_DIR}/CommonFunctions.cmake )
+include( ${CMAKE_CURRENT_LIST_DIR}/util/CommonFunctions.cmake )
 
 fill_out_prefix( SuperLU_DIST )
 

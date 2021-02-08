@@ -108,8 +108,6 @@ endif()
 # BLAS/LAPACK
 find_package( BLAS   REQUIRED COMPONENTS lp64 )
 find_package( LAPACK REQUIRED COMPONENTS lp64 )
-set( BLAS_LIBRARIES   "${BLAS_LIBRARIES}"   CACHE STRING "BLAS Libraries"   )
-set( LAPACK_LIBRARIES "${LAPACK_LIBRARIES}" CACHE STRING "LAPACK Libraries" )
 target_link_libraries( pexsi PUBLIC LAPACK::LAPACK )
 if( LAPACK_FORTRAN_UNDERSCORE )
   target_compile_definitions( pexsi PUBLIC Add_ )
