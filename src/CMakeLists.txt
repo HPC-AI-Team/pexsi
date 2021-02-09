@@ -98,27 +98,31 @@ endif()
 
 # OpenMP
 if( PEXSI_ENABLE_OPENMP )
-  find_package( OpenMP REQUIRED )
-  target_link_libraries( pexsi PUBLIC OpenMP::OpenMP_C OpenMP::OpenMP_CXX )
-  if( PEXSI_ENABLE_FORTRAN )
-    target_link_libraries( pexsi PUBLIC OpenMP::OpenMP_Fortran )
-  endif()
   set( BLAS_THREAD_LAYER "openmp" CACHE STRING "BLAS Thread Layer" FORCE )
 else()
   set( BLAS_THREAD_LAYER "sequential" CACHE STRING "BLAS Thread Layer" FORCE )
 endif()
 
+# SuperLU Dist
+find_package( SuperLU_DIST REQUIRED )
+target_link_libraries( pexsi PUBLIC SuperLU::SuperLU_DIST )
+
 # BLAS/LAPACK
-find_package( BLAS   REQUIRED COMPONENTS lp64 )
 find_package( LAPACK REQUIRED COMPONENTS lp64 )
 target_link_libraries( pexsi PUBLIC LAPACK::LAPACK )
 if( LAPACK_FORTRAN_UNDERSCORE )
   target_compile_definitions( pexsi PUBLIC Add_ )
 endif() 
 
-# SuperLU Dist
-find_package( SuperLU_DIST REQUIRED )
-target_link_libraries( pexsi PUBLIC SuperLU::SuperLU_DIST )
+# OpenMP
+if( PEXSI_ENABLE_OPENMP )
+  find_package( OpenMP REQUIRED )
+  target_link_libraries( pexsi PUBLIC OpenMP::OpenMP_C OpenMP::OpenMP_CXX )
+  if( PEXSI_ENABLE_FORTRAN )
+    target_link_libraries( pexsi PUBLIC OpenMP::OpenMP_Fortran )
+  endif()
+endif()
+
 
 
 # TARGET properties

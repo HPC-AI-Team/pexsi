@@ -46,9 +46,9 @@ set( COMMON_UTILITY_CMAKE_FILE_DIR ${CMAKE_CURRENT_LIST_DIR} )
 
 function( fill_out_prefix name )
 
-  if( ${name}_PREFIX AND NOT ${name}_INCLUDE_DIR )
-    set( ${name}_INCLUDE_DIR ${${name}_PREFIX}/include PARENT_SCOPE )
-  endif()
+  #if( ${name}_PREFIX AND NOT ${name}_INCLUDE_DIR )
+  #  set( ${name}_INCLUDE_DIR ${${name}_PREFIX}/include PARENT_SCOPE )
+  #endif()
 
   if( ${name}_PREFIX AND NOT ${name}_LIBRARY_DIR )
     set( ${name}_LIBRARY_DIR 
@@ -142,6 +142,41 @@ function( check_function_exists_w_results _libs _func _output _result )
 
 endfunction()
 
+function( get_omp_libs _libs )
+  include( CMakeFindDependencyMacro )
+  find_dependency( OpenMP )
+  set( _tmp_libs )
+  if( TARGET OpenMP::OpenMP_C )
+    list(APPEND _tmp_libs OpenMP::OpenMP_C)
+  endif()
+  if( TARGET OpenMP::OpenMP_CXX )
+    list(APPEND _tmp_libs OpenMP::OpenMP_CXX)
+  endif()
+  if( TARGET OpenMP::OpenMP_Fortran )
+    list(APPEND _tmp_libs OpenMP::OpenMP_Fortran)
+  endif()
+
+  set( ${_libs} "${_tmp_libs}" PARENT_SCOPE )
+  message( STATUS "${_tmp_libs}" )
+endfunction()
+
+function( get_mpi_libs _libs )
+  include( CMakeFindDependencyMacro )
+  find_dependency( MPI )
+  set( _tmp_libs )
+  if( TARGET MPI::MPI_C )
+    list(APPEND _tmp_libs MPI::MPI_C)
+  endif()
+  if( TARGET MPI::MPI_CXX )
+    list(APPEND _tmp_libs MPI::MPI_CXX)
+  endif()
+  if( TARGET MPI::MPI_Fortran )
+    list(APPEND _tmp_libs MPI::MPI_Fortran)
+  endif()
+
+  set( ${_libs} "${_tmp_libs}" PARENT_SCOPE )
+endfunction()
+
 function( append_possibly_missing_libs _linker_test __compile_output _orig_libs __new_libs )
 
 
@@ -162,10 +197,9 @@ function( append_possibly_missing_libs _linker_test __compile_output _orig_libs 
   if( ${__compile_output} MATCHES "omp_" )
     message( STATUS 
       "  * Missing OpenMP                - Adding to ${_linker_test} linker" )
-    if( NOT TARGET OpenMP::OpenMP_C )
-      find_dependency( OpenMP )
-    endif()
-    list( APPEND _tmp_libs OpenMP::OpenMP_C )
+    get_omp_libs( _omp_libs )
+    list( APPEND _tmp_libs "${_omp_libs}" )
+    unset( _omp_libs )
   endif()
   
   if( ${__compile_output} MATCHES "pthread_" )
