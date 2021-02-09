@@ -51,9 +51,22 @@ set( PEXSI_ENABLE_PROFILE @PEXSI_ENABLE_PROFILE@ )
 set( PEXSI_ENABLE_SYMPACK @PEXSI_ENABLE_SYMPACK@ )
 set( PEXSI_ENABLE_OPENMP  @PEXSI_ENABLE_OPENMP@  )
 
-include( PEXSICompileFlags )
-include( PEXSIBasicDepends )
-include( PEXSITPLDepends   )
+find_dependency( MPI )
+if( PEXSI_ENABLE_OPENMP )
+  find_dependency( OpenMP )
+endif()
+
+set( BLAS_LIBRARIES       "@BLAS_LIBRARIES@"       CACHE STRING "BLAS Libraries"       FORCE )
+set( LAPACK_LIBRARIES       "@LAPACK_LIBRARIES@"       CACHE STRING "LAPACK Libraries"       FORCE )
+set( ParMETIS_LIBRARIES     "@ParMETIS_LIBRARIES@"     CACHE STRING "ParMETIS Libraries"     FORCE )
+set( METIS_LIBRARIES        "@METIS_LIBRARIES@"        CACHE STRING "METIS Libraries"        FORCE )
+set( SuperLU_DIST_LIBRARIES "@SuperLU_DIST_LIBRARIES@" CACHE STRING "SuperLU_DIST Libraries" FORCE )
+set( ParMETIS_INCLUDE_DIR     "@ParMETIS_INCLUDE_DIR@"     CACHE STRING "ParMETIS Libraries"     FORCE )
+set( METIS_INCLUDE_DIR        "@METIS_INCLUDE_DIR@"        CACHE STRING "METIS Libraries"        FORCE )
+set( SuperLU_DIST_INCLUDE_DIR "@SuperLU_DIST_INCLUDE_DIR@" CACHE STRING "SuperLU_DIST Libraries" FORCE )
+
+find_dependency( LAPACK )
+find_dependency( SuperLU_DIST )
 
 list(REMOVE_AT CMAKE_MODULE_PATH -1)
 

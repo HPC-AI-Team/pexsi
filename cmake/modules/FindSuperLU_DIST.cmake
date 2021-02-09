@@ -103,8 +103,6 @@ fill_out_prefix( SuperLU_DIST )
 # Dependencies
 include(CMakeFindDependencyMacro)
 # Inherits MPI from ParMETIS
-find_dependency( BLAS )
-find_dependency( ParMETIS )
 
 
 
@@ -122,6 +120,8 @@ find_path( SuperLU_DIST_INCLUDE_DIR
 # Try to find libraries if not already set
 if( NOT SuperLU_DIST_LIBRARIES )
 
+  find_dependency( BLAS )
+  find_dependency( ParMETIS )
   find_library( SuperLU_DIST_LIBRARIES
     NAMES superlu_dist
     HINTS ${SuperLU_DIST_PREFIX}
@@ -130,20 +130,21 @@ if( NOT SuperLU_DIST_LIBRARIES )
     DOC "SuperLU_DIST Libraries"
   )
 
+  if( SuperLU_DIST_LIBRARIES )
+    list( APPEND SuperLU_DIST_LIBRARIES BLAS::BLAS ParMETIS::ParMETIS )
+  endif()
+
 else()
   foreach( _lib ${SuperLU_DIST_LIBRARIES} )
     if( _lib MATCHES "ParMETIS" )
       find_dependency(ParMETIS)
+    endif()
     if( _lib MATCHES "BLAS" )
       find_dependency(BLAS)
-    endif()
     endif()
   endforeach()
 endif()
 
-if( SuperLU_DIST_LIBRARIES )
-  list( APPEND SuperLU_DIST_LIBRARIES BLAS::BLAS ParMETIS::ParMETIS )
-endif()
 
 # Check version
 if( EXISTS ${SuperLU_DIST_INCLUDE_DIR}/superlu_defs.h )
