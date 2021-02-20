@@ -180,8 +180,27 @@ Build option 1: Use CMake
 
 .. note:: 
 
-  PEXSI requires CMake version 3.10+** (latest CMake can be
+  PEXSI requires CMake version 3.17+** (latest CMake can be
   downloaded at https://cmake.org/download/)
+
+
+CMake is a meta-build system provided by Kitware. In essence, the purpose of
+the CMake build system is to generate Makefiles which are customized to the
+user's particular build environment. Generally, CMake operates by taking
+information provided by the user in the form of CMake variables to notify
+the build generator of things such as the location of dependency installations,
+the enablement/disablement of software features, etc. In practice, this process
+generally takes the form ::
+
+    cmake -H<TOP SOURCE DIR> -B<BINARY DIR> -D<VAR1>=<VAL1> -D<VAR2>=<VAL2> ...
+
+The project may then be compiled via ::
+
+    make -C <BINARY DIR>
+
+The following is a table of CMake variables which are influencial to the
+PEXSI project
+
 
 Configuration of the compilation is controlled by the options of
 cmake. A few examples of the configuration options are given in the
