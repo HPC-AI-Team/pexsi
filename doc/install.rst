@@ -1,115 +1,69 @@
 Installation
 ----------------
 
+.. warning::
+  Often a software package has a "quick installation guide" which allows
+  the software to be installed with a handful of generic lines (at least
+  for the serial mode).  Unfortunately due to dependencies, we have not
+  been able to work out a simple solution for PEXSI. We are very
+  conscious about this and would like to find a better solution in the
+  future. For now please be patient and go through the following steps..
+  
+
 Dependencies
 ============
 
 PEXSI requires an external parallel :math:`LU` factorization or
-:math:`LDL^T` factorization routine, and an external parallel matrix
-reordering routine to reduce the fill-in of the factorization routine.
+:math:`LDL^T` factorization routine (default is SuperLU_DIST), and an
+external parallel matrix reordering routine (default is ParMETIS) to
+reduce the fill-in of the factorization routine. These packages need to
+be downloaded and installed separately, before building the PEXSI
+package.
 
-Starting from v1.0, PEXSI requires both symPACK and SuperLU_DIST.
-symPACK is the default option for the :math:`LDL^T` factorization of
-symmetric matrices, and use SuperLU_DIST as the default option for the
-:math:`LU` factorization of unsymmetric matrices.  SuperLU_DIST can
-also be used for symmetric matrices, by means of treating the matrix as
-a general matrix but use symmetric reordering.
-
-Starting from v1.0, PEXSI uses the PT-Scotch as the default package
-for matrix reordering.  The ParMETIS package can also be used.
+..
+  Starting from v1.0, PEXSI requires both symPACK and SuperLU_DIST.
+  symPACK is the default option for the :math:`LDL^T` factorization of
+  symmetric matrices, and use SuperLU_DIST as the default option for the
+  :math:`LU` factorization of unsymmetric matrices.  SuperLU_DIST can
+  also be used for symmetric matrices, by means of treating the matrix as
+  a general matrix but use symmetric reordering.
+  
+  Starting from v1.0, PEXSI uses the PT-Scotch as the default package
+  for matrix reordering.  The ParMETIS package can also be used.
 
 The installation procedure and dependencies of every version of the PEXSI
 package may be slightly different. Please follow the documentation of the version
 of the PEXSI package you are working with.
 (provided in the :ref:`Download Page <pageDownload>` )
 
-
-Build PT-Scotch
-=============================
-
-PT-Scotch can be downloaded from (latest version 6.0.0)
-https://gforge.inria.fr/frs/download.php/31831/scotch_6.0.0.tar.gz
-
-**PT-Scotch 6.0.5 seems to be incompatible with PEXSI. For the moment
-please use 6.0.0 (contributed by Victor Yu, 6/20/2018) **
-
-Follow the installation step to install PT-Scotch.
-**In INSTALL.TXT, pay special attention to the following
-sections in order to compile PT-Scotch correctly.**
-
-    2.3) Integer size issues
-
-    2.5) Threads issues
+Although the standard makefile system is supported, starting from v2.0,
+we recommend the usage of the CMake system.
 
 
-PT-Scotch is also METIS-Compatible.  See the following section in
-INSTALL.TXT for more information.
+Build ParMETIS
+==============
 
-    2.9) MeTiS compatibility library
+Download ParMETIS (latest version 4.0.3) from
 
-In `src/` directory, you need
-:: 
-    make ptscotch 
-    
-to compile PT-Scotch.
+http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz
 
+..
+  After untar the ParMETIS package, in Install.txt
+  Edit the file metis/include/metis.h and specify the width (32 or
+  64 bits) of the elementary data type used in ParMetis (and
+  METIS). This is controled by the IDXTYPEWIDTH constant.
+  For now, on a 32 bit architecture you can only specify a width
+  of 32, whereas for a 64 bit architecture you can specify a width
+  of either 32 or 64 bits.
+  In our experience for most cases, the following setup work
+  well.::
+    #define IDXTYPEWIDTH 32
 
-.. note::  
+.. note::
 
-  Just typing ``make`` will generate the Scotch library but not PT-Scotch.  
-  Then all libraries will be given in ``lib/`` directory.**
-
-
-Build symPACK
-=============================
-
-
-symPACK is a sparse symmetric matrix direct linear solver.
-More information can be found at http://www.sympack.org/.
-
-To use symPACK, first, download the package as follows
-::
-    git clone https://github.com/symPACK/symPACK.git  /path/to/sympack
-
-Several environment variables can be set before configuring the build:
-
-``SCOTCH_DIR`` = Installation directory for SCOTCH and PT-SCOTCH
-
-Then, create a build directory, enter that directory and type::
-
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/path/to/install/sympack ...OPTIONS... /path/to/sympack
-
-
-The ``...OPTIONS...`` can be one of the following:
-
-- ``-DENABLE_METIS=ON|OFF``   to make METIS ordering available in symPACK (``METIS_DIR`` must be set in the environment)
-- ``-DENABLE_PARMETIS=ON|OFF``   to make ParMETIS ordering available in symPACK (``PARMETIS_DIR`` must be set in the environment, ``METIS_DIR`` is required as well)
-- ``-DENABLE_SCOTCH=ON|OFF``   to make SCOTCH / PT-SCOTCH orderings available in symPACK (``SCOTCH_DIR`` must be set in the environment)
-
-
-
-Some platforms have preconfigured toolchain files which can be used by
-adding the following option to the `cmake` command (To build on NERSC
-Edison machine for instance)::
-
-    -DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/toolchains/edison.cmake     
-    
-
-
-A sample toolchain file can be found in `/path/to/sympack/toolchains/build_config.cmake` and customized for the target platform.
-
-
-The `cmake` command will configure the build process, which can now start by typing::
-
-    make
-    make install
-
-Additionally, a standalone driver for symPACK can be built by typing `make examples`
-
-.. note:: 
-
-  Since cmake also compiles UPCxx and GASNET, the compilation
-  time may be long especially on certain clusters.
+  ParMETIS has its own (slightly non-standard) CMake system. Be sure to
+  follow `Install.txt` and `BUILD.txt` after untaring the file.
+  
 
 
 Build SuperLU_DIST
@@ -144,39 +98,14 @@ optimization options provided by vendors.
 
 
 
-(Optional) Build ParMETIS
-=========================
-
-Download ParMETIS (latest version 4.0.3) from
-
-http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz
-
-Follow the installation step to install ParMETIS.
-
-**After untar the ParMETIS package, in Install.txt**
-
-    Edit the file metis/include/metis.h and specify the width (32 or
-    64 bits) of the elementary data type used in ParMetis (and
-    METIS). This is controled by the IDXTYPEWIDTH constant.
-
-    For now, on a 32 bit architecture you can only specify a width
-    of 32, whereas for a 64 bit architecture you can specify a width
-    of either 32 or 64 bits.
-
-**In our experience for most cases, the following setup work
-fine.**::
-
-    #define IDXTYPEWIDTH 32
-
-
 Build PEXSI
 ===========
 
 There are two ways to build PEXSI: 1) Using CMake 2) Using the standard
 makefile system.
 
-Build option 1: Use CMake
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Build option 1: Use CMake (recommended)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. note:: 
 
@@ -219,7 +148,7 @@ PEXSI project
      - 1-3 (1)
    * - PEXSI_ENABLE_OPENMP
      - Enable PEXSI OpenMP bindings
-     - ON/OFF (ON)
+     - ON/OFF (OFF)
    * - PEXSI_ENABLE_FORTRAN
      - Enable PEXSI Fortran bindings
      - ON/OFF (ON)
@@ -278,8 +207,8 @@ a single "toolchain" file, e.g. ::
   set( CMAKE_C_COMPILER       gcc      )
   set( CMAKE_CXX_COMPILER     g++      )
   set( CMAKE_Fortran_COMPILER gfortran )
-  set( SuperLU_DIST_PREFIX    "/home/linlin/Software/SuperLU_DIST_install/v6.1.0" )
-  set( ParMETIS_PREFIX        "/home/linlin/Software/parmetis-4.0.3_install" )
+  set( SuperLU_DIST_PREFIX    "/homedirectory/SuperLU_DIST_install/v6.1.0" )
+  set( ParMETIS_PREFIX        "/homedirectory/parmetis-4.0.3_install" )
 
 Toolchains may be specified by ``CMAKE_TOOLCHAIN_FILE`` as a full path::
 
@@ -441,4 +370,102 @@ which will generate C examples in `examples/` directory and FORTRAN examples in
 
 will make the library and the examples. 
 
+
+
+Optional packages
+=================
+
+PT-Scotch
+^^^^^^^^^
+
+PT-Scotch can be used to replace ParMETIS. (We prefer ParMETIS since
+this is the default for SuperLU_DIST)
+
+
+PT-Scotch can be downloaded from (latest version 6.0.0)
+https://gforge.inria.fr/frs/download.php/31831/scotch_6.0.0.tar.gz
+
+**PT-Scotch 6.0.5 seems to be incompatible with PEXSI. For the moment
+please use 6.0.0 (contributed by Victor Yu, 6/20/2018) **
+
+Follow the installation step to install PT-Scotch.
+**In INSTALL.TXT, pay special attention to the following
+sections in order to compile PT-Scotch correctly.**
+
+    2.3) Integer size issues
+
+    2.5) Threads issues
+
+
+PT-Scotch is also METIS-Compatible.  See the following section in
+INSTALL.TXT for more information.
+
+    2.9) MeTiS compatibility library
+
+In `src/` directory, you need
+:: 
+    make ptscotch 
+    
+to compile PT-Scotch.
+
+
+.. note::  
+
+  Just typing ``make`` will generate the Scotch library but not PT-Scotch.  
+  Then all libraries will be given in ``lib/`` directory.**
+
+
+
+
+symPACK
+^^^^^^^
+
+symPACK can be used to replace SuperLU_DIST (for :math:`LDL^T` factorization but not :math:`LU` factorization)
+
+symPACK is a sparse symmetric matrix direct linear solver.
+More information can be found at http://www.sympack.org/.
+
+To use symPACK, first, download the package as follows
+::
+    git clone https://github.com/symPACK/symPACK.git  /path/to/sympack
+
+Several environment variables can be set before configuring the build:
+
+``SCOTCH_DIR`` = Installation directory for SCOTCH and PT-SCOTCH
+
+Then, create a build directory, enter that directory and type::
+
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/path/to/install/sympack ...OPTIONS... /path/to/sympack
+
+
+The ``...OPTIONS...`` can be one of the following:
+
+- ``-DENABLE_METIS=ON|OFF``   to make METIS ordering available in symPACK (``METIS_DIR`` must be set in the environment)
+- ``-DENABLE_PARMETIS=ON|OFF``   to make ParMETIS ordering available in symPACK (``PARMETIS_DIR`` must be set in the environment, ``METIS_DIR`` is required as well)
+- ``-DENABLE_SCOTCH=ON|OFF``   to make SCOTCH / PT-SCOTCH orderings available in symPACK (``SCOTCH_DIR`` must be set in the environment)
+
+
+
+Some platforms have preconfigured toolchain files which can be used by
+adding the following option to the `cmake` command (To build on NERSC
+Edison machine for instance)::
+
+    -DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/toolchains/edison.cmake     
+    
+
+
+A sample toolchain file can be found in `/path/to/sympack/toolchains/build_config.cmake` and customized for the target platform.
+
+
+The `cmake` command will configure the build process, which can now start by typing::
+
+    make
+    make install
+
+Additionally, a standalone driver for symPACK can be built by typing `make examples`
+
+.. note:: 
+
+  Since cmake also compiles UPCxx and GASNET, the compilation
+  time may be long especially on certain clusters.
 
