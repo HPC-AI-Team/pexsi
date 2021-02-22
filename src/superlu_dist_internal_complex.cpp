@@ -43,6 +43,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 /// @file superlu_dist_internal_complex.cpp
 /// @brief Implementation of internal structures for interfacing with SuperLU_Dist (version 3.0 and later) for complex arithmetic
 /// @date 2014-03-17
+/// @date 2021-02-21
 #include "pexsi/SuperLUGrid.hpp"
 #include "pexsi/superlu_dist_internal.hpp"
 
@@ -51,24 +52,25 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include <superlu_zdefs.h>
 
 #include <numeric>
-#include <Cnames.h>
+
+//#include <Cnames.h>  // not needed from 6.4.0
 extern "C"{ void
 #ifdef SUPERLU_DIST_MAJOR_VERSION
 #if SUPERLU_DIST_MAJOR_VERSION < 5
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
-    ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-    LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
+    zScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+    zLUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
 #else
 pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
-    ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-    LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
+    zScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+    zLUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
 #endif
 #else
 pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
-    ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-    LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
+    zScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+    zLUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
 #endif
 }
@@ -180,17 +182,17 @@ protected:
 
   /// @brief Saves the permutation vectors.  Only perm_c (permutation of
   /// column as well as rows due to the symmetric permutation) will be used.
-  ScalePermstruct_t   ScalePermstruct;          
+  zScalePermstruct_t   ScalePermstruct;          
 
   /// @brief SuperLU grid structure.
   gridinfo_t*         grid;
 
   /// @brief Saves the supernodal partition as well as the numerical
   /// values and structures of the L and U structure.
-  LUstruct_t          LUstruct;
+  zLUstruct_t          LUstruct;
 
   /// @brief Used for solve for multivectors.
-  SOLVEstruct_t       SOLVEstruct;
+  zSOLVEstruct_t       SOLVEstruct;
 
   /// @brief SuperLU statistics
   SuperLUStat_t       stat;
@@ -299,11 +301,11 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
 
 ComplexSuperLUData_internal::~ComplexSuperLUData_internal(){
   if( isLUstructAllocated ){
-    Destroy_LU(A.ncol, grid, &LUstruct);
-    LUstructFree(&LUstruct); 
+    zDestroy_LU(A.ncol, grid, &LUstruct);
+    zLUstructFree(&LUstruct); 
   }
   if( isScalePermstructAllocated ){
-    ScalePermstructFree(&ScalePermstruct);
+    zScalePermstructFree(&ScalePermstruct);
   }
   if( options.SolveInitialized ){
     // TODO real arithmetic
@@ -540,9 +542,9 @@ ComplexSuperLUData::SymbolicFactorize	(  )
 
   SuperMatrix&  A = ptrData->A;
 
-  ScalePermstructInit(A.nrow, A.ncol, &ptrData->ScalePermstruct);
+  zScalePermstructInit(A.nrow, A.ncol, &ptrData->ScalePermstruct);
   // Starting from v4.3, only for square matrix
-  LUstructInit(A.nrow, &ptrData->LUstruct);
+  zLUstructInit(A.nrow, &ptrData->LUstruct);
   //      LUstructInit(A.nrow, A.ncol, &ptrData->LUstruct);
 
   PStatInit(&ptrData->stat);
@@ -819,7 +821,7 @@ ComplexSuperLUData::CheckErrorDistMultiVector	( NumMat<Complex>& xLocal, NumMat<
 void
 ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 {
-  const LocalLU_t* Llu   = ptrData->LUstruct.Llu;
+  const zLocalLU_t* Llu   = ptrData->LUstruct.Llu;
   const GridType* grid   = PMloc.Grid();
   const SuperNodeType* super = PMloc.SuperNode();
   Int numSuper = PMloc.NumSuper();
@@ -828,15 +830,6 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
   PMloc.RowBlockIdx().clear();
   PMloc.ColBlockIdx().resize( PMloc.NumLocalBlockCol() );
   PMloc.RowBlockIdx().resize( PMloc.NumLocalBlockRow() );
-
-
-
-
-
-
-
-
-
 
   // L part   
 #if ( _DEBUGlevel_ >= 1 )

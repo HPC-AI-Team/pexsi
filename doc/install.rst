@@ -63,39 +63,49 @@ http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz
 
   ParMETIS has its own (slightly non-standard) CMake system. Be sure to
   follow `Install.txt` and `BUILD.txt` after untaring the file.
-  
+
+  We provide an example bash script for building ParMETIS (see
+  `build_parmetis.sh <https://bitbucket.org/berkeleylab/pexsi/src/cmake-refactor/config/build_parmetis.sh>`_)
 
 
 Build SuperLU_DIST
 ==================
 
 
-Download SuperLU_DIST (latest version 6.1.0) from
+Download SuperLU_DIST (latest version 6.4.0) from
 
-http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_dist_6.1.0.tar.gz
+https://github.com/xiaoyeli/superlu_dist/archive/v6.4.0.tar.gz
 
-Follow the installation step to install SuperLU_DIST.
+.. note::
 
-Our experience shows that on some machines it may be better
-to build SuperLU_DIST with -O2 option than the more aggresive
-optimization options provided by vendors.
+  We provide an example bash script for building SuperLU_DIST (see
+  `build_superlu_dist.sh <https://bitbucket.org/berkeleylab/pexsi/src/cmake-refactor/config/build_superlu_dist.sh>`_)
 
- - In SuperLU_DIST, some functions conflict when both real
-   and complex arithmetic factorization is needed. This can be temporarily
-   solved by adding  `-Wl,--allow-multiple-definition` in the linking
-   option.
 
- - In SuperLU_DIST, there could be some excessive outputs.
-   This can be removed by going to the SRC/ directory of superlu, and
-   comment out the line starting with `printf(".. dQuery_Space` in
-   dmemory_dist.c. Do the same thing for the line starting with
-   `printf(".. zQuery_Space..)` in zmemory_dist.c.
+..
+  Follow the installation step to install SuperLU_DIST.
+  
+  Our experience shows that on some machines it may be better
+  to build SuperLU_DIST with -O2 option than the more aggresive
+  optimization options provided by vendors.
+  
+   - In SuperLU_DIST, some functions conflict when both real
+     and complex arithmetic factorization is needed. This can be temporarily
+     solved by adding  `-Wl,--allow-multiple-definition` in the linking
+     option.
+  
+   - In SuperLU_DIST, there could be some excessive outputs.
+     This can be removed by going to the SRC/ directory of superlu, and
+     comment out the line starting with `printf(".. dQuery_Space` in
+     dmemory_dist.c. Do the same thing for the line starting with
+     `printf(".. zQuery_Space..)` in zmemory_dist.c.
+  
 
- - Please note that the number of processors for symbolic
-   factorization cannot be too large when PARMETIS is used together with
-   SuperLU. The exact number of processors for symbolic factorization is
-   unfortunately a **magic parameter**. See :ref:`FAQ page <pageFAQ>`.
-
+.. warning::
+   When the number of processors for symbolic factorization cannot be
+   too large when PARMETIS is used together with SuperLU. The exact
+   number of processors for symbolic factorization is unfortunately
+   sometimes a **magic parameter**. See :ref:`FAQ page <pageFAQ>`.
 
 
 Build PEXSI
@@ -207,8 +217,8 @@ a single "toolchain" file, e.g. ::
   set( CMAKE_C_COMPILER       gcc      )
   set( CMAKE_CXX_COMPILER     g++      )
   set( CMAKE_Fortran_COMPILER gfortran )
-  set( SuperLU_DIST_PREFIX    "/homedirectory/SuperLU_DIST_install/v6.1.0" )
-  set( ParMETIS_PREFIX        "/homedirectory/parmetis-4.0.3_install" )
+  set( SuperLU_DIST_PREFIX    "/yourdirectory/SuperLU_DIST_install/v6.1.0" )
+  set( ParMETIS_PREFIX        "/yourdirectory/parmetis-4.0.3_install" )
 
 Toolchains may be specified by ``CMAKE_TOOLCHAIN_FILE`` as a full path::
 
@@ -383,10 +393,12 @@ this is the default for SuperLU_DIST)
 
 
 PT-Scotch can be downloaded from (latest version 6.0.0)
+
 https://gforge.inria.fr/frs/download.php/31831/scotch_6.0.0.tar.gz
 
-**PT-Scotch 6.0.5 seems to be incompatible with PEXSI. For the moment
-please use 6.0.0 (contributed by Victor Yu, 6/20/2018) **
+.. note::
+  PT-Scotch 6.0.5 seems to be incompatible with PEXSI. For the moment
+  please use 6.0.0 (contributed by Victor Yu, 6/20/2018) 
 
 Follow the installation step to install PT-Scotch.
 **In INSTALL.TXT, pay special attention to the following
@@ -396,21 +408,18 @@ sections in order to compile PT-Scotch correctly.**
 
     2.5) Threads issues
 
-
 PT-Scotch is also METIS-Compatible.  See the following section in
 INSTALL.TXT for more information.
 
     2.9) MeTiS compatibility library
 
-In `src/` directory, you need
-:: 
+In `src/` directory, you need :: 
     make ptscotch 
     
 to compile PT-Scotch.
 
 
 .. note::  
-
   Just typing ``make`` will generate the Scotch library but not PT-Scotch.  
   Then all libraries will be given in ``lib/`` directory.**
 
@@ -425,8 +434,7 @@ symPACK can be used to replace SuperLU_DIST (for :math:`LDL^T` factorization but
 symPACK is a sparse symmetric matrix direct linear solver.
 More information can be found at http://www.sympack.org/.
 
-To use symPACK, first, download the package as follows
-::
+To use symPACK, first, download the package as follows ::
     git clone https://github.com/symPACK/symPACK.git  /path/to/sympack
 
 Several environment variables can be set before configuring the build:
@@ -452,13 +460,9 @@ Edison machine for instance)::
 
     -DCMAKE_TOOLCHAIN_FILE=/path/to/sympack/toolchains/edison.cmake     
     
-
-
 A sample toolchain file can be found in `/path/to/sympack/toolchains/build_config.cmake` and customized for the target platform.
 
-
-The `cmake` command will configure the build process, which can now start by typing::
-
+The `cmake` command will configure the build process, which can now start by typing ::
     make
     make install
 

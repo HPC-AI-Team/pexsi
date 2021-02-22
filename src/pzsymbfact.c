@@ -25,21 +25,21 @@ void
 #ifdef SUPERLU_DIST_MAJOR_VERSION
 #if SUPERLU_DIST_MAJOR_VERSION < 5 
 pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
-    ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-    LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+    zScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+    zLUstruct_t *LUstruct, SuperLUStat_t *stat, 
     int *numProcSymbFact, int *info, double *totalMemory,
     double *maxMemory)
 #else
 pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
-    ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-    LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+    zScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+    zLUstruct_t *LUstruct, SuperLUStat_t *stat, 
     int *numProcSymbFact, int *info, double *totalMemory,
     double *maxMemory)
 #endif
 #else
 pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
-    ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-    LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+    zScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+    zLUstruct_t *LUstruct, SuperLUStat_t *stat, 
     int *numProcSymbFact, int *info, double *totalMemory,
     double *maxMemory)
 #endif

@@ -26,21 +26,21 @@ int lsame_(char *a, char *b);
 #ifdef SUPERLU_DIST_MAJOR_VERSION
 #if SUPERLU_DIST_MAJOR_VERSION < 5 
 pdsymbfact(superlu_options_t *options, SuperMatrix *A, 
-					 ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-					 LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+					 dScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+					 dLUstruct_t *LUstruct, SuperLUStat_t *stat, 
 					 int *numProcSymbFact, int *info, double *totalMemory,
 					 double *maxMemory)
 #else
 pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
-					 ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-					 LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+					 dScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+					 dLUstruct_t *LUstruct, SuperLUStat_t *stat, 
 					 int *numProcSymbFact, int *info, double *totalMemory,
 					 double *maxMemory)
 #endif
 #else
 pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
-					 ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-					 LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+					 dScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
+					 dLUstruct_t *LUstruct, SuperLUStat_t *stat, 
 					 int *numProcSymbFact, int *info, double *totalMemory,
 					 double *maxMemory)
 #endif
