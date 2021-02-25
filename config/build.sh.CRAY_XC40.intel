@@ -2,7 +2,7 @@ CC=cc
 CXX=CC
 FC=ftn
 PEXSI_INSTALL_DIR=/global/project/projectdirs/m2033/project_linlin/pexsi_cori/install
-DSUPERLU_DIR=/global/project/projectdirs/m1027/shared_libraries_cori_intel/SuperLU_DIST_6.1.0/cori-build
+DSUPERLU_DIR=/global/project/projectdirs/m1027/shared_libraries_cori_intel/SuperLU_DIST_6.4.0/cori-build
 PARMETIS_DIR=/project/projectdirs/m1027/shared_libraries_cori_intel/parmetis_v0.4.3
 METIS_DIR=/project/projectdirs/m1027/shared_libraries_cori_intel/parmetis_v0.4.3
 
