@@ -3465,8 +3465,8 @@ void PPEXSIData::CalculateFermiOperatorComplex(
         zshift_[i] *= temperature;
         zweightRho_[i] *= temperature;
         zshift_[i] += mu;
+        zweightFDM_[i] *= temperature * temperature;
         if( isEDMCorrection_ == 0){
-          zweightFDM_[i] *= temperature * temperature;
           zweightEDM_[i] *= temperature * temperature;
         }
       }
@@ -3720,17 +3720,15 @@ void PPEXSIData::CalculateFermiOperatorComplex(
 
         // Free energy density matrix
         if( isFreeEnergyDensityMatrix ){
-          if( isEDMCorrection_ == 0){
-            blas::Axpy( hmzMat.nnzLocal, fac1*numSpin*zweightFDM_[l], 
-              transMat.nzvalLocal.Data(), 1,
-              hmzMat.nzvalLocal.Data(), 1 );
+          blas::Axpy( hmzMat.nnzLocal, fac1*numSpin*zweightFDM_[l], 
+            transMat.nzvalLocal.Data(), 1,
+            hmzMat.nzvalLocal.Data(), 1 );
 
-            Complex* ptrFDM = hmzMat.nzvalLocal.Data();
-            for( Int g = 0; g < hmzMat.nnzLocal; g++ ){
-              ptrFDM[g] += fac2 * numSpin * std::conj(zweightFDM_[l]) * std::conj(ptrReg[g]);
-            }
-            
+          Complex* ptrFDM = hmzMat.nzvalLocal.Data();
+          for( Int g = 0; g < hmzMat.nnzLocal; g++ ){
+            ptrFDM[g] += fac2 * numSpin * std::conj(zweightFDM_[l]) * std::conj(ptrReg[g]);
           }
+          
         }
 
         // Energy density matrix
@@ -5036,8 +5034,8 @@ void PPEXSIData::CalculateFermiOperatorReal3(
         zshift_[i] *= temperature;
         zweightRho_[i] *= temperature;
         zshift_[i] += mu;
+        zweightFDM_[i] *= temperature * temperature;
         if( isEDMCorrection_ == 0){
-          zweightFDM_[i] *= temperature * temperature;
           zweightEDM_[i] *= temperature * temperature;
         }
       }
@@ -5274,12 +5272,10 @@ void PPEXSIData::CalculateFermiOperatorReal3(
 
         // Free energy density matrix
         if( isFreeEnergyDensityMatrix ){
-          if( isEDMCorrection_ == 0){
-            blas::Axpy( hmzMat.nnzLocal, numSpin*zweightFDM_[l].real(), AinvMatImagPtr, 2,
-                hmzMat.nzvalLocal.Data(), 1 );
-            blas::Axpy( hmzMat.nnzLocal, numSpin*zweightFDM_[l].imag(), AinvMatRealPtr, 2,
-                hmzMat.nzvalLocal.Data(), 1 );
-          } 
+          blas::Axpy( hmzMat.nnzLocal, numSpin*zweightFDM_[l].real(), AinvMatImagPtr, 2,
+              hmzMat.nzvalLocal.Data(), 1 );
+          blas::Axpy( hmzMat.nnzLocal, numSpin*zweightFDM_[l].imag(), AinvMatRealPtr, 2,
+              hmzMat.nzvalLocal.Data(), 1 );
         }
 
 
@@ -6137,21 +6133,19 @@ void PPEXSIData::InterpolateDMReal(
         blas::Axpy( energyDensityRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1, 
             energyDensityRealMat_.nzvalLocal.Data(), 1 );
 
-        if( !isEDMCorrection_ ){
-          CopyPattern( freeEnergyDensityRealMat_, rhoMatMin );
-          rhoMatMin.nzvalLocal = freeEnergyDensityRealMat_.nzvalLocal;
-          MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
-    
-          CopyPattern( freeEnergyDensityRealMat_, rhoMatMax );
-          rhoMatMax.nzvalLocal = freeEnergyDensityRealMat_.nzvalLocal;
-          MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
-    
-          SetValue( freeEnergyDensityRealMat_.nzvalLocal, 0.0 );
-          blas::Axpy( freeEnergyDensityRealMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1, 
-              freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
-          blas::Axpy( freeEnergyDensityRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1, 
-              freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
-        }
+        CopyPattern( freeEnergyDensityRealMat_, rhoMatMin );
+        rhoMatMin.nzvalLocal = freeEnergyDensityRealMat_.nzvalLocal;
+        MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
+  
+        CopyPattern( freeEnergyDensityRealMat_, rhoMatMax );
+        rhoMatMax.nzvalLocal = freeEnergyDensityRealMat_.nzvalLocal;
+        MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
+  
+        SetValue( freeEnergyDensityRealMat_.nzvalLocal, 0.0 );
+        blas::Axpy( freeEnergyDensityRealMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1, 
+            freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
+        blas::Axpy( freeEnergyDensityRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1, 
+            freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
       }
     }
     else{
@@ -6171,10 +6165,8 @@ void PPEXSIData::InterpolateDMReal(
           mu_idx, pointRowComm);
       MPI_Bcast(energyDensityRealMat_.nzvalLocal.Data(), 
           energyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
-      if( !isEDMCorrection_ ){
-        MPI_Bcast(freeEnergyDensityRealMat_.nzvalLocal.Data(), 
-            freeEnergyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
-      }
+      MPI_Bcast(freeEnergyDensityRealMat_.nzvalLocal.Data(), 
+          freeEnergyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
     }
 
     // calculate the totalEnergyH_
@@ -6208,7 +6200,7 @@ void PPEXSIData::InterpolateDMReal(
           gridPole_->rowComm ); 
     }
     // Free energy 
-    if( !isEDMCorrection_ )
+    //if( !isEDMCorrection_ )
     {
       Real local = 0.0;
       if( SMat.size != 0 ){

@@ -1897,7 +1897,7 @@ void PPEXSIRetrieveRealFDM(
 
   try{
     Int nnzLocal = ptrData->FreeEnergyDensityRealMat().nnzLocal;
-
+/*
     if( options.method == 2){
       blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
           FDMnzvalLocal, 1 );
@@ -1906,6 +1906,9 @@ void PPEXSIRetrieveRealFDM(
       blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
           FDMnzvalLocal, 1 );
     }
+*/
+    blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
+        FDMnzvalLocal, 1 );
     *totalFreeEnergy = ptrData->TotalFreeEnergy();
   }
   catch( std::exception& e ) {
@@ -2004,7 +2007,7 @@ void PPEXSIRetrieveComplexFDM(
 
   try{
     Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
-
+/*
     if( options.method == 2){
         blas::Copy( 2*nnzLocal,
             reinterpret_cast<double*>(ptrData->RhoComplexMat().nzvalLocal.Data()), 1,
@@ -2015,6 +2018,10 @@ void PPEXSIRetrieveComplexFDM(
             reinterpret_cast<double*>(ptrData->FreeEnergyDensityComplexMat().nzvalLocal.Data()), 1,
             FDMnzvalLocal, 1 );
     }
+*/
+    blas::Copy( 2*nnzLocal,
+          reinterpret_cast<double*>(ptrData->FreeEnergyDensityComplexMat().nzvalLocal.Data()), 1,
+          FDMnzvalLocal, 1 );
     *totalFreeEnergy = ptrData->TotalFreeEnergy();
   }
   catch( std::exception& e ) {

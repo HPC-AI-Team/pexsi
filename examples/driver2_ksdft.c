@@ -282,7 +282,7 @@ int main(int argc, char **argv)
   options.isInertiaCount = 1;
   options.verbosity = 1;
   options.deltaE   = 20.0;
-  int method = 1;
+  int method = 2;
   options.numPole  = 40;
   options.temperature  = 0.00095; // 300K
 
