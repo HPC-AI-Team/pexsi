@@ -64,8 +64,8 @@ namespace PEXSI{
       sendPostedCount_ = 0;
       mainRoot_=ranks[0];
 #ifdef CHECK_MPI_ERROR
-          MPI_Errhandler_set(this->comm_, MPI_ERRORS_RETURN);
-          MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+          MPI_Comm_set_errhandler(this->comm_, MPI_ERRORS_RETURN);
+          MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 #endif
     }
 
