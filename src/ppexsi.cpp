@@ -3881,6 +3881,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
         mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
             gridPole_->rowComm ); 
       }
+    } 
     
       // Free energy 
       if( isFreeEnergyDensityMatrix )
@@ -3904,7 +3905,6 @@ void PPEXSIData::CalculateFermiOperatorComplex(
           // Correction
           totalFreeEnergy_ += mu * numElectron;
       }
-    } 
   } 
   MPI_Comm_free(&pointColComm);
   MPI_Comm_free(&pointRowComm);
@@ -5399,8 +5399,8 @@ void PPEXSIData::CalculateFermiOperatorReal3(
       mpi::Allreduce( &local, &totalEnergyS_, 1, MPI_SUM, 
           gridPole_->rowComm ); 
       //std::cout << " Energy Density Tr[S*FDM] " << totalEnergyS_ << std::endl;
-    }
-
+     }
+   }
 
     // Free energy 
     if( isFreeEnergyDensityMatrix )
@@ -5425,9 +5425,8 @@ void PPEXSIData::CalculateFermiOperatorReal3(
       // Correction
       totalFreeEnergy_ += mu * numElectronExact;
 
-      //std::cout << " Free  Energy S Tr[S*FDM] " << totalFreeEnergy_ << std::endl;
+      //std::cout << " Free  Energy S Tr[S*FDM] Real3  " << totalFreeEnergy_ << std::endl;
     }
-  }
  
   MPI_Comm_free(&pointColComm);
   MPI_Comm_free(&pointRowComm);
@@ -6222,12 +6221,13 @@ void PPEXSIData::InterpolateDMReal(
       // Correction
       totalFreeEnergy_ += mu * numElectronExact;
 
-      //statusOFS << " Free Energy S Tr[S*FDM] " << totalFreeEnergy_ << std::endl;
+      statusOFS << " Free Energy S Tr[S*FDM] " << totalFreeEnergy_ << std::endl;
     }
  
   }
   // FIXME A placeholder for the FDM -- check check
   // if( isFreeEnergyDensityMatrix )
+  /*
   if( isEDMCorrection_ )
   {
     DistSparseMatrix<Real>& hmzMat  = freeEnergyDensityRealMat_;
@@ -6235,6 +6235,7 @@ void PPEXSIData::InterpolateDMReal(
     blas::Copy( hmzMat.nnzLocal, rhoRealMat_.nzvalLocal.Data(), 1,
         hmzMat.nzvalLocal.Data(), 1 );
   }
+  */
 
   muPEXSI = mu;
 
@@ -6519,6 +6520,7 @@ void PPEXSIData::InterpolateDMComplex(
 
   // FIXME A placeholder for the FDM -- check check
   // if( isFreeEnergyDensityMatrix )
+  /*
   if( isEDMCorrection_ )
   {
     DistSparseMatrix<Complex>& hmzMat  = freeEnergyDensityComplexMat_;
@@ -6526,6 +6528,7 @@ void PPEXSIData::InterpolateDMComplex(
     blas::Copy( hmzMat.nnzLocal, rhoComplexMat_.nzvalLocal.Data(), 1,
         hmzMat.nzvalLocal.Data(), 1 );
   }
+  */
 
   muPEXSI = mu;
 
