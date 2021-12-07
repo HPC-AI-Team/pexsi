@@ -6,3 +6,7 @@ logPEXSI*
 *.out
 external/*
 *.swp
+
+examples/*sunway
+/install
+make.inc

@@ -436,22 +436,26 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
     err = MPI_File_read_at(fin, sizeof(Int),(char*)&pspmat.nnz, 1, MPI_INT, &status);
   }
 
+  // /* define a struct that describes all our data */
+  // lens[0] = 1;
+  // lens[1] = 1;
+  // MPI_Get_address(&pspmat.size, &disps[0]);
+  // MPI_Get_address(&pspmat.nnz, &disps[1]);
+  // types[0] = MPI_INT;
+  // types[1] = MPI_INT;
+  // MPI_Type_create_struct(2, lens, disps, types, &type);
+  // MPI_Type_commit(&type);
 
-  /* define a struct that describes all our data */
-  lens[0] = 1;
-  lens[1] = 1;
-  MPI_Get_address(&pspmat.size, &disps[0]);
-  MPI_Get_address(&pspmat.nnz, &disps[1]);
-  types[0] = MPI_INT;
-  types[1] = MPI_INT;
-  MPI_Type_create_struct(2, lens, disps, types, &type);
-  MPI_Type_commit(&type);
 
+  // /* broadcast the header data to everyone */
+  // MPI_Bcast(MPI_BOTTOM, 1, type, 0, comm);
 
-  /* broadcast the header data to everyone */
-  MPI_Bcast(MPI_BOTTOM, 1, type, 0, comm);
+  // MPI_Type_free(&type);
 
-  MPI_Type_free(&type);
+  // FIX A BUG for Sunway by GZQ
+
+  MPI_Bcast(&pspmat.size, 1, MPI_INT, 0, comm);
+  MPI_Bcast(&pspmat.nnz, 1, MPI_INT, 0, comm);
 
   // Compute the number of columns on each processor
   IntNumVec numColLocalVec(mpisize);
@@ -745,21 +749,24 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
   }
 
 
-  /* define a struct that describes all our data */
-  lens[0] = 1;
-  lens[1] = 1;
-  MPI_Get_address(&pspmat.size, &disps[0]);
-  MPI_Get_address(&pspmat.nnz, &disps[1]);
-  types[0] = MPI_INT;
-  types[1] = MPI_INT;
-  MPI_Type_create_struct(2, lens, disps, types, &type);
-  MPI_Type_commit(&type);
+  // /* define a struct that describes all our data */
+  // lens[0] = 1;
+  // lens[1] = 1;
+  // MPI_Get_address(&pspmat.size, &disps[0]);
+  // MPI_Get_address(&pspmat.nnz, &disps[1]);
+  // types[0] = MPI_INT;
+  // types[1] = MPI_INT;
+  // MPI_Type_create_struct(2, lens, disps, types, &type);
+  // MPI_Type_commit(&type);
 
 
-  /* broadcast the header data to everyone */
-  MPI_Bcast(MPI_BOTTOM, 1, type, 0, comm);
+  // /* broadcast the header data to everyone */
+  // MPI_Bcast(MPI_BOTTOM, 1, type, 0, comm);
 
-  MPI_Type_free(&type);
+  // MPI_Type_free(&type);
+
+  MPI_Bcast(&pspmat.size, 1, type, 0, comm);
+  MPI_Bcast(&pspmat.size, 1, type, 0, comm);
 
   // Compute the number of columns on each processor
   IntNumVec numColLocalVec(mpisize);
