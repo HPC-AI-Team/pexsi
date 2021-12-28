@@ -263,7 +263,6 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
   options.PrintStat         = NO;
   options.SolveInitialized  = NO;
   // Necessary to invoke static scheduling of SuperLU
-  options.num_lookaheads    = opt.num_lookaheads;
   options.lookahead_etree   = YES;
   options.SymPattern        = YES;
 

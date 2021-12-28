@@ -112,6 +112,8 @@ struct SuperLUOptions{
   /// Note that this has an impact only for unsymmetric matrices.
   Int              Transpose;
 
+  Int              num_lookaheads;
+
 
   // Member functions to setup the default value
   SuperLUOptions(): numProcSymbFact(0), ColPerm("MMD_AT_PLUS_A"), Symmetric(1), RowPerm("NOROWPERM"), Transpose(0), Equil("NO") {}

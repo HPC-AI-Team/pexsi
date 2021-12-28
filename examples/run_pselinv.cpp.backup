@@ -47,10 +47,6 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/timer.h"
 
-#ifdef _SW_PERF_
-#include "sw_tools.h"
-#endif
-
 #define _MYCOMPLEX_
 
 #ifdef _MYCOMPLEX_
@@ -83,9 +79,6 @@ int main(int argc, char **argv)
 
   MPI_Init( &argc, &argv );
 
-#ifdef _SW_PERF_
-  perf_init();
-#endif
 
   int mpirank, mpisize;
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
@@ -338,11 +331,6 @@ int main(int argc, char **argv)
         ColPerm = "MMD_AT_PLUS_A";
       }
 
-      int num_lookaheads = 10;
-      if( options.find("-numLookAheads") != options.end() ){ 
-        num_lookaheads = atoi(options["-numLookAheads"].c_str());
-      }
-
       // *********************************************************************
       // Read input matrix
       // *********************************************************************
@@ -466,7 +454,6 @@ int main(int argc, char **argv)
       SuperLUOptions luOpt;
       luOpt.ColPerm = ColPerm;
       luOpt.numProcSymbFact = numProcSymbFact;
-      luOpt.num_lookaheads = num_lookaheads;
 
 
       SuperLUMatrix<MYSCALAR> luMat(g, luOpt );
@@ -510,18 +497,9 @@ int main(int argc, char **argv)
 
 
       if(doFacto){
-        
-#ifdef _SW_PERF_
-        perf_global_start(numfact,world_comm);
-#endif
-        
         GetTime( timeSta );
         luMat.NumericalFactorize();
         GetTime( timeEnd );
-
-#ifdef _SW_PERF_
-        perf_global_end(numfact,world_comm);
-#endif
 
         if( mpirank == 0 )
           cout << "Time for factorization is " << timeEnd - timeSta << " sec" << endl; 
@@ -530,9 +508,6 @@ int main(int argc, char **argv)
         if( mpirank == 0 )
           cout << "Time for total factorization is " << timeTotalFactorizationEnd - timeTotalFactorizationSta<< " sec" << endl; 
 
-#ifdef _SW_PERF_
-        perf_global_print(numfact,world_comm);
-#endif
 
         // *********************************************************************
         // Test the accuracy of factorization by solve
@@ -748,9 +723,6 @@ int main(int argc, char **argv)
             if( mpirank == 0 )
               cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
-#ifdef _SW_PERF_
-            perf_global_start(selinv,world_comm);
-#endif
             // Main subroutine for selected inversion
             GetTime( timeSta );
             PMloc.SelInv();
@@ -758,17 +730,11 @@ int main(int argc, char **argv)
             if( mpirank == 0 )
               cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 
-#ifdef _SW_PERF_
-            perf_global_end(selinv,world_comm);
-#endif
 
             GetTime( timeTotalSelInvEnd );
             if( mpirank == 0 )
               cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
 
-#ifdef _SW_PERF_
-            perf_global_print(selinv,world_comm);
-#endif
 
 
             // Output the diagonal elements
