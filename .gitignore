@@ -8,6 +8,7 @@ external/*
 *.swp
 
 examples/*_sunway
+examples/*_fugaku
 examples/*_
 /install
 make.inc
