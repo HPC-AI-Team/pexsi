@@ -7,6 +7,7 @@ logPEXSI*
 external/*
 *.swp
 
-examples/*sunway
+examples/*_sunway
+examples/*_
 /install
 make.inc
