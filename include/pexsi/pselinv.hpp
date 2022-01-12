@@ -1032,8 +1032,12 @@ template<typename T>  class PMatrixUnsym;
 
 } // namespace PEXSI
 
+#ifdef USE_FUGAKU
+#include "pexsi/pselinv_impl_fugaku.hpp"
+#endif
 
+#if !defined(USE_FUGAKU)
 #include "pexsi/pselinv_impl.hpp"
-
+#endif
 
 #endif //_PEXSI_PSELINV_HPP_
