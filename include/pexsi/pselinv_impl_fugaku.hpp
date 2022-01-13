@@ -53,6 +53,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "pexsi/superlu_dist_interf.hpp"
 
 #include "pexsi/flops.hpp"
+#include "pexsi/utils.h"
 #include <omp.h>
 
 #define MPI_MAX_COMM (1024)
@@ -552,6 +553,33 @@ namespace PEXSI{
                   }
                 }
 
+#ifdef JB_Loop_index_compress
+                indirect_index_segment_compress_t segment_compress;
+                indirect_index_segment_compress_init(&segment_compress,relRows.data(),LB.numRow);
+
+                // Transfer the values from Sinv to AinvBlock
+                T* nzvalSinv = SinvB.nzval.Data();
+                Int ldSinv    = SinvB.numRow;
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  T* nzvalAinv_j = &nzvalAinv[j*ldAinv];
+                  T* nzvalSinv_j = &nzvalSinv[relCols[j] * ldSinv];
+                  // for( Int i = 0; i < LB.numRow; i++ ){
+                  //   nzvalAinv_j[i] = nzvalSinv_j[relRows[i]];
+                  // }
+                  for(int ptr = 0; ptr < segment_compress.segment_count; ++ptr){
+                      int i_start = segment_compress.segment_ptr[ptr];
+                      int i_end = segment_compress.segment_ptr[ptr+1];
+                      int offset = segment_compress.segment_offset[ptr];
+                      T *nzvalSinv_j_offset = nzvalSinv_j + offset;
+#pragma omp simd
+                      for(int i = i_start; i < i_end; i++){
+                          nzvalAinv_j[i] = nzvalSinv_j_offset[i];
+                      } 
+                  }
+                }
+
+                indirect_index_segment_compress_destroy(&segment_compress);
+#else
                 // Transfer the values from Sinv to AinvBlock
                 T* nzvalSinv = SinvB.nzval.Data();
                 Int     ldSinv    = SinvB.numRow;
@@ -561,7 +589,7 @@ namespace PEXSI{
                       nzvalSinv[relRows[i] + relCols[j] * ldSinv];
                   }
                 }
-
+#endif
                 isBlockFound = true;
                 break;
               }	
@@ -592,6 +620,7 @@ namespace PEXSI{
                 std::vector<Int> relRows( LB.numRow );
                 for( Int i = 0; i < LB.numRow; i++ ){
                   relRows[i] = LB.rows[i] - SinvRowsSta;
+                  // std::cout << "(i, relRows[i]) : (" << i << ", " << relRows[i] << ")" << std::endl;
                 }
 
                 // Column relative indices
@@ -605,6 +634,7 @@ namespace PEXSI{
                       break;
                     }
                   }
+
                   if( isColFound == false ){
                     std::ostringstream msg;
                     msg << "Col " << colsUBPtr[j] << 
@@ -614,8 +644,39 @@ namespace PEXSI{
                     ErrorHandling( msg.str().c_str() );
                   }
                 }
+                // compress relRows
+                // insight 
+                // for( Int i = 0; i < LB.numRow; i++ ){
+                //   std::cout << "(i, relRows[i]) : (" << i << ", " << relRows[i] << ")" << std::endl;
+                // }
 
+#ifdef JB_Loop_index_compress
+                indirect_index_segment_compress_t segment_compress;
+                indirect_index_segment_compress_init(&segment_compress,relRows.data(),LB.numRow);
 
+                // Transfer the values from Sinv to AinvBlock
+                T* nzvalSinv = SinvB.nzval.Data();
+                Int ldSinv    = SinvB.numRow;
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  T* nzvalAinv_j = &nzvalAinv[j*ldAinv];
+                  T* nzvalSinv_j = &nzvalSinv[relCols[j] * ldSinv];
+                  // for( Int i = 0; i < LB.numRow; i++ ){
+                  //   nzvalAinv_j[i] = nzvalSinv_j[relRows[i]];
+                  // }
+                  for(int ptr = 0; ptr < segment_compress.segment_count; ++ptr){
+                      int i_start = segment_compress.segment_ptr[ptr];
+                      int i_end = segment_compress.segment_ptr[ptr+1];
+                      int offset = segment_compress.segment_offset[ptr];
+                      T *nzvalSinv_j_offset = nzvalSinv_j + offset;
+#pragma omp simd
+                      for(int i = i_start; i < i_end; i++){
+                          nzvalAinv_j[i] = nzvalSinv_j_offset[i];
+                      } 
+                  }
+                }
+
+                indirect_index_segment_compress_destroy(&segment_compress);
+#else
                 // Transfer the values from Sinv to AinvBlock
                 T* nzvalSinv = SinvB.nzval.Data();
                 Int     ldSinv    = SinvB.numRow;
@@ -625,7 +686,7 @@ namespace PEXSI{
                       nzvalSinv[relRows[i] + relCols[j] * ldSinv];
                   }
                 }
-
+#endif
                 isBlockFound = true;
                 break;
               }
