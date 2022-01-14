@@ -475,14 +475,19 @@ namespace PEXSI{
 
       TIMER_START(Allocate_lookup);
       // Allocate for the computational storage
+      // std::cout << "AinvBuf Resize from (" << AinvBuf.m() << "," << AinvBuf.n() << ") to (" << numRowAinvBuf << "," << numColAinvBuf << ")" << std::endl;
       AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
+      // std::cout << "UBuf Resize from (" << UBuf.m() << "," << UBuf.n() << ") to (" << SuperSize( snode.Index, super_ ) << "," << numColAinvBuf << ")" << std::endl;
       UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
+
       //    TIMER_START(SetValue_lookup);
       //    SetValue( AinvBuf, ZERO<T>() );
       //SetValue( snode.LUpdateBuf, ZERO<T>() );
       //    SetValue( UBuf, ZERO<T>() );
       //    TIMER_STOP(SetValue_lookup);
       TIMER_STOP(Allocate_lookup);
+
+      // std::cout << "AinvBuf UBuf size : " << numColAinvBuf << std::endl; 
 
       TIMER_START(Fill_UBuf);
       // Fill UBuf first.  Make the transpose later in the Gemm phase.
@@ -1344,8 +1349,13 @@ namespace PEXSI{
 #endif
     }
 
+#ifdef pre_Allocate_loopup
+  template<typename T>
+    inline void PMatrix<T>::SelInvIntra_P2p(Int lidx,Int & rank, NumMat<T>& AinvBuf,NumMat<T>& UBuf) {
+#else
   template<typename T>
     inline void PMatrix<T>::SelInvIntra_P2p(Int lidx,Int & rank) {
+#endif
 
       if (options_->symmetricStorage!=1){
 #if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
@@ -1355,9 +1365,6 @@ namespace PEXSI{
       std::vector<std::vector<Int> > & superList = this->WorkingSet();
       Int numSteps = superList.size();
       Int stepSuper = superList[lidx].size(); 
-
-
-
 
       TIMER_START(AllocateBuffer);
 
@@ -1385,16 +1392,11 @@ namespace PEXSI{
           stepSuper++;
         }
       }
-
-
-
       //This is required to send the size and content of U/L
       std::vector<std::vector<MPI_Request> >  arrMpireqsSendToBelow;
       arrMpireqsSendToBelow.resize( stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcRow, MPI_REQUEST_NULL ));
       std::vector<std::vector<MPI_Request> >  arrMpireqsSendToRight;
       arrMpireqsSendToRight.resize(stepSuper, std::vector<MPI_Request>( 2 * grid_->numProcCol, MPI_REQUEST_NULL ));
-
-
       //This is required to receive the size and content of U/L
       std::vector<MPI_Request>   arrMpireqsRecvSizeFromAny;
       arrMpireqsRecvSizeFromAny.resize(stepSuper*2 , MPI_REQUEST_NULL);
@@ -1436,15 +1438,19 @@ namespace PEXSI{
         rank++;
       }
 
-
-
       int numSentToLeft = 0;
       std::vector<int> reqSentToLeft;
 
-
-      NumMat<T> AinvBuf, UBuf;
-
       TIMER_STOP(AllocateBuffer);
+
+#ifndef pre_Allocate_loopup
+      // NumMat<T> AinvBuf, UBuf;
+      // double timer_start = omp_get_wtime();
+      NumMat<T> AinvBuf, UBuf;
+      // double timer_end = omp_get_wtime();
+      // double time = timer_end - timer_start;
+      // std::cout << "AinvBuf UBuf allocate time : " <<  time << std::endl;
+#endif
 
 #if ( _DEBUGlevel_ >= 1 )
       statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
@@ -1452,8 +1458,6 @@ namespace PEXSI{
       {
         //Receivers have to resize their buffers
         TIMER_START(IRecv_Content_UL);
-
-
 
         // Receivers (Content)
         for (Int supidx=0; supidx<stepSuper ; supidx++){
@@ -4906,9 +4910,18 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
       Int lidx=0;
       Int rank = 0;
 
+#ifdef pre_Allocate_loopup
+      NumMat<T> AinvBuf(5120,5120), UBuf(128,5120);
+#endif
+      
       auto itNextSync = syncPoints_.begin();
       for (lidx=0; lidx<numSteps ; lidx++){
+
+#ifdef pre_Allocate_loopup
+        SelInvIntra_P2p(lidx,rank,AinvBuf,UBuf);
+#else
         SelInvIntra_P2p(lidx,rank);
+#endif
 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS<<"OUT "<<lidx<<"/"<<numSteps<<" "<<limIndex_<<std::endl;

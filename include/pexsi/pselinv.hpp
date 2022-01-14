@@ -670,7 +670,11 @@ protected:
 
 
   /// @brief SelInvIntra_P2p
+#ifdef pre_Allocate_loopup
+  inline void SelInvIntra_P2p(Int lidx,Int & rank,NumMat<T>& AinvBuf,NumMat<T>& UBuf);
+#else
   inline void SelInvIntra_P2p(Int lidx,Int & rank);
+#endif
 
   /// @brief SelInv_lookup_indexes
   inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
