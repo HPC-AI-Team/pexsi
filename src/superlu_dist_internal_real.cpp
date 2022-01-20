@@ -759,7 +759,7 @@ RealSuperLUData::CheckErrorDistMultiVector	( NumMat<Real>& xLocal, NumMat<Real>&
 
   pdinf_norm_error(ptrData->grid->iam, numRowLocal, nrhs, 
       (double*)xLocal.Data(), numRowLocal, 
-      (double*)xTrueLocal.Data(), numRowLocal, ptrData->grid);
+      (double*)xTrueLocal.Data(), numRowLocal, ptrData->grid->comm);
 
 
   return ;

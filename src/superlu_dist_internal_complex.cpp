@@ -811,7 +811,7 @@ ComplexSuperLUData::CheckErrorDistMultiVector	( NumMat<Complex>& xLocal, NumMat<
 
   pzinf_norm_error(ptrData->grid->iam, numRowLocal, nrhs, 
       (doublecomplex*)xLocal.Data(), numRowLocal, 
-      (doublecomplex*)xTrueLocal.Data(), numRowLocal, ptrData->grid);
+      (doublecomplex*)xTrueLocal.Data(), numRowLocal, ptrData->grid->comm);
 
 
   return ;
