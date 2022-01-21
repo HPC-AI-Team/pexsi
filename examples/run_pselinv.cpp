@@ -50,6 +50,20 @@ such enhancements or derivative works thereof, in binary and source code form.
 #ifdef _SW_PERF_
 #include "sw_tools.h"
 #endif
+#ifdef _FU_PERF_
+#ifdef LIKWID_PERFMON
+#include <likwid-marker.h>
+#else
+#define LIKWID_MARKER_INIT
+#define LIKWID_MARKER_THREADINIT
+#define LIKWID_MARKER_SWITCH
+#define LIKWID_MARKER_REGISTER(regionTag)
+#define LIKWID_MARKER_START(regionTag)
+#define LIKWID_MARKER_STOP(regionTag)
+#define LIKWID_MARKER_CLOSE
+#define LIKWID_MARKER_GET(regionTag, nevents, events, time, count)
+#endif
+#endif
 
 #define _MYCOMPLEX_
 
@@ -85,6 +99,12 @@ int main(int argc, char **argv)
 
 #ifdef _SW_PERF_
   perf_init();
+#endif
+#ifdef _FU_PERF_
+  LIKWID_MARKER_INIT;
+  LIKWID_MARKER_THREADINIT;
+  LIKWID_MARKER_REGISTER("numfact");
+  LIKWID_MARKER_REGISTER("selinv");
 #endif
 
   int mpirank, mpisize;
@@ -514,6 +534,9 @@ int main(int argc, char **argv)
 #ifdef _SW_PERF_
         perf_global_start(numfact,world_comm);
 #endif
+#ifdef _FU_PERF_
+        LIKWID_MARKER_START("numfact");
+#endif
         
         GetTime( timeSta );
         luMat.NumericalFactorize();
@@ -521,6 +544,9 @@ int main(int argc, char **argv)
 
 #ifdef _SW_PERF_
         perf_global_end(numfact,world_comm);
+#endif
+#ifdef _FU_PERF_
+        LIKWID_MARKER_STOP("numfact");
 #endif
 
         if( mpirank == 0 )
@@ -751,6 +777,9 @@ int main(int argc, char **argv)
 #ifdef _SW_PERF_
             perf_global_start(selinv,world_comm);
 #endif
+#ifdef _FU_PERF_
+        LIKWID_MARKER_START("selinv");
+#endif
             // Main subroutine for selected inversion
             GetTime( timeSta );
             PMloc.SelInv();
@@ -761,6 +790,9 @@ int main(int argc, char **argv)
 #ifdef _SW_PERF_
             perf_global_end(selinv,world_comm);
 #endif
+#ifdef _FU_PERF_
+        LIKWID_MARKER_STOP("selinv");
+#endif
 
             GetTime( timeTotalSelInvEnd );
             if( mpirank == 0 )
@@ -769,6 +801,11 @@ int main(int argc, char **argv)
 #ifdef _SW_PERF_
             perf_global_print(selinv,world_comm);
 #endif
+
+#ifdef _FU_PERF_
+        LIKWID_MARKER_CLOSE;
+#endif
+
 
 
             // Output the diagonal elements
