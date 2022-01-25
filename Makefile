@@ -8,6 +8,7 @@ all: lib examples
 
 pexsi_lib:
 	(cd src && ${MAKE})
+	(cp src/f_ppexsi_interface.mod ${PEXSI_DIR}/include)
 
 pexsi_examples: pexsi_lib
 	cd examples && ${MAKE}
@@ -21,9 +22,7 @@ install: pexsi_lib
 	(if [ ! -d "${PEXSI_BUILD_DIR}/lib" ]; then mkdir ${PEXSI_BUILD_DIR}/lib; fi)
 	(cp src/libpexsi_${SUFFIX}.a ${PEXSI_BUILD_DIR}/lib)
 	(cp include/c_pexsi_interface.h include/ppexsi.hpp ${PEXSI_BUILD_DIR}/include)
-
-finstall: install fortran_examples
-	(cp fortran/f_ppexsi_interface.mod ${PEXSI_BUILD_DIR}/include)
+	(cp src/f_ppexsi_interface.mod ${PEXSI_BUILD_DIR}/include)
 
 clean:
 	cd src && ${MAKE} clean

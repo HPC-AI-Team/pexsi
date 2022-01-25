@@ -1,15 +1,16 @@
 #!/usr/bin/bash
 COMPILE_MODE     = release
 USE_PROFILE      = 0
-PAR_ND_LIBRARY   = ptscotch
-SEQ_ND_LIBRARY   = scotch
-#PAR_ND_LIBRARY   = parmetis
-#SEQ_ND_LIBRARY   = metis
-USE_SYMPACK      = 1
-USE_OPENMP       = 1
+#PAR_ND_LIBRARY   = ptscotch
+#SEQ_ND_LIBRARY   = scotch
+PAR_ND_LIBRARY   = parmetis
+SEQ_ND_LIBRARY   = metis
+USE_SYMPACK      = 0
+USE_OPENMP       = 0
+USE_COREDUMPER   = 0
 
 # Different compiling and linking options.
-SUFFIX       = linux_release_v1.0
+SUFFIX       = linux_release_v2.0
 
 # Compiler and tools
 ################################################################
@@ -38,34 +39,36 @@ endif
 
 # PEXSI directory
 PEXSI_DIR       = $(HOME)/Projects/pexsi
-PEXSI_BUILD_DIR = $(PEXSI_DIR)/build
+PEXSI_BUILD_DIR = $(PEXSI_DIR)/build_make
 
 # Required libraries directories
-DSUPERLU_DIR  = $(HOME)/Software/SuperLU_DIST_5.2.1
-METIS_DIR     = $(HOME)/Software/metis-5.1.0/build_release
-PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.3/build_release
+SUPERLU_DIST_DIR  = $(HOME)/Software/SuperLU_DIST_install/v7.2.0
+METIS_DIR     = $(HOME)/Software/parmetis-4.0.3_install
+PARMETIS_DIR  = $(HOME)/Software/parmetis-4.0.3_install
 PTSCOTCH_DIR  = $(HOME)/Software/scotch_6.0.0
 SCOTCH_DIR = ${PTSCOTCH_DIR}
-LAPACK_DIR    = $(HOME)/Software/lapack-3.5.0
-BLAS_DIR      = $(HOME)/Software/OpenBLAS/build_release
-COREDUMPER_DIR = /home/lin/Software/coredumper-1.2.1/build
+LAPACK_DIR    = /usr/lib/x86_64-linux-gnu
+BLAS_DIR      = /usr/lib/x86_64-linux-gnu
 
+ifeq (${USE_COREDUMPER}, 1)
+  COREDUMPER_DIR = /home/lin/Software/coredumper-1.2.1/build
+  COREDUMPER_INCLUDE = -I${COREDUMPER_DIR}/include
+  COREDUMPER_LIB   = ${COREDUMPER_DIR}/lib/libcoredumper.a
+endif
 
 
 # Includes
 PEXSI_INCLUDE    = -I${PEXSI_DIR}/include 
-DSUPERLU_INCLUDE = -I${DSUPERLU_DIR}/SRC
-COREDUMPER_INCLUDE = -I${COREDUMPER_DIR}/include
-INCLUDES         = ${PEXSI_INCLUDE} ${DSUPERLU_INCLUDE} ${COREDUMPER_INCLUDE}
+SUPERLU_DIST_INCLUDE = -I${SUPERLU_DIST_DIR}/include
+PARMETIS_INCLUDE = -I${PARMETIS_DIR}/include
+INCLUDES         = ${PEXSI_INCLUDE} ${SUPERLU_DIST_INCLUDE} ${PARMETIS_INCLUDE} ${COREDUMPER_INCLUDE}
 
 # Libraries
 CPP_LIB          = -lstdc++ -lmpi -lmpi_cxx
-GFORTRAN_LIB     = /usr/lib/gcc/x86_64-linux-gnu/4.8/libgfortran.a
-LAPACK_LIB       = ${LAPACK_DIR}/liblapack.a
-BLAS_LIB         = ${BLAS_DIR}/lib/libopenblas.a
-#LAPACK_LIB        = -llapack
-#BLAS_LIB           = -lblas
-DSUPERLU_LIB     = ${DSUPERLU_DIR}/SRC/libsuperlu_dist_5.2.1.a
+GFORTRAN_LIB     = -lgfortran
+LAPACK_LIB       = -llapack
+BLAS_LIB         = -lblas
+SUPERLU_DIST_LIB     = ${SUPERLU_DIST_DIR}/lib/libsuperlu_dist.a
 PEXSI_LIB        = ${PEXSI_DIR}/src/libpexsi_${SUFFIX}.a
 
 # Graph partitioning libraries
@@ -73,16 +76,22 @@ METIS_LIB        = -L${METIS_DIR}/lib -lmetis
 PARMETIS_LIB     = -L${PARMETIS_DIR}/lib -lparmetis 
 SCOTCH_LIB       = -L${PTSCOTCH_DIR}/lib -lscotchmetis -lscotch -lscotcherr
 PTSCOTCH_LIB     = -L${PTSCOTCH_DIR}/lib -lptscotchparmetis -lptscotch -lptscotcherr -lscotch
-COREDUMPER_LIB   = ${COREDUMPER_DIR}/lib/libcoredumper.a
-
 
 # Different compiling and linking options.
 ifeq (${COMPILE_MODE}, release)
-  COMPILE_DEF    = -DRELEASE -DCOREDUMPER
+  ifeq (${USE_COREDUMPER}, 1)
+    COMPILE_DEF    = -DRELEASE -DCOREDUMPER
+  else
+    COMPILE_DEF    = -DRELEASE
+  endif
   COMPILE_FLAG   = -O3 -w -g  
 endif
 ifeq (${COMPILE_MODE}, debug)
-  COMPILE_DEF    = -DDEBUG=1 -DCOREDUMPER
+  ifeq (${USE_COREDUMPER}, 1)
+    COMPILE_DEF    = -DDEBUG=1 -DCOREDUMPER
+  else
+    COMPILE_DEF    = -DDEBUG=1
+  endif
   COMPILE_FLAG   = -O2 -w -g
 endif
 
@@ -102,7 +111,8 @@ ifeq (${USE_PROFILE}, 1)
   PROFILE_FLAG  = -DPROFILE
 endif
 
-LIBS  = ${PEXSI_LIB} ${DSUPERLU_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${COREDUMPER_LIB} ${GFORTRAN_LIB} 
+
+LIBS  = ${PEXSI_LIB} ${SUPERLU_DIST_LIB} ${PAR_ND_LIB} ${SEQ_ND_LIB} ${LAPACK_LIB} ${BLAS_LIB} ${COREDUMPER_LIB} ${GFORTRAN_LIB} 
 COMPILE_DEF  += -DAdd_ #-D_MIRROR_RIGHT_
 CPPFLAG = -std=c++11
 
