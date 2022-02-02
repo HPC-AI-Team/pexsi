@@ -787,6 +787,15 @@ int main(int argc, char **argv)
             if( mpirank == 0 )
               cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 
+#ifdef _PRINT_STATS_
+            double flops = PMloc.GetTotalFlops();
+            if( mpirank == 0 ){
+              cout << "Total FLOPs for selected inversion is " << flops << endl;
+              cout << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeEnd  - timeSta) << endl;
+
+            }
+#endif
+
 #ifdef _SW_PERF_
             perf_global_end(selinv,world_comm);
 #endif

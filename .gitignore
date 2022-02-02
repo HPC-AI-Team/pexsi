@@ -7,6 +7,9 @@ logPEXSI*
 external/*
 *.swp
 
+/.vscode
+/build
+
 examples/*_sunway
 examples/*_fugaku
 examples/*_

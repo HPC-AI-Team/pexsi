@@ -2146,6 +2146,9 @@ namespace PEXSI{
                   snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
               TIMER_STOP(Compute_Sinv_LT_GEMM);
 
+#ifdef _PRINT_STATS_
+              this->localFlops_+=flops::Gemm<T>(AinvBuf.m(), UBuf.m(), AinvBuf.n());
+#endif
 
 #if ( _DEBUGlevel_ >= 2 )
               statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
