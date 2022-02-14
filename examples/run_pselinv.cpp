@@ -50,7 +50,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #ifdef _SW_PERF_
 #include "sw_tools.h"
 #endif
-#ifdef _FU_PERF_
+#ifdef _LIKIWID_MARKER_
 #ifdef LIKWID_PERFMON
 #include <likwid-marker.h>
 #else
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 #ifdef _SW_PERF_
   perf_init();
 #endif
-#ifdef _FU_PERF_
+#ifdef _LIKIWID_MARKER_
   LIKWID_MARKER_INIT;
   LIKWID_MARKER_THREADINIT;
   LIKWID_MARKER_REGISTER("numfact");
@@ -534,7 +534,7 @@ int main(int argc, char **argv)
 #ifdef _SW_PERF_
         perf_global_start(numfact,world_comm);
 #endif
-#ifdef _FU_PERF_
+#ifdef _LIKIWID_MARKER_
         LIKWID_MARKER_START("numfact");
 #endif
         
@@ -545,7 +545,7 @@ int main(int argc, char **argv)
 #ifdef _SW_PERF_
         perf_global_end(numfact,world_comm);
 #endif
-#ifdef _FU_PERF_
+#ifdef _LIKIWID_MARKER_
         LIKWID_MARKER_STOP("numfact");
 #endif
 
@@ -777,8 +777,8 @@ int main(int argc, char **argv)
 #ifdef _SW_PERF_
             perf_global_start(selinv,world_comm);
 #endif
-#ifdef _FU_PERF_
-        LIKWID_MARKER_START("selinv");
+#ifdef _LIKIWID_MARKER_
+            LIKWID_MARKER_START("selinv");
 #endif
             // Main subroutine for selected inversion
             GetTime( timeSta );
@@ -799,8 +799,8 @@ int main(int argc, char **argv)
 #ifdef _SW_PERF_
             perf_global_end(selinv,world_comm);
 #endif
-#ifdef _FU_PERF_
-        LIKWID_MARKER_STOP("selinv");
+#ifdef _LIKIWID_MARKER_
+            LIKWID_MARKER_STOP("selinv");
 #endif
 
             GetTime( timeTotalSelInvEnd );
@@ -811,8 +811,8 @@ int main(int argc, char **argv)
             perf_global_print(selinv,world_comm);
 #endif
 
-#ifdef _FU_PERF_
-        LIKWID_MARKER_CLOSE;
+#ifdef _LIKIWID_MARKER_
+            LIKWID_MARKER_CLOSE;
 #endif
 
 
