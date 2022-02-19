@@ -26,8 +26,8 @@ int get_superlu_env_nrel(){
 
 
 typedef struct{
-    int segment_ptr[MAX_BLOCK_SIZE+1];
-    int segment_offset[MAX_BLOCK_SIZE];
+    int* segment_ptr;
+    int* segment_offset;
     int segment_count;
 } indirect_index_segment_compress_t;
 
@@ -37,9 +37,19 @@ static void indirect_index_segment_compress_init(indirect_index_segment_compress
         return;
     }
     int nsup = get_superlu_env_nsup();
-
-    int* segment_ptr = segment_compress->segment_ptr;
-    int* segment_offset = segment_compress->segment_offset;
+    // count segment
+    // int segment_count = 1;
+    // int segment_prev = indirect_index[0];
+    // for(int i = 1; i < len; i++){
+    //     int segment_cur = indirect_index[i] - i;
+    //     if(segment_prev != segment_cur){
+    //         segment_count += 1;
+    //         segment_prev = segment_cur;
+    //     }
+    // }
+    // allocate space
+    int* segment_ptr = (int*)malloc((nsup+1) * sizeof(int));
+    int* segment_offset = (int*)malloc(nsup * sizeof(int));
 
     // segment compress
     segment_ptr[0] = 0;
@@ -59,10 +69,14 @@ static void indirect_index_segment_compress_init(indirect_index_segment_compress
 
     // output
     segment_compress->segment_count = segment_count;
+    segment_compress->segment_ptr = segment_ptr;
+    segment_compress->segment_offset = segment_offset;
 
 }
 
 static void indirect_index_segment_compress_destroy(indirect_index_segment_compress_t* segment_compress){
+    free(segment_compress->segment_ptr);
+    free(segment_compress->segment_offset);
 }
 
 

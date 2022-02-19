@@ -577,11 +577,10 @@ namespace PEXSI{
                       int i_end = segment_compress.segment_ptr[ptr+1];
                       int offset = segment_compress.segment_offset[ptr];
                       T *nzvalSinv_j_offset = nzvalSinv_j + offset;
-                      // #pragma omp simd
-                      // for(int i = i_start; i < i_end; i++){
-                      //     nzvalAinv_j[i] = nzvalSinv_j_offset[i];
-                      // } 
-                      std::memcpy(nzvalAinv_j + i_start,nzvalSinv_j_offset + i_start,(i_end - i_start) * sizeof(T));
+#pragma omp simd
+                      for(int i = i_start; i < i_end; i++){
+                          nzvalAinv_j[i] = nzvalSinv_j_offset[i];
+                      } 
                   }
                 }
 
@@ -675,11 +674,10 @@ namespace PEXSI{
                       int i_end = segment_compress.segment_ptr[ptr+1];
                       int offset = segment_compress.segment_offset[ptr];
                       T *nzvalSinv_j_offset = nzvalSinv_j + offset;
-                      // #pragma omp simd
-                      // for(int i = i_start; i < i_end; i++){
-                      //     nzvalAinv_j[i] = nzvalSinv_j_offset[i];
-                      // } 
-                      std::memcpy(nzvalAinv_j + i_start,nzvalSinv_j_offset + i_start,(i_end - i_start) * sizeof(T));
+#pragma omp simd
+                      for(int i = i_start; i < i_end; i++){
+                          nzvalAinv_j[i] = nzvalSinv_j_offset[i];
+                      } 
                   }
                 }
 
@@ -713,7 +711,400 @@ namespace PEXSI{
 
       TIMER_STOP(JB_Loop);
 
+
       TIMER_STOP(Compute_Sinv_LT_Lookup_Indexes);
+    }
+
+  template<typename T>
+    inline  void PMatrix<T>::Compute_Sinv_LT_Kernel(
+        SuperNodeBufferType & snode, 
+        std::vector<LBlock<T> > & LcolRecv, 
+        std::vector<UBlock<T> > & UrowRecv, 
+        NumMat<T> & AinvBuf,
+        NumMat<T> & UBuf )
+    {
+      TIMER_START(Compute_Sinv_LT_Kernel);
+
+
+      TIMER_START(Build_colptr_rowptr);
+      // rowPtr[ib] gives the row index in snode.LUpdateBuf for the first
+      // nonzero row in LcolRecv[ib]. The total number of rows in
+      // snode.LUpdateBuf is given by rowPtr[end]-1
+      std::vector<Int> rowPtr(LcolRecv.size() + 1);
+      // colPtr[jb] gives the column index in UBuf for the first
+      // nonzero column in UrowRecv[jb]. The total number of rows in
+      // UBuf is given by colPtr[end]-1
+      std::vector<Int> colPtr(UrowRecv.size() + 1);
+
+      rowPtr[0] = 0;
+      for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+        rowPtr[ib+1] = rowPtr[ib] + LcolRecv[ib].numRow;
+      }
+      colPtr[0] = 0;
+      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+        colPtr[jb+1] = colPtr[jb] + UrowRecv[jb].numCol;
+      }
+
+      Int numRowAinvBuf = *rowPtr.rbegin();
+      Int numColAinvBuf = *colPtr.rbegin();
+      TIMER_STOP(Build_colptr_rowptr);
+
+      TIMER_START(Allocate_lookup);
+      // Allocate for the computational storage
+      // std::cout << "AinvBuf Resize from (" << AinvBuf.m() << "," << AinvBuf.n() << ") to (" << numRowAinvBuf << "," << numColAinvBuf << ")" << std::endl;
+      AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
+      // std::cout << "UBuf Resize from (" << UBuf.m() << "," << UBuf.n() << ") to (" << SuperSize( snode.Index, super_ ) << "," << numColAinvBuf << ")" << std::endl;
+      UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
+
+      //    TIMER_START(SetValue_lookup);
+      //    SetValue( AinvBuf, ZERO<T>() );
+      //SetValue( snode.LUpdateBuf, ZERO<T>() );
+      //    SetValue( UBuf, ZERO<T>() );
+      //    TIMER_STOP(SetValue_lookup);
+      TIMER_STOP(Allocate_lookup);
+
+      // std::cout << "AinvBuf UBuf size : " << numColAinvBuf << std::endl; 
+
+      TIMER_START(Fill_UBuf);
+      // Fill UBuf first.  Make the transpose later in the Gemm phase.
+      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+        UBlock<T>& UB = UrowRecv[jb];
+        if( UB.numRow != SuperSize(snode.Index, super_) ){
+          ErrorHandling( "The size of UB is not right.  Something is seriously wrong." );
+        }
+        lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
+            UB.numRow, UBuf.VecData( colPtr[jb] ), SuperSize( snode.Index, super_ ) );	
+      }
+      TIMER_STOP(Fill_UBuf);
+
+      TIMER_START(SNODE_L_UPDATE_BUF_RESIZE);
+      snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
+      SetValue(snode.LUpdateBuf,ZERO<T>());
+      TIMER_STOP(SNODE_L_UPDATE_BUF_RESIZE);
+
+      // Calculate the relative indices for (isup, jsup)
+      // Fill AinvBuf with the information in L or U block.
+      TIMER_START(JB_Loop);
+
+#ifdef JB_Loop_parallel
+#pragma omp parallel
+#endif
+      for( Int jb = 0; jb < UrowRecv.size(); jb++ ){
+        for( Int ib = 0; ib < LcolRecv.size(); ib++ ){
+#ifdef JB_Loop_parallel
+#pragma omp for
+#endif    
+          LBlock<T>& LB = LcolRecv[ib];
+          UBlock<T>& UB = UrowRecv[jb];
+          Int isup = LB.blockIdx;
+          Int jsup = UB.blockIdx;
+          T* nzvalAinv = &AinvBuf( rowPtr[ib], colPtr[jb] );
+          Int     ldAinv    = AinvBuf.m();
+
+          // Pin down the corresponding block in the part of Sinv.
+          if( isup >= jsup ){
+            std::vector<LBlock<T> >&  LcolSinv = this->L( LBj(jsup, grid_ ) );
+            bool isBlockFound = false;
+            // TIMER_START(PARSING_ROW_BLOCKIDX);
+            for( Int ibSinv = 0; ibSinv < LcolSinv.size(); ibSinv++ ){
+              // Found the (isup, jsup) block in Sinv
+              if( LcolSinv[ibSinv].blockIdx == isup ){
+                LBlock<T> & SinvB = LcolSinv[ibSinv];
+
+                // Row relative indices
+                Int* rowsLBPtr    = LB.rows.Data();
+                Int* rowsSinvBPtr = SinvB.rows.Data();
+
+                // Column relative indicies
+                Int SinvColsSta = FirstBlockCol( jsup, super_ );
+
+                std::vector<Int> relCols( UB.numCol );
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  relCols[j] = UB.cols[j] - SinvColsSta;
+                }
+
+                std::vector<Int> relRows( LB.numRow );
+                for( Int i = 0; i < LB.numRow; i++ ){
+                  bool isRowFound = false;
+                  for( Int i1 = 0; i1 < SinvB.numRow; i1++ ){
+                    if( rowsLBPtr[i] == rowsSinvBPtr[i1] ){
+                      isRowFound = true;
+                      relRows[i] = i1;
+                      break;
+                    }
+                  }
+                  if( isRowFound == false ){
+                    std::ostringstream msg;
+                    msg << "Row " << rowsLBPtr[i] << 
+                      " in LB cannot find the corresponding row in SinvB" << std::endl
+                      << "LB.rows    = " << LB.rows << std::endl
+                      << "SinvB.rows = " << SinvB.rows << std::endl;
+                    ErrorHandling( msg.str().c_str() );
+                  }
+                }
+                T* nzvalSinv = SinvB.nzval.Data();
+                Int ldSinv    = SinvB.numRow;
+#ifdef JB_Loop_index_compress
+                // TIMER_START(PARSING_ROW_BLOCKIDX_INDEX_COMPRESS);
+                indirect_index_segment_compress_t segment_compress_row;
+                indirect_index_segment_compress_init(&segment_compress_row,relRows.data(),LB.numRow);
+                indirect_index_segment_compress_t segment_compress_col;
+                indirect_index_segment_compress_init(&segment_compress_col,relCols.data(),UB.numCol);
+                // TIMER_STOP(PARSING_ROW_BLOCKIDX_INDEX_COMPRESS);
+                if(segment_compress_row.segment_count == 1 && segment_compress_col.segment_count == 1){
+                  // TIMER_START(PARSING_ROW_BLOCKIDX_COPY_AVOID);
+                  int col_offset = segment_compress_col.segment_offset[0];
+                  int row_offset = segment_compress_row.segment_offset[0];
+                  int m = LB.numRow;
+                  int n = UBuf.m();
+                  int k = UB.numCol;
+                  T* A = &nzvalSinv[col_offset * ldSinv + row_offset];
+                  int lda = ldSinv;
+                  T* B = &UBuf(0, colPtr[jb]);
+                  int ldb = UBuf.m();
+                  T* C = &snode.LUpdateBuf(rowPtr[ib], 0);
+                  int ldc = snode.LUpdateBuf.m();
+                  blas::Gemm('N', 'T', m, n, k, MINUS_ONE<T>(), 
+                    A, lda, 
+                    B, ldb, ONE<T>(),
+                    C, ldc); 
+                  // TIMER_STOP(PARSING_ROW_BLOCKIDX_COPY_AVOID);
+                }else{
+                  // TIMER_START(PARSING_ROW_BLOCKIDX_COPY_GEMM);
+                  // TIMER_START(PARSING_ROW_BLOCKIDX_COPY);
+                  // Transfer the values from Sinv to AinvBlock
+                  for( Int j = 0; j < UB.numCol; j++ ){
+                    T* nzvalAinv_j = &nzvalAinv[j*ldAinv];
+                    T* nzvalSinv_j = &nzvalSinv[relCols[j] * ldSinv];
+                    // for( Int i = 0; i < LB.numRow; i++ ){
+                    //   nzvalAinv_j[i] = nzvalSinv_j[relRows[i]];
+                    // }
+                    for(int ptr = 0; ptr < segment_compress_row.segment_count; ++ptr){
+                        int i_start = segment_compress_row.segment_ptr[ptr];
+                        int i_end = segment_compress_row.segment_ptr[ptr+1];
+                        int offset = segment_compress_row.segment_offset[ptr];
+                        T *nzvalSinv_j_offset = nzvalSinv_j + offset;
+// #pragma omp simd
+//                         for(int i = i_start; i < i_end; i++){
+//                           nzvalAinv_j[i] = nzvalSinv_j_offset[i];
+//                         } 
+                        std::memcpy(nzvalAinv_j + i_start,nzvalSinv_j_offset + i_start,(i_end - i_start) * sizeof(T));
+                    }
+                  }
+                  // TIMER_STOP(PARSING_ROW_BLOCKIDX_COPY);
+                  // TIMER_START(PARSING_ROW_BLOCKIDX_GEMM);
+                  int m = LB.numRow;
+                  int n = UBuf.m();
+                  int k = UB.numCol;
+                  T* A = nzvalAinv;
+                  int lda = ldAinv;
+                  T* B = &UBuf(0, colPtr[jb]);
+                  int ldb = UBuf.m();
+                  T* C = &snode.LUpdateBuf(rowPtr[ib], 0);
+                  int ldc = snode.LUpdateBuf.m();
+
+                  blas::Gemm('N', 'T', m, n, k, MINUS_ONE<T>(), 
+                    A, lda, 
+                    B, ldb, ONE<T>(),
+                    C, ldc);
+
+                  // TIMER_STOP(PARSING_ROW_BLOCKIDX_GEMM);
+                  // TIMER_STOP(PARSING_ROW_BLOCKIDX_COPY_GEMM);
+                }
+
+                indirect_index_segment_compress_destroy(&segment_compress_row);
+                indirect_index_segment_compress_destroy(&segment_compress_col);
+#else
+                // Transfer the values from Sinv to AinvBlock
+                T* nzvalSinv = SinvB.nzval.Data();
+                Int     ldSinv    = SinvB.numRow;
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  for( Int i = 0; i < LB.numRow; i++ ){
+                    nzvalAinv[i+j*ldAinv] =
+                      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                  }
+                }
+#endif
+                isBlockFound = true;
+                break;
+              }	
+            } // for (ibSinv )
+            // TIMER_STOP(PARSING_ROW_BLOCKIDX);
+            if( isBlockFound == false ){
+              std::ostringstream msg;
+              msg << "Block(" << isup << ", " << jsup 
+                << ") did not find a matching block in Sinv." << std::endl;
+              ErrorHandling( msg.str().c_str() );
+            }
+          } // if (isup, jsup) is in L
+          else{
+            std::vector<UBlock<T> >&   UrowSinv = this->U( LBi( isup, grid_ ) );
+            bool isBlockFound = false;
+            // TIMER_START(PARSING_COL_BLOCKIDX);
+            for( Int jbSinv = 0; jbSinv < UrowSinv.size(); jbSinv++ ){
+              // Found the (isup, jsup) block in Sinv
+              if( UrowSinv[jbSinv].blockIdx == jsup ){
+                UBlock<T> & SinvB = UrowSinv[jbSinv];
+
+                // Row relative indices
+                Int SinvRowsSta = FirstBlockCol( isup, super_ );
+
+                Int* colsUBPtr    = UB.cols.Data();
+                Int* colsSinvBPtr = SinvB.cols.Data();
+
+                std::vector<Int> relRows( LB.numRow );
+                for( Int i = 0; i < LB.numRow; i++ ){
+                  relRows[i] = LB.rows[i] - SinvRowsSta;
+                  // std::cout << "(i, relRows[i]) : (" << i << ", " << relRows[i] << ")" << std::endl;
+                }
+
+                // Column relative indices
+                std::vector<Int> relCols( UB.numCol );
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  bool isColFound = false;
+                  for( Int j1 = 0; j1 < SinvB.numCol; j1++ ){
+                    if( colsUBPtr[j] == colsSinvBPtr[j1] ){
+                      isColFound = true;
+                      relCols[j] = j1;
+                      break;
+                    }
+                  }
+
+                  if( isColFound == false ){
+                    std::ostringstream msg;
+                    msg << "Col " << colsUBPtr[j] << 
+                      " in UB cannot find the corresponding row in SinvB" << std::endl
+                      << "UB.cols    = " << UB.cols << std::endl
+                      << "UinvB.cols = " << SinvB.cols << std::endl;
+                    ErrorHandling( msg.str().c_str() );
+                  }
+                }
+                // compress relRows
+                // insight 
+                // for( Int i = 0; i < LB.numRow; i++ ){
+                //   std::cout << "(i, relRows[i]) : (" << i << ", " << relRows[i] << ")" << std::endl;
+                // }
+                T* nzvalSinv = SinvB.nzval.Data();
+                Int ldSinv    = SinvB.numRow;
+
+#ifdef JB_Loop_index_compress
+                // TIMER_START(PARSING_COL_BLOCKIDX_INDEX_COMPRESS);
+                indirect_index_segment_compress_t segment_compress_row;
+                indirect_index_segment_compress_init(&segment_compress_row,relRows.data(),LB.numRow);
+                indirect_index_segment_compress_t segment_compress_col;
+                indirect_index_segment_compress_init(&segment_compress_col,relCols.data(),UB.numCol);
+                // TIMER_STOP(PARSING_COL_BLOCKIDX_INDEX_COMPRESS);
+                if(segment_compress_row.segment_count == 1 && segment_compress_col.segment_count == 1){
+                  // TIMER_START(PARSING_COL_BLOCKIDX_COPY_AVOID);
+                  int col_offset = segment_compress_col.segment_offset[0];
+                  int row_offset = segment_compress_row.segment_offset[0];
+
+                  int m = LB.numRow;
+                  int n = UBuf.m();
+                  int k = UB.numCol;
+                  T* A = &nzvalSinv[col_offset * ldSinv + row_offset];
+                  int lda = ldSinv;
+                  T* B = &UBuf(0, colPtr[jb]);
+                  int ldb = UBuf.m();
+                  T* C = &snode.LUpdateBuf(rowPtr[ib], 0);
+                  int ldc = snode.LUpdateBuf.m();
+                  blas::Gemm('N', 'T', m, n, k, MINUS_ONE<T>(), 
+                    A, lda, 
+                    B, ldb, ONE<T>(),
+                    C, ldc); 
+                  // TIMER_STOP(PARSING_COL_BLOCKIDX_COPY_AVOID);
+                }else{
+                  // Transfer the values from Sinv to AinvBlock
+                  // TIMER_START(PARSING_COL_BLOCKIDX_COPY_GEMM);
+                  // TIMER_START(PARSING_COL_BLOCKIDX_COPY);
+                  for( Int j = 0; j < UB.numCol; j++ ){
+                    T* nzvalAinv_j = &nzvalAinv[j*ldAinv];
+                    T* nzvalSinv_j = &nzvalSinv[relCols[j] * ldSinv];
+                    // for( Int i = 0; i < LB.numRow; i++ ){
+                    //   nzvalAinv_j[i] = nzvalSinv_j[relRows[i]];
+                    // }
+                    for(int ptr = 0; ptr < segment_compress_row.segment_count; ++ptr){
+                        int i_start = segment_compress_row.segment_ptr[ptr];
+                        int i_end = segment_compress_row.segment_ptr[ptr+1];
+                        int offset = segment_compress_row.segment_offset[ptr];
+                        T *nzvalSinv_j_offset = nzvalSinv_j + offset;
+// #pragma omp simd
+//                       for(int i = i_start; i < i_end; i++){
+//                           nzvalAinv_j[i] = nzvalSinv_j_offset[i];
+//                       } 
+                        std::memcpy(nzvalAinv_j + i_start,nzvalSinv_j_offset + i_start,(i_end - i_start) * sizeof(T));
+                    }
+                  }
+                  // TIMER_STOP(PARSING_COL_BLOCKIDX_COPY);
+                  // TIMER_START(PARSING_COL_BLOCKIDX_GEMM);
+                  int m = LB.numRow;
+                  int n = UBuf.m();
+                  int k = UB.numCol;
+                  T* A = nzvalAinv;
+                  int lda = ldAinv;
+                  T* B = &UBuf(0, colPtr[jb]);
+                  int ldb = UBuf.m();
+                  T* C = &snode.LUpdateBuf(rowPtr[ib], 0);
+                  int ldc = snode.LUpdateBuf.m();
+
+                  blas::Gemm('N', 'T', m, n, k, MINUS_ONE<T>(), 
+                    A, lda, 
+                    B, ldb, ONE<T>(),
+                    C, ldc); 
+                  // TIMER_START(PARSING_COL_BLOCKIDX_GEMM);
+                  // TIMER_STOP(PARSING_COL_BLOCKIDX_COPY_GEMM);
+                }
+                indirect_index_segment_compress_destroy(&segment_compress_row);
+                indirect_index_segment_compress_destroy(&segment_compress_col);
+#else
+                // Transfer the values from Sinv to AinvBlock
+                T* nzvalSinv = SinvB.nzval.Data();
+                Int     ldSinv    = SinvB.numRow;
+                for( Int j = 0; j < UB.numCol; j++ ){
+                  for( Int i = 0; i < LB.numRow; i++ ){
+                    nzvalAinv[i+j*ldAinv] =
+                      nzvalSinv[relRows[i] + relCols[j] * ldSinv];
+                  }
+                }
+#endif
+                isBlockFound = true;
+                break;
+              }
+            } // for (jbSinv)
+            // TIMER_STOP(PARSING_COL_BLOCKIDX);
+            if( isBlockFound == false ){
+              std::ostringstream msg;
+              msg << "Block(" << isup << ", " << jsup 
+                << ") did not find a matching block in Sinv." << std::endl;
+              ErrorHandling( msg.str().c_str() );
+            }
+          } // if (isup, jsup) is in U
+        } // for( ib )
+      } // for ( jb )
+
+      TIMER_STOP(JB_Loop);
+
+#ifdef GEMM_PROFILE
+      gemm_stat.push_back(AinvBuf.m());
+      gemm_stat.push_back(UBuf.m());
+      gemm_stat.push_back(AinvBuf.n());
+#endif
+//       std::cout << AinvBuf.m() << ", " << UBuf.m() << "," << AinvBuf.n() << std::endl;
+//       TIMER_START(Compute_Sinv_LT_GEMM);
+//       blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
+//           AinvBuf.Data(), AinvBuf.m(), 
+//           UBuf.Data(), UBuf.m(), ZERO<T>(),
+//           snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
+//       TIMER_STOP(Compute_Sinv_LT_GEMM);
+#ifdef _PRINT_STATS_
+      this->localFlops_+=flops::Gemm<T>(AinvBuf.m(), UBuf.m(), AinvBuf.n());
+#endif
+
+#if ( _DEBUGlevel_ >= 2 )
+      statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
+#endif
+
+      TIMER_STOP(Compute_Sinv_LT_Kernel);
     }
 
   template<typename T>
@@ -1839,28 +2230,8 @@ namespace PEXSI{
 
               UnpackData(snode, LcolRecv, UrowRecv);
               //NumMat<T> AinvBuf, UBuf;
-              SelInv_lookup_indexes(snode,LcolRecv, UrowRecv,AinvBuf,UBuf);
+              Compute_Sinv_LT_Kernel(snode,LcolRecv, UrowRecv,AinvBuf,UBuf);
 
-              snode.LUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, super_ ) );
-
-#ifdef GEMM_PROFILE
-              gemm_stat.push_back(AinvBuf.m());
-              gemm_stat.push_back(UBuf.m());
-              gemm_stat.push_back(AinvBuf.n());
-#endif
-              TIMER_START(Compute_Sinv_LT_GEMM);
-              blas::Gemm( 'N', 'T', AinvBuf.m(), UBuf.m(), AinvBuf.n(), MINUS_ONE<T>(), 
-                  AinvBuf.Data(), AinvBuf.m(), 
-                  UBuf.Data(), UBuf.m(), ZERO<T>(),
-                  snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() ); 
-              TIMER_STOP(Compute_Sinv_LT_GEMM);
-#ifdef _PRINT_STATS_
-              this->localFlops_+=flops::Gemm<T>(AinvBuf.m(), UBuf.m(), AinvBuf.n());
-#endif
-
-#if ( _DEBUGlevel_ >= 2 )
-              statusOFS << std::endl << "["<<snode.Index<<"] "<<  "snode.LUpdateBuf: " << snode.LUpdateBuf << std::endl;
-#endif
             } // if Gemm is to be done locally
 
             //Get the reduction tree
@@ -4914,8 +5285,7 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
       Int rank = 0;
 
 #ifdef pre_Allocate_loopup
-      int nsup = get_superlu_env_nsup();
-      NumMat<T> AinvBuf(5120,5120), UBuf(nsup,5120);
+      NumMat<T> AinvBuf(5120,5120), UBuf(128,5120);
 #endif
       
       auto itNextSync = syncPoints_.begin();

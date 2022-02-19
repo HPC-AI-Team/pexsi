@@ -680,9 +680,6 @@ protected:
   inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
   inline void SelInv_lookup_indexes_seq(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
 
-  /// @brief SelInv_lookup_indexes
-  inline void Compute_Sinv_LT_Kernel(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
- 
   /// @brief GetWorkSet
   inline void GetWorkSet(std::vector<Int> & snodeEtree, std::vector<std::vector<Int> > & WSet);
 
