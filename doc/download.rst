@@ -3,12 +3,11 @@
 Download
 ==============================
 
+**v2.0.0**:
 
-**v1.2.0**:
+- `Code (tar.gz) <https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_v2.0.0.tar.gz>`_.
 
-- `Code (tar.gz) <https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_v1.2.0.tar.gz>`_.
-
-- `Documentation (pdf) <https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_doc_v1.2.0.pdf>`_.
+- `Documentation (pdf) <https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_doc_v2.0.0.pdf>`_.
 
 
 **Older version of PEXSI, as well as snapshots of documentation for
@@ -16,6 +15,14 @@ major releases**:
 
 **NOTE: Due to insufficient manpower (as there will never be in science!), older version of PEXSI is no longer
 supported**
+
+
+**v1.2.0**:
+
+- `Code (tar.gz) <https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_v1.2.0.tar.gz>`_.
+
+- `Documentation (pdf) <https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_doc_v1.2.0.pdf>`_.
+
 
 **v1.0.3**:
 
