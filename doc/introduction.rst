@@ -392,9 +392,6 @@ PEXSI version history
     - Compatible with SuperLU_DIST 7.2.0 (Note: SuperLU_DIST 7.2.0
       introduces breaking changes. Previous versions of SuperLU_DIST
       will not be supported)
-
-
-- v1.3.0 (7/8/2019)
     - Add "method 3" in the pole expansion, which uses the adaptive
       Antoulas-Anderson (AAA) method for pole expansion. This is now the
       default pole expansion method. The AAA method uses similar number
