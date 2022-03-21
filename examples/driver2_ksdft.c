@@ -284,7 +284,7 @@ int main(int argc, char **argv)
   options.deltaE   = 20.0;
   int method = 2;
   options.numPole  = 40;
-  options.temperature  = 0.00095; // 300K
+  options.temperature  = 0.0095; // 3000K
 
 /*
   FILE * fp;

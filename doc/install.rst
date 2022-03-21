@@ -72,9 +72,9 @@ Build SuperLU_DIST
 ==================
 
 
-Download SuperLU_DIST (latest version 6.4.0) from
+Download SuperLU_DIST (latest version 7.2.0) from
 
-https://github.com/xiaoyeli/superlu_dist/archive/v6.4.0.tar.gz
+https://github.com/xiaoyeli/superlu_dist/archive/v7.2.0.tar.gz
 
 .. note::
 

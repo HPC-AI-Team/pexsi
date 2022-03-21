@@ -5,6 +5,7 @@ SRCS_CPP = interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp\
 					 superlu_dist_internal_complex.cpp superlu_dist_internal_real.cpp \
 					 mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp \
 					 getPole.cpp
+SRCS_F90 = f_interface.f90
 
 OBJS     = ${SRCS_CPP:.cpp=.o} ${SRCS_C:.c=.o} ${SRCS_F90:.f90=.o} 
 DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} ${SRCS_F90:.f90=.d}
@@ -41,7 +42,7 @@ ${PEXSI_LIB}: ${OBJS}
 #endif
 
 clean:
-	${RM} -f ${OBJS} ${DEPS} *.d.*
+	${RM} -f ${OBJS} ${DEPS} *.d.* *.mod
 
 cleanall:
-	${RM} -f ${OBJS} ${DEPS} ${PEXSI_DIR}/lib/libpexsi.a *.d.*
+	${RM} -f ${OBJS} ${DEPS} ${PEXSI_DIR}/lib/libpexsi.a *.d.* *.mod
