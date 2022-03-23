@@ -134,9 +134,9 @@ int main(int argc, char **argv)
       TAU_PROFILE_SET_CONTEXT(world_comm);
 #endif
 
-      stringstream  ss;
-      ss << "logTest" << mpirank;
-      statusOFS.open( ss.str().c_str() );
+      // stringstream  ss;
+      // ss << "logTest" << mpirank;
+      // statusOFS.open( ss.str().c_str() );
 
       ///#if defined(COMM_PROFILE) || defined(COMM_PROFILE_BCAST)
       ///      stringstream  ss3;
@@ -250,9 +250,13 @@ int main(int argc, char **argv)
         Sfile = options["-S"];
       }
       else{
-        statusOFS << "-S option is not given. " 
-          << "Treat the overlap matrix as an identity matrix." 
-          << std::endl << std::endl;
+        // statusOFS << "-S option is not given. " 
+        //   << "Treat the overlap matrix as an identity matrix." 
+        //   << std::endl << std::endl;
+        if( mpirank == 0 )
+          std::cout << "-S option is not given. " 
+            << "Treat the overlap matrix as an identity matrix." 
+            << std::endl << std::endl;
       }
 
       Int maxPipelineDepth = -1;
@@ -260,9 +264,13 @@ int main(int argc, char **argv)
         maxPipelineDepth = atoi(options["-P"].c_str());
       }
       else{
-        statusOFS << "-P option is not given. " 
-          << "Do not limit SelInv pipelining depth." 
-          << std::endl << std::endl;
+        // statusOFS << "-P option is not given. " 
+        //   << "Do not limit SelInv pipelining depth." 
+        //   << std::endl << std::endl;
+        if( mpirank == 0 )
+          std::cout << "-P option is not given. " 
+            << "Do not limit SelInv pipelining depth." 
+            << std::endl << std::endl;
       }
 
       Int symmetricStorage = 0;
@@ -270,9 +278,13 @@ int main(int argc, char **argv)
         symmetricStorage = atoi(options["-SS"].c_str());
       }
       else{
-        statusOFS << "-SS option is not given. " 
-          << "Do not use symmetric storage." 
-          << std::endl << std::endl;
+        // statusOFS << "-SS option is not given. " 
+        //   << "Do not use symmetric storage." 
+        //   << std::endl << std::endl;
+        if( mpirank == 0 )
+          std::cout << "-SS option is not given. " 
+            << "Do not use symmetric storage." 
+            << std::endl << std::endl;
       }
 
 
@@ -284,9 +296,13 @@ int main(int argc, char **argv)
         numProcSymbFact = atoi( options["-npsymbfact"].c_str() );
       }
       else{
-        statusOFS << "-npsymbfact option is not given. " 
-          << "Use default value (maximum number of procs)." 
-          << std::endl << std::endl;
+        // statusOFS << "-npsymbfact option is not given. " 
+        //   << "Use default value (maximum number of procs)." 
+        //   << std::endl << std::endl;
+        if( mpirank == 0 )
+          std::cout << "-npsymbfact option is not given. " 
+            << "Use default value (maximum number of procs)." 
+            << std::endl << std::endl;
         numProcSymbFact = 0;
       }
 
@@ -305,9 +321,13 @@ int main(int argc, char **argv)
         ColPerm = options["-colperm"];
       }
       else{
-        statusOFS << "-colperm option is not given. " 
-          << "Use MMD_AT_PLUS_A." 
-          << std::endl << std::endl;
+        // statusOFS << "-colperm option is not given. " 
+        //   << "Use MMD_AT_PLUS_A." 
+        //   << std::endl << std::endl;
+        if( mpirank == 0 )
+          std::cout << "-colperm option is not given. " 
+            << "Use MMD_AT_PLUS_A." 
+            << std::endl << std::endl;
         ColPerm = "MMD_AT_PLUS_A";
       }
 
@@ -652,13 +672,15 @@ int main(int argc, char **argv)
                   cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
                 if( mpirank == 0 ){
-                  statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+                  // statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+                  // std::cout << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
                   Real diffNorm = 0.0;;
                   for( Int i = 0; i < diag.m(); i++ ){
                     diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
                   }
                   diffNorm = std::sqrt( diffNorm );
-                  statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
+                  // statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
+                  std::cout << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
                 }
 
                 Complex traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1,
@@ -670,10 +692,10 @@ int main(int argc, char **argv)
 
                   cout << "H.size = "  << HMat.size << endl;
                   cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
-                  statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
+                  // statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
 
                   cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
-                  statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
+                  // statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
 
                 }
               }
@@ -708,7 +730,14 @@ int main(int argc, char **argv)
             if( mpirank == 0 )
               cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 
+#ifdef _PRINT_STATS_
+            double flops = PMloc.GetTotalFlops();
+            if( mpirank == 0 ){
+              cout << "Total FLOPs for selected inversion is " << flops << endl;
+              cout << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeEnd  - timeSta) << endl;
 
+            }
+#endif
             GetTime( timeTotalSelInvEnd );
             if( mpirank == 0 )
               cout << "Time for total selected inversion is " << timeTotalSelInvEnd  - timeTotalSelInvSta << endl;
@@ -729,12 +758,12 @@ int main(int argc, char **argv)
 
 
               if( mpirank == 0 ){
-                statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
-                ofstream ofs("diag");
-                if( !ofs.good() ) 
-                  ErrorHandling("file cannot be opened.");
-                serialize( diag, ofs, NO_MASK );
-                ofs.close();
+                // statusOFS << std::endl << "Diagonal (pipeline) of inverse in natural order: " << std::endl << diag << std::endl;
+                // ofstream ofs("diag");
+                // if( !ofs.good() ) 
+                //   ErrorHandling("file cannot be opened.");
+                // serialize( diag, ofs, NO_MASK );
+                // ofs.close();
               }
             }
 
@@ -785,13 +814,15 @@ int main(int argc, char **argv)
                 cout << "Time for getting the diagonal of DistSparseMatrix is " << timeEnd  - timeSta << endl;
 
               if( mpirank == 0 ){
-                statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+                // statusOFS << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
+                // cout << std::endl << "Diagonal of inverse from the 2nd conversion into DistSparseMatrix format : " << std::endl << diagDistSparse2 << std::endl;
                 Real diffNorm = 0.0;;
                 for( Int i = 0; i < diag.m(); i++ ){
                   diffNorm += pow( std::abs( diag(i) - diagDistSparse2(i) ), 2.0 );
                 }
                 diffNorm = std::sqrt( diffNorm );
-                statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
+                // statusOFS << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
+                cout << std::endl << "||diag - diagDistSparse2||_2 = " << diffNorm << std::endl;
               }
 
               Complex traceLocal = blas::Dotu( AMat.nnzLocal, AMat.nzvalLocal.Data(), 1,
@@ -800,13 +831,12 @@ int main(int argc, char **argv)
               mpi::Allreduce( &traceLocal, &trace, 1, MPI_SUM, world_comm );
 
               if( mpirank == 0 ){
-
                 cout << "H.size = "  << HMat.size << endl;
                 cout << std::endl << "Tr[Ainv2 * AMat] = " <<  trace << std::endl;
-                statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
+                // statusOFS << std::endl << "Tr[Ainv2 * AMat] = " << std::endl << trace << std::endl;
 
                 cout << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
-                statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
+                // statusOFS << std::endl << "|N - Tr[Ainv2 * AMat]| = " << std::abs( Complex(HMat.size, 0.0) - trace ) << std::endl;
 
               }
             }
@@ -826,7 +856,7 @@ int main(int argc, char **argv)
       //#endif
 
 
-      statusOFS.close();
+      // statusOFS.close();
     }
   }
   catch( std::exception& e )
