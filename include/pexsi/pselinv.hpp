@@ -670,12 +670,19 @@ protected:
 
 
   /// @brief SelInvIntra_P2p
+#ifdef pre_Allocate_loopup
+  inline void SelInvIntra_P2p(Int lidx,Int & rank,NumMat<T>& AinvBuf,NumMat<T>& UBuf);
+#else
   inline void SelInvIntra_P2p(Int lidx,Int & rank);
+#endif
 
   /// @brief SelInv_lookup_indexes
   inline void SelInv_lookup_indexes(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
   inline void SelInv_lookup_indexes_seq(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
 
+  /// @brief SelInv_lookup_indexes
+  inline void Compute_Sinv_LT_Kernel(SuperNodeBufferType & snode, std::vector<LBlock<T> > & LcolRecv, std::vector<UBlock<T> > & UrowRecv, NumMat<T> & AinvBuf,NumMat<T> & UBuf);
+ 
   /// @brief GetWorkSet
   inline void GetWorkSet(std::vector<Int> & snodeEtree, std::vector<std::vector<Int> > & WSet);
 
@@ -1032,8 +1039,12 @@ template<typename T>  class PMatrixUnsym;
 
 } // namespace PEXSI
 
+#ifdef USE_FUGAKU
+#include "pexsi/pselinv_impl_fugaku.hpp"
+#endif
 
+#if !defined(USE_FUGAKU)
 #include "pexsi/pselinv_impl.hpp"
-
+#endif
 
 #endif //_PEXSI_PSELINV_HPP_
