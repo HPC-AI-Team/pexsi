@@ -10,14 +10,14 @@ extern "C" {
 #define MAX_BLOCK_SIZE 128
 #endif
 
-int get_superlu_env_nsup(){
+static int get_superlu_env_nsup(){
     char* tmp = getenv("NSUP");
     if(tmp)
         return atoi(tmp);
     return 128;
 }
 
-int get_superlu_env_nrel(){
+static int get_superlu_env_nrel(){
     char* tmp = getenv("NREL");
     if(tmp)
         return atoi(tmp);
@@ -66,19 +66,19 @@ static void indirect_index_segment_compress_destroy(indirect_index_segment_compr
 }
 
 
-void indirect_index_segment_compress_use_example(){
-    indirect_index_segment_compress_t segment_compress;
-    double* arr;
-    for(int ptr = 0; ptr < segment_compress.segment_count; ++ptr){
-        int i_start = segment_compress.segment_ptr[ptr];
-        int i_end = segment_compress.segment_ptr[ptr+1];
-        int offset = segment_compress.segment_offset[ptr];
-        double *ARR = arr + offset;
-        for(int i = i_start; i < i_end; i++){
-            // do some thing for ARR[i]
-        } 
-    }
-}
+// void indirect_index_segment_compress_use_example(){
+//     indirect_index_segment_compress_t segment_compress;
+//     double* arr;
+//     for(int ptr = 0; ptr < segment_compress.segment_count; ++ptr){
+//         int i_start = segment_compress.segment_ptr[ptr];
+//         int i_end = segment_compress.segment_ptr[ptr+1];
+//         int offset = segment_compress.segment_offset[ptr];
+//         double *ARR = arr + offset;
+//         for(int i = i_start; i < i_end; i++){
+//             // do some thing for ARR[i]
+//         } 
+//     }
+// }
 
 
 

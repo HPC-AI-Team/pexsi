@@ -8,3 +8,4 @@ external/*
 *.swp
 make.inc
 run_pselinv_fugaku
+.vscode

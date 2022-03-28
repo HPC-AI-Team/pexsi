@@ -633,9 +633,9 @@ ComplexSuperLUData::NumericalFactorize	(  )
   float flopcnt = 0;
   MPI_Allreduce(&ptrData->stat.ops[FACT], &flopcnt, 1, MPI_FLOAT, MPI_SUM, ptrData->grid->comm);
   statusOFS<<"Number of FLOPS for factorization: "<<flopcnt<<std::endl;  
-  if(!ptrData->grid->iam){
-    std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
-  }
+  // if(!ptrData->grid->iam){
+  //   std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
+  // }
   statusOFS<<"****************************************************"<<std::endl;  
 #endif
 

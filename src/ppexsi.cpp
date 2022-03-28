@@ -1711,6 +1711,14 @@ PPEXSIData::SelInvRealSymmetricMatrix(
 
     GetTime( timeTotalSelInvEnd );
 
+#ifdef _PRINT_STATS_
+    double flops = PMloc.GetTotalFlops();
+    if( verbosity == 1 ){
+      statusOFS << "Total FLOPs for selected inversion is " << flops << std::endl;
+      statusOFS << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeTotalSelInvEnd  - timeTotalSelInvSta) << std::endl;
+    }
+#endif
+
     if( verbosity >= 1 ){
       statusOFS << "Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -1834,7 +1842,13 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
     PMloc.SelInv();
 
     GetTime( timeTotalSelInvEnd );
-
+#ifdef _PRINT_STATS_
+    double flops = PMloc.GetTotalFlops();
+    if( verbosity == 1 ){
+      statusOFS << "Total FLOPs for selected inversion is " << flops << std::endl;
+      statusOFS << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeTotalSelInvEnd  - timeTotalSelInvSta) << std::endl;
+    }
+#endif
     if( verbosity >= 1 ){
       statusOFS << "Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -2010,7 +2024,13 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
     PMloc.SelInv();
 
     GetTime( timeTotalSelInvEnd );
-
+#ifdef _PRINT_STATS_
+    double flops = PMloc.GetTotalFlops();
+    if( verbosity == 1 ){
+      statusOFS << "Total FLOPs for selected inversion is " << flops << std::endl;
+      statusOFS << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeTotalSelInvEnd  - timeTotalSelInvSta) << std::endl;
+    }
+#endif
     if( verbosity >= 1 ){
       statusOFS << "Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -2133,7 +2153,13 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
     PMloc.SelInv();
 
     GetTime( timeTotalSelInvEnd );
-
+#ifdef _PRINT_STATS_
+    double flops = PMloc.GetTotalFlops();
+    if( verbosity == 1 ){
+      statusOFS << "Total FLOPs for selected inversion is " << flops << std::endl;
+      statusOFS << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeTotalSelInvEnd  - timeTotalSelInvSta) << std::endl;
+    }
+#endif
     if( verbosity >= 1 ){
       statusOFS << "Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -3038,7 +3064,13 @@ void PPEXSIData::CalculateFermiOperatorReal(
         //          PMloc.SelInv_Collectives();
 
         GetTime( timeTotalSelInvEnd );
-
+#ifdef _PRINT_STATS_
+    double flops = PMloc.GetTotalFlops();
+    if( verbosity == 1 ){
+      statusOFS << "Total FLOPs for selected inversion is " << flops << std::endl;
+      statusOFS << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeTotalSelInvEnd  - timeTotalSelInvSta) << std::endl;
+    }
+#endif
         if( verbosity >= 1 ){
           statusOFS << "Time for total selected inversion is " <<
             timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -3673,7 +3705,13 @@ void PPEXSIData::CalculateFermiOperatorComplex(
         //          PMloc.SelInv_Collectives();
 
         GetTime( timeTotalSelInvEnd );
-
+#ifdef _PRINT_STATS_
+    double flops = PMloc.GetTotalFlops();
+    if( verbosity == 1 ){
+      statusOFS << "Total FLOPs for selected inversion is " << flops << std::endl;
+      statusOFS << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeTotalSelInvEnd  - timeTotalSelInvSta) << std::endl;
+    }
+#endif
         if( verbosity >= 1 ){
           statusOFS << "Time for total selected inversion is " <<
             timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -5167,6 +5205,7 @@ void PPEXSIData::CalculateFermiOperatorReal3(
               GetTime( timeTotalSelInvSta );
 
               luMat.LUstructToPMatrix( PMloc );
+              statusOFS << "LUStructToPMatrix done........ " << " [s]" << std::endl<< std::flush; 
             }
             break;
 #ifdef WITH_SYMPACK
@@ -5224,13 +5263,22 @@ void PPEXSIData::CalculateFermiOperatorReal3(
             break;
         }
 
+       
+        statusOFS << "Start to Preselected inversion.... " << " [s]" << std::endl; 
         PMloc.PreSelInv();
+        statusOFS << "       o Preselected inversion.... Done" << " [s]" << std::endl; 
 
         // Main subroutine for selected inversion
         PMloc.SelInv();
 
         GetTime( timeTotalSelInvEnd );
-
+#ifdef _PRINT_STATS_
+    double flops = PMloc.GetTotalFlops();
+    if( verbosity == 1 ){
+      statusOFS << "Total FLOPs for selected inversion is " << flops << std::endl;
+      statusOFS << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeTotalSelInvEnd  - timeTotalSelInvSta) << std::endl;
+    }
+#endif
         if( verbosity >= 1 ){
           statusOFS << "Time for total selected inversion is " <<
             timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -5652,7 +5700,13 @@ void PPEXSIData::CalculateEDMCorrectionReal(
     //          PMloc.SelInv_Collectives();
 
     GetTime( timeTotalSelInvEnd );
-
+#ifdef _PRINT_STATS_
+    double flops = PMloc.GetTotalFlops();
+    if( verbosity == 1 ){
+      statusOFS << "Total FLOPs for selected inversion is " << flops << std::endl;
+      statusOFS << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeTotalSelInvEnd  - timeTotalSelInvSta) << std::endl;
+    }
+#endif
     if( verbosity >= 1 ){
       statusOFS << "Sinv Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -5864,7 +5918,14 @@ void PPEXSIData::CalculateEDMCorrectionComplex(
     //          PMloc.SelInv_Collectives();
 
     GetTime( timeTotalSelInvEnd );
-
+    
+#ifdef _PRINT_STATS_
+    double flops = PMloc.GetTotalFlops();
+    if( verbosity == 1 ){
+      statusOFS << "Total FLOPs for selected inversion is " << flops << std::endl;
+      statusOFS << "Total TFLOPS for selected inversion is " << flops*1e-12/(timeTotalSelInvEnd  - timeTotalSelInvSta) << std::endl;
+    }
+#endif
     if( verbosity >= 1 ){
       statusOFS << "Sinv Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
