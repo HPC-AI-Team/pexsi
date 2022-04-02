@@ -9,11 +9,12 @@ SRCS_C    = driver_pselinv_real.c driver_pselinv_complex.c driver_pselinv_real_u
 					 	driver_pselinv_complex_unsym.c driver_ksdft.c \
 						driver_fermi_complex.c driver2_ksdft.c
 
-all: driver_pselinv_real driver_pselinv_real_unsym \
-	driver_pselinv_complex driver_pselinv_complex_unsym \
-	driver_ksdft driver_fermi_complex \
-	driver2_ksdft
+# all: driver_pselinv_real driver_pselinv_real_unsym \
+# 	driver_pselinv_complex driver_pselinv_complex_unsym \
+# 	driver_ksdft driver_fermi_complex \
+# 	driver2_ksdft
 
+all: run_pselinv
 
 ifeq (${USE_SYMPACK}, 1)
 run_pselinv_sympack: run_pselinv_sympack.o ${PEXSI_LIB} ../include/pexsi/sympack_interf_impl.hpp 

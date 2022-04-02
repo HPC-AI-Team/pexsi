@@ -6,3 +6,5 @@ logPEXSI*
 *.out
 external/*
 *.swp
+make.inc
+*_sunway
