@@ -332,8 +332,6 @@ int main(int argc, char **argv)
       // *********************************************************************
       // Read input matrix
       // *********************************************************************
-      if( mpirank == 0 )
-        cout << "2" << endl;
       // Setup grid.
       SuperLUGrid<MYSCALAR> g( world_comm, nprow, npcol );
 
@@ -350,8 +348,6 @@ int main(int argc, char **argv)
         ReadDistSparseMatrixFormatted( Hfile.c_str(), HMat, world_comm ); 
         ParaWriteDistSparseMatrix( "H.csc", HMat, world_comm ); 
       }
-      if( mpirank == 0 )
-        cout << "2" << endl;
       if( Sfile.empty() ){
         // Set the size to be zero.  This will tell PPEXSI.Solve to treat
         // the overlap matrix as an identity matrix implicitly.
