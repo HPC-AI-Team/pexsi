@@ -48,17 +48,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "pexsi/timer.h"
 #include <crts.h>
 
-#ifdef _SW_PERF_
-#include <swperf.h>
-#endif
-
-#define _MYCOMPLEX_
-
-#ifdef _MYCOMPLEX_
-#define MYSCALAR Complex
-#else
 #define MYSCALAR Real
-#endif
 
 using namespace PEXSI;
 using namespace std;
@@ -289,6 +279,10 @@ int main(int argc, char **argv)
             << std::endl << std::endl;
       }
 
+
+
+
+
       Int numProcSymbFact;
       if( options.find("-npsymbfact") != options.end() ){ 
         numProcSymbFact = atoi( options["-npsymbfact"].c_str() );
@@ -302,23 +296,6 @@ int main(int argc, char **argv)
             << "Use default value (maximum number of procs)." 
             << std::endl << std::endl;
         numProcSymbFact = 0;
-      }
-
-      Int num_lookaheads;
-      if( options.find("-numlookahead") != options.end() ){ 
-        num_lookaheads = atoi( options["-numlookahead"].c_str() );
-        if( mpirank == 0 )
-          std::cout << "numlookahead : " << num_lookaheads << std::endl << std::endl;
-      }
-      else{
-        // statusOFS << "-npsymbfact option is not given. " 
-        //   << "Use default value (maximum number of procs)." 
-        //   << std::endl << std::endl;
-        if( mpirank == 0 )
-          std::cout << "-numlookahead option is not given. " 
-            << "Use default value 10." 
-            << std::endl << std::endl;
-        num_lookaheads = 10;
       }
 
 
@@ -467,7 +444,7 @@ int main(int argc, char **argv)
       SuperLUOptions luOpt;
       luOpt.ColPerm = ColPerm;
       luOpt.numProcSymbFact = numProcSymbFact;
-      luOpt.num_lookaheads = num_lookaheads;
+
 
       SuperLUMatrix<MYSCALAR> luMat(g, luOpt );
 
@@ -510,7 +487,6 @@ int main(int argc, char **argv)
 
 
       if(doFacto){
-
         GetTime( timeSta );
         luMat.NumericalFactorize();
         GetTime( timeEnd );
@@ -561,14 +537,18 @@ int main(int argc, char **argv)
           PMatrix<MYSCALAR> * PMlocPtr;
           SuperNodeType * superPtr;
           GridType * g1Ptr;
+
           GetTime( timeTotalSelInvSta );
+
           g1Ptr = new GridType( world_comm, nprow, npcol );
           GridType &g1 = *g1Ptr;
+
           superPtr = new SuperNodeType();
           SuperNodeType & super = *superPtr;
 
           GetTime( timeSta );
           luMat.SymbolicToSuperNode( super );
+
           PSelInvOptions selInvOpt;
           selInvOpt.maxPipelineDepth = maxPipelineDepth;
           selInvOpt.symmetricStorage = symmetricStorage;
@@ -577,6 +557,7 @@ int main(int argc, char **argv)
           factOpt.ColPerm = ColPerm;
           PMlocPtr = new PMatrix<MYSCALAR>( &g1, &super, &selInvOpt, &factOpt  );
           PMatrix<MYSCALAR> & PMloc = *PMlocPtr;
+
           if(doConvert){
             luMat.LUstructToPMatrix( PMloc );
             GetTime( timeEnd );
@@ -732,38 +713,10 @@ int main(int argc, char **argv)
             if( mpirank == 0 )
               cout << "Time for pre-selected inversion is " << timeEnd  - timeSta << endl;
 
-#ifdef _SW_PERF_
-            unsigned long slave_fd_float_count_start[64];
-            unsigned long slave_fd_float_count_end[64];
-            penv_slave_fd_float_init();
-            penv_slave_fd_float_count(slave_fd_float_count_start);
-
-            unsigned long host1_float_muletc_count_start;
-            unsigned long host1_float_muletc_count_end;
-            penv_host1_float_muletc_init();
-            penv_host1_float_muletc_count(&host1_float_muletc_count_start);
-#endif
-
             // Main subroutine for selected inversion
             GetTime( timeSta );
             PMloc.SelInv();
             GetTime( timeEnd );
-
-#ifdef _SW_PERF_
-            penv_slave_fd_float_count(slave_fd_float_count_end);
-            penv_host1_float_muletc_count(&host1_float_muletc_count_end);
-
-            double local_total_slave_float_count = 0.;
-            for(int i = 0; i < 64; ++i){
-              local_total_slave_float_count += double(slave_fd_float_count_end[i] - slave_fd_float_count_start[i]);
-            }
-            local_total_slave_float_count += double(host1_float_muletc_count_end - host1_float_muletc_count_start);
-            double global_total_slave_float_count = 0.;
-            MPI_Allreduce(&local_total_slave_float_count, &global_total_slave_float_count, 1, MPI_DOUBLE, MPI_SUM, PMloc.GetComm());
-            if( mpirank == 0 )
-              cout << "Total FLOPs for selected inversion is (by swperf)" << global_total_slave_float_count << std::endl;     
-#endif
-
             if( mpirank == 0 )
               cout << "Time for numerical selected inversion is " << timeEnd  - timeSta << endl;
 

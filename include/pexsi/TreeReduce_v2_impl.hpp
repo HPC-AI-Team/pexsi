@@ -497,14 +497,14 @@ namespace PEXSI{
       Int nprocs = 0;
       MPI_Comm_size(pComm, &nprocs);
 
-#if defined(FTREE)
+#if defined(PALMTREE)
+      return new PalmTreeReduce_v2<T>(pComm,ranks,rank_cnt,msgSize);
+#elif defined(FTREE)
       return new FTreeReduce_v2<T>(pComm,ranks,rank_cnt,msgSize);
 #elif defined(MODBTREE)
       return new ModBTreeReduce_v2<T>(pComm,ranks,rank_cnt,msgSize, rseed);
 #elif defined(BTREE)
-      return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
-#elif defined(PALMTREE)
-      return new PalmTreeReduce_v2<T>(pComm,ranks,rank_cnt,msgSize);
+      return new BTreeReduce_v2<T>(pComm,ranks,rank_cnt,msgSize);
 #endif
 
 

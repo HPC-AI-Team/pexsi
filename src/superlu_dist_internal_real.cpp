@@ -236,6 +236,7 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
   // Necessary to invoke static scheduling of SuperLU
   options.lookahead_etree   = YES;
   options.SymPattern        = YES;
+  options.num_lookaheads    = opt.num_lookaheads;
 //#ifdef _PRINT_STATS_
 //  options.PrintStat         = YES;
 //#endif
@@ -578,9 +579,9 @@ RealSuperLUData::NumericalFactorize	(  )
   float flopcnt = 0;
   MPI_Allreduce(&ptrData->stat.ops[FACT], &flopcnt, 1, MPI_FLOAT, MPI_SUM, ptrData->grid->comm);
   statusOFS<<"Number of FLOPS for factorization: "<<flopcnt<<std::endl;  
-  if(!ptrData->grid->iam){
-    std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
-  }
+  // if(!ptrData->grid->iam){
+  //   std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
+  // }
   statusOFS<<"****************************************************"<<std::endl;  
 #endif
 

@@ -53,6 +53,10 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include <numeric>
 
+#ifdef _SW_PERF_
+#include <swperf.h>
+#endif
+
 //#include <Cnames.h>  // not needed from 6.4.0
 extern "C"{ void
 #ifdef SUPERLU_DIST_MAJOR_VERSION
@@ -265,10 +269,11 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
   // Necessary to invoke static scheduling of SuperLU
   options.lookahead_etree   = YES;
   options.SymPattern        = YES;
-
+  options.num_lookaheads    = opt.num_lookaheads;
 //#ifdef _PRINT_STATS_
 //  options.PrintStat         = YES;
 //#endif
+  
 
   if(opt.Symmetric == 1){
     options.RowPerm         = NOROWPERM;
@@ -617,6 +622,26 @@ ComplexSuperLUData::NumericalFactorize	(  )
   if( !ptrData->isLUstructAllocated ){
     ErrorHandling( "LUstruct has not been allocated." );
   }
+
+#ifdef _SW_PERF_
+  unsigned long slave_fd_float_count_start[64];
+  unsigned long slave_fd_float_count_end[64];
+  penv_slave_fd_float_init();
+  penv_slave_fd_float_count(slave_fd_float_count_start);
+
+  unsigned long host1_float_muletc_count_start;
+  unsigned long host1_float_muletc_count_end;
+  penv_host1_float_muletc_init();
+  penv_host1_float_muletc_count(&host1_float_muletc_count_start);
+
+  // penv_mc_band_init();
+  // double read_ratio, write_ratio;
+  // double read_ratio_max, write_ratio_max;
+  // double read_ratio_min, write_ratio_min;
+  // double read_ratio_avg, write_ratio_avg;
+  // penv_mc_band_count(&read_ratio, &write_ratio);
+#endif
+
   // Estimate the 1-norm
   char norm[1]; *norm = '1';
   double anorm = pzlangs( norm, &ptrData->A, ptrData->grid );
@@ -624,6 +649,31 @@ ComplexSuperLUData::NumericalFactorize	(  )
   PStatInit(&ptrData->stat);
   pzgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol, 
       anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info); 
+
+#ifdef _SW_PERF_
+  penv_slave_fd_float_count(slave_fd_float_count_end);
+  penv_host1_float_muletc_count(&host1_float_muletc_count_end);
+  // penv_mc_band_count(&read_ratio, &write_ratio);
+
+  double local_total_slave_float_count = 0.;
+  for(int i = 0; i < 64; ++i){
+    local_total_slave_float_count += double(slave_fd_float_count_end[i] - slave_fd_float_count_start[i]);
+  }
+  local_total_slave_float_count += double(host1_float_muletc_count_end - host1_float_muletc_count_start);
+  double global_total_slave_float_count = 0.;
+  
+  MPI_Allreduce(&local_total_slave_float_count, &global_total_slave_float_count, 1, MPI_DOUBLE, MPI_SUM, ptrData->grid->comm);
+  // if( ptrData->grid->iam == 0 )
+  //   std::cout << "Total FLOPs for factorization is (by swperf)" << global_total_slave_float_count << std::endl;     
+  statusOFS << "Total FLOPs for factorization is (by swperf)" << global_total_slave_float_count << std::endl;     
+
+  // if( ptrData->grid->iam == 0 ){
+  //   std::cout << "Memory access bandwidth utilization for read is (by swperf)" << read_ratio << std::endl;     
+  //   std::cout << "Memory access bandwidth utilization for write is (by swperf)" << write_ratio << std::endl;     
+  // }
+  // statusOFS << "Memory access bandwidth utilization for read is (by swperf)" << read_ratio << std::endl;     
+  // statusOFS << "Memory access bandwidth utilization for write is (by swperf)" << write_ratio << std::endl;
+#endif
 
 #ifdef _PRINT_STATS_
   statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;  
@@ -633,9 +683,9 @@ ComplexSuperLUData::NumericalFactorize	(  )
   float flopcnt = 0;
   MPI_Allreduce(&ptrData->stat.ops[FACT], &flopcnt, 1, MPI_FLOAT, MPI_SUM, ptrData->grid->comm);
   statusOFS<<"Number of FLOPS for factorization: "<<flopcnt<<std::endl;  
-  if(!ptrData->grid->iam){
-    std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
-  }
+  // if(!ptrData->grid->iam){
+  //   std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
+  // }
   statusOFS<<"****************************************************"<<std::endl;  
 #endif
 

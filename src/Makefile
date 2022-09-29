@@ -4,7 +4,8 @@ SRCS_C   = pdsymbfact.c pzsymbfact.c get_perm_c_parmetis.c
 SRCS_CPP = interface.cpp ppexsi.cpp pole.cpp TreeBcast.cpp\
 					 superlu_dist_internal_complex.cpp superlu_dist_internal_real.cpp \
 					 mpi_interf.cpp lapack.cpp blas.cpp utility.cpp global.cpp timer.cpp \
-					 getPole.cpp
+					 # getPole.cpp
+
 SRCS_CPP_SLAVE = slave_hello_world.cpp \
 				 slave_JB_Loop_z.cpp slave_JB_Loop_Index_Compress_z.cpp slave_JB_Loop_Index_Compress_dma_z.cpp \
 				 slave_JB_Loop_d.cpp slave_JB_Loop_Index_Compress_d.cpp slave_JB_Loop_Index_Compress_dma_d.cpp
@@ -20,7 +21,7 @@ SRCS_CPP_SLAVE_OBJ = ${SRCS_CPP_SLAVE:.cpp=.o}
 SRCS_F90_OBJ = ${SRCS_F90:.f90=.o}
 
 DEPS     = ${SRCS_CPP:.cpp=.d} ${SRCS_C:.c=.d} 
-OBJS     = ${SRCS_C_OBJ} ${SRCS_CPP_OBJ} ${SRCS_CPP_SLAVE_OBJ} ${SRCS_F90_OBJ}
+OBJS     = ${SRCS_C_OBJ} ${SRCS_CPP_OBJ} ${SRCS_CPP_SLAVE_OBJ} ${SRCS_F90_OBJ} getPole.o
 
 all: ${PEXSI_LIB} 
 

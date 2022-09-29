@@ -54,47 +54,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "pexsi/utility.hpp"
 #include "pexsi/getPole.hpp"
 
-#ifdef _SW_PERF_
-#include <swperf.h>
-#endif
-
-extern "C"{
-  extern char *swch_get_process_info(int rank, char *buf);
-}
 namespace PEXSI{
-
-#ifdef _SW_PERF_
-
-typedef struct{
-    unsigned long slave_fd_float_count_start[64];
-    unsigned long slave_fd_float_count_end[64];
-    unsigned long host1_float_muletc_count_start;
-    unsigned long host1_float_muletc_count_end;
-}swperf_t;
-
-static void swperf_init(){
-    penv_slave_fd_float_init();
-    penv_host1_float_muletc_init();
-}
-
-static void swperf_start(swperf_t* swperf){
-    penv_slave_fd_float_count(swperf->slave_fd_float_count_start);
-    penv_host1_float_muletc_count(&swperf->host1_float_muletc_count_start);
-}
-
-static void swperf_end(swperf_t* swperf, MPI_Comm comm){
-    penv_slave_fd_float_count(swperf->slave_fd_float_count_end);
-    penv_host1_float_muletc_count(&swperf->host1_float_muletc_count_end);
-    double local_total_slave_float_count = 0.;
-    for(int i = 0; i < 64; ++i){
-      local_total_slave_float_count += double(swperf->slave_fd_float_count_end[i] - swperf->slave_fd_float_count_start[i]);
-    }
-    local_total_slave_float_count += double(swperf->host1_float_muletc_count_end - swperf->host1_float_muletc_count_start);
-    double global_total_slave_float_count = 0.;
-    MPI_Allreduce(&local_total_slave_float_count, &global_total_slave_float_count, 1, MPI_DOUBLE, MPI_SUM, comm);
-    statusOFS << "Total FLOPs for selected inversion is (by swperf)" << global_total_slave_float_count << std::endl;  
-}
-#endif
 
 PPEXSIData::PPEXSIData    (
     MPI_Comm   comm,
@@ -1747,19 +1707,9 @@ PPEXSIData::SelInvRealSymmetricMatrix(
 
     PMloc.PreSelInv();
 
-#ifdef _SW_PERF_
-    swperf_init();
-    swperf_t swperf;
-    swperf_start(&swperf);
-#endif
-
     PMloc.SelInv();
 
     GetTime( timeTotalSelInvEnd );
-
-#ifdef _SW_PERF_
-    swperf_end(&swperf, PMloc.GetComm());
-#endif
 
     if( verbosity >= 1 ){
       statusOFS << "Time for total selected inversion is " <<
@@ -1886,17 +1836,11 @@ PPEXSIData::SelInvRealUnsymmetricMatrix(
 
 
     PMloc.PreSelInv();
-#ifdef _SW_PERF_
-    swperf_init();
-    swperf_t swperf;
-    swperf_start(&swperf);
-#endif
+
     PMloc.SelInv();
 
     GetTime( timeTotalSelInvEnd );
-#ifdef _SW_PERF_
-    swperf_end(&swperf, PMloc.GetComm());
-#endif
+
     if( verbosity >= 1 ){
       statusOFS << "Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -2074,17 +2018,11 @@ PPEXSIData::SelInvComplexSymmetricMatrix(
     }
 
     PMloc.PreSelInv();
-#ifdef _SW_PERF_
-    swperf_init();
-    swperf_t swperf;
-    swperf_start(&swperf);
-#endif
+
     PMloc.SelInv();
 
     GetTime( timeTotalSelInvEnd );
-#ifdef _SW_PERF_
-    swperf_end(&swperf, PMloc.GetComm());    
-#endif
+
     if( verbosity >= 1 ){
       statusOFS << "Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -2208,17 +2146,11 @@ PPEXSIData::SelInvComplexUnsymmetricMatrix(
     }
 
     PMloc.PreSelInv();
-#ifdef _SW_PERF_
-    swperf_init();
-    swperf_t swperf;
-    swperf_start(&swperf);
-#endif
+
     PMloc.SelInv();
 
     GetTime( timeTotalSelInvEnd );
-#ifdef _SW_PERF_
-    swperf_end(&swperf, PMloc.GetComm());   
-#endif
+
     if( verbosity >= 1 ){
       statusOFS << "Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -3123,20 +3055,13 @@ void PPEXSIData::CalculateFermiOperatorReal(
         // Main subroutine for selected inversion
         //
         // P2p communication version
-#ifdef _SW_PERF_
-    swperf_init();
-    swperf_t swperf;
-    swperf_start(&swperf);
-#endif
         PMloc.SelInv();
 
         // Collective communication version
         //          PMloc.SelInv_Collectives();
 
         GetTime( timeTotalSelInvEnd );
-#ifdef _SW_PERF_
-    swperf_end(&swperf, PMloc.GetComm());    
-#endif
+
         if( verbosity >= 1 ){
           statusOFS << "Time for total selected inversion is " <<
             timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -3771,20 +3696,13 @@ void PPEXSIData::CalculateFermiOperatorComplex(
         // Main subroutine for selected inversion
         //
         // P2p communication version
-#ifdef _SW_PERF_
-    swperf_init();
-    swperf_t swperf;
-    swperf_start(&swperf);
-#endif
         PMloc.SelInv();
 
         // Collective communication version
         //          PMloc.SelInv_Collectives();
 
         GetTime( timeTotalSelInvEnd );
-#ifdef _SW_PERF_
-    swperf_end(&swperf, PMloc.GetComm());    
-#endif
+
         if( verbosity >= 1 ){
           statusOFS << "Time for total selected inversion is " <<
             timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -4588,14 +4506,6 @@ PPEXSIData::DFTDriver2 (
     statusOFS << gridPole_->mpisize << " "  << gridPole_->mpirank << " myPoint "  <<  myPointRank<< " nPoints " << nPoints << std::endl;
   }
 
-  char mylocation[64];
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  swch_get_process_info(rank, mylocation);
-  if( verbosity >= 1 ){
-    statusOFS << "rank : " << rank << std::endl << std::flush;
-    statusOFS << "node_info : " << mylocation << std::endl << std::flush;
-  }
 
   // not used in current code. 
   Real muLower;
@@ -5351,17 +5261,10 @@ void PPEXSIData::CalculateFermiOperatorReal3(
         PMloc.PreSelInv();
 
         // Main subroutine for selected inversion
-#ifdef _SW_PERF_
-    swperf_init();
-    swperf_t swperf;
-    swperf_start(&swperf);
-#endif
         PMloc.SelInv();
 
         GetTime( timeTotalSelInvEnd );
-#ifdef _SW_PERF_
-    swperf_end(&swperf, PMloc.GetComm());   
-#endif
+
         if( verbosity >= 1 ){
           statusOFS << "Time for total selected inversion is " <<
             timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -5802,21 +5705,13 @@ void PPEXSIData::CalculateEDMCorrectionReal(
     // Main subroutine for selected inversion
     //
     // P2p communication version
-#ifdef _SW_PERF_
-    swperf_init();
-    swperf_t swperf;
-    swperf_start(&swperf);
-#endif
-
     PMloc.SelInv();
 
     // Collective communication version
     //          PMloc.SelInv_Collectives();
 
     GetTime( timeTotalSelInvEnd );
-#ifdef _SW_PERF_
-    swperf_end(&swperf, PMloc.GetComm()); 
-#endif
+
     if( verbosity >= 1 ){
       statusOFS << "Sinv Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -6029,21 +5924,13 @@ void PPEXSIData::CalculateEDMCorrectionComplex(
     // Main subroutine for selected inversion
     //
     // P2p communication version
- #ifdef _SW_PERF_
-    swperf_init();
-    swperf_t swperf;
-    swperf_start(&swperf);
-#endif
-
     PMloc.SelInv();
 
     // Collective communication version
     //          PMloc.SelInv_Collectives();
 
     GetTime( timeTotalSelInvEnd );
-#ifdef _SW_PERF_
-    swperf_end(&swperf, PMloc.GetComm());     
-#endif
+
     if( verbosity >= 1 ){
       statusOFS << "Sinv Time for total selected inversion is " <<
         timeTotalSelInvEnd  - timeTotalSelInvSta << " [s]" << std::endl;
@@ -6214,62 +6101,48 @@ void PPEXSIData::InterpolateDMReal(
         idxMin = numShift - 2; 
     }
 
-    // for(int i = 0; i < numShift; i++){
-    //   if( (i < numShift-1 )&& (NeVec[i] > NeVec[i+1]) ) {
-    //     statusOFS << " MuPEXSI from Point :" << i << " is  " << shiftVec[i]<< 
-    //       " numElectron " << NeVec[i] << std::endl;
-    //     statusOFS << " MuPEXSI from Point :" << i+1 << " is  " << shiftVec[i+1]<< 
-    //       " numElectron " << NeVec[i+1] << std::endl;
+    for(int i = 0; i < numShift; i++){
+      if( (i < numShift-1 )&& (NeVec[i] > NeVec[i+1]) ) {
+        statusOFS << " MuPEXSI from Point :" << i << " is  " << shiftVec[i]<< 
+          " numElectron " << NeVec[i] << std::endl;
+        statusOFS << " MuPEXSI from Point :" << i+1 << " is  " << shiftVec[i+1]<< 
+          " numElectron " << NeVec[i+1] << std::endl;
 
-    //     statusOFS << std::endl << " Warning!"<< std::endl;
-    //     statusOFS << " Warning! Smaller chemical potential has bigger number of Electrons." << std::endl;
-    //     statusOFS << " Warning! IT MIGHT TAKE FOREVER TO CONVERGE........................." << std::endl; 
-    //     statusOFS << " Warning: problem found in the evaluation of the number of electrons.";
-    //     statusOFS << " smaller mu has bigger number of Electons. This usually can be solved by: " << std::endl;
-    //     statusOFS << "   1. number of poles is not enough for the calculation, try increase the number of poles."
-    //               << std::endl;
-    //     statusOFS << "   2. if the system is a gapped system, try increase the tolerance for interia counting."
-    //               << std::endl;
-    //     statusOFS << "   3. change the tolerance for PEXSI electron tolerance (usually to bigger values)."
-    //               << std::endl;
-    //     statusOFS << std::endl;
-    //     isMuReasonable = false; 
-    //     iFLAG = 1;
-    //   }
-    // }
+        statusOFS << std::endl << " Warning!"<< std::endl;
+        statusOFS << " Warning! Smaller chemical potential has bigger number of Electrons." << std::endl;
+        statusOFS << " Warning! IT MIGHT TAKE FOREVER TO CONVERGE........................." << std::endl; 
+        statusOFS << " Warning: problem found in the evaluation of the number of electrons.";
+        statusOFS << " smaller mu has bigger number of Electons. This usually can be solved by: " << std::endl;
+        statusOFS << "   1. number of poles is not enough for the calculation, try increase the number of poles."
+                  << std::endl;
+        statusOFS << "   2. if the system is a gapped system, try increase the tolerance for interia counting."
+                  << std::endl;
+        statusOFS << "   3. change the tolerance for PEXSI electron tolerance (usually to bigger values)."
+                  << std::endl;
+        statusOFS << std::endl;
+        isMuReasonable = false; 
+        iFLAG = 1;
+      }
+    }
 
     if( isMuReasonable) {
-      // check if converged.
+      // check if converged. 
       bool isLinearInterplate = true;
-      //for(Int mu_idx = idxMin; mu_idx <= idxMax; mu_idx++)
+      for(Int mu_idx = idxMin; mu_idx <= idxMax; mu_idx++)
       {
-        Int mu_idx;
-        std::vector<Real>  NeVecErr( numShift );
-        for(Int i = idxMin; i <= idxMax; i++)
-          NeVecErr[i] = std::abs( NeVec[i] - numElectronExact );
-
-        Real bestMu = 9999999999999.0;
-        for(Int i = idxMin; i <= idxMax; i ++)
-          if( NeVecErr[i] < bestMu ) {
-            bestMu = NeVecErr[i];
-            mu_idx = i;
-          }
-
-
-        //if (std::abs( NeVec[mu_idx] - numElectronExact ) < numElectronPEXSITolerance){
-        {
+        if (std::abs( NeVec[mu_idx] - numElectronExact ) < numElectronPEXSITolerance){
           mu = shiftVec[mu_idx];
           numElectronPEXSI = NeVec[mu_idx];
           isLinearInterplate = false;
-
+  
           // bcast the DM, EDM, FDM
-          MPI_Bcast(rhoRealMat_.nzvalLocal.Data(), rhoRealMat_.nnzLocal, MPI_DOUBLE,
+          MPI_Bcast(rhoRealMat_.nzvalLocal.Data(), rhoRealMat_.nnzLocal, MPI_DOUBLE, 
               mu_idx, pointRowComm);
-          MPI_Bcast(energyDensityRealMat_.nzvalLocal.Data(),
+          MPI_Bcast(energyDensityRealMat_.nzvalLocal.Data(), 
               energyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
-          MPI_Bcast(freeEnergyDensityRealMat_.nzvalLocal.Data(),
+          MPI_Bcast(freeEnergyDensityRealMat_.nzvalLocal.Data(), 
               freeEnergyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
-
+  
           if( verbosity >= 1 ) {
             statusOFS << "PEXSI Converged " <<std::endl;
             Print( statusOFS, "converged idx               = ", mu_idx);
@@ -6277,36 +6150,9 @@ void PPEXSIData::InterpolateDMReal(
             Print( statusOFS, "numElectronTolerance        = ", numElectronPEXSITolerance);
             Print( statusOFS, "Final mu                    = ", mu);
           }
-          //break;
+          break;
         }
       }
-      // // check if converged. 
-      // bool isLinearInterplate = true;
-      // for(Int mu_idx = idxMin; mu_idx <= idxMax; mu_idx++)
-      // {
-      //   if (std::abs( NeVec[mu_idx] - numElectronExact ) < numElectronPEXSITolerance){
-      //     mu = shiftVec[mu_idx];
-      //     numElectronPEXSI = NeVec[mu_idx];
-      //     isLinearInterplate = false;
-  
-      //     // bcast the DM, EDM, FDM
-      //     MPI_Bcast(rhoRealMat_.nzvalLocal.Data(), rhoRealMat_.nnzLocal, MPI_DOUBLE, 
-      //         mu_idx, pointRowComm);
-      //     MPI_Bcast(energyDensityRealMat_.nzvalLocal.Data(), 
-      //         energyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
-      //     MPI_Bcast(freeEnergyDensityRealMat_.nzvalLocal.Data(), 
-      //         freeEnergyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
-  
-      //     if( verbosity >= 1 ) {
-      //       statusOFS << "PEXSI Converged " <<std::endl;
-      //       Print( statusOFS, "converged idx               = ", mu_idx);
-      //       Print( statusOFS, "converged NeVec[mu_idx]     = ", NeVec[mu_idx]);
-      //       Print( statusOFS, "numElectronTolerance        = ", numElectronPEXSITolerance);
-      //       Print( statusOFS, "Final mu                    = ", mu);
-      //     }
-      //     break;
-      //   }
-      // }
   
       if(isLinearInterplate) {
         // Linear interpolation. when not converged.

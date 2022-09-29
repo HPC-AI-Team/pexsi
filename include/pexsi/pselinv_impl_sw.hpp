@@ -62,6 +62,9 @@ such enhancements or derivative works thereof, in binary and source code form.
 #ifndef MAX_BLOCK_SIZE 
 #define MAX_BLOCK_SIZE 256
 #endif
+#ifndef MAX_AINV_SIZE 
+#define MAX_AINV_SIZE 5120
+#endif
 
 #define MPI_MAX_COMM (1024)
 #define BCAST_THRESHOLD 16
@@ -485,8 +488,16 @@ namespace PEXSI{
 
       TIMER_START(Allocate_lookup);
       // Allocate for the computational storage
+      if(numRowAinvBuf > MAX_AINV_SIZE || numColAinvBuf > MAX_AINV_SIZE){
+        statusOFS << "Waring : the numRowAinvBuf or numColAinvBuf exceeds preallocated space " << std::endl << std::flush; 
+        statusOFS << "numRowAinvBuf : " << numRowAinvBuf << std::endl << std::flush; 
+        statusOFS << "numColAinvBuf : " << numColAinvBuf << std::endl << std::flush; 
+        statusOFS << "preallocated space : (" << MAX_AINV_SIZE << ", " << MAX_AINV_SIZE << ")" << std::endl << std::flush; 
+      }
+
       AinvBuf.Resize( numRowAinvBuf, numColAinvBuf );
       UBuf.Resize( SuperSize( snode.Index, super_ ), numColAinvBuf );
+
       //    TIMER_START(SetValue_lookup);
       //    SetValue( AinvBuf, ZERO<T>() );
       //SetValue( snode.LUpdateBuf, ZERO<T>() );
@@ -511,7 +522,6 @@ namespace PEXSI{
       // Fill AinvBuf with the information in L or U block.
       TIMER_START(JB_Loop);
 
-#ifdef JB_Loop_parallel
       TIMER_START(JB_Loop_Copy);
 
       LBlock_z_t* LcolRecvTmp;
@@ -534,6 +544,8 @@ namespace PEXSI{
       Matrix_z_init(AinvBuf, &AinvBufTmp);
 
       TIMER_STOP(JB_Loop_Copy);
+
+#ifdef JB_Loop_parallel
       
       JB_Loop_param_z_t param;
       param.LcolRecvTmp = LcolRecvTmp;
@@ -788,8 +800,6 @@ namespace PEXSI{
       // Fill AinvBuf with the information in L or U block.
       TIMER_START(JB_Loop);
 
-#ifdef JB_Loop_parallel
-
       TIMER_START(JB_Loop_Copy);
 
       LBlock_d_t* LcolRecvTmp;
@@ -812,6 +822,8 @@ namespace PEXSI{
       Matrix_d_init(AinvBuf, &AinvBufTmp);
      
       TIMER_STOP(JB_Loop_Copy);
+
+#ifdef JB_Loop_parallel
 
       JB_Loop_param_d_t param;
       param.LcolRecvTmp = LcolRecvTmp;
@@ -1986,9 +1998,6 @@ namespace PEXSI{
 
           //while I don't have anything to do, wait for data to arrive 
           do{
-
-
-
             //then process with the remote ones
 
             TIMER_START(WaitContent_UL);
@@ -1998,11 +2007,6 @@ namespace PEXSI{
               TIMER_START(WaitContent_UL_First);
             }
 #endif
-
-
-
-
-
             int reqIndices[arrMpireqsRecvContentFromAny.size()];
             int numRecv = 0; 
             numRecv = 0;
@@ -5199,9 +5203,9 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
       Int rank = 0;
 
 #ifdef pre_Allocate_loopup
-
-      NumMat<T> AinvBuf(5120,5120), UBuf(MAX_BLOCK_SIZE,5120);
+      NumMat<T> AinvBuf(MAX_AINV_SIZE,MAX_AINV_SIZE), UBuf(MAX_BLOCK_SIZE,MAX_AINV_SIZE);
 #endif
+
       auto itNextSync = syncPoints_.begin();
       for (lidx=0; lidx<numSteps ; lidx++){
 

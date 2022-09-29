@@ -699,6 +699,8 @@ public:
 
   double GetTotalFlops();
 
+  MPI_Comm GetComm(){return this->grid_->comm;};
+
   PMatrix();
 
   PMatrix( const GridType* g, const SuperNodeType* s, const PEXSI::PSelInvOptions * o, const PEXSI::FactorizationOptions * oFact  );

@@ -6,8 +6,9 @@
 /// @date 2016-02-23 Compatible with SuperLU_DIST_v4.3
 #include <math.h>
 #include "superlu_ddefs.h"
+#ifndef PRNTlevel
 #define  PRNTlevel 0
-
+#endif
 #ifndef MIN
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
@@ -153,6 +154,12 @@ pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 	parSymbFact = options->ParSymbFact;
 
 	iam = grid->iam;
+
+	// if(!iam){
+	// 	printf("call pdsymbfact in pexsi/src/pdsymbfact.c\n");
+	// 	fflush(stdout);
+	// }
+
 	job = 5;
 	if ( factored || (Fact == SamePattern_SameRowPerm && Equil) ) {
 		rowequ = (ScalePermstruct->DiagScale == ROW) ||
@@ -162,7 +169,7 @@ pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 	} else rowequ = colequ = FALSE;
 
 #if ( PRNTlevel >= 1 )
-	if( !iam ) fprintf(stderr,"Entering pdsymbfact.\n");
+	if( !iam ) fprintf(stdout,"Entering pdsymbfact.\n");
 #endif
 
 	/* The following arrays are replicated on all processes. */
@@ -502,7 +509,7 @@ pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 				noDomains = MIN(noDomains,*numProcSymbFact);
 			}
 #if ( PRNTlevel >= 1 )
-			if( !iam ) fprintf(stderr,"Using %d processors for ParMETIS.\n", noDomains);
+			if( !iam ) fprintf(stdout,"Using %d processors for ParMETIS.\n", noDomains);
 #endif
 
 			/* create a new communicator for the first noDomains processes in
@@ -523,13 +530,13 @@ pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 				 * sizes[] and fstVtxSep[] arrays, that contain information    *
 				 * on the separator tree computed by ParMETIS.                 */
 #if ( PRNTlevel >= 1 )
-				if( !iam ) fprintf(stderr,"Before get_perm_c_parmetis.");
+				if( !iam ) fprintf(stdout,"Before get_perm_c_parmetis.");
 #endif
 				flinfo = get_perm_c_parmetis(A, perm_r, perm_c, nprocs_num,
 																		 noDomains, &sizes, &fstVtxSep,
 																		 grid, &symb_comm);
 #if ( PRNTlevel >= 1 )
-				if( !iam ) fprintf(stderr,"After get_perm_c_parmetis.");
+				if( !iam ) fprintf(stdout,"After get_perm_c_parmetis.");
 #endif
         if (flinfo > 0) {
 #if ( PRNTlevel>=1 )
@@ -612,14 +619,14 @@ pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 			else {  /* parallel symbolic factorization */
 				t = SuperLU_timer_();
 #if ( PRNTlevel >= 1 )
-				if( !iam ) fprintf(stderr,"Before symbfact_dist.");
+				if( !iam ) fprintf(stdout,"Before symbfact_dist.");
 #endif
 				flinfo = symbfact_dist(nprocs_num, noDomains, A, perm_c, perm_r,
 															 sizes, fstVtxSep, &Pslu_freeable, 
 															 &(grid->comm), &symb_comm,
 															 &symb_mem_usage); 
 #if ( PRNTlevel >= 1 )
-				if( !iam ) fprintf(stderr,"After symbfact_dist.");
+				if( !iam ) fprintf(stdout,"After symbfact_dist.");
 #endif
 				stat->utime[SYMBFAC] = SuperLU_timer_() - t;
         if (flinfo > 0) {
